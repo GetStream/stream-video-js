@@ -57,7 +57,7 @@
     'body'
     'footer'
     'chatPanel';
-  grid-template-rows: 80px 30vh 70px calc(70vh - 150px);
+  grid-template-rows: 80px 30vh 70px calc(70dvh - 160px);
 }
 
 .sidebar {

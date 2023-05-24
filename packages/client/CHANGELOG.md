@@ -2,6 +2,97 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.177...client0.0.1-alpha.178) (2023-05-23)
+
+
+
+## [0.0.1-alpha.177](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.176...client0.0.1-alpha.177) (2023-05-23)
+
+
+
+## [0.0.1-alpha.176](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.175...client0.0.1-alpha.176) (2023-05-23)
+
+
+### Features
+
+* Participant information from track events ([#536](https://github.com/GetStream/stream-video-js/issues/536)) ([e8c8d7b](https://github.com/GetStream/stream-video-js/commit/e8c8d7bdf6d21321908ce1cb3a113b445b41d5c8))
+
+
+
+## [0.0.1-alpha.175](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.174...client0.0.1-alpha.175) (2023-05-23)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+### Features
+
+* conditional target video bitrate downscaling ([#537](https://github.com/GetStream/stream-video-js/issues/537)) ([134341b](https://github.com/GetStream/stream-video-js/commit/134341b213d690e78de87f30cf0751e24ae64ca4)), closes [#516](https://github.com/GetStream/stream-video-js/issues/516)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+### Features
+
+* conditional target video bitrate downscaling ([#537](https://github.com/GetStream/stream-video-js/issues/537)) ([134341b](https://github.com/GetStream/stream-video-js/commit/134341b213d690e78de87f30cf0751e24ae64ca4)), closes [#516](https://github.com/GetStream/stream-video-js/issues/516)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+
+## [0.0.1-alpha.173](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.172...client0.0.1-alpha.173) (2023-05-23)
+
+
+
+## [0.0.1-alpha.172](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.171...client0.0.1-alpha.172) (2023-05-22)
+
+
+
+## [0.0.1-alpha.171](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.170...client0.0.1-alpha.171) (2023-05-22)
+
+
+
+## [0.0.1-alpha.170](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.169...client0.0.1-alpha.170) (2023-05-22)
+
+
+### Features
+
+* missing WS events and endpoints ([#527](https://github.com/GetStream/stream-video-js/issues/527)) ([1bb49f4](https://github.com/GetStream/stream-video-js/commit/1bb49f479485007dcc505066694d2e463ab00777))
+
+
+
+## [0.0.1-alpha.169](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.168...client0.0.1-alpha.169) (2023-05-22)
+
+
+### Bug Fixes
+
+* Revert "feat: Participant information from track events" ([#532](https://github.com/GetStream/stream-video-js/issues/532)) ([4a00166](https://github.com/GetStream/stream-video-js/commit/4a00166986b176aedac2a92eed1c03686cdf23d9)), closes [GetStream/stream-video-js#526](https://github.com/GetStream/stream-video-js/issues/526)
+
+
+
+## [0.0.1-alpha.168](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.167...client0.0.1-alpha.168) (2023-05-22)
+
+
+### Features
+
+* Participant information from track events ([#526](https://github.com/GetStream/stream-video-js/issues/526)) ([fbefffe](https://github.com/GetStream/stream-video-js/commit/fbefffedaf6965491c2c7574fea383fcdfa7a9f6))
+
+
+
+## [0.0.1-alpha.167](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.166...client0.0.1-alpha.167) (2023-05-22)
+
+
+### Features
+
+* **react-native:** add permissions support ([#445](https://github.com/GetStream/stream-video-js/issues/445)) ([e077aeb](https://github.com/GetStream/stream-video-js/commit/e077aeba95e42abaf0e5e3c1d58b344507ec52e2))
+
+
+
 ## [0.0.1-alpha.166](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.165...client0.0.1-alpha.166) (2023-05-19)
 
 

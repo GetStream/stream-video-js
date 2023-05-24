@@ -2,6 +2,82 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.64...@stream-io/video-react-bindings-0.0.1-alpha.65) (2023-05-23)
+
+
+
+## [0.0.1-alpha.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.63...@stream-io/video-react-bindings-0.0.1-alpha.64) (2023-05-23)
+
+
+
+## [0.0.1-alpha.63](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.62...@stream-io/video-react-bindings-0.0.1-alpha.63) (2023-05-23)
+
+
+
+## [0.0.1-alpha.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.61...@stream-io/video-react-bindings-0.0.1-alpha.62) (2023-05-23)
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.60...@stream-io/video-react-bindings-0.0.1-alpha.61) (2023-05-23)
+
+
+### Features
+
+* Add useCallPermissionRequest hook ([#538](https://github.com/GetStream/stream-video-js/issues/538)) ([185af85](https://github.com/GetStream/stream-video-js/commit/185af854637befc06c2e9f4bd4a816a8f1d18faf))
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.60...@stream-io/video-react-bindings-0.0.1-alpha.61) (2023-05-23)
+
+
+### Features
+
+* Add useCallPermissionRequest hook ([#538](https://github.com/GetStream/stream-video-js/issues/538)) ([185af85](https://github.com/GetStream/stream-video-js/commit/185af854637befc06c2e9f4bd4a816a8f1d18faf))
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.60...@stream-io/video-react-bindings-0.0.1-alpha.61) (2023-05-23)
+
+
+### Features
+
+* Add useCallPermissionRequest hook ([#538](https://github.com/GetStream/stream-video-js/issues/538)) ([185af85](https://github.com/GetStream/stream-video-js/commit/185af854637befc06c2e9f4bd4a816a8f1d18faf))
+
+
+
+## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.59...@stream-io/video-react-bindings-0.0.1-alpha.60) (2023-05-23)
+
+
+
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.58...@stream-io/video-react-bindings-0.0.1-alpha.59) (2023-05-22)
+
+
+
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.57...@stream-io/video-react-bindings-0.0.1-alpha.58) (2023-05-22)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.56...@stream-io/video-react-bindings-0.0.1-alpha.57) (2023-05-22)
+
+
+### Features
+
+* missing WS events and endpoints ([#527](https://github.com/GetStream/stream-video-js/issues/527)) ([1bb49f4](https://github.com/GetStream/stream-video-js/commit/1bb49f479485007dcc505066694d2e463ab00777))
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.55...@stream-io/video-react-bindings-0.0.1-alpha.56) (2023-05-22)
+
+
+
+## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.54...@stream-io/video-react-bindings-0.0.1-alpha.55) (2023-05-22)
+
+
+
+## [0.0.1-alpha.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.53...@stream-io/video-react-bindings-0.0.1-alpha.54) (2023-05-22)
+
+
+
 ## [0.0.1-alpha.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.52...@stream-io/video-react-bindings-0.0.1-alpha.53) (2023-05-19)
 
 

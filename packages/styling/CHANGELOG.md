@@ -2,6 +2,62 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.50](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.49...@stream-io/video-styling-0.0.1-alpha.50) (2023-05-23)
+
+
+
+## [0.0.1-alpha.49](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.48...@stream-io/video-styling-0.0.1-alpha.49) (2023-05-23)
+
+
+
+## [0.0.1-alpha.48](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.47...@stream-io/video-styling-0.0.1-alpha.48) (2023-05-23)
+
+
+
+## [0.0.1-alpha.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.46...@stream-io/video-styling-0.0.1-alpha.47) (2023-05-23)
+
+
+
+## [0.0.1-alpha.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.45...@stream-io/video-styling-0.0.1-alpha.46) (2023-05-23)
+
+
+
+## [0.0.1-alpha.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.44...@stream-io/video-styling-0.0.1-alpha.45) (2023-05-23)
+
+
+
+## [0.0.1-alpha.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.43...@stream-io/video-styling-0.0.1-alpha.44) (2023-05-23)
+
+
+
+## [0.0.1-alpha.43](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.42...@stream-io/video-styling-0.0.1-alpha.43) (2023-05-23)
+
+
+
+## [0.0.1-alpha.42](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.41...@stream-io/video-styling-0.0.1-alpha.42) (2023-05-22)
+
+
+
+## [0.0.1-alpha.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.40...@stream-io/video-styling-0.0.1-alpha.41) (2023-05-22)
+
+
+
+## [0.0.1-alpha.40](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.39...@stream-io/video-styling-0.0.1-alpha.40) (2023-05-22)
+
+
+
+## [0.0.1-alpha.39](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.38...@stream-io/video-styling-0.0.1-alpha.39) (2023-05-22)
+
+
+
+## [0.0.1-alpha.38](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.37...@stream-io/video-styling-0.0.1-alpha.38) (2023-05-22)
+
+
+
+## [0.0.1-alpha.37](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.36...@stream-io/video-styling-0.0.1-alpha.37) (2023-05-22)
+
+
+
 ## [0.0.1-alpha.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.35...@stream-io/video-styling-0.0.1-alpha.36) (2023-05-19)
 
 

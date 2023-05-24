@@ -1,21 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { useCallControls } from '../hooks/useCallControls';
-import {
-  CameraSwitch,
-  Chat,
-  Mic,
-  MicOff,
-  PhoneDown,
-  Reaction,
-  Video,
-  VideoSlash,
-} from '../icons';
+import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCall } from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
+import { ToggleAudioButton } from './ToggleAudioButton';
+import { ToggleVideoButton } from './ToggleVideoButton';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -28,14 +21,9 @@ import { ReactionModal } from './ReactionsModal';
 export const CallControlsView = () => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
-  const {
-    isAudioMuted,
-    isVideoMuted,
-    isCameraOnFrontFacingMode,
-    toggleVideoMuted,
-    toggleAudioMuted,
-    toggleCameraFacingMode,
-  } = useCallControls();
+
+  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+    useCallControls();
   const call = useCall();
 
   const handleHangUpCall = () => call?.leave();
@@ -70,48 +58,32 @@ export const CallControlsView = () => {
       >
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleVideoMuted}
-        color={muteStatusColor(isVideoMuted)}
-        style={!isVideoMuted ? styles.button : null}
-      >
-        {isVideoMuted ? (
-          <VideoSlash color={theme.light.static_white} />
-        ) : (
-          <Video color={theme.light.static_black} />
-        )}
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleAudioMuted}
-        color={muteStatusColor(isAudioMuted)}
-        style={!isAudioMuted ? styles.button : null}
-      >
-        {isAudioMuted ? (
-          <MicOff color={theme.light.static_white} />
-        ) : (
-          <Mic color={theme.light.static_black} />
-        )}
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={toggleCameraFacingMode}
-        color={muteStatusColor(!isCameraOnFrontFacingMode)}
-        style={isCameraOnFrontFacingMode ? styles.button : null}
-      >
-        <CameraSwitch
-          color={
-            isCameraOnFrontFacingMode
-              ? theme.light.static_black
-              : theme.light.static_white
-          }
-        />
-      </CallControlsButton>
-      <CallControlsButton
-        onPress={handleHangUpCall}
-        color={theme.light.error}
-        style={[styles.button, { shadowColor: theme.light.error }]}
-      >
-        <PhoneDown color={theme.light.static_white} />
-      </CallControlsButton>
+      <ToggleVideoButton />
+      <ToggleAudioButton />
+      <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
+        <CallControlsButton
+          onPress={toggleCameraFacingMode}
+          color={muteStatusColor(!isCameraOnFrontFacingMode)}
+          style={isCameraOnFrontFacingMode ? styles.button : null}
+        >
+          <CameraSwitch
+            color={
+              isCameraOnFrontFacingMode
+                ? theme.light.static_black
+                : theme.light.static_white
+            }
+          />
+        </CallControlsButton>
+      </Restricted>
+      <Restricted requiredGrants={[OwnCapability.END_CALL]}>
+        <CallControlsButton
+          onPress={handleHangUpCall}
+          color={theme.light.error}
+          style={[styles.button, { shadowColor: theme.light.error }]}
+        >
+          <PhoneDown color={theme.light.static_white} />
+        </CallControlsButton>
+      </Restricted>
     </View>
   );
 };

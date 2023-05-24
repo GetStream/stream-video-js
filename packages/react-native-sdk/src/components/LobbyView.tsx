@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
@@ -9,7 +9,7 @@ import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 const ParticipantStatus = () => {
@@ -57,8 +57,12 @@ export const LobbyView = () => {
   const joinCallHandler = async () => {
     try {
       await call?.join({ create: true });
-    } catch (e) {
-      console.log('Error joining call', e);
+    } catch (error) {
+      console.log(error);
+      if (error instanceof AxiosError) {
+        console.log('Error joining call', error);
+        Alert.alert(error.response?.data.message);
+      }
     }
   };
   const connectedUserAsParticipant = {

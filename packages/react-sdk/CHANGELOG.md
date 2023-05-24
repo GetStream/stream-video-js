@@ -2,6 +2,67 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.72](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.71...@stream-io/video-react-sdk-0.0.1-alpha.72) (2023-05-23)
+
+
+
+## [0.0.1-alpha.71](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.70...@stream-io/video-react-sdk-0.0.1-alpha.71) (2023-05-23)
+
+
+
+## [0.0.1-alpha.70](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.69...@stream-io/video-react-sdk-0.0.1-alpha.70) (2023-05-23)
+
+
+
+## [0.0.1-alpha.69](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.68...@stream-io/video-react-sdk-0.0.1-alpha.69) (2023-05-23)
+
+
+
+## [0.0.1-alpha.68](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.67...@stream-io/video-react-sdk-0.0.1-alpha.68) (2023-05-23)
+
+
+
+## [0.0.1-alpha.67](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.66...@stream-io/video-react-sdk-0.0.1-alpha.67) (2023-05-23)
+
+
+
+## [0.0.1-alpha.66](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.65...@stream-io/video-react-sdk-0.0.1-alpha.66) (2023-05-23)
+
+
+
+## [0.0.1-alpha.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.64...@stream-io/video-react-sdk-0.0.1-alpha.65) (2023-05-23)
+
+
+
+## [0.0.1-alpha.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.63...@stream-io/video-react-sdk-0.0.1-alpha.64) (2023-05-22)
+
+
+
+## [0.0.1-alpha.63](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.62...@stream-io/video-react-sdk-0.0.1-alpha.63) (2023-05-22)
+
+
+
+## [0.0.1-alpha.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.61...@stream-io/video-react-sdk-0.0.1-alpha.62) (2023-05-22)
+
+
+### Features
+
+* missing WS events and endpoints ([#527](https://github.com/GetStream/stream-video-js/issues/527)) ([1bb49f4](https://github.com/GetStream/stream-video-js/commit/1bb49f479485007dcc505066694d2e463ab00777))
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.60...@stream-io/video-react-sdk-0.0.1-alpha.61) (2023-05-22)
+
+
+
+## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.59...@stream-io/video-react-sdk-0.0.1-alpha.60) (2023-05-22)
+
+
+
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.58...@stream-io/video-react-sdk-0.0.1-alpha.59) (2023-05-22)
+
+
+
 ## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.57...@stream-io/video-react-sdk-0.0.1-alpha.58) (2023-05-19)
 
 

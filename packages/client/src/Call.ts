@@ -34,6 +34,7 @@ import {
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
+  QueryMembersRequest,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
@@ -355,6 +356,7 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
+    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
@@ -442,9 +444,14 @@ export class Call {
   /**
    * Loads the information about the call.
    */
-  get = async () => {
+  get = async (params?: {
+    ring?: boolean;
+    notify?: boolean;
+    members_limit?: number;
+  }) => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
+      params,
     );
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
@@ -468,10 +475,6 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -481,6 +484,14 @@ export class Call {
     }
 
     return response;
+  };
+
+  ring = async (): Promise<GetCallResponse> => {
+    return await this.get({ ring: true });
+  };
+
+  notify = async (): Promise<GetCallResponse> => {
+    return await this.get({ notify: true });
   };
 
   /**
@@ -499,16 +510,6 @@ export class Call {
 
     const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
-
-    if (data?.ring && !this.ringing) {
-      this.ringingSubject.next(true);
-    }
-
-    if (this.ringing && !this.isCreatedByMe) {
-      // Signals other users that I have accepted the incoming call.
-      // Causes the `call.accepted` event to be emitted to all the call members.
-      await this.sendEvent({ type: 'call.accepted' });
-    }
 
     let sfuServer: SFUResponse;
     let sfuToken: string;
@@ -706,7 +707,12 @@ export class Call {
             this.streamClient.options.preferredVideoCodec,
           ),
         )
-        .then((sdp) => sfuClient.join({ subscriberSdp: sdp || '' }));
+        .then((sdp) =>
+          sfuClient.join({
+            subscriberSdp: sdp || '',
+            clientDetails,
+          }),
+        );
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
@@ -1392,6 +1398,19 @@ export class Call {
     });
   };
 
+  /**
+   * Query call members with filter query. The result won't be stored in call state.
+   * @param request
+   * @returns
+   */
+  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+    return this.streamClient.post<QueryMembersRequest>('/call/members', {
+      ...request,
+      id: this.id,
+      type: this.type,
+    });
+  };
+
   private scheduleAutoDrop = () => {
     const subscription = this.state.metadata$
       .pipe(
@@ -1469,5 +1488,13 @@ export class Call {
       `${this.streamClientBasePath}/event`,
       event,
     );
+  };
+
+  accept = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
+  };
+
+  reject = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
   };
 }

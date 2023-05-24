@@ -34,3 +34,7 @@
 .link {
   @apply flex w-full justify-between items-center text-sm;
 }
+
+.download {
+  @apply h-4 w-4;
+}
