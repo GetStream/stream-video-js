@@ -11,7 +11,7 @@ export interface SDKStreamVideoStore {
 }
 
 export const {
-  Provider,
+  Provider: StoreProvider,
   useStoreValue: useStreamVideoStoreValue,
   useStoreSetState: useStreamVideoStoreSetState,
 } = createStoreContext<SDKStreamVideoStore>({

@@ -11,7 +11,7 @@ import {
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
-import { useAppStateListener } from '../utils/useAppStateListener';
+import { useAppStateListener } from '../utils/hooks/useAppStateListener';
 import { useIsOnline } from './useIsOnline';
 
 /**
