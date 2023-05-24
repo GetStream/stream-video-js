@@ -30,7 +30,7 @@ export const CallControlsView = () => {
     try {
       await call?.leave();
     } catch (err) {
-      throw err;
+      console.log('Error Leaving call:', err);
     }
   };
 

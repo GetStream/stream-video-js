@@ -27,7 +27,7 @@ export const StreamCall = ({
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const [call, setCall] = useState<Call | undefined>(
-    videoClient && videoClient.call(callType, callId),
+    videoClient?.call(callType, callId),
   );
   const [incomingCall] = useIncomingCalls();
 

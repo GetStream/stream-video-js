@@ -1,8 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LobbyView, theme } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Text } from 'react-native';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 
 type LobbyViewComponentType = NativeStackScreenProps<
