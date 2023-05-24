@@ -1,4 +1,3 @@
-import { Call } from '@stream-io/video-client';
 import {
   CallStatsButton,
   CancelCallButton,
@@ -10,23 +9,21 @@ import {
 import { SpeakingWhileMutedNotification } from '../Notification';
 
 export type CallControlsProps = {
-  call: Call;
   onLeave?: () => void;
 };
 
 export const CallControls = (props: CallControlsProps) => {
-  const { call, onLeave } = props;
-
+  const { onLeave } = props;
   return (
     <div className="str-video__call-controls">
-      <RecordCallButton call={call} />
+      <RecordCallButton />
       <CallStatsButton />
-      <ScreenShareButton call={call} />
+      <ScreenShareButton />
       <SpeakingWhileMutedNotification>
         <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
       <ToggleVideoPublishingButton />
-      <CancelCallButton call={call} onLeave={onLeave} />
+      <CancelCallButton onLeave={onLeave} />
     </div>
   );
 };
