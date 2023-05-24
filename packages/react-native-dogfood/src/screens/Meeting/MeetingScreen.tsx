@@ -12,7 +12,6 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
-import { createToken } from '../../modules/helpers/jwt';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import translations from '../../translations';
 
@@ -22,7 +21,6 @@ export const MeetingScreen = (props: Props) => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const apiKey = process.env.STREAM_API_KEY as string;
-  const apiSecret = process.env.STREAM_API_SECRET as string;
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation, route } = props;
 
@@ -54,9 +52,13 @@ export const MeetingScreen = (props: Props) => {
   };
 
   const tokenOrProvider = useCallback(async () => {
-    const token = await createToken(username, apiSecret);
+    const { token } = await fetch(
+      'https://stream-calls-dogfood.vercel.app/api/auth/create-token?' +
+        new URLSearchParams({ api_key: apiKey, user_id: username }),
+      {},
+    ).then((response) => response.json());
     return token;
-  }, [apiSecret, username]);
+  }, [apiKey, username]);
 
   const client = useCreateStreamVideoClient({
     apiKey,

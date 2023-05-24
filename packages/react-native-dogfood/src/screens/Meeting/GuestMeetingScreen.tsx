@@ -14,7 +14,6 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
-import { createToken } from '../../modules/helpers/jwt';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -23,7 +22,6 @@ type Props = NativeStackScreenProps<
 
 export const GuestMeetingScreen = (props: Props) => {
   const apiKey = process.env.STREAM_API_KEY as string;
-  const apiSecret = process.env.STREAM_API_SECRET as string;
   const {
     params: { guestUserId, guestCallId, mode },
   } = props.route;
@@ -59,16 +57,20 @@ export const GuestMeetingScreen = (props: Props) => {
 
   useEffect(() => {
     const intitializeToken = async () => {
-      // anonymous user tokens must have "!anon" as the user_id
-      const token = await createToken('!anon', apiSecret, {
-        user_id: '!anon',
-        call_cids: [`${guestCallType}:${guestCallId}`],
-      });
+      const { token } = await fetch(
+        'https://stream-calls-dogfood.vercel.app/api/auth/create-token?' +
+          new URLSearchParams({
+            api_key: apiKey,
+            user_id: '!anon',
+            call_cids: `${guestCallType}:${guestCallType}`,
+          }),
+        {},
+      ).then((response) => response.json());
       setTokenToUse(token);
     };
 
     intitializeToken();
-  }, [apiSecret, guestCallId, guestCallType]);
+  }, [apiKey, guestCallId, guestCallType]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
