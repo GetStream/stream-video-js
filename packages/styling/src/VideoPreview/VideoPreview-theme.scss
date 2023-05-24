@@ -1,0 +1,37 @@
+@use '../utils';
+
+.str-video {
+  /* The font color applied inside the component */
+  --str-video__video-preview-container--color: var(--str-video__text-color1);
+
+  /* The background color of the component */
+  --str-video__video-preview-container--background-color: var(
+    --str-video__background-color5
+  );
+
+  /* The border radius used for the borders of the component */
+  --str-video__video-preview-container--border-radius: var(
+    --str-video__border-radius-xs
+  );
+
+  /* The border used for the borders of the component */
+  --str-video__video-preview-container--border-block-start: 4px solid
+    var(--str-video__primary-color);
+
+  /* The border used for the borders of the component */
+  --str-video__video-preview-container--border-block-end: 4px solid
+    var(--str-video__primary-color);
+
+  /* The border used for the borders of the component */
+  --str-video__video-preview-container--border-inline-start: 4px solid
+    var(--str-video__primary-color);
+
+  /* The border used for the borders of the component */
+  --str-video__video-preview-container--border-inline-end: 4px solid
+    var(--str-video__primary-color);
+}
+
+.str-video__video-preview-container {
+  @include utils.component-layer-overrides('video-preview-container');
+  overflow: hidden;
+}

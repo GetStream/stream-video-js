@@ -5,7 +5,7 @@ title: Overview
 
 import SDKSpecific from '../SDKSpecific';
 
-The "Call Engine" section gives you an overview of our state management and lists all the available API operations and utility functions, hooks, and contexts.
+The "Call Engine" section lists all the available API operations and utility functions, hooks, and contexts.
 
 The "Call Engine" consists of the following:
 
@@ -25,36 +25,25 @@ You can find the reference documentation of the `Call` class on the [Call page](
 
 Our SDK uses a design pattern that we refer to as a reactive state store. The `StreamVideoClient` instance manages its own state store and each `Call` instance has its own state store as well. The state stores are updated after each API call/WebSocket event. The reactive state store makes it possible to observe the state from anywhere in your application. You can access the state store using hooks.
 
-- You can find a guide to our reactive state store on the [State store page](./02-state-store.mdx).
-- You can find the list of state variables managed by the `StreamVideoClient` instance on the [Hooks/Client State page](./hooks.md/#client-state)
-- You can find the list of state variables managed by the `Call` instances on the [Hooks/Call State page](./hooks.md/#call-state)
+- You can find a guide to our reactive state store on the [State store page](../../guides/04-state-store).
+- You can find the list of state variables managed by the `StreamVideoClient` instance on the [Hooks/Client State page](./hooks-and-contexts.md/#client-state)
+- You can find the list of state variables managed by the `Call` instances on the [Hooks/Call State page](./hooks-and-contexts.md/#call-state)
 
-## Contexts
+## Hooks and Contexts
 
-The [Contexts page](./contexts.md) lists all the built-in contexts provided by the SDK. They are categorized like this:
+The [Hooks and Contexts page](./hooks-and-contexts.md) lists all the built-in hooks and contexts provided by the SDK. They are categorized like this:
 
-- [Client state](./contexts.md/#client-state) - these contexts let you access the client state store
-- [Call state](./contexts.md/#call-state) - these contexts let you access the call state stores
-- [Device management](./contexts.md/#device-management) - these contexts let you access audio/video devices and streams
-
-## Hooks
-
-The [Hooks page](./hooks.md) lists all the built-in hooks provided by the SDK. They are categorized like this:
+- [Client state](./hooks-and-contexts.md/#client-state) - these let you access the client state store
+- [Call state](./hooks-and-contexts.md/#call-state) - these let you access the call state stores
+- [Device management](./hooks-and-contexts.md/#device-management) - these provide high level APIs for device management
 
 <SDKSpecific name="reactnative">
 
-- [Client operations](./hooks.md/#client-operations) - these hooks provide a
+- [Client operations](./hooks-and-contexts.md/#client-operations) - these provide a
   higher-level abstraction over some `StreamVideoClient` functions or define
   extra operations
-- [Call operations](./hooks.md/#call-operations) - these
-  hooks provide a higher-level abstraction over some `Call` functions calls or
+- [Call operations](./hooks-and-contexts.md/#call-operations) - these
+  provide a higher-level abstraction over some `Call` functions calls or
   define extra operations
 
 </SDKSpecific>
-
-- [Client state](./hooks.md/#client-state) - these are hooks that let you observe
-  client-related state variables (such as the logged-in user, incoming calls, etc.)
-- [Call state](./hooks.md/#call-state) - these are hooks that let you observe
-  call-related state variables (such as the list of participants etc.)
-- [Device management](./hooks.md/#device-management) these hooks let you list and select audio and video devices, and publish audio/video
-  streams

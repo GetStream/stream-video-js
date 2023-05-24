@@ -31,7 +31,11 @@
 }
 
 .limit {
-  @apply w-[90%];
+  @apply hidden w-[90%];
+}
+
+.limit.canCopy {
+  @apply block;
 }
 
 .input {
@@ -46,25 +50,45 @@
 }
 
 .copied {
-  @apply flex items-center justify-around text-video-white text-xs;
+  @apply hidden items-center justify-around text-video-white text-xs;
+}
+
+.copied.isCopied {
+  @apply flex;
 }
 
 .copiedIcon {
-  @apply mr-1;
+  @apply mr-1 h-[18px];
 }
 
 .copyIcon {
-  @apply absolute z-0;
+  @apply absolute z-0 h-[18px];
   right: 8px;
-  top: 8px;
+  top: 11px;
+}
+
+.copyIcon:hover {
+  @apply cursor-pointer;
+}
+
+.reload {
+  @apply absolute z-0 h-[14px] right-[8px] top-[11px];
+}
+
+.reload:hover {
+  @apply cursor-pointer;
 }
 
 .description {
-  @apply mt-4 mb-4 text-xs;
+  @apply mt-4 mb-4 text-xs flex;
+}
+
+.description:last-of-type {
+  @apply hidden lg:inline-block;
 }
 
 .qr {
-  @apply flex bg-video-grey-700 rounded-container p-4 flex justify-center;
+  @apply hidden lg:flex 2xl:bg-video-grey-700 rounded-container 2xl:p-4 flex justify-center;
 }
 
 .qr.hide {
@@ -83,7 +107,7 @@
 }
 
 .code {
-  @apply bg-video-white rounded-container p-4;
+  @apply bg-video-white rounded-container md:p-2 2xl:p-4 h-[80px] w-[80px];
 }
 
 .share {

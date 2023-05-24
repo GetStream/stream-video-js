@@ -33,18 +33,19 @@
 }
 
 .name {
-  @apply block items-center max-w-[120px];
+  @apply block items-center min-w-[140px] max-w-[140px];
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .media {
-  @apply flex;
+  @apply flex items-center;
 }
 
 .video,
 .mic,
+.block,
 .options {
   @apply flex text-video-white;
   width: 15px;
@@ -56,6 +57,11 @@
   @apply mr-2;
 }
 
+.video,
+.videoOff {
+  @apply mr-1;
+}
+
 .videoOff,
 .micMuted {
   @apply flex text-video-red-400;
@@ -65,6 +71,7 @@
 
 .video:hover,
 .mic:hover,
+.block:hover,
 .videoOff:hover,
 .micMuted:hover .options:hover {
   @apply cursor-pointer;
@@ -74,6 +81,10 @@
   @apply ml-3;
 }
 
+.options:hover {
+  @apply cursor-pointer;
+}
+
 .invite {
-  @apply flex flex-col sm:hidden;
+  @apply flex flex-col md:hidden;
 }

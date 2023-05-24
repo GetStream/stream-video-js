@@ -6,7 +6,7 @@ export const CustomChannelSearch = (props: ChannelSearchProps) => {
     <>
       <ChannelSearch {...props} />
       {/* TODO: add call stuff */}
-      <QuickDial onUserClick={(u, e) => console.log(u, e)} />
+      <QuickDial />
     </>
   );
 };

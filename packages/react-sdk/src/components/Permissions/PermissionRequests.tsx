@@ -12,9 +12,10 @@ import {
   PermissionRequestEvent,
   UserResponse,
 } from '@stream-io/video-client';
-import { usePopper } from 'react-popper';
 import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
+
+import { useFloatingUIPreset } from '../../hooks';
 
 const byNameOrId = (a: UserResponse, b: UserResponse) => {
   if (a.name && b.name && a.name < b.name) return -1;
@@ -52,15 +53,9 @@ export const PermissionRequests = () => {
     return async () => {
       const { user, permissions } = request;
       if (allow) {
-        await call?.updateUserPermissions({
-          user_id: user.id,
-          grant_permissions: permissions,
-        });
+        await call?.grantPermissions(user.id, permissions);
       } else {
-        await call?.updateUserPermissions({
-          user_id: user.id,
-          revoke_permissions: permissions,
-        });
+        await call?.revokePermissions(user.id, permissions);
       }
       setPermissionRequests((requests) =>
         requests.filter((r) => r !== request),
@@ -68,25 +63,16 @@ export const PermissionRequests = () => {
     };
   };
 
-  const [anchor, setAnchor] = useState<HTMLDivElement | null>(null);
-  const [popover, setPopover] = useState<HTMLDivElement | null>(null);
-  const { styles, attributes } = usePopper(anchor, popover, {
+  const { refs, x, y, strategy } = useFloatingUIPreset({
     placement: 'bottom',
-    modifiers: [
-      {
-        name: 'offset',
-        options: {
-          offset: [0, 0],
-        },
-      },
-    ],
+    strategy: 'absolute',
   });
 
   // don't render anything if there are no permission requests
   if (permissionRequests.length === 0) return null;
 
   return (
-    <div className="str-video__permission-requests" ref={setAnchor}>
+    <div className="str-video__permission-requests" ref={refs.setReference}>
       <div className="str-video__permission-requests__notification">
         <span className="str-video__permission-requests__notification__message">
           {permissionRequests.length} pending permission requests
@@ -102,9 +88,13 @@ export const PermissionRequests = () => {
       </div>
       {expanded && (
         <PermissionRequestList
-          ref={setPopover}
-          style={styles.popper}
-          {...attributes.popper}
+          ref={refs.setFloating}
+          style={{
+            position: strategy,
+            top: y ?? 0,
+            left: x ?? 0,
+            overflowY: 'auto',
+          }}
           permissionRequests={permissionRequests}
           handleUpdatePermission={handleUpdatePermission}
         />

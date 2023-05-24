@@ -1,13 +1,10 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import {
-  ComponentType,
-  forwardRef,
-  isValidElement,
-  PropsWithChildren,
-} from 'react';
-import { IconButton } from './IconButton';
+import { ComponentType, forwardRef, PropsWithChildren } from 'react';
 import { Placement } from '@floating-ui/react';
+
+import { IconButton } from './IconButton';
+import { isComponentType } from '../../utilities';
 
 export type IconButtonWithMenuProps = PropsWithChildren<{
   active?: boolean;
@@ -16,21 +13,12 @@ export type IconButtonWithMenuProps = PropsWithChildren<{
   menuPlacement?: Placement;
 }>;
 
-const isComponentType = (
-  elementOrComponent: ComponentType | JSX.Element,
-): elementOrComponent is ComponentType => {
-  return !isValidElement(elementOrComponent);
-};
-
-export const CompositeButton = ({
-  caption,
-  children,
-  active,
-  Menu,
-  menuPlacement,
-}: IconButtonWithMenuProps) => {
+export const CompositeButton = forwardRef<
+  HTMLDivElement,
+  IconButtonWithMenuProps
+>(({ caption, children, active, Menu, menuPlacement }, ref) => {
   return (
-    <div className="str-video__composite-button">
+    <div className="str-video__composite-button" ref={ref}>
       <div
         className={clsx('str-video__composite-button__button-group', {
           'str-video__composite-button__button-group--active': active,
@@ -48,7 +36,7 @@ export const CompositeButton = ({
       )}
     </div>
   );
-};
+});
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   ({ menuShown }, ref) => (

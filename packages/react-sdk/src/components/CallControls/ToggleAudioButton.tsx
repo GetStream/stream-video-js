@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
+  Restricted,
   useCall,
   useHasPermissions,
+  useI18n,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
-import { useMediaDevices } from '../../contexts';
+
+import { useMediaDevices } from '../../core';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
@@ -13,19 +16,21 @@ import { PermissionNotification } from '../Notification';
 export type ToggleAudioPreviewButtonProps = { caption?: string };
 
 export const ToggleAudioPreviewButton = ({
-  caption = 'Mic',
+  caption,
 }: ToggleAudioPreviewButtonProps) => {
-  const { initialAudioEnabled, toggleAudioMuteState } = useMediaDevices();
+  const { initialAudioEnabled, toggleInitialAudioMuteState } =
+    useMediaDevices();
+  const { t } = useI18n();
 
   return (
     <CompositeButton
       Menu={DeviceSelectorAudioInput}
       active={!initialAudioEnabled}
-      caption={caption}
+      caption={caption || t('Mic')}
     >
       <IconButton
         icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-        onClick={toggleAudioMuteState}
+        onClick={toggleInitialAudioMuteState}
       />
     </CompositeButton>
   );
@@ -35,11 +40,16 @@ export type ToggleAudioPublishingButtonProps = {
   caption?: string;
 };
 
-export const ToggleAudioPublishingButton = ({
-  caption = 'Mic',
-}: ToggleAudioPublishingButtonProps) => {
-  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
+export const ToggleAudioPublishingButton = (
+  props: ToggleAudioPublishingButtonProps,
+) => {
+  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
+    useMediaDevices();
   const localParticipant = useLocalParticipant();
+  const { t } = useI18n();
+
+  const { caption = t('Mic') } = props;
+
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -69,8 +79,13 @@ export const ToggleAudioPublishingButton = ({
         });
       return;
     }
-    if (isAudioMute && hasPermission) {
-      await publishAudioStream();
+    if (isAudioMute) {
+      if (hasPermission) {
+        setInitialAudioEnabled(true);
+        await publishAudioStream();
+      } else {
+        console.log('Cannot publish audio stream. Insufficient permissions.');
+      }
     } else {
       stopPublishingAudio();
     }
@@ -79,27 +94,30 @@ export const ToggleAudioPublishingButton = ({
     hasPermission,
     isAudioMute,
     publishAudioStream,
+    setInitialAudioEnabled,
     stopPublishingAudio,
   ]);
 
   return (
-    <PermissionNotification
-      permission={OwnCapability.SEND_AUDIO}
-      isAwaitingApproval={isAwaitingApproval}
-      messageApproved="You can now speak."
-      messageAwaitingApproval="Awaiting for an approval to speak."
-      messageRevoked="You can no longer speak."
-    >
-      <CompositeButton
-        Menu={DeviceSelectorAudioInput}
-        active={isAudioMute}
-        caption={caption}
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+      <PermissionNotification
+        permission={OwnCapability.SEND_AUDIO}
+        isAwaitingApproval={isAwaitingApproval}
+        messageApproved="You can now speak."
+        messageAwaitingApproval="Awaiting for an approval to speak."
+        messageRevoked="You can no longer speak."
       >
-        <IconButton
-          icon={isAudioMute ? 'mic-off' : 'mic'}
-          onClick={handleClick}
-        />
-      </CompositeButton>
-    </PermissionNotification>
+        <CompositeButton
+          Menu={DeviceSelectorAudioInput}
+          active={isAudioMute}
+          caption={caption}
+        >
+          <IconButton
+            icon={isAudioMute ? 'mic-off' : 'mic'}
+            onClick={handleClick}
+          />
+        </CompositeButton>
+      </PermissionNotification>
+    </Restricted>
   );
 };

@@ -1,20 +1,17 @@
-import { FC, useCallback, useState, useEffect, useMemo } from 'react';
-import classnames from 'classnames';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { StreamChat } from 'stream-chat';
-import { getScreenShareStream, SfuModels } from '@stream-io/video-client';
 
 import {
+  Call,
+  getScreenShareStream,
+  SfuModels,
   useCurrentCallStatsReport,
-  useStreamVideoClient,
-  useIsCallRecordingInProgress,
-  useActiveCall,
-  useParticipants,
-  useLocalParticipant,
   useHasOngoingScreenShare,
-  StreamCallProvider,
-} from '@stream-io/video-react-bindings';
-
-import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
+  useIsCallRecordingInProgress,
+  useLocalParticipant,
+  useParticipants,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 
 import Header from '../../Header';
 import Footer from '../../Footer';
@@ -24,17 +21,16 @@ import Meeting from '../../Meeting';
 import MeetingLayout from '../../Layout/MeetingLayout';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
-import { useBreakpoint } from '../../../hooks/useBreakpoints';
 
 import { useTourContext } from '../../../contexts/TourContext';
+import { usePanelContext } from '../../../contexts/PanelContext';
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
 
-import styles from './MeetingView.module.css';
-
 export type Props = {
   loading?: boolean;
+  call: Call;
   callId: string;
   callType: string;
   isCallActive: boolean;
@@ -44,7 +40,7 @@ export type Props = {
 };
 
 export type Meeting = {
-  call?: any;
+  call?: Call;
   loading?: boolean;
 };
 
@@ -57,8 +53,6 @@ export const View: FC<Props & Meeting> = ({
   setCallHasEnded,
   chatClient,
 }) => {
-  const [showChat, setShowChat] = useState<boolean>(false);
-  const [showParticipants, setShowParticpants] = useState<boolean>(false);
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
 
@@ -67,7 +61,8 @@ export const View: FC<Props & Meeting> = ({
   const cid = `videocall:${callId}`;
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
-  const { current, setSteps } = useTourContext();
+  const { setSteps } = useTourContext();
+  const { isChatVisible } = usePanelContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
@@ -76,8 +71,6 @@ export const View: FC<Props & Meeting> = ({
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
   const remoteScreenShare = useHasOngoingScreenShare();
-
-  const breakpoint = useBreakpoint();
 
   const localScreenShare = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
@@ -89,15 +82,6 @@ export const View: FC<Props & Meeting> = ({
 
   useEffect(() => {
     setSteps(tour);
-  }, []);
-
-  useEffect(() => {
-    if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setShowChat(false);
-      setShowParticpants(false);
-    } else {
-      setShowParticpants(true);
-    }
   }, []);
 
   useEffect(() => {
@@ -123,6 +107,16 @@ export const View: FC<Props & Meeting> = ({
   }, [chatClient, channelWatched, cid]);
 
   useEffect(() => {
+    if (!chatClient || !channelWatched) return;
+
+    console.log({ unread, isChatVisible });
+
+    if (isChatVisible && unread !== 0) {
+      setUnread(0);
+    }
+  }, [chatClient, channelWatched, cid, isChatVisible, unread]);
+
+  useEffect(() => {
     setIsAwaitingRecordingResponse((isAwaiting) => {
       if (isAwaiting) return false;
       return isAwaiting;
@@ -133,18 +127,6 @@ export const View: FC<Props & Meeting> = ({
     call.leave();
     setCallHasEnded(true);
   }, []);
-
-  const toggleChat = useCallback(() => {
-    if (showChat === false && chatClient) {
-      setUnread(0);
-    }
-
-    setShowChat(!showChat);
-  }, [showChat, chatClient]);
-
-  const toggleParticipants = useCallback(() => {
-    setShowParticpants(!showParticipants);
-  }, [showParticipants]);
 
   const toggleShareScreen = useCallback(async () => {
     if (!isScreenSharing) {
@@ -174,19 +156,14 @@ export const View: FC<Props & Meeting> = ({
 
   return (
     <MeetingLayout
-      showParticipants={showParticipants}
-      showChat={showChat}
       callId={callId}
       chatClient={chatClient}
-      toggleChat={toggleChat}
       header={
         <Header
           logo={logo}
           callId={callId}
           isCallActive={isCallActive}
           participants={participants}
-          toggleParticipants={toggleParticipants}
-          showParticipants={showParticipants}
           participantCount={participants?.length}
           latency={
             statsReport
@@ -198,17 +175,12 @@ export const View: FC<Props & Meeting> = ({
       sidebar={
         <Sidebar
           callId={callId}
-          current={current}
-          showParticipants={showParticipants}
-          showChat={showChat}
           chatClient={chatClient}
           participants={participants}
         />
       }
       footer={
         <Footer
-          toggleChat={toggleChat}
-          toggleParticipants={toggleParticipants}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
@@ -217,8 +189,6 @@ export const View: FC<Props & Meeting> = ({
           isCallActive={isCallActive}
           isScreenSharing={isScreenSharing}
           isRecording={isCallRecordingInProgress}
-          showParticipants={showParticipants}
-          showChat={showChat}
           leave={leave}
           callId={callId}
           unreadMessages={unread}
@@ -230,25 +200,14 @@ export const View: FC<Props & Meeting> = ({
         isScreenSharing={isScreenSharing}
         call={call}
         callId={callId}
-        showParticipants={showParticipants}
         participantsAmount={participants?.length}
         participants={participants}
-        toggleParticipants={toggleParticipants}
       />
     </MeetingLayout>
   );
 };
 
 export const MeetingView: FC<Props> = (props) => {
-  const activeCall: any = useActiveCall();
-
-  if (!activeCall) return null;
-
-  return (
-    <StreamCallProvider call={activeCall}>
-      <MediaDevicesProvider enumerate>
-        <View call={activeCall} {...props} />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
+  const { call: activeCall, ...rest } = props;
+  return <View call={activeCall} {...rest} />;
 };

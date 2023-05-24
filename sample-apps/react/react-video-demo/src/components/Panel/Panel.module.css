@@ -1,7 +1,6 @@
 .root {
   @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
   pointer-events: initial;
-  max-width: 300px;
 }
 
 .root.focused {
@@ -10,7 +9,7 @@
 }
 
 .header {
-  @apply flex justify-start items-center p-4;
+  @apply flex justify-between items-center p-4;
 }
 
 .header.open {
@@ -22,7 +21,11 @@
 }
 
 .arrow {
-  @apply text-video-grey-400;
+  @apply text-video-grey-400  h-[10px] w-[10px];
+}
+
+.cross {
+  @apply text-video-grey-400  h-[15px] w-[15px];
 }
 
 .arrow.open {
@@ -30,6 +33,10 @@
 }
 
 .toggle {
+  @apply bg-video-grey-800 flex justify-center items-center rounded-button h-[28px] w-[28px];
+}
+
+.close {
   @apply bg-video-grey-800 flex justify-center items-center rounded-button;
   width: 28px;
   height: 28px;
@@ -40,6 +47,7 @@
 }
 
 .heading {
+  @apply text-sm 2xl:text-base;
 }
 
 .content {

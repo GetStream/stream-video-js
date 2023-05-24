@@ -17,10 +17,14 @@
 .branding {
   @apply flex items-center absolute w-full;
   z-index: 0;
-  font-size: 11px;
-  color: #4f4f4f;
   bottom: 40px;
-  left: 30%;
+  left: 15%;
+}
+
+@media screen(lg) {
+  .branding {
+    left: 30%;
+  }
 }
 
 .logo {

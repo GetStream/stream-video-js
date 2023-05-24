@@ -52,6 +52,7 @@ export class StableWSConnection {
   // local vars
   connectionID?: string;
   connectionOpen?: ConnectAPIResponse;
+  authenticationSent: boolean;
   consecutiveFailures: number;
   pingInterval: number;
   healthCheckTimeoutRef?: NodeJS.Timeout;
@@ -85,6 +86,8 @@ export class StableWSConnection {
     this.totalFailures = 0;
     /** We only make 1 attempt to reconnect at the same time.. */
     this.isConnecting = false;
+    /** True after the auth payload is sent to the server */
+    this.authenticationSent = false;
     /** To avoid reconnect if client is disconnected */
     this.isDisconnected = false;
     /** Boolean that indicates if the connection promise is resolved */
@@ -349,7 +352,7 @@ export class StableWSConnection {
 
       if (response) {
         this.connectionID = response.connection_id;
-        this.client.resolveConnectionId();
+        this.client.resolveConnectionId(this.connectionID);
         if (
           this.client.insightMetrics.wsConsecutiveFailures > 0 &&
           this.client.options.enableInsights
@@ -513,6 +516,7 @@ export class StableWSConnection {
       },
     };
 
+    this.authenticationSent = true;
     this.ws?.send(JSON.stringify(authMessage));
     this._log('onopen() - onopen callback', { wsID });
   };
@@ -546,6 +550,23 @@ export class StableWSConnection {
     ) {
       // the initial health-check should come from the client
       this.scheduleNextPing();
+    }
+
+    if (data && data.error) {
+      const { code } = this._errorFromWSEvent(data, true);
+      this.isHealthy = false;
+      this.isConnecting = false;
+      this.consecutiveFailures += 1;
+      if (
+        code === KnownCodes.TOKEN_EXPIRED &&
+        !this.client.tokenManager.isStatic()
+      ) {
+        clearTimeout(this.connectionCheckTimeoutRef);
+        this._log(
+          'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
+        );
+        this._reconnect({ refreshToken: true });
+      }
     }
 
     this.client.handleEvent(event);
@@ -597,7 +618,6 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-
     this.rejectPromise?.(this._errorFromWSEvent(event));
     this._log(`onerror() - WS connection resulted into error`, { event });
 

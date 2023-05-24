@@ -1,6 +1,6 @@
 .root {
   @apply flex flex-col items-center justify-center bg-video-grey-700;
-  height: 100vh;
+  height: 100dvh;
 }
 .panel {
   @apply mr-4 ml-4 sm:m-0 md:w-6/12  flex flex-col items-center justify-center;
@@ -19,7 +19,11 @@
 }
 
 .ctas {
-  @apply mt-8 flex items-center justify-between w-full max-w-md;
+  @apply mt-8 flex items-center justify-center w-full max-w-md;
+}
+
+.cta {
+  @apply ml-4 mr-4 md:ml-8 md:mr-8;
 }
 
 .feedback {

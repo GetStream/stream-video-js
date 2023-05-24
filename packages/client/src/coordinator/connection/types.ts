@@ -6,7 +6,6 @@ export type UR = Record<string, unknown>;
 
 export type User = {
   id: string;
-  anon?: boolean;
   name?: string;
   role?: string;
   teams?: string[];
@@ -113,6 +112,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   // Set the instance of StableWSConnection on chat client. Its purely for testing purpose and should
   // not be used in production apps.
   wsConnection?: StableWSConnection;
+  /**
+   * The preferred video codec to use.
+   */
+  preferredVideoCodec?: string;
 };
 
 export type TokenProvider = () => Promise<string>;

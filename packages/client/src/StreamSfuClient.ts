@@ -1,10 +1,12 @@
 import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
-import { createWebSocketSignalChannel } from './rtc/signal';
+import {
+  createWebSocketSignalChannel,
+  Dispatcher,
+  IceTrickleBuffer,
+} from './rtc';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
-import { Dispatcher } from './rtc/Dispatcher';
-import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 import {
   SendAnswerRequest,
   SetPublisherRequest,
@@ -21,30 +23,6 @@ import {
   retryInterval,
   sleep,
 } from './coordinator/connection/utils';
-
-const hostnameFromUrl = (url: string) => {
-  try {
-    const u = new URL(url);
-    return {
-      hostname: u.hostname,
-      port: u.port,
-    };
-  } catch (e) {
-    console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-    return {
-      hostname: url,
-      port: 3031,
-    };
-  }
-};
-
-const toURL = (url: string) => {
-  try {
-    return new URL(url);
-  } catch (e) {
-    return null;
-  }
-};
 
 /**
  * The client used for exchanging information with the SFU.
@@ -84,9 +62,15 @@ export class StreamSfuClient {
    *
    * @param dispatcher the event dispatcher to use.
    * @param url the URL of the SFU.
+   * @param wsEndpoint the WebSocket endpoint of the SFU.
    * @param token the JWT token to use for authentication.
    */
-  constructor(dispatcher: Dispatcher, url: string, token: string) {
+  constructor(
+    dispatcher: Dispatcher,
+    url: string,
+    wsEndpoint: string,
+    token: string,
+  ) {
     this.sessionId = generateUUIDv4();
     this.token = token;
     this.rpc = createSignalClient({
@@ -97,18 +81,6 @@ export class StreamSfuClient {
         }),
       ],
     });
-
-    // FIXME: OL: this should come from the coordinator API
-    const { hostname, port } = hostnameFromUrl(url);
-    let wsEndpoint = `ws://${hostname}:${port}/ws`;
-    if (!['localhost', '127.0.0.1'].includes(hostname)) {
-      const sfuUrl = toURL(url);
-      if (sfuUrl) {
-        sfuUrl.protocol = 'wss:';
-        sfuUrl.pathname = '/ws';
-        wsEndpoint = sfuUrl.toString();
-      }
-    }
 
     // Special handling for the ICETrickle kind of events.
     // These events might be triggered by the SFU before the initial RTC

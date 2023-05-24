@@ -1,7 +1,7 @@
 .str-video__reaction {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  right: 0.875rem;
+  bottom: 0.875rem;
   opacity: 0;
   transition: opacity 0.2s ease-out;
 
@@ -10,6 +10,8 @@
   }
 
   .str-video__reaction__emoji {
+    display: flex;
+    line-height: 1;
     font-size: 2.5rem;
   }
 }

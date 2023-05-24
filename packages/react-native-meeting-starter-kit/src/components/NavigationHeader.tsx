@@ -49,7 +49,7 @@ export const NavigationHeader = () => {
     <View style={styles.header}>
       <Image
         source={{
-          uri: user?.imageUrl,
+          uri: user?.image,
         }}
         style={styles.avatar}
       />

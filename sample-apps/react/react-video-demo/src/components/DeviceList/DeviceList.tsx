@@ -24,15 +24,8 @@ export const DeviceList: FC<Props> = ({
 }) => {
   const rootClassName = classnames(styles.root, className);
 
-  const [selectedId, setSelectedId] = useState(selectedDeviceId);
-
-  useEffect(() => {
-    setSelectedId(selectedDeviceId);
-  }, [selectedDeviceId]);
-
   const handleSelectDevice = useCallback(
     (kind: any, deviceId: string) => {
-      setSelectedId(deviceId);
       selectDevice(kind, deviceId);
     },
     [selectDevice],
@@ -45,7 +38,7 @@ export const DeviceList: FC<Props> = ({
         {devices.map(({ kind, label, deviceId }, index: number) => {
           const deviceClassName = classnames(styles.device, {
             [styles.selectedDevice]:
-              selectedId === deviceId || devices.length === 1,
+              selectedDeviceId === deviceId || devices.length === 1,
           });
 
           return (
@@ -61,7 +54,7 @@ export const DeviceList: FC<Props> = ({
                   name={kind}
                   type="radio"
                   defaultChecked={
-                    selectedId === deviceId || devices.length === 1
+                    selectedDeviceId === deviceId || devices.length === 1
                   }
                   value={deviceId}
                 />

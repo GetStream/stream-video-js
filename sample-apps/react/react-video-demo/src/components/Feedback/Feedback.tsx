@@ -1,4 +1,10 @@
-import { FC, HTMLInputTypeAttribute, useCallback, useState } from 'react';
+import {
+  FC,
+  HTMLInputTypeAttribute,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react';
 import classnames from 'classnames';
 import { useForm, useField } from 'react-form';
 
@@ -11,6 +17,8 @@ import styles from './Feedback.module.css';
 
 export type Props = {
   className?: string;
+  callId?: string;
+  inMeeting?: boolean;
 };
 
 function required(value: string | number, name: string) {
@@ -63,33 +71,52 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({ className }) => {
+export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
   });
   const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
+  const [errorMessage, setError] = useState<string | null>(null);
 
   const { close, isVisible } = useModalContext();
 
+  const endpointUrl =
+    import.meta.env.MODE === 'staging' || import.meta.env.MODE === 'development'
+      ? 'https://staging.getstream.io'
+      : 'https://getstream.io';
   const {
     Form,
-    meta: { isSubmitting, canSubmit },
+    meta: { isSubmitting },
   } = useForm({
+    defaultValues: useMemo(
+      () => ({
+        email: '',
+        message: '',
+      }),
+      [],
+    ),
     onSubmit: async (values, instance) => {
-      const response = await fetch(
-        `https://api.getstream.io/chat/v1.0/feedback/`,
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
+      const response = await fetch(`${endpointUrl}/api/crm/video_feedback/`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          ...values,
+          page_url:
+            callId && inMeeting
+              ? `${endpointUrl}?id=${callId}&meeting=true`
+              : `${endpointUrl}?id=${callId}&meeting=false`,
+        }),
+      });
 
-      setFeedbackSent(true);
+      if (response.status !== 200) {
+        setError('Something went wrong, please try again.');
+      } else {
+        setFeedbackSent(true);
+      }
     },
     debugForm: false,
   });
@@ -106,6 +133,10 @@ export const Feedback: FC<Props> = ({ className }) => {
 
   const rootClassName = classnames(styles.feedback, className);
   const sentClassName = classnames(styles.sent, className);
+
+  const descriptionClassName = classnames(styles.description, {
+    [styles.error]: errorMessage,
+  });
 
   if (feedbackSent) {
     return (
@@ -138,8 +169,10 @@ export const Feedback: FC<Props> = ({ className }) => {
     return (
       <div className={rootClassName}>
         <h4 className={styles.heading}>How was your calling experience?</h4>
-        <p className={styles.description}>
-          We are eager to improve our video product.
+        <p className={descriptionClassName}>
+          {errorMessage
+            ? errorMessage
+            : 'We are eager to improve our video product.'}
         </p>
         <Form className={styles.form}>
           <Input
@@ -151,7 +184,7 @@ export const Feedback: FC<Props> = ({ className }) => {
           />
           <TextArea
             className={styles.textarea}
-            name="reason"
+            name="message"
             placeholder="Let us know what we can do to make it better"
           />
           <div className={styles.footer}>
@@ -160,18 +193,23 @@ export const Feedback: FC<Props> = ({ className }) => {
                 Rate your call quality:
               </p>
               <div className={styles.ratingStars}>
-                {[...new Array(rating.maxAmount)].map((_, index: number) => {
-                  const active = index + 1 <= rating.current;
-                  const starClassName = classnames(styles.star, {
-                    [styles.active]: active,
-                  });
+                {[...new Array(rating.maxAmount)].map(
+                  (amount, index: number) => {
+                    const active = index + 1 <= rating.current;
+                    const starClassName = classnames(styles.star, {
+                      [styles.active]: active,
+                    });
 
-                  return (
-                    <div onClick={() => handleSetRating(index + 1)}>
-                      <Star className={starClassName} />
-                    </div>
-                  );
-                })}
+                    return (
+                      <div
+                        key={`star-${index}`}
+                        onClick={() => handleSetRating(index + 1)}
+                      >
+                        <Star className={starClassName} />
+                      </div>
+                    );
+                  },
+                )}
               </div>
             </div>
             <Button
@@ -179,6 +217,7 @@ export const Feedback: FC<Props> = ({ className }) => {
               type="submit"
               color="primary"
               shape="oval"
+              disabled={isSubmitting}
               onClick={() => {}}
             >
               {' '}

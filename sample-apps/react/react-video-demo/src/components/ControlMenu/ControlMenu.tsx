@@ -1,19 +1,19 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
-
 import {
-  useVideoPublisher,
-  useAudioPublisher,
+  SfuModels,
+  useAudioInputDevices,
+  useAudioOutputDevices,
+  useLocalParticipant,
   useMediaDevices,
+  useVideoDevices,
 } from '@stream-io/video-react-sdk';
-import { SfuModels } from '@stream-io/video-client';
 
-import ControlButton from '../ControlButton';
+import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
 
-import { Mic, MicMuted, Video, VideoOff, Speaker } from '../Icons';
+import { Mic, MicMuted, Speaker, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';
 
@@ -32,22 +32,26 @@ export const ControlMenu: FC<Props> = ({
   initialVideoMuted,
   preview,
 }) => {
+  const [isAudioOutputVisible, setAudioOutputVisible] =
+    useState<boolean>(false);
   const {
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
     selectedAudioOutputDeviceId,
-    audioInputDevices,
-    audioOutputDevices,
-    videoDevices,
     switchDevice,
-    toggleAudioMuteState,
-    toggleVideoMuteState,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
+    publishVideoStream,
+    publishAudioStream,
     initialVideoState,
     initialAudioEnabled,
     isAudioOutputChangeSupported,
   } = useMediaDevices();
 
   const localParticipant = useLocalParticipant();
+  const videoDevices = useVideoDevices();
+  const audioInputDevices = useAudioInputDevices();
+  const audioOutputDevices = useAudioOutputDevices();
 
   const isVideoMuted = preview
     ? !initialVideoState.enabled
@@ -56,18 +60,6 @@ export const ControlMenu: FC<Props> = ({
   const isAudioMuted = preview
     ? !initialAudioEnabled
     : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-
-  const publishVideoStream = useVideoPublisher({
-    call: call,
-    initialVideoMuted,
-    videoDeviceId: selectedVideoDeviceId,
-  });
-
-  const publishAudioStream = useAudioPublisher({
-    call: call,
-    initialAudioMuted,
-    audioDeviceId: selectedAudioInputDeviceId,
-  });
 
   const disableVideo = useCallback(() => {
     call.stopPublish(SfuModels.TrackType.VIDEO);
@@ -87,30 +79,36 @@ export const ControlMenu: FC<Props> = ({
 
   const video = useCallback(() => {
     if (preview) {
-      toggleVideoMuteState();
+      toggleInitialVideoMuteState();
     } else {
       isVideoMuted ? enableVideo() : disableVideo();
     }
-  }, [localParticipant, isVideoMuted, preview]);
+  }, [toggleInitialVideoMuteState, localParticipant, isVideoMuted, preview]);
 
   const audio = useCallback(() => {
     if (preview) {
-      toggleAudioMuteState();
+      toggleInitialAudioMuteState();
     } else {
       isAudioMuted ? enableAudio() : disableAudio();
     }
-  }, [localParticipant, isAudioMuted, preview]);
+  }, [toggleInitialAudioMuteState, localParticipant, isAudioMuted, preview]);
+
+  const toggleAudioOutputPanel = useCallback(() => {
+    setAudioOutputVisible(!isAudioOutputVisible);
+  }, [isAudioOutputVisible]);
 
   const rootClassName = classnames(styles.root, className);
 
   return (
     <div className={rootClassName}>
       {isAudioOutputChangeSupported ? (
-        <ControlButton
+        <PanelButton
           className={styles.speakerButton}
           prefix={<Speaker />}
           portalId="audio-output-settings"
           label="Audio"
+          showPanel={isAudioOutputVisible}
+          onClick={() => toggleAudioOutputPanel()}
           panel={
             <Portal
               className={styles.audioSettings}
@@ -122,7 +120,6 @@ export const ControlMenu: FC<Props> = ({
                 selectDevice={switchDevice}
                 devices={audioOutputDevices}
                 title="Select an Audio Output"
-                label="Audio output settings"
               />
             </Portal>
           }
@@ -143,7 +140,6 @@ export const ControlMenu: FC<Props> = ({
               selectDevice={switchDevice}
               devices={audioInputDevices}
               title="Select an Audio Input"
-              label="Audio input settings"
             />
           </Portal>
         }
@@ -163,7 +159,6 @@ export const ControlMenu: FC<Props> = ({
               selectDevice={switchDevice}
               devices={videoDevices}
               title="Select a Camera"
-              label="Camera Settings"
             />
           </Portal>
         }

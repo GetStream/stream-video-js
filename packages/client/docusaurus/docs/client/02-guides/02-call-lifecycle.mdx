@@ -3,8 +3,164 @@ id: 02-call-lifecycle
 title: Call Lifecycle
 ---
 
-Stay tuned for more information on this topic.
+import CallAcceptedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-accepted.png'
+import CallRejectedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-rejected.png'
+import CallEndedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-ended.png'
 
-[//]: # '- Call lifecycle:'
-[//]: # '  - Ring'
-[//]: # '  - Meeting'
+## Introduction
+
+In the following sections, we will describe the flow of the two basic call scenarios:
+
+1. Call room
+2. Ring call
+
+### Services
+
+Before we start to describe the individual call scenarios, we should get acquainted with the agents participating in the call flow. A user, that connects to a call is using a client (application) that communicates with Stream's back-end services. The call creation and intention to connect to a call is handled by a service we call simply `back-end`. Once it is clarified with the `back-end` service, who intends to join a specific type of call, the client connects to a service we call `SFU` (Selective Forwarding Unit). The `back-end` tells the client, to which `SFU` it should connect. The `SFU` server is where the call actually takes place. All the data exchanged during the call (audio, video, etc.) flows through the assigned `SFU`. The data is forwarded through the `SFU` between the clients.
+
+### Call room
+
+The call room scenario refers to a setup, where participants can join a call asynchronously. That means that the call can be (re)joined or left at any time by any number of participants. However, once the call is **ended**, the call cannot be re-joined. This scenario is useful if you want to create calls that work similarly to Google Meet or Zoom calls.
+
+:::note
+You can end a call by calling [`endCall()` method](../04-call-engine/Call.md#endcall) of the `Call` class.
+:::
+
+#### Call room lifecycle
+
+The asynchronous nature of the call room makes it easy to create and join a call. There is no need to wait for other participants. The member initiating the call can create and join it in one single step by calling [`join()` method](../04-call-engine/Call.md#join) of a `Call` instance:
+
+```ts
+const call = videoClient.call(callType, callId)
+await call.join({create: true});
+```
+
+This takes care of the whole negotiation process and connection to the nearest SFU.
+
+To leave the call without interrupting it, simply call [`leave()` method](../04-call-engine/Call.md#leave) of the `Call` class.
+
+Call can be ended immediately and also prevented from being re-joined permanently by calling the [`endCall()` method](../04-call-engine/Call.md#endcall) of the `Call` class.
+
+#### Application State
+
+We recommend you to keep the `Call` instance in your app's local state to have access to its API.
+
+### Ring call
+
+The ring call scenario is analogous to the classic phone call. A person calls another person and does not join the call, until the call is accepted on the other side. For this scenario it is typical to show outgoing and incoming call screens and possibly play ring sounds or display ringing elements in the UI. Of course, the call can be terminated before it is accepted. The original caller can decide to **cancel** the outgoing call or the receiving side can **reject** the incoming call.
+
+If the incoming call is accepted, both parties join the call and start exchanging media streams (audio and video). The call is then terminated by one of the participants and both leave the call. The ring call is synchronous in the meaning that all the participants have to be available to join the call during the time between it was initiated and left by the last participant. Once it is ended, it cannot be rejoined.
+
+#### Signalling
+
+The communication between the clients follow these principles in the ring scenario:
+
+1. A client sends HTTP requests to the service (initiate a call, accept a call, ...)
+2. Service propagates the information in the form of a WS event to other clients
+
+#### Ring call lifecycle
+
+We have to explicitly opt in to ring mode when creating (starting) a call:
+
+```ts
+videoClient.call(callType, callId).getOrCreate({
+    // highlight-next-line
+  ring: true,
+  data: { ... }
+});
+```
+
+With the `ring` parameter set to `true` the **signalling between the services and clients** is enabled. That means the HTTP requests are sent to Stream services and Stream services broadcast the WS events / notifications to call members.
+
+:::note
+We distinguish between call members and call participants. Members are considered those, that are invited to a call, but may reject to join. Participants are members, who have joined a call.
+:::
+
+Once the call is created by Client A, there are three possible paths:
+
+##### **1. Client B accepts the call**
+
+This is the happy path, when both parties join the active call. The
+
+```mermaid
+sequenceDiagram
+    participant Client_A
+    participant Back-end
+    participant SFU
+    participant Client_B
+    Client_A->>Back-end: 1. Create a call
+    Back-end->>Client_B: 2. Back-end WS event 'call.created'
+    Client_B->>Back-end: 3. Accept the call
+    Back-end->>Client_A: 4. Back-end WS event 'call.accepted'
+    Client_B->>Back-end: 5. Ask for SFU to join the call
+    Client_A->>Back-end: 6. Ask for SFU to join the call
+    Client_B->>SFU: 7.  Join the call
+    Client_A->>SFU: 8. Join the call
+    SFU->>Client_B: 9. SFU WS event 'participant.joined'
+    Client_A->>SFU: 10. Leave the call
+    SFU->>Client_B: 11. SFU WS event 'participant.left'
+    Client_B->>SFU: 12. Leave the call
+```
+
+<img src={CallAcceptedDiagram} alt='Sequence diagram of accepted ring call' width='800' />
+
+##### **2. Client B rejects the call**
+
+This scenario takes place, when the **Client B** sends the rejection request to the `back-end` service. The service then communicates this information to the **Client A** through a WebSocket event `call.rejected`. Note that `SFU` is not assigned and thus not taking part in this process.
+
+```mermaid
+sequenceDiagram
+    participant Client_A
+    participant Back-end
+    participant Client_B
+    Client_A->>Back-end: 1. Create a call
+    Back-end->>Client_B: 2. WS event 'call.created'
+    Client_B->>Back-end: 3. Reject the call
+    Back-end->>Client_A: 4. WS event 'call.rejected'
+```
+
+<img src={CallRejectedDiagram} alt='Sequence diagram of rejected ring call' width='800' />
+
+##### **3. Client A cancels the call**
+
+This scenario takes place, when the **Client A** hangs up before the user using **Client B** reacts to the incoming call notification. The service then communicates this information to the **Client B** through a WebSocket event `call.ended`. Note that `SFU` is not assigned and thus not taking part in this process.
+
+```mermaid
+sequenceDiagram
+    participant Client_A
+    participant Back-end
+    participant Client_B
+    Client_A->>Back-end: 1. Create a call
+    Back-end->>Client_B: 2. WS event 'call.created'
+    Client_A->>Back-end: 3. Hang up the call
+    Back-end->>Client_B: 4. WS event 'call.ended'
+```
+
+<img src={CallEndedDiagram} alt='Sequence diagram of cancelled ring call' width='800' />
+
+#### Automatic call cancellation
+
+At times, the called in user may not respond to the incoming call by accepting or rejecting it. In that case the call is automatically rejected by the client based on the configuration parameter `settings.ring.auto_reject_timeout_ms`. The configuration parameter is provided with the `CallCreated.call` object delivered with `call.created` event.
+Symmetrically the configuration parameter `settings.ring.auto_cancel_timeout_ms` is provided to the client initiating the call when the call is created (`GetOrCreateCallResponse.call`). The default timeout is 15 seconds for both parameters.
+
+#### Application State
+
+We allow the SDKs to observe the call flow changes and adjust the UI by emitting the relevant values tracked by the `StreamVideoClient`'s state store which are:
+
+TODO: do we want to allow multiple active calls? The store implementation will probably change here.
+
+1. **Pending calls array** - the UI shows the incoming / outgoing calls based on this array
+2. **Accepted call** - the app can start the process of joining the outgoing call
+2. **Active call** - the app shows the active call UI
+
+### Call calling state
+In an individual call lifespan various situations can occur that are then reflected in something we named **calling state**. Thus, a call can be in state of joining, reconnection, left etc.
+This is reflected within the [`Call` objects internal state](../../call-engine/Call#state).
+
+### Reconnections
+
+### Hybrid scenarios
+
+TODO: do we want to describe those? For example Slack call is a hybrid of the 2 above.
+
+

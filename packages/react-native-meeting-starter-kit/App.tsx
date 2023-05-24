@@ -12,7 +12,7 @@ import {AuthProgressLoader} from './src/components/AuthProgressLoader';
 import {STREAM_API_KEY} from 'react-native-dotenv';
 import {
   CallParticipantsInfoView,
-  StreamVideo,
+  StreamVideoCall,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {
@@ -26,6 +26,7 @@ import {NavigationHeader} from './src/components/NavigationHeader';
 import {LobbyViewScreen} from './src/screens/LobbyViewScreen';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import {User} from '@stream-io/video-client';
+import {Platform} from 'react-native';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
@@ -45,20 +46,28 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
     user: selectedUser,
     tokenOrProvider: selectedUser.custom?.token,
     apiKey: STREAM_API_KEY,
+    options: {
+      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+    },
   });
   const navigation =
     useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
+  const {
+    callParams: {callId, callType},
+  } = useAppContext();
 
   if (!videoClient) {
     return <AuthProgressLoader />;
   }
 
   return (
-    <StreamVideo
+    <StreamVideoCall
       client={videoClient}
+      callId={callId}
+      callType={callType}
       callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
+        onCallHungUp: () => navigation.navigate('JoinMeetingScreen'),
+        onCallJoined: () => navigation.navigate('ActiveCallScreen'),
       }}>
       <Stack.Navigator>
         <Stack.Screen
@@ -81,7 +90,7 @@ const Navigator = ({selectedUser}: {selectedUser: User}) => {
           component={CallParticipantsInfoView}
         />
       </Stack.Navigator>
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
 

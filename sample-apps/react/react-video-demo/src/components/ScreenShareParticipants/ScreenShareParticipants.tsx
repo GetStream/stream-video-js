@@ -1,18 +1,15 @@
-import { FC, useCallback, useRef, useEffect, useState } from 'react';
-import classnames from 'classnames';
-import { Call, SfuModels } from '@stream-io/video-client';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Call,
+  SfuModels,
   useLocalParticipant,
   useParticipants,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
-import { ParticipantBox, Video } from '@stream-io/video-react-sdk';
+  Video,
+} from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 import Button from '../Button';
 import { Close, ShareScreen } from '../Icons';
-
-import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './ScreenShareParticipants.module.css';
 
@@ -27,20 +24,21 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   );
 
   const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
-
-  const breakpoint = useBreakpoint();
 
   const wrapper: any = useRef();
 
   useEffect(() => {
     if (wrapper) {
       const resizeObserver = new ResizeObserver((event) => {
-        setWrapperHeight(event[0].contentBoxSize[0].blockSize);
+        if (!event[0]?.contentBoxSize) {
+          setWrapperHeight(event[0].contentRect.height);
+        } else {
+          setWrapperHeight(event[0].contentBoxSize[0].blockSize);
+        }
       });
 
       if (wrapper) {
@@ -52,10 +50,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   const stopSharing = useCallback(async () => {
     await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
   }, [call]);
-
-  const localViewClassNames = classnames(styles.localView, {
-    [styles.hasRemoteParticipants]: remoteParticipants.length > 0,
-  });
 
   if (
     firstScreenSharingParticipant?.sessionId === localParticipant?.sessionId
@@ -69,7 +63,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                 <Video
                   className={styles.screenShare}
                   participant={firstScreenSharingParticipant}
-                  call={call}
                   kind="screen"
                   autoPlay
                   muted
@@ -121,7 +114,6 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
                 <Video
                   className={styles.screenShare}
                   participant={firstScreenSharingParticipant}
-                  call={call}
                   kind="screen"
                   autoPlay
                   muted

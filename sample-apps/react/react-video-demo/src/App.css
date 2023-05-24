@@ -1,8 +1,3 @@
-@import '@stream-io/video-styling/dist/css/styles.css' layer(default-video-sdk);
-
-@import './styles/meeting-variables.css';
-@import './styles/meeting.css';
-@import './styles/screenshare.css';
 @import './styles/chat.css';
 @import './styles/animation.css';
 
@@ -24,8 +19,8 @@ body {
   z-index: 9999;
   top: 0;
   width: 140px;
-  min-width: 140px;
-  max-width: 140px;
+  min-width: 160px;
+  max-width: 160px;
   left: 55px;
 }
 

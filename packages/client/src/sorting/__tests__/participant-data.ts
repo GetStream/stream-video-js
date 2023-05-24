@@ -2,7 +2,7 @@ import {
   ConnectionQuality,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
+import { StreamVideoParticipant, VisibilityState } from '../../types';
 
 export const participants = (): StreamVideoParticipant[] => [
   {
@@ -92,7 +92,7 @@ export const participants = (): StreamVideoParticipant[] => [
     isDominantSpeaker: false,
     audioLevel: 0,
     image: '',
-    isPinned: true,
+    pinnedAt: Date.now(),
     roles: [],
     viewportVisibilityState: VisibilityState.VISIBLE,
   },

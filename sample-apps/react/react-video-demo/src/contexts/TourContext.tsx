@@ -8,10 +8,12 @@ import {
 } from 'react';
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
+
 export enum StepNames {
-  Invite = 1,
-  Chat = 2,
-  Settings = 3,
+  Build = 1,
+  Network = 2,
+  Experience = 3,
+  Invite = 4,
 }
 
 type Step = {

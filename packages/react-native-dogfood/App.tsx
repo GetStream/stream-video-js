@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import {
-  NativeStackNavigationProp,
   createNativeStackNavigator,
+  NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 import {
   LoginStackParamList,
@@ -20,8 +21,9 @@ import {
 } from './src/hooks/useProntoLinkEffect';
 import {
   IncomingCallView,
+  LobbyView,
   OutgoingCallView,
-  StreamVideo,
+  StreamVideoCall,
 } from '@stream-io/video-react-native-sdk';
 import {
   AppGlobalContextProvider,
@@ -35,14 +37,18 @@ import JoinMeetingScreen from './src/screens/Meeting/JoinMeetingScreen';
 import JoinCallScreen from './src/screens/Call/JoinCallScreen';
 import { ChooseFlowScreen } from './src/screens/ChooseFlowScreen';
 import { CallParticipantsInfoScreen } from './src/screens/Meeting/CallParticipantsInfoScreen';
-import { setFirebaseHandler } from './src/modules/push/android';
+import {
+  setFirebaseHandler,
+  setForegroundService,
+} from './src/modules/push/android';
 import { useIosPushEffect } from './src/hooks/useIosPushEffect';
 import { Platform } from 'react-native';
 import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
+import translations from './src/translations';
 
 import Logger from 'react-native-webrtc/src/Logger';
-import { LobbyViewScreen } from './src/screens/Meeting/LobbyViewScreen';
+import { v4 as uuidv4 } from 'uuid';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -54,6 +60,7 @@ const RingingStack = createNativeStackNavigator<RingingStackParamList>();
 
 if (Platform.OS === 'android') {
   setFirebaseHandler();
+  setForegroundService();
 }
 
 const Meeting = () => {
@@ -66,7 +73,7 @@ const Meeting = () => {
       />
       <MeetingStack.Screen
         name="LobbyViewScreen"
-        component={LobbyViewScreen}
+        component={LobbyView}
         options={{ headerShown: false }}
       />
       <MeetingStack.Screen
@@ -143,15 +150,40 @@ const Login = () => {
 };
 
 const StackNavigator = () => {
-  useProntoLinkEffect();
-  const { authenticationInProgress, videoClient } = useAuth();
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
+  const callId = useAppGlobalStoreValue((store) => store.callId);
+  const setState = useAppGlobalStoreSetState();
+  const { authenticationInProgress } = useAuth();
   const callNavigation =
     useNavigation<NativeStackNavigationProp<RingingStackParamList>>();
   const meetingNavigation =
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
+  const setRandomCallId = React.useCallback(() => {
+    setState({
+      callId: uuidv4().toLowerCase(),
+    });
+  }, [setState]);
+  useProntoLinkEffect();
+  useIosPushEffect();
+  useCallKeepEffect();
 
-  const onActiveCall = React.useCallback(() => {
+  useEffect(() => {
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setState({
+          callId: prontoCallId,
+        });
+        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+      }
+    });
+    if (appMode === 'Ringing') {
+      setRandomCallId();
+    }
+
+    return () => subscription.unsubscribe();
+  }, [appMode, setRandomCallId, setState]);
+
+  const onCallJoined = React.useCallback(() => {
     if (appMode === 'Meeting') {
       meetingNavigation.navigate('MeetingScreen');
     } else {
@@ -159,55 +191,60 @@ const StackNavigator = () => {
     }
   }, [appMode, callNavigation, meetingNavigation]);
 
-  const onIncomingCall = React.useCallback(() => {
+  const onCallIncoming = React.useCallback(() => {
     callNavigation.navigate('IncomingCallScreen');
   }, [callNavigation]);
 
-  const onOutgoingCall = React.useCallback(() => {
+  const onCallOutgoing = React.useCallback(() => {
     callNavigation.navigate('OutgoingCallScreen');
   }, [callNavigation]);
 
-  const onHangupCall = React.useCallback(() => {
+  const onCallHungUp = React.useCallback(() => {
     if (appMode === 'Meeting') {
       meetingNavigation.navigate('JoinMeetingScreen');
     } else {
       callNavigation.navigate('JoinCallScreen');
+      setRandomCallId();
     }
-  }, [appMode, callNavigation, meetingNavigation]);
+  }, [appMode, callNavigation, meetingNavigation, setRandomCallId]);
 
-  const onRejectCall = React.useCallback(() => {
+  const onCallRejected = React.useCallback(() => {
     callNavigation.navigate('JoinCallScreen');
-  }, [callNavigation]);
+    setRandomCallId();
+  }, [callNavigation, setRandomCallId]);
 
   const callCycleHandlers = React.useMemo(() => {
     return {
-      onActiveCall,
-      onIncomingCall,
-      onOutgoingCall,
-      onHangupCall,
-      onRejectCall,
+      onCallJoined,
+      onCallIncoming,
+      onCallOutgoing,
+      onCallHungUp,
+      onCallRejected,
     };
   }, [
-    onActiveCall,
-    onIncomingCall,
-    onOutgoingCall,
-    onHangupCall,
-    onRejectCall,
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
   ]);
 
-  useIosPushEffect();
-  useCallKeepEffect();
+  const { videoClient } = useAuth();
+  if (!videoClient) {
+    return <Login />;
+  }
 
   if (authenticationInProgress) {
     return <AuthenticatingProgressScreen />;
   }
 
-  if (!videoClient) {
-    return <Login />;
-  }
-
   return (
-    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
+    <StreamVideoCall
+      callId={callId}
+      callCycleHandlers={callCycleHandlers}
+      client={videoClient}
+      translationsOverrides={translations}
+    >
       <Stack.Navigator>
         {appMode === 'Meeting' ? (
           <Stack.Screen
@@ -223,7 +260,7 @@ const StackNavigator = () => {
           />
         ) : null}
       </Stack.Navigator>
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
 

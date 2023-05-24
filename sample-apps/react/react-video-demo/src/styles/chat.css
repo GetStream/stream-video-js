@@ -12,9 +12,9 @@
 }
 
 .str-chat__channel .str-chat__container {
-  @apply bg-video-black sm:bg-video-grey-700;
+  @apply bg-video-black md:bg-video-grey-600;
 }
 
 .str-chat__list {
-  @apply max-h-[200px] overflow-y-scroll;
+  @apply md:max-h-[200px] md:overflow-y-scroll;
 }

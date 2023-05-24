@@ -3,16 +3,14 @@ import {
   getVideoStream,
   SfuModels,
 } from '@stream-io/video-client';
-import {
-  useActiveCall,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
 } from '../contexts/StreamVideoContext';
 import { useMediaDevices } from '../contexts/MediaDevicesContext';
+import { useAppStateListener } from '../utils/hooks/useAppStateListener';
 
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
@@ -22,7 +20,7 @@ import { useMediaDevices } from '../contexts/MediaDevicesContext';
  */
 export const useCallControls = () => {
   const localParticipant = useLocalParticipant();
-  const call = useActiveCall();
+  const call = useCall();
   const setState = useStreamVideoStoreSetState();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
@@ -64,6 +62,9 @@ export const useCallControls = () => {
       console.log('Failed to publish video stream', e);
     }
   }, [call, currentVideoDevice]);
+
+  /* Attempt to republish video stream when app comes back to foreground */
+  useAppStateListener(publishVideoStream);
 
   const toggleVideoMuted = useCallback(async () => {
     if (isVideoMuted) {

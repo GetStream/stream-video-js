@@ -1,7 +1,7 @@
-import { Dispatcher } from '../rtc/Dispatcher';
-import { Call } from '../rtc/Call';
+import { Dispatcher } from '../rtc';
+import { Call } from '../Call';
 import { CallState } from '../store';
-import { StreamVideoParticipantPatches } from '../rtc/types';
+import { StreamVideoParticipantPatches } from '../types';
 
 /**
  * An event responder which handles the `changePublishQuality` event.
@@ -43,5 +43,23 @@ export const watchConnectionQualityChanged = (
         {},
       ),
     );
+  });
+};
+
+/**
+ * Updates the approximate number of participants in the call by peeking at the
+ * health check events that our SFU sends.
+ */
+export const watchParticipantCountChanged = (
+  dispatcher: Dispatcher,
+  state: CallState,
+) => {
+  return dispatcher.on('healthCheckResponse', (e) => {
+    if (e.eventPayload.oneofKind !== 'healthCheckResponse') return;
+    const { participantCount } = e.eventPayload.healthCheckResponse;
+    if (participantCount) {
+      state.setParticipantCount(participantCount.total);
+      state.setAnonymousParticipantCount(participantCount.anonymous);
+    }
   });
 };

@@ -11,6 +11,9 @@ export const KichinSink: Props = {
   logo: '/images/icons/stream-logo.svg',
   joinCall: () => {},
   callId: 'ADFSDAf12124',
-  fastestEdge: 'us-east-1',
+  fastestEdge: {
+    id: 'us-east-1',
+    latency: 100,
+  },
   isjoiningCall: false,
 };

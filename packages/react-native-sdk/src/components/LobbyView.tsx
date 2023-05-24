@@ -1,31 +1,16 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
-import {
-  useConnectedUser,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
+import { useCall, useConnectedUser } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useCallCycleContext } from '../contexts';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
-
-/**
- * Props to be passed for the ActiveCall component.
- */
-export interface LobbyViewProps {
-  /**
-   * Call ID of the call that is to be joined.
-   */
-  callID: string;
-}
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
@@ -47,19 +32,15 @@ const ParticipantStatus = () => {
   );
 };
 
-export const LobbyView = (props: LobbyViewProps) => {
+export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
-  const videoClient = useStreamVideoClient();
   const connectedUser = useConnectedUser();
-  const { callCycleHandlers } = useCallCycleContext();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
   const isVideoAvailable = !!localVideoStream && !isVideoMuted;
-  const { onActiveCall } = callCycleHandlers;
-  const { callID } = props;
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
@@ -72,20 +53,17 @@ export const LobbyView = (props: LobbyViewProps) => {
     <Video color={theme.light.static_black} />
   );
 
-  const joinCallHandler = () => {
-    videoClient
-      ?.call('default', callID)
-      .join({ create: true })
-      .then(() => {
-        if (onActiveCall) {
-          onActiveCall();
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
-        }
-      })
-      .catch((err) => {
-        console.log('Error joining call', err);
-      });
+  const call = useCall();
+  const joinCallHandler = async () => {
+    try {
+      await call?.join({ create: true });
+    } catch (error) {
+      console.log(error);
+      if (error instanceof AxiosError) {
+        console.log('Error joining call', error);
+        Alert.alert(error.response?.data.message);
+      }
+    }
   };
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,

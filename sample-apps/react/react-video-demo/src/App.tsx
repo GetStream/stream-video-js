@@ -1,18 +1,20 @@
-import { FC, useState, useCallback, useEffect } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { v1 as uuidv1 } from 'uuid';
 
 import {
-  uniqueNamesGenerator,
-  Config,
   adjectives,
+  Config,
+  uniqueNamesGenerator,
 } from 'unique-names-generator';
 
 import {
+  GetEdgesResponse,
+  MediaDevicesProvider,
+  StreamCallProvider,
   StreamVideo,
   useCreateStreamVideoClient,
-  MediaDevicesProvider,
+  User,
 } from '@stream-io/video-react-sdk';
-import { User } from '@stream-io/video-client';
 import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
@@ -22,9 +24,11 @@ import EndCallView from './components/Views/EndCallView';
 import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
+import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
+import { measureLatencyToEdges } from './utils/useMeasureLatencyReponse';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -45,15 +49,17 @@ const config: Config = {
   style: 'lowerCase',
 };
 
+const FETCH_EDGE_TIMOUT = 10000;
+
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
-  const [callId, setCallId] = useState<string>();
   const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
-  const [fastestEdge, setFastestEdge] = useState<any>();
+  const [fastestEdge, setFastestEdge] = useState<{
+    id: string;
+    latency: number;
+  }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
-
-  const callType: string = 'default';
 
   const { setSteps } = useTourContext();
 
@@ -73,45 +79,88 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     },
   });
 
-  useEffect(() => {
-    if (incomingCallId && incomingCallId !== null) {
-      setCallId(incomingCallId);
-    }
-  }, [incomingCallId]);
+  const callType: string = 'default';
+  const [callId] = useState(() => {
+    if (incomingCallId) return incomingCallId;
+    const id = `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
+    window.location.search = `?id=${id}`;
+    return id;
+  });
+  const [activeCall] = useState(() => client.call(callType, callId));
 
   useEffect(() => {
     setSteps(tour);
   }, []);
 
   useEffect(() => {
-    async function fetchEdges() {
-      const response: any = await client.edges();
-      const fastedEdges = response.edges.sort(
-        (a: any, b: any) => a.latency - b.latency,
-      );
-      setFastestEdge(fastedEdges[0]);
+    let markerTimer: ReturnType<typeof setTimeout>;
 
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
+    async function fetchEdges() {
+      if (isCallActive) {
+        if (markerTimer) {
+          clearTimeout(markerTimer);
+        }
+        return;
+      }
+
+      const response: GetEdgesResponse = await client.edges();
+      const latencies = await measureLatencyToEdges(response.edges);
+
+      const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
+        const lowestCurr = Math.min(...latencies[curr]);
+
+        if (lowestCurr === -1) {
+          return acc;
+        }
+
+        if (acc) {
+          const lowestAcc = Math.min(...latencies[acc]);
+
+          if (lowestCurr < lowestAcc) {
+            return curr;
+          } else {
+            return acc;
+          }
+        }
+
+        return curr;
+      });
+
+      const latency = Math.min(...latencies[edgeId]);
+
+      setFastestEdge({
+        id: edgeId,
+        latency: latency,
+      });
+
+      if (!edges) {
+        const features = createGeoJsonFeatures(response.edges);
+        setEdges(features);
+      }
+
+      if (!isCallActive) {
+        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
+      }
     }
+
     fetchEdges();
-  }, []);
+
+    return () => {
+      clearTimeout(markerTimer);
+    };
+  }, [edges, isCallActive]);
 
   const joinMeeting = useCallback(async () => {
-    const id =
-      callId || `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
     setIsJoiningCall(true);
     try {
-      const call = await client.call(callType, id);
-      await call.join({ create: true });
+      await activeCall.join({ create: true });
 
-      setCallId(id);
       setIsCallActive(true);
       setIsJoiningCall(false);
     } catch (e) {
       console.error(e);
     }
-  }, [callId]);
+  }, [activeCall]);
 
   if (callHasEnded) {
     return <EndCallView />;
@@ -119,40 +168,45 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
 
   return (
     <StreamVideo client={client}>
-      <ModalProvider>
-        {isCallActive && callId && client ? (
-          <NotificationProvider>
-            <TourProvider>
-              <MeetingView
+      <StreamCallProvider call={activeCall}>
+        <MediaDevicesProvider initialVideoEnabled={true}>
+          <ModalProvider>
+            {isCallActive && callId && client ? (
+              <NotificationProvider>
+                <PanelProvider>
+                  <TourProvider>
+                    <MeetingView
+                      logo={logo}
+                      call={activeCall}
+                      callId={callId}
+                      callType={callType}
+                      isCallActive={isCallActive}
+                      setCallHasEnded={setCallHasEnded}
+                      chatClient={chatClient}
+                    />
+                  </TourProvider>
+                </PanelProvider>
+              </NotificationProvider>
+            ) : (
+              <LobbyView
                 logo={logo}
-                callId={callId}
-                callType={callType}
-                isCallActive={isCallActive}
-                setCallHasEnded={setCallHasEnded}
-                chatClient={chatClient}
+                user={user}
+                callId={callId || ''}
+                edges={edges}
+                fastestEdge={fastestEdge}
+                isjoiningCall={isjoiningCall}
+                joinCall={joinMeeting}
               />
-            </TourProvider>
-          </NotificationProvider>
-        ) : (
-          <MediaDevicesProvider initialVideoEnabled={true}>
-            <LobbyView
-              logo={logo}
-              user={user}
-              callId={callId || ''}
-              edges={edges}
-              fastestEdge={fastestEdge}
-              isjoiningCall={isjoiningCall}
-              joinCall={joinMeeting}
-            />
-          </MediaDevicesProvider>
-        )}
-      </ModalProvider>
+            )}
+          </ModalProvider>
+        </MediaDevicesProvider>
+      </StreamCallProvider>
     </StreamVideo>
   );
 };
 
 const App: FC = () => {
-  const logo = '/images/icons/stream-logo.svg';
+  const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
   const [user, setUser] = useState<User>();
   const [token, setToken] = useState<string>();
 

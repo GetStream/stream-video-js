@@ -5,18 +5,24 @@ import {
   OwnCapability,
   SfuModels,
   StreamVideoParticipant,
-  User,
-} from '@stream-io/video-client';
-import {
-  useActiveCall,
+  useCall,
   useConnectedUser,
   useOwnCapabilities,
-} from '@stream-io/video-react-bindings';
+  User,
+} from '@stream-io/video-react-sdk';
 
 import Panel from '../Panel';
 import { Invite } from '../InvitePanel';
 import ParticipantsControlModal from '../ParticipantsControlModal';
-import { Mic, MicMuted, Options, Search, Video, VideoOff } from '../Icons';
+import {
+  Mic,
+  MicMuted,
+  Options,
+  People,
+  Search,
+  Video,
+  VideoOff,
+} from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
@@ -24,6 +30,7 @@ import { useBreakpoint } from '../../hooks/useBreakpoints';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './ParticipantsPanel.module.css';
+import { is } from 'date-fns/locale';
 
 export type Props = {
   className?: string;
@@ -41,6 +48,7 @@ export type RemoteParticipant = {
   isAudioOn: boolean;
   isVideoOn: boolean;
   particpantName: string;
+  isLocalParticipant: boolean;
 };
 
 export const LocalParticipant: FC<{
@@ -50,16 +58,16 @@ export const LocalParticipant: FC<{
   return <>{connectedUser?.name || participant?.name}</>;
 };
 
-export const RemoteParticipant: FC<RemoteParticipant> = ({
+export const Participant: FC<RemoteParticipant> = ({
   participant,
   isAudioOn,
   isVideoOn,
   handleMuteUser,
   handleDisableVideo,
   handleBlockUser,
+  isLocalParticipant,
 }) => {
   const { setComponent } = useModalContext();
-  const breakpoint = useBreakpoint();
 
   const ownCapabilities = useOwnCapabilities();
 
@@ -75,58 +83,48 @@ export const RemoteParticipant: FC<RemoteParticipant> = ({
         particpantName={participant.name}
       />,
     );
-  }, []);
+  }, [
+    participant,
+    handleMuteUser,
+    handleDisableVideo,
+    handleBlockUser,
+    isAudioOn,
+    isVideoOn,
+  ]);
 
-  if (breakpoint === 'xs' || breakpoint === 'sm') {
-    return (
-      <>
-        <div className={styles.media}>
+  return (
+    <>
+      <div className={styles.media}>
+        <Restricted
+          availableGrants={ownCapabilities}
+          requiredGrants={[OwnCapability.MUTE_USERS]}
+        >
           {isAudioOn ? (
-            <Mic className={styles.mic} />
+            <div onClick={() => handleMuteUser(participant.userId)}>
+              <Mic className={styles.mic} />
+            </div>
           ) : (
             <MicMuted className={styles.micMuted} />
           )}
-
+        </Restricted>
+        <Restricted
+          availableGrants={ownCapabilities}
+          requiredGrants={[OwnCapability.MUTE_USERS]}
+        >
           {isVideoOn ? (
-            <Video className={styles.video} />
+            <div onClick={() => handleDisableVideo(participant.userId)}>
+              <Video className={styles.video} />
+            </div>
           ) : (
             <VideoOff className={styles.videoOff} />
           )}
-          <div onClick={handleSetComponent}>
-            <Options className={styles.options} />
-          </div>
-        </div>
-      </>
-    );
-  }
+        </Restricted>
 
-  return (
-    <div className={styles.media}>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.MUTE_USERS]}
-      >
-        {isAudioOn ? (
-          <div onClick={() => handleMuteUser(participant.userId)}>
-            <Mic className={styles.mic} />
-          </div>
-        ) : (
-          <MicMuted className={styles.micMuted} />
-        )}
-      </Restricted>
-      <Restricted
-        availableGrants={ownCapabilities}
-        requiredGrants={[OwnCapability.MUTE_USERS]}
-      >
-        {isVideoOn ? (
-          <div onClick={() => handleDisableVideo(participant.userId)}>
-            <Video className={styles.video} />
-          </div>
-        ) : (
-          <VideoOff className={styles.videoOff} />
-        )}
-      </Restricted>
-    </div>
+        <div onClick={handleSetComponent}>
+          <Options className={styles.options} />
+        </div>
+      </div>
+    </>
   );
 };
 
@@ -139,22 +137,42 @@ export const ParticipantsPanel: FC<Props> = ({
 }) => {
   const [value, setValue]: any = useState(undefined);
 
-  const call = useActiveCall();
+  const { isVisible, close: closeModal } = useModalContext();
+
+  const call = useCall();
   const connectedUser = useConnectedUser();
 
   const rootClassname = classnames(styles.root, className);
 
-  const handleBlockUser = useCallback((participantId: string) => {
-    call?.blockUser(participantId);
-  }, []);
+  const handleBlockUser = useCallback(
+    (participantId: string) => {
+      call?.blockUser(participantId);
+      if (isVisible) {
+        closeModal;
+      }
+    },
+    [isVisible, closeModal],
+  );
 
-  const handleMuteUser = useCallback((participantId: string) => {
-    call?.muteUser(participantId, 'audio');
-  }, []);
+  const handleMuteUser = useCallback(
+    (participantId: string) => {
+      call?.muteUser(participantId, 'audio');
+      if (isVisible) {
+        closeModal;
+      }
+    },
+    [isVisible, closeModal],
+  );
 
-  const handleDisableVideo = useCallback((participantId: string) => {
-    call?.muteUser(participantId, 'video');
-  }, []);
+  const handleDisableVideo = useCallback(
+    (participantId: string) => {
+      call?.muteUser(participantId, 'video');
+      if (isVisible) {
+        closeModal;
+      }
+    },
+    [isVisible, closeModal],
+  );
 
   return (
     <Panel
@@ -204,9 +222,10 @@ export const ParticipantsPanel: FC<Props> = ({
             ) {
               return (
                 <li className={styles.participant} key={`participant-${index}`}>
-                  <span className={styles.name}>{participant?.name}</span>
-                  {/* {!isLocalParticipant && ( */}
-                  <RemoteParticipant
+                  <span className={styles.name}>
+                    {participant?.name} {isLocalParticipant ? '(You)' : null}
+                  </span>
+                  <Participant
                     participant={participant}
                     handleMuteUser={handleMuteUser}
                     handleDisableVideo={handleDisableVideo}
@@ -214,8 +233,8 @@ export const ParticipantsPanel: FC<Props> = ({
                     isAudioOn={isAudioOn}
                     isVideoOn={isVideoOn}
                     particpantName={particpantName}
+                    isLocalParticipant={isLocalParticipant}
                   />
-                  {/* )} */}
                 </li>
               );
             }

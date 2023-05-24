@@ -6,6 +6,7 @@ import {
   SfuModels,
 } from '@stream-io/video-client';
 import {
+  Restricted,
   useHasOngoingScreenShare,
   useHasPermissions,
   useLocalParticipant,
@@ -36,47 +37,49 @@ export const ScreenShareButton = ({
     }
   }, [hasPermission]);
   return (
-    <PermissionNotification
-      permission={OwnCapability.SCREENSHARE}
-      isAwaitingApproval={isAwaitingApproval}
-      messageApproved="You can now share your screen."
-      messageAwaitingApproval="Awaiting for an approval to share screen."
-      messageRevoked="You can no longer share your screen."
-    >
-      <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
-        <IconButton
-          icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
-          title="Share screen"
-          disabled={!isScreenSharing && isSomeoneScreenSharing}
-          onClick={async () => {
-            if (
-              !hasPermission &&
-              call.permissionsContext.canRequest(OwnCapability.SCREENSHARE)
-            ) {
-              setIsAwaitingApproval(true);
-              await call
-                .requestPermissions({
-                  permissions: [OwnCapability.SCREENSHARE],
-                })
-                .catch((reason) => {
-                  console.log('RequestPermissions failed', reason);
-                });
-              return;
-            }
-
-            if (!isScreenSharing && hasPermission) {
-              const stream = await getScreenShareStream().catch((e) => {
-                console.log(`Can't share screen: ${e}`);
-              });
-              if (stream) {
-                await call.publishScreenShareStream(stream);
+    <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
+      <PermissionNotification
+        permission={OwnCapability.SCREENSHARE}
+        isAwaitingApproval={isAwaitingApproval}
+        messageApproved="You can now share your screen."
+        messageAwaitingApproval="Awaiting for an approval to share screen."
+        messageRevoked="You can no longer share your screen."
+      >
+        <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
+          <IconButton
+            icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
+            title="Share screen"
+            disabled={!isScreenSharing && isSomeoneScreenSharing}
+            onClick={async () => {
+              if (
+                !hasPermission &&
+                call.permissionsContext.canRequest(OwnCapability.SCREENSHARE)
+              ) {
+                setIsAwaitingApproval(true);
+                await call
+                  .requestPermissions({
+                    permissions: [OwnCapability.SCREENSHARE],
+                  })
+                  .catch((reason) => {
+                    console.log('RequestPermissions failed', reason);
+                  });
+                return;
               }
-            } else {
-              await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-            }
-          }}
-        />
-      </CompositeButton>
-    </PermissionNotification>
+
+              if (!isScreenSharing && hasPermission) {
+                const stream = await getScreenShareStream().catch((e) => {
+                  console.log(`Can't share screen: ${e}`);
+                });
+                if (stream) {
+                  await call.publishScreenShareStream(stream);
+                }
+              } else {
+                await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+              }
+            }}
+          />
+        </CompositeButton>
+      </PermissionNotification>
+    </Restricted>
   );
 };

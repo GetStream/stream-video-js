@@ -1,13 +1,17 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
-import { Call } from '@stream-io/video-client';
-import { ParticipantBox } from '@stream-io/video-react-sdk';
 import {
+  Call,
   useLocalParticipant,
   useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+  StreamVideoParticipant,
+  useParticipants,
+} from '@stream-io/video-react-sdk';
+
+import { SfuModels } from '@stream-io/video-client';
 
 import ParticipantsSlider from '../ParticipantsSlider';
+import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
@@ -27,51 +31,75 @@ export const MeetingParticipants: FC<Props> = ({
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
 
+  const [participantInSpotlight, ...otherParticipants] = useParticipants();
+
   const breakpoint = useBreakpoint();
+
+  const localParticpantHasVideo = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setMaxParticipants(3);
+      setMaxParticipants(2);
     } else {
       setMaxParticipants(maxParticipantsOnScreen);
     }
-  }, [breakpoint]);
+  }, [breakpoint, maxParticipantsOnScreen]);
 
   if (maxParticipants) {
+    const rootClassNames = classnames(styles.root, {
+      [styles.slider]: remoteParticipants?.length > maxParticipants,
+    });
+
     const gridClassNames = classnames(styles.meetingGrid, {
       [styles?.[`meetingGrid-${remoteParticipants.length + 1}`]]:
         remoteParticipants?.length <= maxParticipants,
       [styles.slider]: remoteParticipants?.length > maxParticipants,
     });
 
+    const localParticipantClassNames = classnames(styles.localParticipant, {
+      [styles.videoDisabled]: !localParticpantHasVideo,
+    });
+
     return (
-      <div className={styles.root}>
+      <div className={rootClassNames}>
         <div className={gridClassNames}>
-          {localParticipant && (
-            <ParticipantBox
-              className={styles.localParticipant}
-              participant={localParticipant}
+          {participantInSpotlight && (
+            <Participant
               call={call}
-              sinkId={localParticipant.audioOutputDeviceId}
+              className={localParticipantClassNames}
+              participant={participantInSpotlight}
             />
           )}
 
           {remoteParticipants?.length <= maxParticipants ? (
-            remoteParticipants?.map((participant: any) => (
-              <ParticipantBox
-                className={styles.remoteParticipant}
-                key={participant.sessionId}
-                participant={participant}
-                call={call}
-                sinkId={localParticipant?.audioOutputDeviceId}
-              />
-            ))
+            remoteParticipants?.map((participant: StreamVideoParticipant) => {
+              const remoteParticpantHasVideo =
+                participant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
+
+              const remoteParticipantsClassNames = classnames(
+                styles.remoteParticipant,
+                {
+                  [styles.videoDisabled]: !remoteParticpantHasVideo,
+                },
+              );
+
+              return (
+                <Participant
+                  key={participant.sessionId}
+                  call={call}
+                  className={remoteParticipantsClassNames}
+                  participant={participant}
+                />
+              );
+            })
           ) : (
             <div className={styles.slider}>
               <ParticipantsSlider
                 call={call}
                 mode="horizontal"
-                participants={remoteParticipants}
+                participants={otherParticipants}
               />
             </div>
           )}

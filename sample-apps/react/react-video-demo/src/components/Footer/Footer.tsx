@@ -1,9 +1,10 @@
 import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
+import { isMobile, isTablet } from 'mobile-device-detect';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
-import ControlButton from '../ControlButton';
+import { PanelButton } from '../ControlButton';
 import {
   Chat,
   People,
@@ -13,12 +14,14 @@ import {
   ShareScreen,
   Stop,
   LoadingSpinner,
+  Like,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
+import ReactionsPanel from '../ReactionsPanel';
 
-import { useTourContext, StepNames } from '../../contexts/TourContext';
 import { useModalContext } from '../../contexts/ModalContext';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
 
@@ -26,13 +29,9 @@ export type Props = {
   call: any;
   isCallActive: boolean;
   callId: string;
-  toggleChat: () => void;
-  toggleParticipants: () => void;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
-  showChat?: boolean;
-  showParticipants?: boolean;
   isRecording?: boolean;
   isAwaitingRecording?: boolean;
   isScreenSharing?: boolean;
@@ -44,13 +43,9 @@ export type Props = {
 export const Footer: FC<Props> = ({
   call,
   callId,
-  toggleChat,
-  toggleParticipants,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
-  showChat,
-  showParticipants,
   isRecording,
   isAwaitingRecording,
   isScreenSharing,
@@ -58,35 +53,23 @@ export const Footer: FC<Props> = ({
   participantCount,
   leave,
 }) => {
-  const { current } = useTourContext();
-
   const { isVisible } = useModalContext();
-
-  const [showSettingsPanel, setShowSettingsPanel] = useState<boolean>(true);
-
-  useEffect(() => {
-    if (isVisible && showSettingsPanel) {
-      setShowSettingsPanel(false);
-    }
-  }, [showSettingsPanel, isVisible]);
-
-  useEffect(() => {
-    if (current === StepNames.Chat && showChat === false) {
-      toggleChat();
-    }
-
-    if (current === StepNames.Settings && showSettingsPanel === false) {
-      setShowSettingsPanel(true);
-    }
-  }, [current, showChat]);
+  const {
+    isChatVisible,
+    isParticipantsVisible,
+    isSettingsVisible,
+    isReactionVisible,
+    toggleChat,
+    toggleParticipants,
+    toggleSettings,
+    toggleReaction,
+  } = usePanelContext();
 
   useEffect(() => {
-    setShowSettingsPanel(isVisible || current === StepNames.Settings);
-  }, [isVisible, current]);
-
-  const settingsClassNames = classnames(styles.settings, {
-    [styles.active]: current === StepNames.Settings,
-  });
+    if (isVisible && isSettingsVisible) {
+      toggleSettings();
+    }
+  }, [isVisible]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
@@ -96,18 +79,18 @@ export const Footer: FC<Props> = ({
   return (
     <section className={styles.footer}>
       <div className={styles.settingsContainer}>
-        <ControlButton
-          className={settingsClassNames}
+        <PanelButton
+          className={styles.settings}
           portalId="settings"
-          onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-          showPanel={showSettingsPanel}
+          showPanel={isSettingsVisible}
+          onClick={() => toggleSettings()}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
               <SettingsPanel
                 callId={callId}
                 toggleRecording={
-                  !isRecording ? handleStartRecording : undefined
+                  !isRecording ? handleStartRecording : handleStopRecording
                 }
                 toggleShareScreen={toggleShareScreen}
               />
@@ -138,15 +121,31 @@ export const Footer: FC<Props> = ({
           </>
         </Button>
 
-        <Button
-          className={styles.shareScreen}
-          label="Share screen"
-          color={isScreenSharing ? 'active' : 'secondary'}
-          shape="square"
-          onClick={toggleShareScreen}
-        >
-          <ShareScreen />
-        </Button>
+        {!isMobile && !isTablet && (
+          <Button
+            className={styles.shareScreen}
+            label="Share"
+            color={isScreenSharing ? 'active' : 'secondary'}
+            shape="square"
+            onClick={toggleShareScreen}
+          >
+            <ShareScreen />
+          </Button>
+        )}
+
+        <PanelButton
+          className={styles.reactions}
+          portalId="reactions"
+          showPanel={isReactionVisible}
+          onClick={() => toggleReaction()}
+          label="Reaction"
+          panel={
+            <Portal className={styles.reactionsPortal} selector="reactions">
+              <ReactionsPanel />
+            </Portal>
+          }
+          prefix={<Like className={styles.likeIcon} />}
+        />
       </div>
       <div className={styles.controls}>
         <ControlMenu
@@ -169,13 +168,7 @@ export const Footer: FC<Props> = ({
         <Button
           className={styles.chat}
           label="Chat"
-          color={
-            current === StepNames.Chat
-              ? 'primary'
-              : showChat
-              ? 'active'
-              : 'secondary'
-          }
+          color={isChatVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={() => toggleChat()}
         >
@@ -187,12 +180,14 @@ export const Footer: FC<Props> = ({
         <Button
           label="Participants"
           className={styles.participants}
-          color={showParticipants ? 'active' : 'secondary'}
+          color={isParticipantsVisible ? 'active' : 'secondary'}
           shape="square"
           onClick={toggleParticipants}
         >
           <People />
-          {!showParticipants && participantCount && participantCount > 1 ? (
+          {!isParticipantsVisible &&
+          participantCount &&
+          participantCount > 1 ? (
             <span className={styles.participantCounter}>
               {participantCount}
             </span>

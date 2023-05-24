@@ -1,0 +1,42 @@
+.backstage-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+
+  .backstage-header-section {
+    flex: 1;
+
+    &.pull-left {
+      display: flex;
+
+      .backstage-header-details {
+        .backstage-header-title {
+          font-style: normal;
+          font-weight: 500;
+          font-size: 20px;
+          line-height: 25px;
+          margin: 0;
+          color: #fcfcfc;
+        }
+
+        .backstage-header-subtitle {
+          font-style: normal;
+          font-weight: 400;
+          font-size: 17px;
+          line-height: 20px;
+          margin: 0;
+          color: #cececd;
+        }
+      }
+    }
+
+    &.pull-center {
+      display: flex;
+      justify-content: center;
+    }
+
+    &.pull-right {
+      text-align: right;
+    }
+  }
+}
