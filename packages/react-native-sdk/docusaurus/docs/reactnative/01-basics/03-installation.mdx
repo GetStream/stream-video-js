@@ -13,7 +13,7 @@ You can find the official guide [here](https://reactnative.dev/docs/environment-
 
 In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
 ```bash
-yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules
+yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules @react-native-community/netinfo
 ```
 
 The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
@@ -33,6 +33,7 @@ So what did we install precisely?
 - `react-native-url-polyfill` is a polyfill for the Encoding Living Standard API for the Web, allowing encoding and decoding of textual data to and from Typed Array buffers for binary data in JS
 - `react-native-get-random-values` is used for crypto.getRandomValues polyfill to generate uuid
 - `intl-pluralrules` - allows i18n with support for pluralization based on [`Intl.Plurales`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/PluralRules)
+- `@react-native-community/netinfo` - is used to know the connectivity status of the device
 
 ### Optional peer dependencies
 Some of the optional features we provide require additional dependencies to be installed in order to work properly.
