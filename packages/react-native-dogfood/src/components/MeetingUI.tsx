@@ -17,7 +17,6 @@ type Props = NativeStackScreenProps<
   'MeetingScreen' | 'GuestMeetingScreen'
 > & {
   callId: string;
-  mode?: string;
   show: ScreenTypes;
   setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
 };
@@ -25,7 +24,6 @@ type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const MeetingUI = ({
   callId,
-  mode,
   navigation,
   route,
   show,
@@ -54,11 +52,7 @@ export const MeetingUI = ({
     );
   } else if (show === 'lobby') {
     ComponentToRender = (
-      <LobbyViewComponent
-        callId={callId}
-        mode={mode}
-        {...{ navigation, route }}
-      />
+      <LobbyViewComponent callId={callId} {...{ navigation, route }} />
     );
   } else if (show === 'loading') {
     ComponentToRender = <AuthenticationProgress />;

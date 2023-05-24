@@ -42,7 +42,6 @@ import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
 
 import Logger from 'react-native-webrtc/src/Logger';
-import { v4 as uuidv4 } from 'uuid';
 import { GuestModeScreen } from './src/screens/Meeting/GuestModeScreen';
 import { GuestMeetingScreen } from './src/screens/Meeting/GuestMeetingScreen';
 
@@ -152,11 +151,11 @@ const StackNavigator = () => {
   const meetingNavigation =
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
-  const setRandomCallId = React.useCallback(() => {
-    setState({
-      callId: uuidv4().toLowerCase(),
-    });
-  }, [setState]);
+  // const setRandomCallId = React.useCallback(() => {
+  //   setState({
+  //     callId: uuidv4().toLowerCase(),
+  //   });
+  // }, [setState]);
   useProntoLinkEffect();
   useIosPushEffect();
   useCallKeepEffect();
@@ -191,12 +190,17 @@ const StackNavigator = () => {
       }
     });
 
-    if (appMode === 'Call') {
-      setRandomCallId();
-    }
+    // if (appMode === 'Call') {
+    //   setRandomCallId();
+    // }
 
     return () => subscription.unsubscribe();
-  }, [appMode, setRandomCallId, setState, meetingNavigation]);
+  }, [
+    appMode,
+    // setRandomCallId,
+    setState,
+    meetingNavigation,
+  ]);
 
   // const onCallJoined = React.useCallback(() => {
   //   callNavigation.navigate('CallScreen');

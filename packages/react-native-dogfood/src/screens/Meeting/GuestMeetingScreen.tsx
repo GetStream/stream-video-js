@@ -126,7 +126,6 @@ export const GuestMeetingScreen = (props: Props) => {
           show={show}
           setShow={setShow}
           callId={guestCallId}
-          mode={mode}
           {...props}
         />
       </StreamCall>
