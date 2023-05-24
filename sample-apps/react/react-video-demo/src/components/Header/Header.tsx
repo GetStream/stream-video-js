@@ -110,8 +110,6 @@ export const Img: FC<{
     }
   }, [src]);
 
-  console.log(doesExist, src);
-
   if (doesExist && src !== '') {
     return <img alt="avatar" className={className} src={src} />;
   }

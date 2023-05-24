@@ -74,8 +74,14 @@ export const LobbyPanel: FC<Props> = ({
             <Signal className={styles.signalIcon} />
           </div>
         </div>
+
         <VideoPreview
           DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
+          NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
+          StartingCameraPreview={() => (
+            <DisabledVideoPreview name={user.name} />
+          )}
+          VideoErrorPreview={() => <DisabledVideoPreview name={user.name} />}
         />
       </div>
       <ControlMenu className={styles.controls} call={call} preview={true} />

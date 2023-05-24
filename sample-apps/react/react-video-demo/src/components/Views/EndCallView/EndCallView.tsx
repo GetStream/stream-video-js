@@ -12,6 +12,8 @@ export type Props = {
 
 export const EndCallView: FC<Props> = ({ className }) => {
   const rootClassName = classnames(styles.root, className);
+
+  const handleTalkToAnExpert = () => {};
   return (
     <div className={rootClassName}>
       <div className={styles.panel}>
@@ -29,7 +31,9 @@ export const EndCallView: FC<Props> = ({ className }) => {
             className={styles.cta}
             color="primary"
             shape="oval"
-            onClick={() => {}}
+            onClick={() => {
+              window.location.href = import.meta.env.VITE_TALK_TO_AN_EXPERT_URL;
+            }}
           >
             TALK TO AN EXPERT
           </Button>
@@ -37,7 +41,9 @@ export const EndCallView: FC<Props> = ({ className }) => {
             className={styles.cta}
             color="primary"
             shape="oval"
-            onClick={() => {}}
+            onClick={() => {
+              window.location.href = import.meta.env.VITE_SDK_TUTORIALS_URL;
+            }}
           >
             SDK Tutorials
           </Button>

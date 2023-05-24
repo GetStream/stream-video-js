@@ -131,6 +131,19 @@ export interface APNSRequest {
 /**
  *
  * @export
+ * @interface AcceptCallResponse
+ */
+export interface AcceptCallResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof AcceptCallResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface AudioSettings
  */
 export interface AudioSettings {
@@ -312,12 +325,17 @@ export interface BroadcastSettings {
   hls: HLSSettings;
 }
 /**
- * This event is sent by a user accepting an incoming ringing call.
- * Clients receiving this event should dismiss the call screen and move to the call.
+ * This event is sent when a user accepts a notification to join a call.
  * @export
  * @interface CallAcceptedEvent
  */
 export interface CallAcceptedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallAcceptedEvent
+   */
+  call: CallResponse;
   /**
    *
    * @type {string}
@@ -331,7 +349,7 @@ export interface CallAcceptedEvent {
    */
   created_at: string;
   /**
-   *
+   * The type of event: "call.accepted" in this case
    * @type {string}
    * @memberof CallAcceptedEvent
    */
@@ -430,12 +448,6 @@ export interface CallCreatedEvent {
    * @memberof CallCreatedEvent
    */
   members: Array<MemberResponse>;
-  /**
-   * true when the call was created with ring enabled
-   * @type {boolean}
-   * @memberof CallCreatedEvent
-   */
-  ringing: boolean;
   /**
    * The type of event: "call.created" in this case
    * @type {string}
@@ -673,6 +685,68 @@ export interface CallMemberUpdatedPermissionEvent {
   type: string;
 }
 /**
+ * This event is sent to all call members to notify they are getting called
+ * @export
+ * @interface CallNotificationEvent
+ */
+export interface CallNotificationEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallNotificationEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallNotificationEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallNotificationEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallNotificationEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.notification" in this case
+   * @type {string}
+   * @memberof CallNotificationEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallNotificationEvent
+   */
+  user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallParticipantResponse
+ */
+export interface CallParticipantResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantResponse
+   */
+  joined_at: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallParticipantResponse
+   */
+  user: UserResponse;
+}
+/**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
@@ -785,12 +859,17 @@ export interface CallRecordingStoppedEvent {
   type: string;
 }
 /**
- * This event is sent when a user rejects a ringing call. Clients receiving this event should dismiss
- * the call screen unless the call includes more users.
+ * This event is sent when a user rejects a notification to join a call.
  * @export
  * @interface CallRejectedEvent
  */
 export interface CallRejectedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallRejectedEvent
+   */
+  call: CallResponse;
   /**
    *
    * @type {string}
@@ -957,6 +1036,12 @@ export interface CallResponse {
   recording: boolean;
   /**
    *
+   * @type {CallSessionResponse}
+   * @memberof CallResponse
+   */
+  session?: CallSessionResponse;
+  /**
+   *
    * @type {CallSettingsResponse}
    * @memberof CallResponse
    */
@@ -991,6 +1076,49 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   updated_at: string;
+}
+/**
+ * This event is sent to all call members to notify they are getting called
+ * @export
+ * @interface CallRingEvent
+ */
+export interface CallRingEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallRingEvent
+   */
+  call: CallResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  created_at: string;
+  /**
+   * Call session ID
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  session_id: string;
+  /**
+   * The type of event: "call.notification" in this case
+   * @type {string}
+   * @memberof CallRingEvent
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof CallRingEvent
+   */
+  user: UserResponse;
 }
 /**
  * This event is sent when a call session ends
@@ -1102,6 +1230,55 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface CallSessionResponse
+ */
+export interface CallSessionResponse {
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof CallSessionResponse
+   */
+  accepted_by: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {Array<CallParticipantResponse>}
+   * @memberof CallSessionResponse
+   */
+  participants: Array<CallParticipantResponse>;
+  /**
+   *
+   * @type {{ [key: string]: number; }}
+   * @memberof CallSessionResponse
+   */
+  participants_count_by_role: { [key: string]: number };
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof CallSessionResponse
+   */
+  rejected_by: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  started_at?: string;
 }
 /**
  * This event is sent when a call session starts
@@ -2039,7 +2216,13 @@ export interface GetOrCreateCallRequest {
    */
   members_limit?: number;
   /**
-   * if provided it overrides the default ring setting for this call
+   * if provided it sends a notification event to the members for this call
+   * @type {boolean}
+   * @memberof GetOrCreateCallRequest
+   */
+  notify?: boolean;
+  /**
+   * if provided it sends a ring event to the members for this call
    * @type {boolean}
    * @memberof GetOrCreateCallRequest
    */
@@ -2212,6 +2395,12 @@ export interface JoinCallRequest {
    * @memberof JoinCallRequest
    */
   members_limit?: number;
+  /**
+   *
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  notify?: boolean;
   /**
    * if true and the call is created, the notification will include ring=true
    * @type {boolean}
@@ -2460,13 +2649,19 @@ export interface NotificationSettings {
    * @type {EventNotificationSettings}
    * @memberof NotificationSettings
    */
-  call_created: EventNotificationSettings;
+  call_live_started: EventNotificationSettings;
   /**
    *
    * @type {EventNotificationSettings}
    * @memberof NotificationSettings
    */
-  call_live_started: EventNotificationSettings;
+  call_notification: EventNotificationSettings;
+  /**
+   *
+   * @type {EventNotificationSettings}
+   * @memberof NotificationSettings
+   */
+  call_ring: EventNotificationSettings;
   /**
    *
    * @type {boolean}
@@ -2491,13 +2686,19 @@ export interface NotificationSettingsRequest {
    * @type {EventNotificationSettingsRequest}
    * @memberof NotificationSettingsRequest
    */
-  call_created?: EventNotificationSettingsRequest;
+  call_live_started?: EventNotificationSettingsRequest;
   /**
    *
    * @type {EventNotificationSettingsRequest}
    * @memberof NotificationSettingsRequest
    */
-  call_live_started?: EventNotificationSettingsRequest;
+  call_notification?: EventNotificationSettingsRequest;
+  /**
+   *
+   * @type {EventNotificationSettingsRequest}
+   * @memberof NotificationSettingsRequest
+   */
+  call_ring?: EventNotificationSettingsRequest;
   /**
    *
    * @type {boolean}
@@ -2951,6 +3152,19 @@ export type RecordSettingsRequestQualityEnum =
 /**
  *
  * @export
+ * @interface RejectCallResponse
+ */
+export interface RejectCallResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RejectCallResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface RequestPermissionRequest
  */
 export interface RequestPermissionRequest {
@@ -3005,6 +3219,12 @@ export interface RingSettings {
    * @memberof RingSettings
    */
   auto_reject_timeout_ms: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettings
+   */
+  incoming_call_timeout_ms: number;
 }
 /**
  *
@@ -3024,6 +3244,12 @@ export interface RingSettingsRequest {
    * @memberof RingSettingsRequest
    */
   auto_reject_timeout_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof RingSettingsRequest
+   */
+  incoming_call_timeout_ms?: number;
 }
 /**
  *
@@ -3100,12 +3326,6 @@ export interface SendEventRequest {
    * @memberof SendEventRequest
    */
   custom?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof SendEventRequest
-   */
-  type: string;
 }
 /**
  *
@@ -3186,6 +3406,64 @@ export interface SortParamRequest {
 /**
  *
  * @export
+ * @interface StartBroadcastingResponse
+ */
+export interface StartBroadcastingResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StartBroadcastingResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof StartBroadcastingResponse
+   */
+  playlist_url: string;
+}
+/**
+ *
+ * @export
+ * @interface StartRecordingResponse
+ */
+export interface StartRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof StartRecordingResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StartTranscriptionResponse
+ */
+export interface StartTranscriptionResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof StartTranscriptionResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopBroadcastingResponse
+ */
+export interface StopBroadcastingResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopBroadcastingResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface StopLiveResponse
  */
 export interface StopLiveResponse {
@@ -3199,6 +3477,32 @@ export interface StopLiveResponse {
    * Duration of the request in human-readable format
    * @type {string}
    * @memberof StopLiveResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopRecordingResponse
+ */
+export interface StopRecordingResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopRecordingResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
+ * @interface StopTranscriptionResponse
+ */
+export interface StopTranscriptionResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof StopTranscriptionResponse
    */
   duration: string;
 }
@@ -3726,12 +4030,14 @@ export type VideoEvent =
   | ({
       type: 'call.member_updated_permission';
     } & CallMemberUpdatedPermissionEvent)
+  | ({ type: 'call.notification' } & CallNotificationEvent)
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
   | ({ type: 'call.reaction_new' } & CallReactionEvent)
   | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
   | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
   | ({ type: 'call.rejected' } & CallRejectedEvent)
+  | ({ type: 'call.ring' } & CallRingEvent)
   | ({ type: 'call.session_ended' } & CallSessionEndedEvent)
   | ({
       type: 'call.session_participant_joined';
@@ -3873,7 +4179,7 @@ export interface WSCallEvent {
    * @type {string}
    * @memberof WSCallEvent
    */
-  call_id?: string;
+  call_cid?: string;
 }
 /**
  * This is just a placeholder for all client events

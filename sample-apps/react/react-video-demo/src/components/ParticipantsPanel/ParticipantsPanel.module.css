@@ -81,6 +81,10 @@
   @apply ml-3;
 }
 
+.options:hover {
+  @apply cursor-pointer;
+}
+
 .invite {
-  @apply flex flex-col sm:hidden;
+  @apply flex flex-col md:hidden;
 }
