@@ -8,11 +8,11 @@ import {
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
 
-export type DefaultCallControlsProps = {
+export type CallControlsProps = {
   onLeave?: () => void;
 };
 
-export const DefaultCallControls = (props: DefaultCallControlsProps) => {
+export const CallControls = (props: CallControlsProps) => {
   const { onLeave } = props;
   return (
     <div className="str-video__call-controls">

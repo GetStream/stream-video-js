@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import {
+  CallControls,
   CallingState,
   CallParticipantsView,
-  DefaultCallControls,
   LoadingIndicator,
   StreamCall,
   StreamTheme,
@@ -69,7 +69,7 @@ export const UI = () => {
             <h4 className="str-video__call__header-title">Call: {call.cid}</h4>
           </div>
           <CallParticipantsView call={call} />
-          <DefaultCallControls />
+          <CallControls />
         </div>
       ) : callingState === CallingState.JOINING ? (
         <LoadingIndicator text="Connecting ..." />
