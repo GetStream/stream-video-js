@@ -9,7 +9,7 @@ When building an application that relies on [`ring call workflow`](../../guides/
 The component will render:
 
 1. Call controls buttons to toggle audio and video enablement and accept resp. reject call buttons (the component will be called `CallControls`)
-2. Avatars of called users or the current user's video preview ( the component will be called `CallMembers`)
+2. Avatars of called users or the current user's video preview (the component will be called `CallMembers`)
 3. Call calling state indicator (the component will be called `CallCallingStateLabel`)
 
 
@@ -57,9 +57,10 @@ import {
   useCallMembers,
   useCallMetadata,
   useMediaDevices,
-  UserResponse,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
+
+import type { UserResponse } from '@stream-io/video-react-sdk';
 
 import { CallCallingStateLabel } from './CallCallingStateLabel';
 import { CallControls } from './CallControls';
@@ -189,8 +190,9 @@ We display relevant users' avatars with `CallMembers` component.
 ```tsx
 import {
   Avatar,
-  UserResponse,
 } from '@stream-io/video-react-sdk';
+
+import type { UserResponse } from '@stream-io/video-react-sdk';
 
 type CallMembersProps = {
   members: UserResponse[];
