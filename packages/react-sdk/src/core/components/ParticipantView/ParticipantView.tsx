@@ -13,7 +13,7 @@ import {
   DefaultParticipantViewUI,
   ParticipantViewUIProps,
 } from './DefaultParticipantViewUI';
-import { isComponentType, applyElementRef } from '../../../utilities';
+import { isComponentType, applyElementToRef } from '../../../utilities';
 
 export type ParticipantViewProps = {
   /**
@@ -102,7 +102,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     return (
       <div
         ref={(element) => {
-          applyElementRef(ref, element);
+          applyElementToRef(ref, element);
           setTrackedElement(element);
         }}
         className={clsx(
