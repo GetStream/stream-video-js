@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import mockParticipant from '../mocks/participant';
 import { ParticipantView } from '../../src/components/ParticipantView';
 import { StreamVideo } from '../../src/providers';
@@ -26,8 +26,8 @@ describe('ParticipantView', () => {
       },
     );
 
-    await waitFor(() =>
-      expect(screen.getByLabelText('participant-avatar')).toBeOnTheScreen(),
-    );
+    expect(
+      await screen.findByLabelText('participant-avatar'),
+    ).toBeOnTheScreen();
   });
 });
