@@ -150,7 +150,7 @@ export const ParticipantDetails = ({
           />
           <DebugStatsView
             call={call}
-            kind={isLoggedInUser ? 'publisher' : 'subscriber'}
+            sessionId={sessionId}
             mediaStream={videoStream}
           />
         </>
