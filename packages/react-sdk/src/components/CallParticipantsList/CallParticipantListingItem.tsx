@@ -177,9 +177,13 @@ export const ParticipantActionsContextMenu = ({
     if (!fullscreenModeOn)
       return participantViewElement
         ?.requestFullscreen()
-        .then(() => setFullscreenModeOn(true));
+        .then(() => setFullscreenModeOn(true))
+        .catch(console.error);
 
-    document.exitFullscreen().then(() => setFullscreenModeOn(false));
+    document
+      .exitFullscreen()
+      .catch(console.error)
+      .finally(() => setFullscreenModeOn(false));
   };
 
   return (
