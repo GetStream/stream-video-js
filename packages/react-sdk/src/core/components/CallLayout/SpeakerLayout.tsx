@@ -20,7 +20,6 @@ import {
   DefaultParticipantViewUI,
   ParticipantView,
   ParticipantViewProps,
-  ParticipantViewUIProps,
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
@@ -30,17 +29,11 @@ export type SpeakerLayoutProps = {
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
-const DefaultParticipantViewUIBar = ({
-  participant,
-}: ParticipantViewUIProps) => (
-  <DefaultParticipantViewUI participant={participant} menuPlacement="top-end" />
+const DefaultParticipantViewUIBar = () => (
+  <DefaultParticipantViewUI menuPlacement="top-end" />
 );
 
-const DefaultParticipantViewUISpotlight = ({
-  participant,
-}: ParticipantViewUIProps) => (
-  <DefaultParticipantViewUI participant={participant} />
-);
+const DefaultParticipantViewUISpotlight = () => <DefaultParticipantViewUI />;
 
 export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
