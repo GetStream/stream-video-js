@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.183](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.182...client0.0.1-alpha.183) (2023-05-25)
+
+
+
+## [0.0.1-alpha.182](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.181...client0.0.1-alpha.182) (2023-05-25)
+
+
+
+## [0.0.1-alpha.181](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.180...client0.0.1-alpha.181) (2023-05-24)
+
+
+
+## [0.0.1-alpha.180](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.179...client0.0.1-alpha.180) (2023-05-24)
+
+
+
+## [0.0.1-alpha.179](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.178...client0.0.1-alpha.179) (2023-05-24)
+
+
+
+## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.177...client0.0.1-alpha.178) (2023-05-23)
+
+
+
 ## [0.0.1-alpha.177](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.176...client0.0.1-alpha.177) (2023-05-23)
 
 

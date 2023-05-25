@@ -99,7 +99,7 @@ export const Recordings = () => {
               >
                 {new Date(recording.end_time).toLocaleString()}
 
-                <Download />
+                <Download className={styles.download} />
               </a>
             </li>
           ))}

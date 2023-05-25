@@ -2,10 +2,9 @@ import {
   StreamVideo as StreamVideoProvider,
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren, useEffect } from 'react';
-import { StoreProvider } from '../contexts/StreamVideoContext';
+import React, { PropsWithChildren } from 'react';
+import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
-import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
 
 /**
  *
@@ -41,9 +40,7 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
       i18nInstance={i18nInstance}
       language={language}
     >
-      <MediaDevicesProvider>
-        <StoreProvider>{children}</StoreProvider>
-      </MediaDevicesProvider>
+      <StreamVideoStoreProvider>{children}</StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
 };

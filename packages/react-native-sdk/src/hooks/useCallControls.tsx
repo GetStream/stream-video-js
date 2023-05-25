@@ -9,8 +9,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   useStreamVideoStoreSetState,
   useStreamVideoStoreValue,
-} from '../contexts/StreamVideoContext';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
+} from '../contexts';
 import { useAppStateListener } from '../utils/hooks/useAppStateListener';
 import NetInfo from '@react-native-community/netinfo';
 
@@ -28,12 +27,13 @@ export const useCallControls = () => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
-  const {
-    audioDevice,
-    currentVideoDevice,
-    videoDevices,
-    setCurrentVideoDevice,
-  } = useMediaDevices();
+  const currentAudioDevice = useStreamVideoStoreValue(
+    (store) => store.currentAudioDevice,
+  );
+  const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
+  const currentVideoDevice = useStreamVideoStoreValue(
+    (store) => store.currentVideoDevice,
+  );
 
   const isAudioMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -46,7 +46,7 @@ export const useCallControls = () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (audioDevice && isOnlineRef.current) {
+      if (currentAudioDevice && isOnlineRef.current) {
         const audioStream = await getAudioStream(audioDevice.deviceId);
         if (call) {
           await call.publishAudioStream(audioStream);
@@ -55,7 +55,7 @@ export const useCallControls = () => {
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
-  }, [audioDevice, call]);
+  }, [currentAudioDevice, call]);
 
   const publishVideoStream = useCallback(async () => {
     try {
@@ -148,16 +148,11 @@ export const useCallControls = () => {
           ? device.facing === 'front'
           : device.facing === 'environment'),
     );
-    setCurrentVideoDevice(videoDevice);
     setState((prevState) => ({
+      currentVideoDevice: videoDevice,
       isCameraOnFrontFacingMode: !prevState.isCameraOnFrontFacingMode,
     }));
-  }, [
-    isCameraOnFrontFacingMode,
-    setCurrentVideoDevice,
-    videoDevices,
-    setState,
-  ]);
+  }, [isCameraOnFrontFacingMode, videoDevices, setState]);
 
   return {
     isAudioMuted,

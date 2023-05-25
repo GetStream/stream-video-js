@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.58...@stream-io/i18n-0.0.1-alpha.59) (2023-05-25)
+
+
+
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.57...@stream-io/i18n-0.0.1-alpha.58) (2023-05-25)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.56...@stream-io/i18n-0.0.1-alpha.57) (2023-05-24)
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.55...@stream-io/i18n-0.0.1-alpha.56) (2023-05-24)
+
+
+
+## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.54...@stream-io/i18n-0.0.1-alpha.55) (2023-05-24)
+
+
+
+## [0.0.1-alpha.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.53...@stream-io/i18n-0.0.1-alpha.54) (2023-05-23)
+
+
+
 ## [0.0.1-alpha.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.1-alpha.52...@stream-io/i18n-0.0.1-alpha.53) (2023-05-23)
 
 

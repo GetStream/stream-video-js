@@ -2,6 +2,35 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.77](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.76...@stream-io/video-react-sdk-0.0.1-alpha.77) (2023-05-25)
+
+
+
+## [0.0.1-alpha.76](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.75...@stream-io/video-react-sdk-0.0.1-alpha.76) (2023-05-25)
+
+
+
+## [0.0.1-alpha.75](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.74...@stream-io/video-react-sdk-0.0.1-alpha.75) (2023-05-24)
+
+
+
+## [0.0.1-alpha.74](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.73...@stream-io/video-react-sdk-0.0.1-alpha.74) (2023-05-24)
+
+
+
+## [0.0.1-alpha.73](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.72...@stream-io/video-react-sdk-0.0.1-alpha.73) (2023-05-24)
+
+
+### Features
+
+* useCall() in CallControl buttons ([#541](https://github.com/GetStream/stream-video-js/issues/541)) ([fd4ee04](https://github.com/GetStream/stream-video-js/commit/fd4ee04cb809eccacbe928cb68309fe932e55d7e))
+
+
+
+## [0.0.1-alpha.72](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.71...@stream-io/video-react-sdk-0.0.1-alpha.72) (2023-05-23)
+
+
+
 ## [0.0.1-alpha.71](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.70...@stream-io/video-react-sdk-0.0.1-alpha.71) (2023-05-23)
 
 
