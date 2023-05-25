@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.71](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.70...@stream-io/video-react-native-sdk-0.0.1-alpha.71) (2023-05-25)
+
+
+### Bug Fixes
+
+* remove media devices context to fix unnecessary rerenders ([#547](https://github.com/GetStream/stream-video-js/issues/547)) ([fa81417](https://github.com/GetStream/stream-video-js/commit/fa81417df742ed2798a210d0243dd1bf5e6d5afa))
+
+
+
 ## [0.0.1-alpha.70](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.69...@stream-io/video-react-native-sdk-0.0.1-alpha.70) (2023-05-25)
 
 
