@@ -10,7 +10,11 @@ export const watchCallSessionStarted = (state: CallState) => {
   return function onCallSessionStarted(event: StreamVideoEvent) {
     if (event.type !== 'call.session_started') return;
     const { call } = event;
-    state.setMetadata(call);
+    state.setMetadata((metadata) => ({
+      ...call,
+      // FIXME OL: temporary, until the backend sends the own_capabilities
+      own_capabilities: metadata?.own_capabilities || [],
+    }));
   };
 };
 
@@ -23,7 +27,11 @@ export const watchCallSessionEnded = (state: CallState) => {
   return function onCallSessionEnded(event: StreamVideoEvent) {
     if (event.type !== 'call.session_ended') return;
     const { call } = event;
-    state.setMetadata(call);
+    state.setMetadata((metadata) => ({
+      ...call,
+      // FIXME OL: temporary, until the backend sends the own_capabilities
+      own_capabilities: metadata?.own_capabilities || [],
+    }));
   };
 };
 
