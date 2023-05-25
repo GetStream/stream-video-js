@@ -6,7 +6,7 @@ description: A guide on how to add/remove or replace call controls
 Developers building apps in browsers have to face the dilemma of adapting their layouts to high and small resolutions. In the desktop environment there is a more generous amount of space than on mobile devices. Many times, there may not be one component that would fit all the constraints. Therefore, the React SDK provides the flexibility in assembling the call controls layout. We can pick any combination of buttons bundled with the SDK. Each button controls its own area of responsibility. Our task, as integrators is to create a component that puts these buttons together as we wish. In this example we intend to show, how to do just that.
 
 :::note
-The React SDK exports a pre-built component [`CallControls`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/CallControls.tsx). If it does not meet all the requirements, we encourage everybody to assemble their own `CallControls` component.
+The React SDK exports a pre-built component [`CallControls`](todo docs link). If it does not meet all the requirements, we encourage everybody to assemble their own `CallControls` component.
 :::
 
 ## Assembling own CallControls component
@@ -243,7 +243,7 @@ export const CustomToggleVideoPreviewButton = () => {
 ```
 
 ### Enabling screensharing
-Screensharing involves sharing a video stream, which is obtained through the use of the  [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](todo docs link), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called [`useHasOngoingScreenShare`](../../call-engine/hooks-and-contexts#usehasongoingscreenshare) which informs us whether any call participant is already sharing their screen.
+Screensharing involves sharing a video stream, which is obtained through the use of the  [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called [`useHasOngoingScreenShare`](../../call-engine/hooks-and-contexts#usehasongoingscreenshare) which informs us whether any call participant is already sharing their screen.
 
 ```tsx
 import { useCallback } from 'react';
