@@ -1,6 +1,6 @@
 .str-video__call-stats {
   background-color: var(--str-video__background-color1);
-  border-radius: var(--str-video__border-radius1);
+  border-radius: var(--str-video__border-radius-xs);
   padding: 0.75rem;
   max-width: 400px;
   display: flex;
@@ -30,7 +30,7 @@
 
   .str-video__call-stats__card {
     background-color: var(--str-video__background-color2);
-    border-radius: var(--str-video__border-radius1);
+    border-radius: var(--str-video__border-radius-xs);
     width: calc(50% - calc(var(--gap) / 2));
     padding: 0.5rem 0.5rem;
 
