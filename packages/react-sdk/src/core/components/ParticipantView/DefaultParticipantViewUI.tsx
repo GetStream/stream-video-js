@@ -88,6 +88,7 @@ export const ParticipantDetails = ({
   const call = useCall()!;
 
   const connectionQualityAsString =
+    !!connectionQuality &&
     SfuModels.ConnectionQuality[connectionQuality].toLowerCase();
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
