@@ -948,19 +948,6 @@ export class Call {
   };
 
   /**
-   * @deprecated use the `callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore) instead
-   * @param kind
-   * @param selector
-   * @returns
-   */
-  getStats = async (
-    kind: 'subscriber' | 'publisher',
-    selector?: MediaStreamTrack,
-  ) => {
-    return this.statsReporter?.getRawStatsForTrack(kind, selector);
-  };
-
-  /**
    * Will enhance the reported stats with additional participant-specific information (`callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore)).
    * This is usually helpful when detailed stats for a specific participant are needed.
    *
