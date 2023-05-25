@@ -196,19 +196,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ? `${participant.userId.slice(0, 15)}...`
       : participant.userId;
 
-  // if (isScreenSharing) {
-  //   console.log({
-  //     isScreenSharing,
-  //     hasScreenShareTrack,
-  //     isPublishingVideoTrack,
-  //     hasVideoTrack,
-  //     canShowVideo,
-  //     isVisible,
-  //     pVideoStream: !!participant.videoStream,
-  //     pScreenShareStream: !!participant.screenShareStream,
-  //   });
-  // }
-
   return (
     <View
       style={[
@@ -217,6 +204,12 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         props.containerStyle,
         speakerStyle,
       ]}
+      accessibilityLabel={`participant-${participant.userId}`}
+      accessibilityValue={{
+        text: isSpeaking
+          ? 'participant-is-speaking'
+          : 'participant-is-not-speaking',
+      }}
       onLayout={onLayout}
     >
       {canShowVideo ? (

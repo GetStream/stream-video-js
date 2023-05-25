@@ -1,4 +1,5 @@
 import type { StreamVideoParticipant } from '@stream-io/video-client';
+import { SfuModels } from '@stream-io/video-client';
 
 const mockParticipant = (
   customFields?: Partial<StreamVideoParticipant>,
@@ -7,7 +8,13 @@ const mockParticipant = (
   connectionQuality: 3,
   isDominantSpeaker: false,
   isSpeaking: false,
-  publishedTracks: [],
+  publishedTracks: [SfuModels.TrackType.VIDEO],
+  videoStream: {
+    toURL: () => 'video-test-url',
+  },
+  audioStream: {
+    toURL: () => 'audio-test-url',
+  },
   roles: [],
   sessionId: '789-012',
   trackLookupPrefix: '',

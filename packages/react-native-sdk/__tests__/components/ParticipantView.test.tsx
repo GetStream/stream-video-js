@@ -1,20 +1,35 @@
 import React, { ReactNode } from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import mockParticipant from '../mocks/participant';
 import { ParticipantView } from '../../src/components/ParticipantView';
-import { StreamVideo } from '../../src/providers';
+import { StreamCall, StreamVideo } from '../../src/providers';
 import { mockClientWithUser } from '../mocks/client';
+import { SfuModels } from '@stream-io/video-client';
 
 console.warn = jest.fn();
+jest.useFakeTimers();
+
 const Wrapper: ({ children }: { children: ReactNode }) => JSX.Element = ({
   children,
 }) => {
   const testClient = mockClientWithUser({ id: 'test-user-id' });
-  return <StreamVideo client={testClient}>{children}</StreamVideo>;
+  const callId = 'test-call-id';
+  return (
+    <StreamVideo client={testClient}>
+      <StreamCall callId={callId}>{children}</StreamCall>
+    </StreamVideo>
+  );
 };
 describe('ParticipantView', () => {
-  it('should render correctly', async () => {
-    const testParticipant = mockParticipant({ image: undefined });
+  it('should render participant`s avatar when set to not visible, label, user name and reaction', async () => {
+    const testParticipant = mockParticipant({
+      image: undefined,
+      publishedTracks: [],
+      reaction: {
+        type: 'reaction',
+        emoji_code: ':fireworks:',
+      },
+    });
     render(
       <ParticipantView
         participant={testParticipant}
@@ -28,6 +43,61 @@ describe('ParticipantView', () => {
 
     expect(
       await screen.findByLabelText('participant-avatar'),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('video-is-muted-icon')).toBeOnTheScreen();
+    expect(screen.getByText(testParticipant.userId)).toBeOnTheScreen();
+    // reaction is visible and then disappears after 5500 ms
+    expect(screen.getByText('🎉')).toBeOnTheScreen();
+    await act(() => jest.advanceTimersByTime(5500));
+    expect(() => screen.getByText('🎉')).toThrow(
+      /unable to find an element with text: 🎉/i,
+    );
+  });
+
+  it('should render participant`s screen when of screen kind', async () => {
+    const testParticipant = mockParticipant({
+      image: undefined,
+      publishedTracks: [SfuModels.TrackType.SCREEN_SHARE],
+      screenShareStream: {
+        toURL: () => 'test-url',
+      },
+    });
+    render(<ParticipantView participant={testParticipant} kind={'screen'} />, {
+      wrapper: Wrapper,
+    });
+
+    expect(
+      await screen.findByLabelText('participant-media-stream'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(/123-456 is sharing their screen/i),
+    ).toBeOnTheScreen();
+    expect(await screen.findByLabelText('screen-share-icon')).toBeOnTheScreen();
+  });
+
+  it('should render participant`s video and audio when of video kind and partic. speaks', async () => {
+    const testParticipant = mockParticipant({
+      image: undefined,
+      publishedTracks: [SfuModels.TrackType.VIDEO, SfuModels.TrackType.AUDIO],
+      isSpeaking: true,
+    });
+    render(<ParticipantView participant={testParticipant} kind={'video'} />, {
+      wrapper: Wrapper,
+    });
+
+    const [VideoRTCView, AudioRTCView] = await screen.findAllByLabelText(
+      'participant-media-stream',
+    );
+    // Video and Audio streams are rendered
+    // This is our best way to test if video and audio is on
+    expect(VideoRTCView).toBeOnTheScreen();
+    expect(VideoRTCView).toHaveProp('streamURL', 'video-test-url');
+    expect(AudioRTCView).toBeOnTheScreen();
+    expect(AudioRTCView).toHaveProp('streamURL', 'audio-test-url');
+
+    // Participant is speaking style is applied
+    expect(
+      screen.getByAccessibilityValue({ text: 'participant-is-speaking' }),
     ).toBeOnTheScreen();
   });
 });
