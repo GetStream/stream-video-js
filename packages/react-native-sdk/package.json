@@ -30,7 +30,7 @@
     }
   },
   "devDependencies": {
-    "@react-native-community/netinfo": "^9.3.9",
+    "@react-native-community/netinfo": "9.3.9",
     "@types/react": "18.0.26",
     "@types/react-native": "^0.70.4",
     "@types/react-native-incall-manager": "^3.2.1",
