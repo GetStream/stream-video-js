@@ -40,10 +40,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   useEffect(() => {
     // when the component mounts, we ask for necessary permissions.
     verifyAndroidBluetoothPermissions();
-    return () => {
-      // ensure that if this component is unmounted, the call is left.
-      // activeCallRef.current?.leave();
-    };
   }, []);
 
   if (!activeCall) return null;
