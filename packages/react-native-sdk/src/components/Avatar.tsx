@@ -35,10 +35,12 @@ export const Avatar = (props: AvatarProps) => {
     participant: { userId, image, name },
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
-  const label = useMemo(
-    () => (name || userId ? getInitialsOfName(name || userId) : '?'),
-    [name, userId],
-  );
+
+  const label = useMemo(() => {
+    const userDetails = name || userId;
+    return userDetails ? getInitialsOfName(userDetails) : '?';
+  }, [name, userId]);
+
   const imageUrl = image;
   return (
     <View
