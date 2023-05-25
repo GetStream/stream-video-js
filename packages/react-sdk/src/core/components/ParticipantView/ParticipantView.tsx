@@ -60,15 +60,12 @@ export type ParticipantViewProps = {
   muteAudio?: boolean;
 
   /**
-   * A function meant for exposing the "native" element to the integrators.
-   * The element can either be:
-   * - `<video />` for participants with enabled video.
-   * - `<div />` for participants with disabled video. This ref would point to
-   * the VideoPlaceholder component.
-   *
-   * @param element the element ref.
+   * An object with set functions meant for exposing the "native" video
+   * and video placeholder elements to the integrators.
+   * - `refs.setVideoElement`
+   * - `refs.setVideoPlaceholderElement`
    */
-  setElement?: VideoProps['setElement'];
+  refs?: VideoProps['refs'];
 
   /**
    * Custom class applied to the root DOM element.
@@ -83,7 +80,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       sinkId,
       videoKind = 'video',
       muteAudio,
-      setElement,
+      refs,
       className,
       VideoPlaceholder,
       ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
@@ -141,7 +138,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
             kind={videoKind}
-            setElement={setElement}
+            refs={refs}
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (

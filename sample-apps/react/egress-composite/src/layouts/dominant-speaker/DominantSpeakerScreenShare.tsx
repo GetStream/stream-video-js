@@ -15,10 +15,11 @@ export const DominantSpeakerScreenShare = () => {
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
 
-  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
-    screenSharingParticipant!,
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const { setVideoElement, setVideoPlaceholderElement } =
+    useEgressReadyWhenAnyParticipantMounts(
+      screenSharingParticipant!,
+      SfuModels.TrackType.SCREEN_SHARE,
+    );
 
   if (!screenSharingParticipant) return <h2>No active screen share</h2>;
 
@@ -31,7 +32,7 @@ export const DominantSpeakerScreenShare = () => {
           kind="screen"
           autoPlay
           muted
-          setElement={setParticipantVideoRef}
+          refs={{ setVideoElement, setVideoPlaceholderElement }}
         />
         <span>
           Presenter:{' '}
