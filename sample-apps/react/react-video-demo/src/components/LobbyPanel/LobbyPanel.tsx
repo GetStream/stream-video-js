@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import ControlMenu from '../ControlMenu';
-import { MicMuted, Signal } from '../Icons';
+import { MicMuted, Signal, Mic, Video } from '../Icons';
 
 import JoinContainer from '../JoinContainer';
 
@@ -25,6 +25,25 @@ export type Props = {
     latency: number;
   };
   isJoiningCall?: boolean;
+};
+
+export const EnableBrowserSettings: FC<any> = () => {
+  return (
+    <div className={styles.enableBrowserSettings}>
+      <div className={styles.enableIcons}>
+        <Mic className={styles.enableMic} />
+        <Video className={styles.enableVideo} />
+      </div>
+      <h2 className={styles.enableHeading}>
+        Allow your browser to use your camera and microphone.
+      </h2>
+      <p className={styles.enableDescription}>
+        Stream needs access to your camera and microphone for the call. Please
+        grant access when asked to confirm this decision on each brwoser and
+        computer you use.
+      </p>
+    </div>
+  );
 };
 
 export const DisabledVideoPreview: FC<{ name?: string }> = ({ name }) => {
@@ -78,10 +97,8 @@ export const LobbyPanel: FC<Props> = ({
         <VideoPreview
           DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
           NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
-          StartingCameraPreview={() => (
-            <DisabledVideoPreview name={user.name} />
-          )}
-          VideoErrorPreview={() => <DisabledVideoPreview name={user.name} />}
+          StartingCameraPreview={() => <EnableBrowserSettings />}
+          VideoErrorPreview={() => <EnableBrowserSettings />}
         />
       </div>
       <ControlMenu className={styles.controls} call={call} preview={true} />

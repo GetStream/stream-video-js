@@ -30,6 +30,32 @@
   border-radius: 10px;
 }
 
+.enableBrowserSettings {
+  @apply flex  flex-col items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full p-4;
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.enableIcons {
+  @apply flex p-4;
+}
+
+.enableMic {
+  @apply text-video-grey-400 mr-1;
+}
+
+.enableVideo {
+  @apply text-video-grey-400 ml-1;
+}
+
+.enableHeading {
+  @apply text-video-white text-lg text-center mb-2;
+}
+
+.enableDescription {
+  @apply text-center text-video-grey-400;
+}
+
 .fallbackAvatar {
   @apply flex items-center justify-center uppercase text-2xl font-bold bg-video-stream-500 text-video-white h-20 w-20 rounded-full;
 }
