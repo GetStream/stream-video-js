@@ -598,7 +598,7 @@ export interface CallMemberRemovedEvent {
    */
   members: Array<string>;
   /**
-   * The type of event: "call.member_added" in this case
+   * The type of event: "call.member_removed" in this case
    * @type {string}
    * @memberof CallMemberRemovedEvent
    */
@@ -635,7 +635,7 @@ export interface CallMemberUpdatedEvent {
    */
   members: Array<MemberResponse>;
   /**
-   * The type of event: "call.member_added" in this case
+   * The type of event: "call.member_updated" in this case
    * @type {string}
    * @memberof CallMemberUpdatedEvent
    */
