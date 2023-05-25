@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.75](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.74...@stream-io/video-react-bindings-0.0.1-alpha.75) (2023-05-25)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
 ## [0.0.1-alpha.74](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.73...@stream-io/video-react-bindings-0.0.1-alpha.74) (2023-05-25)
 
 
