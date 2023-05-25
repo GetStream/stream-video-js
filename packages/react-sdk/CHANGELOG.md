@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.79](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.78...@stream-io/video-react-sdk-0.0.1-alpha.79) (2023-05-25)
+
+
+### Features
+
+* **react-sdk:** ParticipantViewContext + other changes ([#549](https://github.com/GetStream/stream-video-js/issues/549)) ([51edbbc](https://github.com/GetStream/stream-video-js/commit/51edbbc999d405b7e822f094a35c1b5797a5d3df))
+
+
+
 ## [0.0.1-alpha.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.77...@stream-io/video-react-sdk-0.0.1-alpha.78) (2023-05-25)
 
 
