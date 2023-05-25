@@ -1,7 +1,7 @@
 output.call_id = (Math.random() + 1).toString(36).substring(7);
 output.pages = {
   login: {
-    sara: 'Sara ►',
+    sara: 'Sara.*',
   },
   callDetails: {
     callIdInputField: 'Type your call ID here...',

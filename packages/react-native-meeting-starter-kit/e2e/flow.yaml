@@ -1,4 +1,4 @@
-appId: org.reactjs.native.example.StreamReactNativeMeetingStarterKit
+appId: ${APP_ID}
 ---
 
 - runScript: js/setup.js
