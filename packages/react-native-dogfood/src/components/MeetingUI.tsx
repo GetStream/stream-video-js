@@ -40,10 +40,8 @@ export const MeetingUI = ({
     setShow('lobby');
   };
 
-  let ComponentToRender: JSX.Element | null = null;
-
   if (show === 'error-join' || show === 'error-leave') {
-    ComponentToRender = (
+    return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error Joining Call</Text>
         <Button title="Return to Home" onPress={returnToHomeHandler} />
@@ -51,13 +49,11 @@ export const MeetingUI = ({
       </View>
     );
   } else if (show === 'lobby') {
-    ComponentToRender = (
-      <LobbyViewComponent callId={callId} {...{ navigation, route }} />
-    );
+    return <LobbyViewComponent callId={callId} {...{ navigation, route }} />;
   } else if (show === 'loading') {
-    ComponentToRender = <AuthenticationProgress />;
+    return <AuthenticationProgress />;
   } else if (!call) {
-    ComponentToRender = (
+    return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Lost Active Call Connection</Text>
         <Button title="Return to Home" onPress={returnToHomeHandler} />
@@ -65,7 +61,7 @@ export const MeetingUI = ({
       </View>
     );
   } else {
-    ComponentToRender = (
+    return (
       <SafeAreaView style={styles.wrapper}>
         <ParticipantListButtons
           selectedMode={selectedMode}
@@ -75,8 +71,6 @@ export const MeetingUI = ({
       </SafeAreaView>
     );
   }
-
-  return ComponentToRender;
 };
 
 const styles = StyleSheet.create({

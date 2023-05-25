@@ -132,6 +132,7 @@ export const CallParticipantsInfoView = ({
   const renderItem = useCallback(({ item }: { item: Participant }) => {
     return (
       <CallParticipantInfoItem
+        key={item.sessionId}
         participant={item}
         setSelectedParticipant={setSelectedParticipant}
       />
@@ -169,11 +170,7 @@ export const CallParticipantsInfoView = ({
               </Pressable>
             </Restricted>
           </View>
-          <FlatList
-            data={participants}
-            keyExtractor={(item) => `participant-info-${item.sessionId}`}
-            renderItem={renderItem}
-          />
+          <FlatList data={participants} renderItem={renderItem} />
           {selectedParticipant && (
             <View style={[StyleSheet.absoluteFill, styles.modal]}>
               <CallParticipantOptions
