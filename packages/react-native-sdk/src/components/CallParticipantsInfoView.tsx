@@ -24,6 +24,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -128,6 +129,15 @@ export const CallParticipantsInfoView = ({
     setIsCallParticipantsViewVisible(false);
   };
 
+  const renderItem = useCallback(({ item }: { item: Participant }) => {
+    return (
+      <CallParticipantInfoItem
+        participant={item}
+        setSelectedParticipant={setSelectedParticipant}
+      />
+    );
+  }, []);
+
   return (
     <Modal
       animationType="slide"
@@ -162,12 +172,7 @@ export const CallParticipantsInfoView = ({
           <FlatList
             data={participants}
             keyExtractor={(item) => `participant-info-${item.sessionId}`}
-            renderItem={({ item: participant }) => (
-              <CallParticipantInfoItem
-                participant={participant}
-                setSelectedParticipant={setSelectedParticipant}
-              />
-            )}
+            renderItem={renderItem}
           />
           {selectedParticipant && (
             <View style={[StyleSheet.absoluteFill, styles.modal]}>
