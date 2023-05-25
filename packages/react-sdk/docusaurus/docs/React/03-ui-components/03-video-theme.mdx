@@ -70,6 +70,49 @@ html {
 }
 ```
 
+### Light and dark themes
+
+The React Video SDK comes with a single predefined theme. However, you can configure more themes, for example, to support light and dark modes.
+
+You can use the `className` prop of the `StreamTheme` to provide the selected theme:
+
+```tsx
+import { StreamTheme, StreamVideo } from '@stream-io/video-react-sdk';
+import { useState } from 'react';
+
+const App = () => {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  return (
+    <StreamVideo client={client}>
+      <button onClick={() => setTheme('dark')}>Dark theme</button>
+      <button onClick={() => setTheme('light')}>Light theme</button>
+      <StreamTheme className={theme}>
+        <MyAppUI />
+      </StreamTheme>
+    </StreamVideo>
+  );
+};
+```
+
+Provide the configuration for the different themes:
+
+```css
+import '@stream-io/video-react-sdk/dist/css/style.css';
+
+.str-video.dark {
+  --str-video__primary-color: #00796b;
+  --str-video__secondary-color: #cddc39;
+  // other colors
+}
+
+.str-video.light {
+  --str-video__primary-color: #009688;
+  --str-video__secondary-color: #dce775;
+   // other colors
+}
+```
+
 ### Custom CSS code
 
 If you want to tweak the design/layout of a built-in component, it's often easier to write a few lines of CSS code than to create your own custom component.
