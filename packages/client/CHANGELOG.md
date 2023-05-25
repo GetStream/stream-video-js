@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.188](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.187...client0.0.1-alpha.188) (2023-05-25)
+
+
+### Bug Fixes
+
+* preserve own capabilities when call session starts ([#554](https://github.com/GetStream/stream-video-js/issues/554)) ([5784fed](https://github.com/GetStream/stream-video-js/commit/5784fed515d6d543a4a60770a5389935deeac65d)), closes [#551](https://github.com/GetStream/stream-video-js/issues/551)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
 ## [0.0.1-alpha.187](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.186...client0.0.1-alpha.187) (2023-05-25)
 
 
