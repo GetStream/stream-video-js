@@ -14,6 +14,7 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
+import { createToken } from '../../modules/helpers/createToken';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -57,20 +58,15 @@ export const GuestMeetingScreen = (props: Props) => {
 
   useEffect(() => {
     const intitializeToken = async () => {
-      const { token } = await fetch(
-        'https://stream-calls-dogfood.vercel.app/api/auth/create-token?' +
-          new URLSearchParams({
-            api_key: apiKey,
-            user_id: '!anon',
-            call_cids: `${guestCallType}:${guestCallType}`,
-          }),
-        {},
-      ).then((response) => response.json());
+      const token = await createToken({
+        user_id: '!anon',
+        call_cids: `${guestCallType}:${guestCallType}`,
+      });
       setTokenToUse(token);
     };
 
     intitializeToken();
-  }, [apiKey, guestCallId, guestCallType]);
+  }, [guestCallId, guestCallType]);
 
   const client = useCreateStreamVideoClient({
     apiKey,

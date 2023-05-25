@@ -14,6 +14,7 @@ import {
 import { MeetingUI } from '../../components/MeetingUI';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import translations from '../../translations';
+import { createToken } from '../../modules/helpers/createToken';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
@@ -52,13 +53,9 @@ export const MeetingScreen = (props: Props) => {
   };
 
   const tokenOrProvider = useCallback(async () => {
-    const { token } = await fetch(
-      'https://stream-calls-dogfood.vercel.app/api/auth/create-token?' +
-        new URLSearchParams({ api_key: apiKey, user_id: username }),
-      {},
-    ).then((response) => response.json());
+    const token = await createToken({ user_id: username });
     return token;
-  }, [apiKey, username]);
+  }, [username]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
