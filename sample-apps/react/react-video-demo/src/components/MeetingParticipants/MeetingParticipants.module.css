@@ -29,6 +29,17 @@
     'participantSlider';
 }
 
+@media screen(2xl) {
+  .meetingGrid.slider {
+    @apply grid pl-4 pr-4 pt-0 pb-0 sm:p-4  gap-y-3  w-full;
+    height: calc(100dvh - 200px);
+    grid-template-rows: 1fr 0.25fr;
+    grid-template-areas:
+      'localParticipant'
+      'participantSlider';
+  }
+}
+
 .meetingGrid.slider .localParticipant {
   grid-area: localParticipant;
   @apply flex justify-center items-center w-full md:max-w-[80%] ml-auto mr-auto;
@@ -72,44 +83,61 @@
 
 .meetingGrid-1 .localParticipant.videoDisabled,
 .meetingGrid-1 .remoteParticipant.videoDisabled {
-  @apply w-[343px] h-[192px];
+  @apply h-full max-h-[192px] w-auto;
 }
 
 @media screen(sm) {
   .meetingGrid-1 .localParticipant,
   .meetingGrid-1 .remoteParticipant {
-    @apply max-h-[225px] w-full;
+    @apply h-full max-h-[225px]  w-auto;
   }
 
   .meetingGrid-1 .localParticipant.videoDisabled,
   .meetingGrid-1 .remoteParticipant.videoDisabled {
-    @apply h-[225px] w-full;
+    @apply h-full max-h-[225px] w-auto;
+    aspect-ratio: 16/9;
   }
 }
 
 @media screen(md) {
   .meetingGrid-1 .localParticipant,
   .meetingGrid-1 .remoteParticipant {
-    @apply h-auto max-h-[330px] w-auto;
+    @apply h-full max-h-[300px] w-auto;
     aspect-ratio: 16/9;
   }
 
   .meetingGrid-1 .localParticipant.videoDisabled,
   .meetingGrid-1 .remoteParticipant.videoDisabled {
-    @apply h-[330px] w-full;
+    @apply h-full max-h-[300px] w-auto;
+    aspect-ratio: 16/9;
+  }
+}
+
+@media screen(lg) {
+  .meetingGrid-1 .localParticipant,
+  .meetingGrid-1 .remoteParticipant {
+    @apply h-full max-h-[330px] w-auto;
+    aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-1 .localParticipant.videoDisabled,
+  .meetingGrid-1 .remoteParticipant.videoDisabled {
+    @apply h-full max-h-[330px] w-auto;
+    aspect-ratio: 16/9;
   }
 }
 
 @media screen(2xl) {
   .meetingGrid-1 .localParticipant,
   .meetingGrid-1 .remoteParticipant {
-    @apply h-auto max-h-[660px] w-auto;
+    @apply h-full max-h-[660px] w-auto;
     aspect-ratio: 16/9;
   }
 
   .meetingGrid-1 .localParticipant.videoDisabled,
   .meetingGrid-1 .remoteParticipant.videoDisabled {
-    @apply h-[660px] w-full;
+    @apply h-full max-h-[660px] w-auto;
+    aspect-ratio: 16/9;
   }
 }
 
@@ -130,7 +158,7 @@
 
 .meetingGrid-2 .localParticipant.videoDisabled,
 .meetingGrid-2 .remoteParticipant.videoDisabled {
-  @apply h-[225px] w-full;
+  @apply w-full;
 }
 
 @media screen(sm) {
@@ -144,13 +172,14 @@
 @media screen(2xl) {
   .meetingGrid-2 .localParticipant,
   .meetingGrid-2 .remoteParticipant {
-    @apply w-[500px] max-w-[500px] h-auto;
+    @apply h-full max-h-[500px] w-auto;
     aspect-ratio: 16/9;
   }
 
   .meetingGrid-2 .localParticipant.videoDisabled,
   .meetingGrid-2 .remoteParticipant.videoDisabled {
-    @apply w-[500px] h-full;
+    @apply h-full max-h-[500px] w-auto;
+    aspect-ratio: 16/9;
   }
 }
 
@@ -170,7 +199,7 @@
 
 .meetingGrid-3 .localParticipant.videoDisabled,
 .meetingGrid-3 .remoteParticipant.videoDisabled {
-  @apply min-h-[150px] w-full;
+  @apply w-full;
 }
 
 @media screen(sm) {
@@ -190,7 +219,21 @@
 
   .meetingGrid-3 .localParticipant.videoDisabled,
   .meetingGrid-3 .remoteParticipant.videoDisabled {
-    @apply min-h-[236px] w-full;
+    @apply w-full;
+  }
+}
+
+@media screen(2xl) {
+  .meetingGrid-3 .localParticipant,
+  .meetingGrid-3 .remoteParticipant {
+    @apply h-full max-h-[450px] w-auto;
+    aspect-ratio: 16/9;
+  }
+
+  .meetingGrid-3 .localParticipant.videoDisabled,
+  .meetingGrid-3 .remoteParticipant.videoDisabled {
+    @apply h-full max-h-[450px] w-auto;
+    aspect-ratio: 16/9;
   }
 }
 
@@ -205,7 +248,7 @@
 
 .meetingGrid-4 .localParticipant.videoDisabled,
 .meetingGrid-4 .remoteParticipant.videoDisabled {
-  @apply min-h-[150px] w-full;
+  @apply w-full;
 }
 
 @media screen(md) {
@@ -217,7 +260,7 @@
 
   .meetingGrid-4 .localParticipant.videoDisabled,
   .meetingGrid-4 .remoteParticipant.videoDisabled {
-    @apply min-h-[236px] w-full;
+    @apply w-full;
   }
 }
 
@@ -231,7 +274,7 @@
 
 .meetingGrid-5 .localParticipant.videoDisabled,
 .meetingGrid-5 .remoteParticipant.videoDisabled {
-  @apply min-h-[155px] w-full;
+  @apply w-full;
 }
 
 @media screen(md) {
@@ -253,7 +296,7 @@
 
 .meetingGrid-6 .localParticipant.videoDisabled,
 .meetingGrid-6 .remoteParticipant.videoDisabled {
-  @apply min-h-[155px] w-full;
+  @apply w-full;
 }
 
 @media screen(md) {
@@ -275,7 +318,7 @@
 
 .meetingGrid-7 .localParticipant.videoDisabled,
 .meetingGrid-7 .remoteParticipant.videoDisabled {
-  @apply min-h-[155px] w-full;
+  @apply w-full;
 }
 
 @media screen(md) {
@@ -296,7 +339,7 @@
 
 .meetingGrid-8 .localParticipant.videoDisabled,
 .meetingGrid-8 .remoteParticipant.videoDisabled {
-  @apply min-h-[155px] w-full;
+  @apply w-full;
 }
 
 @media screen(md) {
