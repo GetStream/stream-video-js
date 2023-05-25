@@ -1,4 +1,4 @@
-var params = [];
+const params = [];
 
 const argsWithValue = {
   'call-id': call_id,

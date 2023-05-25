@@ -11,6 +11,5 @@ app.listen(port);
 // and to be able to run the video-buddy script from the Maestro.
 app.post('/terminal', (req, res) => {
   const output = process.exec(req.body.command).toString('utf8').trim();
-  console.log(req.body.command);
   res.send(output);
 });
