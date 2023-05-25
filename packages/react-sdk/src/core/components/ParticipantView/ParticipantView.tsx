@@ -19,7 +19,10 @@ import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { isComponentType, applyElementToRef } from '../../../utilities';
 
-type ParticipantViewContextValue = Pick<ParticipantViewProps, 'participant'> & {
+export type ParticipantViewContextValue = Pick<
+  ParticipantViewProps,
+  'participant'
+> & {
   participantViewElement: HTMLDivElement | null;
 };
 
