@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
-import React, { useMemo } from 'react';
+import React from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../utils';
 import { theme } from '../theme';
@@ -36,10 +36,8 @@ export const Avatar = (props: AvatarProps) => {
     radius = DEFAULT_AVATAR_RADIUS,
   } = props;
 
-  const label = useMemo(() => {
-    const userDetails = name || userId;
-    return userDetails ? getInitialsOfName(userDetails) : '?';
-  }, [name, userId]);
+  const userDetails = name || userId;
+  const userLabel = userDetails ? getInitialsOfName(userDetails) : '?';
 
   const imageUrl = image;
   return (
@@ -63,7 +61,7 @@ export const Avatar = (props: AvatarProps) => {
           style={{ ...styles.text, fontSize: radius / 2 }}
           numberOfLines={1}
         >
-          {label}
+          {userLabel}
         </Text>
       )}
     </View>

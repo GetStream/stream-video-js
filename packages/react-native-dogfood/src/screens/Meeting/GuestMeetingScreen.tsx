@@ -43,6 +43,7 @@ export const GuestMeetingScreen = (props: Props) => {
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
+  const activeCall = useCall();
 
   const onJoin = () => {
     setShow('active-call');
@@ -78,29 +79,33 @@ export const GuestMeetingScreen = (props: Props) => {
   });
 
   useEffect(() => {
-    if (mode !== 'guest' || !guestUserId) {
+    if (mode !== 'guest') {
       return;
     }
-    client
-      .createGuestUser({
-        user: {
-          id: guestUserId,
-          name: guestUserId,
-          role: 'guest',
-        },
-      })
-      .then((guestUser) => {
-        console.log(guestUser);
-        setUserToConnect(guestUser.user);
-        setTokenToUse(guestUser.access_token);
+    const setGuestUserDetails = async () => {
+      if (!guestUserId) {
+        return;
+      }
+      try {
+        const response = await client.createGuestUser({
+          user: {
+            id: guestUserId,
+            name: guestUserId,
+            role: 'guest',
+          },
+        });
+        const { user: guestUser, access_token } = response;
+        setUserToConnect(guestUser);
+        setTokenToUse(access_token);
         setIsAnonymous(false);
-      })
-      .catch((err) => {
-        console.error('Error creating guest user', err);
-      });
+      } catch (error) {
+        console.log('Error setting guest user credentials:', error);
+      }
+    };
+
+    setGuestUserDetails();
   }, [client, guestUserId, mode]);
 
-  const activeCall = useCall();
   useEffect(() => {
     if (!activeCall) {
       return;

@@ -133,8 +133,10 @@ export const LobbyView = () => {
         )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            You are about to join a call with id {call?.id} at Stream. {count}{' '}
-            more people are in the call now.
+            You are about to join a call with id {call?.id} at Stream.{' '}
+            {count
+              ? `${count}  more people are in the call now.`
+              : 'You are first to Join the call.'}
           </Text>
           <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
             <Text style={styles.joinButtonText}>Join</Text>
