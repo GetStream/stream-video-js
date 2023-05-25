@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.184](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.183...client0.0.1-alpha.184) (2023-05-25)
+
+
+### Features
+
+* call.session events ([#551](https://github.com/GetStream/stream-video-js/issues/551)) ([326498a](https://github.com/GetStream/stream-video-js/commit/326498afb6e35b534332175a3b5b80b8ded4694f))
+
+
+
 ## [0.0.1-alpha.183](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.182...client0.0.1-alpha.183) (2023-05-25)
 
 
