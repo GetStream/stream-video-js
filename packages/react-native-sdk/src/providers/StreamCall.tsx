@@ -37,7 +37,12 @@ export const StreamCall = ({
     }
 
     setCall(incomingCall);
-  }, [incomingCall]);
+
+    return () => {
+      call?.leave().catch((e) => console.log(e, 'heyy'));
+      setCall(undefined);
+    };
+  }, [incomingCall, call]);
 
   return (
     <StreamCallProvider call={call}>

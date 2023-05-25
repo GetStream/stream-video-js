@@ -29,16 +29,14 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const user: UserResponse = {
+  const [userToConnect, setUserToConnect] = useState<UserResponse>({
     id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     role: 'guest',
     teams: [],
     custom: {},
-  };
-
-  const [userToConnect, setUserToConnect] = useState(user);
+  });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [show, setShow] = useState<ScreenTypes>('lobby');
@@ -94,8 +92,8 @@ export const GuestMeetingScreen = (props: Props) => {
             role: 'guest',
           },
         });
-        const { user: guestUser, access_token } = response;
-        setUserToConnect(guestUser);
+        const { user, access_token } = response;
+        setUserToConnect(user);
         setTokenToUse(access_token);
         setIsAnonymous(false);
       } catch (error) {
