@@ -1,15 +1,15 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { getAudioDevices, getVideoDevices } from '@stream-io/video-client';
-import { MediaDeviceInfo } from './types';
-import { useStreamVideoStoreSetState } from '.';
+import { MediaDeviceInfo, useStreamVideoStoreSetState } from '../contexts';
 
 /**
  * A renderless component that provides the audio and video devices to the store
+ * This component must be a child of StreamVideoStoreProvider
  * @internal
  *
  * @category Device Management
  */
-export const MediaDevices = () => {
+export const MediaDevices = (): React.ReactElement | null => {
   const setState = useStreamVideoStoreSetState();
   const initialVideoDeviceSet = useRef(false);
 
