@@ -15,12 +15,20 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
   useEffect(() => {
     console.log('Loading calls');
     client
-      ?.queryCalls({ filter_conditions: { audioRoomCall: true }, sort: [] })
+      ?.queryCalls({
+        filter_conditions: { audioRoomCall: true },
+        sort: [],
+        watch: true,
+      })
       .then((result) => {
         console.log('Querying calls successful.');
         setRooms(result.calls);
+      })
+      .catch((err) => {
+        console.log('Querying calls failed.');
+        console.error(err);
       });
-  }, [client]);
+  }, [client, setRooms]);
 
   return (
     <section className="rooms-overview">
