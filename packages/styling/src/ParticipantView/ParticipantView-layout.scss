@@ -47,7 +47,7 @@ $scope-name: 'str-video__participant-view';
     gap: 0.3125rem;
 
     .str-video__participant-details__name {
-      border-radius: var(--str-video__border-radius1);
+      border-radius: var(--str-video__border-radius-xs);
       background-color: var(--str-video__background-color4);
       display: flex;
       align-items: center;
