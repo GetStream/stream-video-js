@@ -11,7 +11,6 @@
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
             {"type": "chore", "hidden": true},
-            {"type": "ci", "hidden": true},
             {"type": "docs", "hidden": false, "section": "Documentation"},
             {"type": "style", "hidden": true},
             {"type": "refactor", "hidden": true},
