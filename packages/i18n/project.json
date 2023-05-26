@@ -9,6 +9,8 @@
         "trackDeps": true,
         "push": true,
         "preset": {
+          "name": "angular",
+          "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
