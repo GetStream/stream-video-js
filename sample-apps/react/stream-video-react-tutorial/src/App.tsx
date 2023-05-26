@@ -69,7 +69,7 @@ export const UI = () => {
             <h4 className="str-video__call__header-title">Call: {call.cid}</h4>
           </div>
           <CallParticipantsView call={call} />
-          <CallControls call={call} />
+          <CallControls />
         </div>
       ) : callingState === CallingState.JOINING ? (
         <LoadingIndicator text="Connecting ..." />

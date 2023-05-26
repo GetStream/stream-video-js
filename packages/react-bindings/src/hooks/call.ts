@@ -54,7 +54,7 @@ export const useHasOngoingScreenShare = () => {
  *
  * @category Call State
  */
-export const useCurrentCallStatsReport = () => {
+export const useCallStatsReport = () => {
   const { callStatsReport$ } = useCallState();
   return useObservableValue(callStatsReport$);
 };

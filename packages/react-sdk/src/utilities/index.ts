@@ -1,3 +1,3 @@
 export * from './isComponentType';
 export * from './chunk';
-export * from './applyElementRef';
+export * from './applyElementToRef';

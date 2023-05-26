@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Call, OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
+  useCall,
   useIsCallRecordingInProgress,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
 
 export type RecordCallButtonProps = {
-  call: Call;
   caption?: string;
 };
 
 export const RecordCallButton = ({
-  call,
   caption = 'Record',
 }: RecordCallButtonProps) => {
+  const call = useCall();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
@@ -32,9 +32,9 @@ export const RecordCallButton = ({
     try {
       setIsAwaitingResponse(true);
       if (isCallRecordingInProgress) {
-        await call.stopRecording();
+        await call?.stopRecording();
       } else {
-        await call.startRecording();
+        await call?.startRecording();
       }
     } catch (e) {
       console.error(`Failed start recording`, e);
@@ -59,6 +59,9 @@ export const RecordCallButton = ({
           />
         ) : (
           <IconButton
+            // FIXME OL: sort out this ambiguity
+            enabled={!!call}
+            disabled={!call}
             icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
             title="Record call"
             onClick={toggleRecording}

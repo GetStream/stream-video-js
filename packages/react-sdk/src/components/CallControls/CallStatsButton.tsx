@@ -1,22 +1,14 @@
 import { forwardRef } from 'react';
 
-import { CallStats } from '../StreamCall/CallStats';
+import { CallStats } from '../CallStats';
 import { CompositeButton, IconButton } from '../Button/';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 
-type CallStatsButtonProps = {
-  caption?: string;
-};
-
-export const CallStatsButton = ({
-  caption = 'Stats',
-}: CallStatsButtonProps) => {
-  return (
-    <MenuToggle placement="top-end" ToggleButton={ToggleMenuButton}>
-      <CallStats />
-    </MenuToggle>
-  );
-};
+export const CallStatsButton = () => (
+  <MenuToggle placement="top-end" ToggleButton={ToggleMenuButton}>
+    <CallStats />
+  </MenuToggle>
+);
 
 const ToggleMenuButton = forwardRef<
   HTMLDivElement,

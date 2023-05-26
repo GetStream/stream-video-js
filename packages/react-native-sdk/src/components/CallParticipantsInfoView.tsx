@@ -7,6 +7,7 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -24,6 +25,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -74,9 +76,17 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
           </View>
         )}
         {!participantIsLoggedInUser && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <ArrowRight color={theme.light.text_high_emphasis} />
-          </View>
+          <Restricted
+            requiredGrants={[
+              OwnCapability.MUTE_USERS,
+              OwnCapability.UPDATE_CALL_PERMISSIONS,
+              OwnCapability.BLOCK_USERS,
+            ]}
+          >
+            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+              <ArrowRight color={theme.light.text_high_emphasis} />
+            </View>
+          </Restricted>
         )}
       </View>
     </Pressable>
@@ -110,6 +120,7 @@ export const CallParticipantsInfoView = ({
   setIsCallParticipantsViewVisible,
 }: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
+  const participantCount = useParticipantCount();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -128,6 +139,16 @@ export const CallParticipantsInfoView = ({
     setIsCallParticipantsViewVisible(false);
   };
 
+  const renderItem = useCallback(({ item }: { item: Participant }) => {
+    return (
+      <CallParticipantInfoItem
+        key={item.sessionId}
+        participant={item}
+        setSelectedParticipant={setSelectedParticipant}
+      />
+    );
+  }, []);
+
   return (
     <Modal
       animationType="slide"
@@ -140,7 +161,7 @@ export const CallParticipantsInfoView = ({
           <View style={styles.header}>
             <View style={styles.leftHeaderElement} />
             <Text style={styles.headerText}>
-              Participants ({participants.length})
+              Participants ({participantCount})
             </Text>
             <Pressable
               style={[styles.closeIcon, theme.icon.sm]}
@@ -159,16 +180,7 @@ export const CallParticipantsInfoView = ({
               </Pressable>
             </Restricted>
           </View>
-          <FlatList
-            data={participants}
-            keyExtractor={(item) => `participant-info-${item.sessionId}`}
-            renderItem={({ item: participant }) => (
-              <CallParticipantInfoItem
-                participant={participant}
-                setSelectedParticipant={setSelectedParticipant}
-              />
-            )}
-          />
+          <FlatList data={participants} renderItem={renderItem} />
           {selectedParticipant && (
             <View style={[StyleSheet.absoluteFill, styles.modal]}>
               <CallParticipantOptions
@@ -187,7 +199,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'transparent',
   },
   content: {
     flex: 1,
@@ -201,18 +212,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: theme.padding.md,
+    paddingVertical: theme.padding.md,
     width: '100%',
   },
   leftHeaderElement: {
-    paddingLeft: theme.padding.md,
-    flex: 1,
+    marginLeft: theme.margin.md,
   },
   headerText: {
     ...theme.fonts.bodyBold,
   },
   closeIcon: {
-    flex: 1,
+    marginRight: theme.margin.md,
   },
   buttonGroup: {},
   button: {

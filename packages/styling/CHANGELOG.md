@@ -2,6 +2,71 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.64...@stream-io/video-styling-0.0.1-alpha.65) (2023-05-26)
+
+
+
+## [0.0.1-alpha.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.63...@stream-io/video-styling-0.0.1-alpha.64) (2023-05-26)
+
+
+
+## [0.0.1-alpha.63](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.62...@stream-io/video-styling-0.0.1-alpha.63) (2023-05-26)
+
+
+
+## [0.0.1-alpha.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.61...@stream-io/video-styling-0.0.1-alpha.62) (2023-05-25)
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.60...@stream-io/video-styling-0.0.1-alpha.61) (2023-05-25)
+
+
+
+## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.59...@stream-io/video-styling-0.0.1-alpha.60) (2023-05-25)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.58...@stream-io/video-styling-0.0.1-alpha.59) (2023-05-25)
+
+
+
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.57...@stream-io/video-styling-0.0.1-alpha.58) (2023-05-25)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.56...@stream-io/video-styling-0.0.1-alpha.57) (2023-05-25)
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.55...@stream-io/video-styling-0.0.1-alpha.56) (2023-05-25)
+
+
+
+## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.54...@stream-io/video-styling-0.0.1-alpha.55) (2023-05-25)
+
+
+
+## [0.0.1-alpha.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.53...@stream-io/video-styling-0.0.1-alpha.54) (2023-05-25)
+
+
+
+## [0.0.1-alpha.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.52...@stream-io/video-styling-0.0.1-alpha.53) (2023-05-24)
+
+
+
+## [0.0.1-alpha.52](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.51...@stream-io/video-styling-0.0.1-alpha.52) (2023-05-24)
+
+
+
+## [0.0.1-alpha.51](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.50...@stream-io/video-styling-0.0.1-alpha.51) (2023-05-24)
+
+
+
 ## [0.0.1-alpha.50](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.49...@stream-io/video-styling-0.0.1-alpha.50) (2023-05-23)
 
 

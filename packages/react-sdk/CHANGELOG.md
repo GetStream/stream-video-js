@@ -2,6 +2,81 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.87](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.86...@stream-io/video-react-sdk-0.0.1-alpha.87) (2023-05-26)
+
+
+
+## [0.0.1-alpha.86](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.85...@stream-io/video-react-sdk-0.0.1-alpha.86) (2023-05-26)
+
+
+
+## [0.0.1-alpha.85](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.84...@stream-io/video-react-sdk-0.0.1-alpha.85) (2023-05-26)
+
+
+
+## [0.0.1-alpha.84](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.83...@stream-io/video-react-sdk-0.0.1-alpha.84) (2023-05-25)
+
+
+
+## [0.0.1-alpha.83](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.82...@stream-io/video-react-sdk-0.0.1-alpha.83) (2023-05-25)
+
+
+
+## [0.0.1-alpha.82](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.81...@stream-io/video-react-sdk-0.0.1-alpha.82) (2023-05-25)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
+## [0.0.1-alpha.81](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.80...@stream-io/video-react-sdk-0.0.1-alpha.81) (2023-05-25)
+
+
+
+## [0.0.1-alpha.80](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.79...@stream-io/video-react-sdk-0.0.1-alpha.80) (2023-05-25)
+
+
+
+## [0.0.1-alpha.79](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.78...@stream-io/video-react-sdk-0.0.1-alpha.79) (2023-05-25)
+
+
+### Features
+
+* **react-sdk:** ParticipantViewContext + other changes ([#549](https://github.com/GetStream/stream-video-js/issues/549)) ([51edbbc](https://github.com/GetStream/stream-video-js/commit/51edbbc999d405b7e822f094a35c1b5797a5d3df))
+
+
+
+## [0.0.1-alpha.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.77...@stream-io/video-react-sdk-0.0.1-alpha.78) (2023-05-25)
+
+
+
+## [0.0.1-alpha.77](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.76...@stream-io/video-react-sdk-0.0.1-alpha.77) (2023-05-25)
+
+
+
+## [0.0.1-alpha.76](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.75...@stream-io/video-react-sdk-0.0.1-alpha.76) (2023-05-25)
+
+
+
+## [0.0.1-alpha.75](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.74...@stream-io/video-react-sdk-0.0.1-alpha.75) (2023-05-24)
+
+
+
+## [0.0.1-alpha.74](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.73...@stream-io/video-react-sdk-0.0.1-alpha.74) (2023-05-24)
+
+
+
+## [0.0.1-alpha.73](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.72...@stream-io/video-react-sdk-0.0.1-alpha.73) (2023-05-24)
+
+
+### Features
+
+* useCall() in CallControl buttons ([#541](https://github.com/GetStream/stream-video-js/issues/541)) ([fd4ee04](https://github.com/GetStream/stream-video-js/commit/fd4ee04cb809eccacbe928cb68309fe932e55d7e))
+
+
+
 ## [0.0.1-alpha.72](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.71...@stream-io/video-react-sdk-0.0.1-alpha.72) (2023-05-23)
 
 

@@ -28,20 +28,19 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const user: UserResponse = {
+  const [userToConnect, setUserToConnect] = useState<UserResponse>({
     id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     role: 'guest',
     teams: [],
     custom: {},
-  };
-
-  const [userToConnect, setUserToConnect] = useState(user);
+  });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
+  const activeCall = useCall();
 
   const onJoin = () => {
     setShow('active-call');
@@ -76,29 +75,33 @@ export const GuestMeetingScreen = (props: Props) => {
   });
 
   useEffect(() => {
-    if (mode !== 'guest' || !guestUserId) {
+    if (mode !== 'guest') {
       return;
     }
-    client
-      .createGuestUser({
-        user: {
-          id: guestUserId,
-          name: guestUserId,
-          role: 'guest',
-        },
-      })
-      .then((guestUser) => {
-        console.log(guestUser);
-        setUserToConnect(guestUser.user);
-        setTokenToUse(guestUser.access_token);
+    const setGuestUserDetails = async () => {
+      if (!guestUserId) {
+        return;
+      }
+      try {
+        const response = await client.createGuestUser({
+          user: {
+            id: guestUserId,
+            name: guestUserId,
+            role: 'guest',
+          },
+        });
+        const { user, access_token } = response;
+        setUserToConnect(user);
+        setTokenToUse(access_token);
         setIsAnonymous(false);
-      })
-      .catch((err) => {
-        console.error('Error creating guest user', err);
-      });
+      } catch (error) {
+        console.log('Error setting guest user credentials:', error);
+      }
+    };
+
+    setGuestUserDetails();
   }, [client, guestUserId, mode]);
 
-  const activeCall = useCall();
   useEffect(() => {
     if (!activeCall) {
       return;

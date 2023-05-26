@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
-  Call,
   getScreenShareStream,
   OwnCapability,
   SfuModels,
 } from '@stream-io/video-client';
 import {
   Restricted,
+  useCall,
   useHasOngoingScreenShare,
   useHasPermissions,
   useLocalParticipant,
@@ -15,14 +15,13 @@ import { CompositeButton, IconButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 
 export type ScreenShareButtonProps = {
-  call: Call;
   caption?: string;
 };
 
 export const ScreenShareButton = ({
-  call,
   caption = 'Screen Share',
 }: ScreenShareButtonProps) => {
+  const call = useCall();
   const localParticipant = useLocalParticipant();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const isScreenSharing = localParticipant?.publishedTracks.includes(
@@ -49,11 +48,11 @@ export const ScreenShareButton = ({
           <IconButton
             icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
             title="Share screen"
-            disabled={!isScreenSharing && isSomeoneScreenSharing}
+            disabled={(!isScreenSharing && isSomeoneScreenSharing) || !call}
             onClick={async () => {
               if (
                 !hasPermission &&
-                call.permissionsContext.canRequest(OwnCapability.SCREENSHARE)
+                call?.permissionsContext.canRequest(OwnCapability.SCREENSHARE)
               ) {
                 setIsAwaitingApproval(true);
                 await call
@@ -71,10 +70,10 @@ export const ScreenShareButton = ({
                   console.log(`Can't share screen: ${e}`);
                 });
                 if (stream) {
-                  await call.publishScreenShareStream(stream);
+                  await call?.publishScreenShareStream(stream);
                 }
               } else {
-                await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+                await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
               }
             }}
           />

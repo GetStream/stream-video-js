@@ -1,7 +1,7 @@
 import { ComponentPropsWithRef, forwardRef, useEffect, useState } from 'react';
 import { Browsers } from '@stream-io/video-client';
 
-import { applyElementRef } from '../../../utilities';
+import { applyElementToRef } from '../../../utilities';
 
 export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
   stream?: MediaStream;
@@ -44,7 +44,7 @@ export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
         playsInline
         {...rest}
         ref={(element) => {
-          applyElementRef(ref, element);
+          applyElementToRef(ref, element);
           setVideoElement(element);
         }}
       />

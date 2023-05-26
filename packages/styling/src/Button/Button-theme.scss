@@ -18,7 +18,7 @@
 
   /* The background color of the component */
   --str-video__composite-button__button-group-active--background-color: var(
-    --str-video__text-color3
+    --str-video__background-color7
   );
 }
 
@@ -64,10 +64,10 @@
   }
 
   &--variant-danger {
-    background-color: var(--str-video__danger-color1);
+    background-color: var(--str-video__danger-color);
 
     &:hover {
-      background-color: var(--str-video__danger-color2);
+      background-color: var(--str-video__danger-color--accent);
     }
   }
 
@@ -80,6 +80,6 @@
   }
 
   &--enabled {
-    background: var(--str-video__text-color3);
+    background: var(--str-video__background-color7);
   }
 }

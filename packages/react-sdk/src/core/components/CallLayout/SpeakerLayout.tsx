@@ -17,10 +17,9 @@ import {
 } from '@stream-io/video-react-bindings';
 
 import {
-  ParticipantView,
   DefaultParticipantViewUI,
+  ParticipantView,
   ParticipantViewProps,
-  ParticipantViewUIProps,
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
@@ -30,17 +29,11 @@ export type SpeakerLayoutProps = {
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
-const DefaultParticipantViewUIBar = ({
-  participant,
-}: ParticipantViewUIProps) => (
-  <DefaultParticipantViewUI participant={participant} menuPlacement="top-end" />
+const DefaultParticipantViewUIBar = () => (
+  <DefaultParticipantViewUI menuPlacement="top-end" />
 );
 
-const DefaultParticipantViewUISpotlight = ({
-  participant,
-}: ParticipantViewUIProps) => (
-  <DefaultParticipantViewUI participant={participant} />
-);
+const DefaultParticipantViewUISpotlight = () => <DefaultParticipantViewUI />;
 
 export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
@@ -165,8 +158,8 @@ export const SpeakerLayout = ({
   );
 };
 
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+const hasScreenShare = (p?: StreamVideoParticipant) =>
+  !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
   if (a.isLoggedInUser) return 1;

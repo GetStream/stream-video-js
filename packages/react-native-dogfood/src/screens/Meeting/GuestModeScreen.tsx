@@ -82,13 +82,14 @@ const styles = StyleSheet.create({
   },
   inputs: {},
   input: {
-    height: 40,
+    height: 50,
     width: 300,
     margin: 12,
+    backgroundColor: '#1C1E22',
     borderWidth: 1,
     borderColor: 'gray',
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 5,
     color: theme.light.static_white,
   },
   buttons: {

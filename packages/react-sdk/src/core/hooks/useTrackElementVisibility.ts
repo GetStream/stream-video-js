@@ -21,9 +21,12 @@ export const useTrackElementVisibility = <T extends HTMLElement>({
     const unobserve = viewportTracker.observe(trackedElement, (entry) => {
       call.state.updateParticipant(sessionId, (p) => ({
         ...p,
-        viewportVisibilityState: entry.isIntersecting
-          ? VisibilityState.VISIBLE
-          : VisibilityState.INVISIBLE,
+        viewportVisibilityState:
+          // observer triggers when element is "moved" to be a fullscreen element
+          // keep it VISIBLE if that happens to prevent fullscreen with placeholder
+          entry.isIntersecting || document.fullscreenElement === trackedElement
+            ? VisibilityState.VISIBLE
+            : VisibilityState.INVISIBLE,
       }));
     });
 

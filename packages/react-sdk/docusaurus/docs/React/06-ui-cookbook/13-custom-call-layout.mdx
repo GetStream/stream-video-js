@@ -396,19 +396,16 @@ const CustomCallControls = () => {
 
   return (
     <div className="str-video__call-controls">
-      {call && <ScreenShareButton call={call} />}
+      <ScreenShareButton />
       <SpeakingWhileMutedNotification>
         <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
       <ToggleVideoPublishingButton />
-      {call && (
-        <CancelCallButton
-          call={call}
-          onLeave={() => {
-            console.log('onLeave callback called');
-          }}
-        />
-      )}
+      <CancelCallButton
+        onLeave={() => {
+          console.log('onLeave callback called');
+        }}
+      />
     </div>
   );
 };
