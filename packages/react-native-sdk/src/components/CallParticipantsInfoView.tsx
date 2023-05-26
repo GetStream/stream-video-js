@@ -7,6 +7,7 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -75,9 +76,17 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
           </View>
         )}
         {!participantIsLoggedInUser && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <ArrowRight color={theme.light.text_high_emphasis} />
-          </View>
+          <Restricted
+            requiredGrants={[
+              OwnCapability.MUTE_USERS,
+              OwnCapability.UPDATE_CALL_PERMISSIONS,
+              OwnCapability.BLOCK_USERS,
+            ]}
+          >
+            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+              <ArrowRight color={theme.light.text_high_emphasis} />
+            </View>
+          </Restricted>
         )}
       </View>
     </Pressable>
@@ -111,6 +120,7 @@ export const CallParticipantsInfoView = ({
   setIsCallParticipantsViewVisible,
 }: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
+  const participantCount = useParticipantCount();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -151,7 +161,7 @@ export const CallParticipantsInfoView = ({
           <View style={styles.header}>
             <View style={styles.leftHeaderElement} />
             <Text style={styles.headerText}>
-              Participants ({participants.length})
+              Participants ({participantCount})
             </Text>
             <Pressable
               style={[styles.closeIcon, theme.icon.sm]}
@@ -202,18 +212,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: theme.padding.md,
+    paddingVertical: theme.padding.md,
     width: '100%',
   },
   leftHeaderElement: {
-    paddingLeft: theme.padding.md,
-    flex: 1,
+    marginLeft: theme.margin.md,
   },
   headerText: {
     ...theme.fonts.bodyBold,
   },
   closeIcon: {
-    flex: 1,
+    marginRight: theme.margin.md,
   },
   buttonGroup: {},
   button: {

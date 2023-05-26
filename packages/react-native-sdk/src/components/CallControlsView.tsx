@@ -82,15 +82,13 @@ export const CallControlsView = () => {
           />
         </CallControlsButton>
       </Restricted>
-      <Restricted requiredGrants={[OwnCapability.END_CALL]}>
-        <CallControlsButton
-          onPress={onCallHangup}
-          color={theme.light.error}
-          style={[styles.button, { shadowColor: theme.light.error }]}
-        >
-          <PhoneDown color={theme.light.static_white} />
-        </CallControlsButton>
-      </Restricted>
+      <CallControlsButton
+        onPress={onCallHangup}
+        color={theme.light.error}
+        style={[styles.button, { shadowColor: theme.light.error }]}
+      >
+        <PhoneDown color={theme.light.static_white} />
+      </CallControlsButton>
     </View>
   );
 };
