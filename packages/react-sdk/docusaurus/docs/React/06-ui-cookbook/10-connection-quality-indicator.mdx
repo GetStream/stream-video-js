@@ -5,8 +5,9 @@ title: Connection Quality Indicator
 
 ## Introduction
 
-Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in three states:
+Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
 
+- unspecified
 - poor
 - good
 - excellent
@@ -33,28 +34,32 @@ You'll most likely be displaying this indicator component inside each participan
 ```tsx
 import {
   SfuModels,
-  type ParticipantViewUIProps,
+  useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 
-const ConnectionQualityIndicator = ({
-  participant,
-}: ParticipantViewUIProps) => {
+const ConnectionQualityIndicator = () => {
+  const { participant } = useParticipantViewContext();
+
   const readableConnectionQuality =
     SfuModels.ConnectionQuality[participant.connectionQuality];
 
   return (
-    <span>
-      {'⭐️'.repeat(participant.connectionQuality)} - {readableConnectionQuality}
+    <span title={readableConnectionQuality}>
+      {'⭐️'.repeat(participant.connectionQuality)}
     </span>
   );
 };
 
-const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => (
-  <>
-    <ConnectionQualityIndicator participant={participant} />
-    {/* other UI components... */}
-  </>
-);
+const CustomParticipantViewUI = () => {
+  const { participant } = useParticipantViewContext();
+
+  return (
+    <>
+      <ConnectionQualityIndicator participant={participant} />
+      {/* other UI components... */}
+    </>
+  );
+};
 ```
 
 ## Final steps

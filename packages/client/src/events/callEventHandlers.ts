@@ -9,11 +9,20 @@ import {
   watchCallBroadcastingStopped,
   watchCallEnded,
   watchCallGrantsUpdated,
+  watchCallLiveStarted,
+  watchCallMemberAdded,
+  watchCallMemberRemoved,
+  watchCallMemberUpdated,
+  watchCallMemberUpdatedPermission,
   watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
   watchCallRecordingStopped,
   watchCallRejected,
+  watchCallSessionEnded,
+  watchCallSessionParticipantJoined,
+  watchCallSessionParticipantLeft,
+  watchCallSessionStarted,
   watchCallUpdated,
   watchChangePublishQuality,
   watchConnectionQualityChanged,
@@ -30,13 +39,6 @@ import {
   CallEventTypes,
   StreamCallEvent,
 } from '../coordinator/connection/types';
-import { watchCallLiveStarted } from './backstage';
-import {
-  watchCallMemberAdded,
-  watchCallMemberRemoved,
-  watchCallMemberUpdated,
-  watchCallMemberUpdatedPermission,
-} from './members';
 
 type RingCallEvents = Extract<
   CallEventTypes,
@@ -72,14 +74,10 @@ export const registerEventHandlers = (
     'call.reaction_new': watchNewReactions(state),
     'call.recording_started': watchCallRecordingStarted(state),
     'call.recording_stopped': watchCallRecordingStopped(state),
-    'call.session_ended': (event: StreamCallEvent) =>
-      console.log(`Received ${event.type} event`, event),
-    'call.session_participant_joined': (event: StreamCallEvent) =>
-      console.log(`Received ${event.type} event`, event),
-    'call.session_participant_left': (event: StreamCallEvent) =>
-      console.log(`Received ${event.type} event`, event),
-    'call.session_started': (event: StreamCallEvent) =>
-      console.log(`Received ${event.type} event`, event),
+    'call.session_started': watchCallSessionStarted(state),
+    'call.session_ended': watchCallSessionEnded(state),
+    'call.session_participant_joined': watchCallSessionParticipantJoined(state),
+    'call.session_participant_left': watchCallSessionParticipantLeft(state),
     'call.unblocked_user': watchUnblockedUser(state),
     'call.updated': watchCallUpdated(state),
     'call.notification': (event: StreamCallEvent) =>

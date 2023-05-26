@@ -12,13 +12,17 @@ In this guide we'll learn how to build and implement our own primitive video pla
 ### Video placeholder component
 
 ```tsx
-import { type VideoPlaceholderProps } from '@stream-io/video-react-sdk';
+import {
+  useParticipantViewContext,
+  type VideoPlaceholderProps,
+} from '@stream-io/video-react-sdk';
 
 const CustomVideoPlaceholder = ({
-  participant,
   // highlight-next-line
   style,
 }: VideoPlaceholderProps) => {
+  const { participant } = useParticipantViewContext();
+
   return (
     // highlight-next-line
     <div style={{ ...style, width: '100%', width: '100%', background: '#ddd' }}>

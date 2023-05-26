@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 
-import { CallStats } from '../StreamCall/CallStats';
+import { CallStats } from '../CallStats';
 import { CompositeButton, IconButton } from '../Button/';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 

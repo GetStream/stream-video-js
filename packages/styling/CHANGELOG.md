@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.61...@stream-io/video-styling-0.0.1-alpha.62) (2023-05-25)
+
+
+
+## [0.0.1-alpha.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.60...@stream-io/video-styling-0.0.1-alpha.61) (2023-05-25)
+
+
+
+## [0.0.1-alpha.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.59...@stream-io/video-styling-0.0.1-alpha.60) (2023-05-25)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
+## [0.0.1-alpha.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.58...@stream-io/video-styling-0.0.1-alpha.59) (2023-05-25)
+
+
+
+## [0.0.1-alpha.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.57...@stream-io/video-styling-0.0.1-alpha.58) (2023-05-25)
+
+
+
+## [0.0.1-alpha.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.56...@stream-io/video-styling-0.0.1-alpha.57) (2023-05-25)
+
+
+
+## [0.0.1-alpha.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.55...@stream-io/video-styling-0.0.1-alpha.56) (2023-05-25)
+
+
+
 ## [0.0.1-alpha.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.54...@stream-io/video-styling-0.0.1-alpha.55) (2023-05-25)
 
 

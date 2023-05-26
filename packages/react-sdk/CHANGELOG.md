@@ -2,6 +2,44 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.84](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.83...@stream-io/video-react-sdk-0.0.1-alpha.84) (2023-05-25)
+
+
+
+## [0.0.1-alpha.83](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.82...@stream-io/video-react-sdk-0.0.1-alpha.83) (2023-05-25)
+
+
+
+## [0.0.1-alpha.82](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.81...@stream-io/video-react-sdk-0.0.1-alpha.82) (2023-05-25)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
+## [0.0.1-alpha.81](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.80...@stream-io/video-react-sdk-0.0.1-alpha.81) (2023-05-25)
+
+
+
+## [0.0.1-alpha.80](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.79...@stream-io/video-react-sdk-0.0.1-alpha.80) (2023-05-25)
+
+
+
+## [0.0.1-alpha.79](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.78...@stream-io/video-react-sdk-0.0.1-alpha.79) (2023-05-25)
+
+
+### Features
+
+* **react-sdk:** ParticipantViewContext + other changes ([#549](https://github.com/GetStream/stream-video-js/issues/549)) ([51edbbc](https://github.com/GetStream/stream-video-js/commit/51edbbc999d405b7e822f094a35c1b5797a5d3df))
+
+
+
+## [0.0.1-alpha.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.77...@stream-io/video-react-sdk-0.0.1-alpha.78) (2023-05-25)
+
+
+
 ## [0.0.1-alpha.77](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.76...@stream-io/video-react-sdk-0.0.1-alpha.77) (2023-05-25)
 
 
