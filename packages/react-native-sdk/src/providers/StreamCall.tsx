@@ -39,7 +39,7 @@ export const StreamCall = ({
     setCall(incomingCall);
 
     return () => {
-      call?.leave().catch((e) => console.log(e, 'heyy'));
+      call?.leave().catch((e) => console.log(e));
       setCall(undefined);
     };
   }, [incomingCall, call]);
