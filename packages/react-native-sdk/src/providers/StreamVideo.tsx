@@ -5,6 +5,7 @@ import {
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
+import { MediaDevices } from './MediaDevices';
 
 /**
  *
@@ -40,7 +41,10 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
       i18nInstance={i18nInstance}
       language={language}
     >
-      <StreamVideoStoreProvider>{children}</StreamVideoStoreProvider>
+      <StreamVideoStoreProvider>
+        <MediaDevices />
+        {children}
+      </StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
 };

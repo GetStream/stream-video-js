@@ -30,4 +30,9 @@
     display: flex;
     flex-direction: column;
   }
+
+  .str-video {
+    background-color: var(--str-video__background-color2);
+    color: var(--str-video__text-color1);
+  }
 }
