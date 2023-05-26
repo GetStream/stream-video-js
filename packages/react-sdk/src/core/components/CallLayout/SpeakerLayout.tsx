@@ -25,7 +25,7 @@ import { IconButton } from '../../../components';
 import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
-} from '../../../components/StreamCall/hooks';
+} from '../../../hooks';
 import clsx from 'clsx';
 
 export type SpeakerLayoutProps = {
