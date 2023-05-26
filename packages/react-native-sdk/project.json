@@ -6,7 +6,19 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "preset": "angular",
+        "preset": {
+          "types": [
+            {"type": "feat", "section": "Features"},
+            {"type": "fix", "section": "Bug Fixes"},
+            {"type": "chore", "hidden": true},
+            {"type": "ci", "hidden": true},
+            {"type": "docs", "hidden": false, "section": "Documentation"},
+            {"type": "style", "hidden": true},
+            {"type": "refactor", "hidden": true},
+            {"type": "perf", "hidden": false, "section": "Features"},
+            {"type": "test", "hidden": true}
+          ]
+        },
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
