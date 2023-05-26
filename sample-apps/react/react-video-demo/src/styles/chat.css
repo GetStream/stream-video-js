@@ -18,3 +18,19 @@
 .str-chat__list {
   @apply md:max-h-[200px] md:overflow-y-scroll;
 }
+
+.str-chat__message-actions-box:not(
+    .str-chat__message-actions-box-angular
+  ).str-chat__message-actions-box--mine {
+  inset-inline-start: -100%;
+}
+
+.str-chat__modal--open .str-chat__modal__inner {
+  width: 90%;
+}
+
+@media screen(md) {
+  .str-chat__modal--open .str-chat__modal__inner {
+    width: 40%;
+  }
+}

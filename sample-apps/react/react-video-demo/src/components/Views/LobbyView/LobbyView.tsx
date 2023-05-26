@@ -67,8 +67,12 @@ export const LobbyView: FC<Props & Lobby> = ({
     >
       {isjoiningCall ? (
         <div className={styles.loadingPanel}>
-          <StreamMark className={styles.loading} />
-          <p>{loadingSentence}</p>
+          <img
+            className={styles.image}
+            src={`${import.meta.env.BASE_URL}images/loading-animation.gif`}
+          />
+
+          <p className={styles.loadingSentence}>{loadingSentence}</p>
         </div>
       ) : (
         <LobbyPanel

@@ -39,12 +39,12 @@ export const CallPanel = () => {
       >
         <CallParticipantsView call={call} />
         <div className="rmc__active-call-controls">
-          <ScreenShareButton call={call} />
+          <ScreenShareButton />
           <SpeakingWhileMutedNotification>
             <ToggleAudioPublishingButton />
           </SpeakingWhileMutedNotification>
           <ToggleVideoPublishingButton />
-          <CancelCallButton call={call} />
+          <CancelCallButton />
         </div>
       </div>
     );

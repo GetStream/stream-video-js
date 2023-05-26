@@ -303,12 +303,12 @@ export const CallPanel = () => {
       >
         <CallParticipantsView call={call} />
         <div className="rmc__active-call-controls">
-          <ScreenShareButton call={call} />
+          <ScreenShareButton />
           <SpeakingWhileMutedNotification>
             <ToggleAudioPublishingButton />
           </SpeakingWhileMutedNotification>
           <ToggleVideoPublishingButton />
-          <CancelCallButton call={call} />
+          <CancelCallButton />
         </div>
       </div>
     );
@@ -356,7 +356,7 @@ Our [`PendingCallControls`](todo doc link) attaches the following callback to th
 The default callback of the [`CancelCallButton`](todo doc link) button is pure `call.leave()` without any parameters. Again the [`PendingCallControls`](todo doc link) as well as the demo's active call panel components make use of this by not overriding the default `onClick`:
 
 ```tsx
-<CancelCallButton call={call} />
+<CancelCallButton />
 ```
 
 ## Adding default styles

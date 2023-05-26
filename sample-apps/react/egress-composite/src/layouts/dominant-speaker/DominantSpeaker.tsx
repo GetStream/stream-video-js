@@ -14,10 +14,11 @@ export const DominantSpeaker = () => {
   const activeCall = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
   const participants = useParticipants();
-  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
-    speakerInSpotlight!,
-    SfuModels.TrackType.VIDEO,
-  );
+  const { setVideoElement, setVideoPlaceholderElement } =
+    useEgressReadyWhenAnyParticipantMounts(
+      speakerInSpotlight!,
+      SfuModels.TrackType.VIDEO,
+    );
 
   if (!activeCall) return <h2>No active call</h2>;
   return (
@@ -26,11 +27,10 @@ export const DominantSpeaker = () => {
         {speakerInSpotlight && (
           <ParticipantView
             participant={speakerInSpotlight}
-            setVideoElementRef={setParticipantVideoRef}
+            refs={{ setVideoElement, setVideoPlaceholderElement }}
             muteAudio
             ParticipantViewUI={
               <DefaultParticipantViewUI
-                participant={speakerInSpotlight}
                 indicatorsVisible={false}
                 showMenuButton={false}
               />

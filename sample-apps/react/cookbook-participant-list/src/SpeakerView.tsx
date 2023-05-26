@@ -66,14 +66,13 @@ export const SpeakerView = () => {
       </div>
 
       <CustomCallControls>
-        {call && <ScreenShareButton call={call} />}
+        <ScreenShareButton />
         <SpeakingWhileMutedNotification>
           <ToggleAudioPublishingButton />
         </SpeakingWhileMutedNotification>
         <ToggleVideoPublishingButton />
         {call && (
           <CancelCallButton
-            call={call}
             onLeave={() => {
               console.log('onLeave callback called');
             }}

@@ -5,7 +5,7 @@ import {
   Call,
   getScreenShareStream,
   SfuModels,
-  useCurrentCallStatsReport,
+  useCallStatsReport,
   useHasOngoingScreenShare,
   useIsCallRecordingInProgress,
   useLocalParticipant,
@@ -23,6 +23,7 @@ import MeetingLayout from '../../Layout/MeetingLayout';
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
 import { useTourContext } from '../../../contexts/TourContext';
+import { usePanelContext } from '../../../contexts/PanelContext';
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
@@ -61,10 +62,11 @@ export const View: FC<Props & Meeting> = ({
   const channelWatched = useWatchChannel({ chatClient, channelId: callId });
 
   const { setSteps } = useTourContext();
+  const { isChatVisible } = usePanelContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
-  const statsReport = useCurrentCallStatsReport();
+  const statsReport = useCallStatsReport();
   const localParticipant = useLocalParticipant();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
@@ -103,6 +105,16 @@ export const View: FC<Props & Meeting> = ({
       chatClient.off('message.deleted', handleEvent);
     };
   }, [chatClient, channelWatched, cid]);
+
+  useEffect(() => {
+    if (!chatClient || !channelWatched) return;
+
+    console.log({ unread, isChatVisible });
+
+    if (isChatVisible && unread !== 0) {
+      setUnread(0);
+    }
+  }, [chatClient, channelWatched, cid, isChatVisible, unread]);
 
   useEffect(() => {
     setIsAwaitingRecordingResponse((isAwaiting) => {

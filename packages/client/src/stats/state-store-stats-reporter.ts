@@ -5,7 +5,7 @@ import type {
   StatsReport,
 } from './types';
 import { CallState } from '../store';
-import { Publisher } from '../rtc/publisher';
+import { Publisher } from '../rtc';
 
 export type StatsReporterOpts = {
   subscriber: RTCPeerConnection;
@@ -288,6 +288,7 @@ const transform = (
  */
 const aggregate = (stats: StatsReport): AggregatedStatsReport => {
   const aggregatedStats: AggregatedStatsReport = {
+    rawReport: stats,
     totalBytesSent: 0,
     totalBytesReceived: 0,
     averageJitterInMs: 0,

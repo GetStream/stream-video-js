@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   CallStatsReport,
-  useCurrentCallStatsReport,
+  useCallStatsReport,
 } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
@@ -38,7 +38,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
-  const callStatsReport = useCurrentCallStatsReport();
+  const callStatsReport = useCallStatsReport();
 
   const { close } = useModalContext();
 
@@ -117,7 +117,10 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
                 <div id="latency-tooltip">
                   <Info className={styles.info} />
                 </div>
-                <Tooltip selector="#latency-tooltip" description="Some text?" />
+                <Tooltip
+                  selector="#latency-tooltip"
+                  description="Latency is the delay before a transfer of data begins following an instruction for its transfer."
+                />
               </div>
               <p className={styles.description}>
                 Very high latency values may reduce call quality, cause lag, and
@@ -139,7 +142,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
                 </div>
                 <Tooltip
                   selector="#statistics-tooltip"
-                  description="Some text?"
+                  description="These are the details of your call performance."
                 />
               </div>
               <p className={styles.description}>
@@ -165,6 +168,8 @@ You connect to Stream’s global edge network based on your local position at th
                 <StatCard
                   className={styles.statCard}
                   label="Receive jitter"
+                  description="Jitter
+                  The variation in the delay of packets transmitted continuously over a network should be less than 30ms."
                   value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
                 />
                 <StatCard
@@ -182,6 +187,7 @@ You connect to Stream’s global edge network based on your local position at th
                 <StatCard
                   className={styles.statCard}
                   label="Publish quality drop reason"
+                  description="Packet Loss on average, transmit data packets do not arrive at their destination 1-2.5% of the time."
                   value={
                     callStatsReport.publisherStats.qualityLimitationReasons
                   }
@@ -194,12 +200,21 @@ You connect to Stream’s global edge network based on your local position at th
                 <StatCard
                   className={styles.statCard}
                   label="Receive quality drop reason"
+                  description="Packet Loss on average, transmit data packets do not arrive at their destination 1-2.5% of the time."
                   value={
                     callStatsReport.subscriberStats.qualityLimitationReasons
                   }
                 />
-                <StatCard label="Publish bitrate" value={publishBitrate} />
-                <StatCard label="Receiving bitrate" value={subscribeBitrate} />
+                <StatCard
+                  label="Publish bitrate"
+                  value={publishBitrate}
+                  description="A higher publish bitrate uses more bandwidth to improve quality. Lower the bitrate to reduce bandwidth and buffering."
+                />
+                <StatCard
+                  label="Receiving bitrate"
+                  value={subscribeBitrate}
+                  description="A higher subscribe bitrate improves quality with more bandwidth, and a lower bitrate reduces bandwidth usage and buffering."
+                />
               </div>
             </div>
           )}
