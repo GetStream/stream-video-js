@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.194](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.193...client0.0.1-alpha.194) (2023-05-26)
+
+
+### Features
+
+* **react-native:** guest and anonymous login and refactoring of the dogfooding app ([#530](https://github.com/GetStream/stream-video-js/issues/530)) ([55d45c7](https://github.com/GetStream/stream-video-js/commit/55d45c7be86693f19c1017cfa116c6250f99b134))
+
+
+
 ## [0.0.1-alpha.193](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.192...client0.0.1-alpha.193) (2023-05-26)
 
 
