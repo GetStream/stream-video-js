@@ -137,11 +137,6 @@ export class Call {
   watching: boolean;
 
   /**
-   * The permissions context of this call.
-   */
-  readonly permissionsContext = new PermissionsContext();
-
-  /**
    * Flag telling whether this call is a "ringing" call.
    */
   private readonly ringingSubject: Subject<boolean>;

@@ -67,14 +67,3 @@ export const watchCallUpdated = (state: CallState) => {
     state.setMetadata(event.call);
   };
 };
-
-/**
- * An event handler which listens to `call.updated` events
- * and updates the given call state accordingly.
- */
-export const watchCallUpdated = (state: CallState) => {
-  return function onCallUpdated(event: StreamVideoEvent) {
-    if (event.type !== 'call.updated') return;
-    state.setMetadata(event.call);
-  };
-};
