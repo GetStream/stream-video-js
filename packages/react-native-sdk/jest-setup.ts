@@ -23,6 +23,8 @@ const mockedDevices = [
   },
 ];
 
+// When mocking we implement only the needed navigator APIs, hence the suppression rule
+// @ts-ignore
 global.navigator = {
   mediaDevices: {
     getUserMedia: jest.fn().mockResolvedValue(mockedMedia),
