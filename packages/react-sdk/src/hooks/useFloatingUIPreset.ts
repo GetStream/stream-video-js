@@ -5,6 +5,7 @@ import {
   size,
   useFloating,
   shift,
+  flip,
 } from '@floating-ui/react';
 import type { UseFloatingProps } from '@floating-ui/react';
 
@@ -24,9 +25,10 @@ export const useFloatingUIPreset = ({
     middleware: [
       offset(10),
       shift(),
+      flip(),
       size({
         padding: 10,
-        apply({ availableHeight, elements }) {
+        apply: ({ availableHeight, elements }) => {
           Object.assign(elements.floating.style, {
             maxHeight: `${availableHeight}px`,
           });
