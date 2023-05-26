@@ -11,12 +11,12 @@ export const ChooseFlowScreen = (props: Props) => {
   const setState = useAppGlobalStoreSetState();
 
   const onMeetingSelect = () => {
-    setState({ appMode: 'Meeting', callId: '' });
+    setState({ appMode: 'Meeting' });
     navigation.navigate('LoginScreen');
   };
 
   const onRingingSelect = () => {
-    setState({ appMode: 'Ringing' });
+    setState({ appMode: 'Call' });
     navigation.navigate('LoginScreen');
   };
 
@@ -24,7 +24,7 @@ export const ChooseFlowScreen = (props: Props) => {
     <SafeAreaView style={[StyleSheet.absoluteFill, styles.container]}>
       <Button title="Meeting" onPress={onMeetingSelect} />
       <View style={styles.separator} />
-      <Button title="Ringing" onPress={onRingingSelect} />
+      <Button title="Call" onPress={onRingingSelect} />
     </SafeAreaView>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   useCall,
+  useCallCallingState,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
@@ -13,6 +14,7 @@ import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -34,17 +36,20 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useCall();
+  const callingState = useCallCallingState();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
 
   useEffect(() => {
     // when the component mounts, we ask for necessary permissions.
     verifyAndroidBluetoothPermissions();
+
     return () => {
-      // ensure that if this component is unmounted, the call is left.
-      activeCallRef.current?.leave();
+      if (callingState !== CallingState.LEFT) {
+        activeCallRef.current?.leave();
+      }
     };
-  }, []);
+  }, [callingState]);
 
   if (!activeCall) return null;
   return <InnerActiveCall {...props} />;

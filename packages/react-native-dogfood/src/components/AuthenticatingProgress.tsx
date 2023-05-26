@@ -8,10 +8,8 @@ const styles = StyleSheet.create({
   },
 });
 
-const AuthenticatingProgressScreen = () => (
+export const AuthenticationProgress = () => (
   <SafeAreaView style={styles.container}>
     <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
   </SafeAreaView>
 );
-
-export default AuthenticatingProgressScreen;

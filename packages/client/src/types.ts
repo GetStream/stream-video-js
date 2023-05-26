@@ -212,5 +212,4 @@ export type CallConstructor = {
  * The options to pass to {@link Call.join} method.
  */
 export type JoinCallData = Omit<JoinCallRequest, 'location'>;
-
 export { AxiosError };

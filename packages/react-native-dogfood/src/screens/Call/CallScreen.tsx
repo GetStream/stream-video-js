@@ -2,14 +2,11 @@ import React, { useEffect } from 'react';
 import {
   ActiveCall,
   ActiveCallProps,
-  StreamVideoRN,
   theme,
   useCall,
   useIncomingCalls,
 } from '@stream-io/video-react-native-sdk';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
-import { RingingStackParamList } from '../../../types';
 import { callkeepCallId$ } from '../../hooks/useCallkeepEffect';
 import {
   startForegroundService,
@@ -17,10 +14,9 @@ import {
 } from '../../modules/push/android';
 import { ParticipantListButtons } from '../../components/ParticipantListButtons';
 
-type Props = NativeStackScreenProps<RingingStackParamList, 'CallScreen'>;
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
-export const CallScreen = ({ navigation }: Props) => {
+export const CallScreen = () => {
   const call = useCall();
   const [incomingCall] = useIncomingCalls();
   const [selectedMode, setMode] = React.useState<Mode>('grid');
@@ -50,14 +46,6 @@ export const CallScreen = ({ navigation }: Props) => {
       stopForegroundService();
     };
   }, [call]);
-
-  const onOpenCallParticipantsInfoViewHandler = () => {
-    navigation.navigate('CallParticipantsInfoScreen');
-  };
-
-  StreamVideoRN.setConfig({
-    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
-  });
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
