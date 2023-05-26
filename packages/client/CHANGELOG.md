@@ -2,6 +2,116 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.190](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.189...client0.0.1-alpha.190) (2023-05-25)
+
+
+
+## [0.0.1-alpha.189](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.188...client0.0.1-alpha.189) (2023-05-25)
+
+
+
+## [0.0.1-alpha.188](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.187...client0.0.1-alpha.188) (2023-05-25)
+
+
+### Bug Fixes
+
+* preserve own capabilities when call session starts ([#554](https://github.com/GetStream/stream-video-js/issues/554)) ([5784fed](https://github.com/GetStream/stream-video-js/commit/5784fed515d6d543a4a60770a5389935deeac65d)), closes [#551](https://github.com/GetStream/stream-video-js/issues/551)
+
+
+### Features
+
+* show simulcast track stats in debug view ([#553](https://github.com/GetStream/stream-video-js/issues/553)) ([2c993f5](https://github.com/GetStream/stream-video-js/commit/2c993f53cfe7e76b789bc57d6034b01ff57de8d4))
+
+
+
+## [0.0.1-alpha.187](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.186...client0.0.1-alpha.187) (2023-05-25)
+
+
+
+## [0.0.1-alpha.186](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.185...client0.0.1-alpha.186) (2023-05-25)
+
+
+
+## [0.0.1-alpha.185](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.184...client0.0.1-alpha.185) (2023-05-25)
+
+
+
+## [0.0.1-alpha.184](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.183...client0.0.1-alpha.184) (2023-05-25)
+
+
+### Features
+
+* call.session events ([#551](https://github.com/GetStream/stream-video-js/issues/551)) ([326498a](https://github.com/GetStream/stream-video-js/commit/326498afb6e35b534332175a3b5b80b8ded4694f))
+
+
+
+## [0.0.1-alpha.183](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.182...client0.0.1-alpha.183) (2023-05-25)
+
+
+
+## [0.0.1-alpha.182](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.181...client0.0.1-alpha.182) (2023-05-25)
+
+
+
+## [0.0.1-alpha.181](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.180...client0.0.1-alpha.181) (2023-05-24)
+
+
+
+## [0.0.1-alpha.180](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.179...client0.0.1-alpha.180) (2023-05-24)
+
+
+
+## [0.0.1-alpha.179](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.178...client0.0.1-alpha.179) (2023-05-24)
+
+
+
+## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.177...client0.0.1-alpha.178) (2023-05-23)
+
+
+
+## [0.0.1-alpha.177](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.176...client0.0.1-alpha.177) (2023-05-23)
+
+
+
+## [0.0.1-alpha.176](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.175...client0.0.1-alpha.176) (2023-05-23)
+
+
+### Features
+
+* Participant information from track events ([#536](https://github.com/GetStream/stream-video-js/issues/536)) ([e8c8d7b](https://github.com/GetStream/stream-video-js/commit/e8c8d7bdf6d21321908ce1cb3a113b445b41d5c8))
+
+
+
+## [0.0.1-alpha.175](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.174...client0.0.1-alpha.175) (2023-05-23)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+### Features
+
+* conditional target video bitrate downscaling ([#537](https://github.com/GetStream/stream-video-js/issues/537)) ([134341b](https://github.com/GetStream/stream-video-js/commit/134341b213d690e78de87f30cf0751e24ae64ca4)), closes [#516](https://github.com/GetStream/stream-video-js/issues/516)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+### Features
+
+* conditional target video bitrate downscaling ([#537](https://github.com/GetStream/stream-video-js/issues/537)) ([134341b](https://github.com/GetStream/stream-video-js/commit/134341b213d690e78de87f30cf0751e24ae64ca4)), closes [#516](https://github.com/GetStream/stream-video-js/issues/516)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.173...client0.0.1-alpha.174) (2023-05-23)
+
+
+
+## [0.0.1-alpha.173](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.172...client0.0.1-alpha.173) (2023-05-23)
+
+
+
 ## [0.0.1-alpha.172](https://github.com/GetStream/stream-video-js/compare/client0.0.1-alpha.171...client0.0.1-alpha.172) (2023-05-22)
 
 

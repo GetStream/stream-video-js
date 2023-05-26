@@ -1,5 +1,6 @@
 .panel {
   @apply relative;
+  pointer-events: initial;
 }
 
 .deviceList {

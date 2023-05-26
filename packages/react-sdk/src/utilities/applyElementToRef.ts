@@ -1,6 +1,6 @@
 import type { ForwardedRef } from 'react';
 
-export const applyElementRef = <T extends HTMLElement | null>(
+export const applyElementToRef = <T extends HTMLElement | null>(
   ref: ForwardedRef<T>,
   element: T,
 ) => {

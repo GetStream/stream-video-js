@@ -175,8 +175,8 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             data-testid="str-video__call-controls"
           >
             <div className="str-video__call-controls--group">
-              <RecordCallButton call={activeCall} />
-              <ScreenShareButton call={activeCall} />
+              <RecordCallButton />
+              <ScreenShareButton />
               <ReactionsButton />
             </div>
             <div className="str-video__call-controls--group">
@@ -184,7 +184,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
-              <CancelCallButton call={activeCall} onLeave={onLeave} />
+              <CancelCallButton onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group">
               <CallStatsButton />

@@ -3,8 +3,7 @@ import {
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
-import { Provider } from '../contexts/StreamVideoContext';
-import { MediaDevicesProvider } from '../contexts/MediaDevicesContext';
+import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 
 /**
  *
@@ -24,9 +23,7 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
       i18nInstance={i18nInstance}
       language={language}
     >
-      <MediaDevicesProvider>
-        <Provider>{children}</Provider>
-      </MediaDevicesProvider>
+      <StreamVideoStoreProvider>{children}</StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
 };

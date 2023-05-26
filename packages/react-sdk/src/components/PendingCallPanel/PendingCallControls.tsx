@@ -12,10 +12,10 @@ export const PendingCallControls = () => {
   return (
     <div className="str-video__pending-call-controls">
       {call.isCreatedByMe ? (
-        <CancelCallButton call={call} disabled={buttonsDisabled} />
+        <CancelCallButton disabled={buttonsDisabled} />
       ) : (
         <>
-          <AcceptCallButton call={call} disabled={buttonsDisabled} />
+          <AcceptCallButton disabled={buttonsDisabled} />
           <CancelCallButton
             onClick={() => call.leave({ reject: true })}
             disabled={buttonsDisabled}
