@@ -2,7 +2,7 @@ import {
   StreamVideo as StreamVideoProvider,
   StreamVideoProps,
 } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 

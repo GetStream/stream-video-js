@@ -47,7 +47,7 @@ export const useCallControls = () => {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
       if (currentAudioDevice && isOnlineRef.current) {
-        const audioStream = await getAudioStream(audioDevice.deviceId);
+        const audioStream = await getAudioStream(currentAudioDevice.deviceId);
         if (call) {
           await call.publishAudioStream(audioStream);
         }
