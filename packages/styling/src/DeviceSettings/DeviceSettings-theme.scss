@@ -32,12 +32,15 @@
   font-size: 1rem;
 
   .str-video__device-settings__device-selector-title {
-    font: var(--str-video__subtitle-medium-text);
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.25rem;
   }
 
   .str-video__device-settings__option {
     color: var(--str-video__text-color3);
-    font: var(--str-video__subtitle-text);
+    font-size: 1rem;
+    line-height: 1.25rem;
     border-radius: var(--str-video__border-radius-xxs);
     cursor: pointer;
     transition: all 0.3s ease-out;
@@ -87,11 +90,11 @@
 
   &:hover,
   &:active {
-    background-color: var(--str-video__text-color3);
-    border-radius: var(--str-video__border-radius1);
+    background-color: var(--str-video__background-color7);
+    border-radius: var(--str-video__border-radius-xs);
   }
 }
 
 .str-video__device-settings__button--active {
-  background-color: var(--str-video__text-color3);
+  background-color: var(--str-video__background-color7);
 }

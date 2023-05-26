@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.82](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.81...@stream-io/video-react-native-sdk-0.0.1-alpha.82) (2023-05-26)
+
+
+### Features
+
+* **react-native:** guest and anonymous login and refactoring of the dogfooding app ([#530](https://github.com/GetStream/stream-video-js/issues/530)) ([55d45c7](https://github.com/GetStream/stream-video-js/commit/55d45c7be86693f19c1017cfa116c6250f99b134))
+
+
+
+## [0.0.1-alpha.81](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.80...@stream-io/video-react-native-sdk-0.0.1-alpha.81) (2023-05-26)
+
+
+
+## [0.0.1-alpha.80](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.79...@stream-io/video-react-native-sdk-0.0.1-alpha.80) (2023-05-26)
+
+
+
+## [0.0.1-alpha.79](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.78...@stream-io/video-react-native-sdk-0.0.1-alpha.79) (2023-05-26)
+
+
+
 ## [0.0.1-alpha.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.77...@stream-io/video-react-native-sdk-0.0.1-alpha.78) (2023-05-25)
 
 

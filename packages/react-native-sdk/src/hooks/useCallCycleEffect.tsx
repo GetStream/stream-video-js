@@ -23,6 +23,7 @@ export const useCallCycleEffect = (
     onCallOutgoing,
     onCallHungUp,
     onCallRejected,
+    onCallJoining,
   } = callCycleHandlers;
 
   useEffect(() => {
@@ -49,12 +50,15 @@ export const useCallCycleEffect = (
       callingState === CallingState.LEFT &&
       isCallCreatedByOther &&
       onCallRejected;
+    const isCallJoining =
+      callingState === CallingState.JOINING && onCallJoining;
 
     if (isIncomingCall) return onCallIncoming();
     if (isOutgoingCall) return onCallOutgoing();
     if (isActiveCall) return onCallJoined();
     if (isCallHungUp) return onCallHungUp();
     if (isCallRejected) return onCallRejected();
+    if (isCallJoining) return onCallJoining();
   }, [
     callingState,
     prevCallingState,
@@ -64,5 +68,6 @@ export const useCallCycleEffect = (
     onCallJoined,
     onCallHungUp,
     onCallRejected,
+    onCallJoining,
   ]);
 };

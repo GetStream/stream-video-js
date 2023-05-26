@@ -7,10 +7,6 @@ type StreamReactionType = StreamReaction & {
 
 type StreamVideoConfig = {
   /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView?: () => void;
-  /**
    * Reactions that are to be supported in the app.
    *
    * Note: This is an array of reactions that is rendered in the Reaction list.

@@ -26,7 +26,14 @@ export const CallControlsView = () => {
     useCallControls();
   const call = useCall();
 
-  const handleHangUpCall = () => call?.leave();
+  const onCallHangup = async () => {
+    try {
+      await call?.leave();
+    } catch (err) {
+      console.log('Error Leaving call:', err);
+    }
+  };
+
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -75,15 +82,13 @@ export const CallControlsView = () => {
           />
         </CallControlsButton>
       </Restricted>
-      <Restricted requiredGrants={[OwnCapability.END_CALL]}>
-        <CallControlsButton
-          onPress={handleHangUpCall}
-          color={theme.light.error}
-          style={[styles.button, { shadowColor: theme.light.error }]}
-        >
-          <PhoneDown color={theme.light.static_white} />
-        </CallControlsButton>
-      </Restricted>
+      <CallControlsButton
+        onPress={onCallHangup}
+        color={theme.light.error}
+        style={[styles.button, { shadowColor: theme.light.error }]}
+      >
+        <PhoneDown color={theme.light.static_white} />
+      </CallControlsButton>
     </View>
   );
 };

@@ -23,6 +23,10 @@ export const fonts: Record<FontTypes, FontStyle> = Platform.select({
       fontSize: 16,
       fontWeight: '500',
     },
+    bodyBold: {
+      fontSize: 16,
+      fontWeight: '600',
+    },
     caption: {
       fontSize: 10,
       fontWeight: '400',
@@ -48,6 +52,10 @@ export const fonts: Record<FontTypes, FontStyle> = Platform.select({
     subtitleBold: {
       fontSize: 16,
       fontWeight: '500',
+    },
+    bodyBold: {
+      fontSize: 16,
+      fontWeight: '600',
     },
     caption: {
       fontSize: 10,
