@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [{
+      "appID": "EHV7XZLAHA.io.getstream.iOS.VideoDemoApp",
+      "paths": [
+        "*"
+      ]
+    }]
+  }
+}
