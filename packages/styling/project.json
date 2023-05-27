@@ -6,11 +6,11 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "preid": "alpha",
+        "releaseAs": "prerelease",
         "preset": {
           "name": "angular",
           "preMajor": true,
-          "preid": "alpha",
-          "releaseAs": "prerelease",
           "types": [
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
