@@ -6,6 +6,8 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "preid": "alpha",
+        "releaseAs": "prerelease",
         "preset": {
           "name": "angular",
           "preMajor": true,
@@ -23,7 +25,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": []
+        "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings:publish"]
       }
     },
     "github": {
