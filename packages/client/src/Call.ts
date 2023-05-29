@@ -368,12 +368,10 @@ export class Call {
       if (this.isCreatedByMe && !hasOtherParticipants) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
-        // Causes the `call.ended` event to be emitted to all the call members.
-        await this.endCall();
+        await this.reject();
       } else if (reject && callingState === CallingState.RINGING) {
         // Signals other users that I have rejected the incoming call.
-        // Causes the `call.rejected` event to be emitted to all the call members.
-        await this.sendEvent({ type: 'call.rejected' });
+        await this.reject();
       }
     }
 
@@ -443,6 +441,10 @@ export class Call {
 
   /**
    * Loads the information about the call.
+   *
+   * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
+   * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
+   * @param params.members_limit the members limit.
    */
   get = async (params?: {
     ring?: boolean;
@@ -453,6 +455,11 @@ export class Call {
       this.streamClientBasePath,
       params,
     );
+
+    if (params?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -475,6 +482,10 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
 
@@ -486,12 +497,42 @@ export class Call {
     return response;
   };
 
+  /**
+   * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
+   * Will send a `call.ring` event to the call members.
+   */
   ring = async (): Promise<GetCallResponse> => {
     return await this.get({ ring: true });
   };
 
+  /**
+   * A shortcut for {@link Call.get} with `notify` parameter set to `true`.
+   * Will send a `call.notification` event to the call members.
+   */
   notify = async (): Promise<GetCallResponse> => {
     return await this.get({ notify: true });
+  };
+
+  /**
+   * Marks the incoming call as accepted.
+   *
+   * This method should be used only for "ringing" call flows.
+   * {@link Call.join} invokes this method automatically for you when joining a call.
+   * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   */
+  accept = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
+  };
+
+  /**
+   * Marks the incoming call as rejected.
+   *
+   * This method should be used only for "ringing" call flows.
+   * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
+   * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   */
+  reject = async () => {
+    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
   };
 
   /**
@@ -510,6 +551,15 @@ export class Call {
 
     const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
+
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
+    if (this.ringing && !this.isCreatedByMe) {
+      // signals other users that I have accepted the incoming call.
+      await this.accept();
+    }
 
     let sfuServer: SFUResponse;
     let sfuToken: string;
@@ -750,18 +800,6 @@ export class Call {
         throw new Error('Join failed');
       }
     }
-  };
-
-  /**
-   * Will update the call members.
-   *
-   * @param data the request data.
-   */
-  updateCallMembers = async (
-    data: UpdateCallMembersRequest,
-  ): Promise<UpdateCallMembersResponse> => {
-    // FIXME: OL: implement kick-users
-    return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
   };
 
   /**
@@ -1398,6 +1436,18 @@ export class Call {
     });
   };
 
+  /**
+   * Will update the call members.
+   *
+   * @param data the request data.
+   */
+  updateCallMembers = async (
+    data: UpdateCallMembersRequest,
+  ): Promise<UpdateCallMembersResponse> => {
+    // FIXME: OL: implement kick-users
+    return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
+  };
+
   private scheduleAutoDrop = () => {
     const subscription = this.state.metadata$
       .pipe(
@@ -1414,8 +1464,8 @@ export class Call {
                 currentMeta.settings.ring.auto_cancel_timeout_ms,
               ]
             : [
-                prevMeta?.settings.ring.auto_reject_timeout_ms,
-                currentMeta.settings.ring.auto_reject_timeout_ms,
+                prevMeta?.settings.ring.incoming_call_timeout_ms,
+                currentMeta.settings.ring.incoming_call_timeout_ms,
               ];
           if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
             return;
@@ -1475,13 +1525,5 @@ export class Call {
       `${this.streamClientBasePath}/event`,
       event,
     );
-  };
-
-  accept = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
-  };
-
-  reject = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
   };
 }

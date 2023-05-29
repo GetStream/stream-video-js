@@ -27,16 +27,39 @@ export const watchCallAccepted = (call: Call) => {
  * Once the event is received, the call is left.
  */
 export const watchCallRejected = (call: Call) => {
-  let totalRejections = 0;
   return async function onCallRejected(event: StreamVideoEvent) {
     if (event.type !== 'call.rejected') return;
-    totalRejections++;
-    const { state } = call;
-    if (
-      totalRejections >= state.members.length &&
-      state.callingState === CallingState.RINGING
-    ) {
-      await call.leave();
+    // We want to discard the event if it's from the current user
+    if (event.user.id === call.currentUserId) return;
+    const { call: eventCall } = event;
+    const { session: callSession } = eventCall;
+
+    if (!callSession) {
+      console.log('No call session provided. Ignoring call.rejected event.');
+      return;
+    }
+
+    const rejectedBy = callSession.rejected_by;
+    const { members, callingState } = call.state;
+    if (callingState !== CallingState.RINGING) {
+      console.log(
+        'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
+      );
+      return;
+    }
+    if (call.isCreatedByMe) {
+      const everyoneElseRejected = members
+        .filter((m) => m.user_id !== call.currentUserId)
+        .every((m) => rejectedBy[m.user_id]);
+      if (everyoneElseRejected) {
+        console.log('everyone rejected, leaving the call');
+        await call.leave();
+      }
+    } else {
+      if (rejectedBy[eventCall.created_by.id]) {
+        console.log('call creator rejected, leaving call');
+        await call.leave();
+      }
     }
   };
 };
