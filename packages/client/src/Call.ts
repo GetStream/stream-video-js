@@ -21,6 +21,7 @@ import {
 } from './store';
 import { createSubscription, getCurrentValue } from './store/rxUtils';
 import {
+  AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
   EndCallResponse,
@@ -35,6 +36,8 @@ import {
   MuteUsersResponse,
   OwnCapability,
   QueryMembersRequest,
+  QueryMembersResponse,
+  RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
@@ -42,7 +45,11 @@ import {
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
+  StartBroadcastingResponse,
+  StartRecordingResponse,
+  StopBroadcastingResponse,
   StopLiveResponse,
+  StopRecordingResponse,
   UnblockUserRequest,
   UnblockUserResponse,
   UpdateCallMembersRequest,
@@ -521,7 +528,9 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   accept = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
+    return this.streamClient.post<AcceptCallResponse>(
+      `${this.streamClientBasePath}/accept`,
+    );
   };
 
   /**
@@ -532,7 +541,9 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   reject = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
+    return this.streamClient.post<RejectCallResponse>(
+      `${this.streamClientBasePath}/reject`,
+    );
   };
 
   /**
@@ -1156,7 +1167,7 @@ export class Call {
   sendReaction = async (
     reaction: SendReactionRequest,
   ): Promise<SendReactionResponse> => {
-    return this.streamClient.post(
+    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
@@ -1258,7 +1269,7 @@ export class Call {
    * Starts recording the call
    */
   startRecording = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StartRecordingResponse>(
       `${this.streamClientBasePath}/start_recording`,
       {},
     );
@@ -1268,7 +1279,7 @@ export class Call {
    * Stops recording the call
    */
   stopRecording = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StopRecordingResponse>(
       `${this.streamClientBasePath}/stop_recording`,
       {},
     );
@@ -1289,10 +1300,10 @@ export class Call {
         `You are not allowed to request permissions: ${permissions.join(', ')}`,
       );
     }
-    return this.streamClient.post(
-      `${this.streamClientBasePath}/request_permission`,
-      data,
-    );
+    return this.streamClient.post<
+      RequestPermissionResponse,
+      RequestPermissionRequest
+    >(`${this.streamClientBasePath}/request_permission`, data);
   };
 
   /**
@@ -1374,7 +1385,7 @@ export class Call {
    * Starts the broadcasting of the call.
    */
   startBroadcasting = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StartBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
     );
@@ -1384,7 +1395,7 @@ export class Call {
    * Stops the broadcasting of the call.
    */
   stopBroadcasting = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StopBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
@@ -1429,11 +1440,14 @@ export class Call {
    * @returns
    */
   queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<QueryMembersRequest>('/call/members', {
-      ...request,
-      id: this.id,
-      type: this.type,
-    });
+    return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
+      '/call/members',
+      {
+        ...request,
+        id: this.id,
+        type: this.type,
+      },
+    );
   };
 
   /**
@@ -1444,8 +1458,10 @@ export class Call {
   updateCallMembers = async (
     data: UpdateCallMembersRequest,
   ): Promise<UpdateCallMembersResponse> => {
-    // FIXME: OL: implement kick-users
-    return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
+    return this.streamClient.post<
+      UpdateCallMembersResponse,
+      UpdateCallMembersRequest
+    >(`${this.streamClientBasePath}/members`, data);
   };
 
   private scheduleAutoDrop = () => {
@@ -1486,14 +1502,23 @@ export class Call {
   };
 
   /**
-   * Performs HTTP request to retrieve the list of recordings for the current call
-   * Updates the call state with provided array of CallRecording objects
+   * Retrieves the list of recordings for the current call or call session.
+   * Updates the call state with the returned array of CallRecording objects.
+   *
+   * If `callSessionId` is provided, it will return the recordings for that call session.
+   * Otherwise, all recordings for the current call will be returned.
+   *
+   * @param callSessionId the call session id to retrieve recordings for.
    */
-  queryRecordings = async (): Promise<ListRecordingsResponse> => {
-    // FIXME: this is a temporary setting to take call ID as session ID
-    const sessionId = this.id;
+  queryRecordings = async (
+    callSessionId?: string,
+  ): Promise<ListRecordingsResponse> => {
+    let endpoint = this.streamClientBasePath;
+    if (callSessionId) {
+      endpoint = `${endpoint}/${callSessionId}`;
+    }
     const response = await this.streamClient.get<ListRecordingsResponse>(
-      `${this.streamClientBasePath}/${sessionId}/recordings`,
+      `${endpoint}/recordings`,
     );
 
     this.state.setCallRecordingsList(response.recordings);
