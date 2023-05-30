@@ -15,7 +15,7 @@ export const Stage = (props: { call: Call }) => {
       {hasScreenShare ? (
         <CallParticipantsScreenView call={call} />
       ) : (
-        <CallParticipantsView />
+        <CallParticipantsView call={call} />
       )}
     </div>
   );
