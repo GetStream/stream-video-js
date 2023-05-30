@@ -1449,6 +1449,7 @@ export class Call {
   };
 
   private scheduleAutoDrop = () => {
+    if (this.dropTimeout) clearTimeout(this.dropTimeout);
     const subscription = this.state.metadata$
       .pipe(
         pairwise(),

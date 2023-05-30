@@ -45,17 +45,20 @@ export const PendingCallPanel = (props: PendingCallPanelProps) => {
 
   if (!call) return null;
 
+  // take the first N members to show their avatars
   const membersToShow: UserResponse[] = (members || [])
-    .slice(0, totalMembersToShow - (includeSelf ? 1 : 0))
+    .slice(0, totalMembersToShow)
     .map(({ user }) => user)
     .filter((user) => user.id !== connectedUser?.id || includeSelf);
   if (
     includeSelf &&
     !membersToShow.find((user) => user.id === connectedUser?.id)
   ) {
+    // if the current user is not in the initial batch of members,
+    // add it to the beginning of the list
     const self = members.find(({ user }) => user.id === connectedUser?.id);
     if (self) {
-      membersToShow.unshift(self.user);
+      membersToShow.splice(0, 1, self.user);
     }
   }
 
