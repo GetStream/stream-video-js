@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { Avatar } from '../../src/components/Avatar';
 import mockParticipant from '../mocks/participant';
+import { A11yComponents } from '../../src/constants/A11yLabels';
 
 describe('Avatar', () => {
   it('should render initials of participant when imageUrl is not specified', () => {
@@ -24,7 +25,9 @@ describe('Avatar', () => {
     const testParticipant = mockParticipant();
     const radius = 200;
     render(<Avatar participant={testParticipant} radius={radius} />);
-    expect(screen.getByLabelText('participant-avatar')).toHaveStyle({
+    expect(
+      screen.getByLabelText(A11yComponents.PARTICIPANT_AVATAR),
+    ).toHaveStyle({
       borderRadius: radius / 2,
       height: radius,
       width: radius,

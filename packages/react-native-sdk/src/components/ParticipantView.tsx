@@ -57,6 +57,7 @@ interface ParticipantViewProps {
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
+
   const call = useCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();

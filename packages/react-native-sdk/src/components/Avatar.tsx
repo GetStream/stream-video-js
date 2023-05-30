@@ -3,6 +3,7 @@ import React from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../utils';
 import { theme } from '../theme';
+import { A11yComponents } from '../constants/A11yLabels';
 
 /**
  * Props to be passed for the Avatar component.
@@ -42,7 +43,7 @@ export const Avatar = (props: AvatarProps) => {
   const imageUrl = image;
   return (
     <View
-      accessibilityLabel={'participant-avatar'}
+      accessibilityLabel={A11yComponents.PARTICIPANT_AVATAR}
       style={{
         ...styles.container,
         borderRadius: radius / 2,

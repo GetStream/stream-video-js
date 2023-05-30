@@ -5,6 +5,11 @@ import { ParticipantView } from '../../src/components/ParticipantView';
 import { StreamCall, StreamVideo } from '../../src/providers';
 import { mockClientWithUser } from '../mocks/client';
 import { SfuModels } from '@stream-io/video-client';
+import {
+  A11yComponents,
+  A11yIcons,
+  A11yValues,
+} from '../../src/constants/A11yLabels';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -42,9 +47,9 @@ describe('ParticipantView', () => {
     );
 
     expect(
-      await screen.findByLabelText('participant-avatar'),
+      await screen.findByLabelText(A11yComponents.PARTICIPANT_AVATAR),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText('video-is-muted-icon')).toBeOnTheScreen();
+    expect(screen.getByLabelText(A11yIcons.MUTED_VIDEO)).toBeOnTheScreen();
     expect(screen.getByText(testParticipant.userId)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
     expect(screen.getByText('🎉')).toBeOnTheScreen();
@@ -67,12 +72,14 @@ describe('ParticipantView', () => {
     });
 
     expect(
-      await screen.findByLabelText('participant-media-stream'),
+      await screen.findByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(/123-456 is sharing their screen/i),
     ).toBeOnTheScreen();
-    expect(await screen.findByLabelText('screen-share-icon')).toBeOnTheScreen();
+    expect(
+      await screen.findByLabelText(A11yIcons.SCREEN_SHARE),
+    ).toBeOnTheScreen();
   });
 
   it('should render participant`s video and audio when of video kind and partic. speaks', async () => {
@@ -86,7 +93,7 @@ describe('ParticipantView', () => {
     });
 
     const [VideoRTCView, AudioRTCView] = await screen.findAllByLabelText(
-      'participant-media-stream',
+      A11yComponents.PARTICIPANT_MEDIA_STREAM,
     );
     // Video and Audio streams are rendered
     // This is our best way to test if video and audio is on
@@ -97,7 +104,9 @@ describe('ParticipantView', () => {
 
     // Participant is speaking style is applied
     expect(
-      screen.getByAccessibilityValue({ text: 'participant-is-speaking' }),
+      screen.getByAccessibilityValue({
+        text: A11yValues.PARTICIPANTS_IS_SPEAKING,
+      }),
     ).toBeOnTheScreen();
   });
 });

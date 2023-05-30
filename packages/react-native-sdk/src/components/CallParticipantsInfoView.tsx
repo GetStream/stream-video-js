@@ -25,7 +25,6 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
-import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -139,15 +138,18 @@ export const CallParticipantsInfoView = ({
     setIsCallParticipantsViewVisible(false);
   };
 
-  const renderItem = useCallback(({ item }: { item: Participant }) => {
-    return (
-      <CallParticipantInfoItem
-        key={item.sessionId}
-        participant={item}
-        setSelectedParticipant={setSelectedParticipant}
-      />
-    );
-  }, []);
+  const renderItem = useCallback(
+    ({ item }: { item: StreamVideoParticipant }) => {
+      return (
+        <CallParticipantInfoItem
+          key={item.sessionId}
+          participant={item}
+          setSelectedParticipant={setSelectedParticipant}
+        />
+      );
+    },
+    [],
+  );
 
   return (
     <Modal
