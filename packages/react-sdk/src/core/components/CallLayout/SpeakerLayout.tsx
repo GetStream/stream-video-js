@@ -22,11 +22,16 @@ import {
   ParticipantViewProps,
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
-import { useHorizontalScrollPosition } from '../../../components/StreamCall/hooks';
+import {
+  useHorizontalScrollPosition,
+  useVerticalScrollPosition,
+} from '../../../hooks';
+import clsx from 'clsx';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
+  participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right';
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
 const DefaultParticipantViewUIBar = () => (
@@ -39,6 +44,7 @@ export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
   ParticipantViewUISpotlight = DefaultParticipantViewUISpotlight,
   VideoPlaceholder,
+  participantsBarPosition = 'bottom',
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
@@ -47,16 +53,6 @@ export const SpeakerLayout = ({
   );
   const isOneOnOneCall = otherParticipants.length === 1;
   const localParticipant = useLocalParticipant();
-
-  const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
-
-  const scrollStartClickHandler = () => {
-    scrollWrapper?.scrollBy({ left: -150, behavior: 'smooth' });
-  };
-
-  const scrollEndClickHandler = () => {
-    scrollWrapper?.scrollBy({ left: 150, behavior: 'smooth' });
-  };
 
   useEffect(() => {
     if (!scrollWrapper || !call) return;
@@ -89,7 +85,12 @@ export const SpeakerLayout = ({
   const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
     <div className="str-video__speaker-layout__wrapper">
-      <div className="str-video__speaker-layout">
+      <div
+        className={clsx(
+          'str-video__speaker-layout',
+          `str-video__speaker-layout--variant-${participantsBarPosition}`,
+        )}
+      >
         <div className="str-video__speaker-layout__spotlight">
           {participantInSpotlight && (
             <ParticipantView
@@ -104,13 +105,6 @@ export const SpeakerLayout = ({
         </div>
         {otherParticipants.length > 0 && (
           <div className="str-video__speaker-layout__participants-bar-buttons-wrapper">
-            {scrollPosition && scrollPosition !== 'start' && (
-              <IconButton
-                onClick={scrollStartClickHandler}
-                icon="caret-left"
-                className="str-video__speaker-layout__participants-bar--button-left"
-              />
-            )}
             <div
               className="str-video__speaker-layout__participants-bar-wrapper"
               ref={setScrollWrapper}
@@ -144,17 +138,86 @@ export const SpeakerLayout = ({
                 ))}
               </div>
             </div>
-            {scrollPosition && scrollPosition !== 'end' && (
-              <IconButton
-                onClick={scrollEndClickHandler}
-                icon="caret-right"
-                className="str-video__speaker-layout__participants-bar--button-right"
-              />
+            {(participantsBarPosition === 'left' ||
+              participantsBarPosition === 'right') && (
+              <VerticalScrollButtons scrollWrapper={scrollWrapper} />
+            )}
+            {(participantsBarPosition === 'top' ||
+              participantsBarPosition === 'bottom') && (
+              <HorizontalScrollButtons scrollWrapper={scrollWrapper} />
             )}
           </div>
         )}
       </div>
     </div>
+  );
+};
+
+type ScrollButtonsProps<T extends HTMLElement> = {
+  scrollWrapper: T | null;
+};
+
+const HorizontalScrollButtons = <T extends HTMLElement>({
+  scrollWrapper,
+}: ScrollButtonsProps<T>) => {
+  const scrollPosition = useHorizontalScrollPosition(scrollWrapper);
+
+  const scrollStartClickHandler = () => {
+    scrollWrapper?.scrollBy({ left: -150, behavior: 'smooth' });
+  };
+
+  const scrollEndClickHandler = () => {
+    scrollWrapper?.scrollBy({ left: 150, behavior: 'smooth' });
+  };
+  return (
+    <>
+      {scrollPosition && scrollPosition !== 'start' && (
+        <IconButton
+          onClick={scrollStartClickHandler}
+          icon="caret-left"
+          className="str-video__speaker-layout__participants-bar--button-left"
+        />
+      )}
+      {scrollPosition && scrollPosition !== 'end' && (
+        <IconButton
+          onClick={scrollEndClickHandler}
+          icon="caret-right"
+          className="str-video__speaker-layout__participants-bar--button-right"
+        />
+      )}
+    </>
+  );
+};
+
+const VerticalScrollButtons = <T extends HTMLElement>({
+  scrollWrapper,
+}: ScrollButtonsProps<T>) => {
+  const scrollPosition = useVerticalScrollPosition(scrollWrapper);
+
+  const scrollTopClickHandler = () => {
+    scrollWrapper?.scrollBy({ top: -150, behavior: 'smooth' });
+  };
+
+  const scrollBottomClickHandler = () => {
+    scrollWrapper?.scrollBy({ top: 150, behavior: 'smooth' });
+  };
+  return (
+    <>
+      {scrollPosition && scrollPosition !== 'top' && (
+        <IconButton
+          onClick={scrollTopClickHandler}
+          icon="caret-up"
+          className="str-video__speaker-layout__participants-bar--button-top"
+        />
+      )}
+      {scrollPosition && scrollPosition !== 'bottom' && (
+        <IconButton
+          onClick={scrollBottomClickHandler}
+          icon="caret-down"
+          className="str-video__speaker-layout__participants-bar--button-bottom"
+        />
+      )}
+    </>
   );
 };
 
