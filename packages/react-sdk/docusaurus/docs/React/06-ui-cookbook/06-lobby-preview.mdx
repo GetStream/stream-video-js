@@ -31,7 +31,7 @@ We would like to show some basic information about the call, when users arrive t
 - who is invited
 - who already joined
 
-The initial call information is retrieved internally by [`StreamCall`](todo docs link) component and passed down with the [`StreamCallContext`](../call-engine/hooks-and-contexts/#streamcallprovider). Wrapping our UI with [`StreamCall`](todo docs link) allows us to access the call data in our UI components with hooks:
+The initial call information is retrieved internally by [`StreamCall`](todo docs link) component and passed down with the [`StreamCallProvider`](../call-engine/hooks-and-contexts/#streamcallprovider). Wrapping our UI with [`StreamCall`](todo docs link) allows us to access the call data in our UI components with hooks:
 
 - [`useCallMetadata`](../call-engine/hooks-and-contexts#usecallmetadata)
 - [`useCallMembers`](../call-engine/hooks-and-contexts#usecallmembers)
@@ -148,7 +148,7 @@ export const DeviceSelector = ({ devices, deviceKind, selectedDeviceId }: Device
       {devices.map((device) => {
         return (
           <div
-            className={`option${selectedDeviceId === device.deviceId ? 'option--selected' : ''}`}
+            className={`option ${selectedDeviceId === device.deviceId ? 'option--selected' : ''}`}
             key={device.deviceId}
             // highlight-next-line
             onClick={ () => switchDevice(deviceKind, device.deviceId) }
