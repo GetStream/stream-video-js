@@ -107,8 +107,8 @@ export const Preview = {
 
           disposeOfSoundDetector = createSoundDetector(
             ms,
-            (_, p) => {
-              setPercentage(p);
+            ({ audioLevel }) => {
+              setPercentage(audioLevel);
             },
             { detectionFrequencyInMs: 50 },
           );
