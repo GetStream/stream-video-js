@@ -4,4 +4,96 @@ title: Audio Volume Indicator
 description: Audio Volume Indicator
 ---
 
-Build your own audio volume indicator
+In this documentation article, we will explore how to build a custom sound detection component using [`createSoundDetector`](todo docs link).
+
+## Sound detection
+We can start detecting the audio input level changes using the utility function [`createSoundDetector`](todo docs link).  The function requires an instance of `MediaStream` object of type `audioinput` and attaches sound analysers to it. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](todo docs link) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
+
+It is also possible to configure the data collection algorithm with the third [`options` parameter](todo docs link).
+
+The return value of [`createSoundDetector`](todo docs link) function is a cleanup function that should be called, when a component, that uses sound detection is unmounted.
+
+## Custom AudioVolumeIndicator component
+The component will show the audio level changes by expanding and contracting a line. The audio level is kept in component's state. The sound detection is set up in an effect. Also, we make sure to call the cleanup function in the effect cleanup phase.
+
+
+```tsx
+import { useEffect, useState } from 'react';
+
+import {
+  createSoundDetector,
+  Icon,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+export const AudioVolumeIndicator = () => {
+  const { getAudioStream, selectedAudioInputDeviceId, initialAudioEnabled } =
+    useMediaDevices();
+  const [audioLevel, setAudioLevel] = useState<number>(0);
+
+  // highlight-start
+  useEffect(() => {
+    // do not detect sound changes if audio is disabled
+    if (!initialAudioEnabled) return;
+
+    const disposeSoundDetector = getAudioStream({
+      deviceId: selectedAudioInputDeviceId,
+    }).then((audioStream) =>
+      createSoundDetector(
+        audioStream,
+        ({ audioLevel: al }) => setAudioLevel(al),
+        { detectionFrequencyInMs: 80 },
+      ),
+    );
+
+    disposeSoundDetector.catch((err) => {
+      console.error('Error while creating sound detector', err);
+    });
+
+    return () => {
+      // clean up stream and analyser
+      disposeSoundDetector
+        .then((dispose) => dispose())
+        .catch((err) => {
+          console.error('Error while disposing sound detector', err);
+        });
+    };
+  }, [initialAudioEnabled, getAudioStream, selectedAudioInputDeviceId]);
+  // highlight-end
+
+  if (!initialAudioEnabled) return null;
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '0 1.25rem 1rem',
+      }}
+    >
+      <Icon icon={initialAudioEnabled ? 'mic' : 'mic-off'} />
+      <div
+        style={{
+          flex: '1',
+          background: '#fff',
+          height: '5px',
+          borderRadius: '4px',
+        }}
+      >
+        <div
+          style={{
+            // highlight-next-line
+            transform: `scaleX(${audioLevel / 100})`,
+            transformOrigin: 'left center',
+            background: 'var(--str-video__primary-color)',
+            width: '100%',
+            height: '100%',
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+```
