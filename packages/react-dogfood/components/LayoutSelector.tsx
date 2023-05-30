@@ -88,16 +88,22 @@ export const LayoutSelector = ({
 
   useEffect(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
+
+    const isStoredLayoutInMap = Object.hasOwn(LayoutMap, storedLayout);
+
     // always switch to screen-share compatible layout
     if (hasScreenShare)
       return setLayout((currentLayout) => {
-        if (currentLayout.startsWith('Speaker')) return currentLayout;
+        if (currentLayout.startsWith('Speaker') && isStoredLayoutInMap)
+          return currentLayout;
         return 'SpeakerBottom';
       });
 
     setLayout(
       // reset to "stored" layout, use default if incompatible layout is used
-      storedLayout === 'LegacySpeaker' ? DEFAULT_LAYOUT : storedLayout,
+      storedLayout === 'LegacySpeaker' || !isStoredLayoutInMap
+        ? DEFAULT_LAYOUT
+        : storedLayout,
     );
   }, [hasScreenShare, setLayout]);
 
