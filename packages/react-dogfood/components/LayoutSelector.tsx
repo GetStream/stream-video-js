@@ -94,8 +94,7 @@ export const LayoutSelector = ({
     // always switch to screen-share compatible layout
     if (hasScreenShare)
       return setLayout((currentLayout) => {
-        if (currentLayout.startsWith('Speaker') && isStoredLayoutInMap)
-          return currentLayout;
+        if (currentLayout.startsWith('Speaker')) return currentLayout;
         return 'SpeakerBottom';
       });
 
