@@ -5,7 +5,8 @@ import { User } from '@stream-io/video-react-sdk';
 
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
-import { StreamMark } from '../../Icons';
+
+import { requestMediaPermissions, MediaPermissionsError } from 'mic-check';
 
 import LobbyLayout from '../../Layout/LobbyLayout';
 
@@ -48,6 +49,15 @@ export const LobbyView: FC<Props & Lobby> = ({
   user,
 }) => {
   const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
+
+  const [permissionsEnabled, setPermissionsEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    requestMediaPermissions().catch((err: MediaPermissionsError) => {
+      setPermissionsEnabled(false);
+    });
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       const nextSentence =
@@ -83,6 +93,7 @@ export const LobbyView: FC<Props & Lobby> = ({
           user={user}
           fastestEdge={fastestEdge}
           isJoiningCall={Boolean(callId)}
+          permissionsEnabled={permissionsEnabled}
         />
       )}
     </LobbyLayout>
