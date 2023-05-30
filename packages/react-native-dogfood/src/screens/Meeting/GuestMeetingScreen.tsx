@@ -59,7 +59,7 @@ export const GuestMeetingScreen = (props: Props) => {
     const intitializeToken = async () => {
       const token = await createToken({
         user_id: '!anon',
-        call_cids: `${guestCallType}:${guestCallType}`,
+        call_cids: `${guestCallType}:${guestCallId}`,
       });
       setTokenToUse(token);
     };
