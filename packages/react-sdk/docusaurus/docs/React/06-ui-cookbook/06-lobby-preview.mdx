@@ -25,13 +25,14 @@ For the token generation, you can use our [Token Generator](https://getstream.io
 :::
 
 ### The call data
+
 We would like to show some basic information about the call, when users arrive to the lobby. For example:
 
 - call name
 - who is invited
 - who already joined
 
-The initial call information is retrieved internally by [`StreamCall`](todo docs link) component and passed down with the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider). Wrapping our UI with [`StreamCall`](todo docs link) allows us to access the call data in our UI components with hooks:
+The initial call information is retrieved internally by [`StreamCall`](../../ui-components/core/stream-call) component and passed down with the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider). Wrapping our UI with [`StreamCall`](../../ui-components/core/stream-call) allows us to access the call data in our UI components with hooks:
 
 - [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata)
 - [`useCallMembers`](../../call-engine/hooks-and-contexts#usecallmembers)
@@ -41,36 +42,33 @@ These hooks make sure, that the information about call metadata or call members 
 Learn more about setting up the boilerplate of joining a call room in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/#call-room) guide.
 
 ### Video input preview
-The SDK comes with a pre-build [`VideoPreview`](todo docs link) component that handles video input stream retrieval and disposal. It also presents various UIs based on video playing state (starting, playing, error, unavailable video devices). In the example below, we are assembling a custom video preview using SDK's [`VideoPreview`](todo docs link) component and our custom UI components for each playing state.
+
+The SDK comes with a pre-build [`VideoPreview`](../../ui-components/participants/video-preview) component that handles video input stream retrieval and disposal. It also presents various UIs based on video playing state (starting, playing, error, unavailable video devices). In the example below, we are assembling a custom video preview using SDK's [`VideoPreview`](../../ui-components/participants/video-preview) component and our custom UI components for each playing state.
 
 ```tsx
 import {
   useConnectedUser,
   DefaultVideoPlaceholder,
   StreamVideoParticipant,
-  VideoPreview
+  VideoPreview,
 } from '@stream-io/video-react-sdk';
 
-import {
-  CameraIcon,
-  ErrorIcon,
-  LoadingIndicator
-} from '../icons';
+import { CameraIcon, ErrorIcon, LoadingIndicator } from '../icons';
 
 export const Lobby = () => {
   return (
     <div>
-    {/* ... other components */}
+      {/* ... other components */}
       <VideoPreview
         DisabledVideoPreview={DisabledVideoPreview}
         NoCameraPreview={NoCameraPreview}
         VideoErrorPreview={VideoErrorPreview}
         StartingCameraPreview={StartingCameraPreview}
       />
-    {/* ... other components */}
+      {/* ... other components */}
     </div>
   );
-}
+};
 
 export const DisabledVideoPreview = () => {
   const connectedUser = useConnectedUser();
@@ -108,6 +106,7 @@ const StartingCameraPreview = () => (
 ```
 
 ### Audio input preview
+
 Microphone configuration in the lobby may consist of checking, whether our microphone works and deciding, whether it will be enabled, when we join the call.
 
 :::note
@@ -119,6 +118,7 @@ We build our custom sound detector in the [dedicated tutorial about Audio Volume
 :::
 
 ### Device selection
+
 Switching devices is handled by `switchDevice()` function provided by [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi). We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
 
 **Device selector example**
@@ -139,7 +139,11 @@ type DeviceSelectorProps = {
   selectedDeviceId?: string;
 };
 
-export const DeviceSelector = ({ devices, deviceKind, selectedDeviceId }: DeviceSelectorProps) => {
+export const DeviceSelector = ({
+  devices,
+  deviceKind,
+  selectedDeviceId,
+}: DeviceSelectorProps) => {
   // highlight-next-line
   const { switchDevice } = useMediaDevices();
 
@@ -148,18 +152,20 @@ export const DeviceSelector = ({ devices, deviceKind, selectedDeviceId }: Device
       {devices.map((device) => {
         return (
           <div
-            className={`option ${selectedDeviceId === device.deviceId ? 'option--selected' : ''}`}
+            className={`option ${
+              selectedDeviceId === device.deviceId ? 'option--selected' : ''
+            }`}
             key={device.deviceId}
             // highlight-next-line
-            onClick={ () => switchDevice(deviceKind, device.deviceId) }
+            onClick={() => switchDevice(deviceKind, device.deviceId)}
           >
             {device.label}
           </div>
-        )
+        );
       })}
     </div>
   );
-}
+};
 
 export const AudioInputDeviceSelector = () => {
   const { selectedAudioInputDeviceId } = useMediaDevices();
@@ -168,18 +174,16 @@ export const AudioInputDeviceSelector = () => {
 
   return (
     <DeviceSelector
-      devices={ audioInputDevices }
+      devices={audioInputDevices}
       deviceKind="audioinput"
-      selectedDeviceId={ selectedAudioInputDeviceId }
+      selectedDeviceId={selectedAudioInputDeviceId}
     />
   );
-}
+};
 
 export const AudioOutputDeviceSelector = () => {
-  const {
-    isAudioOutputChangeSupported,
-    selectedAudioOutputDeviceId,
-  } = useMediaDevices();
+  const { isAudioOutputChangeSupported, selectedAudioOutputDeviceId } =
+    useMediaDevices();
   // maintains an up-to-date array of MediaDeviceInfo objects of kind "audiooutput"
   const audioOutputDevices = useAudioOutputDevices();
 
@@ -187,12 +191,12 @@ export const AudioOutputDeviceSelector = () => {
 
   return (
     <DeviceSelector
-      devices={ audioOutputDevices }
+      devices={audioOutputDevices}
       deviceKind="audiooutput"
-      selectedDeviceId={ selectedAudioOutputDeviceId }
+      selectedDeviceId={selectedAudioOutputDeviceId}
     />
   );
-}
+};
 
 export const VideoInputDeviceSelector = () => {
   const { selectedVideoDeviceId } = useMediaDevices();
@@ -201,15 +205,16 @@ export const VideoInputDeviceSelector = () => {
 
   return (
     <DeviceSelector
-      devices={ videoDevices }
+      devices={videoDevices}
       deviceKind="videoinput"
-      selectedDeviceId={ selectedVideoDeviceId }
+      selectedDeviceId={selectedVideoDeviceId}
     />
   );
-}
+};
 ```
 
 ### Participants in a call
+
 We can retrieve the list of members, that already joined the call (participants), by inspecting the call metadata object (`callMetadata.session.participants`). The object is provided and maintained up-to-date by [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata) hook.
 
 ```tsx
@@ -246,5 +251,5 @@ export const ParticipantsPreview = () => {
 ```
 
 ### Joining the call button
-Lastly, to join a call we simply invoke `call.join()`. Learn more about the topic in the dedicated [Joining & Creating Calls guide](../../guides/joining-and-creating-calls).
 
+Lastly, to join a call we simply invoke `call.join()`. Learn more about the topic in the dedicated [Joining & Creating Calls guide](../../guides/joining-and-creating-calls).
