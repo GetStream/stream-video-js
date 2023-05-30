@@ -709,6 +709,12 @@ export interface CallNotificationEvent {
    */
   created_at: string;
   /**
+   * Call members
+   * @type {Array<MemberResponse>}
+   * @memberof CallNotificationEvent
+   */
+  members: Array<MemberResponse>;
+  /**
    * Call session ID
    * @type {string}
    * @memberof CallNotificationEvent
@@ -1101,6 +1107,12 @@ export interface CallRingEvent {
    * @memberof CallRingEvent
    */
   created_at: string;
+  /**
+   * Call members
+   * @type {Array<MemberResponse>}
+   * @memberof CallRingEvent
+   */
+  members: Array<MemberResponse>;
   /**
    * Call session ID
    * @type {string}
@@ -3218,12 +3230,6 @@ export interface RingSettings {
    * @type {number}
    * @memberof RingSettings
    */
-  auto_reject_timeout_ms: number;
-  /**
-   *
-   * @type {number}
-   * @memberof RingSettings
-   */
   incoming_call_timeout_ms: number;
 }
 /**
@@ -3238,12 +3244,6 @@ export interface RingSettingsRequest {
    * @memberof RingSettingsRequest
    */
   auto_cancel_timeout_ms?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof RingSettingsRequest
-   */
-  auto_reject_timeout_ms?: number;
   /**
    *
    * @type {number}
