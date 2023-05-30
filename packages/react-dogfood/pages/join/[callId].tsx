@@ -71,7 +71,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
           callId={callId}
           callType={callType}
           autoJoin={false}
-          autoLoad={true}
           mediaDevicesProviderProps={{
             initialAudioEnabled: !settings?.isAudioMute,
             initialVideoEnabled: !settings?.isVideoMute,
