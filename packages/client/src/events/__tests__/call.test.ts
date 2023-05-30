@@ -13,6 +13,7 @@ import {
 import {
   CallAcceptedEvent,
   CallEndedEvent,
+  CallResponse,
   CallUpdatedEvent,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
@@ -93,28 +94,58 @@ describe('Call ringing events', () => {
   });
 
   describe(`call.rejected`, () => {
-    it(`will leave the call if all callees have rejected`, async () => {
-      const call = fakeCall();
-      // @ts-expect-error
-      call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
+    it(`caller will leave the call if all callees have rejected`, async () => {
+      const call = fakeCall({ currentUserId: 'm1' });
+      call.state.setMetadata({
+        ...fakeMetadata(),
+        // @ts-ignore
+        created_by: { id: 'm1' },
+      });
+      call.state.setMembers([
+        // @ts-expect-error
+        { user_id: 'm1' },
+        // @ts-expect-error
+        { user_id: 'm2' },
+        // @ts-expect-error
+        { user_id: 'm3' },
+      ]);
+      call.state.setCallingState(CallingState.RINGING);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
 
       const handler = watchCallRejected(call);
       // all members reject the call
-      call.state.members.forEach(() => {
+      await handler({
+        type: 'call.rejected',
         // @ts-ignore
-        const event: CallAcceptedEvent = { type: 'call.rejected' };
-        // @ts-ignore
-        handler(event);
+        user: {
+          id: 'm2',
+        },
+        call: {
+          // @ts-ignore
+          created_by: {
+            id: 'm1',
+          },
+          // @ts-ignore
+          session: {
+            rejected_by: {
+              m2: new Date().toISOString(),
+              m3: new Date().toISOString(),
+            },
+          },
+        },
       });
-
       expect(call.leave).toHaveBeenCalled();
     });
 
-    it(`will not leave the call if only one callee rejects`, async () => {
+    it(`caller will not leave the call if only one callee rejects`, async () => {
       const call = fakeCall();
+      call.state.setMetadata({
+        ...fakeMetadata(),
+        // @ts-ignore
+        created_by: { id: 'm0' },
+      });
       // @ts-expect-error
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
@@ -124,11 +155,70 @@ describe('Call ringing events', () => {
 
       // only one member rejects the call
       // @ts-ignore
-      const event: CallAcceptedEvent = { type: 'call.rejected' };
+      const event: CallAcceptedEvent = {
+        type: 'call.rejected',
+        // @ts-ignore
+        user: {
+          id: 'm2',
+        },
+        call: {
+          // @ts-ignore
+          created_by: {
+            id: 'm0',
+          },
+          // @ts-ignore
+          session: {
+            rejected_by: {
+              m2: new Date().toISOString(),
+            },
+          },
+        },
+      };
       // @ts-ignore
       await handler(event);
 
       expect(call.leave).not.toHaveBeenCalled();
+    });
+
+    it('callee will leave the call if caller rejects', async () => {
+      const call = fakeCall({ currentUserId: 'm1' });
+      call.state.setMetadata({
+        ...fakeMetadata(),
+        // @ts-ignore
+        created_by: { id: 'm0' },
+      });
+      // @ts-expect-error
+      call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
+      vi.spyOn(call, 'leave').mockImplementation(async () => {
+        console.log(`TEST: leave() called`);
+      });
+      const handler = watchCallRejected(call);
+
+      // only one member rejects the call
+      // @ts-ignore
+      const event: CallAcceptedEvent = {
+        type: 'call.rejected',
+        // @ts-ignore
+        user: {
+          id: 'm0',
+        },
+        call: {
+          // @ts-ignore
+          created_by: {
+            id: 'm0',
+          },
+          // @ts-ignore
+          session: {
+            rejected_by: {
+              m0: new Date().toISOString(),
+            },
+          },
+        },
+      };
+      // @ts-ignore
+      await handler(event);
+
+      expect(call.leave).toHaveBeenCalled();
     });
   });
 
@@ -171,8 +261,7 @@ describe('Call ringing events', () => {
     });
 
     it(`will not leave the call if idle`, async () => {
-      const ringing = false;
-      const call = fakeCall(ringing);
+      const call = fakeCall({ ring: false });
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
@@ -189,10 +278,10 @@ describe('Call ringing events', () => {
   });
 });
 
-const fakeCall = (ring = true) => {
+const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
-    id: 'test-user-id',
+    id: currentUserId,
   });
   const client = new StreamClient('api-key');
   return new Call({
@@ -202,4 +291,27 @@ const fakeCall = (ring = true) => {
     streamClient: client,
     ringing: ring,
   });
+};
+
+const fakeMetadata = (): CallResponse => {
+  return {
+    id: '12345',
+    type: 'development',
+    cid: 'development:12345',
+
+    // @ts-ignore
+    created_by: {
+      id: 'test-user-id',
+    },
+    own_capabilities: [],
+    blocked_user_ids: [],
+
+    // @ts-ignore
+    settings: {
+      ring: {
+        auto_cancel_timeout_ms: 30000,
+        incoming_call_timeout_ms: 30000,
+      },
+    },
+  };
 };
