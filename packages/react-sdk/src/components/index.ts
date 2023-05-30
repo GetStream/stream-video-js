@@ -4,6 +4,7 @@ export * from './CallControls';
 export * from './CallParticipantsList';
 export * from './CallRecordingList';
 export * from './DeviceSettings';
+export * from './Icon';
 export * from './LoadingIndicator';
 export * from './Menu';
 export * from './Notification';
