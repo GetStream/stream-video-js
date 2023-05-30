@@ -38,18 +38,6 @@ const RoomActive = () => {
     PermissionRequestEvent[]
   >([]);
 
-  useEffect(() => {
-    currentRoom?.call?.updateSubscriptionsPartial(
-      'video',
-      participants.reduce((acc, current) => {
-        return {
-          ...acc,
-          [current.sessionId]: { dimension: { width: 1, height: 1 } },
-        };
-      }, {}),
-    );
-  }, []);
-
   participants.forEach((p) => {
     console.log(`Permissions for ${p.name}: ${p.roles}`);
   });
