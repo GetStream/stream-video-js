@@ -20,8 +20,10 @@ Alright, let's get started. Creating this app will require the following steps:
 1. Setup the project
 2. Describe the login flow
 3. Creating rooms via the API
-4. Querying calls (with watch)
+4. Querying calls (with real-time updates)
 5. Joining and leaving a room
+6. Building up a UI for a room
+7. Managing speaking requests
 
 ### Setup the project
 
@@ -200,7 +202,7 @@ Finally, the `custom` field can be used to add our - well - custom data to the c
 to identify the calls we want to use (important if we would have other call types in the future).
 The rest of this object just contains the data we previously defined so that we can have it available to modify and update.
 
-### Querying calls (with watch)
+### Querying calls (with real-time updates)
 
 One of the main screens of the application will be showing a list of the rooms that are available for users to join.
 
@@ -247,12 +249,297 @@ With that, we're ready to show the list of rooms. You can define that as you lik
 
 ### Joining and leaving a room
 
-## Outline
+To join a room, we need the `Call` variable that we attached to the room. With that, we can use the
+simple `.join()` and `.leave()` functions on it.
 
-- describe the project
-- basic setup of the project
-- logging users in
-- creating a room
-- querying calls with the data that is being set
-- show an overview of the rooms
-- enter/join a room and show the UI
+Let's assume we put the call into a new component and use a `useEffect` hook to call `.join()` when it gets mounted:
+
+```tsx
+const joinCall = useCallback(async (call: Call) => {
+  await call.join();
+}, []);
+
+useEffect(() => {
+  joinCall();
+
+  return () => {
+    call.leave();
+  };
+});
+```
+
+This will tell the SDK to join the room when the component is rendered and with the callback, we return in `useEffect` it will also leave calls when it's unmounted.
+
+Next, to show the room and provide audio output and input we need to wrap the component that does that with two providers:
+
+1. `MediaDevicesProvider`: this one is needed to give access to audio and video devices; it has two parameters, `initialAudioEnabled` and `initialVideoEnabled` which do exactly what they describe.
+2. `StreamCallProvider`: it is initialized with a `Call` and provides us with a lot of useful and convenient hooks to have easy access to the necessary call parameters
+
+:::tip
+To learn more about the `MediaDevicesProvider` you should check out the [Camera & Microphone](../../guides/camera-and-microphone) guide.
+:::
+
+So, if we follow that structure and have a component ready for showing the room that is currently active called `RoomActive` we can render it like this:
+
+```tsx
+<MediaDevicesProvider initialAudioEnabled={false} initialVideoEnabled={false}>
+  <StreamCallProvider call={call}>
+    <RoomActive />
+  </StreamCallProvider>
+</MediaDevicesProvider>
+```
+
+That gives us everything we need to jump into the component that does the real call rendering.
+
+### Building up the UI for a room
+
+Again, we don't want to focus too much on the UI part of it but instead show the concepts of getting access to the necessary data.
+And just as a reminder, you can still take a look at the final project [here](TODO: link to project) to get inspiration.
+
+Inside our `RoomActive` component, we need access to a few things. Luckily, the Stream Video SDK exposes hooks for many of
+them (which is why we needed to wrap the component in a `StreamVideoProvider`).
+
+We'll use the following hooks inside our component:
+
+```tsx title="RoomActive.tsx"
+const call = useCall();
+const participants = useParticipants();
+const { stopPublishingAudio } = useMediaDevices();
+const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+```
+
+This shows quite a few hooks, so let's quickly go through them:
+
+1. `useCall()`: it gives us access to the call we created in the previous chapters
+2. `useParticipants()`: we want to render the list of people in the call, so it's useful to have direct access to them here
+3. `useMediaDevices()`: having access to the audio track allows for easy muting of audio
+4. `useHasPermissions(OwnCapability.SEND_AUDIO)`: not everyone will have permission to publish their audio track initially; we can check this and allow them to request permission
+
+You can find the entire code for the component [here](TODO: link to RoomActive file). We want to focus on the usage of the components.
+
+First, to render the participants of the call we can use the `.map` function to go through and render an image and their name:
+
+```tsx
+<div>
+  {participants.map((participant) => (
+    <div key={participant.userId}>
+      <img src={participant.image} alt={`Profile of ${participant.name}`} />
+      <span>{participant.name}</span>
+    </div>
+  ))}
+</div>
+```
+
+This will render the list of participants. If we want to render the speakers, we need to wrap them with the `Audio` element.
+It is required to allow for listening to their audio stream.
+
+Here's how to use it:
+
+```tsx
+<div>
+  {speakers.map((speaker) => (
+    <div key={speaker.userId}>
+      <Audio muted={false} audioStream={speaker.audioStream} />
+      <img src={speaker.image} alt={`Profile of ${speaker.name}`} />
+      <span>{speaker.name}</span>
+    </div>
+  ))}
+</div>
+```
+
+:::note
+In our example, we filter out the host, speakers, and listeners through the info we save in the `AudioRoom` type.
+
+There's no magic in there, but one useful thing is to check if a participant is sharing audio.
+
+We can do this by checking if `participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)` is `true`.
+:::
+
+Next, we want to implement a button to allow the user to mute and un-mute. This requires a few things. We need to check if they are currently sharing their audio and change the button accordingly.
+
+Here's an example how to do this:
+
+```tsx
+const currentUser = participants.find((p) => p.userId === user?.id);
+const hasAudio = currentUser?.publishedTracks.includes(
+  SfuModels.TrackType.AUDIO,
+);
+
+/* more code */
+<button onClick={() => muteUser()}>{hasAudio ? 'Mute' : 'Unmute'}</button>;
+```
+
+:::note
+There are different techniques to determine the current user. We are accessing the `userId` through a `UserContext` provider object, but feel free to take different approaches.
+:::
+
+Now, the `muteUser()` function also has to check if the user is currently sharing audio.
+If yes, we can use the `stopPublishingAudio` function from the `useMediaDevices` hook.
+Otherwise, we can get the current audio stream of the user through `getAudioStream()` and then publish it.
+
+Here's the code to do it:
+
+```tsx
+async function muteUser() {
+  if (hasAudio) {
+    stopPublishingAudio();
+  } else {
+    const audioStream = await getAudioStream();
+    await call?.publishAudioStream(audioStream);
+  }
+}
+```
+
+The last thing we want to do is to list know when the call ends. We can use `call.on` to listen to certain events.
+In our case, we want to listen to the `call.ended` event.
+
+:::tip
+You can find all other event types on the [Socket Events](../../guides/04-socket-events) page.
+:::
+
+Here's how to subscribe to it in a `useEffect` (and unsubscribe when the component gets un-mounted):
+
+```tsx
+useEffect(() => {
+  const unsubscribe = call?.on('call.ended', (event: StreamCallEvent) => {
+    // replace with your custom leave function
+    leave();
+  });
+
+  return () => {
+    if (unsubscribe) {
+      unsubscribe();
+    }
+  };
+}, [call, leave]);
+```
+
+With that, we've built up the UI for the audio room itself. The last thing is to handle speaking requests from
+both participants' and hosts' sides.
+
+### Managing speaking requests
+
+There are two roles here. The participants want to be able to request permission to speak. We need to identify if a participant can send audio and can request permission.
+We can do it like this:
+
+```tsx
+const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
+  OwnCapability.SEND_AUDIO,
+);
+```
+
+Next, the code to request permission is a simple button and a call to `requestPermissions` on the `call` object:
+
+```tsx
+<button onClick={() => requestSpeakingPermission()}>Raise hand</button>;
+
+/* more code */
+async function requestSpeakingPermission() {
+  await call?.requestPermissions({
+    permissions: [OwnCapability.SEND_AUDIO],
+  });
+}
+```
+
+Same as in the previous chapter, we can listen to new events of type `call.permission_request` to get notified when there's a new request coming in.
+
+We'll track the state of speaking requests in a simple array and use the `useEffect` hook to subscribe to events:
+
+```tsx
+const [speakingRequests, setSpeakingRequests] = useState<
+  PermissionRequestEvent[]
+>([]);
+
+useEffect(() => {
+  const unsubscribe = call?.on(
+    'call.permission_request',
+    (event: StreamCallEvent) => {
+      const permissionRequest = event as PermissionRequestEvent;
+
+      if (permissionRequest) {
+        setSpeakingRequests([...speakingRequests, permissionRequest]);
+      }
+    },
+  );
+
+  return () => {
+    if (unsubscribe) {
+      unsubscribe();
+    }
+  };
+}, [call]);
+```
+
+Now we can render the speaking requests that we have. We'll provide the user with the option to either accept or deny it.
+
+When they accept it, we can update the permissions of the person who requested it like this:
+
+```tsx
+await call?.updateUserPermissions({
+  user_id: speakingRequest.user.id,
+  grant_permissions: [...speakingRequest.permissions],
+});
+```
+
+When a request is answered we can filter it out of our `speakingRequests` array:
+
+```tsx
+function speakingRequestAnswered(speakingRequest: PermissionRequestEvent) {
+  const remainingRequests = speakingRequests.filter(
+    (r) => r.user.id !== speakingRequest.user.id,
+  );
+  setSpeakingRequests(remainingRequests);
+}
+```
+
+The last thing we need to do now is to listen to changes in permission updates. We need to do that because we want
+to promote new speakers and allow them to share their audio as well. The same goes for the other way around when a user
+no longer has speaking permissions we want to remove them.
+
+Again, we can listen to events, this time of type `call.permissions_updated` and handle accordingly:
+
+```tsx
+useEffect(() => {
+  const unsubscribe = call?.on(
+    'call.permissions_updated',
+    (event: StreamCallEvent) => {
+      const permission_request = event as PermissionRequestEvent;
+
+      if (permission_request) {
+        setSpeakerIds([...speakerIds, permission_request.user.id]);
+      }
+    },
+  );
+
+  return () => {
+    if (unsubscribe) {
+      unsubscribe();
+    }
+  };
+}, []);
+```
+
+:::note
+In our case we track the speakers in a list called `speakerIds` and filter them accordingly. You can do things differently here.
+:::
+
+With that we have built a fully-functional audio rooms application. Great job.
+
+### Summary
+
+In this guide, we've built a great example of how to fully customize the UI of our application by only accessing
+the low-level hooks and functions of the call engine.
+
+We've done quite a few things:
+
+- User Authentication
+- Creating rooms
+- Listening to real-time updates
+- Joining and leaving rooms
+- Allowing for speaker requests
+
+This is just an example of how to utilize the SDK to tailor it toward your specific use-case.
+For more examples check out our [Video Call Tutorial](../video-calling) as well as our [Livestream Tutorial](../livestream).
+
+Let us know the cool things you build with our SDK, we're always happy to learn about them.
