@@ -49,7 +49,7 @@ export const AudioVolumeIndicator = () => {
         padding: '0 1.25rem 1rem',
       }}
     >
-      <Icon icon={initialAudioEnabled ? 'mic' : 'mic-off'} />
+      <Icon icon="mic" />
       <div
         style={{
           flex: '1',
