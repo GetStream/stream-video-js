@@ -16,7 +16,7 @@ In this guide we'll learn how to build and implement our own primitive connectio
 
 ### How to reach the state
 
-Each (`StreamVideoParticipant`)[TODO: link] has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
+Each (`StreamVideoParticipant`)[https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts] has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
 
 ```tsx
 import { SfuModels } from '@stream-io/video-react-sdk';
@@ -29,7 +29,7 @@ console.log(readableConnectionQuality); // -> EXCELLENT
 
 ### Connection quality indicator component
 
-You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[TODO: link]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](./14-participant-view-customizations.mdx).
+You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[../../ui-components/core/participant-view]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](./14-participant-view-customizations.mdx).
 
 ```tsx
 import {
@@ -64,4 +64,4 @@ const CustomParticipantViewUI = () => {
 
 ## Final steps
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](./14-participant-view-customization.mdx).
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../../ui-cookbook/participant-view-customizations).

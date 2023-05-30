@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.97](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.96...@stream-io/video-react-sdk-0.0.1-alpha.97) (2023-05-30)
+
+
+### Features
+
+* integrate the new call ring flow ([#562](https://github.com/GetStream/stream-video-js/issues/562)) ([c407961](https://github.com/GetStream/stream-video-js/commit/c4079614cb962e098215c0061690d59c35882cd8))
+
+
+
+## [0.0.1-alpha.96](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.95...@stream-io/video-react-sdk-0.0.1-alpha.96) (2023-05-30)
+
+
+
+## [0.0.1-alpha.95](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.94...@stream-io/video-react-sdk-0.0.1-alpha.95) (2023-05-30)
+
+
+
+## [0.0.1-alpha.94](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.93...@stream-io/video-react-sdk-0.0.1-alpha.94) (2023-05-30)
+
+
+### Features
+
+* **react-sdk:** SpeakerLayout participant bar position property ([#559](https://github.com/GetStream/stream-video-js/issues/559)) ([c79292f](https://github.com/GetStream/stream-video-js/commit/c79292ff44bcad601b31a7e6ea49901eea5c9c22))
+
+
+
+## [0.0.1-alpha.93](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.92...@stream-io/video-react-sdk-0.0.1-alpha.93) (2023-05-30)
+
+
+
 ## [0.0.1-alpha.92](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.91...@stream-io/video-react-sdk-0.0.1-alpha.92) (2023-05-30)
 
 

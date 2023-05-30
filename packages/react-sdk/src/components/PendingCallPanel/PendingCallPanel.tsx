@@ -1,9 +1,9 @@
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, UserResponse } from '@stream-io/video-client';
 import {
   useCall,
   useCallCallingState,
   useCallMembers,
-  useCallMetadata,
+  useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../Avatar';
@@ -21,24 +21,46 @@ const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
   [CallingState.LEFT]: 'Left call',
 };
 
-export const PendingCallPanel = () => {
+export type PendingCallPanelProps = {
+  /**
+   * Whether to include the current user in the list of members to show.
+   * @default false.
+   */
+  includeSelf?: boolean;
+
+  /**
+   * The maximum number of members to show.
+   * @default 3.
+   */
+  totalMembersToShow?: number;
+};
+
+export const PendingCallPanel = (props: PendingCallPanelProps) => {
+  const { includeSelf = false, totalMembersToShow = 3 } = props;
   const call = useCall();
   const callingState = useCallCallingState();
   const { t } = useI18n();
-  const metadata = useCallMetadata();
   const members = useCallMembers();
+  const connectedUser = useConnectedUser();
 
   if (!call) return null;
 
-  const caller = metadata?.created_by;
-  const membersToShow = call.isCreatedByMe
-    ? members
-        ?.slice(0, 3)
-        .map(({ user }) => user)
-        .filter((u) => !!u) || []
-    : caller
-    ? [caller]
-    : [];
+  // take the first N members to show their avatars
+  const membersToShow: UserResponse[] = (members || [])
+    .slice(0, totalMembersToShow)
+    .map(({ user }) => user)
+    .filter((user) => user.id !== connectedUser?.id || includeSelf);
+  if (
+    includeSelf &&
+    !membersToShow.find((user) => user.id === connectedUser?.id)
+  ) {
+    // if the current user is not in the initial batch of members,
+    // add it to the beginning of the list
+    const self = members.find(({ user }) => user.id === connectedUser?.id);
+    if (self) {
+      membersToShow.splice(0, 1, self.user);
+    }
+  }
 
   const callingStateLabel = CALLING_STATE_TO_LABEL[callingState];
 

@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.74](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.73...@stream-io/video-styling-0.0.1-alpha.74) (2023-05-30)
+
+
+
+## [0.0.1-alpha.73](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.72...@stream-io/video-styling-0.0.1-alpha.73) (2023-05-30)
+
+
+
+## [0.0.1-alpha.72](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.71...@stream-io/video-styling-0.0.1-alpha.72) (2023-05-30)
+
+
+
+## [0.0.1-alpha.71](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.70...@stream-io/video-styling-0.0.1-alpha.71) (2023-05-30)
+
+
+### Features
+
+* **react-sdk:** SpeakerLayout participant bar position property ([#559](https://github.com/GetStream/stream-video-js/issues/559)) ([c79292f](https://github.com/GetStream/stream-video-js/commit/c79292ff44bcad601b31a7e6ea49901eea5c9c22))
+
+
+
+## [0.0.1-alpha.70](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.69...@stream-io/video-styling-0.0.1-alpha.70) (2023-05-30)
+
+
+
 ## [0.0.1-alpha.69](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.68...@stream-io/video-styling-0.0.1-alpha.69) (2023-05-30)
 
 
