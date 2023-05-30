@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.94](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.93...@stream-io/video-react-sdk-0.0.1-alpha.94) (2023-05-30)
+
+
+### Features
+
+* **react-sdk:** SpeakerLayout participant bar position property ([#559](https://github.com/GetStream/stream-video-js/issues/559)) ([c79292f](https://github.com/GetStream/stream-video-js/commit/c79292ff44bcad601b31a7e6ea49901eea5c9c22))
+
+
+
 ## [0.0.1-alpha.93](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.92...@stream-io/video-react-sdk-0.0.1-alpha.93) (2023-05-30)
 
 
