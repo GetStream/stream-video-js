@@ -21,13 +21,11 @@ export const CallParticipantsSpotlightView = () => {
   return (
     <View style={styles.container}>
       {participantInSpotlight && (
-        <View style={styles.screenShareContainer}>
-          <ParticipantView
-            participant={participantInSpotlight}
-            containerStyle={{ flex: 1 }}
-            kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
-          />
-        </View>
+        <ParticipantView
+          participant={participantInSpotlight}
+          containerStyle={styles.participantView}
+          kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
+        />
       )}
       <View style={styles.participantVideoContainer}>
         <CallParticipantsList
@@ -43,10 +41,11 @@ export const CallParticipantsSpotlightView = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  screenShareContainer: {
+  participantView: {
     flex: 1,
-    paddingTop: theme.padding.md,
-    paddingHorizontal: theme.padding.md,
+    overflow: 'hidden',
+    borderRadius: theme.rounded.sm,
+    marginHorizontal: theme.padding.sm,
   },
   participantVideoContainer: {
     paddingVertical: theme.padding.sm,

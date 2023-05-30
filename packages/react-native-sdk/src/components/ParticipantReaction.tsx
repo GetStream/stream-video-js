@@ -6,7 +6,7 @@ import { theme } from '../theme';
 import { StreamVideoRN } from '../utils';
 
 export type ReactionProps = {
-  reaction: StreamReaction;
+  reaction?: StreamReaction;
   sessionId: string;
   hideAfterTimeoutInMs?: number;
 };
@@ -29,40 +29,31 @@ export const ParticipantReaction = (props: ReactionProps) => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [call, hideAfterTimeoutInMs, sessionId]);
+  }, [call, hideAfterTimeoutInMs, sessionId, reaction]);
 
-  const { emoji_code } = reaction;
-
-  if (!isShowing || !emoji_code) return null;
-
-  const currentReaction = supportedReactions.find(
-    (supportedReaction) => supportedReaction.emoji_code === reaction.emoji_code,
-  );
-
-  if (typeof currentReaction?.icon !== 'string') {
-    return (
-      <View style={styles.container}>
-        <View style={[styles.svgContainerStyle, theme.icon.md]}>
-          {currentReaction?.icon}
-        </View>
-      </View>
+  const currentReaction =
+    reaction &&
+    supportedReactions.find(
+      (supportedReaction) =>
+        supportedReaction.emoji_code === reaction.emoji_code,
     );
+
+  let component;
+  if (isShowing) {
+    if (typeof currentReaction?.icon !== 'string')
+      component = currentReaction?.icon;
+    else
+      component = <Text style={styles.reaction}>{currentReaction.icon}</Text>;
   }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.reaction}>{currentReaction.icon}</Text>
-    </View>
+    <View style={[styles.svgContainerStyle, theme.icon.md]}>{component}</View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: theme.spacing.md,
-    right: theme.spacing.md,
-  },
   reaction: {
-    fontSize: 20,
+    ...theme.fonts.heading6,
   },
   svgContainerStyle: {},
 });

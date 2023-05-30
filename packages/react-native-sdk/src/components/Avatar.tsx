@@ -72,7 +72,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.light.primary,
     justifyContent: 'center',
-    alignSelf: 'center',
     overflow: 'hidden',
   },
   image: {

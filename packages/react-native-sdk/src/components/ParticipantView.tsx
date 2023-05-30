@@ -186,14 +186,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const canShowVideo = !!videoStream && isVisible && hasVideoTrack;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
-  const videoOnlyStyle = !isScreenSharing && {
+  const videoOnlyStyle = {
     borderColor: palette.grey800,
     borderWidth: 2,
   };
 
   const participantLabel =
-    participant.userId.length > 15
-      ? `${participant.userId.slice(0, 15)}...`
+    participant.userId.length > 10
+      ? `${participant.userId.slice(0, 10)}...`
       : participant.userId;
 
   // if (isScreenSharing) {
@@ -219,6 +219,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
+      <View style={styles.topView}>
+        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
+      </View>
       {canShowVideo ? (
         <VideoRenderer
           zOrder={1}
@@ -230,21 +233,23 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ) : (
         <Avatar participant={participant} />
       )}
-      {reaction && (
-        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
-      )}
+
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />
       )}
       {kind === 'video' && (
         <View style={styles.status}>
           <Text style={styles.userNameLabel}>{participantLabel}</Text>
-          <View style={styles.svgContainerStyle}>
-            {isAudioMuted && <MicOff color={theme.light.error} />}
-          </View>
-          <View style={styles.svgContainerStyle}>
-            {isVideoMuted && <VideoSlash color={theme.light.error} />}
-          </View>
+          {isAudioMuted && (
+            <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+              <MicOff color={theme.light.error} />
+            </View>
+          )}
+          {isVideoMuted && (
+            <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+              <VideoSlash color={theme.light.error} />
+            </View>
+          )}
         </View>
       )}
       {kind === 'screen' && (
@@ -263,25 +268,25 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
 const styles = StyleSheet.create({
   containerBase: {
-    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: theme.padding.xs,
+  },
+  topView: {
+    alignSelf: 'flex-end',
+    zIndex: 10,
   },
   videoRenderer: {
-    flex: 1,
-    justifyContent: 'center',
+    ...StyleSheet.absoluteFillObject,
   },
   status: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
-    alignItems: 'center',
-    position: 'absolute',
-    left: theme.spacing.sm,
-    bottom: theme.spacing.sm,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
   },
   screenViewStatus: {
-    position: 'absolute',
-    top: theme.spacing.md,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
@@ -294,7 +299,6 @@ const styles = StyleSheet.create({
   },
   svgContainerStyle: {
     marginLeft: theme.margin.xs,
-    ...(theme.icon.xs as object),
   },
   isSpeaking: {
     borderColor: theme.light.primary,

@@ -101,7 +101,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     >
       {isVideoMuted ? (
         <View style={style}>
-          <View style={styles.icon}>
+          <View style={[styles.icon, theme.icon.md]}>
             <VideoSlash color={theme.light.static_white} />
           </View>
         </View>
@@ -136,8 +136,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  icon: {
-    height: 25,
-    width: 25,
-  },
+  icon: {},
 });
