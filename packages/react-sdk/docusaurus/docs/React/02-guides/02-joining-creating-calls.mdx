@@ -114,7 +114,7 @@ call.leave();
 Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
-call.end();
+call.endCall();
 ```
 
 Only users with special permission can join an ended call.
@@ -124,11 +124,20 @@ Only users with special permission can join an ended call.
 ### Create call
 
 To create a ring call, we need to set the `ring` flag to `true` and provide the list of members we want to call.
+It is important to note that the caller should also be included in the list of members.
 
 ```typescript
-client
-  .call('default', 'test-outgoing-call')
-  .getOrCreate({ ring: true, data: { members: [{ user_id: 'my friend' }] } });
+client.call('default', 'test-outgoing-call').getOrCreate({
+  // highlight-next-line
+  ring: true,
+  data: {
+    members: [
+      // highlight-next-line
+      { user_id: 'myself' },
+      { user_id: 'my friend' },
+    ],
+  },
+});
 ```
 
 This step will start the signaling flow.
@@ -165,27 +174,27 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <Calls></Calls>
+      <MyCalls />
     </StreamVideo>
   );
 }
 
-const Calls = () => {
+const MyCalls = () => {
   const calls = useCalls();
 
   return (
     <>
       {calls.map((call) => (
-        // Note that we set autoJoin to false, as the joining is handled by the signal flow, it's not automatical
+        // Note that we set autoJoin to false, as the joining is handled by the signal flow, it's not automatic
         <StreamCall call={call} autoJoin={false} key={call.cid}>
-          <CallUI></CallUI>
+          <MyCallUI />
         </StreamCall>
       ))}
     </>
   );
 };
 
-const CallUI = () => {
+const MyCallUI = () => {
   const call = useCall();
   const callingState = useCallCallingState();
   return (
@@ -264,5 +273,5 @@ call.leave();
 Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
-call.end();
+call.endCall();
 ```
