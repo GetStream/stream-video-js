@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.97](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.96...@stream-io/video-react-sdk-0.0.1-alpha.97) (2023-05-30)
+
+
+### Features
+
+* integrate the new call ring flow ([#562](https://github.com/GetStream/stream-video-js/issues/562)) ([c407961](https://github.com/GetStream/stream-video-js/commit/c4079614cb962e098215c0061690d59c35882cd8))
+
+
+
 ## [0.0.1-alpha.96](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.95...@stream-io/video-react-sdk-0.0.1-alpha.96) (2023-05-30)
 
 
