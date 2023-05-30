@@ -96,7 +96,7 @@ export const LayoutSelector = ({
       });
 
     setLayout(
-      // reset to "stored" layout, use default if uncompatible layout is used
+      // reset to "stored" layout, use default if incompatible layout is used
       storedLayout === 'LegacySpeaker' ? DEFAULT_LAYOUT : storedLayout,
     );
   }, [hasScreenShare, setLayout]);
