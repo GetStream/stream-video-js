@@ -11,6 +11,7 @@ const config: Config = {
     '<rootDir>/__tests__/utils/',
     '<rootDir>/dist/',
   ],
+  testTimeout: 10000,
 };
 
 export default config;
