@@ -14,7 +14,7 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
-import { createToken } from '../../modules/helpers/jwt';
+import { createToken } from '../../modules/helpers/createToken';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -23,7 +23,6 @@ type Props = NativeStackScreenProps<
 
 export const GuestMeetingScreen = (props: Props) => {
   const apiKey = process.env.STREAM_API_KEY as string;
-  const apiSecret = process.env.STREAM_API_SECRET as string;
   const {
     params: { guestUserId, guestCallId, mode },
   } = props.route;
@@ -58,16 +57,15 @@ export const GuestMeetingScreen = (props: Props) => {
 
   useEffect(() => {
     const intitializeToken = async () => {
-      // anonymous user tokens must have "!anon" as the user_id
-      const token = await createToken('!anon', apiSecret, {
+      const token = await createToken({
         user_id: '!anon',
-        call_cids: [`${guestCallType}:${guestCallId}`],
+        call_cids: `${guestCallType}:${guestCallId}`,
       });
       setTokenToUse(token);
     };
 
     intitializeToken();
-  }, [apiSecret, guestCallId, guestCallType]);
+  }, [guestCallId, guestCallType]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
