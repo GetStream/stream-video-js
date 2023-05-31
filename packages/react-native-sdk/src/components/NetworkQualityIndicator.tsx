@@ -10,24 +10,24 @@ export type NetworkQualityIndicatorType = {
   connectionQuality: SfuModels.ConnectionQuality;
 };
 
+const connectionQualitySignalColors: Record<
+  SfuModels.ConnectionQuality,
+  string[]
+> = {
+  0: [
+    theme.light.static_white,
+    theme.light.static_white,
+    theme.light.static_white,
+  ],
+  1: [theme.light.error, theme.light.static_white, theme.light.static_white],
+  2: [theme.light.primary, theme.light.primary, theme.light.static_white],
+  3: [theme.light.primary, theme.light.primary, theme.light.primary],
+};
+
 export const NetworkQualityIndicator = ({
   connectionQuality,
 }: NetworkQualityIndicatorType) => {
   if (!connectionQuality) return null;
-
-  const connectionQualitySignalColors: Record<
-    SfuModels.ConnectionQuality,
-    string[]
-  > = {
-    0: [
-      theme.light.static_white,
-      theme.light.static_white,
-      theme.light.static_white,
-    ],
-    1: [theme.light.error, theme.light.static_white, theme.light.static_white],
-    2: [theme.light.primary, theme.light.primary, theme.light.static_white],
-    3: [theme.light.primary, theme.light.primary, theme.light.primary],
-  };
 
   const connectionQualityColors =
     connectionQualitySignalColors[connectionQuality];
