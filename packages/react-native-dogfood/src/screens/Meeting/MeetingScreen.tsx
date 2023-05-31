@@ -12,9 +12,9 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
-import { createToken } from '../../modules/helpers/jwt';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import translations from '../../translations';
+import { createToken } from '../../modules/helpers/createToken';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
@@ -22,7 +22,6 @@ export const MeetingScreen = (props: Props) => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const apiKey = process.env.STREAM_API_KEY as string;
-  const apiSecret = process.env.STREAM_API_SECRET as string;
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation, route } = props;
 
@@ -54,9 +53,9 @@ export const MeetingScreen = (props: Props) => {
   };
 
   const tokenOrProvider = useCallback(async () => {
-    const token = await createToken(username, apiSecret);
+    const token = await createToken({ user_id: username });
     return token;
-  }, [apiSecret, username]);
+  }, [username]);
 
   const client = useCreateStreamVideoClient({
     apiKey,

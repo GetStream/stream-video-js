@@ -8935,7 +8935,6 @@ __metadata:
     react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
     react-native-polyfill-globals: ^3.1.0
-    react-native-pure-jwt: ^3.0.1
     react-native-safe-area-context: ^4.4.1
     react-native-screens: ^3.18.1
     react-native-svg: ^13.6.0
@@ -31699,24 +31698,6 @@ __metadata:
     text-encoding: "*"
     web-streams-polyfill: "*"
   checksum: ff968f257a10c420c96fb1b5e838bf665f5312b9709ff23001fd57480a05991df6d0f8751a2f46250174f858dcc3ebfdaf5548c9f37b729d472d3152b99e3356
-  languageName: node
-  linkType: hard
-
-"react-native-pure-jwt@npm:3.0.1":
-  version: 3.0.1
-  resolution: "react-native-pure-jwt@npm:3.0.1"
-  peerDependencies:
-    react-native: ">=0.41.2"
-  checksum: 79f7af0416ac655957eb746305fc8efae3ec047fc4e7c3a4b396a57477c9d914eb158a646379791f7a49220ed1a01985b8b7cbf8450d5addbbf7f93986d45b56
-  languageName: node
-  linkType: hard
-
-"react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::locator=%40stream-io%2Fvideo-js-root%40workspace%3A.":
-  version: 3.0.1
-  resolution: "react-native-pure-jwt@patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch::version=3.0.1&hash=0d10fd&locator=%40stream-io%2Fvideo-js-root%40workspace%3A."
-  peerDependencies:
-    react-native: ">=0.41.2"
-  checksum: fd9452acfa80f7777c41bdf792cb560e8044125708e1e5a61c478d9e8da283c40e9c3769900d4a1a1d7f7fc58e9e6025feefaf07f48b6a92bd698b3363d47176
   languageName: node
   linkType: hard
 
