@@ -78,7 +78,6 @@
     "vercel": "^29.3.0"
   },
   "resolutions": {
-    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch",
     "react-native-incall-manager@^4.0.0": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch",
     "react-native-incall-manager@^4.0.1": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch"
   }

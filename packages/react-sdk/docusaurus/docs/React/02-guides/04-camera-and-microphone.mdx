@@ -3,6 +3,7 @@ id: camera-and-microphone
 title: Camera & Microphone
 description: Docs on the media manager
 ---
+
 :::warning
 INTERNAL NOTE: add links to tutorials on how to build custom UI components using the API described in this article
 :::
@@ -20,13 +21,14 @@ The device management as we understand it encompasses the following:
 
 ### Device management API provider
 
-The React SDK comes with the main device state API context provider component [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider). It exposes an API [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) to handle the main part of the above listed features. You may use [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) to build custom components. The provider is also used internally by SDK's pre-built [`StreamCall`](todo doc link) component.
-
+The React SDK comes with the main device state API context provider component [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider). It exposes an API [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) to handle the main part of the above listed features. You may use [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) to build custom components. The provider is also used internally by SDK's pre-built [`StreamCall`](../../ui-components/core/stream-call) component.
+å
 :::warning
 If you decide to use `StreamCall` component in your app, **make sure not to render [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) in any of its child components again**. This would lead to [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) being rendered multiple times and would result in redundant stream publishing and audio / video malfunctioning.
 :::
 
 Internally, [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) puts in place mechanisms that:
+
 1. fall back to selecting a default device when trying to switch to a non-existent device
 2. fall back to a default device when an active device is disconnected
 3. stop publishing a media stream when a non-default device is disconnected
@@ -34,14 +36,14 @@ Internally, [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#media
 5. republish a media stream when a new device is selected
 
 On the other hand, [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) exposes in [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) functions that allow the integrators to handle:
+
 1. the initial device state enablement (for example for lobby scenario)
 2. media stream retrieval and disposal
 3. media stream publishing
 4. specific device selection
 
-
-
 ### Device enumeration
+
 Besides [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) there are the following device enumeration hooks that keep an up-to-date list of connected devices of a given kind:
 
 - [`useVideoDevices`](../../call-engine/hooks-and-contexts#usevideodevices)
@@ -49,10 +51,11 @@ Besides [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevi
 - [`useAudioOutputDevices`](../../call-engine/hooks-and-contexts#useaudiooutputdevices)
 
 :::info
-We use these hooks in pre-built components like [`VideoPreview`](todo docs link) and [`DeviceSelector` components](todo docs link).
+We use these hooks in pre-built components like [`VideoPreview`](../../ui-components/participants/video-preview) and [`DeviceSelector` components](../../ui-components/participants/device-settings).
 :::
 
 ### Device unavailability
+
 It may happen, that we would like to react to a situation, when there is no device of a given kind (audio, video) available. This can for example happen, when a laptop lid is closed. In that case we may want to disable the given device kind for the next time, when the lid is re-opened. That would for example lead to respecting user privacy with video being turned-off, even though before closing the lid it was turned on. The SDK provides the following hooks that will execute a callback when all the devices of a given kind are disconnected:
 
 - [`useOnUnavailableVideoDevices`](../../call-engine/hooks-and-contexts#useonunavailablevideodevices)
@@ -60,52 +63,56 @@ It may happen, that we would like to react to a situation, when there is no devi
 - [`useOnUnavailableAudioOutputDevices`](../../call-engine/hooks-and-contexts#useonunavailableaudiooutputdvices)
 
 :::info
-The `useOnUnavailableVideoDevices` hook is used in a pre-build component [`VideoPreview`](todo docs link). Even after video device reconnection, the video preview is not restarted automatically and has to be enabled back manually by a user.
+The `useOnUnavailableVideoDevices` hook is used in a pre-build component [`VideoPreview`](../../ui-components/participants/video-preview). Even after video device reconnection, the video preview is not restarted automatically and has to be enabled back manually by a user.
 :::
 
 ## Device management
-In the next few  sections we will revisit the device management topic in more depth. All the features are supported by [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi).
+
+In the next few sections we will revisit the device management topic in more depth. All the features are supported by [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi).
 
 :::info
 We can access the [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) context object with context consumer [`useMediaDevices`](../../call-engine/hooks-and-contexts#usemediadevices).
 :::
 
 ### Initial device state
+
 An example, where we might want to control initial device state is a lobby page, where user prepares for joining a call. The initial device state can be configured through the [`MediaDevicesProviderProps`](../../call-engine/hooks-and-contexts/#mediadevicesproviderprops). Overriding the default audio (microphone) and video (camera) enablement or device selection can come handy when we have in place a custom logic. An example could be applying the previous user preferences stored in `localStorage`.
 
 Taking this further, [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) exposes the following functions that allow us to change the defaults by user interacting with the app's components before joining a call.
 
 To control the initial device enablement, please, use the following functions (we include a reference to where these are already used):
 
-| Function | Used in pre-built component |
-|----------|-----------------------------|
-| `setInitialAudioEnabled` | [`ToggleAudioPublishingButton`](todo docs link) |
-| `setInitialVideoState` | [`VideoPreview`](todo docs link), [`ToggleVideoPublishingButton`](todo docs link) |
-| `toggleInitialAudioMuteState` | [`ToggleAudioPreviewButton`](todo docs link) |
-| `toggleInitialVideoMuteState` | [`ToggleVideoPreviewButton`](todo docs link) |
-
+| Function                      | Used in pre-built component                                                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `setInitialAudioEnabled`      | [`ToggleAudioPublishingButton`](../../ui-components/call/call-controls/#toggleaudiopublishingbutton)                                                                   |
+| `setInitialVideoState`        | [`VideoPreview`](../../ui-components/participants/video-preview), [`ToggleVideoPublishingButton`](../../ui-components/call/call-controls/#togglevideopublishingbutton) |
+| `toggleInitialAudioMuteState` | [`ToggleAudioPreviewButton`](../../ui-components/call/call-controls/#toggleaudiopreviewbutton)                                                                         |
+| `toggleInitialVideoMuteState` | [`ToggleVideoPreviewButton`](../../ui-components/call/call-controls/#togglevideopreviewbutton)                                                                         |
 
 To control device selection, even in the preview/initial mode, the [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) exposes function `switchDevice`. We will learn more about switching devices in the upcoming section.
 
 ### Switching devices
+
 The device change in both the preview and active call scenario should be done by calling `switchDevice`. [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts/#mediadevicesprovider) will handle both changing the value of selected device id (`selectedAudioInputDeviceId`, `selectedAudioOutputDeviceId` or `selectedVideoDeviceId` depending on `kind` argument) as well as republishing the stream corresponding to the given device id.
 
 The prebuilt components that make use of `switchDevice` function are:
-- [`DeviceSelectorAudioInput`](todo docs link)
-- [`DeviceSelectorAudioOutput`](todo docs link)
-- [`DeviceSelectorVideo`](todo docs link)
+
+- [`DeviceSelectorAudioInput`](../../ui-components/participants/device-settings)
+- [`DeviceSelectorAudioOutput`](../../ui-components/participants/device-settings/)
+- [`DeviceSelectorVideo`](../../ui-components/participants/device-settings/)
 
 ### Publishing media streams
+
 In case we would like to implement custom device controls for publishing video and audio stream, we will have to surely use the following functions from `MediaDevicesContextAPI`:
 
-| Function | Used in pre-built component |
-|----------|-----------------------------|
-| `publishAudioStream`, `stopPublishingAudio` | [`ToggleAudioPublishingButton`](todo docs link) |
-| `publishVideoStream`, `stopPublishingVideo` | [`ToggleVideoPublishingButton`](todo docs link) |
-
+| Function                                    | Used in pre-built component                                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `publishAudioStream`, `stopPublishingAudio` | [`ToggleAudioPublishingButton`](../../ui-components/call/call-controls/#toggleaudiopublishingbutton) |
+| `publishVideoStream`, `stopPublishingVideo` | [`ToggleVideoPublishingButton`](../../ui-components/call/call-controls/#togglevideopublishingbutton) |
 
 ### Working with media streams
-If need be, we can even start working on lower level by retrieving media streams and dispose of them. This can come handy when the aim is to create custom components like [`VideoPreview`]. By providing selected device id, we can hook into the device's [media stream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) and start reacting to events emitted, or handling component state.
+
+If need be, we can even start working on lower level by retrieving media streams and dispose of them. This can come handy when the aim is to create custom components like [`VideoPreview`](../../ui-components/participants/video-preview). By providing selected device id, we can hook into the device's [media stream](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) and start reacting to events emitted, or handling component state.
 
 The functions we provide to access the media streams are:
 

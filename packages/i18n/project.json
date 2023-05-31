@@ -6,12 +6,25 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "preset": "angular",
         "preid": "alpha",
         "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["chore", "ci"],
+        "preset": {
+          "name": "angular",
+          "preMajor": true,
+          "types": [
+            {"type": "feat", "section": "Features"},
+            {"type": "fix", "section": "Bug Fixes"},
+            {"type": "chore", "hidden": true},
+            {"type": "docs", "section": "Documentation"},
+            {"type": "style", "hidden": true},
+            {"type": "refactor", "hidden": true},
+            {"type": "perf", "section": "Features"},
+            {"type": "test", "hidden": true}
+          ]
+        },
+        "skipCommitTypes": ["chore", "ci", "refactor", "test"],
         "postTargets": ["@stream-io/i18n:github", "@stream-io/i18n:publish"]
       }
     },

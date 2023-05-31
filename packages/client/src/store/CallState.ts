@@ -14,6 +14,7 @@ import {
   CallRecording,
   CallResponse,
   MemberResponse,
+  OwnCapability,
   PermissionRequestEvent,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -90,6 +91,13 @@ export class CallState {
    * @internal
    */
   private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
+
+  /**
+   * The list of capabilities of the current user.
+   *
+   * @private
+   */
+  private ownCapabilitiesSubject = new BehaviorSubject<OwnCapability[]>([]);
 
   /**
    * The calling state.
@@ -250,6 +258,11 @@ export class CallState {
   members$: Observable<MemberResponse[]>;
 
   /**
+   * The list of capabilities of the current user.
+   */
+  ownCapabilities$: Observable<OwnCapability[]>;
+
+  /**
    * The calling state.
    */
   callingState$: Observable<CallingState>;
@@ -307,6 +320,7 @@ export class CallState {
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
     this.metadata$ = this.metadataSubject.asObservable();
     this.members$ = this.membersSubject.asObservable();
+    this.ownCapabilities$ = this.ownCapabilitiesSubject.asObservable();
     this.callingState$ = this.callingStateSubject.asObservable();
   }
 
@@ -553,6 +567,23 @@ export class CallState {
    */
   setMembers = (members: Patch<MemberResponse[]>) => {
     this.setCurrentValue(this.membersSubject, members);
+  };
+
+  /**
+   * The capabilities of the current user for the current call.
+   */
+  get ownCapabilities() {
+    return this.getCurrentValue(this.ownCapabilities$);
+  }
+
+  /**
+   * Sets the own capabilities.
+   *
+   * @internal
+   * @param capabilities the capabilities to set.
+   */
+  setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
+    return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
   };
 
   /**

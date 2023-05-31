@@ -7,22 +7,25 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
   Alert,
   FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { ArrowRight, MicOff, ScreenShare, VideoSlash } from '../icons';
+import { ArrowRight, Cross, MicOff, ScreenShare, VideoSlash } from '../icons';
 import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { Participant } from '@stream-io/video-client/dist/src/gen/video/sfu/models/models';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -73,18 +76,36 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
           </View>
         )}
         {!participantIsLoggedInUser && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <ArrowRight color={theme.light.text_high_emphasis} />
-          </View>
+          <Restricted
+            requiredGrants={[
+              OwnCapability.MUTE_USERS,
+              OwnCapability.UPDATE_CALL_PERMISSIONS,
+              OwnCapability.BLOCK_USERS,
+            ]}
+          >
+            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+              <ArrowRight color={theme.light.text_high_emphasis} />
+            </View>
+          </Restricted>
         )}
       </View>
     </Pressable>
   );
 };
 
-export const CallParticipantsInfoView = () => {
-  return <InnerCallParticipantsInfoView />;
-};
+export interface CallParticipantsInfoViewType {
+  /**
+   * Boolean that decided whether the CallPartcipantsInfoView modal should be open or not.
+   */
+  isCallParticipantsViewVisible: boolean;
+  /**
+   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallPartcipantsInfoView modal should be open or not.
+   */
+  setIsCallParticipantsViewVisible: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+}
+
 /**
  * Shows information about the call, it's participants in the call and
  * their mute states, handler to trigger options (TBD, permissions not impl)
@@ -94,8 +115,12 @@ export const CallParticipantsInfoView = () => {
  * | :--- | :----: |
  * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
  **/
-const InnerCallParticipantsInfoView = () => {
+export const CallParticipantsInfoView = ({
+  isCallParticipantsViewVisible,
+  setIsCallParticipantsViewVisible,
+}: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
+  const participantCount = useParticipantCount();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -110,38 +135,95 @@ const InnerCallParticipantsInfoView = () => {
     }
   };
 
-  return (
-    <>
-      <View style={styles.buttonGroup}>
-        <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-          <Pressable style={styles.button} onPress={muteAllParticipantsHandler}>
-            <Text style={styles.buttonText}>Mute All</Text>
-          </Pressable>
-        </Restricted>
-      </View>
-      <FlatList
-        data={participants}
-        keyExtractor={(item) => `participant-info-${item.sessionId}`}
-        renderItem={({ item: participant }) => (
-          <CallParticipantInfoItem
-            participant={participant}
-            setSelectedParticipant={setSelectedParticipant}
-          />
-        )}
+  const onCloseCallParticipantsViewVisible = () => {
+    setIsCallParticipantsViewVisible(false);
+  };
+
+  const renderItem = useCallback(({ item }: { item: Participant }) => {
+    return (
+      <CallParticipantInfoItem
+        key={item.sessionId}
+        participant={item}
+        setSelectedParticipant={setSelectedParticipant}
       />
-      {selectedParticipant && (
-        <View style={[StyleSheet.absoluteFill, styles.modal]}>
-          <CallParticipantOptions
-            participant={selectedParticipant}
-            setSelectedParticipant={setSelectedParticipant}
-          />
+    );
+  }, []);
+
+  return (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isCallParticipantsViewVisible}
+      onRequestClose={onCloseCallParticipantsViewVisible}
+    >
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.leftHeaderElement} />
+            <Text style={styles.headerText}>
+              Participants ({participantCount})
+            </Text>
+            <Pressable
+              style={[styles.closeIcon, theme.icon.sm]}
+              onPress={onCloseCallParticipantsViewVisible}
+            >
+              <Cross color={theme.light.primary} />
+            </Pressable>
+          </View>
+          <View style={styles.buttonGroup}>
+            <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+              <Pressable
+                style={styles.button}
+                onPress={muteAllParticipantsHandler}
+              >
+                <Text style={styles.buttonText}>Mute All</Text>
+              </Pressable>
+            </Restricted>
+          </View>
+          <FlatList data={participants} renderItem={renderItem} />
+          {selectedParticipant && (
+            <View style={[StyleSheet.absoluteFill, styles.modal]}>
+              <CallParticipantOptions
+                participant={selectedParticipant}
+                setSelectedParticipant={setSelectedParticipant}
+              />
+            </View>
+          )}
         </View>
-      )}
-    </>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: theme.light.bars,
+    borderRadius: theme.rounded.md,
+    marginVertical: theme.margin.lg,
+    marginHorizontal: theme.margin.md,
+  },
+  header: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: theme.padding.md,
+    width: '100%',
+  },
+  leftHeaderElement: {
+    marginLeft: theme.margin.md,
+  },
+  headerText: {
+    ...theme.fonts.bodyBold,
+  },
+  closeIcon: {
+    marginRight: theme.margin.md,
+  },
   buttonGroup: {},
   button: {
     backgroundColor: theme.light.primary,

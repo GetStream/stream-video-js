@@ -4,14 +4,13 @@ title: Pending Call
 description: Pending Call
 ---
 
-When building an application that relies on [`ring call workflow`](../../guides/call-lifecycle#ring-call), you'll often want to build your own incoming or outgoing call panels. The React SDK already comes with a pre-built [`PendingCallPanel`](todo docs link) component. However, in this article we will build a new one from scratch.
+When building an application that relies on [`ring call workflow`](../../guides/call-lifecycle#ring-call), you'll often want to build your own incoming or outgoing call panels. The React SDK already comes with a pre-built [`PendingCallPanel`](../../ui-components/call/pending-call-panel) component. However, in this article we will build a new one from scratch.
 
 The component will render:
 
 1. Call controls buttons to toggle audio and video enablement and accept resp. reject call buttons (the component will be called `CallControls`)
 2. Avatars of called users or the current user's video preview (the component will be called `CallMembers`)
 3. Call calling state indicator (the component will be called `CallCallingStateLabel`)
-
 
 ## Project setup and prerequisites
 
@@ -31,9 +30,11 @@ yarn add @stream-io/video-react-sdk stream-chat-react stream-chat
 ```
 
 ## App boilerplate
+
 In order we can start performing calls we need a `StreamVideoClient` instance connected to the Stream's server network with app credentials. For more information on how to do that, please take a look at our [authentication guide](../../guides/client-auth#setting-up-a-streamvideoclient-and-connecting-a-user).
 
 ## Pending call panel implementation
+
 The component will rely on data accessed via our utility hooks:
 
 - [`useCall`](../../call-engine/hooks-and-contexts#usecall)
@@ -44,13 +45,15 @@ The component will rely on data accessed via our utility hooks:
 
 ### User preview
 
-The panel will render [`VideoPreview`](todo docs link) so that the user can see the camera input or avatars if video preview is disabled. The avatar display logic is as follows:
+The panel will render [`VideoPreview`](../../ui-components/participants/video-preview) so that the user can see the camera input or avatars if video preview is disabled. The avatar display logic is as follows:
+
 - show all the called users' avatars if the call is outgoing (who am I calling)
 - show the avatar of the person who initiated the call in case of an incoming call (who is calling me)
 
 :::note
 Note, how the initial video state is handled by [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider). We only consume the API through corresponding context consumer hook [`useMediaDevices`](../../call-engine/hooks-and-contexts#usemediadevices).
 :::
+
 ```tsx
 import {
   useCall,
@@ -111,7 +114,7 @@ export const CustomPendingCallPanel = ({
 
 #### Video preview enablement
 
-Enable the initial video in [`VideoPreview`](todo docs link) component with `mediaDevicesProviderProps` prop on [`StreamCall`](todo docs link) component. In the snippet below, the `CallPanel` component is expected to render our `CustomPendingCallPanel`.
+Enable the initial video in [`VideoPreview`](../../ui-components/participants/video-preview) component with `mediaDevicesProviderProps` prop on [`StreamCall`](../../ui-components/core/stream-call) component. In the snippet below, the `CallPanel` component is expected to render our `CustomPendingCallPanel`.
 
 ```tsx
 import {
@@ -152,22 +155,18 @@ const CallPanel = () => {
   if (!call) return null;
 
   if (callingState === CallingState.JOINED) {
-    return (
-      <CustomActiveCallPanel />
-    );
+    return <CustomActiveCallPanel />;
   } else if (
     [CallingState.RINGING, CallingState.JOINING].includes(callingState)
   ) {
-    return (
-        <CustomPendingCallPanel />
-    );
+    return <CustomPendingCallPanel />;
   }
 
   return null;
 };
 ```
 
-Or, if instead of using [`StreamCall`](todo docs link), we want to use the [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider) component directly, we pass `initialVideoEnabled` value to it as follows:
+Or, if instead of using [`StreamCall`](../../ui-components/core/stream-call), we want to use the [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider) component directly, we pass `initialVideoEnabled` value to it as follows:
 
 ```tsx
 import { MediaDevicesProvider } from "@stream-io/video-react-sdk";
@@ -188,9 +187,7 @@ const SomeComponent = () => {
 We display relevant users' avatars with `CallMembers` component.
 
 ```tsx
-import {
-  Avatar,
-} from '@stream-io/video-react-sdk';
+import { Avatar } from '@stream-io/video-react-sdk';
 
 import type { UserResponse } from '@stream-io/video-react-sdk';
 
@@ -219,10 +216,10 @@ const CallMembers = ({ members }: CallMembersProps) => {
 
 To show to our users the state of call connection, we implement `CallCallingStateLabel`. The calling state is provided by [`useCallCallingState`](../../call-engine/hooks-and-contexts#usecallcallingstate) hook:
 
-
 :::note
 In this component we are using translation service that comes bundled with the SDK. The service API is consumed with [`useI18n`](../../call-engine/hooks-and-contexts#usei18n) hook. Lean more about using the [i18n service in the dedicated documentation](../../advanced/i18n).
 :::
+
 ```tsx
 import {
   CallingState,
@@ -258,6 +255,7 @@ Finally, we build the call control buttons. We include buttons to toggle camera 
 :::note
 The toggle video and audio buttons are just wrappers around pre-built button components attaching click handlers provided by [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider).
 :::
+
 ```tsx
 import {
   AcceptCallButton,

@@ -709,6 +709,12 @@ export interface CallNotificationEvent {
    */
   created_at: string;
   /**
+   * Call members
+   * @type {Array<MemberResponse>}
+   * @memberof CallNotificationEvent
+   */
+  members: Array<MemberResponse>;
+  /**
    * Call session ID
    * @type {string}
    * @memberof CallNotificationEvent
@@ -1023,12 +1029,6 @@ export interface CallResponse {
    */
   ingress: CallIngressResponse;
   /**
-   * The capabilities of the current user
-   * @type {Array<OwnCapability>}
-   * @memberof CallResponse
-   */
-  own_capabilities: Array<OwnCapability>;
-  /**
    *
    * @type {boolean}
    * @memberof CallResponse
@@ -1101,6 +1101,12 @@ export interface CallRingEvent {
    * @memberof CallRingEvent
    */
   created_at: string;
+  /**
+   * Call members
+   * @type {Array<MemberResponse>}
+   * @memberof CallRingEvent
+   */
+  members: Array<MemberResponse>;
   /**
    * Call session ID
    * @type {string}
@@ -1463,6 +1469,12 @@ export interface CallStateResponseFields {
    * @memberof CallStateResponseFields
    */
   membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof CallStateResponseFields
+   */
+  own_capabilities: Array<OwnCapability>;
 }
 /**
  *
@@ -2039,62 +2051,6 @@ export interface GeofenceSettingsRequest {
 /**
  *
  * @export
- * @interface GetCallEdgeServerRequest
- */
-export interface GetCallEdgeServerRequest {
-  /**
-   *
-   * @type {{ [key: string]: Array<number>; }}
-   * @memberof GetCallEdgeServerRequest
-   */
-  latency_measurements: { [key: string]: Array<number> };
-}
-/**
- *
- * @export
- * @interface GetCallEdgeServerResponse
- */
-export interface GetCallEdgeServerResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof GetCallEdgeServerResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof GetCallEdgeServerResponse
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {Credentials}
-   * @memberof GetCallEdgeServerResponse
-   */
-  credentials: Credentials;
-  /**
-   * Duration of the request in human-readable format
-   * @type {string}
-   * @memberof GetCallEdgeServerResponse
-   */
-  duration: string;
-  /**
-   *
-   * @type {Array<MemberResponse>}
-   * @memberof GetCallEdgeServerResponse
-   */
-  members: Array<MemberResponse>;
-  /**
-   *
-   * @type {MemberResponse}
-   * @memberof GetCallEdgeServerResponse
-   */
-  membership?: MemberResponse;
-}
-/**
- *
- * @export
  * @interface GetCallResponse
  */
 export interface GetCallResponse {
@@ -2128,6 +2084,12 @@ export interface GetCallResponse {
    * @memberof GetCallResponse
    */
   membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof GetCallResponse
+   */
+  own_capabilities: Array<OwnCapability>;
 }
 /**
  *
@@ -2270,6 +2232,12 @@ export interface GetOrCreateCallResponse {
    * @memberof GetOrCreateCallResponse
    */
   membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof GetOrCreateCallResponse
+   */
+  own_capabilities: Array<OwnCapability>;
 }
 /**
  *
@@ -2456,6 +2424,12 @@ export interface JoinCallResponse {
    * @memberof JoinCallResponse
    */
   membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof JoinCallResponse
+   */
+  own_capabilities: Array<OwnCapability>;
 }
 /**
  *
@@ -3218,12 +3192,6 @@ export interface RingSettings {
    * @type {number}
    * @memberof RingSettings
    */
-  auto_reject_timeout_ms: number;
-  /**
-   *
-   * @type {number}
-   * @memberof RingSettings
-   */
   incoming_call_timeout_ms: number;
 }
 /**
@@ -3238,12 +3206,6 @@ export interface RingSettingsRequest {
    * @memberof RingSettingsRequest
    */
   auto_cancel_timeout_ms?: number;
-  /**
-   *
-   * @type {number}
-   * @memberof RingSettingsRequest
-   */
-  auto_reject_timeout_ms?: number;
   /**
    *
    * @type {number}

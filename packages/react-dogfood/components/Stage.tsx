@@ -12,6 +12,7 @@ export const Stage = ({
   const groupSize = +(searchParams.get('group_size') ?? '0');
 
   const SelectedComponent = LayoutMap[selectedLayout].Component;
+  const props = LayoutMap[selectedLayout].props;
 
   if (selectedLayout === 'LegacyGrid' || selectedLayout === 'LegacySpeaker') {
     return (
@@ -24,7 +25,9 @@ export const Stage = ({
   return (
     // @ts-expect-error
     <SelectedComponent
-      groupSize={!groupSize || groupSize > 16 ? undefined : groupSize}
+      {...props}
+      // @ts-expect-error
+      groupSize={!groupSize || groupSize > 16 ? props?.groupSize : groupSize}
     />
   );
 };

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   Button,
   SafeAreaView,
@@ -12,7 +12,6 @@ import {meetingId} from '../utils/meetingId';
 
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {NavigationStackParamsList} from '../types';
-import {useAppContext} from '../context/AppContext';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
@@ -20,15 +19,12 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const {
-    setCallParams,
-    callParams: {callId},
-  } = useAppContext();
+  const [callId, setCallId] = useState<string>('');
   const {navigation} = props;
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('CallLobbyScreen');
-  }, [navigation]);
+    navigation.navigate('MeetingScreen', {callId});
+  }, [navigation, callId]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,7 +35,7 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           color="blue"
           onPress={() => {
             const randomCallID = meetingId();
-            setCallParams(prevState => ({...prevState, callId: randomCallID}));
+            setCallId(randomCallID);
           }}
         />
       </View>
@@ -50,12 +46,7 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         value={callId}
         autoCapitalize="none"
         autoCorrect={false}
-        onChangeText={text =>
-          setCallParams(prevState => ({
-            ...prevState,
-            callId: text.trim().split(' ').join('-'),
-          }))
-        }
+        onChangeText={text => setCallId(text.trim().split(' ').join('-'))}
       />
       <Button
         title={'Create meeting with callID: ' + callId}

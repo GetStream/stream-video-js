@@ -24,22 +24,13 @@ $scope-name: 'str-video__speaker-layout';
     justify-content: center;
     min-height: 0;
 
-    .str-video__participant-view {
-      width: 100%;
-      max-width: 110vh;
-    }
-
     .str-video__participant-view--speaking:has(
         .str-video__video--screen-share
       ) {
       outline: none;
     }
 
-    .str-video__participant-view:has(.str-video__video--screen-share) {
-      border-radius: unset;
-    }
-
-    .str-video__video--screen-share {
+    .str-video__video {
       object-fit: contain;
     }
 
@@ -52,33 +43,35 @@ $scope-name: 'str-video__speaker-layout';
   .str-video__speaker-layout__participants-bar-buttons-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+
+    & > .str-video__call-controls__button {
+      .str-video__icon {
+        width: 1rem;
+        height: 1rem;
+      }
+    }
 
     .str-video__speaker-layout__participants-bar--button-left {
       position: absolute;
       left: 0.5rem;
-      z-index: 1;
-
-      .str-video__call-controls__button--icon {
-        width: 0.8rem;
-        height: 0.8rem;
-      }
     }
     .str-video__speaker-layout__participants-bar--button-right {
       position: absolute;
       right: 0.5rem;
-      z-index: 1;
-
-      .str-video__call-controls__button--icon {
-        width: 0.8rem;
-        height: 0.8rem;
-      }
+    }
+    .str-video__speaker-layout__participants-bar--button-top {
+      position: absolute;
+      top: 0.5rem;
+    }
+    .str-video__speaker-layout__participants-bar--button-bottom {
+      position: absolute;
+      bottom: 0.5rem;
     }
   }
 
   .str-video__speaker-layout__participants-bar-wrapper {
-    overflow-x: auto;
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
@@ -86,7 +79,6 @@ $scope-name: 'str-video__speaker-layout';
 
     .str-video__speaker-layout__participants-bar {
       display: flex;
-      flex-direction: row;
       align-items: center;
 
       .str-video__speaker-layout__participant-tile {
@@ -94,9 +86,48 @@ $scope-name: 'str-video__speaker-layout';
         min-width: 280px;
         max-width: 25vh;
         // to see "speaking" outline
-        padding-inline: 5px;
-        padding-block: 2px;
+        padding: 5px;
       }
+    }
+  }
+
+  &--variant-top {
+    flex-direction: column-reverse;
+  }
+  &--variant-left {
+    flex-direction: row-reverse;
+  }
+  &--variant-right {
+    flex-direction: row;
+  }
+
+  &--variant-left,
+  &--variant-right {
+    .str-video__speaker-layout__participants-bar-wrapper {
+      overflow-y: auto;
+      max-height: 100%;
+    }
+    .str-video__speaker-layout__participants-bar {
+      flex-direction: column;
+    }
+    .str-video__speaker-layout__spotlight {
+      width: 100%;
+    }
+    .str-video__participant-view {
+      max-width: unset;
+    }
+  }
+
+  &--variant-top,
+  &--variant-bottom {
+    .str-video__speaker-layout__participants-bar-wrapper {
+      overflow-x: auto;
+    }
+    .str-video__speaker-layout__participants-bar {
+      flex-direction: row;
+    }
+    .str-video__participant-view {
+      max-width: 110vh;
     }
   }
 }

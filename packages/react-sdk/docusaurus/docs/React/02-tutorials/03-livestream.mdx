@@ -37,13 +37,13 @@ For that purpose, we will use the SDK-provided `<StreamCall /`> component to est
 
 :::note
 In this tutorial, we will skip the details on how a `StreamVideoClient` can be set up. You can read more about it on the following page:
-[Authenticating your Users](../../guides/01-authentication/)
+[Authenticating your Users](../../guides/client-auth/)
 :::
 
 In the code snippet provided, we establish a connection to the Stream Edge server as the live stream host. We then proceed to join the call and publish our audio and video content to the live stream.
-In this example, we use the predefined [`<PaginatedGridLayout>`](TODO) for the live stream.
+In this example, we use the predefined [`<PaginatedGridLayout>`](../../ui-components/core/call-layout/#paginatedgridlayout) for the live stream.
 
-If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../ui-cookbook/participant-list/)
+If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../../ui-cookbook/custom-call-layout/)
 
 ```tsx
 import {
@@ -184,7 +184,7 @@ It is a good practice to show a loading indicator while the operation is in prog
 There are two ways how we can do that:
 
 - have a `useEffect` that would run whenever we have initiated a change in the broadcasting state of the call until the value of `isBroadcasting` toggles.
-- attach an event listener to the call object and follow the delivery of `call.broadcasting_started` and `call.broadcasting_stopped` events. Read more about events [here.](../10-advanced/06-events.mdx)
+- attach an event listener to the call object and follow the delivery of `call.broadcasting_started` and `call.broadcasting_stopped` events. Read more about events [here.](../../advanced/events)
 
 :::
 

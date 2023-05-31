@@ -19,7 +19,6 @@ import {ChannelHeader} from './src/components/ChannelHeader';
 import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import {AppProvider, useAppContext} from './src/context/AppContext';
 import {
-  CallParticipantsInfoView,
   IncomingCallView,
   OutgoingCallView,
 } from '@stream-io/video-react-native-sdk';
@@ -71,10 +70,6 @@ const Messenger = () => {
           name="OutgoingCallScreen"
           component={OutgoingCallView}
           options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipantsInfoView}
         />
       </Stack.Navigator>
     </MessengerWrapper>

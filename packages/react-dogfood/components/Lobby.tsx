@@ -11,6 +11,7 @@ import {
 import { LobbyHeader } from './LobbyHeader';
 import { Box, Button, Stack, Typography } from '@mui/material';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
+import { ParticipantsPreview } from './ParticipantsPreview';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -61,6 +62,15 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
         spacing={2}
         flexGrow={1}
       >
+        <Box
+          sx={{
+            position: 'fixed',
+            left: '1rem',
+            top: '80px',
+          }}
+        >
+          <ParticipantsPreview />
+        </Box>
         <Stack spacing={2} alignItems="center">
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
@@ -70,7 +80,6 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
             <Typography textAlign="center" variant="subtitle1">
               {subtitle}
             </Typography>
-
             {enablePreview && (
               <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
             )}
