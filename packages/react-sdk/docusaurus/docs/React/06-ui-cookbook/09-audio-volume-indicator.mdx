@@ -9,11 +9,7 @@ import AudioVolumeIndicator from "../assets/ui-cookbook/09-audio-volume-indicato
 In this documentation article, we will explore how to build a custom sound detection component using [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
 
 ## Sound detection
-We can start detecting the audio input level changes using the utility function [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).  The function requires an instance of [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) object of type `audioinput` and attaches sound analysers to it. The `MediaStream` can be retrieved by the SDK's `getAudioStream` utility function. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
-
-It is also possible to configure the data collection algorithm with the third [`options` parameter](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
-
-The return value of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) function is a clean-up function that should be called, when a component, that uses sound detection is unmounted.
+The sound detection can be easily implemented using [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) utility function. To learn more about this function, please see our [sound detection guide](../../guides/camera-and-microphone#sound-detection).
 
 ## Custom AudioVolumeIndicator component
 The component will show the audio level changes by expanding and contracting a line.
