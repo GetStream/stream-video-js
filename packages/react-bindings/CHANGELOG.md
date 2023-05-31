@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.94](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.93...@stream-io/video-react-bindings-0.0.1-alpha.94) (2023-05-31)
+
+
+### Features
+
+* Adjust OwnCapabilities handling ([#574](https://github.com/GetStream/stream-video-js/issues/574)) ([d9e27db](https://github.com/GetStream/stream-video-js/commit/d9e27db65e641241d5ec5a9a72a94f118ece284d))
+
+
+
 ## [0.0.1-alpha.93](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.92...@stream-io/video-react-bindings-0.0.1-alpha.93) (2023-05-31)
 
 
