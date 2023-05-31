@@ -21,7 +21,9 @@ const ParticipantStatus = () => {
   const { isAudioMuted, isVideoMuted } = useMutingState();
   return (
     <View style={styles.status}>
-      <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {connectedUser?.id}
+      </Text>
       {isAudioMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
@@ -228,6 +230,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   userNameLabel: {
+    flexShrink: 1,
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },
