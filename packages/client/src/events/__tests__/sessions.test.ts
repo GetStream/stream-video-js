@@ -24,7 +24,6 @@ describe('call.session events', () => {
 
     expect(state.metadata).toEqual({
       cid: 'cid',
-      own_capabilities: [],
       session: {
         id: 'session-id',
       },
@@ -46,7 +45,6 @@ describe('call.session events', () => {
     });
     expect(state.metadata).toEqual({
       cid: 'cid',
-      own_capabilities: [],
       session: {
         id: 'session-id',
       },

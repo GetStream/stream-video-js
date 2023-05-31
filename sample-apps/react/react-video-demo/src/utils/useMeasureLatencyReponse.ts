@@ -1,5 +1,3 @@
-import { GetCallEdgeServerRequest } from '@stream-io/video-react-sdk';
-
 const toSeconds = (ms: number) => ms / 1000;
 
 /**
@@ -64,7 +62,7 @@ export const measureLatencyToEdges = async (
     measureTimeoutAfterMs?: number;
   } = {},
 ) => {
-  const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
+  const latencyByEdge: Record<string, number[]> = {};
   const measurements: Promise<void>[] = [];
   const start = Date.now();
   for (let attempt = 0; attempt < attempts; attempt++) {

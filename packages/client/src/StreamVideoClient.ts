@@ -252,6 +252,7 @@ export class StreamVideoClient {
         type: c.call.type,
         metadata: c.call,
         members: c.members,
+        ownCapabilities: c.own_capabilities,
         watching: data.watch,
         clientStore: this.writeableStateStore,
       });
