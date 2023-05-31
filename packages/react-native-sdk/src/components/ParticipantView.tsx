@@ -15,6 +15,7 @@ import { theme } from '../theme';
 import { palette } from '../theme/constants';
 import { ParticipantReaction } from './ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
+import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -69,7 +70,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
-  const { reaction, sessionId } = participant;
+  const { connectionQuality, reaction, sessionId } = participant;
 
   /**
    * This effect updates the participant's viewportVisibilityState
@@ -191,10 +192,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     borderWidth: 2,
   };
 
-  const participantLabel =
-    participant.userId.length > 10
-      ? `${participant.userId.slice(0, 10)}...`
-      : participant.userId;
+  const participantLabel = participant.userId;
 
   // if (isScreenSharing) {
   //   console.log({
@@ -233,35 +231,39 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ) : (
         <Avatar participant={participant} />
       )}
-
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />
       )}
-      {kind === 'video' && (
-        <View style={styles.status}>
-          <Text style={styles.userNameLabel}>{participantLabel}</Text>
-          {isAudioMuted && (
-            <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-              <MicOff color={theme.light.error} />
-            </View>
-          )}
-          {isVideoMuted && (
-            <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-              <VideoSlash color={theme.light.error} />
-            </View>
-          )}
-        </View>
-      )}
-      {kind === 'screen' && (
-        <View style={styles.screenViewStatus}>
-          <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
-            <ScreenShare color={theme.light.static_white} />
+      <View style={styles.bottomView}>
+        {kind === 'video' && (
+          <View style={styles.status}>
+            <Text style={styles.userNameLabel} numberOfLines={1}>
+              {participantLabel}
+            </Text>
+            {isAudioMuted && (
+              <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+                <MicOff color={theme.light.error} />
+              </View>
+            )}
+            {isVideoMuted && (
+              <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+                <VideoSlash color={theme.light.error} />
+              </View>
+            )}
           </View>
-          <Text style={styles.userNameLabel}>
-            {participant.userId} is sharing their screen
-          </Text>
-        </View>
-      )}
+        )}
+        {kind === 'screen' && (
+          <View style={styles.screenViewStatus}>
+            <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
+              <ScreenShare color={theme.light.static_white} />
+            </View>
+            <Text style={styles.userNameLabel} numberOfLines={1}>
+              {participant.userId} is sharing their screen.
+            </Text>
+          </View>
+        )}
+        <NetworkQualityIndicator connectionQuality={connectionQuality} />
+      </View>
     </View>
   );
 };
@@ -279,12 +281,21 @@ const styles = StyleSheet.create({
   videoRenderer: {
     ...StyleSheet.absoluteFillObject,
   },
+  bottomView: {
+    alignSelf: 'stretch',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   status: {
-    alignSelf: 'flex-start',
+    display: 'flex',
     flexDirection: 'row',
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
+    flexShrink: 1,
+    marginRight: theme.margin.sm,
   },
   screenViewStatus: {
     padding: theme.padding.sm,
@@ -292,8 +303,11 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_overlay,
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    marginRight: theme.margin.sm,
   },
   userNameLabel: {
+    flexShrink: 1,
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },
