@@ -68,15 +68,20 @@ const doJoin = async (
 
 const getLocationHint = async () => {
   const hintURL = `https://hint.stream-io-video.com/`;
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), 1000);
   try {
     const response = await fetch(hintURL, {
       method: 'HEAD',
+      signal: abortController.signal,
     });
     const awsPop = response.headers.get('x-amz-cf-pop') || 'ERR';
     return awsPop.substring(0, 3); // AMS1-P2 -> AMS
   } catch (e) {
     console.error(`Failed to get location hint from ${hintURL}`, e);
     return 'ERR';
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 
