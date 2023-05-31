@@ -26,6 +26,12 @@ body {
   padding: 1rem;
   overflow-x: hidden;
 
+  .str-video__stage {
+    flex: 1;
+    min-height: 0;
+    padding-inline: 0.375rem;
+  }
+
   .str-video__main-call-panel {
     display: flex;
     flex-direction: column;

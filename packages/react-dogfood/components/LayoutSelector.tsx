@@ -10,7 +10,14 @@ import {
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 
+import { CallParticipantsScreenView, CallParticipantsView } from './CallLayout';
+
 export const LayoutMap = {
+  LegacyGrid: {
+    Component: CallParticipantsView,
+    title: 'Grid (legacy)',
+    props: {},
+  },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     title: 'Paginated grid',
@@ -45,6 +52,11 @@ export const LayoutMap = {
     props: {
       participantsBarPosition: 'left',
     },
+  },
+  LegacySpeaker: {
+    Component: CallParticipantsScreenView,
+    title: 'Sidebar',
+    props: {},
   },
 };
 
@@ -88,7 +100,9 @@ export const LayoutSelector = ({
 
     setLayout(
       // reset to "stored" layout, use default if incompatible layout is used
-      isStoredLayoutInMap ? storedLayout : DEFAULT_LAYOUT,
+      storedLayout === 'LegacySpeaker' || !isStoredLayoutInMap
+        ? DEFAULT_LAYOUT
+        : storedLayout,
     );
   }, [hasScreenShare, setLayout]);
 
@@ -117,7 +131,11 @@ const Menu = ({
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>).map((key) => (
         <GenericMenuButtonItem
           aria-selected={key === selectedLayout}
-          disabled={hasScreenShare && key === 'PaginatedGrid'}
+          disabled={
+            (hasScreenShare &&
+              (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
+            (!hasScreenShare && key === 'LegacySpeaker')
+          }
           onClick={() => {
             setLayout(key);
             localStorage.setItem(
