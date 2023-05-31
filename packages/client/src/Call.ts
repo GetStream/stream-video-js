@@ -25,8 +25,6 @@ import {
   BlockUserRequest,
   BlockUserResponse,
   EndCallResponse,
-  GetCallEdgeServerRequest,
-  GetCallEdgeServerResponse,
   GetCallResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -198,6 +196,7 @@ export class Call {
     streamClient,
     metadata,
     members,
+    ownCapabilities,
     sortParticipantsBy,
     clientStore,
     ringing = false,
@@ -221,6 +220,7 @@ export class Call {
 
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
+    this.state.setOwnCapabilities(ownCapabilities || []);
     this.state.setCallingState(
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
@@ -246,25 +246,15 @@ export class Call {
       // handles updating the permissions context when the metadata changes.
       createSubscription(this.state.metadata$, (metadata) => {
         if (!metadata) return;
-        this.permissionsContext.setPermissions(metadata.own_capabilities);
         this.permissionsContext.setCallSettings(metadata.settings);
       }),
 
-      // handles the case when the user is blocked by the call owner.
-      createSubscription(this.state.metadata$, async (metadata) => {
-        if (!metadata) return;
-        const currentUserId = this.currentUserId;
-        if (
-          currentUserId &&
-          metadata.blocked_user_ids.includes(currentUserId)
-        ) {
-          await this.leave();
-        }
-      }),
+      // handle the case when the user permissions are modified.
+      createSubscription(this.state.ownCapabilities$, (ownCapabilities) => {
+        // update the permission context.
+        this.permissionsContext.setPermissions(ownCapabilities);
 
-      // handle the case when the user permissions are revoked.
-      createSubscription(this.state.metadata$, (metadata) => {
-        if (!metadata) return;
+        // check if the user still has publishing permissions and stop publishing if not.
         const permissionToTrackType = {
           [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
           [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
@@ -280,6 +270,18 @@ export class Call {
             });
           }
         });
+      }),
+
+      // handles the case when the user is blocked by the call owner.
+      createSubscription(this.state.metadata$, async (metadata) => {
+        if (!metadata) return;
+        const currentUserId = this.currentUserId;
+        if (
+          currentUserId &&
+          metadata.blocked_user_ids.includes(currentUserId)
+        ) {
+          await this.leave();
+        }
       }),
 
       // watch for auto drop cancellation
@@ -469,6 +471,7 @@ export class Call {
 
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -495,6 +498,7 @@ export class Call {
 
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -579,6 +583,7 @@ export class Call {
       const call = await join(this.streamClient, this.type, this.id, data);
       this.state.setMetadata(call.metadata);
       this.state.setMembers(call.members);
+      this.state.setOwnCapabilities(call.ownCapabilities);
       connectionConfig = call.connectionConfig;
       sfuServer = call.sfuServer;
       sfuToken = call.token;
@@ -1524,19 +1529,6 @@ export class Call {
     this.state.setCallRecordingsList(response.recordings);
 
     return response;
-  };
-
-  /**
-   * Returns a list of Edge Serves for current call.
-   *
-   * @deprecated merged with `call.join`.
-   * @param data the data.
-   */
-  getEdgeServer = (data: GetCallEdgeServerRequest) => {
-    return this.streamClient.post<GetCallEdgeServerResponse>(
-      `${this.streamClientBasePath}/get_edge_server`,
-      data,
-    );
   };
 
   /**
