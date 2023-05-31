@@ -8,6 +8,10 @@ export * from './src/core';
 
 export * from './src/components';
 export * from './src/types';
+export {
+  useHorizontalScrollPosition,
+  useVerticalScrollPosition,
+} from './src/hooks';
 
 // TODO: set valid version
 setSdkInfo({
