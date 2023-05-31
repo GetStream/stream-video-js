@@ -1,57 +1,40 @@
-import React, { ReactNode } from 'react';
-import { CallCycleLogicsWrapper, StreamVideo } from '../../src/providers';
+import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
-import { act, render, screen, within } from '@testing-library/react-native';
 import { ActiveCall } from '../../src/components';
-import { StreamCallProvider } from '@stream-io/video-react-bindings';
-import {
-  Call,
-  OwnCapability,
-  SfuModels,
-  StreamVideoClient,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { SfuModels } from '@stream-io/video-client';
 import mockParticipant from '../mocks/participant';
 import {
   A11yButtons,
   A11yComponents,
   A11yIcons,
 } from '../../src/constants/A11yLabels';
+import { ViewToken } from 'react-native';
+import { mockCall } from '../mocks/call';
+import { act, render, screen, within } from '../utils/RNTLTools';
 
 console.warn = jest.fn();
+jest.useFakeTimers();
 
-const mockCall = (
-  client: StreamVideoClient,
-  participants?: StreamVideoParticipant[],
+enum P_IDS {
+  LOCAL_1 = 'local-1',
+  REMOTE_1 = 'remote-1',
+  REMOTE_2 = 'remote-2',
+}
+const simulateOnViewableItemsChanged = async (
+  viewableItems: Array<ViewToken>,
 ) => {
-  const call = client?.call('default', 'test-123');
-  const _participants = participants || [mockParticipant()];
-  call.state.setParticipantCount(_participants.length);
-  call.state.setParticipants(_participants);
-  call?.permissionsContext.setPermissions([
-    OwnCapability.SEND_AUDIO,
-    OwnCapability.SEND_VIDEO,
-  ]);
-  return call;
-};
-const Wrapper: ({
-  children,
-  call,
-}: {
-  children: ReactNode;
-  call?: Call;
-}) => JSX.Element = ({ children, call }) => {
-  const testClient = mockClientWithUser({ id: 'test-user-id' });
-  const testCall = call || mockCall(testClient);
-  return (
-    <StreamVideo client={testClient} language={'en'}>
-      <StreamCallProvider call={testCall}>
-        <CallCycleLogicsWrapper callCycleHandlers={{}}>
-          {children}
-        </CallCycleLogicsWrapper>
-      </StreamCallProvider>
-    </StreamVideo>
+  const flatList = await screen.findByLabelText(
+    A11yComponents.CALL_PARTICIPANTS_LIST,
   );
+  await act(() => {
+    flatList.props.onViewableItemsChanged({
+      viewableItems,
+    });
+    // Advance pending timers to allow the FlatList to rerender
+    // This is needed because of useDebouncedValue we use in
+    // forceUpdateValue to force rerender the FlatList
+    jest.advanceTimersByTime(500);
+  });
 };
 describe('ActiveCall', () => {
   it('should render an active call with 1 partic. when the user is alone in the call', async () => {
@@ -59,7 +42,7 @@ describe('ActiveCall', () => {
       mockParticipant({ isLoggedInUser: true }),
     ]);
     render(<ActiveCall />, {
-      wrapper: (props) => <Wrapper {...props} call={call} />,
+      call,
     });
     expect(
       await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
@@ -71,11 +54,6 @@ describe('ActiveCall', () => {
   });
 
   it('should render an active call with 3 partic. local partic., partic. 2 muted video, partic. 3 muted audio', async () => {
-    enum P_IDS {
-      LOCAL_1 = 'local-1',
-      REMOTE_1 = 'remote-1',
-      REMOTE_2 = 'remote-2',
-    }
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLoggedInUser: true,
@@ -96,19 +74,17 @@ describe('ActiveCall', () => {
       }),
     ]);
     render(<ActiveCall />, {
-      wrapper: (props) => <Wrapper {...props} call={call} />,
+      call,
     });
 
-    const flatList = await screen.findByLabelText(
-      A11yComponents.CALL_PARTICIPANTS_LIST,
-    );
-    await act(() =>
-      flatList.props.onViewableItemsChanged({
-        viewableItems: call.state.participants.map((p) => ({
-          key: p.sessionId,
-        })),
-      }),
-    );
+    const visibleParticipantsItems = call.state.participants.map((p) => ({
+      key: p.sessionId,
+      item: 'some-item',
+      index: null,
+      isViewable: true,
+    }));
+
+    await simulateOnViewableItemsChanged(visibleParticipantsItems);
 
     expect(
       await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
@@ -133,11 +109,13 @@ describe('ActiveCall', () => {
       participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'audio-test-url');
     expect(
-      participant2.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      await participant2.findByLabelText(
+        A11yComponents.PARTICIPANT_MEDIA_STREAM,
+      ),
     ).toHaveProp('streamURL', 'video-test-url');
-    // Veryifying no extra/unknown RTCViews are rendered
+    // Verifying no extra/unknown RTCViews are rendered
     expect(
-      screen.getAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      await screen.findAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveLength(3);
   });
 });

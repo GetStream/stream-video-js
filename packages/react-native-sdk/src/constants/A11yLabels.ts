@@ -18,3 +18,7 @@ export enum A11yButtons {
 export enum A11yValues {
   PARTICIPANTS_IS_SPEAKING = 'participant-is-speaking',
 }
+
+export enum A11yImages {
+  AVATAR = 'avatar-image',
+}

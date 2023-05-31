@@ -8,7 +8,7 @@
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.json",
-    "test": "jest",
+    "test-ci": "jest --coverage",
     "generate-docs": "../../scripts/generate-docs.sh reactnative @stream-io/video-react-native-sdk react-native-sdk"
   },
   "dependencies": {

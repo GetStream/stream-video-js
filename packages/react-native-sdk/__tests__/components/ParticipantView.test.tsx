@@ -1,5 +1,4 @@
 import React, { ReactNode } from 'react';
-import { act, render, screen } from '@testing-library/react-native';
 import mockParticipant from '../mocks/participant';
 import { ParticipantView } from '../../src/components/ParticipantView';
 import { StreamCall, StreamVideo } from '../../src/providers';
@@ -10,6 +9,7 @@ import {
   A11yIcons,
   A11yValues,
 } from '../../src/constants/A11yLabels';
+import { act, render, screen } from '../utils/RNTLTools';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -41,9 +41,6 @@ describe('ParticipantView', () => {
         kind={'video'}
         isVisible={false}
       />,
-      {
-        wrapper: Wrapper,
-      },
     );
 
     expect(

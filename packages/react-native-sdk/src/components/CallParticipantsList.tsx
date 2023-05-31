@@ -137,7 +137,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
         />
       );
     },
-    [itemContainerStyle, viewableParticipantSessionIds.current],
+    [itemContainerStyle],
   );
 
   return (
