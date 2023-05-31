@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ComponentType, useCallback, useEffect, useState } from 'react';
 import {
   Restricted,
   useCall,
   useHasPermissions,
+  useI18n,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
@@ -12,16 +13,21 @@ import { DEVICE_STATE, useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 
-export type ToggleVideoPreviewButtonProps = { caption?: string };
+export type ToggleVideoPreviewButtonProps = {
+  caption?: string;
+  Menu?: ComponentType;
+};
 
-export const ToggleVideoPreviewButton = ({
-  caption = 'Video',
-}: ToggleVideoPreviewButtonProps) => {
+export const ToggleVideoPreviewButton = (
+  props: ToggleVideoPreviewButtonProps,
+) => {
   const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
+  const { t } = useI18n();
+  const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
 
   return (
     <CompositeButton
-      Menu={DeviceSelectorVideo}
+      Menu={Menu}
       active={!initialVideoState.enabled}
       caption={caption}
     >
@@ -35,17 +41,20 @@ export const ToggleVideoPreviewButton = ({
 
 type ToggleVideoPublishingButtonProps = {
   caption?: string;
+  Menu?: ComponentType;
 };
 
-export const ToggleVideoPublishingButton = ({
-  caption = 'Video',
-}: ToggleVideoPublishingButtonProps) => {
+export const ToggleVideoPublishingButton = (
+  props: ToggleVideoPublishingButtonProps,
+) => {
   const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
     useMediaDevices();
   const localParticipant = useLocalParticipant();
+  const { t } = useI18n();
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
+  const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
 
   const call = useCall();
   const hasPermission = useHasPermissions(OwnCapability.SEND_VIDEO);
@@ -100,11 +109,7 @@ export const ToggleVideoPublishingButton = ({
         messageAwaitingApproval="Awaiting for an approval to share your video."
         messageRevoked="You can no longer share your video."
       >
-        <CompositeButton
-          Menu={DeviceSelectorVideo}
-          active={isVideoMute}
-          caption={caption}
-        >
+        <CompositeButton Menu={Menu} active={isVideoMute} caption={caption}>
           <IconButton
             icon={isVideoMute ? 'camera-off' : 'camera'}
             onClick={handleClick}

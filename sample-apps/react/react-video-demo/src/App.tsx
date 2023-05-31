@@ -28,7 +28,6 @@ import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
-import { measureLatencyToEdges } from './utils/useMeasureLatencyReponse';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -48,8 +47,6 @@ const config: Config = {
   separator: '-',
   style: 'lowerCase',
 };
-
-const FETCH_EDGE_TIMOUT = 10000;
 
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
@@ -96,50 +93,11 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
-      if (isCallActive) {
-        if (markerTimer) {
-          clearTimeout(markerTimer);
-        }
-        return;
-      }
-
       const response: GetEdgesResponse = await client.edges();
-      const latencies = await measureLatencyToEdges(response.edges);
-
-      const edgeId: string = Object.keys(latencies).reduce((acc, curr) => {
-        const lowestCurr = Math.min(...latencies[curr]);
-
-        if (lowestCurr === -1) {
-          return acc;
-        }
-
-        if (acc) {
-          const lowestAcc = Math.min(...latencies[acc]);
-
-          if (lowestCurr < lowestAcc) {
-            return curr;
-          } else {
-            return acc;
-          }
-        }
-
-        return curr;
-      });
-
-      const latency = Math.min(...latencies[edgeId]);
-
-      setFastestEdge({
-        id: edgeId,
-        latency: latency,
-      });
 
       if (!edges) {
         const features = createGeoJsonFeatures(response.edges);
         setEdges(features);
-      }
-
-      if (!isCallActive) {
-        markerTimer = setTimeout(fetchEdges, Math.random() * FETCH_EDGE_TIMOUT);
       }
     }
 

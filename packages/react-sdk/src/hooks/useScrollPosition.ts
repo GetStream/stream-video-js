@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const SCROLL_TRESHOLD = 10;
+const SCROLL_THRESHOLD = 10;
 
 /**
  * Hook which observes element's scroll position and returns text value based on the
@@ -8,7 +8,7 @@ const SCROLL_TRESHOLD = 10;
  */
 export const useVerticalScrollPosition = (
   scrollElement: HTMLElement | null,
-  treshold: number = SCROLL_TRESHOLD,
+  threshold: number = SCROLL_THRESHOLD,
 ) => {
   const [scrollPosition, setScrollPosition] = useState<
     'top' | 'bottom' | 'between' | null
@@ -24,13 +24,13 @@ export const useVerticalScrollPosition = (
 
       if (!hasVerticalScrollbar) return setScrollPosition(null);
 
-      const isAtTheTop = element.scrollTop <= treshold;
+      const isAtTheTop = element.scrollTop <= threshold;
       if (isAtTheTop) return setScrollPosition('top');
 
       const isAtTheBottom =
         Math.abs(
           element.scrollHeight - element.scrollTop - element.clientHeight,
-        ) <= treshold;
+        ) <= threshold;
 
       if (isAtTheBottom) return setScrollPosition('bottom');
 
@@ -45,14 +45,14 @@ export const useVerticalScrollPosition = (
       scrollElement.removeEventListener('scroll', scrollHandler);
       resizeObserver.disconnect();
     };
-  }, [scrollElement, treshold]);
+  }, [scrollElement, threshold]);
 
   return scrollPosition;
 };
 
 export const useHorizontalScrollPosition = (
   scrollElement: HTMLElement | null,
-  treshold: number = SCROLL_TRESHOLD,
+  threshold: number = SCROLL_THRESHOLD,
 ) => {
   const [scrollPosition, setScrollPosition] = useState<
     'start' | 'end' | 'between' | null
@@ -68,13 +68,13 @@ export const useHorizontalScrollPosition = (
 
       if (!hasHorizontalScrollbar) return setScrollPosition(null);
 
-      const isAtTheStart = element.scrollLeft <= treshold;
+      const isAtTheStart = element.scrollLeft <= threshold;
       if (isAtTheStart) return setScrollPosition('start');
 
       const isAtTheEnd =
         Math.abs(
           element.scrollWidth - element.scrollLeft - element.clientWidth,
-        ) <= treshold;
+        ) <= threshold;
 
       if (isAtTheEnd) return setScrollPosition('end');
 
@@ -89,7 +89,7 @@ export const useHorizontalScrollPosition = (
       scrollElement.removeEventListener('scroll', scrollHandler);
       resizeObserver.disconnect();
     };
-  }, [scrollElement, treshold]);
+  }, [scrollElement, threshold]);
 
   return scrollPosition;
 };

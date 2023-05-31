@@ -24,7 +24,6 @@ import type {
   EventHandler,
   EventTypes,
   StreamClientOptions,
-  StreamVideoEvent,
   TokenOrProvider,
   User,
 } from './coordinator/connection/types';
@@ -39,6 +38,8 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
+
+  private eventHandlersToUnregister: Array<() => void> = [];
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -73,52 +74,83 @@ export class StreamVideoClient {
       user,
       tokenOrProvider,
     );
+    this.writeableStateStore.setConnectedUser(user);
 
-    // FIXME OL: unregister the event listeners.
-    this.on('connection.changed', (e) => {
-      const event = e as ConnectionChangedEvent;
-      if (event.online) {
-        const callsToReWatch = this.writeableStateStore.calls
-          .filter((call) => call.watching)
-          .map((call) => call.cid);
+    this.eventHandlersToUnregister.push(
+      this.on('connection.changed', (e) => {
+        const event = e as ConnectionChangedEvent;
+        if (event.online) {
+          const callsToReWatch = this.writeableStateStore.calls
+            .filter((call) => call.watching)
+            .map((call) => call.cid);
 
-        if (callsToReWatch.length > 0) {
-          this.queryCalls({
-            watch: true,
-            filter_conditions: {
-              cid: { $in: callsToReWatch },
-            },
-            sort: [{ field: 'cid', direction: 1 }],
-          }).catch((err) => {
-            console.warn('Failed to re-watch calls', err);
+          if (callsToReWatch.length > 0) {
+            this.queryCalls({
+              watch: true,
+              filter_conditions: {
+                cid: { $in: callsToReWatch },
+              },
+              sort: [{ field: 'cid', direction: 1 }],
+            }).catch((err) => {
+              console.warn('Failed to re-watch calls', err);
+            });
+          }
+        }
+      }),
+    );
+
+    this.eventHandlersToUnregister.push(
+      this.on('call.created', (event) => {
+        if (event.type !== 'call.created') return;
+        const { call, members } = event;
+        if (user.id === call.created_by.id) {
+          console.warn('Received `call.created` sent by the current user');
+          return;
+        }
+
+        this.writeableStateStore.registerCall(
+          new Call({
+            streamClient: this.streamClient,
+            type: call.type,
+            id: call.id,
+            metadata: call,
+            members,
+            clientStore: this.writeableStateStore,
+          }),
+        );
+      }),
+    );
+
+    this.eventHandlersToUnregister.push(
+      this.on('call.ring', async (event) => {
+        if (event.type !== 'call.ring') return;
+        const { call, members } = event;
+        if (user.id === call.created_by.id) {
+          console.warn('Received `call.ring` sent by the current user');
+          return;
+        }
+
+        // The call might already be tracked by the client,
+        // if `call.created` was received before `call.ring`.
+        // In that case, we just reuse the already tracked call.
+        let theCall = this.writeableStateStore.findCall(call.type, call.id);
+        if (!theCall) {
+          // otherwise, we create a new call
+          theCall = new Call({
+            streamClient: this.streamClient,
+            type: call.type,
+            id: call.id,
+            members,
+            clientStore: this.writeableStateStore,
+            ringing: true,
           });
         }
-      }
-    });
 
-    // FIXME: OL: unregister the event listeners.
-    this.on('call.created', (event: StreamVideoEvent) => {
-      if (event.type !== 'call.created') return;
-      const { call, members } = event;
-      if (user.id === call.created_by.id) {
-        console.warn('Received `call.created` sent by the current user');
-        return;
-      }
-
-      this.writeableStateStore.registerCall(
-        new Call({
-          streamClient: this.streamClient,
-          type: call.type,
-          id: call.id,
-          metadata: call,
-          members,
-          ringing: false, //TODO: remove ringing from here
-          clientStore: this.writeableStateStore,
-        }),
-      );
-    });
-
-    this.writeableStateStore.setConnectedUser(user);
+        // we fetch the latest metadata for the call from the server
+        await theCall.get({ ring: true });
+        this.writeableStateStore.registerCall(theCall);
+      }),
+    );
 
     return connectUserResponse;
   };
@@ -147,6 +179,8 @@ export class StreamVideoClient {
    */
   disconnectUser = async (timeout?: number) => {
     await this.streamClient.disconnectUser(timeout);
+    this.eventHandlersToUnregister.forEach((unregister) => unregister());
+    this.eventHandlersToUnregister = [];
     this.writeableStateStore.setConnectedUser(undefined);
   };
 
@@ -218,6 +252,7 @@ export class StreamVideoClient {
         type: c.call.type,
         metadata: c.call,
         members: c.members,
+        ownCapabilities: c.own_capabilities,
         watching: data.watch,
         clientStore: this.writeableStateStore,
       });

@@ -31,7 +31,7 @@
 }
 
 .enableBrowserSettings {
-  @apply flex  flex-col items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full p-4;
+  @apply flex  flex-col items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full p-8;
   border-radius: 10px;
   z-index: 10;
 }

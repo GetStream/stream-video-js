@@ -6,6 +6,7 @@ import type {
   CallResponse,
   JoinCallRequest,
   MemberResponse,
+  OwnCapability,
   ReactionResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
@@ -183,6 +184,13 @@ export type CallConstructor = {
    * This is useful when initializing a new "pending call" from an event.
    */
   members?: MemberResponse[];
+
+  /**
+   * An optional list of {@link OwnCapability} coming from the backed.
+   * If provided, the call will be initialized with the data from this object.
+   * This is useful when initializing a new "pending call" from an event.
+   */
+  ownCapabilities?: OwnCapability[];
 
   /**
    * Flags the call as a ringing call.

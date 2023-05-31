@@ -8,7 +8,7 @@ import {
 import { ParticipantView, DefaultParticipantViewUI } from '../../core';
 import { Video } from '../Video';
 
-import { useVerticalScrollPosition } from './hooks';
+import { useVerticalScrollPosition } from '../../hooks';
 import { IconButton } from '../Button';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
