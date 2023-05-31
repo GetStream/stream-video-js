@@ -1,25 +1,3 @@
----
-id: audio-volume-indicator
-title: Audio Volume Indicator
-description: Audio Volume Indicator
----
-
-import AudioVolumeIndicator from "../assets/ui-cookbook/09-audio-volume-indicator/audio-volume-indicator.png";
-
-In this documentation article, we will explore how to build a custom sound detection component using [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
-
-## Sound detection
-The sound detection can be easily implemented using [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) utility function. To learn more about this function, please see our [sound detection guide](../../guides/camera-and-microphone#sound-detection).
-
-## Custom AudioVolumeIndicator component
-The component will show the audio level changes by expanding and contracting a line.
-
-<img src={AudioVolumeIndicator} alt="Image of audio volume indicator"/>
-
-The audio level is kept in component's state. The sound detection is set up in an effect. Also, we make sure to call the clean-up function in the effect clean-up phase.
-
-
-```tsx
 import { useEffect, useState } from 'react';
 
 import {
@@ -33,9 +11,7 @@ export const AudioVolumeIndicator = () => {
     useMediaDevices();
   const [audioLevel, setAudioLevel] = useState<number>(0);
 
-  // highlight-start
   useEffect(() => {
-    // do not detect sound changes if audio is disabled
     if (!initialAudioEnabled) return;
 
     const disposeSoundDetector = getAudioStream({
@@ -53,7 +29,6 @@ export const AudioVolumeIndicator = () => {
     });
 
     return () => {
-      // clean up stream and analyser
       disposeSoundDetector
         .then((dispose) => dispose())
         .catch((err) => {
@@ -61,7 +36,6 @@ export const AudioVolumeIndicator = () => {
         });
     };
   }, [initialAudioEnabled, getAudioStream, selectedAudioInputDeviceId]);
-  // highlight-end
 
   if (!initialAudioEnabled) return null;
 
@@ -86,10 +60,8 @@ export const AudioVolumeIndicator = () => {
       >
         <div
           style={{
-            // highlight-start
             transform: `scaleX(${audioLevel / 100})`,
             transformOrigin: 'left center',
-            // highlight-end
             background: 'var(--str-video__primary-color)',
             width: '100%',
             height: '100%',
@@ -99,4 +71,3 @@ export const AudioVolumeIndicator = () => {
     </div>
   );
 };
-```
