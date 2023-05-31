@@ -31,7 +31,7 @@ import clsx from 'clsx';
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
-  participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right';
+  participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right' | null;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
 const DefaultParticipantViewUIBar = () => (
@@ -88,7 +88,8 @@ export const SpeakerLayout = ({
       <div
         className={clsx(
           'str-video__speaker-layout',
-          `str-video__speaker-layout--variant-${participantsBarPosition}`,
+          participantsBarPosition &&
+            `str-video__speaker-layout--variant-${participantsBarPosition}`,
         )}
       >
         <div className="str-video__speaker-layout__spotlight">
@@ -103,7 +104,7 @@ export const SpeakerLayout = ({
             />
           )}
         </div>
-        {otherParticipants.length > 0 && (
+        {otherParticipants.length > 0 && participantsBarPosition && (
           <div className="str-video__speaker-layout__participants-bar-buttons-wrapper">
             <div
               className="str-video__speaker-layout__participants-bar-wrapper"

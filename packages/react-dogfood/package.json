@@ -17,6 +17,7 @@
     "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "dotenv": "^16.0.3",
+    "framer-motion": "^10.12.16",
     "gleap": "^10.0.5",
     "hotkeys-js": "^3.10.2",
     "nanoid": "^4.0.1",

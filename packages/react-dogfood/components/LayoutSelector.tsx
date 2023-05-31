@@ -10,7 +10,11 @@ import {
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 
-import { CallParticipantsScreenView, CallParticipantsView } from './CallLayout';
+import {
+  CallParticipantsScreenView,
+  CallParticipantsView,
+  SpeakerOneOnOne,
+} from './CallLayout';
 
 export const LayoutMap = {
   LegacyGrid: {
@@ -56,6 +60,11 @@ export const LayoutMap = {
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
     title: 'Sidebar',
+    props: {},
+  },
+  SpeakerOneOnOne: {
+    Component: SpeakerOneOnOne,
+    title: 'Speaker 1:1',
     props: {},
   },
 };
