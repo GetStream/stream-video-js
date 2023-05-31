@@ -1,5 +1,4 @@
 import { OwnCapability, PermissionRequestEvent } from '@stream-io/video-client';
-import { useCallMetadata } from './call';
 import { useCallState } from './store';
 import { useObservableValue } from './helpers/useObservableValue';
 
@@ -10,12 +9,9 @@ import { useObservableValue } from './helpers/useObservableValue';
  *
  * @category Call State
  */
-export const useHasPermissions = (...permissions: OwnCapability[]) => {
-  const metadata = useCallMetadata();
-  if (!metadata) return false;
-  return permissions.every((permission) =>
-    metadata.own_capabilities.includes(permission),
-  );
+export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
+  const capabilities = useOwnCapabilities();
+  return permissions.every((permission) => capabilities.includes(permission));
 };
 
 /**
@@ -24,8 +20,8 @@ export const useHasPermissions = (...permissions: OwnCapability[]) => {
  * @category Call State
  */
 export const useOwnCapabilities = (): OwnCapability[] => {
-  const metadata = useCallMetadata();
-  return metadata?.own_capabilities || [];
+  const { ownCapabilities$ } = useCallState();
+  return useObservableValue(ownCapabilities$);
 };
 
 /**

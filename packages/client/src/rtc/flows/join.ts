@@ -24,13 +24,14 @@ export const join = async (
   await httpClient.connectionIdPromise;
 
   const joinCallResponse = await doJoin(httpClient, type, id, data);
-  const { call, credentials, members } = joinCallResponse;
+  const { call, credentials, members, own_capabilities } = joinCallResponse;
   return {
     connectionConfig: toRtcConfiguration(credentials.ice_servers),
     sfuServer: credentials.server,
     token: credentials.token,
     metadata: call,
     members,
+    ownCapabilities: own_capabilities,
   };
 };
 

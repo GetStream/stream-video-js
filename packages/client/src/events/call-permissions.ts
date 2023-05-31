@@ -22,10 +22,7 @@ export const watchCallPermissionsUpdated = (state: CallState) => {
     if (event.type !== 'call.permissions_updated') return;
     const { localParticipant } = state;
     if (event.user.id === localParticipant?.userId) {
-      state.setMetadata((metadata) => ({
-        ...metadata!,
-        own_capabilities: event.own_capabilities,
-      }));
+      state.setOwnCapabilities(event.own_capabilities);
     }
   };
 };
@@ -49,7 +46,7 @@ export const watchCallGrantsUpdated = (state: CallState) => {
         [OwnCapability.SCREENSHARE]: canScreenshare,
       };
 
-      const nextCapabilities = (state.metadata?.own_capabilities || []).filter(
+      const nextCapabilities = state.ownCapabilities.filter(
         (capability) => update[capability] !== false,
       );
       Object.entries(update).forEach(([capability, value]) => {
@@ -58,12 +55,7 @@ export const watchCallGrantsUpdated = (state: CallState) => {
         }
       });
 
-      state.setMetadata((metadata) => {
-        return {
-          ...metadata!,
-          own_capabilities: nextCapabilities,
-        };
-      });
+      state.setOwnCapabilities(nextCapabilities);
     }
   };
 };

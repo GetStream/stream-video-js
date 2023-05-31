@@ -9,12 +9,7 @@ import { StreamVideoEvent } from '../coordinator/connection/types';
 export const watchCallSessionStarted = (state: CallState) => {
   return function onCallSessionStarted(event: StreamVideoEvent) {
     if (event.type !== 'call.session_started') return;
-    const { call } = event;
-    state.setMetadata((metadata) => ({
-      ...call,
-      // FIXME OL: temporary, until the backend sends the own_capabilities
-      own_capabilities: metadata?.own_capabilities || [],
-    }));
+    state.setMetadata(event.call);
   };
 };
 
@@ -26,12 +21,7 @@ export const watchCallSessionStarted = (state: CallState) => {
 export const watchCallSessionEnded = (state: CallState) => {
   return function onCallSessionEnded(event: StreamVideoEvent) {
     if (event.type !== 'call.session_ended') return;
-    const { call } = event;
-    state.setMetadata((metadata) => ({
-      ...call,
-      // FIXME OL: temporary, until the backend sends the own_capabilities
-      own_capabilities: metadata?.own_capabilities || [],
-    }));
+    state.setMetadata(event.call);
   };
 };
 
