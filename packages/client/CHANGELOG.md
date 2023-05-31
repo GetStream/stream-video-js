@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.2-alpha.10](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.9...client0.0.2-alpha.10) (2023-05-31)
+
+
+### Bug Fixes
+
+* add request cancellation for location hints ([#567](https://github.com/GetStream/stream-video-js/issues/567)) ([5ee49bc](https://github.com/GetStream/stream-video-js/commit/5ee49bcd60f2409828b2caaf82cbd0b5672949d3))
+
+
+
 ## [0.0.2-alpha.9](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.8...client0.0.2-alpha.9) (2023-05-30)
 
 
