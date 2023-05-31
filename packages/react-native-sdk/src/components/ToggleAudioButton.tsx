@@ -14,10 +14,12 @@ import { useCallback, useEffect, useState } from 'react';
 
 export const ToggleAudioButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
-  const { toggleAudioMuted, isAudioMuted } = useCallControls();
+  const { toggleAudioMuted, isAudioPublished } = useCallControls();
   const userHasSendAudioCapability = useHasPermissions(
     OwnCapability.SEND_AUDIO,
   );
+
+  const isAudioMuted = !isAudioPublished;
 
   usePermissionNotification({
     permission: OwnCapability.SEND_AUDIO,

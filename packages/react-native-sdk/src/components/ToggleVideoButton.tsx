@@ -14,7 +14,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 export const ToggleVideoButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
-  const { toggleVideoMuted, isVideoMuted } = useCallControls();
+  const { toggleVideoMuted, isVideoPublished } = useCallControls();
+
+  const isVideoMuted = !isVideoPublished;
 
   const userHasSendVideoCapability = useHasPermissions(
     OwnCapability.SEND_VIDEO,
