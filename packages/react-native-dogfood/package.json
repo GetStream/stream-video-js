@@ -13,11 +13,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@notifee/react-native": "^7.6.1",
+    "@notifee/react-native": "7.7.1",
     "@react-native-async-storage/async-storage": "^1.17.10",
     "@react-native-clipboard/clipboard": "^1.11.1",
-    "@react-native-firebase/app": "^16.5.0",
-    "@react-native-firebase/messaging": "^16.5.0",
+    "@react-native-firebase/app": "17.5.0",
+    "@react-native-firebase/messaging": "17.5.0",
     "@react-native-google-signin/google-signin": "^8.2.1",
     "@react-navigation/native": "^6.0.13",
     "@react-navigation/native-stack": "^6.9.1",

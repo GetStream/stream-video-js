@@ -16,9 +16,14 @@ export function setFirebaseHandler() {
     /* Example data from firebase
     "message": {
         "data": {
-            "call_cid": "default:123",
-            "sender": "stream.video",
-            "type": "incoming_call"
+          call_cid: 'audio_room:dcc1638c-e90d-4dcb-bf3b-8fa7767bfbb0',
+          call_display_name: '',
+          created_by_display_name: 'tommaso',
+          created_by_id: 'tommaso-03dcddb7-e9e2-42ec-b2f3-5043aac666ee',
+          receiver_id: 'martin-21824f17-319b-401b-a61b-fcab646f0d3f',
+          sender: 'stream.video',
+          type: 'call.live_started',
+          version: 'v2'
         },
         // other stuff
     }
