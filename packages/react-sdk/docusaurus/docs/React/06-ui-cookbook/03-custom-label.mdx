@@ -7,7 +7,7 @@ import ImageShowcase from '@site/src/components/ImageShowcase';
 import DefaultParticipantLabelMuted from '../assets/ui-cookbook/03-custom-label/default-participant-label-muted.png';
 import DefaultParticipantLabelConnectionDominantSpeaker from '../assets/ui-cookbook/03-custom-label/default-user-label-connection-dominant-speaker.png';
 
-There may be a plethora of designs for label that is displayed above the participant video. The SDK's [default label shows](todo docs link to section about DefaultParticipantViewUI):
+There may be a plethora of designs for label that is displayed above the participant video. The SDK's [default label shows](../../ui-components/core/participant-view):
 
 - user's name
 - microphone and camera mute state
@@ -32,9 +32,9 @@ There may be a plethora of designs for label that is displayed above the partici
 It is expected that the default component may not meet all the requirements of all the apps in the world. Therefore, we will look into ways, how to customize the contents of the participant label in this tutorial.
 
 ## Custom participant label
-Our custom label will **include a human-readable call join time** in addition to what the design requirements were. To achieve this, we will need to override the whole [`DefaultParticipantViewUI`](todo docs link to section about DefaultParticipantViewUI) component. You can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](../participant-view-customizations).
+Our custom label will **include a human-readable call join time** in addition to what the design requirements were. To achieve this, we will need to override the whole participant`ParticipantViewUI` component. You can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](../participant-view-customizations).
 
-To retrieve the data about the participant, whose view we are about to render, we use [`useParticipantViewContext`](todo docs link) context consumer hook.
+To retrieve the data about the participant, whose view we are about to render, we use [`useParticipantViewContext`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-sdk/src/core/components/ParticipantView/ParticipantView.tsx) context consumer hook.
 
 ```tsx
 import {
