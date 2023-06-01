@@ -3709,6 +3709,12 @@ export interface UpdateCallRequest {
 export interface UpdateCallResponse {
   /**
    *
+   * @type {Array<UserResponse>}
+   * @memberof UpdateCallResponse
+   */
+  blocked_users: Array<UserResponse>;
+  /**
+   *
    * @type {CallResponse}
    * @memberof UpdateCallResponse
    */
@@ -3719,6 +3725,24 @@ export interface UpdateCallResponse {
    * @memberof UpdateCallResponse
    */
   duration: string;
+  /**
+   *
+   * @type {Array<MemberResponse>}
+   * @memberof UpdateCallResponse
+   */
+  members: Array<MemberResponse>;
+  /**
+   *
+   * @type {MemberResponse}
+   * @memberof UpdateCallResponse
+   */
+  membership?: MemberResponse;
+  /**
+   *
+   * @type {Array<OwnCapability>}
+   * @memberof UpdateCallResponse
+   */
+  own_capabilities: Array<OwnCapability>;
 }
 /**
  *
