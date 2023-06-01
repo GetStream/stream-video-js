@@ -50,8 +50,8 @@ jobs:
         run: yarn install --immutable
       - name: Build react native dependency packages
         run: yarn build:react-native:deps
-      - name: Build RN SDK
-        run: yarn build:react-native:sdk
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
@@ -102,6 +102,8 @@ jobs:
         run: yarn install --immutable
       - name: Build react native dependency packages
         run: yarn build:react-native:deps
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
