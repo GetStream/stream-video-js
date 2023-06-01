@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.2-alpha.17](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.16...client0.0.2-alpha.17) (2023-06-01)
+
+
+
 ## [0.0.2-alpha.16](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.15...client0.0.2-alpha.16) (2023-05-31)
 
 
