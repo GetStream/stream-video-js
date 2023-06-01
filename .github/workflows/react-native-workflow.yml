@@ -79,7 +79,7 @@ jobs:
           bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
   deploy_android:
     name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
       matrix:
