@@ -1,5 +1,5 @@
 import { Call } from '@stream-io/video-client';
-import users, { User } from './users';
+import { User } from './users';
 
 export interface AudioRoom {
   id: string;
@@ -11,37 +11,15 @@ export interface AudioRoom {
   call?: Call;
 }
 
-export const audioRooms: AudioRoom[] = [
-  {
-    id: 'demoAudioRoom1',
-    title: 'The football room',
-    subtitle: 'All about the beautiful game',
-    hosts: [users[2], users[4]],
+export function roomFromCall(call: Call): AudioRoom {
+  const customData = call.data?.custom;
+  return {
+    id: call.id,
+    title: customData?.title,
+    subtitle: customData?.description,
+    hosts: customData?.hosts,
     listeners: [],
-    speakers: [users[2], users[4]],
-  },
-  {
-    id: 'demoAudioRoom2',
-    title: 'iOS developers',
-    subtitle: "Learn everything about Apple's platforms",
-    hosts: [users[2], users[0]],
-    listeners: [],
-    speakers: [users[2], users[0]],
-  },
-  {
-    id: 'demoAudioRoom3',
-    title: 'Go developers',
-    subtitle: 'We love Go',
-    hosts: [users[1], users[0]],
-    listeners: [],
-    speakers: [users[1], users[0]],
-  },
-  {
-    id: 'demoAudioRoom4',
-    title: 'Balkan people',
-    subtitle: 'Tales from the crazy region',
-    hosts: [users[4], users[2]],
-    listeners: [],
-    speakers: [users[4], users[2]],
-  },
-];
+    speakers: [],
+    call: call,
+  };
+}

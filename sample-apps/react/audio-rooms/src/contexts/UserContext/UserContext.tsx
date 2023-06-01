@@ -1,4 +1,10 @@
-import { ReactNode, createContext, useContext, useState } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+} from 'react';
 import { User } from '../../data/users';
 import { tokenProvider } from './tokenProvider';
 import { StreamVideoClient } from '@stream-io/video-client';
@@ -20,9 +26,9 @@ export interface UserState {
 const defaultState: UserState = {
   authStatus: AuthStatus.loggedOut,
   user: undefined,
-  userTapped: (user: User) => {},
-  login: async (user: User) => {},
-  logout: (client: StreamVideoClient) => {},
+  userTapped: (_: User) => {},
+  login: async (_: User) => {},
+  logout: (_: StreamVideoClient) => {},
 };
 
 const UserContext = createContext<UserState>(defaultState);
@@ -35,46 +41,54 @@ export const UserContextProvider: any = ({
   const [myState, setMyState] = useState<UserState>(defaultState);
   const store: UserState = myState;
 
-  store.userTapped = async (user: User) => {
-    const token = await tokenProvider(user.id);
-    user.token = token;
+  store.userTapped = useCallback(
+    async (user: User) => {
+      const token = await tokenProvider(user.id);
+      user.token = token;
 
-    setMyState({
-      ...myState,
-      authStatus: AuthStatus.processing,
-      user: user,
-    });
-  };
+      setMyState({
+        ...myState,
+        authStatus: AuthStatus.processing,
+        user: user,
+      });
+    },
+    [myState],
+  );
 
-  store.login = async (user: User, client: StreamVideoClient) => {
-    console.log(
-      `Login called. (Client is ${
-        client === undefined ? 'undefined' : 'defined'
-      })`,
-    );
-    await client.connectUser(user, user.token);
+  store.login = useCallback(
+    async (user: User, client: StreamVideoClient) => {
+      console.log(
+        `Login called. (Client is ${
+          client === undefined ? 'undefined' : 'defined'
+        })`,
+      );
+      await client.connectUser(user, user.token);
 
-    setMyState({
-      ...myState,
-      authStatus: AuthStatus.loggedIn,
-      user: user,
-    });
-  };
+      setMyState({
+        ...myState,
+        authStatus: AuthStatus.loggedIn,
+        user: user,
+      });
+    },
+    [myState],
+  );
 
-  store.logout = (client: StreamVideoClient) => {
-    setMyState({
-      ...myState,
-      authStatus: AuthStatus.processing,
-    });
+  store.logout = useCallback(
+    async (client: StreamVideoClient) => {
+      setMyState({
+        ...myState,
+        authStatus: AuthStatus.processing,
+      });
 
-    client.disconnectUser().then(() => {
+      await client.disconnectUser();
       setMyState({
         ...myState,
         user: undefined,
         authStatus: AuthStatus.loggedOut,
       });
-    });
-  };
+    },
+    [myState],
+  );
 
   return <UserContext.Provider value={store}>{children}</UserContext.Provider>;
 };

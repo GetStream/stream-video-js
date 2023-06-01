@@ -220,7 +220,6 @@ Next, querying is fairly easy. Here is the code and we'll go through it afterwar
 ```tsx
 const client = useStreamVideoClient();
 useEffect(() => {
-  console.log('Loading calls');
   client
     ?.queryCalls({
       filter_conditions: { audioRoomCall: true },

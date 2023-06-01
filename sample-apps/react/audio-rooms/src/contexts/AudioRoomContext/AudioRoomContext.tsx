@@ -1,7 +1,13 @@
 import { Call } from '@stream-io/video-client';
 
-import { ReactNode, createContext, useContext, useState } from 'react';
-import { AudioRoom } from '../../data/audioRoom';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+} from 'react';
+import { AudioRoom, roomFromCall } from '../../data/audioRoom';
 
 export enum AudioRoomState {
   Overview,
@@ -44,72 +50,72 @@ export const AudioRoomContextProvider = ({
 
   console.log('Initiate AudioRoomContextProvider');
 
-  myState.join = (room: AudioRoom) => {
-    setMyState({
-      ...myState,
-      state: AudioRoomState.Joined,
-      currentRoom: room,
-    });
-  };
+  myState.join = useCallback(
+    (room: AudioRoom) => {
+      setMyState({
+        ...myState,
+        state: AudioRoomState.Joined,
+        currentRoom: room,
+      });
+    },
+    [myState],
+  );
 
-  myState.leave = () => {
+  myState.leave = useCallback(() => {
     setMyState({
       ...myState,
       state: AudioRoomState.Overview,
       currentRoom: undefined,
     });
-  };
+  }, [myState]);
 
-  myState.create = () => {
+  myState.create = useCallback(() => {
     setMyState({
       ...myState,
       state: AudioRoomState.Create,
     });
-  };
+  }, [myState]);
 
-  myState.roomCreated = () => {
+  myState.roomCreated = useCallback(() => {
     setMyState({
       ...myState,
       state: AudioRoomState.Overview,
     });
-  };
+  }, [myState]);
 
-  myState.setRooms = (calls: Call[]) => {
-    const liveRooms: AudioRoom[] = [];
-    const upcomingRooms: AudioRoom[] = [];
-    calls.forEach((call) => {
-      const customData = call.data?.custom;
-      const room: AudioRoom = {
-        id: call.id,
-        title: customData?.title,
-        subtitle: customData?.description,
-        hosts: customData?.hosts,
-        listeners: [],
-        speakers: [],
-        call: call,
-      };
-      // Check if call is currently live
-      const isBackstage = call.state.metadata?.backstage;
-      // If the room has ended, don't show it here as people can't join anymore.
-      if (!call.state.metadata?.ended_at) {
+  myState.setRooms = useCallback(
+    (calls: Call[]) => {
+      const liveRooms: AudioRoom[] = [];
+      const upcomingRooms: AudioRoom[] = [];
+      calls.forEach((call) => {
+        const room = roomFromCall(call);
+
+        // If the room has ended, don't show it here as people can't join anymore.
+        if (call.state.metadata?.ended_at) {
+          return;
+        }
+
+        // Check if call is currently live
+        const isBackstage = call.state.metadata?.backstage;
         if (isBackstage) {
           upcomingRooms.push(room);
         } else {
           liveRooms.push(room);
         }
-      }
-    });
+      });
 
-    console.log(
-      `Found ${upcomingRooms.length} upcoming and ${liveRooms.length} live rooms.`,
-    );
+      console.log(
+        `Found ${upcomingRooms.length} upcoming and ${liveRooms.length} live rooms.`,
+      );
 
-    setMyState({
-      ...myState,
-      liveRooms: liveRooms,
-      upcomingRooms: upcomingRooms,
-    });
-  };
+      setMyState({
+        ...myState,
+        liveRooms: liveRooms,
+        upcomingRooms: upcomingRooms,
+      });
+    },
+    [myState],
+  );
 
   return (
     <AudioRoomContext.Provider value={myState}>

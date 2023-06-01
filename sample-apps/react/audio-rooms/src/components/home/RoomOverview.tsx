@@ -28,7 +28,8 @@ const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
         console.log('Querying calls failed.');
         console.error(err);
       });
-  }, [client, setRooms]);
+  }, []);
+  // }, [client, setRooms]);
 
   return (
     <section className="rooms-overview">
