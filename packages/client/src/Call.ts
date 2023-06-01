@@ -1412,10 +1412,17 @@ export class Call {
    * @param updates the updates to apply to the call.
    */
   update = async (updates: UpdateCallRequest) => {
-    return this.streamClient.patch<UpdateCallResponse, UpdateCallRequest>(
-      `${this.streamClientBasePath}`,
-      updates,
-    );
+    const response = await this.streamClient.patch<
+      UpdateCallResponse,
+      UpdateCallRequest
+    >(`${this.streamClientBasePath}`, updates);
+
+    const { call, members, own_capabilities } = response;
+    this.state.setMetadata(call);
+    this.state.setMembers(members);
+    this.state.setOwnCapabilities(own_capabilities);
+
+    return response;
   };
 
   /**
