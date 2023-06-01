@@ -35,7 +35,7 @@
 
 /* Horizontal Slider */
 .root.horizontal {
-  @apply relative h-full w-[90vw];
+  @apply relative h-full  w-full;
 }
 
 .slide.horizontal {
@@ -48,13 +48,7 @@
   }
 
   .slide.horizontal {
-    max-width: 40%;
-  }
-}
-
-@media screen(md) {
-  .slide.horizontal {
-    max-width: 30%;
+    @apply max-w-[30%] max-h-full;
   }
 }
 

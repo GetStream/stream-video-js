@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from 'react';
+import { Dispatch, SetStateAction, forwardRef, useEffect } from 'react';
 import {
   CallParticipantsScreenView,
   CallParticipantsView,
@@ -16,28 +16,57 @@ export const LayoutMap = {
   LegacyGrid: {
     Component: CallParticipantsView,
     title: 'Grid',
+    props: {},
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     title: 'Grid (beta)',
+    props: {
+      groupSize: 16,
+    },
   },
-  Speaker: {
+  SpeakerBottom: {
     Component: SpeakerLayout,
-    title: 'Spotlight (beta)',
+    title: 'Spotlight (default)',
+    props: {
+      participantsBarPosition: 'bottom',
+    },
+  },
+  SpeakerRight: {
+    Component: SpeakerLayout,
+    title: 'Spotlight (bar right)',
+    props: {
+      participantsBarPosition: 'right',
+    },
+  },
+  SpeakerTop: {
+    Component: SpeakerLayout,
+    title: 'Spotlight (bar top)',
+    props: {
+      participantsBarPosition: 'top',
+    },
+  },
+  SpeakerLeft: {
+    Component: SpeakerLayout,
+    title: 'Spotlight (bar left)',
+    props: {
+      participantsBarPosition: 'left',
+    },
   },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
     title: 'Sidebar',
+    props: {},
   },
 };
 
 export type LayoutSelectorProps = {
-  onMenuItemClick: (key: keyof typeof LayoutMap) => void;
+  onMenuItemClick: Dispatch<SetStateAction<keyof typeof LayoutMap>>;
   selectedLayout: keyof typeof LayoutMap;
 };
 
 const SETTINGS_KEY = '@pronto/layout-settings';
-export const DEFAULT_LAYOUT = 'Speaker';
+export const DEFAULT_LAYOUT: keyof typeof LayoutMap = 'SpeakerBottom';
 
 export const getLayoutSettings = () => {
   if (typeof window === 'undefined') return;
@@ -59,12 +88,21 @@ export const LayoutSelector = ({
 
   useEffect(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
+
+    const isStoredLayoutInMap = Object.hasOwn(LayoutMap, storedLayout);
+
     // always switch to screen-share compatible layout
-    if (hasScreenShare) return setLayout('Speaker');
+    if (hasScreenShare)
+      return setLayout((currentLayout) => {
+        if (currentLayout.startsWith('Speaker')) return currentLayout;
+        return 'SpeakerBottom';
+      });
 
     setLayout(
-      // reset to "stored" layout, use default if uncompatible layout is used
-      storedLayout === 'LegacySpeaker' ? DEFAULT_LAYOUT : storedLayout,
+      // reset to "stored" layout, use default if incompatible layout is used
+      storedLayout === 'LegacySpeaker' || !isStoredLayoutInMap
+        ? DEFAULT_LAYOUT
+        : storedLayout,
     );
   }, [hasScreenShare, setLayout]);
 

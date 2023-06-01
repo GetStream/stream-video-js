@@ -42,7 +42,7 @@ describe('Call Permission Events', () => {
       },
     });
 
-    expect(state.metadata?.own_capabilities).toEqual([
+    expect(state.ownCapabilities).toEqual([
       OwnCapability.SEND_AUDIO,
       OwnCapability.SEND_VIDEO,
     ]);
@@ -61,9 +61,7 @@ describe('Call Permission Events', () => {
         teams: [],
       },
     });
-    expect(state.metadata?.own_capabilities).toEqual([
-      OwnCapability.SEND_VIDEO,
-    ]);
+    expect(state.ownCapabilities).toEqual([OwnCapability.SEND_VIDEO]);
   });
 
   it('handles sfu.callGrantsUpdated', () => {
@@ -83,7 +81,7 @@ describe('Call Permission Events', () => {
       },
     });
 
-    expect(state.metadata?.own_capabilities).toEqual([
+    expect(state.ownCapabilities).toEqual([
       OwnCapability.SEND_AUDIO,
       OwnCapability.SEND_VIDEO,
       OwnCapability.SCREENSHARE,
@@ -102,8 +100,6 @@ describe('Call Permission Events', () => {
         },
       },
     });
-    expect(state.metadata?.own_capabilities).toEqual([
-      OwnCapability.SEND_AUDIO,
-    ]);
+    expect(state.ownCapabilities).toEqual([OwnCapability.SEND_AUDIO]);
   });
 });

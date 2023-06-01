@@ -27,6 +27,17 @@ export type SoundDetectorOptions = {
   destroyStreamOnStop?: boolean;
 };
 
+export type SoundDetectorState = {
+  isSoundDetected: boolean;
+  /**
+   * Represented as percentage (0-100) where 100% is defined by `audioLevelThreshold` property.
+   * Decrease time between samples (to 50-100ms) with `detectionFrequencyInMs` property.
+   */
+  audioLevel: number;
+};
+
+export type SoundStateChangeHandler = (state: SoundDetectorState) => void;
+
 const DETECTION_FREQUENCY_IN_MS = 500;
 const AUDIO_LEVEL_THRESHOLD = 150;
 const FFT_SIZE = 128;
@@ -41,14 +52,7 @@ const FFT_SIZE = 128;
  */
 export const createSoundDetector = (
   audioStream: MediaStream,
-  onSoundDetectedStateChanged: (
-    isSoundDetected: boolean,
-    /**
-     * Represented as percentage (0-100) where 100% is defined by `audioLevelThreshold` property.
-     * Decrease time between samples (to 50-100ms) with `detectionFrequencyInMs` property.
-     */
-    audioLevel: number,
-  ) => void,
+  onSoundDetectedStateChanged: SoundStateChangeHandler,
   options: SoundDetectorOptions = {},
 ) => {
   const {
@@ -78,7 +82,7 @@ export const createSoundDetector = (
         ? 100
         : Math.round((averagedDataValue / audioLevelThreshold) * 100);
 
-    onSoundDetectedStateChanged(isSoundDetected, percentage);
+    onSoundDetectedStateChanged({ isSoundDetected, audioLevel: percentage });
   }, detectionFrequencyInMs);
 
   return async function stop() {

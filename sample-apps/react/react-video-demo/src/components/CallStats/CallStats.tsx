@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import {
   CallStatsReport,
-  useCurrentCallStatsReport,
+  useCallStatsReport,
 } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
@@ -38,7 +38,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
-  const callStatsReport = useCurrentCallStatsReport();
+  const callStatsReport = useCallStatsReport();
 
   const { close } = useModalContext();
 

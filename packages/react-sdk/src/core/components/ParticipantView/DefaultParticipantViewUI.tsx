@@ -12,13 +12,11 @@ import {
   ToggleMenuButtonProps,
 } from '../../../components';
 import { Reaction } from '../../../components/Reaction';
-import { ParticipantViewProps } from './ParticipantView';
 
 import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
 import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
-
-export type ParticipantViewUIProps = Pick<ParticipantViewProps, 'participant'>;
+import { useParticipantViewContext } from './ParticipantView';
 
 export type DefaultParticipantViewUIProps = {
   /**
@@ -33,7 +31,7 @@ export type DefaultParticipantViewUIProps = {
    * Option to show/hide menu button component
    */
   showMenuButton?: boolean;
-} & ParticipantViewUIProps;
+};
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
@@ -42,12 +40,12 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const DefaultParticipantViewUI = ({
-  participant,
   indicatorsVisible = true,
   menuPlacement = 'bottom-end',
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
   const call = useCall()!;
+  const { participant, participantViewElement } = useParticipantViewContext();
   const { reaction, sessionId } = participant;
 
   return (
@@ -58,27 +56,24 @@ export const DefaultParticipantViewUI = ({
           placement={menuPlacement}
           ToggleButton={ToggleButton}
         >
-          <ParticipantActionsContextMenu participant={participant} />
+          <ParticipantActionsContextMenu
+            participantViewElement={participantViewElement}
+            participant={participant}
+          />
         </MenuToggle>
       )}
       {reaction && (
         <Reaction reaction={reaction} sessionId={sessionId} call={call} />
       )}
-      <ParticipantDetails
-        participant={participant}
-        indicatorsVisible={indicatorsVisible}
-      />
+      <ParticipantDetails indicatorsVisible={indicatorsVisible} />
     </>
   );
 };
 
 export const ParticipantDetails = ({
-  participant,
   indicatorsVisible = true,
-}: Pick<
-  DefaultParticipantViewUIProps,
-  'participant' | 'indicatorsVisible'
->) => {
+}: Pick<DefaultParticipantViewUIProps, 'indicatorsVisible'>) => {
+  const { participant } = useParticipantViewContext();
   const {
     isDominantSpeaker,
     isLoggedInUser,
@@ -94,7 +89,7 @@ export const ParticipantDetails = ({
 
   const connectionQualityAsString =
     !!connectionQuality &&
-    String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
+    SfuModels.ConnectionQuality[connectionQuality].toLowerCase();
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -155,7 +150,7 @@ export const ParticipantDetails = ({
           />
           <DebugStatsView
             call={call}
-            kind={isLoggedInUser ? 'publisher' : 'subscriber'}
+            sessionId={sessionId}
             mediaStream={videoStream}
           />
         </>

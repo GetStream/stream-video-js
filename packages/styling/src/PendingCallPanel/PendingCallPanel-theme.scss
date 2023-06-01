@@ -1,5 +1,5 @@
 .str-video__call-panel {
-  background: var(--str-video__tertiary-surface-color);
+  background: var(--str-video__background-color3);
   border: 2px solid rgba(200,200,200,0.6);
   border-radius: 10px;
 }
@@ -9,7 +9,7 @@
 
     .str-video__call-panel__member-box {
       border-radius: var(--str-video__border-radius-circle);
-      background: var(--str-video__disabled-color);
+      background: var(--str-video__background-color6);
 
       &:before {
         content: "";

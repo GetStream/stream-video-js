@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ComponentProps, ComponentType, forwardRef } from 'react';
+import { ComponentProps, ComponentType, forwardRef, useState } from 'react';
 import {
   Restricted,
   useCall,
@@ -119,9 +119,14 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 
 export const ParticipantActionsContextMenu = ({
   participant,
+  participantViewElement,
 }: {
   participant: StreamVideoParticipant;
+  participantViewElement?: HTMLDivElement | null;
 }) => {
+  const [fullscreenModeOn, setFullscreenModeOn] = useState(
+    !!document.fullscreenElement,
+  );
   const activeCall = useCall();
 
   const blockUser = () => {
@@ -166,6 +171,19 @@ export const ParticipantActionsContextMenu = ({
       participant.sessionId,
       participant.pinnedAt ? undefined : Date.now(),
     );
+  };
+
+  const toggleFullscreenMode = () => {
+    if (!fullscreenModeOn)
+      return participantViewElement
+        ?.requestFullscreen()
+        .then(() => setFullscreenModeOn(true))
+        .catch(console.error);
+
+    document
+      .exitFullscreen()
+      .catch(console.error)
+      .finally(() => setFullscreenModeOn(false));
   };
 
   return (
@@ -214,6 +232,9 @@ export const ParticipantActionsContextMenu = ({
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>
+      <GenericMenuButtonItem onClick={toggleFullscreenMode}>
+        {fullscreenModeOn ? 'Leave' : 'Enter'} fullscreen
+      </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}

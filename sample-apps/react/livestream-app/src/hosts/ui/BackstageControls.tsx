@@ -17,7 +17,7 @@ export const BackstageControls = () => {
     <div className="backstage-controls">
       <ToggleAudioPublishingButton caption="" />
       <ToggleVideoPublishingButton caption="" />
-      <CancelCallButton call={call} />
+      <CancelCallButton />
       <ToggleLivestreamButton call={call} />
     </div>
   );

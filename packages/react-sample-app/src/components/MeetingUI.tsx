@@ -15,7 +15,7 @@ export const MeetingUI = () => {
         <DeviceSettings />
       </div>
       <Stage call={activeCall} />
-      <CallControls call={activeCall} />
+      <CallControls />
     </div>
   );
 };

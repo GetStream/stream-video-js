@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
 import {
   useMediaDevices,
@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import ControlMenu from '../ControlMenu';
-import { MicMuted, Signal } from '../Icons';
+import { MicMuted, Signal, Mic, Video } from '../Icons';
 
 import JoinContainer from '../JoinContainer';
 
@@ -25,6 +25,26 @@ export type Props = {
     latency: number;
   };
   isJoiningCall?: boolean;
+  permissionsEnabled?: boolean;
+};
+
+export const EnableBrowserSettings: FC<any> = () => {
+  return (
+    <div className={styles.enableBrowserSettings}>
+      <div className={styles.enableIcons}>
+        <Mic className={styles.enableMic} />
+        <Video className={styles.enableVideo} />
+      </div>
+      <h2 className={styles.enableHeading}>
+        Allow your browser to use your camera and microphone.
+      </h2>
+      <p className={styles.enableDescription}>
+        Stream needs access to your camera and microphone for the call. Please
+        grant access when asked to confirm this decision on each brwoser and
+        computer you use.
+      </p>
+    </div>
+  );
 };
 
 export const DisabledVideoPreview: FC<{ name?: string }> = ({ name }) => {
@@ -43,7 +63,23 @@ export const LobbyPanel: FC<Props> = ({
   className,
   fastestEdge,
   isJoiningCall,
+  permissionsEnabled,
 }) => {
+  const [permissionsErrorComponent, setPermissionsErrorComponent] =
+    useState<any>(() =>
+      permissionsEnabled ? (
+        <DisabledVideoPreview name={user.name} />
+      ) : (
+        <EnableBrowserSettings />
+      ),
+    );
+
+  useEffect(() => {
+    if (!permissionsEnabled) {
+      setPermissionsErrorComponent(<EnableBrowserSettings />);
+    }
+  }, [permissionsEnabled]);
+
   const { initialAudioEnabled } = useMediaDevices();
 
   const rootClassName = classnames(styles.root, className);
@@ -51,6 +87,7 @@ export const LobbyPanel: FC<Props> = ({
   const callContainerClassNames = classnames(styles.callContainer, {
     [styles.audioEnabled]: initialAudioEnabled,
   });
+
   return (
     <div className={rootClassName}>
       <h1 className={styles.heading}>Optimizing Call Experience</h1>
@@ -59,11 +96,15 @@ export const LobbyPanel: FC<Props> = ({
       </p>
       <div className={callContainerClassNames}>
         <div className={styles.videoOverlay}>
-          <div className={styles.server}>Connected to {fastestEdge?.id}</div>
-          <div className={styles.latency}>
-            <span className={styles.latencyIndicator} />
-            {fastestEdge?.latency} ms
-          </div>
+          {fastestEdge?.id ? (
+            <div className={styles.server}>Connected to {fastestEdge?.id}</div>
+          ) : null}
+          {fastestEdge?.latency ? (
+            <div className={styles.latency}>
+              <span className={styles.latencyIndicator} />
+              {fastestEdge?.latency} ms
+            </div>
+          ) : null}
           <div className={styles.name}>
             {user.name} (You)
             {initialAudioEnabled ? null : (
@@ -78,10 +119,8 @@ export const LobbyPanel: FC<Props> = ({
         <VideoPreview
           DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
           NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
-          StartingCameraPreview={() => (
-            <DisabledVideoPreview name={user.name} />
-          )}
-          VideoErrorPreview={() => <DisabledVideoPreview name={user.name} />}
+          StartingCameraPreview={() => permissionsErrorComponent}
+          VideoErrorPreview={() => permissionsErrorComponent}
         />
       </div>
       <ControlMenu className={styles.controls} call={call} preview={true} />

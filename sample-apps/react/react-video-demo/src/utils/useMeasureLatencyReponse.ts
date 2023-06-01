@@ -1,6 +1,3 @@
-import { GetCallEdgeServerRequest } from '@stream-io/video-react-sdk';
-import { EdgeResponse } from '@stream-io/video-client';
-
 const toSeconds = (ms: number) => ms / 1000;
 
 /**
@@ -14,28 +11,31 @@ export const measureResourceLoadLatencyTo = async (
   timeoutAfterMs: number = 1000,
   convertToSeconds: boolean = false,
 ) => {
-  const start = Date.now();
-  const controller = new AbortController();
-  const abortTimeout = setTimeout(() => {
-    controller.abort();
-  }, timeoutAfterMs);
-  try {
-    const src = new URL(endpoint);
-    src.searchParams.set('r', `js_${Math.random() * 10000000}`);
-    await fetch(src.toString(), {
-      signal: controller.signal,
-    });
-    const latency = Date.now() - start;
-    if (convertToSeconds) {
-      return toSeconds(latency);
+  if (endpoint && endpoint.length) {
+    const start = Date.now();
+    const controller = new AbortController();
+    const abortTimeout = setTimeout(() => {
+      controller.abort();
+    }, timeoutAfterMs);
+
+    try {
+      const src = new URL(endpoint);
+      src.searchParams.set('r', `js_${Math.random() * 10000000}`);
+      await fetch(src.toString(), {
+        signal: controller.signal,
+      });
+      const latency = Date.now() - start;
+      if (convertToSeconds) {
+        return toSeconds(latency);
+      }
+      return latency;
+    } catch (e) {
+      console.debug(`failed to measure latency to ${endpoint}`, e);
+      return -1; // indicate error in measurement
+    } finally {
+      // clear timeout in case fetch completes before timeout
+      clearTimeout(abortTimeout);
     }
-    return latency;
-  } catch (e) {
-    console.debug(`failed to measure latency to ${endpoint}`, e);
-    return -1; // indicate error in measurement
-  } finally {
-    // clear timeout in case fetch completes before timeout
-    clearTimeout(abortTimeout);
   }
 };
 
@@ -51,7 +51,7 @@ export const measureResourceLoadLatencyTo = async (
  * @param measureTimeoutAfterMs the hard-limit for the whole measure process.
  */
 export const measureLatencyToEdges = async (
-  edges: EdgeResponse[],
+  edges: any[],
   {
     attempts = 3,
     attemptTimeoutAfterMs = 1000,
@@ -62,7 +62,7 @@ export const measureLatencyToEdges = async (
     measureTimeoutAfterMs?: number;
   } = {},
 ) => {
-  const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
+  const latencyByEdge: Record<string, number[]> = {};
   const measurements: Promise<void>[] = [];
   const start = Date.now();
   for (let attempt = 0; attempt < attempts; attempt++) {
@@ -72,7 +72,9 @@ export const measureLatencyToEdges = async (
           edge.latency_test_url,
           attemptTimeoutAfterMs,
         ).then((latency) => {
-          (latencyByEdge[edge.id] ??= []).push(latency);
+          if (latency && latency > 0) {
+            (latencyByEdge[edge.id] ??= []).push(latency);
+          }
         }),
       );
     }

@@ -60,9 +60,15 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const callState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>(
-    getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT,
-  );
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
+    const storedLayout = getLayoutSettings()?.selectedLayout;
+
+    if (!storedLayout) return DEFAULT_LAYOUT;
+
+    return Object.hasOwn(LayoutMap, storedLayout)
+      ? storedLayout
+      : DEFAULT_LAYOUT;
+  });
 
   const showSidebar = showParticipants || showChat;
 
@@ -175,8 +181,8 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             data-testid="str-video__call-controls"
           >
             <div className="str-video__call-controls--group">
-              <RecordCallButton call={activeCall} />
-              <ScreenShareButton call={activeCall} />
+              <RecordCallButton />
+              <ScreenShareButton />
               <ReactionsButton />
             </div>
             <div className="str-video__call-controls--group">
@@ -184,7 +190,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
-              <CancelCallButton call={activeCall} onLeave={onLeave} />
+              <CancelCallButton onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group">
               <CallStatsButton />

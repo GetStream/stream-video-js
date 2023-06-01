@@ -21,11 +21,10 @@ import {
 } from './store';
 import { createSubscription, getCurrentValue } from './store/rxUtils';
 import {
+  AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
   EndCallResponse,
-  GetCallEdgeServerRequest,
-  GetCallEdgeServerResponse,
   GetCallResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
@@ -35,6 +34,8 @@ import {
   MuteUsersResponse,
   OwnCapability,
   QueryMembersRequest,
+  QueryMembersResponse,
+  RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
   SendEventRequest,
@@ -42,7 +43,11 @@ import {
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
+  StartBroadcastingResponse,
+  StartRecordingResponse,
+  StopBroadcastingResponse,
   StopLiveResponse,
+  StopRecordingResponse,
   UnblockUserRequest,
   UnblockUserResponse,
   UpdateCallMembersRequest,
@@ -191,6 +196,7 @@ export class Call {
     streamClient,
     metadata,
     members,
+    ownCapabilities,
     sortParticipantsBy,
     clientStore,
     ringing = false,
@@ -214,6 +220,7 @@ export class Call {
 
     this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
+    this.state.setOwnCapabilities(ownCapabilities || []);
     this.state.setCallingState(
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
@@ -239,25 +246,15 @@ export class Call {
       // handles updating the permissions context when the metadata changes.
       createSubscription(this.state.metadata$, (metadata) => {
         if (!metadata) return;
-        this.permissionsContext.setPermissions(metadata.own_capabilities);
         this.permissionsContext.setCallSettings(metadata.settings);
       }),
 
-      // handles the case when the user is blocked by the call owner.
-      createSubscription(this.state.metadata$, async (metadata) => {
-        if (!metadata) return;
-        const currentUserId = this.currentUserId;
-        if (
-          currentUserId &&
-          metadata.blocked_user_ids.includes(currentUserId)
-        ) {
-          await this.leave();
-        }
-      }),
+      // handle the case when the user permissions are modified.
+      createSubscription(this.state.ownCapabilities$, (ownCapabilities) => {
+        // update the permission context.
+        this.permissionsContext.setPermissions(ownCapabilities);
 
-      // handle the case when the user permissions are revoked.
-      createSubscription(this.state.metadata$, (metadata) => {
-        if (!metadata) return;
+        // check if the user still has publishing permissions and stop publishing if not.
         const permissionToTrackType = {
           [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
           [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
@@ -273,6 +270,18 @@ export class Call {
             });
           }
         });
+      }),
+
+      // handles the case when the user is blocked by the call owner.
+      createSubscription(this.state.metadata$, async (metadata) => {
+        if (!metadata) return;
+        const currentUserId = this.currentUserId;
+        if (
+          currentUserId &&
+          metadata.blocked_user_ids.includes(currentUserId)
+        ) {
+          await this.leave();
+        }
       }),
 
       // watch for auto drop cancellation
@@ -368,12 +377,10 @@ export class Call {
       if (this.isCreatedByMe && !hasOtherParticipants) {
         // Signals other users that I have cancelled my call to them
         // before they accepted it.
-        // Causes the `call.ended` event to be emitted to all the call members.
-        await this.endCall();
+        await this.reject();
       } else if (reject && callingState === CallingState.RINGING) {
         // Signals other users that I have rejected the incoming call.
-        // Causes the `call.rejected` event to be emitted to all the call members.
-        await this.sendEvent({ type: 'call.rejected' });
+        await this.reject();
       }
     }
 
@@ -443,6 +450,10 @@ export class Call {
 
   /**
    * Loads the information about the call.
+   *
+   * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
+   * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
+   * @param params.members_limit the members limit.
    */
   get = async (params?: {
     ring?: boolean;
@@ -453,8 +464,14 @@ export class Call {
       this.streamClientBasePath,
       params,
     );
+
+    if (params?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -475,8 +492,13 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
     this.state.setMetadata(response.call);
     this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -486,12 +508,46 @@ export class Call {
     return response;
   };
 
+  /**
+   * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
+   * Will send a `call.ring` event to the call members.
+   */
   ring = async (): Promise<GetCallResponse> => {
     return await this.get({ ring: true });
   };
 
+  /**
+   * A shortcut for {@link Call.get} with `notify` parameter set to `true`.
+   * Will send a `call.notification` event to the call members.
+   */
   notify = async (): Promise<GetCallResponse> => {
     return await this.get({ notify: true });
+  };
+
+  /**
+   * Marks the incoming call as accepted.
+   *
+   * This method should be used only for "ringing" call flows.
+   * {@link Call.join} invokes this method automatically for you when joining a call.
+   * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   */
+  accept = async () => {
+    return this.streamClient.post<AcceptCallResponse>(
+      `${this.streamClientBasePath}/accept`,
+    );
+  };
+
+  /**
+   * Marks the incoming call as rejected.
+   *
+   * This method should be used only for "ringing" call flows.
+   * {@link Call.leave} invokes this method automatically for you when you leave or reject this call.
+   * Unless you are implementing a custom "ringing" flow, you should not use this method.
+   */
+  reject = async () => {
+    return this.streamClient.post<RejectCallResponse>(
+      `${this.streamClientBasePath}/reject`,
+    );
   };
 
   /**
@@ -511,6 +567,15 @@ export class Call {
     const previousCallingState = this.state.callingState;
     this.state.setCallingState(CallingState.JOINING);
 
+    if (data?.ring && !this.ringing) {
+      this.ringingSubject.next(true);
+    }
+
+    if (this.ringing && !this.isCreatedByMe) {
+      // signals other users that I have accepted the incoming call.
+      await this.accept();
+    }
+
     let sfuServer: SFUResponse;
     let sfuToken: string;
     let connectionConfig: RTCConfiguration | undefined;
@@ -518,6 +583,7 @@ export class Call {
       const call = await join(this.streamClient, this.type, this.id, data);
       this.state.setMetadata(call.metadata);
       this.state.setMembers(call.members);
+      this.state.setOwnCapabilities(call.ownCapabilities);
       connectionConfig = call.connectionConfig;
       sfuServer = call.sfuServer;
       sfuToken = call.token;
@@ -753,18 +819,6 @@ export class Call {
   };
 
   /**
-   * Will update the call members.
-   *
-   * @param data the request data.
-   */
-  updateCallMembers = async (
-    data: UpdateCallMembersRequest,
-  ): Promise<UpdateCallMembersResponse> => {
-    // FIXME: OL: implement kick-users
-    return this.streamClient.post(`${this.streamClientBasePath}/members`, data);
-  };
-
-  /**
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
    *
@@ -948,19 +1002,6 @@ export class Call {
   };
 
   /**
-   * @deprecated use the `callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore) instead
-   * @param kind
-   * @param selector
-   * @returns
-   */
-  getStats = async (
-    kind: 'subscriber' | 'publisher',
-    selector?: MediaStreamTrack,
-  ) => {
-    return this.statsReporter?.getRawStatsForTrack(kind, selector);
-  };
-
-  /**
    * Will enhance the reported stats with additional participant-specific information (`callStatsReport$` state [store variable](./StreamVideoClient.md/#readonlystatestore)).
    * This is usually helpful when detailed stats for a specific participant are needed.
    *
@@ -1131,7 +1172,7 @@ export class Call {
   sendReaction = async (
     reaction: SendReactionRequest,
   ): Promise<SendReactionResponse> => {
-    return this.streamClient.post(
+    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
@@ -1233,7 +1274,7 @@ export class Call {
    * Starts recording the call
    */
   startRecording = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StartRecordingResponse>(
       `${this.streamClientBasePath}/start_recording`,
       {},
     );
@@ -1243,7 +1284,7 @@ export class Call {
    * Stops recording the call
    */
   stopRecording = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StopRecordingResponse>(
       `${this.streamClientBasePath}/stop_recording`,
       {},
     );
@@ -1264,10 +1305,10 @@ export class Call {
         `You are not allowed to request permissions: ${permissions.join(', ')}`,
       );
     }
-    return this.streamClient.post(
-      `${this.streamClientBasePath}/request_permission`,
-      data,
-    );
+    return this.streamClient.post<
+      RequestPermissionResponse,
+      RequestPermissionRequest
+    >(`${this.streamClientBasePath}/request_permission`, data);
   };
 
   /**
@@ -1349,7 +1390,7 @@ export class Call {
    * Starts the broadcasting of the call.
    */
   startBroadcasting = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StartBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
     );
@@ -1359,7 +1400,7 @@ export class Call {
    * Stops the broadcasting of the call.
    */
   stopBroadcasting = async () => {
-    return this.streamClient.post(
+    return this.streamClient.post<StopBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
@@ -1404,14 +1445,32 @@ export class Call {
    * @returns
    */
   queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<QueryMembersRequest>('/call/members', {
-      ...request,
-      id: this.id,
-      type: this.type,
-    });
+    return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
+      '/call/members',
+      {
+        ...request,
+        id: this.id,
+        type: this.type,
+      },
+    );
+  };
+
+  /**
+   * Will update the call members.
+   *
+   * @param data the request data.
+   */
+  updateCallMembers = async (
+    data: UpdateCallMembersRequest,
+  ): Promise<UpdateCallMembersResponse> => {
+    return this.streamClient.post<
+      UpdateCallMembersResponse,
+      UpdateCallMembersRequest
+    >(`${this.streamClientBasePath}/members`, data);
   };
 
   private scheduleAutoDrop = () => {
+    if (this.dropTimeout) clearTimeout(this.dropTimeout);
     const subscription = this.state.metadata$
       .pipe(
         pairwise(),
@@ -1427,8 +1486,8 @@ export class Call {
                 currentMeta.settings.ring.auto_cancel_timeout_ms,
               ]
             : [
-                prevMeta?.settings.ring.auto_reject_timeout_ms,
-                currentMeta.settings.ring.auto_reject_timeout_ms,
+                prevMeta?.settings.ring.incoming_call_timeout_ms,
+                currentMeta.settings.ring.incoming_call_timeout_ms,
               ];
           if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
             return;
@@ -1448,32 +1507,28 @@ export class Call {
   };
 
   /**
-   * Performs HTTP request to retrieve the list of recordings for the current call
-   * Updates the call state with provided array of CallRecording objects
+   * Retrieves the list of recordings for the current call or call session.
+   * Updates the call state with the returned array of CallRecording objects.
+   *
+   * If `callSessionId` is provided, it will return the recordings for that call session.
+   * Otherwise, all recordings for the current call will be returned.
+   *
+   * @param callSessionId the call session id to retrieve recordings for.
    */
-  queryRecordings = async (): Promise<ListRecordingsResponse> => {
-    // FIXME: this is a temporary setting to take call ID as session ID
-    const sessionId = this.id;
+  queryRecordings = async (
+    callSessionId?: string,
+  ): Promise<ListRecordingsResponse> => {
+    let endpoint = this.streamClientBasePath;
+    if (callSessionId) {
+      endpoint = `${endpoint}/${callSessionId}`;
+    }
     const response = await this.streamClient.get<ListRecordingsResponse>(
-      `${this.streamClientBasePath}/${sessionId}/recordings`,
+      `${endpoint}/recordings`,
     );
 
     this.state.setCallRecordingsList(response.recordings);
 
     return response;
-  };
-
-  /**
-   * Returns a list of Edge Serves for current call.
-   *
-   * @deprecated merged with `call.join`.
-   * @param data the data.
-   */
-  getEdgeServer = (data: GetCallEdgeServerRequest) => {
-    return this.streamClient.post<GetCallEdgeServerResponse>(
-      `${this.streamClientBasePath}/get_edge_server`,
-      data,
-    );
   };
 
   /**
@@ -1488,13 +1543,5 @@ export class Call {
       `${this.streamClientBasePath}/event`,
       event,
     );
-  };
-
-  accept = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/accept`);
-  };
-
-  reject = async () => {
-    return this.streamClient.post(`${this.streamClientBasePath}/reject`);
   };
 }

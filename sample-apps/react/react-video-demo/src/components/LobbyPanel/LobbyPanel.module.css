@@ -12,7 +12,13 @@
 }
 
 .callContainer {
-  @apply overflow-hidden border-2 border-video-transparent bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full max-h-[275px];
+  @apply overflow-hidden border-2 border-video-transparent bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full h-[225px];
+}
+
+@media screen(2xl) {
+  .callContainer {
+    @apply h-[500px];
+  }
 }
 
 .callContainer.audioEnabled {
@@ -20,14 +26,34 @@
 }
 
 .disabledPreview {
-  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-[190px];
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full;
   border-radius: 10px;
 }
 
-@media screen(md) {
-  .disabledPreview {
-    @apply h-[275px];
-  }
+.enableBrowserSettings {
+  @apply flex  flex-col items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full p-8;
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.enableIcons {
+  @apply flex p-4;
+}
+
+.enableMic {
+  @apply text-video-grey-400 mr-1;
+}
+
+.enableVideo {
+  @apply text-video-grey-400 ml-1;
+}
+
+.enableHeading {
+  @apply text-video-white text-lg text-center mb-2;
+}
+
+.enableDescription {
+  @apply text-center text-video-grey-400;
 }
 
 .fallbackAvatar {
@@ -35,12 +61,11 @@
 }
 
 .callContainer > div:not(.videoOverlay) {
-  @apply flex w-auto md:w-full;
-  height: auto;
+  @apply flex w-auto md:w-full h-full;
 }
 
 .callContainer video {
-  @apply w-full h-auto  h-[275px];
+  @apply w-full h-auto  h-[225px];
   aspect-ratio: 16/9;
   border-radius: 10px;
 }

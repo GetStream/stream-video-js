@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getVideoStream } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
-import { useMediaDevices } from '../contexts/MediaDevicesContext';
+import { useStreamVideoStoreValue } from '../contexts';
 
 /**
  * A hook which provides the device's local video stream.
@@ -12,7 +12,9 @@ export const useLocalVideoStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
     undefined,
   );
-  const { currentVideoDevice } = useMediaDevices();
+  const currentVideoDevice = useStreamVideoStoreValue(
+    (store) => store.currentVideoDevice,
+  );
 
   useEffect(() => {
     const loadVideoStream = async () => {

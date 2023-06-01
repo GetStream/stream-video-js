@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CallMemberRemovedEvent, MemberResponse } from '../../gen/coordinator';
+import { MemberResponse } from '../../gen/coordinator';
 import { CallState } from '../../store';
 import {
   watchCallMemberAdded,

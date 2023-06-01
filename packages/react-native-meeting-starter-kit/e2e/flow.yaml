@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+
+- runScript: js/setup.js
+- launchApp
+- tapOn: ${output.pages.login.sara}
+- tapOn: ${output.pages.callDetails.callIdInputField}
+- inputText: ${output.call_id}
+- tapOn: ${output.pages.callDetails.startCallButton}
+- tapOn: ${output.pages.lobby.joinButton}
+- assertVisible: ${output.assertions.activeCall.participantsCountIs1}
+- runScript:
+     file: js/videoBuddy.js
+     env:
+       call_id: ${output.call_id}
+       duration: 30
+       user_count: 5
+       camera: true
+- assertVisible: ${output.assertions.activeCall.participantsCountIs6}

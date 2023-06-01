@@ -83,7 +83,7 @@ In our example, we are going to get the call ID and type from the URL query para
 
 Once we have that information, we can join the call by choosing one of the two options:
 
-1. Declarative, using the [`<StreamCall />`](TODO#streamcall) component.
+1. Declarative, using the [`<StreamCall />`](../../ui-components/core/stream-call) component.
 2. Imperative, using the [`StreamVideoClient`](../04-call-engine/StreamVideoClient.md) API methods (advanced usage).
 
 In our example, we are going to use the declarative approach because it is easier to understand and
@@ -136,7 +136,7 @@ You can read more about this mechanism as part of our [React Bindings and Hooks 
 Now that we have successfully set up the React Video SDK and joined the call, we can start building our custom layout.
 For that purpose, we are going to utilize some fundamental React Video SDK components and hooks.
 
-- [`<ParticipantView />`](TODO#participantView) - A component that renders a video stream of a participant.
+- [`<ParticipantView />`](../../ui-components/core/participant-view) - A component that renders a video stream of a participant.
 - [`useCall()`](../04-call-engine/hooks-and-contexts.md#usecall) - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
 - [`useParticipants()`](../04-call-engine/hooks-and-contexts.md#useparticipants) - A hook that returns the list of all participants in the call.
 
@@ -396,19 +396,16 @@ const CustomCallControls = () => {
 
   return (
     <div className="str-video__call-controls">
-      {call && <ScreenShareButton call={call} />}
+      <ScreenShareButton />
       <SpeakingWhileMutedNotification>
         <ToggleAudioPublishingButton />
       </SpeakingWhileMutedNotification>
       <ToggleVideoPublishingButton />
-      {call && (
-        <CancelCallButton
-          call={call}
-          onLeave={() => {
-            console.log('onLeave callback called');
-          }}
-        />
-      )}
+      <CancelCallButton
+        onLeave={() => {
+          console.log('onLeave callback called');
+        }}
+      />
     </div>
   );
 };

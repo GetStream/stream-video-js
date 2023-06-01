@@ -1,11 +1,8 @@
 // main entry point for component styles
 
 @use 'src/base';
-@use 'src/global-layout-variables';
 @use 'src/global-theme-variables';
-@use 'src/palette-variables';
 @use 'src/utils';
-@use 'src/variables';
 
 @import 'src/Avatar';
 @import 'src/Button';

@@ -8,6 +8,7 @@ import {
 import {
   JoinCallData,
   StreamCall,
+  StreamTheme,
   StreamVideo,
   useCreateStreamVideoClient,
   User,
@@ -96,41 +97,43 @@ const App = () => {
       {!client && <Alert severity="info">Connecting...</Alert>}
       {errorMessage && <Alert severity="warning">{errorMessage}</Alert>}
       {client && (
-        <StreamVideo client={client}>
-          <ThemeProvider theme={theme}>
-            <Box sx={{ display: 'flex' }}>
-              <CssBaseline />
-              <NavigationBar />
-              <ParticipantControls
-                participants={participants}
-                currentCallId={callId}
-                currentUser={currentUser}
-                setCurrentUser={setCurrentUser}
-                joinCall={joinCall}
-                onCreateCall={createCall}
-              />
-              <Box
-                component="main"
-                sx={{
-                  flexGrow: 1,
-                  marginTop: '64px',
-                  height: 'calc(100vh - 64px)',
-                }}
-              >
-                {callId && (
-                  <StreamCall
-                    callId={callId}
-                    callType={callType}
-                    data={callInput}
-                    autoJoin
-                  >
-                    <MeetingUI />
-                  </StreamCall>
-                )}
+        <StreamTheme>
+          <StreamVideo client={client}>
+            <ThemeProvider theme={theme}>
+              <Box sx={{ display: 'flex' }}>
+                <CssBaseline />
+                <NavigationBar />
+                <ParticipantControls
+                  participants={participants}
+                  currentCallId={callId}
+                  currentUser={currentUser}
+                  setCurrentUser={setCurrentUser}
+                  joinCall={joinCall}
+                  onCreateCall={createCall}
+                />
+                <Box
+                  component="main"
+                  sx={{
+                    flexGrow: 1,
+                    marginTop: '64px',
+                    height: 'calc(100vh - 64px)',
+                  }}
+                >
+                  {callId && (
+                    <StreamCall
+                      callId={callId}
+                      callType={callType}
+                      data={callInput}
+                      autoJoin
+                    >
+                      <MeetingUI />
+                    </StreamCall>
+                  )}
+                </Box>
               </Box>
-            </Box>
-          </ThemeProvider>
-        </StreamVideo>
+            </ThemeProvider>
+          </StreamVideo>
+        </StreamTheme>
       )}
     </div>
   );

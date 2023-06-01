@@ -5,7 +5,7 @@
     --str-video__background-color1
   );
   --str-video__participant-list--border-radius: var(
-    --str-video__border-radius1
+    --str-video__border-radius-xs
   );
 
   --str-video__participant-list-header--color: var(--str-video__text-color1);
@@ -16,7 +16,7 @@
 
   --str-video__participant-list-header__close-button--background-color: #121416;
   --str-video__participant-list-header__close-button--border-radius: var(
-    --str-video__border-radius1
+    --str-video__border-radius-xs
   );
 
   --str-video__participant-list-header__close-button-icon--background-color: #72767e;

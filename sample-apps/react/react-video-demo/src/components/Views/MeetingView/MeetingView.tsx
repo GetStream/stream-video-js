@@ -5,7 +5,7 @@ import {
   Call,
   getScreenShareStream,
   SfuModels,
-  useCurrentCallStatsReport,
+  useCallStatsReport,
   useHasOngoingScreenShare,
   useIsCallRecordingInProgress,
   useLocalParticipant,
@@ -66,7 +66,7 @@ export const View: FC<Props & Meeting> = ({
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
-  const statsReport = useCurrentCallStatsReport();
+  const statsReport = useCallStatsReport();
   const localParticipant = useLocalParticipant();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
 

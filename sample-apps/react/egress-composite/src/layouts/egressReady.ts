@@ -7,20 +7,25 @@ export const useEgressReadyWhenAnyParticipantMounts = (
   trackType?: SfuModels.TrackType.VIDEO | SfuModels.TrackType.SCREEN_SHARE,
 ) => {
   const notifyEgressReady = useNotifyEgressReady();
-  const [videoElement, setVideoElement] = useState<HTMLElement | null>();
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
+    null,
+  );
+  const [videoPlaceholderElement, setVideoPlaceholderElement] =
+    useState<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const isPublishingVideoTrack =
       trackType !== undefined &&
       participant?.publishedTracks.includes(trackType);
-    if (videoElement instanceof HTMLVideoElement) {
+
+    if (isPublishingVideoTrack && videoElement) {
       // video element for participants with video
       const onPlay = () => notifyEgressReady(true);
-      videoElement.addEventListener('play', onPlay);
-      return () => videoElement?.removeEventListener('play', onPlay);
-    } else if (
-      !isPublishingVideoTrack &&
-      videoElement instanceof HTMLDivElement
-    ) {
+      videoElement.addEventListener('play', onPlay, { once: true });
+      return () => videoElement.removeEventListener('play', onPlay);
+    }
+
+    if (!isPublishingVideoTrack && videoPlaceholderElement) {
       // placeholder div for audio-only participants
       notifyEgressReady(true);
     }
@@ -29,7 +34,8 @@ export const useEgressReadyWhenAnyParticipantMounts = (
     participant?.publishedTracks,
     trackType,
     videoElement,
+    videoPlaceholderElement,
   ]);
 
-  return setVideoElement;
+  return { setVideoElement, setVideoPlaceholderElement };
 };

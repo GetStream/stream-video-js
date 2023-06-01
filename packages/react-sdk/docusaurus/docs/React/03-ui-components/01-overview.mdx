@@ -3,60 +3,78 @@ title: Overview
 description: Overview of the UI components
 ---
 
-:::warning
-TODO create pages for the components
-:::
-
-:::warning
-Here is a list of things still to address on this page:
-
-- Show an example of how to use one of the pre-built components
-- Add more CSS theming examples
-
-(Whenever you add one of the sections please remove the point from the list.)
-:::
-
 ## Introduction
 
 There are different ways to use the React Video SDK to build out UI. It comes with powerful built-in components ready for use.
 In addition, it allows for styling and custom theming options with custom CSS.
 
-For custom use cases it is also possible to create your own components to fully tailor the SDK to your needs. Please note that we suggest not to override a few, core components as those contain complex, low-level logic related to performance, the list of these components can be found in the TODO.
+For custom use cases it is also possible to create your own components to fully tailor the SDK to your needs.
+
+:::note
+
+Please note that we suggest not to override a few, core components as those contain complex, low-level logic related to performance, the list of these components can be found in the [Core Components page](../../basics/core-components/).
+
+:::
 
 This page guides you through all the options you have with increasing levels of customization.
 
 ## Using pre-built components
 
-The SDK comes with a lot of pre-built components for the different elements of the UI.
+You can create a fully functioning video calling application with just a few lines of code using pre-built components:
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import {
+  CallControls,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  SpeakerLayout,
+} from '@stream-io/video-react-sdk';
+
+const MyApp = () => {
+  // Assuming you have the 'client' instance created
+  return (
+    <StreamVideo client={client}>
+      <StreamTheme>
+        <StreamCall
+          callType="default"
+          callId="my-first-call"
+          data={{ create: true }}
+          autoJoin
+        >
+          <SpeakerLayout />
+          <CallControls />
+        </StreamCall>
+      </StreamTheme>
+    </StreamVideo>
+  );
+};
+```
 
 ## Theming with CSS
 
 If you only want to customize the styling of the available components, there is a wide range of CSS variables that you can override.
 With that, you can achieve a significant amount of theming in your video product.
 
-The way this works is that there are various reserved variable names inside of our [styling package](TODO: link to styling package).
 To change them you can simply override them with your custom values.
 
-Here are a few examples:
+Here is an example:
 
 ```scss
-// Change the font family (make sure to provide enough fallback fonts, though)
---str-video__font-family: Roboto, sans-serif;
-
-// The primary color that is used
---str-video__primary-color: green;
+.str-video {
+  // The primary color that is used
+  --str-video__primary-color: green;
+}
 ```
 
-There are too many variables that you can change, so here are links to the files that contain them for you to discover:
-
-- [Global Theming](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_global-theme-variables.scss)
-- [Global Layout](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_global-layout-variables.scss)
-- [Color Palette](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_palette-variables.scss)
-- [Icons and Colors](https://github.com/GetStream/stream-video-js/blob/main/packages/styling/src/_variables.scss)
+Check out the [theming guide](../../ui-components/video-theme) for more details.
 
 ## Custom components
 
 You can create custom components from scratch or you can use built-in components as building blocks.
+
+The [Call & Participant State guide](../../guides/call-and-participant-state) describes how you can access state variables in your custom components.
 
 Here is an example of how you can use the `useParticipants()` hook to get all call participants and render them in your application.
 
@@ -80,13 +98,9 @@ const ParticipantList = () => {
 }
 ```
 
-:::note
-A more thorough example of how to do this can be found in the [Custom Participant List](../../ui-cookbook/participant-list) guide in the UI Cookbook section.
+:::tip
+The [UI Cookbook section](../06-ui-cookbook/01-overview.mdx) contains tutorials that cover common customization examples.
 :::
 
 Combining all of the possibilities that you have gives you the freedom to use the performant pre-built components when they suit your needs.
 At the same time if you have more customized use cases you can fully tailor the appearance to your needs.
-
-## UI Cookbook
-
-The [UI Cookbook section](../06-ui-cookbook/01-overview.mdx) contains tutorials with various customization examples.

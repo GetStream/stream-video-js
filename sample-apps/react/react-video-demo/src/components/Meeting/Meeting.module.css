@@ -20,7 +20,7 @@
   .content.activeTour {
     @apply relative grid gap-y-0 h-auto;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: 50vh 1fr;
     grid-template-areas:
       'stage'
       'tour';

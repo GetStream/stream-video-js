@@ -25,9 +25,11 @@ export const StreamCall = ({
   callCycleHandlers = {},
   children,
 }: PropsWithChildren<StreamCallProps>) => {
-  const [call, setCall] = useState<Call>();
-  const [incomingCall] = useIncomingCalls();
   const videoClient = useStreamVideoClient();
+  const [call, setCall] = useState<Call | undefined>(
+    videoClient?.call(callType, callId),
+  );
+  const [incomingCall] = useIncomingCalls();
 
   useEffect(() => {
     if (!incomingCall) {
@@ -35,20 +37,12 @@ export const StreamCall = ({
     }
 
     setCall(incomingCall);
-  }, [incomingCall]);
-
-  useEffect(() => {
-    if (!callId || !callType || !videoClient) {
-      return;
-    }
-    const newCall = videoClient.call(callType, callId);
-    setCall(newCall);
 
     return () => {
-      newCall.leave().catch((e) => console.log(e));
+      call?.leave().catch((e) => console.log(e));
       setCall(undefined);
     };
-  }, [callId, callType, videoClient]);
+  }, [incomingCall, call]);
 
   return (
     <StreamCallProvider call={call}>
@@ -84,6 +78,10 @@ export type CallCycleHandlersType = {
    * Handler called after a call is rejected. Mostly used for navigation and cleanup actions.
    */
   onCallRejected?: () => void;
+  /**
+   * Handler called when the call is in joining state. Mostly used for navigation and related actions.
+   */
+  onCallJoining?: () => void;
 };
 
 /**

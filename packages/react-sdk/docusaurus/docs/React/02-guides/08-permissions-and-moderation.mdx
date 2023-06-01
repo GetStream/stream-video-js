@@ -91,7 +91,7 @@ const call = streamVideoClient.call(type, id);
 call.on('call.permission_request', async (event: StreamCallEvent) => {
   const request = event as PermissionRequestEvent;
   if (shouldApproveRequest(request)) {
-    await call.grantPermissions(request.user_id, request.permissions);
+    await call.grantPermissions(request.user.id, request.permissions);
   }
 });
 ```

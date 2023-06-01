@@ -1,18 +1,21 @@
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   checkIfAudioOutputChangeSupported,
+  DeviceSelectorAudioInput,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
-import { LobbyHeader } from './LobbyHeader';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { LobbyHeader } from './LobbyHeader';
+import { ParticipantsPreview } from './ParticipantsPreview';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -61,6 +64,15 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
         spacing={2}
         flexGrow={1}
       >
+        <Box
+          sx={{
+            position: 'fixed',
+            left: '1rem',
+            top: '80px',
+          }}
+        >
+          <ParticipantsPreview />
+        </Box>
         <Stack spacing={2} alignItems="center">
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
@@ -70,7 +82,6 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
             <Typography textAlign="center" variant="subtitle1">
               {subtitle}
             </Typography>
-
             {enablePreview && (
               <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
             )}
@@ -83,7 +94,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                   marginTop: '0.75rem',
                 }}
               >
-                <ToggleAudioPreviewButton />
+                <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
                 <ToggleVideoPreviewButton />
                 {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
               </div>
@@ -111,3 +122,10 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     </Stack>
   );
 };
+
+const LobbyToggleAudioMenu = () => (
+  <>
+    <DeviceSelectorAudioInput />
+    <AudioVolumeIndicator />
+  </>
+);

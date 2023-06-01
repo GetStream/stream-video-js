@@ -14,7 +14,7 @@
   &--recording-on {
     mask-image: var(--str-video__icon--recording-on);
     -webkit-mask-image: var(--str-video__icon--recording-on);
-    background-color: var(--str-video__danger-color1);
+    background-color: var(--str-video__danger-color);
   }
 
   &--recording-off {

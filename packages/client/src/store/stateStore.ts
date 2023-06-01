@@ -138,6 +138,16 @@ export class StreamVideoWriteableStateStore {
   };
 
   /**
+   * Finds a {@link Call} object in the list of {@link Call} objects created/tracked by this client.
+   *
+   * @param type the type of call to find.
+   * @param id the id of the call to find.
+   */
+  findCall = (type: string, id: string) => {
+    return this.calls.find((c) => c.type === type && c.id === id);
+  };
+
+  /**
    * A list of objects describing incoming calls.
    * @deprecated derive from calls$ instead.
    */

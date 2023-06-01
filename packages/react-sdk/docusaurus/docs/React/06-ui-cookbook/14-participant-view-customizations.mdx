@@ -34,20 +34,21 @@ import {
   PaginatedGridLayout,
   StreamVideo,
   StreamCall,
-  type ParticipantViewUIProps,
+  useParticipantViewContext,
   type VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
-const CustomParticipantViewUI = ({ participant }: ParticipantViewUIProps) => {
+const CustomParticipantViewUI = () => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="participant-name">{participant.name || participant.id}</div>
   );
 };
 
-const CustomVideoPlaceholder = ({
-  participant,
-  style,
-}: VideoPlaceholderProps) => {
+const CustomVideoPlaceholder = ({ style }: VideoPlaceholderProps) => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="video-placeholder" style={style}>
       <img src={participant.image} alt={participant.id} />
@@ -78,13 +79,13 @@ import {
   SpeakerLayout,
   StreamVideo,
   StreamCall,
-  type ParticipantViewUIProps,
+  useParticipantViewContext,
   type VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
-const CustomParticipantViewUIBar = ({
-  participant,
-}: ParticipantViewUIProps) => {
+const CustomParticipantViewUIBar = () => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="bar-participant-name">
       {participant.name || participant.id}
@@ -92,9 +93,9 @@ const CustomParticipantViewUIBar = ({
   );
 };
 
-const CustomParticipantViewUISpotlight = ({
-  participant,
-}: ParticipantViewUIProps) => {
+const CustomParticipantViewUISpotlight = () => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="spotlight-participant-name">
       {participant.name || participant.id}
@@ -102,10 +103,9 @@ const CustomParticipantViewUISpotlight = ({
   );
 };
 
-const CustomVideoPlaceholder = ({
-  participant,
-  style,
-}: VideoPlaceholderProps) => {
+const CustomVideoPlaceholder = ({ style }: VideoPlaceholderProps) => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="video-placeholder" style={style}>
       <img src={participant.image} alt={participant.id} />
@@ -133,7 +133,7 @@ const App = ({ client, callId }) => {
 The `ParticipantViewUI` property accepts three possible values:
 
 - `ReactElement` - find out what's considered a ReactElement in the [React documentation](https://react.dev/reference/react/isValidElement)
-- component which accepts `participant` as a prop (use type `ParticipantViewUIProps`)
+- component which can access `ParticipantView` related data through `useParticipantViewContext` hook
 - `null` if you wish to not render any UI
 
 The following example shows the utilization of the `ParticipantViewUI` prop by passing down `ReactElement`:
@@ -141,16 +141,15 @@ The following example shows the utilization of the `ParticipantViewUI` prop by p
 ```tsx
 import { type PropsWithChildren } from 'react';
 import {
-  type ParticipantViewUIProps,
   type VideoPlaceholderProps,
   ParticipantView,
   useParticipants,
+  useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 
-const CustomVideoPlaceholder = ({
-  participant,
-  style,
-}: VideoPlaceholderProps) => {
+const CustomVideoPlaceholder = ({ style }: VideoPlaceholderProps) => {
+  const { participant } = useParticipantViewContext();
+
   return (
     <div className="video-placeholder" style={style}>
       <img src={participant.image} alt={participant.id} />
