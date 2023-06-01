@@ -1,8 +1,6 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import mockParticipant from '../mocks/participant';
 import { ParticipantView } from '../../src/components/ParticipantView';
-import { StreamCall, StreamVideo } from '../../src/providers';
-import { mockClientWithUser } from '../mocks/client';
 import { SfuModels } from '@stream-io/video-client';
 import {
   A11yComponents,
@@ -14,17 +12,6 @@ import { act, render, screen } from '../utils/RNTLTools';
 console.warn = jest.fn();
 jest.useFakeTimers();
 
-const Wrapper: ({ children }: { children: ReactNode }) => JSX.Element = ({
-  children,
-}) => {
-  const testClient = mockClientWithUser({ id: 'test-user-id' });
-  const callId = 'test-call-id';
-  return (
-    <StreamVideo client={testClient}>
-      <StreamCall callId={callId}>{children}</StreamCall>
-    </StreamVideo>
-  );
-};
 describe('ParticipantView', () => {
   it('should render participant`s avatar when set to not visible, label, user name and reaction', async () => {
     const testParticipant = mockParticipant({
@@ -64,9 +51,7 @@ describe('ParticipantView', () => {
         toURL: () => 'test-url',
       },
     });
-    render(<ParticipantView participant={testParticipant} kind={'screen'} />, {
-      wrapper: Wrapper,
-    });
+    render(<ParticipantView participant={testParticipant} kind={'screen'} />);
 
     expect(
       await screen.findByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
@@ -85,9 +70,7 @@ describe('ParticipantView', () => {
       publishedTracks: [SfuModels.TrackType.VIDEO, SfuModels.TrackType.AUDIO],
       isSpeaking: true,
     });
-    render(<ParticipantView participant={testParticipant} kind={'video'} />, {
-      wrapper: Wrapper,
-    });
+    render(<ParticipantView participant={testParticipant} kind={'video'} />);
 
     const [VideoRTCView, AudioRTCView] = await screen.findAllByLabelText(
       A11yComponents.PARTICIPANT_MEDIA_STREAM,
