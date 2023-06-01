@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.86](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.85...@stream-io/video-styling-0.0.1-alpha.86) (2023-06-01)
+
+
+### Bug Fixes
+
+* **react-sdk/react-dogfood:** move old layouts ([#576](https://github.com/GetStream/stream-video-js/issues/576)) ([e930fb6](https://github.com/GetStream/stream-video-js/commit/e930fb6635f416afcc65278b10c97f92ac0048dc))
+
+
+
 ## [0.0.1-alpha.85](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.0.1-alpha.84...@stream-io/video-styling-0.0.1-alpha.85) (2023-06-01)
 
 
