@@ -1,7 +1,5 @@
 import { Dispatch, SetStateAction, forwardRef, useEffect } from 'react';
 import {
-  CallParticipantsScreenView,
-  CallParticipantsView,
   GenericMenu,
   GenericMenuButtonItem,
   IconButton,
@@ -12,15 +10,17 @@ import {
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 
+import { CallParticipantsScreenView, CallParticipantsView } from './CallLayout';
+
 export const LayoutMap = {
   LegacyGrid: {
     Component: CallParticipantsView,
-    title: 'Grid',
+    title: 'Grid (legacy)',
     props: {},
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
-    title: 'Grid (beta)',
+    title: 'Paginated grid',
     props: {
       groupSize: 16,
     },
