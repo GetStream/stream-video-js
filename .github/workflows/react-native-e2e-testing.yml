@@ -1,0 +1,82 @@
+name: Run E2E tests on React Native
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    paths:
+      - 'packages/client/**'
+      - 'packages/react-bindings/**'
+      - 'packages/react-native-sdk/**'
+      - 'packages/react-native-meeting-starter-kit/**'
+concurrency:
+  group: react-native-e2e-testing-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_ios:
+    name: Build iOS and Deploy-${{ github.ref == 'refs/heads/main' }}
+    timeout-minutes: 60
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: './.eslintcache'
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+      - name: Install Yarn Dependencies
+        run: yarn install --immutable
+      - name: Build react native dependency packages
+        run: yarn build:react-native:deps
+      - name: Install Ruby and Gems
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: packages/react-native-meeting-starter-kit
+          bundler-cache: true
+      - name: Cache pods
+        uses: actions/cache@v3
+        with:
+          path: packages/react-native-meeting-starter-kit/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-meeting-starter-kit/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+      - name: iOS pods setup
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: |
+            cd packages/react-native-meeting-starter-kit/ios;
+            bundle exec pod install;
+#      - name: Build and optionally deploy
+#        run: |
+#          cd packages/react-native-dogfood;
+#          ./scripts/create-sentry-properties.sh;
+#          bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
+  deploy_android:
+    name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'

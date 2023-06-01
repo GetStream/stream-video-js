@@ -1,12 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
-import { useParticipantCount } from '@stream-io/video-react-bindings';
+import { useParticipants } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
 import { useCallback, useState } from 'react';
 import { CallParticipantsInfoView } from './CallParticipantsInfoView';
 
 export const CallParticipantsBadge = () => {
-  const participantCount = useParticipantCount();
+  // We use here participants over participantsCount
+  // because participantsCount is not updated in real time (update from SFU)
+  const participants = useParticipants();
   const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =
     useState<boolean>(false);
 
@@ -20,7 +22,7 @@ export const CallParticipantsBadge = () => {
       onPress={onOpenCallParticipantsInfoView}
     >
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{participantCount}</Text>
+        <Text style={styles.badgeText}>{participants.length}</Text>
       </View>
       <View style={[styles.svgContainerStyle, theme.icon.md]}>
         <Participants color={theme.light.static_white} />

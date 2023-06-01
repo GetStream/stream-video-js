@@ -3,6 +3,9 @@ appId: ${APP_ID}
 
 - runScript: js/setup.js
 - launchApp
+- extendedWaitUntil:
+    visible: ${output.pages.login.sara}
+    timeout: 30000
 - tapOn: ${output.pages.login.sara}
 - tapOn: ${output.pages.callDetails.callIdInputField}
 - inputText: ${output.call_id}
