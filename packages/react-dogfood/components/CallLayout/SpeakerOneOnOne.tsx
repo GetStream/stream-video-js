@@ -5,6 +5,7 @@ import {
   useHasOngoingScreenShare,
   ParticipantView,
   DefaultParticipantViewUI,
+  useRemoteParticipants,
 } from '@stream-io/video-react-sdk';
 import { motion } from 'framer-motion';
 
@@ -49,7 +50,7 @@ const CustomParticipantViewUISpotlight = () => {
 };
 
 export const SpeakerOneOnOne = () => {
-  const [, ...otherParticipants] = useParticipants();
+  const otherParticipants = useRemoteParticipants();
   const isOneOnOneCall = otherParticipants.length === 1;
 
   return (
