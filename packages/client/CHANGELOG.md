@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.2-alpha.18](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.17...client0.0.2-alpha.18) (2023-06-01)
+
+
+### Features
+
+* reflect updateCall response data into call's state ([#578](https://github.com/GetStream/stream-video-js/issues/578)) ([410a926](https://github.com/GetStream/stream-video-js/commit/410a926e30f65396446a9c3d93d18f0367d7eda8))
+
+
+
 ## [0.0.2-alpha.17](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.16...client0.0.2-alpha.17) (2023-06-01)
 
 
