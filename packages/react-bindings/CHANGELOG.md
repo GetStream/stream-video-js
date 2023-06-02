@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.104](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.103...@stream-io/video-react-bindings-0.0.1-alpha.104) (2023-06-02)
+
+
+
 ## [0.0.1-alpha.103](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.1-alpha.102...@stream-io/video-react-bindings-0.0.1-alpha.103) (2023-06-02)
 
 
