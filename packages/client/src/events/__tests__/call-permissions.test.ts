@@ -27,7 +27,7 @@ describe('Call Permission Events', () => {
     expect(state.callPermissionRequest).toBeUndefined();
   });
 
-  it('call.permission_request sets updates the state', () => {
+  it('call.permission_request updates the state', () => {
     const state = new CallState();
     const handler = watchCallPermissionRequest(state);
     handler({
