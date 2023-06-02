@@ -1,0 +1,59 @@
+---
+id: fullscreen-mode
+title: ParticipantView fullscreen mode
+---
+
+## Introduction
+
+In this guide, you'll learn how to display `ParticipantView` in a fullscreen mode. To make this work we'll be utilising [`element.requestFullscreen` browser API](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen) and `ParticipantViewContext` to reach for `participantViewElement`. You might want to use this customization in combination with `SpeakerLayout` (`ParticipantViewUISpotlight` property) where spotlighted `ParticipantView` switches between dominant speakers automatically.
+
+### Define custom `ParticipantViewUI`
+
+ParticipantViewUI template is incredibly versatile and can render anything you want it to. In this case we'll be rendering a single button which we'll use to toggle between fullscreen and normal mode.
+
+```tsx
+import { useParticipantViewContext } from '@stream-io/video-react-sdk';
+
+const CustomParticipantViewUI = () => {
+  const { participantViewElement } = useParticipantViewContext();
+  const [isFullsreenElement, setIsFullscreenElement] = useState(false);
+
+  useEffect(() => {
+    // sync local state
+    const handleFullscreenChange = () => {
+      setIsFullscreenElement(
+        document.fullscreenElement === participantViewElement,
+      );
+    };
+
+    window.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () =>
+      window.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [participantViewElement]);
+
+  const toggleFullscreen = () => {
+    if (isFullsreenElement) {
+      return document.exitFullscreen();
+    }
+
+    return participantViewElement?.requestFullscreen();
+  };
+
+  return (
+    <>
+      <button
+        style={{ position: 'absolute', top: 10, right: 10 }}
+        onClick={toggleFullscreen}
+      >
+        {isFullsreenElement ? 'Leave' : 'Enter'} fullscreen
+      </button>
+      {/* your other custom UI elements */}
+    </>
+  );
+};
+```
+
+## Final steps
+
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../../ui-cookbook/participant-view-customizations).
