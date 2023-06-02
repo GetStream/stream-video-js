@@ -38,14 +38,14 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
 
-      #- name: Lint Packages
-      #  run: yarn lint:ci:all
+      - name: Lint Packages
+        run: yarn lint:ci:all
 
-      #- name: Build packages
-      #  run: NODE_ENV=production yarn build:all
+      - name: Build packages
+        run: NODE_ENV=production yarn build:all
 
-      #- name: Test packages
-      #  run: yarn test:ci:all
+      - name: Test packages
+        run: yarn test:ci:all
 
       - name: Version and release packages
         if: ${{ github.ref_name == 'main' }}

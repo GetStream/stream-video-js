@@ -23,7 +23,7 @@
         "tagPrefix": "client",
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": []
+        "postTargets": ["@stream-io/video-client:github", "@stream-io/video-client:npm"]
       }
     },
     "github": {

@@ -23,7 +23,7 @@
           ]
         },
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": []
+        "postTargets": ["@stream-io/i18n:github", "@stream-io/i18n:publish"]
       }
     },
     "github": {
