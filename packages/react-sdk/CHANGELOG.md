@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.3...@stream-io/video-react-sdk-0.0.4) (2023-06-02)
+
+
+### Documentation
+
+* **react-sdk:** add custom connection unstable notification tutorial ([#582](https://github.com/GetStream/stream-video-js/issues/582)) ([3ee5bb8](https://github.com/GetStream/stream-video-js/commit/3ee5bb87f933a4fc6974ccb9aec4f7f2c7e5af59))
+
 ### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.2...@stream-io/video-react-sdk-0.0.3) (2023-06-02)
 
 
