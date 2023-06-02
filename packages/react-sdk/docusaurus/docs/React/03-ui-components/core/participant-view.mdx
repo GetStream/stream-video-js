@@ -7,6 +7,8 @@ The `ParticipantView` component is a core component that renders a participant's
 
 It can toggle between video and avatar based on the participant's video state. It displays information about the participant, their device settings and connection quality. It also provides action buttons (for example, to pin the participant).
 
+The `ParticipantView` component is used to build up the [different call layouts](../../../ui-components/core/call-layout).
+
 To optimize performance,
 
 - the component won't stream video for participants that are not visible in the viewport
@@ -45,7 +47,7 @@ const CallUI = () => {
     >
       {participants.map((p) => (
         // highlight-next-line
-        <ParticipantView participant={p} />
+        <ParticipantView participant={p} key={p.sessionId} />
       ))}
       <CallControls />
     </StreamCall>
@@ -61,7 +63,7 @@ const CallUI = () => {
 | --------------------------------------------------------------------------------------------------------------- |
 | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) |
 
-The participant whose video/audio feed we want to show.
+The participant whose video/audio stream we want to play.
 
 ### `ParticipantViewUI`
 
@@ -123,10 +125,11 @@ An object with set functions meant for exposing the video and video placeholder 
 
 ## Customization
 
-The [ParticipantView customizations guide](../../../ui-cookbook/participant-view-customizations) tells all the important informiation about the customization options.
+The [ParticipantView customizations guide](../../../ui-cookbook/participant-view-customizations) tells all the important informiation about the customization options. It's useful when you want to attach custom event handlers to these elements.
 
 We also have additional guides focusing on specific parts:
 
 - [Video placeholder](../../../ui-cookbook/video-placeholder)
 - [Connection Quality Indicator](../../../ui-cookbook/connection-quality-indicator)
+- [Connection Unstable Indicator](../../../ui-cookbook/connection-unstable)
 - [Custom Label](../../../ui-cookbook/custom-label)
