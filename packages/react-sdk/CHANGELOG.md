@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.112](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.111...@stream-io/video-react-sdk-0.0.1-alpha.112) (2023-06-02)
+
+
+
 ## [0.0.1-alpha.111](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.110...@stream-io/video-react-sdk-0.0.1-alpha.111) (2023-06-02)
 
 
