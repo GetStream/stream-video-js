@@ -1,15 +1,9 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
-import { MAX_AVATARS_IN_VIEW } from '../constants';
+import { generateCallTitle } from '../utils';
 import {
-  generateCallTitle,
-  getMembersForIncomingCall,
-  getMembersForOutgoingCall,
-} from '../utils';
-import {
+  useCallMembers,
   useConnectedUser,
-  useIncomingCalls,
-  useOutgoingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserResponse } from '@stream-io/video-client';
 import { theme } from '../theme';
@@ -20,22 +14,49 @@ enum AvatarModes {
   large = 'lg',
 }
 
-export const UserInfoView = () => {
-  const [outgoingCall] = useOutgoingCalls();
-  const [incomingCall] = useIncomingCalls();
-  const connectedUser = useConnectedUser();
+export type UserInfoViewType = {
+  /**
+   * Whether to include the current user in the list of members to show.
+   * @default false.
+   */
+  includeSelf?: boolean;
 
-  let members: UserResponse[] = [];
-  if (outgoingCall) {
-    members = getMembersForOutgoingCall(outgoingCall);
-  } else if (incomingCall) {
-    members = getMembersForIncomingCall(incomingCall, connectedUser);
+  /**
+   * The maximum number of members to show.
+   * @default 3.
+   */
+  totalMembersToShow?: number;
+};
+
+export const UserInfoView = ({
+  includeSelf = false,
+  totalMembersToShow = 3,
+}: UserInfoViewType) => {
+  const connectedUser = useConnectedUser();
+  const members = useCallMembers();
+
+  // take the first N members to show their avatars
+  const membersToShow: UserResponse[] = (members || [])
+    .slice(0, totalMembersToShow)
+    .map(({ user }) => user)
+    .filter((user) => user.id !== connectedUser?.id || includeSelf);
+  if (
+    includeSelf &&
+    !membersToShow.find((user) => user.id === connectedUser?.id)
+  ) {
+    // if the current user is not in the initial batch of members,
+    // add it to the beginning of the list
+    const self = members.find(({ user }) => user.id === connectedUser?.id);
+    if (self) {
+      membersToShow.splice(0, 1, self.user);
+    }
   }
 
-  const memberUserIds = members.map((member) => member.name || member.id);
+  const memberUserIds = membersToShow.map(
+    (memberToShow) => memberToShow.name || memberToShow.id,
+  );
 
-  const callTitle = generateCallTitle(memberUserIds);
-  const supportedAmountOfMembers = members.slice(0, MAX_AVATARS_IN_VIEW);
+  const callTitle = generateCallTitle(memberUserIds, totalMembersToShow);
 
   const avatarSizeModes: { [key: number]: AvatarModes } = {
     1: AvatarModes.large,
@@ -57,14 +78,14 @@ export const UserInfoView = () => {
   return (
     <View style={styles.userInfo}>
       <View style={styles.avatarGroup}>
-        {supportedAmountOfMembers.map((member) => {
+        {membersToShow.map((memberToShow) => {
           return (
             <Image
-              key={member.id}
+              key={memberToShow.id}
               style={[avatarStyles]}
               // FIXME: use real avatar from coordinator this is temporary
               source={{
-                uri: member.image,
+                uri: memberToShow.image,
               }}
             />
           );

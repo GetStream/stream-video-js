@@ -1,17 +1,46 @@
 import {
   StreamCallProvider,
-  useIncomingCalls,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect, useState } from 'react';
-import { Call } from '@stream-io/video-client';
+import { Call, CallingState } from '@stream-io/video-client';
 import { useCallCycleEffect } from '../hooks';
 
-export interface StreamCallProps {
+type InitWithCallCID = {
+  /**
+   * The call type.
+   */
+  callType: string;
+  /**
+   * The call id.
+   */
   callId: string;
-  callType?: string;
+  /**
+   * The call instance to use.
+   */
+  call?: never;
+};
+
+type InitWithCallInstance = {
+  /**
+   * The call instance to use.
+   */
+  call: Call | undefined;
+  /**
+   * The call type.
+   */
+  callType?: never;
+  /**
+   * The call id.
+   */
+  callId?: never;
+};
+
+type InitStreamCall = InitWithCallCID | InitWithCallInstance;
+
+export type StreamCallProps = InitStreamCall & {
   callCycleHandlers: CallCycleHandlersType;
-}
+};
 /**
  * StreamCall is a wrapper component that orchestrates the call life cycle logic and
  * provides the call object to the children components.
@@ -22,27 +51,34 @@ export interface StreamCallProps {
 export const StreamCall = ({
   callId,
   callType = 'default',
+  call,
   callCycleHandlers = {},
   children,
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
-  const [call, setCall] = useState<Call | undefined>(
-    videoClient?.call(callType, callId),
-  );
-  const [incomingCall] = useIncomingCalls();
+  const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
+    if (call) return call;
+    if (!videoClient || !callId || !callType) return;
+    return videoClient?.call(callType, callId);
+  });
 
+  // Effect to create a new call with the given call id and type if the call doesn't exist
   useEffect(() => {
-    if (!incomingCall) {
-      return;
+    if (!videoClient) return;
+
+    if (callId && callType && !activeCall) {
+      const newCall = videoClient.call(callType, callId);
+      setActiveCall(newCall);
     }
 
-    setCall(incomingCall);
-
     return () => {
-      call?.leave().catch((e) => console.log(e));
-      setCall(undefined);
+      if (activeCall?.state.callingState === CallingState.LEFT) {
+        return;
+      }
+      activeCall?.leave().catch((e) => console.log(e));
+      setActiveCall(undefined);
     };
-  }, [incomingCall, call]);
+  }, [activeCall, callId, callType, videoClient]);
 
   return (
     <StreamCallProvider call={call}>

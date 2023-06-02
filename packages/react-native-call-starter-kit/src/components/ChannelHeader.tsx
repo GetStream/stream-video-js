@@ -4,40 +4,38 @@ import {Call} from '../icons/Call';
 import {useAppContext} from '../context/AppContext';
 import {Back} from '../icons/Back';
 import {NativeStackHeaderProps} from '@react-navigation/native-stack';
-import {useCall} from '@stream-io/video-react-native-sdk';
-import {useChatContext} from 'stream-chat-react-native';
+import {
+  MemberRequest,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import {v4 as uuidv4} from 'uuid';
 
 type ChannelHeaderProps = NativeStackHeaderProps;
 
 export const ChannelHeader = (props: ChannelHeaderProps) => {
   const {navigation} = props;
   const {channel} = useAppContext();
-  const {client} = useChatContext();
-  const call = useCall();
-  const members = Object.keys(channel?.state?.members || {}).filter(
-    member => member !== client.user?.id,
-  );
+  const videoClient = useStreamVideoClient();
+  const members = Object.values(
+    channel?.state?.members || {},
+  ).map<MemberRequest>(member => ({
+    user_id: member.user_id!,
+  }));
 
   const joinCallHandler = useCallback(async () => {
-    if (!call) {
-      return;
-    }
-
     try {
-      await call.getOrCreate({
+      const call = videoClient?.call('default', uuidv4().toLowerCase());
+      await call?.getOrCreate({
         ring: true,
         data: {
-          members: members.map(ringingUserId => {
-            return {
-              user_id: ringingUserId,
-            };
-          }),
+          custom: {channelCid: channel?.cid},
+          members: members,
         },
       });
     } catch (error) {
-      console.log('Failed to createCall', call.id, 'default', error);
+      console.log('Failed to createCall', error);
     }
-  }, [call, members]);
+  }, [videoClient, members, channel?.cid]);
 
   const goBackHandler = useCallback(() => {
     navigation.goBack();
@@ -49,7 +47,8 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
         <Back color="#52be80" />
       </Pressable>
       <Text style={styles.name}>
-        {channel?.data?.name || channel?.state.members[members[0]].user?.name}
+        {channel?.data?.name ||
+          channel?.state.members[members[1].user_id].user?.name}
       </Text>
       <Pressable onPress={joinCallHandler} style={styles.icon}>
         <Call color="#000" />

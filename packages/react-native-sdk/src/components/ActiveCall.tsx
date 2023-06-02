@@ -45,9 +45,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
     verifyAndroidBluetoothPermissions();
 
     return () => {
-      if (callingState !== CallingState.LEFT) {
-        activeCallRef.current?.leave();
+      if (callingState === CallingState.LEFT) {
+        return;
       }
+      activeCallRef.current?.leave();
     };
   }, [callingState]);
 

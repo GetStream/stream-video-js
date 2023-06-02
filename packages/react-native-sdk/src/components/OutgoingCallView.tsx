@@ -14,7 +14,13 @@ export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
   const call = useCall();
-  const hangupCallHandler = () => call?.leave();
+  const hangupCallHandler = async () => {
+    try {
+      await call?.leave();
+    } catch (error) {
+      console.log('Error leaving Call', error);
+    }
+  };
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -114,7 +120,5 @@ const styles = StyleSheet.create({
   },
   button: {},
   svgContainerStyle: {},
-  stream: {
-    flex: 1,
-  },
+  stream: {},
 });

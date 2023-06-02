@@ -5690,7 +5690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-async-storage/async-storage@npm:^1.17.10, @react-native-async-storage/async-storage@npm:^1.17.11":
+"@react-native-async-storage/async-storage@npm:^1.17.10":
   version: 1.18.1
   resolution: "@react-native-async-storage/async-storage@npm:1.18.1"
   dependencies:
@@ -8625,7 +8625,6 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
-    "@react-native-async-storage/async-storage": ^1.17.11
     "@react-native-camera-roll/camera-roll": ^5.2.0
     "@react-native-community/eslint-config": ^3.1.0
     "@react-native-community/netinfo": ^9.3.7
