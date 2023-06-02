@@ -31,6 +31,9 @@ import clsx from 'clsx';
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
+  /**
+   * The position of the particpants who are not in focus
+   */
   participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right' | null;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
