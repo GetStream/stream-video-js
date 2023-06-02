@@ -44,7 +44,7 @@ const RoomActive = () => {
 
   // helper variables
   const isCallBackstage = currentRoom?.call?.data?.backstage;
-  const hostIds = currentRoom?.hosts.map((host) => host.id);
+  const hostIds = currentRoom?.hosts?.map((host) => host.id) || [];
   const speakers = participants.filter(
     (p) =>
       p.publishedTracks.includes(SfuModels.TrackType.AUDIO) ||
@@ -52,7 +52,8 @@ const RoomActive = () => {
       speakerIds.includes(p.userId),
   );
   const listeners = participants.filter((p) => !speakers.includes(p));
-  const isUserHost = currentRoom?.hosts.some((e) => e.id === user?.id);
+  const isUserHost =
+    currentRoom?.hosts?.some((e) => e.id === user?.id) || false;
   const currentUser = participants.find((p) => p.userId === user?.id);
   const hasAudio = currentUser?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,

@@ -1,9 +1,8 @@
-import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import { useAudioRoomContext } from '../../../contexts/AudioRoomContext/AudioRoomContext';
 import { useCallback, useEffect, useState } from 'react';
 import RoomActive from './RoomActive';
 import { Call, CallingState } from '@stream-io/video-client';
-import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
+import { StreamCall } from '@stream-io/video-react-sdk';
 
 function RoomActiveContainer() {
   const { currentRoom } = useAudioRoomContext();
@@ -20,12 +19,8 @@ function RoomActiveContainer() {
       !isBackstage
     ) {
       await callToJoin.join();
-      // const audioStream = await getAudioStream();
-      // await callToJoin.publishAudioStream(audioStream);
     }
 
-    // await callToJoin.endCall();
-    // await callToJoin.muteAllUsers('audio');
     setCall(callToJoin);
   }, []);
 
@@ -38,18 +33,14 @@ function RoomActiveContainer() {
       console.log('Leaving call.');
       call?.leave();
     };
-  }, [currentRoom, getCall, call]);
+  }, [call, currentRoom, getCall]);
+
   return (
     <>
       {call && (
-        <MediaDevicesProvider
-          initialAudioEnabled={false}
-          initialVideoEnabled={false}
-        >
-          <StreamCallProvider call={call}>
-            <RoomActive />
-          </StreamCallProvider>
-        </MediaDevicesProvider>
+        <StreamCall call={call}>
+          <RoomActive />
+        </StreamCall>
       )}
       {!call && <div className="active-room">Loading</div>}
     </>

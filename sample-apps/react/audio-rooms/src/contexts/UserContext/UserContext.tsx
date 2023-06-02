@@ -19,7 +19,6 @@ export interface UserState {
   authStatus: AuthStatus;
   user: User | undefined;
   userTapped: (user: User) => void;
-  login: (user: User, client: StreamVideoClient) => void;
   logout: (client: StreamVideoClient) => void;
 }
 
@@ -27,7 +26,6 @@ const defaultState: UserState = {
   authStatus: AuthStatus.loggedOut,
   user: undefined,
   userTapped: (_: User) => {},
-  login: async (_: User) => {},
   logout: (_: StreamVideoClient) => {},
 };
 
@@ -49,24 +47,6 @@ export const UserContextProvider: any = ({
       setMyState({
         ...myState,
         authStatus: AuthStatus.processing,
-        user: user,
-      });
-    },
-    [myState],
-  );
-
-  store.login = useCallback(
-    async (user: User, client: StreamVideoClient) => {
-      console.log(
-        `Login called. (Client is ${
-          client === undefined ? 'undefined' : 'defined'
-        })`,
-      );
-      await client.connectUser(user, user.token);
-
-      setMyState({
-        ...myState,
-        authStatus: AuthStatus.loggedIn,
         user: user,
       });
     },

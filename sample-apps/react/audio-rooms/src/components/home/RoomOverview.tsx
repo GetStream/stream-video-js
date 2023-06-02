@@ -8,28 +8,44 @@ interface RoomOverviewProps {
 }
 
 const RoomOverview = ({ showAsGrid = true }: RoomOverviewProps) => {
-  const { liveRooms, upcomingRooms, create, join, setRooms } =
+  const { liveRooms, upcomingRooms, create, join, setRooms, updateRooms } =
     useAudioRoomContext();
   const client = useStreamVideoClient();
 
   useEffect(() => {
+    const unsubscribe1 = client?.on('call.live_started', updateRooms);
+    const unsubscribe2 = client?.on('call.ended', updateRooms);
+
+    return () => {
+      if (unsubscribe1) {
+        unsubscribe1();
+      }
+
+      if (unsubscribe2) {
+        unsubscribe2();
+      }
+    };
+  }, [updateRooms, client]);
+
+  useEffect(() => {
     console.log('Loading calls');
-    client
-      ?.queryCalls({
-        filter_conditions: { audioRoomCall: true },
-        sort: [],
-        watch: true,
-      })
-      .then((result) => {
-        console.log('Querying calls successful.');
-        setRooms(result.calls);
-      })
-      .catch((err) => {
-        console.log('Querying calls failed.');
-        console.error(err);
-      });
-  }, []);
-  // }, [client, setRooms]);
+    if (showAsGrid) {
+      client
+        ?.queryCalls({
+          filter_conditions: { audioRoomCall: true },
+          sort: [],
+          watch: true,
+        })
+        .then((result) => {
+          console.log('Querying calls successful.');
+          setRooms(result.calls);
+        })
+        .catch((err) => {
+          console.log('Querying calls failed.');
+          console.error(err);
+        });
+    }
+  }, [client, setRooms, showAsGrid]);
 
   return (
     <section className="rooms-overview">

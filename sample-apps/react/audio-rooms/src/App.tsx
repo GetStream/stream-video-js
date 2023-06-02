@@ -11,7 +11,7 @@ function App() {
       {authStatus === AuthStatus.loggedOut && <Login />}
       {(AuthStatus.processing || AuthStatus.loggedIn) && user && (
         <AudioRoomContextProvider>
-          <Home userTapped={user} />
+          <Home />
         </AudioRoomContextProvider>
       )}
     </>

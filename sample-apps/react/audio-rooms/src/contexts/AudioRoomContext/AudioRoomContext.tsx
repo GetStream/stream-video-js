@@ -20,11 +20,15 @@ export interface AudioRoomsState {
   currentRoom: AudioRoom | undefined;
   liveRooms: AudioRoom[];
   upcomingRooms: AudioRoom[];
+}
+
+export interface AudioRoomsAPI {
   join: (room: AudioRoom) => void;
   leave: () => void;
   create: () => void;
   roomCreated: () => void;
   setRooms: (calls: Call[]) => void;
+  updateRooms: () => void;
 }
 
 const defaultState: AudioRoomsState = {
@@ -32,14 +36,21 @@ const defaultState: AudioRoomsState = {
   currentRoom: undefined,
   liveRooms: [],
   upcomingRooms: [],
+};
+
+const defaultAPI: AudioRoomsAPI = {
   join: (_: AudioRoom) => {},
   leave: () => {},
   create: () => {},
   roomCreated: () => {},
-  setRooms: (calls: Call[]) => {},
+  setRooms: (_: Call[]) => {},
+  updateRooms: () => {},
 };
 
-const AudioRoomContext = createContext<AudioRoomsState>(defaultState);
+const AudioRoomContext = createContext<AudioRoomsState & AudioRoomsAPI>({
+  ...defaultState,
+  ...defaultAPI,
+});
 
 export const AudioRoomContextProvider = ({
   children,
@@ -48,77 +59,109 @@ export const AudioRoomContextProvider = ({
 }) => {
   const [myState, setMyState] = useState<AudioRoomsState>(defaultState);
 
-  console.log('Initiate AudioRoomContextProvider');
+  const join = useCallback((room: AudioRoom) => {
+    setMyState((currentState) => ({
+      ...currentState,
+      state: AudioRoomState.Joined,
+      currentRoom: room,
+    }));
+  }, []);
 
-  myState.join = useCallback(
-    (room: AudioRoom) => {
-      setMyState({
-        ...myState,
-        state: AudioRoomState.Joined,
-        currentRoom: room,
-      });
-    },
-    [myState],
-  );
-
-  myState.leave = useCallback(() => {
-    setMyState({
-      ...myState,
+  const leave = useCallback(() => {
+    setMyState((currentState) => ({
+      ...currentState,
       state: AudioRoomState.Overview,
       currentRoom: undefined,
-    });
-  }, [myState]);
+    }));
+  }, []);
 
-  myState.create = useCallback(() => {
-    setMyState({
-      ...myState,
+  const create = useCallback(() => {
+    setMyState((currentState) => ({
+      ...currentState,
       state: AudioRoomState.Create,
-    });
-  }, [myState]);
+    }));
+  }, []);
 
-  myState.roomCreated = useCallback(() => {
-    setMyState({
-      ...myState,
+  const roomCreated = useCallback(() => {
+    setMyState((currentState) => ({
+      ...currentState,
       state: AudioRoomState.Overview,
-    });
-  }, [myState]);
+    }));
+  }, []);
 
-  myState.setRooms = useCallback(
-    (calls: Call[]) => {
-      const liveRooms: AudioRoom[] = [];
-      const upcomingRooms: AudioRoom[] = [];
-      calls.forEach((call) => {
-        const room = roomFromCall(call);
+  const setRooms = useCallback((calls: Call[]) => {
+    const { liveRooms, upcomingRooms } = assignCallsToRooms(calls);
 
-        // If the room has ended, don't show it here as people can't join anymore.
-        if (call.state.metadata?.ended_at) {
-          return;
-        }
+    console.log(
+      `Found ${upcomingRooms.length} upcoming and ${liveRooms.length} live rooms.`,
+    );
 
-        // Check if call is currently live
-        const isBackstage = call.state.metadata?.backstage;
-        if (isBackstage) {
-          upcomingRooms.push(room);
-        } else {
-          liveRooms.push(room);
-        }
-      });
+    setMyState((currentState) => ({
+      ...currentState,
+      liveRooms: liveRooms,
+      upcomingRooms: upcomingRooms,
+    }));
+  }, []);
 
-      console.log(
-        `Found ${upcomingRooms.length} upcoming and ${liveRooms.length} live rooms.`,
-      );
-
-      setMyState({
-        ...myState,
+  const updateRooms = useCallback(() => {
+    setMyState((currentState) => {
+      const calls: Call[] = [
+        ...(currentState.liveRooms
+          .map((r) => r.call)
+          .filter(Boolean) as Call[]),
+        ...(currentState.upcomingRooms
+          .map((r) => r.call)
+          .filter(Boolean) as Call[]),
+      ];
+      const { liveRooms, upcomingRooms } = assignCallsToRooms(calls);
+      return {
+        ...currentState,
         liveRooms: liveRooms,
         upcomingRooms: upcomingRooms,
-      });
-    },
-    [myState],
-  );
+      };
+    });
+  }, []);
+
+  function assignCallsToRooms(calls: Call[]): {
+    liveRooms: AudioRoom[];
+    upcomingRooms: AudioRoom[];
+  } {
+    const liveRooms: AudioRoom[] = [];
+    const upcomingRooms: AudioRoom[] = [];
+    calls.forEach((call) => {
+      const room = roomFromCall(call);
+
+      // If the room has ended, don't show it here as people can't join anymore.
+      if (call.state.metadata?.ended_at) {
+        return;
+      }
+
+      // Check if call is currently live
+      const isBackstage = call.state.metadata?.backstage;
+      if (isBackstage) {
+        upcomingRooms.push(room);
+      } else {
+        liveRooms.push(room);
+      }
+    });
+    return {
+      liveRooms,
+      upcomingRooms,
+    };
+  }
 
   return (
-    <AudioRoomContext.Provider value={myState}>
+    <AudioRoomContext.Provider
+      value={{
+        ...myState,
+        join,
+        leave,
+        create,
+        roomCreated,
+        setRooms,
+        updateRooms,
+      }}
+    >
       {children}
     </AudioRoomContext.Provider>
   );
