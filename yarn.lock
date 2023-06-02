@@ -8879,6 +8879,7 @@ __metadata:
     clsx: ^1.2.1
     dotenv: ^16.0.3
     gleap: ^10.0.5
+    hotkeys-js: ^3.10.2
     nanoid: ^4.0.1
     next: ^13.2.3
     next-auth: ^4.20.1
@@ -20530,6 +20531,13 @@ __metadata:
   dependencies:
     lru-cache: ^7.5.1
   checksum: fa35df185224adfd69141f3b2f8cc31f50e705a5ebb415ccfbfd055c5b94bd08d3e658edf1edad9e2ac7d81831ac7cf261f5d219b3adc8d744fb8cdacaaf2ead
+  languageName: node
+  linkType: hard
+
+"hotkeys-js@npm:^3.10.2":
+  version: 3.10.2
+  resolution: "hotkeys-js@npm:3.10.2"
+  checksum: c8f75a4113d2b37e7044b068422122308c971e10980ab90fc7b84ebc352307e18aaea5719d39575e15a3599b4c8d1991f35b623548250477f0096b08f34fc1be
   languageName: node
   linkType: hard
 
