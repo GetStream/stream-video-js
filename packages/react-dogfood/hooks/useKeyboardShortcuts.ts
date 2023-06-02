@@ -8,9 +8,9 @@ import { useEffect } from 'react';
 
 import hotkeys from 'hotkeys-js';
 
-enum Hotkeys {
-  TOGGLE_AUDIO_MAC = 'cmd+d',
-  TOGGLE_AUDIO_OTHER = 'ctrl+d',
+enum KeyboardShortcut {
+  TOGGLE_AUDIO_MAC = 'cmd+d,cmd+shift+space',
+  TOGGLE_AUDIO_OTHER = 'ctrl+d,ctrl+shift+space',
   TOGGLE_VIDEO_MAC = 'cmd+e',
   TOGGLE_VIDEO_OTHER = 'ctrl+e',
   RAISE_HAND_MAC = 'ctrl+cmd+h',
@@ -29,13 +29,14 @@ export const useKeyboardShortcuts = () => {
   const call = useCall();
 
   useEffect(() => {
-    const key = `${Hotkeys.TOGGLE_AUDIO_MAC},${Hotkeys.TOGGLE_AUDIO_OTHER}`;
+    const key = `${KeyboardShortcut.TOGGLE_AUDIO_MAC},${KeyboardShortcut.TOGGLE_AUDIO_OTHER}`;
     const isMac = isMacOS();
 
     hotkeys(key, (e, ke) => {
       e.preventDefault();
 
-      if (isMac && ke.shortcut !== Hotkeys.TOGGLE_AUDIO_MAC) return;
+      if (isMac && !KeyboardShortcut.TOGGLE_AUDIO_MAC.includes(ke.shortcut))
+        return;
 
       toggleAudioMuteState();
     });
@@ -46,13 +47,14 @@ export const useKeyboardShortcuts = () => {
   }, [toggleAudioMuteState]);
 
   useEffect(() => {
-    const key = `${Hotkeys.TOGGLE_VIDEO_MAC},${Hotkeys.TOGGLE_AUDIO_OTHER}`;
+    const key = `${KeyboardShortcut.TOGGLE_VIDEO_MAC},${KeyboardShortcut.TOGGLE_AUDIO_OTHER}`;
     const isMac = isMacOS();
 
     hotkeys(key, (e, ke) => {
       e.preventDefault();
 
-      if (isMac && ke.shortcut !== Hotkeys.TOGGLE_VIDEO_MAC) return;
+      if (isMac && !KeyboardShortcut.TOGGLE_VIDEO_MAC.includes(ke.shortcut))
+        return;
 
       toggleVideoMuteState();
     });
@@ -63,7 +65,7 @@ export const useKeyboardShortcuts = () => {
   }, [toggleVideoMuteState]);
 
   useEffect(() => {
-    const key = `${Hotkeys.RAISE_HAND_MAC},${Hotkeys.RAISE_HAND_OTHER}`;
+    const key = `${KeyboardShortcut.RAISE_HAND_MAC},${KeyboardShortcut.RAISE_HAND_OTHER}`;
     const isMac = isMacOS();
 
     if (!call) return;
@@ -71,7 +73,8 @@ export const useKeyboardShortcuts = () => {
     hotkeys(key, (e, ke) => {
       e.preventDefault();
 
-      if (isMac && ke.shortcut !== Hotkeys.RAISE_HAND_MAC) return;
+      if (isMac && !KeyboardShortcut.RAISE_HAND_MAC.includes(ke.shortcut))
+        return;
 
       call.sendReaction(raiseHandReaction);
     });
