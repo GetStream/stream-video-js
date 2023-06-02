@@ -2,8 +2,8 @@ import { useEffect, useMemo } from 'react';
 import {
   CallControls,
   CallingState,
-  CallParticipantsView,
   LoadingIndicator,
+  PaginatedGridLayout,
   StreamCall,
   StreamTheme,
   StreamVideo,
@@ -68,7 +68,7 @@ export const UI = () => {
           <div className="str-video__call__header">
             <h4 className="str-video__call__header-title">Call: {call.cid}</h4>
           </div>
-          <CallParticipantsView call={call} />
+          <PaginatedGridLayout />
           <CallControls />
         </div>
       ) : callingState === CallingState.JOINING ? (
