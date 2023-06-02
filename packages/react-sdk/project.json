@@ -6,10 +6,8 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "preid": "alpha",
-        "releaseAs": "prerelease",
         "preset": {
-          "name": "angular",
+          "name": "conventionalcommits",
           "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},
@@ -25,7 +23,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
+        "postTargets": []
       }
     },
     "github": {

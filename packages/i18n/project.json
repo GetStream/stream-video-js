@@ -6,12 +6,10 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "preid": "alpha",
-        "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
         "preset": {
-          "name": "angular",
+          "name": "conventionalcommits",
           "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},
@@ -25,7 +23,7 @@
           ]
         },
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": ["@stream-io/i18n:github", "@stream-io/i18n:publish"]
+        "postTargets": []
       }
     },
     "github": {
