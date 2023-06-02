@@ -35,12 +35,12 @@ export const useParticipantViewContext = () =>
 
 export type ParticipantViewProps = {
   /**
-   * The participant bound to this component.
+   * The participant whose video/audio stream we want to play.
    */
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 
   /**
-   * Component used to render user interface elements (details, network status...),
+   * Override the default UI for rendering participant information/actions.
    * pass `null` if you wish to not render anything
    * @default DefaultParticipantViewUI
    */
@@ -48,7 +48,8 @@ export type ParticipantViewProps = {
 
   /**
    * In supported browsers, this sets the default audio output.
-   * The value of this prop should be a valid Audio Output `deviceId`.
+   * The value of this prop should be a valid audio output device ID.
+   * You can set this using `audioOutputDeviceId` field of the local participant.
    */
   sinkId?: string;
 
@@ -58,13 +59,13 @@ export type ParticipantViewProps = {
   videoKind?: 'video' | 'screen';
 
   /**
-   * Turns on/off the audio for the participant.
+   * You can mute the audio of the given participant (this is a local action, it won't have any effect on the published audio of the participant). The `ParticipantView` will mute the audio of the local participant by default.
    */
   muteAudio?: boolean;
 
   /**
-   * An object with set functions meant for exposing the "native" video
-   * and video placeholder elements to the integrators.
+   * An object with set functions meant for exposing the video
+   * and video placeholder elements to the integrators. It's useful when you want to attach custom event handlers to these elements.
    * - `refs.setVideoElement`
    * - `refs.setVideoPlaceholderElement`
    */
