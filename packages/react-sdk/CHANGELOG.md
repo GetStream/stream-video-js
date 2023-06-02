@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.110](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.109...@stream-io/video-react-sdk-0.0.1-alpha.110) (2023-06-02)
+
+
+### Bug Fixes
+
+* ignore own permission request events ([#583](https://github.com/GetStream/stream-video-js/issues/583)) ([1d876df](https://github.com/GetStream/stream-video-js/commit/1d876df5066aa6fe0a31168ef5a4e10cb02d7e0e))
+
+
+
 ## [0.0.1-alpha.109](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.108...@stream-io/video-react-sdk-0.0.1-alpha.109) (2023-06-01)
 
 
