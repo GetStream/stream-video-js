@@ -232,9 +232,11 @@ export const ParticipantActionsContextMenu = ({
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>
-      <GenericMenuButtonItem onClick={toggleFullscreenMode}>
-        {fullscreenModeOn ? 'Leave' : 'Enter'} fullscreen
-      </GenericMenuButtonItem>
+      {participantViewElement && (
+        <GenericMenuButtonItem onClick={toggleFullscreenMode}>
+          {fullscreenModeOn ? 'Leave' : 'Enter'} fullscreen
+        </GenericMenuButtonItem>
+      )}
       <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
