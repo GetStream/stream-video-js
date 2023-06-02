@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.2-alpha.21](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.20...client0.0.2-alpha.21) (2023-06-02)
+
+
+### Bug Fixes
+
+* ignore own permission request events ([#583](https://github.com/GetStream/stream-video-js/issues/583)) ([1d876df](https://github.com/GetStream/stream-video-js/commit/1d876df5066aa6fe0a31168ef5a4e10cb02d7e0e))
+
+
+
 ## [0.0.2-alpha.20](https://github.com/GetStream/stream-video-js/compare/client0.0.2-alpha.19...client0.0.2-alpha.20) (2023-06-01)
 
 
