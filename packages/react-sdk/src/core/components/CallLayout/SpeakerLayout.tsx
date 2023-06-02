@@ -32,7 +32,8 @@ export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
   ParticipantViewUIBar?: ParticipantViewProps['ParticipantViewUI'];
   /**
-   * The position of the particpants who are not in focus
+   * The position of the particpants who are not in focus.
+   * Providing `null` will hide the bar.
    */
   participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right' | null;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
