@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1...@stream-io/video-react-sdk-0.0.2) (2023-06-02)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.2`
+* `@stream-io/video-react-bindings` updated to version `0.0.2`
+* `@stream-io/video-styling` updated to version `0.1.0`
+
+### Features
+
+* Dummy feat change to react-sdk ([bfa333b](https://github.com/GetStream/stream-video-js/commit/bfa333be93a9216e4e67ef73326b8438e4285ef5))
+
 ### [0.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.114...@stream-io/video-react-sdk-0.0.1) (2023-06-02)
 
 ### Dependency Updates
