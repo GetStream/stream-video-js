@@ -47,5 +47,5 @@
     "typedoc": "^0.24.7",
     "typescript": "^4.9.5"
   },
-  "version": "0.0.1-alpha.114"
+  "version": "0.0.1"
 }
