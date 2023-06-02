@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.113](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.112...@stream-io/video-react-sdk-0.0.1-alpha.113) (2023-06-02)
+
+
+### Features
+
+* **react-dogfood:** keyboard shortcuts ([#579](https://github.com/GetStream/stream-video-js/issues/579)) ([80770a5](https://github.com/GetStream/stream-video-js/commit/80770a51e588c8f93f46558d6e88f5a98d50d71d))
+
+
+
 ## [0.0.1-alpha.112](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1-alpha.111...@stream-io/video-react-sdk-0.0.1-alpha.112) (2023-06-02)
 
 
