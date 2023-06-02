@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.2...@stream-io/video-react-sdk-0.0.3) (2023-06-02)
+
+
+### Documentation
+
+* **react-sdk:** add CallRecordingList component documentation ([#588](https://github.com/GetStream/stream-video-js/issues/588)) ([f906f42](https://github.com/GetStream/stream-video-js/commit/f906f42791f2d32303616689830aacf889fb39f4))
+
 ### [0.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.1...@stream-io/video-react-sdk-0.0.2) (2023-06-02)
 
 ### Dependency Updates
