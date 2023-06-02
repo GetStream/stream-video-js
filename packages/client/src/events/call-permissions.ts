@@ -10,7 +10,10 @@ import { OwnCapability } from '../gen/coordinator';
 export const watchCallPermissionRequest = (state: CallState) => {
   return function onCallPermissionRequest(event: StreamVideoEvent) {
     if (event.type !== 'call.permission_request') return;
-    state.setCallPermissionRequest(event);
+    const { localParticipant } = state;
+    if (event.user.id !== localParticipant?.userId) {
+      state.setCallPermissionRequest(event);
+    }
   };
 };
 
