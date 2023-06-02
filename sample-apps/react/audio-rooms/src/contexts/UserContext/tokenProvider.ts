@@ -1,20 +1,17 @@
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const url = 'https://stream-calls-dogfood.vercel.app/api/auth/create-token?';
+const apiKey = import.meta.env.VITE_STREAM_API_KEY;
+const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL;
 
 export async function tokenProvider(userId: string): Promise<string> {
-  const constructedUrl = constructUrl(userId);
-  const response = await fetch(constructedUrl);
-  const resultObject = await response.json();
-  let token = resultObject.token;
+  if (!apiKey) {
+    throw new Error('Missing VITE_STREAM_API_KEY');
+  }
+  if (!tokenProviderURL) {
+    throw new Error('Missing VITE_TOKEN_PROVIDER_URL');
+  }
+  const url = new URL(tokenProviderURL);
+  url.searchParams.set('api_key', apiKey);
+  url.searchParams.set('user_id', userId);
+  const response = await fetch(url.toString());
+  const { token } = await response.json();
   return token;
-}
-
-function constructUrl(userId: string): string {
-  return (
-    url +
-    new URLSearchParams({
-      api_key: apiKey,
-      user_id: userId,
-    })
-  );
 }

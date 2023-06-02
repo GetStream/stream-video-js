@@ -1,20 +1,17 @@
 import './App.css';
 import Home from './components/home/Home';
 import { AudioRoomContextProvider } from './contexts/AudioRoomContext/AudioRoomContext';
-import { AuthStatus, useUserContext } from './contexts/UserContext/UserContext';
+import { useUserContext } from './contexts/UserContext/UserContext';
 import Login from './components/login/Login';
 
 function App() {
-  const { authStatus, user } = useUserContext();
+  const { user } = useUserContext();
+  if (!user) return <Login />;
+
   return (
-    <>
-      {authStatus === AuthStatus.loggedOut && <Login />}
-      {(AuthStatus.processing || AuthStatus.loggedIn) && user && (
-        <AudioRoomContextProvider>
-          <Home />
-        </AudioRoomContextProvider>
-      )}
-    </>
+    <AudioRoomContextProvider>
+      <Home />
+    </AudioRoomContextProvider>
   );
 }
 
