@@ -38,7 +38,7 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_AUDIO_MAC.includes(ke.shortcut))
         return;
 
-      toggleAudioMuteState();
+      toggleAudioMuteState().catch(console.error);
     });
 
     return () => {
@@ -56,7 +56,7 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_VIDEO_MAC.includes(ke.shortcut))
         return;
 
-      toggleVideoMuteState();
+      toggleVideoMuteState().catch(console.error);
     });
 
     return () => {
@@ -76,7 +76,7 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.RAISE_HAND_MAC.includes(ke.shortcut))
         return;
 
-      call.sendReaction(raiseHandReaction);
+      call.sendReaction(raiseHandReaction).catch(console.error);
     });
 
     return () => {
