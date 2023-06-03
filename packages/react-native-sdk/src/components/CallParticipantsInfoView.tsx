@@ -7,6 +7,7 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useHasPermissions,
   useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
@@ -38,7 +39,15 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const { participant, setSelectedParticipant } = props;
   const connectedUser = useConnectedUser();
   const participantIsLoggedInUser = participant.userId === connectedUser?.id;
-
+  const userHasMuteUsersCapability = useHasPermissions(
+    OwnCapability.MUTE_USERS,
+  );
+  const userHasUpdateCallPermissionsCapability = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
+  const userHasBlockUserCapability = useHasPermissions(
+    OwnCapability.BLOCK_USERS,
+  );
   const optionsOpenHandler = useCallback(() => {
     if (!participantIsLoggedInUser) setSelectedParticipant(participant);
   }, [participant, setSelectedParticipant, participantIsLoggedInUser]);
@@ -50,9 +59,17 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
+  const isParticipantItemPressable =
+    userHasBlockUserCapability ||
+    userHasMuteUsersCapability ||
+    userHasUpdateCallPermissionsCapability;
 
   return (
-    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
+    <Pressable
+      style={styles.participant}
+      onPress={optionsOpenHandler}
+      disabled={!isParticipantItemPressable}
+    >
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
@@ -220,6 +237,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     ...theme.fonts.bodyBold,
+    color: theme.light.text_high_emphasis,
   },
   closeIcon: {
     marginRight: theme.margin.md,
