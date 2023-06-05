@@ -3,8 +3,122 @@ id: stream-call
 title: StreamCall
 ---
 
-:::warning
+The `<StreamCall />` component is a declarative component wrapper around [`Call`](../../../call-engine/Call) objects. It utilizes the [`StreamCallProvider`](../../../call-engine/hooks-and-contexts/#streamcallprovider) to make the [call and its state](../../../guides/call-and-participant-state) available to all child components.
 
-TODO: write about https://github.com/GetStream/stream-video-js/blob/main/packages/react-sdk/src/core/components/StreamCall/StreamCall.tsx
+Additionally, the `<StreamCall />` component sets up a [`MediaDevicesProvider`](../../../guides/camera-and-microphone) instance, making device management (microphone, camera) easier for integrators.
 
-:::
+## General usage
+
+```tsx
+import {
+  StreamCall,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+export const App = () => {
+  const client = useCreateStreamVideoClient(/* ... */);
+  return (
+    <StreamVideo client={client}>
+      // highlight-next-line
+      <StreamCall callType="default" callId="my-call-id">
+        <MyUI />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+Or, if you want to control call creation steps:
+
+```tsx
+import {
+  CallingState,
+  StreamCall,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { useEffect } from 'react';
+
+export const App = () => {
+  const [call] = useState<Call>(() => client.call('default', callId));
+  //highlight-start
+  useEffect(() => {
+    if (call.state.callingState === CallingState.IDLE) {
+      call.join({ create: true });
+    }
+  }, [call]);
+  //highlight-end
+  const client = useCreateStreamVideoClient(/* ... */);
+  return (
+    <StreamVideo client={client}>
+      // highlight-next-line
+      <StreamCall call={call}>
+        <MyUI />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+## Props
+
+### `call`
+
+| Type                                                   |
+| ------------------------------------------------------ |
+| [`Call`](<(../../../call-engine/Call)>) \| `undefined` |
+
+The `StreamCall` can be initialized with `callType` and `callId` or a `Call` instance.
+
+### `callType`
+
+| Type                    |
+| ----------------------- |
+| `string` \| `undefined` |
+
+The `StreamCall` can be initialized with `callType` and `callId` or a `Call` instance.
+
+### `callId`
+
+| Type                    |
+| ----------------------- |
+| `string` \| `undefined` |
+
+The `StreamCall` can be initialized with `callType` and `callId` or a `Call` instance.
+
+### `data`
+
+| Type                          |
+| ----------------------------- |
+| `JoinCallData` \| `undefined` |
+
+The contents of the data prop will be sent to the backend when creating/joining the call.
+
+### `autoJoin`
+
+| Type                     |
+| ------------------------ |
+| `boolean` \| `undefined` |
+
+If true, the call will be joined automatically. Set it to true if you want to join the call immediately. Useful for scenarios where you want to skip prompting the user to join the call. The default value is `false`.
+
+### `autoLoad`
+
+| Type                     |
+| ------------------------ |
+| `boolean` \| `undefined` |
+
+If true, the call data will be loaded automatically from the server. This property is useful for the scenarios where you declaratively create the call instance by using the `callId` and `callType` props, and you have a UI that depends on the call metadata.
+
+This property is ignored if you pass the `call` prop or enable `autoJoin`.
+
+The default value is `true`.
+
+### `mediaDevicesProviderProps`
+
+| Type                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------- |
+| [`MediaDevicesProviderProps`](../../../call-engine/hooks-and-contexts/#mediadevicesproviderprops) \| `undefined` |
+
+An optional props to pass to the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).
