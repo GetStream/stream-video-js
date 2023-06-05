@@ -69,7 +69,7 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
   sdp.split(/(\r\n|\r|\n)/).forEach((line) => {
     const isValidLine = /^([a-z])=(.*)/.test(line);
     if (!isValidLine) return;
-    /* 
+    /*
       NOTE: according to https://www.rfc-editor.org/rfc/rfc8866.pdf
       Each media description starts with an "m=" line and continues to the next media description or the end of the whole session description, whichever comes first
     */
@@ -170,7 +170,7 @@ export const removeCodec = (
   sdp: string,
   mediaType: 'video' | 'audio',
   codecToRemove: string,
-) => {
+): string => {
   const section = getMediaSection(sdp, mediaType);
   const mediaSection = section?.media;
   if (!mediaSection) {
@@ -190,30 +190,26 @@ export const removeCodec = (
       mediaSection.original,
       `${mediaSection.mediaWithPorts} ${newCodecOrder}`,
     )
-    .replace(new RegExp(`${rtpMap.original}[\r\n|\r|\n]`), '') // remove the corresponding rtpmap line
-    .replace(
-      fmtp?.original ? new RegExp(`${fmtp?.original}[\r\n|\r|\n]`) : '',
-      '',
-    ); // remove the corresponding fmtp line
+    .replace(new RegExp(`${rtpMap.original}[\r\n]+`), '') // remove the corresponding rtpmap line
+    .replace(fmtp?.original ? new RegExp(`${fmtp?.original}[\r\n]+`) : '', ''); // remove the corresponding fmtp line
 };
 
 /**
  * Gets the fmtp line corresponding to opus
  */
-const getOpusFmtp = (sdp: string) => {
+const getOpusFmtp = (sdp: string): Fmtp | undefined => {
   const section = getMediaSection(sdp, 'audio');
   const rtpMap = section?.rtpMap.find((r) => r.codec.toLowerCase() === 'opus');
   const codecId = rtpMap?.payload;
   if (codecId) {
-    const fmtp = section?.fmtp.find((f) => f.payload === codecId);
-    return fmtp;
+    return section?.fmtp.find((f) => f.payload === codecId);
   }
 };
 
 /**
  * Returns an SDP with DTX enabled or disabled.
  */
-export const toggleDtx = (sdp: string, enable: boolean) => {
+export const toggleDtx = (sdp: string, enable: boolean): string => {
   const opusFmtp = getOpusFmtp(sdp);
   if (opusFmtp) {
     const matchDtx = /usedtx=(\d)/.exec(opusFmtp.config);
