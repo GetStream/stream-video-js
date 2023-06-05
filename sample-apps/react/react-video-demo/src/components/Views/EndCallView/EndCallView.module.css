@@ -2,6 +2,13 @@
   @apply flex flex-col items-center justify-center bg-video-grey-700;
   height: 100dvh;
 }
+
+@supports (not (height: 100dvh)) {
+  .root {
+    height: 100vh;
+  }
+}
+
 .panel {
   @apply mr-4 ml-4 sm:m-0 md:w-6/12  flex flex-col items-center justify-center;
 }

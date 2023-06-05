@@ -24,8 +24,11 @@
 }
 
 .participants {
-  @apply overflow-hidden pb-4 pt-2 max-h-[200px];
+  @apply overflow-hidden mb-4 mt-2;
   overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 60px);
 }
 
 .participant {
