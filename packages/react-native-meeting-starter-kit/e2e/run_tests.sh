@@ -4,8 +4,16 @@ IOS_APP_ID=org.reactjs.native.example.StreamReactNativeMeetingStarterKit
 ANDROID_APP_ID=com.streamreactnativemeetingstarterkit
 PREFERRED_OS=$1
 
-#echo "Stream video buddy authenticating..."
-#stream-video-buddy auth
+
+# Install dependencies
+cd ../../
+yarn install
+yarn build:react-native:deps
+cd packages/react-native-meeting-starter-kit
+npx pod-install
+
+echo "Stream video buddy authenticating..."
+stream-video-buddy auth
 
 echo "Starting node CLI helper server..."
 node ./e2e/js/server.js &
