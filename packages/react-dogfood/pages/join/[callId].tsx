@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
+  Call,
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
@@ -28,6 +30,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
   const { userToken, user, apiKey, gleapApiKey } = props;
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+  const [connectedUser, setConnectedUser] = useState<User | undefined>(
+    undefined,
+  );
+  const [call] = useState<Call>(() => client.call(callType, callId));
 
   const tokenProvider = useCallback(async () => {
     const { token } = await fetch(
@@ -41,17 +50,32 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     return token as string;
   }, [apiKey, user.id]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenProvider,
-    user,
-  });
+  useEffect(() => {
+    client
+      .connectUser(user, tokenProvider)
+      .then(() => setConnectedUser(user))
+      .catch((err) => {
+        console.error(`Failed to establish connection`, err);
+      });
+
+    return () => {
+      client.disconnectUser().then(() => setConnectedUser(undefined));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, tokenProvider, user?.id]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: userToken,
     userData: user,
   });
+
+  useEffect(() => {
+    if (!client || !connectedUser) return;
+    call.getOrCreate().catch((err) => {
+      console.error(`Failed to get or create call`, err);
+    });
+  }, [call, client, connectedUser]);
 
   useGleap(gleapApiKey, client, user);
 
@@ -68,9 +92,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         translationsOverrides={translations}
       >
         <StreamCall
-          callId={callId}
-          callType={callType}
-          autoJoin={false}
+          call={call}
           mediaDevicesProviderProps={{
             initialAudioEnabled: !settings?.isAudioMute,
             initialVideoEnabled: !settings?.isVideoMute,
