@@ -969,12 +969,6 @@ export interface CallResponse {
    */
   blocked_user_ids: Array<string>;
   /**
-   *
-   * @type {boolean}
-   * @memberof CallResponse
-   */
-  broadcasting: boolean;
-  /**
    * The unique identifier for a call (<type>:<id>)
    * @type {string}
    * @memberof CallResponse
@@ -1005,17 +999,17 @@ export interface CallResponse {
    */
   custom: { [key: string]: any };
   /**
+   *
+   * @type {EgressResponse}
+   * @memberof CallResponse
+   */
+  egress: EgressResponse;
+  /**
    * Date/time when the call ended
    * @type {string}
    * @memberof CallResponse
    */
   ended_at?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallResponse
-   */
-  hls_playlist_url: string;
   /**
    * Call ID
    * @type {string}
@@ -1970,6 +1964,69 @@ export interface EdgeResponse {
    * @memberof EdgeResponse
    */
   yellow: number;
+}
+/**
+ *
+ * @export
+ * @interface EgressHLSResponse
+ */
+export interface EgressHLSResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof EgressHLSResponse
+   */
+  playlist_url: string;
+}
+/**
+ *
+ * @export
+ * @interface EgressRTMPResponse
+ */
+export interface EgressRTMPResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof EgressRTMPResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EgressRTMPResponse
+   */
+  stream_key: string;
+  /**
+   *
+   * @type {string}
+   * @memberof EgressRTMPResponse
+   */
+  url: string;
+}
+/**
+ *
+ * @export
+ * @interface EgressResponse
+ */
+export interface EgressResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof EgressResponse
+   */
+  broadcasting: boolean;
+  /**
+   *
+   * @type {EgressHLSResponse}
+   * @memberof EgressResponse
+   */
+  hls?: EgressHLSResponse;
+  /**
+   *
+   * @type {Array<EgressRTMPResponse>}
+   * @memberof EgressResponse
+   */
+  rtmps: Array<EgressRTMPResponse>;
 }
 /**
  *
