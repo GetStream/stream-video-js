@@ -1,14 +1,16 @@
 import {
   defaultReactions,
   useCall,
+  useMediaDevices,
   useToggleAudioMuteState,
   useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import hotkeys from 'hotkeys-js';
 
 enum KeyboardShortcut {
+  PUSH_TO_TALK = 'c',
   TOGGLE_AUDIO_MAC = 'cmd+d,cmd+shift+space',
   TOGGLE_AUDIO_OTHER = 'ctrl+d,ctrl+shift+space',
   TOGGLE_VIDEO_MAC = 'cmd+e',
@@ -23,10 +25,43 @@ const isMacOS = () => {
 
 const [, raiseHandReaction] = defaultReactions;
 
+export const usePushToTalk = (key: string) => {
+  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
+
+  const [isTalking, setIsTalking] = useState(false);
+  const interactedRef = useRef(false);
+
+  useEffect(() => {
+    hotkeys(key, { keyup: true }, (e) => {
+      if (e.metaKey || e.ctrlKey) return;
+
+      if (e.type === 'keydown') {
+        interactedRef.current = true;
+        setIsTalking(true);
+      }
+
+      if (e.type === 'keyup') setIsTalking(false);
+    });
+
+    return () => {
+      hotkeys.unbind(key);
+    };
+  }, [key]);
+
+  useEffect(() => {
+    if (isTalking) publishAudioStream().catch(console.error);
+
+    return () => {
+      if (interactedRef.current) stopPublishingAudio();
+    };
+  }, [isTalking, publishAudioStream, stopPublishingAudio]);
+};
+
 export const useKeyboardShortcuts = () => {
   const { toggleAudioMuteState } = useToggleAudioMuteState();
   const { toggleVideoMuteState } = useToggleVideoMuteState();
   const call = useCall();
+  usePushToTalk(KeyboardShortcut.PUSH_TO_TALK);
 
   useEffect(() => {
     const key = `${KeyboardShortcut.TOGGLE_AUDIO_MAC},${KeyboardShortcut.TOGGLE_AUDIO_OTHER}`;
