@@ -50,8 +50,8 @@ jobs:
         run: yarn install --immutable
       - name: Build react native dependency packages
         run: yarn build:react-native:deps
-      - name: Build RN SDK
-        run: yarn build:react-native:sdk
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
@@ -79,7 +79,7 @@ jobs:
           bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
   deploy_android:
     name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -102,6 +102,8 @@ jobs:
         run: yarn install --immutable
       - name: Build react native dependency packages
         run: yarn build:react-native:deps
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:

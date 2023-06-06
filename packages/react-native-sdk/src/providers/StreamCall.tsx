@@ -10,7 +10,7 @@ import { useCallCycleEffect } from '../hooks';
 export interface StreamCallProps {
   callId: string;
   callType?: string;
-  callCycleHandlers: CallCycleHandlersType;
+  callCycleHandlers?: CallCycleHandlersType;
 }
 /**
  * StreamCall is a wrapper component that orchestrates the call life cycle logic and
