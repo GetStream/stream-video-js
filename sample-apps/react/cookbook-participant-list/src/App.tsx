@@ -3,11 +3,11 @@ import { createTheme, ThemeProvider } from '@mui/material';
 import { CallSetup } from './CallSetup';
 import { useEffect, useState } from 'react';
 import {
+  Call,
   StreamCall,
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCreateStreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
 import { SpeakerView } from './SpeakerView';
@@ -29,8 +29,9 @@ const userId = import.meta.env.VITE_USER_ID as string;
 const App = () => {
   const [callId, setCallId] = useState<string>();
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(process.env.REACT_APP_STREAM_API_KEY!), // see <video>/data/fixtures/apps.yaml for API key/secret
+    () => new StreamVideoClient(apiKey),
   );
+  const [call, setCall] = useState<Call | undefined>(undefined);
   const [connectedUser, setConnectedUser] = useState<User | undefined>(
     undefined,
   );
@@ -49,7 +50,15 @@ const App = () => {
   useEffect(() => {
     if (!callId) return;
     window.location.hash = `call_id=${callId}`;
-  }, [callId]);
+    setCall(client.call('default', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    if (!call || !connectedUser) {
+      return;
+    }
+    call.join({ create: true });
+  }, [call, connectedUser]);
 
   return (
     <StreamTheme as="main" className="main-container">
@@ -57,14 +66,11 @@ const App = () => {
         {!callId && <CallSetup onJoin={setCallId} />}
         {callId && (
           <StreamVideo client={client}>
-            <StreamCall
-              callId={callId}
-              callType="default"
-              data={{ create: true }}
-              autoJoin
-            >
-              <SpeakerView />
-            </StreamCall>
+            {call && (
+              <StreamCall call={call}>
+                <SpeakerView />
+              </StreamCall>
+            )}
           </StreamVideo>
         )}
       </ThemeProvider>
