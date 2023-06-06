@@ -10,7 +10,7 @@ import {Platform} from 'react-native';
 
 export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
   const {client} = useChatContext<StreamChatGenerics>();
-  const token = client._getToken() || '';
+  const token = client._getToken() ?? '';
 
   const user = useMemo(
     () => ({

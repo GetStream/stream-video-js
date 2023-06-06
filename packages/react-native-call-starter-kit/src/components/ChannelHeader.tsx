@@ -17,7 +17,7 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
   const {channel} = useAppContext();
   const videoClient = useStreamVideoClient();
   const members = Object.values(
-    channel?.state?.members || {},
+    channel?.state?.members ?? {},
   ).map<MemberRequest>(member => ({
     user_id: member.user_id!,
   }));
@@ -47,7 +47,7 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
         <Back color="#52be80" />
       </Pressable>
       <Text style={styles.name}>
-        {channel?.data?.name ||
+        {channel?.data?.name ??
           channel?.state.members[members[0].user_id].user?.name}
       </Text>
       <Pressable onPress={joinCallHandler} style={styles.icon}>

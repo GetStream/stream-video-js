@@ -39,7 +39,7 @@ export const UserInfoView = ({
   const membersToShow: UserResponse[] = (members || [])
     .slice(0, totalMembersToShow)
     .map(({ user }) => user)
-    .filter((user) => user.id !== connectedUser?.id || includeSelf);
+    .filter((user) => user.id !== connectedUser?.id ?? includeSelf);
   if (
     includeSelf &&
     !membersToShow.find((user) => user.id === connectedUser?.id)
@@ -53,7 +53,7 @@ export const UserInfoView = ({
   }
 
   const memberUserIds = membersToShow.map(
-    (memberToShow) => memberToShow.name || memberToShow.id,
+    (memberToShow) => memberToShow.name ?? memberToShow.id,
   );
 
   const callTitle = generateCallTitle(memberUserIds, totalMembersToShow);

@@ -58,10 +58,9 @@ export const Calls = () => {
     const lastCallCreatedBy = calls[1].data?.created_by;
     Alert.alert(
       `Incoming call from ${
-        lastCallCreatedBy?.name || lastCallCreatedBy?.id
+        lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
       }, only 1 call at a time is supported`,
     );
-    return;
   }, [calls]);
 
   // Reset the state of the show variable when there are no calls.
