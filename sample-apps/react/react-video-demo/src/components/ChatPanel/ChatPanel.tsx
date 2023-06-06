@@ -14,6 +14,7 @@ export type Props = {
   client?: StreamChat | null;
   channelType: string;
   close?: () => void;
+  fulllHeight?: boolean;
 };
 
 export const ChatPanel: FC<Props> = ({
@@ -23,6 +24,7 @@ export const ChatPanel: FC<Props> = ({
   client,
   channelType,
   close,
+  fulllHeight,
 }) => {
   const rootClassname = classnames(styles.root, className);
 
@@ -33,6 +35,7 @@ export const ChatPanel: FC<Props> = ({
       isFocused={isFocused}
       close={close}
       canCollapse
+      fulllHeight={fulllHeight}
     >
       <Chat channelId={channelId} client={client} channelType={channelType} />
     </Panel>

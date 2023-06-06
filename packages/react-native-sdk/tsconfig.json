@@ -3,7 +3,7 @@
     "outDir": "./dist",
     "target": "esnext",
     "module": "commonjs",
-    "types": ["react-native"],
+    "types": ["react-native", "jest"],
     "lib": ["es2019"],
     "declaration": true,
     "moduleResolution": "node",
@@ -17,6 +17,6 @@
     "sourceMap": true,
     "jsx": "react-native"
   },
-  "include": ["./src", "index.ts"],
+  "include": ["./src", "index.ts", "__tests__", "./jest-setup.ts"],
   "exclude": ["./dist", "node_modules"]
 }

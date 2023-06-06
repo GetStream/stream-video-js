@@ -2,6 +2,50 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.126](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.125...@stream-io/video-react-native-sdk-0.0.1-alpha.126) (2023-06-06)
+
+
+### Bug Fixes
+
+* **react-native:** anr in lobby view due to constantly leaving the call ([#601](https://github.com/GetStream/stream-video-js/issues/601)) ([4a6d87b](https://github.com/GetStream/stream-video-js/commit/4a6d87b2df03595d3c0ed74fc0206efead32daa3))
+
+
+### Features
+
+* test harness rn ([#555](https://github.com/GetStream/stream-video-js/issues/555)) ([0de2255](https://github.com/GetStream/stream-video-js/commit/0de2255f9cb0e3475421f4d5093e2d77b31a825e))
+
+
+
+## [0.0.1-alpha.125](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.124...@stream-io/video-react-native-sdk-0.0.1-alpha.125) (2023-06-06)
+
+
+
+## [0.0.1-alpha.124](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.123...@stream-io/video-react-native-sdk-0.0.1-alpha.124) (2023-06-06)
+
+
+
+## [0.0.1-alpha.123](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.122...@stream-io/video-react-native-sdk-0.0.1-alpha.123) (2023-06-06)
+
+
+### Features
+
+* **react-native:** introduce connectionQuality indicator and participant label truncation improvement ([#573](https://github.com/GetStream/stream-video-js/issues/573)) ([c0d8829](https://github.com/GetStream/stream-video-js/commit/c0d88295e51365309c756f36cc4ac5278b7f4799))
+
+
+
+## [0.0.1-alpha.122](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.121...@stream-io/video-react-native-sdk-0.0.1-alpha.122) (2023-06-06)
+
+
+
+## [0.0.1-alpha.121](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.120...@stream-io/video-react-native-sdk-0.0.1-alpha.121) (2023-06-06)
+
+
+### Bug Fixes
+
+* **react-native:** ui issues in participant info view and options modal ([#593](https://github.com/GetStream/stream-video-js/issues/593)) ([c2b7c91](https://github.com/GetStream/stream-video-js/commit/c2b7c91059fa2ff79b5f3308f4f6d5696bc4841a))
+
+
+
 ## [0.0.1-alpha.120](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.119...@stream-io/video-react-native-sdk-0.0.1-alpha.120) (2023-06-06)
 
 

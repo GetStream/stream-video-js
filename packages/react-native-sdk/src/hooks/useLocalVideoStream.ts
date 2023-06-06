@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getVideoStream } from '@stream-io/video-client';
+import { disposeOfMediaStream, getVideoStream } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
 import { useStreamVideoStoreValue } from '../contexts';
 
@@ -18,11 +18,19 @@ export const useLocalVideoStream = () => {
 
   useEffect(() => {
     const loadVideoStream = async () => {
-      const stream = await getVideoStream(currentVideoDevice?.deviceId);
-      setVideoStream(stream);
+      // If there is no video device, we don't need to load a video stream.
+      if (!currentVideoDevice?.deviceId) return null;
+
+      const stream = await getVideoStream({
+        deviceId: currentVideoDevice.deviceId,
+      });
+      setVideoStream((previousStream) => {
+        if (previousStream) disposeOfMediaStream(previousStream);
+        return stream;
+      });
     };
     loadVideoStream();
-  }, [currentVideoDevice]);
+  }, [currentVideoDevice?.deviceId]);
 
   return videoStream;
 };

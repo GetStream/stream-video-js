@@ -19,6 +19,7 @@
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
     "start:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run start",
     "build:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run build",
+    "test:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run test",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "start:react-native:ios:app": "yarn workspace @stream-io/react-native-sample-app run ios",
