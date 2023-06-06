@@ -1,5 +1,5 @@
-import React from 'react';
-import { Call } from '@stream-io/video-client';
+import React, { PropsWithChildren } from 'react';
+import { Call, StreamVideoClient } from '@stream-io/video-client';
 import {
   CallCycleHandlersType,
   CallCycleLogicsWrapper,
@@ -23,6 +23,12 @@ export interface RenderProps {
   };
 }
 
+interface WrapperProps {
+  client: StreamVideoClient;
+  call: Call;
+  callCycleHandlers: CallCycleHandlersType;
+}
+
 const mockedCallCycleHandlers = {
   onCallAccepted: jest.fn(),
   onCallEnded: jest.fn(),
@@ -33,6 +39,21 @@ const mockedCallCycleHandlers = {
 };
 
 export * from '@testing-library/react-native';
+
+const Wrapper = ({
+  children,
+  client,
+  callCycleHandlers,
+  call,
+}: PropsWithChildren<WrapperProps>) => (
+  <StreamVideo client={client} language={'en'}>
+    <StreamCallProvider call={call}>
+      <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
+        {children}
+      </CallCycleLogicsWrapper>
+    </StreamCallProvider>
+  </StreamVideo>
+);
 // override React Testing Library's render with our own
 // that way we can wrap the component with the necessary providers
 const render = (
@@ -46,14 +67,13 @@ const render = (
   const testClient = mockClientWithUser({ id: 'test-user-id' });
   const testCall = call || mockCall(testClient);
   return rtlRender(component, {
-    wrapper: ({ children }) => (
-      <StreamVideo client={testClient} language={'en'}>
-        <StreamCallProvider call={testCall}>
-          <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
-            {children}
-          </CallCycleLogicsWrapper>
-        </StreamCallProvider>
-      </StreamVideo>
+    wrapper: (props) => (
+      <Wrapper
+        {...props}
+        client={testClient}
+        call={testCall}
+        callCycleHandlers={callCycleHandlers}
+      />
     ),
     ...options,
   });

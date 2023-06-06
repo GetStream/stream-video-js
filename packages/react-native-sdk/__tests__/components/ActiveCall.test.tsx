@@ -44,11 +44,12 @@ describe('ActiveCall', () => {
     render(<ActiveCall />, {
       call,
     });
+
     expect(
       await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
     ).toHaveTextContent('1');
     expect(
-      await screen.findByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      screen.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toBeOnTheScreen();
     expect(screen.getByLabelText(A11yIcons.HANG_UP_CALL)).toBeOnTheScreen();
   });
@@ -109,13 +110,11 @@ describe('ActiveCall', () => {
       participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'audio-test-url');
     expect(
-      await participant2.findByLabelText(
-        A11yComponents.PARTICIPANT_MEDIA_STREAM,
-      ),
+      participant2.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     // Verifying no extra/unknown RTCViews are rendered
     expect(
-      await screen.findAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      screen.getAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveLength(3);
   });
 });
