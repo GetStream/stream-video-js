@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Call, SfuModels } from '@stream-io/video-client';
 
 import {
   useLocalParticipant,
   useParticipants,
-} from '@stream-io/video-react-bindings';
-import { ParticipantView, DefaultParticipantViewUI } from '../../core';
-import { Video } from '../Video';
-
-import { useVerticalScrollPosition } from '../../hooks';
-import { IconButton } from '../Button';
+  Call,
+  SfuModels,
+  ParticipantView,
+  DefaultParticipantViewUI,
+  Video,
+  IconButton,
+  useVerticalScrollPosition,
+} from '@stream-io/video-react-sdk';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
