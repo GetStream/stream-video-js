@@ -101,7 +101,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     >
       {isVideoMuted ? (
         <View style={style}>
-          <View style={[styles.icon, theme.icon.md]}>
+          <View style={theme.icon.md}>
             <VideoSlash color={theme.light.static_white} />
           </View>
         </View>
