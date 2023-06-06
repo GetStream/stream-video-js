@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.124](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.123...@stream-io/video-react-native-sdk-0.0.1-alpha.124) (2023-06-06)
+
+
+
+## [0.0.1-alpha.123](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.122...@stream-io/video-react-native-sdk-0.0.1-alpha.123) (2023-06-06)
+
+
+### Features
+
+* **react-native:** introduce connectionQuality indicator and participant label truncation improvement ([#573](https://github.com/GetStream/stream-video-js/issues/573)) ([c0d8829](https://github.com/GetStream/stream-video-js/commit/c0d88295e51365309c756f36cc4ac5278b7f4799))
+
+
+
 ## [0.0.1-alpha.122](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.121...@stream-io/video-react-native-sdk-0.0.1-alpha.122) (2023-06-06)
 
 

@@ -15,6 +15,7 @@ import { theme } from '../theme';
 import { palette } from '../theme/constants';
 import { ParticipantReaction } from './ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
+import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -69,7 +70,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
-  const { reaction, sessionId } = participant;
+  const { connectionQuality, reaction, sessionId } = participant;
 
   /**
    * This effect updates the participant's viewportVisibilityState
@@ -186,15 +187,12 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const canShowVideo = !!videoStream && isVisible && hasVideoTrack;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
-  const videoOnlyStyle = !isScreenSharing && {
+  const videoOnlyStyle = {
     borderColor: palette.grey800,
     borderWidth: 2,
   };
 
-  const participantLabel =
-    participant.userId.length > 15
-      ? `${participant.userId.slice(0, 15)}...`
-      : participant.userId;
+  const participantLabel = participant.userId;
 
   // if (isScreenSharing) {
   //   console.log({
@@ -219,6 +217,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ]}
       onLayout={onLayout}
     >
+      <View style={styles.topView}>
+        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
+      </View>
       {canShowVideo ? (
         <VideoRenderer
           zOrder={1}
@@ -230,71 +231,88 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ) : (
         <Avatar participant={participant} />
       )}
-      {reaction && (
-        <ParticipantReaction reaction={reaction} sessionId={sessionId} />
-      )}
       {isAudioAvailable && (
         <RTCView streamURL={(audioStream as MediaStream).toURL()} />
       )}
-      {kind === 'video' && (
-        <View style={styles.status}>
-          <Text style={styles.userNameLabel}>{participantLabel}</Text>
-          <View style={styles.svgContainerStyle}>
-            {isAudioMuted && <MicOff color={theme.light.error} />}
+      <View style={styles.bottomView}>
+        {kind === 'video' && (
+          <View style={styles.status}>
+            <Text style={styles.userNameLabel} numberOfLines={1}>
+              {participantLabel}
+            </Text>
+            {isAudioMuted && (
+              <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+                <MicOff color={theme.light.error} />
+              </View>
+            )}
+            {isVideoMuted && (
+              <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+                <VideoSlash color={theme.light.error} />
+              </View>
+            )}
           </View>
-          <View style={styles.svgContainerStyle}>
-            {isVideoMuted && <VideoSlash color={theme.light.error} />}
+        )}
+        {kind === 'screen' && (
+          <View style={styles.screenViewStatus}>
+            <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
+              <ScreenShare color={theme.light.static_white} />
+            </View>
+            <Text style={styles.userNameLabel} numberOfLines={1}>
+              {participant.userId} is sharing their screen.
+            </Text>
           </View>
-        </View>
-      )}
-      {kind === 'screen' && (
-        <View style={styles.screenViewStatus}>
-          <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
-            <ScreenShare color={theme.light.static_white} />
-          </View>
-          <Text style={styles.userNameLabel}>
-            {participant.userId} is sharing their screen
-          </Text>
-        </View>
-      )}
+        )}
+        <NetworkQualityIndicator connectionQuality={connectionQuality} />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   containerBase: {
-    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: theme.padding.xs,
+  },
+  topView: {
+    alignSelf: 'flex-end',
+    zIndex: 10,
   },
   videoRenderer: {
-    flex: 1,
-    justifyContent: 'center',
+    ...StyleSheet.absoluteFillObject,
+  },
+  bottomView: {
+    alignSelf: 'stretch',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   status: {
+    display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
-    position: 'absolute',
-    left: theme.spacing.sm,
-    bottom: theme.spacing.sm,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
+    flexShrink: 1,
+    marginRight: theme.margin.sm,
   },
   screenViewStatus: {
-    position: 'absolute',
-    top: theme.spacing.md,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    marginRight: theme.margin.sm,
   },
   userNameLabel: {
+    flexShrink: 1,
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },
   svgContainerStyle: {
     marginLeft: theme.margin.xs,
-    ...(theme.icon.xs as object),
   },
   isSpeaking: {
     borderColor: theme.light.primary,
