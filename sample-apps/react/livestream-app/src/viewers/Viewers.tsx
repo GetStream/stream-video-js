@@ -59,10 +59,12 @@ export const Viewers = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={activeCall}>
-        {!callId && <SetupForm />}
-        {callId && <Outlet />}
-      </StreamCall>
+      {!callId && <SetupForm />}
+      {activeCall && (
+        <StreamCall call={activeCall}>
+          <Outlet />
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 };

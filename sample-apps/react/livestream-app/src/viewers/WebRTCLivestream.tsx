@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  Call,
   PaginatedGridLayout,
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
@@ -13,6 +15,13 @@ const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const WebRTCLivestream = () => {
   const { callId } = useParams<{ callId: string }>();
+  const [call, setCall] = useState<Call | undefined>(undefined);
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+  const [connectedUser, setConnectedUser] = useState<User | undefined>(
+    undefined,
+  );
   const tokenProvider = useCallback(async () => {
     const endpoint = new URL(
       'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
@@ -24,20 +33,44 @@ export const WebRTCLivestream = () => {
     return response.token as string;
   }, [callId]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenProvider,
-    isAnonymous: true,
-    user: {
+  useEffect(() => {
+    if (!callId) {
+      return;
+    }
+    setCall(client.call('default', callId));
+  }, [client, callId]);
+
+  useEffect(() => {
+    if (!tokenProvider || !client) {
+      return;
+    }
+
+    const user = {
       id: 'anonymous',
-    },
-  });
+    };
+    client
+      .connectAnonymousUser(user, tokenProvider)
+      .then(() => setConnectedUser(user));
+
+    return () => {
+      client.disconnectUser().then(() => setConnectedUser(undefined));
+    };
+  }, [tokenProvider, client]);
+
+  useEffect(() => {
+    if (!call || !connectedUser) {
+      return;
+    }
+    call.join();
+  }, [call, connectedUser]);
 
   return (
     <StreamVideo client={client}>
-      <StreamCall callType="default" callId={callId!} autoJoin={true}>
-        <WebRTCLivestreamUI />
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <WebRTCLivestreamUI />
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 };
