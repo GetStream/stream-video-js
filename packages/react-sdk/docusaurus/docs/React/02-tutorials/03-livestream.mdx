@@ -317,7 +317,8 @@ export const ViewerApp = () => {
 export const HLSLivestreamUI = () => {
   // The HLS playlist URL is in call's metadata
   // we'll use the `useCallMetadata()` hook to get it
-  const { hls_playlist_url } = useCallMetadata();
+  const metadata = useCallMetadata();
+  const hls_playlist_url = metadata?.egress.hls?.playlist_url;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
