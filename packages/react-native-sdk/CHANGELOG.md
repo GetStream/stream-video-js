@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.121](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.120...@stream-io/video-react-native-sdk-0.0.1-alpha.121) (2023-06-06)
+
+
+### Bug Fixes
+
+* **react-native:** ui issues in participant info view and options modal ([#593](https://github.com/GetStream/stream-video-js/issues/593)) ([c2b7c91](https://github.com/GetStream/stream-video-js/commit/c2b7c91059fa2ff79b5f3308f4f6d5696bc4841a))
+
+
+
 ## [0.0.1-alpha.120](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.119...@stream-io/video-react-native-sdk-0.0.1-alpha.120) (2023-06-06)
 
 
