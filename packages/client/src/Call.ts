@@ -624,12 +624,14 @@ export class Call {
       sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
     }
 
-    const sfuClient = (this.sfuClient = new StreamSfuClient(
-      this.dispatcher,
-      sfuUrl,
-      sfuWsUrl,
-      sfuToken,
-    ));
+    const previousSessionId = this.sfuClient?.sessionId;
+    const sfuClient = (this.sfuClient = new StreamSfuClient({
+      dispatcher: this.dispatcher,
+      url: sfuUrl,
+      wsEndpoint: sfuWsUrl,
+      token: sfuToken,
+      sessionId: previousSessionId,
+    }));
 
     /**
      * A closure which hides away the re-connection logic.
@@ -1427,10 +1429,17 @@ export class Call {
    * @param updates the updates to apply to the call.
    */
   update = async (updates: UpdateCallRequest) => {
-    return this.streamClient.patch<UpdateCallResponse, UpdateCallRequest>(
-      `${this.streamClientBasePath}`,
-      updates,
-    );
+    const response = await this.streamClient.patch<
+      UpdateCallResponse,
+      UpdateCallRequest
+    >(`${this.streamClientBasePath}`, updates);
+
+    const { call, members, own_capabilities } = response;
+    this.state.setMetadata(call);
+    this.state.setMembers(members);
+    this.state.setOwnCapabilities(own_capabilities);
+
+    return response;
   };
 
   /**

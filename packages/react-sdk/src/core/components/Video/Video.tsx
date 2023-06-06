@@ -23,6 +23,9 @@ import { useCall } from '@stream-io/video-react-bindings';
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   kind: 'video' | 'screen';
   participant: StreamVideoParticipant;
+  /**
+   * Override the default UI that's visible when a participant turned off their video.
+   */
   VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
   refs?: {
     setVideoElement?: (element: HTMLVideoElement | null) => void;

@@ -24,6 +24,34 @@ import {
   sleep,
 } from './coordinator/connection/utils';
 
+export type StreamSfuClientConstructor = {
+  /**
+   * The event dispatcher instance to use.
+   */
+  dispatcher: Dispatcher;
+
+  /**
+   * The URL of the SFU to connect to.
+   */
+  url: string;
+
+  /**
+   * The WebSocket endpoint of the SFU to connect to.
+   */
+  wsEndpoint: string;
+
+  /**
+   * The JWT token to use for authentication.
+   */
+  token: string;
+
+  /**
+   * An optional `sessionId` to use for the connection.
+   * If not provided, a random UUIDv4 will be generated.
+   */
+  sessionId?: string;
+};
+
 /**
  * The client used for exchanging information with the SFU.
  */
@@ -64,14 +92,16 @@ export class StreamSfuClient {
    * @param url the URL of the SFU.
    * @param wsEndpoint the WebSocket endpoint of the SFU.
    * @param token the JWT token to use for authentication.
+   * @param sessionId the `sessionId` of the currently connected participant.
    */
-  constructor(
-    dispatcher: Dispatcher,
-    url: string,
-    wsEndpoint: string,
-    token: string,
-  ) {
-    this.sessionId = generateUUIDv4();
+  constructor({
+    dispatcher,
+    url,
+    wsEndpoint,
+    token,
+    sessionId,
+  }: StreamSfuClientConstructor) {
+    this.sessionId = sessionId || generateUUIDv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,

@@ -1,19 +1,21 @@
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   checkIfAudioOutputChangeSupported,
+  DeviceSelectorAudioInput,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
-import { LobbyHeader } from './LobbyHeader';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
+import { LobbyHeader } from './LobbyHeader';
 import { ParticipantsPreview } from './ParticipantsPreview';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -92,7 +94,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                   marginTop: '0.75rem',
                 }}
               >
-                <ToggleAudioPreviewButton />
+                <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
                 <ToggleVideoPreviewButton />
                 {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
               </div>
@@ -120,3 +122,10 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     </Stack>
   );
 };
+
+const LobbyToggleAudioMenu = () => (
+  <>
+    <DeviceSelectorAudioInput />
+    <AudioVolumeIndicator />
+  </>
+);

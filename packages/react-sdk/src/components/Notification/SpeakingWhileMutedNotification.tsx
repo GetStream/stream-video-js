@@ -21,9 +21,9 @@ export const SpeakingWhileMutedNotification = ({ children }: ChildrenOnly) => {
     const disposeSoundDetector = getAudioStream({
       deviceId: audioDeviceId,
     }).then((audioStream) =>
-      createSoundDetector(audioStream, (isSpeechDetected) => {
+      createSoundDetector(audioStream, ({ isSoundDetected }) => {
         setIsSpeakingWhileMuted((isNotified) =>
-          isNotified ? isNotified : isSpeechDetected,
+          isNotified ? isNotified : isSoundDetected,
         );
       }),
     );

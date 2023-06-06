@@ -3,20 +3,55 @@ id: call-lifecycle
 title: Call Lifecycle
 ---
 
-import CallAcceptedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-accepted.png';
-import CallRejectedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-rejected.png';
-import CallEndedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-ended.png';
+import CallAcceptedDiagram from '../assets/02-guides/02-call-lifecycle/ring-call-sequence-diagram_call-accepted.png';
+import CallRejectedDiagram from '../assets/02-guides/02-call-lifecycle/ring-call-sequence-diagram_call-rejected.png';
+import CallEndedDiagram from '../assets/02-guides/02-call-lifecycle/ring-call-sequence-diagram_call-ended.png';
 
 ## Introduction
 
 In the following sections, we will describe the flow of the two basic call scenarios:
 
-1. Call room
+1. Call room (meeting call)
 2. Ring call
 
-### Services
+### Agents and Services
 
-Before we start to describe the individual call scenarios, we should get acquainted with the agents participating in the call flow. A user, that connects to a call is using a client (application) that communicates with Stream's back-end services. The call creation and intention to connect to a call is handled by a service we call simply `back-end`. Once it is clarified with the `back-end` service, who intends to join a specific type of call, the client connects to a service we call `SFU` (Selective Forwarding Unit). The `back-end` tells the client, to which `SFU` it should connect. The `SFU` server is where the call actually takes place. All the data exchanged during the call (audio, video, etc.) flows through the assigned `SFU`. The data is forwarded through the `SFU` between the clients.
+Before we start to describe the individual call scenarios, we should get acquainted with the agents participating in the call flow.
+
+A user, that connects to a call is using a client (application) that communicates with Stream's back-end services.
+The call creation and orchestration to connect to a call is handled by a service we call simply `back-end`.
+
+Once it is clarified with the `back-end` service, who intends to join a specific type of call, the client connects to a service we call [`SFU` (Selective Forwarding Unit)](https://getstream.io/blog/what-is-a-selective-forwarding-unit-in-webrtc/)
+
+The `back-end` tells the client, to which `SFU` it should connect. The `SFU` server is where the call actually takes place. All the data exchanged during the call (audio, video, etc.) flows through the assigned `SFU`.
+
+Another important aspect of the call lifecycle are **Call Sessions** you can read more about in the [Call Session](#call-session) section.
+
+## Call Session
+
+A _Call Session_ represents a specific time period in which participants are actively engaged in a call.
+The concept of a call session is particularly useful when dealing with recurring calls
+(or ring calls that typically have a single call session unless they are reused).
+
+1. **Meeting Calls (call room):** In the case of meeting calls, where participants engage in multiple instances of the same call, each instance has its own call session. This allows for tracking and organizing the individual sessions.
+
+2. **Ring Calls:** Ring calls, which are initiated to establish a direct connection between participants, typically have a single call session. However, if the same ring call is reused for subsequent connections, each reuse can be considered a separate call session.
+
+A call session begins whenever a participant joins a call instance. This can occur when a participant initially joins the call.
+The start of a call session marks the beginning of the active communication period.
+
+A call session ends whenever the last participant leaves the call. It signifies the conclusion of the active communication period.
+The termination of a call session implies that participants are no longer actively engaged in the call context.
+
+To keep subscribed clients informed about the state of call sessions, these events are available:
+
+1. `call.session_started`: This event is emitted when a call session begins.
+2. `call.session_ended`: This event is emitted when a call session ends.
+3. `call.session_participant_joined`: This event is emitted when a participant joins a call session.
+4. `call.session_participant_left`: This event is emitted when a participant leaves a call session.
+
+These events allow subscribed clients to track and manage the lifecycle of call sessions
+and perform necessary actions based on the start and end of sessions.
 
 ## Call room
 
@@ -83,6 +118,8 @@ The communication between the clients follow these principles in the ring scenar
 We have to explicitly opt in to ring mode when creating (starting) a call:
 
 ```ts
+let videoClient: StreamVideoClient = ...;
+
 videoClient.call(callType, callId).getOrCreate({
     // highlight-next-line
   ring: true,
@@ -106,20 +143,23 @@ This is the happy path, when both parties join the active call. The
 sequenceDiagram
     participant Client_A
     participant Back-end
-    participant SFU
     participant Client_B
+    participant SFU
     Client_A->>Back-end: 1. Create a call
-    Back-end->>Client_B: 2. Back-end WS event 'call.created'
-    Client_B->>Back-end: 3. Accept the call
-    Back-end->>Client_A: 4. Back-end WS event 'call.accepted'
-    Client_B->>Back-end: 5. Ask for SFU to join the call
-    Client_A->>Back-end: 6. Ask for SFU to join the call
-    Client_B->>SFU: 7.  Join the call
-    Client_A->>SFU: 8. Join the call
-    SFU->>Client_B: 9. SFU WS event 'participant.joined'
-    Client_A->>SFU: 10. Leave the call
-    SFU->>Client_B: 11. SFU WS event 'participant.left'
-    Client_B->>SFU: 12. Leave the call
+    Back-end-->>Client_B: 2. Event: 'call.created'
+    Back-end-->>Client_B: 3. Event: 'call.ring'
+    Client_B->>Back-end: 4. Accept the call
+    Back-end-->>Client_A: 5. Event: 'call.accepted'
+    Client_B->>SFU: 6.  Join the call
+    Client_A->>SFU: 7. Join the call
+    Back-end-->>Client_A: 8. Event: 'call.session_started'
+    Back-end-->>Client_B: 9. Event: 'call.session_started'
+    Back-end-->>Client_B: 8. Event: 'call.session_participant_joined'
+    Client_A->>SFU: 9. Leave the call
+    Back-end-->>Client_B: 10. Event 'call.session_participant_left'
+    Client_B->>SFU: 11. Leave the call
+    Back-end-->>Client_A: 12. Event: 'call.session_ended'
+    Back-end-->>Client_B: 13. Event: 'call.session_ended'
 ```
 
 <img
@@ -134,13 +174,15 @@ This scenario takes place, when the **Client B** sends the rejection request to 
 
 ```mermaid
 sequenceDiagram
+sequenceDiagram
     participant Client_A
     participant Back-end
     participant Client_B
     Client_A->>Back-end: 1. Create a call
-    Back-end->>Client_B: 2. WS event 'call.created'
+    Back-end-->>Client_B: 2. Event: 'call.ring'
     Client_B->>Back-end: 3. Reject the call
-    Back-end->>Client_A: 4. WS event 'call.rejected'
+    Back-end-->>Client_A: 4. Event: 'call.rejected'
+
 ```
 
 <img
@@ -159,9 +201,9 @@ sequenceDiagram
     participant Back-end
     participant Client_B
     Client_A->>Back-end: 1. Create a call
-    Back-end->>Client_B: 2. WS event 'call.created'
+    Back-end-->>Client_B: 2. Event: 'call.ring'
     Client_A->>Back-end: 3. Hang up the call
-    Back-end->>Client_B: 4. WS event 'call.ended'
+    Back-end-->>Client_B: 4. Event: 'call.rejected'
 ```
 
 <img
@@ -172,18 +214,13 @@ sequenceDiagram
 
 ### Automatic call cancellation
 
-At times, the called in user may not respond to the incoming call by accepting or rejecting it. In that case the call is automatically rejected by the client based on the configuration parameter `settings.ring.auto_reject_timeout_ms`. The configuration parameter is provided with the `CallCreated.call` object delivered with `call.created` event.
+At times, the called in user may not respond to the incoming call by accepting or rejecting it. In that case the call is automatically rejected by the client based on the configuration parameter `settings.ring.incoming_call_timeout_ms`. The configuration parameter is provided with the `CallRingEvent.call` object delivered with `call.ring` event.
 Symmetrically the configuration parameter `settings.ring.auto_cancel_timeout_ms` is provided to the client initiating the call when the call is created (`GetOrCreateCallResponse.call`). The default timeout is 15 seconds for both parameters.
 
 ### Application State
 
-We allow the SDKs to observe the call flow changes and adjust the UI by emitting the relevant values tracked by the `StreamVideoClient`'s state store which are:
-
-TODO: do we want to allow multiple active calls? The store implementation will probably change here.
-
-1. **Pending calls array** - the UI shows the incoming / outgoing calls based on this array
-2. **Accepted call** - the app can start the process of joining the outgoing call
-3. **Active call** - the app shows the active call UI
+We allow the applications to observe the list of currently pending incoming, outgoing or meeting calls.
+The application can subscribe to the `calls` array in the `StreamVideoClient.readonlyStateStore` or utilize the [`useCalls`](../../call-engine/hooks-and-contexts/#usecalls) hook
 
 ## Call calling state
 
