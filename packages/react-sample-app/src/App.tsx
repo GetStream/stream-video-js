@@ -6,11 +6,12 @@ import {
   ThemeProvider,
 } from '@mui/material';
 import {
+  Call,
   JoinCallData,
   StreamCall,
   StreamTheme,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useMemo, useState } from 'react';
@@ -43,11 +44,18 @@ const App = () => {
     const params = new URLSearchParams(window.location.search);
     return params.get('user') || 'marcelo';
   });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(process.env.REACT_APP_STREAM_API_KEY!), // see <video>/data/fixtures/apps.yaml for API key/secret
+  );
+  const [connectedUser, setConnectedUser] = useState<User | undefined>(
+    undefined,
+  );
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
   const [callInput, setCallInput] = useState<JoinCallData | undefined>(
     undefined,
   );
+  const [call, setCall] = useState<Call | undefined>(undefined);
   const [errorMessage] = useState('');
 
   useEffect(() => {
@@ -69,11 +77,33 @@ const App = () => {
     [currentUser],
   );
 
-  const client = useCreateStreamVideoClient({
-    apiKey: process.env.REACT_APP_STREAM_API_KEY!, // see <video>/data/fixtures/apps.yaml for API key/secret
-    tokenOrProvider: participants[currentUser],
-    user,
-  });
+  useEffect(() => {
+    if (!currentUser || !user) {
+      return;
+    }
+
+    client
+      .connectUser(user, participants[currentUser])
+      .then(() => setConnectedUser(user));
+
+    return () => {
+      client.disconnectUser().then(() => setConnectedUser(undefined));
+    };
+  }, [currentUser, user, client]);
+
+  useEffect(() => {
+    if (!callId) {
+      return;
+    }
+    setCall(client.call(callType, callId));
+  }, [callId, callType, client]);
+
+  useEffect(() => {
+    if (!call || !connectedUser) {
+      return;
+    }
+    call.join(callInput);
+  }, [call, callInput, connectedUser]);
 
   const createCall = async (id: string, invitees: string[]) => {
     setCallId(id);
@@ -119,13 +149,8 @@ const App = () => {
                     height: 'calc(100vh - 64px)',
                   }}
                 >
-                  {callId && (
-                    <StreamCall
-                      callId={callId}
-                      callType={callType}
-                      data={callInput}
-                      autoJoin
-                    >
+                  {call && (
+                    <StreamCall call={call}>
                       <MeetingUI />
                     </StreamCall>
                   )}

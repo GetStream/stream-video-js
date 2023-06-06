@@ -6,7 +6,9 @@ import {
   StreamCall,
   StreamTheme,
   StreamVideo,
+  StreamVideoClient,
   useCreateStreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import { SpeakerView } from './SpeakerView';
 
@@ -26,13 +28,23 @@ const userId = import.meta.env.VITE_USER_ID as string;
 
 const App = () => {
   const [callId, setCallId] = useState<string>();
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(process.env.REACT_APP_STREAM_API_KEY!), // see <video>/data/fixtures/apps.yaml for API key/secret
+  );
+  const [connectedUser, setConnectedUser] = useState<User | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const user = { id: userId };
+    client
+      .connectUser({ id: userId }, token)
+      .then(() => setConnectedUser(user));
+
+    return () => {
+      client.disconnectUser().then(() => setConnectedUser(undefined));
+    };
+  }, [client]);
 
   useEffect(() => {
     if (!callId) return;
