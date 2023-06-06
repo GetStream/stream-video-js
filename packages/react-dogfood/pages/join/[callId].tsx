@@ -36,7 +36,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
           api_key: apiKey,
           user_id: user.id,
         }),
-      {},
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
@@ -45,6 +44,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     apiKey,
     tokenOrProvider: tokenProvider,
     user,
+    options: {
+      baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
+    },
   });
 
   const chatClient = useCreateStreamChatClient({

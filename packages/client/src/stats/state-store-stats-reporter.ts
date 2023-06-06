@@ -12,7 +12,6 @@ export type StatsReporterOpts = {
   publisher: Publisher;
   state: CallState;
   pollingIntervalInMs?: number;
-  edgeName?: string;
 };
 
 export type StatsReporter = {
@@ -66,7 +65,6 @@ export const createStatsReporter = ({
   subscriber,
   publisher,
   state,
-  edgeName,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
   const getRawStatsForTrack = async (
@@ -168,7 +166,7 @@ export const createStatsReporter = ({
     ]);
 
     state.setCallStatsReport({
-      datacenter: edgeName || 'N/A',
+      datacenter: publisher.sfuClient.edgeName,
       publisherStats,
       subscriberStats,
       subscriberRawStats,

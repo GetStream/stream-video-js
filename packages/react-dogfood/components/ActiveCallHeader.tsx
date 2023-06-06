@@ -16,6 +16,7 @@ import { USAGE_GUIDE_LINK } from './index';
 import { IconInviteLinkButton } from './InviteLinkButton';
 import { LayoutSelector, LayoutSelectorProps } from './LayoutSelector';
 import { useSettings } from '../context/SettingsContext';
+import { SwapSfuButton } from './SwapSfuButton';
 
 export const ActiveCallHeader = ({
   selectedLayout,
@@ -25,6 +26,7 @@ export const ActiveCallHeader = ({
   const activeCall = useCall();
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
+  const isMigrating = callingState === CallingState.MIGRATING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
   const isRecoveringConnection = [
     CallingState.JOINING,
@@ -42,6 +44,7 @@ export const ActiveCallHeader = ({
       <div className="str-video__call-header">
         <CallHeaderTitle />
         <div className="str-video__call-header__controls-group">
+          <SwapSfuButton />
           <LayoutSelector
             selectedLayout={selectedLayout}
             onMenuItemClick={setLayout}
@@ -97,10 +100,14 @@ export const ActiveCallHeader = ({
 
           return (
             <Notification
-              isVisible={isRecoveringConnection}
+              isVisible={isRecoveringConnection || isMigrating}
               iconClassName={null}
               placement="bottom"
-              message={<LoadingIndicator text="Reconnecting..." />}
+              message={
+                <LoadingIndicator
+                  text={isMigrating ? 'Migrating...' : 'Reconnecting...'}
+                />
+              }
             >
               <span />
             </Notification>

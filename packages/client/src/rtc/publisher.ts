@@ -40,7 +40,6 @@ export type PublisherOpts = {
  */
 export class Publisher {
   private readonly publisher: RTCPeerConnection;
-  private readonly sfuClient: StreamSfuClient;
   private readonly state: CallState;
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -60,9 +59,19 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
-  private isDtxEnabled: boolean;
-  private isRedEnabled: boolean;
-  private preferredVideoCodec?: string;
+  private readonly isDtxEnabled: boolean;
+  private readonly isRedEnabled: boolean;
+  private readonly preferredVideoCodec?: string;
+
+  /**
+   * An array of tracks that have been most-recently announced to the SFU.
+   */
+  announcedTracks: TrackInfo[] = [];
+
+  /**
+   * The SFU client instance to use for publishing and signaling.
+   */
+  sfuClient: StreamSfuClient;
 
   constructor({
     connectionConfig,
@@ -337,10 +346,61 @@ export class Publisher {
     });
   };
 
+  /**
+   * Performs a migration of this publisher instance to a new SFU.
+   *
+   * Initiates a new `iceRestart` offer/answer exchange with the new SFU.
+   */
+  migrateTo = async (sfuClient: StreamSfuClient) => {
+    this.sfuClient = sfuClient;
+    await this.negotiate({ iceRestart: true });
+  };
+
   private onNegotiationNeeded = async () => {
-    console.log('AAA onNegotiationNeeded');
-    const offer = await this.publisher.createOffer();
-    let sdp = offer.sdp;
+    await this.negotiate();
+  };
+
+  /**
+   * Initiates a new offer/answer exchange with the currently connected SFU.
+   *
+   * @param options the optional offer options to use.
+   */
+  private negotiate = async (options?: RTCOfferOptions) => {
+    const offer = await this.publisher.createOffer(options);
+    offer.sdp = this.mungeCodecs(offer.sdp);
+    await this.publisher.setLocalDescription(offer);
+
+    const trackInfos = this.getCurrentTrackInfos();
+    const { response } = await this.sfuClient.setPublisher({
+      sdp: offer.sdp || '',
+      tracks: trackInfos,
+    });
+
+    // store the most-recently announced tracks
+    this.announcedTracks = trackInfos;
+
+    try {
+      await this.publisher.setRemoteDescription({
+        type: 'answer',
+        sdp: response.sdp,
+      });
+    } catch (e) {
+      console.error(`Publisher: setRemoteDescription error`, response.sdp, e);
+    }
+
+    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
+      async (candidate) => {
+        try {
+          const iceCandidate = JSON.parse(candidate.iceCandidate);
+          await this.publisher.addIceCandidate(iceCandidate);
+        } catch (e) {
+          console.error(`Publisher: ICE candidate error`, e, candidate);
+        }
+      },
+    );
+  };
+
+  private mungeCodecs = (sdp?: string) => {
     if (sdp) {
       sdp = toggleDtx(sdp, this.isDtxEnabled);
       if (isReactNative()) {
@@ -357,12 +417,13 @@ export class Publisher {
         }
       }
     }
-    offer.sdp = sdp;
-    await this.publisher.setLocalDescription(offer);
+    return sdp;
+  };
 
+  private getCurrentTrackInfos = () => {
     const metadata = this.state.metadata;
     const targetResolution = metadata?.settings.video.target_resolution;
-    const trackInfos = this.publisher
+    return this.publisher
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
       .map<TrackInfo>((transceiver) => {
@@ -403,32 +464,6 @@ export class Publisher {
           red: this.isRedEnabled,
         };
       });
-
-    // TODO debounce for 250ms
-    const { response } = await this.sfuClient.setPublisher({
-      sdp: offer.sdp || '',
-      tracks: trackInfos,
-    });
-
-    try {
-      await this.publisher.setRemoteDescription({
-        type: 'answer',
-        sdp: response.sdp,
-      });
-    } catch (e) {
-      console.error(`Publisher: setRemoteDescription error`, response.sdp, e);
-    }
-
-    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
-      async (candidate) => {
-        try {
-          const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.publisher.addIceCandidate(iceCandidate);
-        } catch (e) {
-          console.error(`Publisher: ICE candidate error`, e, candidate);
-        }
-      },
-    );
   };
 
   private onIceCandidateError = (e: Event) => {

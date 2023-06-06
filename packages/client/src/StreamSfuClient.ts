@@ -50,6 +50,11 @@ export type StreamSfuClientConstructor = {
    * If not provided, a random UUIDv4 will be generated.
    */
   sessionId?: string;
+
+  /**
+   * An optional `edgeName` representing the edge the client is connected to.
+   */
+  edgeName?: string;
 };
 
 /**
@@ -65,6 +70,11 @@ export class StreamSfuClient {
    * The `sessionId` of the currently connected participant.
    */
   readonly sessionId: string;
+
+  /**
+   * The `edgeName` representing the edge the client is connected to.
+   */
+  readonly edgeName: string;
 
   /**
    * Holds the current WebSocket connection to the SFU.
@@ -93,6 +103,7 @@ export class StreamSfuClient {
    * @param wsEndpoint the WebSocket endpoint of the SFU.
    * @param token the JWT token to use for authentication.
    * @param sessionId the `sessionId` of the currently connected participant.
+   * @param edgeName the `edgeName` representing the edge the client is connected to.
    */
   constructor({
     dispatcher,
@@ -100,8 +111,10 @@ export class StreamSfuClient {
     wsEndpoint,
     token,
     sessionId,
+    edgeName,
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId || generateUUIDv4();
+    this.edgeName = edgeName || 'N/A';
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -227,6 +240,10 @@ export class StreamSfuClient {
 
   send = (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
+      console.log(
+        `Sending message to: ${this.edgeName}`,
+        SfuRequest.toJson(message),
+      );
       signal.send(SfuRequest.toBinary(message));
     });
   };

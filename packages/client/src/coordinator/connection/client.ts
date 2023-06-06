@@ -132,8 +132,8 @@ export class StreamClient {
     }
 
     this.axiosInstance = axios.create({
-      baseURL: this.baseURL,
       ...this.options,
+      baseURL: this.baseURL,
     });
 
     // WS connection is initialized when setUser is called

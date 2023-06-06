@@ -61,6 +61,11 @@ export enum CallingState {
   RECONNECTING = 'reconnecting',
 
   /**
+   * The call is in the process of migrating from one node to another.
+   */
+  MIGRATING = 'migrating',
+
+  /**
    * The call has failed to reconnect.
    */
   RECONNECTING_FAILED = 'reconnecting-failed',
