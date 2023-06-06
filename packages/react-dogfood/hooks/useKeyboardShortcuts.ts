@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import hotkeys from 'hotkeys-js';
 
 enum KeyboardShortcut {
-  PUSH_TO_TALK = 'c',
+  PUSH_TO_TALK = 'space',
   TOGGLE_AUDIO_MAC = 'cmd+d,cmd+shift+space',
   TOGGLE_AUDIO_OTHER = 'ctrl+d,ctrl+shift+space',
   TOGGLE_VIDEO_MAC = 'cmd+e',
