@@ -96,7 +96,7 @@ export const LobbyView = () => {
                 mirror={isCameraOnFrontFacingMode}
                 mediaStream={localVideoStream}
                 objectFit="cover"
-                style={styles.stream}
+                style={StyleSheet.absoluteFillObject}
               />
             ) : (
               <Avatar participant={connectedUserAsParticipant} />
@@ -163,9 +163,6 @@ const styles = StyleSheet.create({
   heading: {
     color: theme.light.static_white,
     ...theme.fonts.heading4,
-  },
-  stream: {
-    flex: 1,
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
