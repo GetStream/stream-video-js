@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.127](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.126...@stream-io/video-react-native-sdk-0.0.1-alpha.127) (2023-06-06)
+
+
+### Bug Fixes
+
+* **react-native:** Don't get video if device id is undefined ([#602](https://github.com/GetStream/stream-video-js/issues/602)) ([a15540e](https://github.com/GetStream/stream-video-js/commit/a15540edc52a364d6dbd92f85e3382c084cc72e1))
+
+
+
 ## [0.0.1-alpha.126](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.125...@stream-io/video-react-native-sdk-0.0.1-alpha.126) (2023-06-06)
 
 
