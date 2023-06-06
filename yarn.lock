@@ -20579,6 +20579,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hotkeys@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "hotkeys@npm:1.0.0"
+  checksum: b324e170af07e8211bcb63b7b97dff8d98eca44bbf8d79b7bc2d5f31b21e4ca82404cc318038f17ba00d20324461a81a6c1f2002ab0d1c4649cfa62208a2d12b
+  languageName: node
+  linkType: hard
+
 "hpack.js@npm:^2.1.6":
   version: 2.1.6
   resolution: "hpack.js@npm:2.1.6"
@@ -32245,6 +32252,7 @@ __metadata:
     date-fns: ^2.29.3
     geojson: ^0.5.0
     gleap: ^10.0.5
+    hotkeys: ^1.0.0
     mapbox-gl: ^2.12.0
     mic-check: ^1.1.0
     mobile-device-detect: ^0.4.3

@@ -14,6 +14,7 @@ export type Props = {
   className?: string;
   callId: string;
   isFocused?: boolean;
+  fulllHeight?: boolean;
 };
 
 export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
@@ -94,7 +95,12 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
   );
 };
 
-export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
+export const InvitePanel: FC<Props> = ({
+  className,
+  isFocused,
+  callId,
+  fulllHeight,
+}) => {
   const [showQr, setShowQr] = useState(false);
 
   const breakpoint = useBreakpoint();
@@ -124,6 +130,7 @@ export const InvitePanel: FC<Props> = ({ className, isFocused, callId }) => {
       className={rootClassname}
       title="Invite more people"
       isFocused={isFocused}
+      fulllHeight={fulllHeight}
     >
       <>
         <Invite callId={callId} canShare={false} />

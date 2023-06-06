@@ -12,6 +12,7 @@ export type Props = {
   title: string | ReactNode;
   isFocused?: boolean;
   canCollapse?: boolean;
+  fulllHeight?: boolean;
   close?: () => void;
   children: ReactNode | undefined;
 };
@@ -21,6 +22,7 @@ export const Panel: FC<Props> = ({
   children,
   title,
   isFocused,
+  fulllHeight,
   canCollapse,
   close,
 }) => {
@@ -34,6 +36,8 @@ export const Panel: FC<Props> = ({
     styles.root,
     {
       [styles.focused]: isFocused,
+      [styles.open]: isOpen,
+      [styles.fulllHeight]: fulllHeight,
     },
     className,
   );
