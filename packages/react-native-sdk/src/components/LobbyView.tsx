@@ -21,7 +21,9 @@ const ParticipantStatus = () => {
   const { isAudioMuted, isVideoMuted } = useMutingState();
   return (
     <View style={styles.status}>
-      <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {connectedUser?.id}
+      </Text>
       {isAudioMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
@@ -88,12 +90,13 @@ export const LobbyView = () => {
         <Text style={styles.subHeading}>Setup your audio and video</Text>
         {connectedUser && (
           <View style={styles.videoView}>
+            <View style={styles.topView} />
             {isVideoAvailable ? (
               <VideoRenderer
                 mirror={isCameraOnFrontFacingMode}
                 mediaStream={localVideoStream}
                 objectFit="cover"
-                style={styles.stream}
+                style={StyleSheet.absoluteFillObject}
               />
             ) : (
               <Avatar participant={connectedUserAsParticipant} />
@@ -161,9 +164,6 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading4,
   },
-  stream: {
-    flex: 1,
-  },
   subHeading: {
     color: theme.light.text_low_emphasis,
     ...theme.fonts.subtitle,
@@ -173,11 +173,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.disabled,
     height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     overflow: 'hidden',
     marginVertical: theme.margin.md,
     width: '100%',
+    padding: theme.padding.sm,
   },
+  topView: {},
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -209,11 +212,9 @@ const styles = StyleSheet.create({
     ...theme.fonts.subtitleBold,
   },
   status: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    left: theme.spacing.sm,
-    bottom: theme.spacing.sm,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
@@ -226,6 +227,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   userNameLabel: {
+    flexShrink: 1,
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },

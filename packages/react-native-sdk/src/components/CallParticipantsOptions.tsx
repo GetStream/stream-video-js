@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   name: {
     marginLeft: theme.margin.sm,
     ...theme.fonts.subtitleBold,
+    color: theme.light.text_high_emphasis,
   },
   svgContainerStyle: {},
   options: {},

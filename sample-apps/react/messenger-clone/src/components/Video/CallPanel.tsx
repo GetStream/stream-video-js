@@ -1,7 +1,7 @@
 import {
   CallingState,
-  CallParticipantsView,
   CancelCallButton,
+  PaginatedGridLayout,
   PendingCallPanel,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
@@ -37,7 +37,7 @@ export const CallPanel = () => {
         className="str-video__call-panel rmc__call-panel-wrapper"
         ref={setPanelElement}
       >
-        <CallParticipantsView call={call} />
+        <PaginatedGridLayout groupSize={4} />
         <div className="rmc__active-call-controls">
           <ScreenShareButton />
           <SpeakingWhileMutedNotification>

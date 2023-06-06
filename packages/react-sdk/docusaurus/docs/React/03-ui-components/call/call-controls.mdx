@@ -3,34 +3,176 @@ id: call-controls
 title: Call controls
 ---
 
-:::warning
+![Preview of the Call controls component.](../../assets/03-ui-components/call-controls.png)
 
-TODO: Write about `CallControls` component + individual call control buttons https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls
+Call controls allow users to execute actions during a call (for example, start recording), and/or before joining (for example, mute/unmute microphone). The built-in `CallControls` component displays all relevant call controls during a call. Each call control is available to use as separate component.
 
-:::
+## General usage
+
+The `CallControls` component displays the available call controls (based on [user permissions](../../../guides/permissions-and-moderation)).
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import {
+  CallControls,
+  StreamCall,
+  SpeakerLayout,
+} from '@stream-io/video-react-sdk';
+
+const CallUI = () => {
+  return (
+    <StreamCall
+      callType="default"
+      callId="my-first-call"
+      data={{ create: true }}
+      autoJoin
+    >
+      <SpeakerLayout />
+      // highlight-next-line
+      <CallControls />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `onLeave`
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+A callback to be called after the call is left using the hangup button.
+
+## Customization
+
+You can create your own custom component using the [built-in call controls](#built-in-call-controls) as building blocks.
+
+If you want to create custom call controls, follow the [Call Controls UI Cookbook guide](../../../ui-cookbook/replacing-call-controls/) for more information.
 
 ## Built-in call controls
 
-Each call control is available as a separate UI component.
+Each call control is available as a separate UI component. Each component takes care of authorization.
 
 ### `AcceptCallButton`
 
+This component is used in the [pending call component](../pending-call-panel) to accept an incoming call.
+
+#### Props
+
+| Name       | Description                                            | Type                                                  |
+| ---------- | ------------------------------------------------------ | ----------------------------------------------------- |
+| `disabled` | Set `true` to disable the button                       | `boolean` \| `undefined`                              |
+| `onClick`  | Event handler to override the default click behavior   | `MouseEventHandler<HTMLButtonElement>` \| `undefined` |
+| `onAccept` | Custom event handler to call after the call was joined | `() => void` \| `undefined`                           |
+
 ### `CancelCallButton`
+
+This component can be used to leave a call or to reject an incoming/outgoing call.
+
+#### Props
+
+| Name       | Description                                          | Type                                                  |
+| ---------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| `disabled` | Set `true` to disable the button                     | `boolean` \| `undefined`                              |
+| `onClick`  | Event handler to override the default click behavior | `MouseEventHandler<HTMLButtonElement>` \| `undefined` |
+| `onLeave`  | Custom event handler to call after the call was left | `() => void` \| `undefined`                           |
 
 ### `ReactionsButton`
 
+This component can be used to send reactions during a call. The following reactions are supported by default:
+
+- like 👍
+- raise hand ✋
+- fireworks 🎉
+
+#### Props
+
+| Name        | Description                                     | Type                              |
+| ----------- | ----------------------------------------------- | --------------------------------- |
+| `reactions` | Override or extend the default reactions/emojis | `StreamReaction[]` \| `undefined` |
+
 ### `RecordCallButton`
+
+This component can be used to start/stop call recording. It's also used as a visual indicator to let participants know if there is an ongoing call recording.
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
 
 ### `ScreenShareButton`
 
+This component can be used to start/stop screen sharing. It's also used as a visual indicator to let participants know if there is an ongoing screen share. This component only allows a single ongoing screen share.
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+
 ### `ToggleAudioPreviewButton`
+
+This component can be used to toggle the [initial audio state](../../../guides/camera-and-microphone/#initial-device-state) in the [lobby preview](../../../ui-cookbook/lobby-preview).
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
 
 ### `ToggleAudioPublishingButton`
 
+This component can be used to
+
+- mute/unmute the microphone during a call
+- select an audio input device during a call
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+
 ### `ToggleAudioOutputButton`
+
+This component can be used to select the audio output device (if the currently used browser [supports audio output selection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId)).
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
 
 ### `ToggleVideoPreviewButton`
 
+This component can be used to toggle the [initial video state](../../../guides/camera-and-microphone/#initial-device-state) in the [lobby preview](../../../ui-cookbook/lobby-preview).
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+
 ### `ToggleVideoPublishingButton`
 
+This component can be used to
+
+- mute/unmute the camera during a call
+- select a video input device during a call
+
+#### Props
+
+| Name      | Description                                             | Type                    |
+| --------- | ------------------------------------------------------- | ----------------------- |
+| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+
 ### `CallStatsButton`
+
+The component can be used to show/hide the [call statistics](../../../ui-components/utility/call-statistics).
+
+#### Props
+
+None

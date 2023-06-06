@@ -1,4 +1,152 @@
 ---
+id: speaking-while-muted
 title: Speaking While Muted
 description: Speaking While Muted
 ---
+
+In this tutorial we will explore the ways to remind users they are speaking while being muted. The React SDK bundles [`SpeakingWhileMutedNotification`](../../ui-components/utility/speaking-while-muted-notification) component, but we will discover how to build our own component.
+
+## Sound detection
+The sound detection can be easily implemented using [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) utility function. To learn more about this function, please see our [sound detection guide](../../guides/camera-and-microphone#sound-detection).
+
+## Speaking-while-muted notification component
+Our speaking-while-muted notification component will be based on simple principle of toggling a `isSpeakingWhileMuted` state. The UI will be rendered only, when `isSpeakingWhileMuted` is set to `true`. The state will be toggled based on the `isNotified`  value passed to `onSoundDetectedStateChanged` handler of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) utility function. The notification will be scheduled to disappear after 3.5 seconds.
+
+The example below detects sound during an active call, because we are retrieving the audio input device id from the call participant object.
+
+```tsx
+import { useEffect, useState } from 'react';
+
+import {
+  createSoundDetector,
+  SfuModels,
+  useLocalParticipant,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+export const SpeakingWhileMutedNotification = () => {
+  const localParticipant = useLocalParticipant();
+  const { getAudioStream } = useMediaDevices();
+
+  // highlight-next-line
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
+  // in active call, the audio device id is available on the StreamVideoParticipant object
+  const audioDeviceId = localParticipant?.audioDeviceId;
+
+  // highlight-next-line
+  const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
+  useEffect(() => {
+    // do not detect sound, when not muted
+    if (!isAudioMute) return;
+
+    const disposeSoundDetector = getAudioStream({
+      deviceId: audioDeviceId,
+    }).then((audioStream) =>
+      createSoundDetector(audioStream, ({ isSoundDetected }) => {
+        // highlight-next-line
+        setIsSpeakingWhileMuted((isNotified) =>
+          // keep the UI rendered if previously enabled
+          isNotified ? isNotified : isSoundDetected,
+        );
+      }),
+    );
+    disposeSoundDetector.catch((err) => {
+      console.error('Error while creating sound detector', err);
+    });
+    return () => {
+      // make sure to dispose of used audio stream
+      disposeSoundDetector
+        .then((dispose) => dispose())
+        .catch((err) => {
+          console.error('Error while disposing sound detector', err);
+        });
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [audioDeviceId, getAudioStream, isAudioMute]);
+
+  useEffect(() => {
+    if (!isSpeakingWhileMuted) return;
+    // remove the UI after 3.5 seconds
+    const timeout = setTimeout(() => {
+      setIsSpeakingWhileMuted(false);
+    }, 3500);
+    return () => {
+      clearTimeout(timeout);
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [isSpeakingWhileMuted]);
+
+  if (!isSpeakingWhileMuted) return null;
+
+  return <div>You are muted</div>;
+};
+```
+
+If we wanted to implement such notification outside an active call, we would need to access `selectedAudioInputDeviceId` and `initialAudioEnabled`  from [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi).
+
+
+```tsx
+import { useEffect, useState } from 'react';
+
+import {
+  createSoundDetector,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+export const SpeakingWhileMutedNotificationLobby = () => {
+  // highlight-next-line
+  const { getAudioStream, initialAudioEnabled, selectedAudioInputDeviceId } =
+    useMediaDevices();
+  const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
+
+  useEffect(() => {
+    // do not detect sound, when not muted
+    // highlight-next-line
+    if (initialAudioEnabled) return;
+
+    const disposeSoundDetector = getAudioStream({
+      // highlight-next-line
+      deviceId: selectedAudioInputDeviceId,
+    }).then((audioStream) =>
+      createSoundDetector(audioStream, ({ isSoundDetected }) => {
+        setIsSpeakingWhileMuted((isNotified) =>
+          // keep the UI rendered if previously enabled
+          isNotified ? isNotified : isSoundDetected,
+        );
+      }),
+    );
+    disposeSoundDetector.catch((err) => {
+      console.error('Error while creating sound detector', err);
+    });
+    return () => {
+      disposeSoundDetector
+        .then((dispose) => dispose())
+        .catch((err) => {
+          console.error('Error while disposing sound detector', err);
+        });
+      setIsSpeakingWhileMuted(false);
+    };
+  // highlight-next-line
+  }, [selectedAudioInputDeviceId, getAudioStream, initialAudioEnabled]);
+
+  useEffect(() => {
+    if (!isSpeakingWhileMuted) return;
+    // remove the UI after 3.5 seconds
+    const timeout = setTimeout(() => {
+      setIsSpeakingWhileMuted(false);
+    }, 3500);
+    return () => {
+      clearTimeout(timeout);
+      setIsSpeakingWhileMuted(false);
+    };
+  }, [isSpeakingWhileMuted]);
+
+  if (!isSpeakingWhileMuted) return null;
+
+  return <div>You are muted</div>;
+};
+
+```

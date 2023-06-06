@@ -45,8 +45,6 @@ export const ChatInput = () => {
     text,
     uploadNewFiles,
     handleChange,
-    openCommandsList,
-    closeCommandsList,
   } = useMessageInputContext('MessageInputV2');
 
   const id = useMemo(() => nanoid(), []);
@@ -71,16 +69,6 @@ export const ChatInput = () => {
     onDrop: uploadNewFiles,
   });
 
-  useEffect(() => {
-    const handleClick = () => {
-      closeCommandsList();
-      setCommandsOpen(false);
-    };
-
-    if (commandsOpen) document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, [commandsOpen]); // eslint-disable-line
-
   const onChange: ChangeEventHandler<HTMLTextAreaElement> = useCallback(
     (event) => {
       const { value } = event.target;
@@ -104,11 +92,9 @@ export const ChatInput = () => {
     [text, giphyState, numberOfUploads],
   );
 
-  const handleCommandsClick = () => {
-    openCommandsList();
-    setGiphyState(false);
-    setCommandsOpen(true);
-  };
+  const inputClassNames = classnames(styles.input, {
+    [styles.uploads]: isUploadEnabled && !!numberOfUploads,
+  });
 
   return (
     <>
@@ -141,20 +127,18 @@ export const ChatInput = () => {
               <Attachment className={styles.attachment} />
             </label>
           </div>
-          <div onClick={handleCommandsClick}>
-            <Bolt className={styles.bolt} />
-          </div>
-          <div className={styles.textareaContainer}>
-            <div className={styles.previewContainer}>
-              {isUploadEnabled && !!numberOfUploads && (
-                <AttachmentPreviewList />
-              )}
-            </div>
 
-            <div className={styles.input}>
+          <div className={styles.textareaContainer}>
+            <div className={inputClassNames}>
+              <div className={styles.previewContainer}>
+                {isUploadEnabled && !!numberOfUploads && (
+                  <AttachmentPreviewList />
+                )}
+              </div>
+
               <ChatAutoComplete
                 onChange={onChange}
-                placeholder="Say something"
+                placeholder="Send a message"
               />
             </div>
           </div>

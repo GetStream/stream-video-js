@@ -35,18 +35,30 @@ export const watchCallBroadcastingStarted = (state: CallState) => {
     if (event.type !== 'call.broadcasting_started') return;
     state.setMetadata((metadata) => ({
       ...metadata!,
-      broadcasting: true,
-      hls_playlist_url: event.hls_playlist_url,
+      egress: {
+        ...metadata!.egress,
+        broadcasting: true,
+        hls: {
+          ...metadata!.egress.hls,
+          playlist_url: event.hls_playlist_url,
+        },
+      },
     }));
   };
 };
 
+/**
+ * Watches for `call.broadcasting_stopped` events.
+ */
 export const watchCallBroadcastingStopped = (state: CallState) => {
   return function onCallBroadcastingStopped(event: StreamVideoEvent) {
     if (event.type !== 'call.broadcasting_stopped') return;
     state.setMetadata((metadata) => ({
       ...metadata!,
-      broadcasting: false,
+      egress: {
+        ...metadata!.egress,
+        broadcasting: false,
+      },
     }));
   };
 };
