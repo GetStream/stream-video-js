@@ -31,7 +31,7 @@ export const useLocalVideoStream = () => {
       });
     };
     loadVideoStream();
-  }, [currentVideoDevice]);
+  }, [currentVideoDevice.deviceId]);
 
   return videoStream;
 };
