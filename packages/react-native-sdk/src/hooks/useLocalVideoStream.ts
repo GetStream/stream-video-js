@@ -25,9 +25,8 @@ export const useLocalVideoStream = () => {
         deviceId: currentVideoDevice.deviceId,
       });
       setVideoStream((previousStream) => {
-        if (!previousStream) return stream;
-
-        disposeOfMediaStream(previousStream);
+        if (previousStream) disposeOfMediaStream(previousStream);
+        return stream;
       });
     };
     loadVideoStream();
