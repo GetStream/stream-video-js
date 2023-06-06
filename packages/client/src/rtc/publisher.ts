@@ -342,7 +342,7 @@ export class Publisher {
     const offer = await this.publisher.createOffer();
     let sdp = offer.sdp;
     if (sdp) {
-      toggleDtx(sdp, this.isDtxEnabled);
+      sdp = toggleDtx(sdp, this.isDtxEnabled);
       if (isReactNative()) {
         if (this.preferredVideoCodec) {
           sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
