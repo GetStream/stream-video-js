@@ -8865,7 +8865,7 @@ __metadata:
     prettier: 2.8.4
     react: 18.2.0
     react-native: 0.70.6
-    react-native-callkeep: ^4.3.4
+    react-native-callkeep: 4.3.8
     react-native-dotenv: ^3.4.7
     react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
@@ -8901,6 +8901,7 @@ __metadata:
     react-native-callkeep: 4.3.8
     react-native-incall-manager: ^4.0.0
     react-native-svg: ^13.6.0
+    react-native-voip-push-notification: 3.3.1
     react-native-webrtc: ~106.0.4
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
@@ -8916,6 +8917,7 @@ __metadata:
     react-native-callkeep: ">=4.3.8"
     react-native-incall-manager: ">=4.0.0"
     react-native-svg: ">=13.6.0"
+    react-native-voip-push-notification: ">=3.3.1"
     react-native-webrtc: ">=106.0.4"
   peerDependenciesMeta:
     "@notifee/react-native":
@@ -8925,6 +8927,8 @@ __metadata:
     "@react-native-firebase/messaging":
       optional: true
     react-native-callkeep:
+      optional: true
+    react-native-voip-push-notification:
       optional: true
   languageName: unknown
   linkType: soft
@@ -31410,7 +31414,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-callkeep@npm:4.3.8, react-native-callkeep@npm:^4.3.3, react-native-callkeep@npm:^4.3.4, react-native-callkeep@npm:^4.3.8":
+"react-native-callkeep@npm:4.3.8, react-native-callkeep@npm:^4.3.3, react-native-callkeep@npm:^4.3.8":
   version: 4.3.8
   resolution: "react-native-callkeep@npm:4.3.8"
   peerDependencies:
@@ -31672,7 +31676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-voip-push-notification@npm:~3.3.1":
+"react-native-voip-push-notification@npm:3.3.1, react-native-voip-push-notification@npm:~3.3.1":
   version: 3.3.1
   resolution: "react-native-voip-push-notification@npm:3.3.1"
   peerDependencies:

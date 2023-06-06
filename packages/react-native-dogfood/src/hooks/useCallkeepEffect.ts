@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { PermissionsAndroid } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
 import { BehaviorSubject } from 'rxjs';
 import {
@@ -18,8 +17,7 @@ const options: Parameters<typeof RNCallKeep.setup>[0] = {
       'This application needs to access your phone calling accounts to make calls',
     cancelButton: 'Cancel',
     okButton: 'ok',
-    imageName: 'sim_icon',
-    additionalPermissions: [PermissionsAndroid.PERMISSIONS.READ_CONTACTS],
+    additionalPermissions: [],
     // Required to get audio in background when using Android 11
     foregroundService: {
       channelId: 'com.company.my',

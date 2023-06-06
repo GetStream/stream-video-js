@@ -28,7 +28,7 @@
     "nanoid": "^4.0.1",
     "react": "18.2.0",
     "react-native": "0.70.6",
-    "react-native-callkeep": "^4.3.4",
+    "react-native-callkeep": "4.3.8",
     "react-native-dotenv": "^3.4.7",
     "react-native-get-random-values": "^1.8.0",
     "react-native-incall-manager": "^4.0.0",

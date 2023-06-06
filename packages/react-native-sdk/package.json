@@ -24,6 +24,7 @@
     "react-native-callkeep": ">=4.3.8",
     "react-native-incall-manager": ">=4.0.0",
     "react-native-svg": ">=13.6.0",
+    "react-native-voip-push-notification": ">=3.3.1",
     "react-native-webrtc": ">=106.0.4"
   },
   "peerDependenciesMeta": {
@@ -38,6 +39,9 @@
     },
     "react-native-callkeep": {
       "optional": true
+    },
+    "react-native-voip-push-notification": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -51,6 +55,7 @@
     "react-native-callkeep": "4.3.8",
     "react-native-incall-manager": "^4.0.0",
     "react-native-svg": "^13.6.0",
+    "react-native-voip-push-notification": "3.3.1",
     "react-native-webrtc": "~106.0.4",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
