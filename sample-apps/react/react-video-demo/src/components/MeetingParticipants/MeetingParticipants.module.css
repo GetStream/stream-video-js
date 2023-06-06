@@ -29,6 +29,12 @@
     'participantSlider';
 }
 
+@supports (not (height: 100dvh)) {
+  .meetingGrid.slider {
+    height: calc(100vh - 180px);
+  }
+}
+
 @media screen(2xl) {
   .meetingGrid.slider {
     @apply grid pl-4 pr-4 pt-0 pb-0 sm:p-4  gap-y-3  w-full;

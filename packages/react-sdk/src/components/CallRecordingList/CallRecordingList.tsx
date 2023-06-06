@@ -16,7 +16,7 @@ import {
 } from './LoadingCallRecordingListing';
 
 export type CallRecordingListProps = {
-  /** Array of CallRecording objects */
+  /** Array of CallRecording objects to be displayed */
   callRecordings: CallRecording[];
   /** Custom component to replace the default header implementation */
   CallRecordingListHeader?: ComponentType<CallRecordingListHeaderProps>;
@@ -24,9 +24,9 @@ export type CallRecordingListProps = {
   CallRecordingListItem?: ComponentType<CallRecordingListItemProps>;
   /** Custom component to replace the default empty list component implementation */
   EmptyCallRecordingList?: ComponentType;
-  /** Indicator that a request for new list of CallRecording object has been initiated */
+  /** Signals that a request for new list of CallRecording object has been initiated */
   loading?: boolean;
-  /** */
+  /** Custom component to be rendered when loading is true */
   LoadingCallRecordingList?: ComponentType<LoadingCallRecordingListProps>;
 };
 

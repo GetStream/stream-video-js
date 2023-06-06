@@ -119,3 +119,10 @@ The functions we provide to access the media streams are:
 - `disposeOfMediaStream`
 - `getAudioStream`
 - `getVideoStream`
+
+## Sound detection
+An important topic related to media devices management is sound detection. A feature often needed in a call scenario (volume detection, speaking-while-muted notification). We can start detecting the audio input level changes using the utility function [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).  The function requires an instance of [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) object of type `audioinput` and attaches sound analysers to it. The `MediaStream` can be retrieved by the SDK's `getAudioStream` utility function. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
+
+It is also possible to configure the data collection algorithm with the third [`options` parameter](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
+
+The return value of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) function is a clean-up function that should be called, when a component, that uses sound detection is unmounted.
