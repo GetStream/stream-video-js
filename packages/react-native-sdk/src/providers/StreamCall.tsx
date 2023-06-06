@@ -72,16 +72,14 @@ export const StreamCall = ({
     }
 
     return () => {
-      if (activeCall?.state.callingState === CallingState.LEFT) {
-        return;
-      }
+      if (activeCall?.state.callingState === CallingState.LEFT) return;
       activeCall?.leave().catch((e) => console.log(e));
       setActiveCall(undefined);
     };
   }, [activeCall, callId, callType, videoClient]);
 
   return (
-    <StreamCallProvider call={call}>
+    <StreamCallProvider call={activeCall}>
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
         {children}
       </CallCycleLogicsWrapper>

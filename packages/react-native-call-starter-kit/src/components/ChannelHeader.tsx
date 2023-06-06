@@ -48,7 +48,7 @@ export const ChannelHeader = (props: ChannelHeaderProps) => {
       </Pressable>
       <Text style={styles.name}>
         {channel?.data?.name ||
-          channel?.state.members[members[1].user_id].user?.name}
+          channel?.state.members[members[0].user_id].user?.name}
       </Text>
       <Pressable onPress={joinCallHandler} style={styles.icon}>
         <Call color="#000" />

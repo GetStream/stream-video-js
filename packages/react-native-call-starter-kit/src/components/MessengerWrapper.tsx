@@ -1,9 +1,16 @@
-import React, {PropsWithChildren, useCallback, useMemo, useState} from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   ActiveCall,
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
+  theme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 
@@ -11,6 +18,7 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {ChatWrapper} from './ChatWrapper';
 import {VideoWrapper} from './VideoWrapper';
 import {AuthProgressLoader} from './AuthProgressLoader';
+import {Alert, StyleSheet, View} from 'react-native';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
@@ -18,11 +26,23 @@ const CallPanel = ({show}: {show: ScreenTypes}) => {
   if (show === 'incoming') {
     return <IncomingCallView />;
   } else if (show === 'outgoing') {
-    return <OutgoingCallView />;
+    return (
+      <View style={styles.container}>
+        <OutgoingCallView />
+      </View>
+    );
   } else if (show === 'active-call') {
-    return <ActiveCall />;
+    return (
+      <View style={styles.container}>
+        <ActiveCall />
+      </View>
+    );
   } else if (show === 'joining') {
-    return <AuthProgressLoader />;
+    return (
+      <View style={styles.container}>
+        <AuthProgressLoader />
+      </View>
+    );
   }
 
   return null;
@@ -33,6 +53,26 @@ type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
 export const Calls = () => {
   const calls = useCalls();
   const [show, setShow] = useState<ScreenTypes>('none');
+
+  const handleMoreCalls = useCallback(async () => {
+    const lastCallCreatedBy = calls[1].data?.created_by;
+    Alert.alert(
+      `Incoming call from ${
+        lastCallCreatedBy?.name || lastCallCreatedBy?.id
+      }, only 1 call at a time is supported`,
+    );
+    return;
+  }, [calls]);
+
+  // Reset the state of the show variable when there are no calls.
+  useEffect(() => {
+    if (!calls.length) {
+      setShow('none');
+    }
+    if (calls.length > 1) {
+      handleMoreCalls();
+    }
+  }, [calls.length, handleMoreCalls]);
 
   const onCallJoined = useCallback(() => {
     setShow('active-call');
@@ -77,18 +117,11 @@ export const Calls = () => {
   ]);
 
   return (
-    <>
-      {calls.map(call => {
-        return (
-          <StreamCall
-            key={call.id}
-            call={call}
-            callCycleHandlers={callCycleHandlers}>
-            <CallPanel show={show} />
-          </StreamCall>
-        );
-      })}
-    </>
+    calls[0] && (
+      <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
+        <CallPanel show={show} />
+      </StreamCall>
+    )
   );
 };
 
@@ -102,3 +135,10 @@ export const MessengerWrapper = ({children}: PropsWithChildren<{}>) => {
     </ChatWrapper>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.light.static_grey,
+  },
+});

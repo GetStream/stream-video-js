@@ -3,6 +3,7 @@ import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
   useCall,
+  useCallCallingState,
   useCallMembers,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
@@ -10,11 +11,12 @@ import { UserInfoView } from './UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { useMutingState } from '../hooks/useMutingState';
-import { UserResponse } from '@stream-io/video-client';
+import { CallingState, UserResponse } from '@stream-io/video-client';
 
 export const IncomingCallView = () => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
   const call = useCall();
+  const callingState = useCallCallingState();
 
   const answerCallHandler = async () => {
     try {
@@ -26,6 +28,7 @@ export const IncomingCallView = () => {
 
   const rejectCallHandler = async () => {
     try {
+      if (callingState === CallingState.LEFT) return;
       await call?.leave({ reject: true });
     } catch (error) {
       console.log('Error leaving Call', error);

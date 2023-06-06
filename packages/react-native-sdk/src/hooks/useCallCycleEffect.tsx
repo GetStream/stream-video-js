@@ -27,12 +27,7 @@ export const useCallCycleEffect = (
   } = callCycleHandlers;
 
   useEffect(() => {
-    if (
-      !call ||
-      NON_ACTIVE_CALLING_STATES.includes(callingState) ||
-      callingState === prevCallingState
-    )
-      return;
+    if (!call || NON_ACTIVE_CALLING_STATES.includes(callingState)) return;
     const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
     const isCallCreatedByOther =
       !!call?.data?.created_by.id && !isCallCreatedByMe;
