@@ -19,7 +19,9 @@ export const OutgoingCallView = () => {
 
   const hangupCallHandler = async () => {
     try {
-      if (callingState === CallingState.LEFT) return;
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
       await call?.leave();
     } catch (error) {
       console.log('Error leaving Call', error);
@@ -83,14 +85,15 @@ const Background = () => {
   const localVideoStream = useLocalVideoStream();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
-  if (isVideoMuted || !localVideoStream)
-    return <View style={[StyleSheet.absoluteFill, styles.background]} />;
+  if (isVideoMuted || !localVideoStream) {
+    return <View style={styles.background} />;
+  }
   return (
     <View style={styles.background}>
       <VideoRenderer
         mediaStream={localVideoStream}
         zOrder={1}
-        style={styles.stream}
+        style={StyleSheet.absoluteFill}
         mirror
       />
     </View>
@@ -107,6 +110,7 @@ const styles = StyleSheet.create({
   },
   background: {
     backgroundColor: theme.light.static_grey,
+    flex: 1,
   },
   content: {},
   callingText: {
@@ -126,5 +130,4 @@ const styles = StyleSheet.create({
   },
   button: {},
   svgContainerStyle: {},
-  stream: {},
 });
