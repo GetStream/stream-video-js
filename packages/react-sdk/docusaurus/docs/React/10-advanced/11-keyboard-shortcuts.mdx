@@ -12,6 +12,11 @@ In this guide, you'll learn how to apply keyboard shortcuts to your Stream Video
 As this hook will introduce keyboard shortcuts related to [`CallControls`](../03-ui-components/call/call-controls.mdx) (mute/unmute audio) we should ideally invoke it in the same component to group logical parts together for easier debugging later. The same goes for your other keyboard shortcuts you might introduce to your application. Learn how to adjust your `CallControls` component in [the Replacing Call Controls guide](../06-ui-cookbook/02-replacing-call-controls.mdx).
 
 ```ts
+import {
+  useToggleAudioMuteState,
+  useToggleVideoMuteState,
+} from '@stream-io/video-react-sdk';
+
 const isMacOS = () => !!navigator.userAgent.match(/(Mac\s?OS)/g)?.length;
 
 export const useKeyboardShortcuts = () => {
@@ -61,6 +66,10 @@ export const useKeyboardShortcuts = () => {
 The previous implementation looks a bit messy and hard to read so we'll refactor this hook with the help of the [`hotkeys-js`](https://github.com/jaywcjlove/hotkeys-js) which makes shortcut registering and handling much easier.
 
 ```ts
+import {
+  useToggleAudioMuteState,
+  useToggleVideoMuteState,
+} from '@stream-io/video-react-sdk';
 import hotkeys from 'hotkeys-js';
 
 export const useKeyboardShortcuts = () => {
