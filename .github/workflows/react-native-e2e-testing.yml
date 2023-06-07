@@ -5,13 +5,13 @@ env:
   STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
   STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
 on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened]
+  push:
     paths:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
       - 'packages/react-native-meeting-starter-kit/**'
+      - '.github/**'
 concurrency:
   group: react-native-e2e-testing-${{ github.ref }}
   cancel-in-progress: true
