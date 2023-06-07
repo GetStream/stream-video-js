@@ -3,8 +3,12 @@ import { useCallControls } from '../hooks/useCallControls';
 import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { CallingState, OwnCapability } from '@stream-io/video-client';
+import {
+  Restricted,
+  useCall,
+  useCallCallingState,
+} from '@stream-io/video-react-bindings';
 import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
@@ -25,9 +29,11 @@ export const CallControlsView = () => {
   const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useCallControls();
   const call = useCall();
+  const callingState = useCallCallingState();
 
   const onCallHangup = async () => {
     try {
+      if (callingState === CallingState.LEFT) return;
       await call?.leave();
     } catch (err) {
       console.log('Error Leaving call:', err);
