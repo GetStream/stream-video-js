@@ -8,7 +8,6 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import { SpeakerView } from './SpeakerView';
 
@@ -32,18 +31,16 @@ const App = () => {
     () => new StreamVideoClient(apiKey),
   );
   const [call, setCall] = useState<Call | undefined>(undefined);
-  const [connectedUser, setConnectedUser] = useState<User | undefined>(
-    undefined,
-  );
 
   useEffect(() => {
-    const user = { id: userId };
     client
       .connectUser({ id: userId }, token)
-      .then(() => setConnectedUser(user));
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
-      client.disconnectUser().then(() => setConnectedUser(undefined));
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [client]);
 
@@ -54,11 +51,11 @@ const App = () => {
   }, [callId, client]);
 
   useEffect(() => {
-    if (!call || !connectedUser) {
+    if (!call) {
       return;
     }
     call.join({ create: true });
-  }, [call, connectedUser]);
+  }, [call]);
 
   return (
     <StreamTheme as="main" className="main-container">

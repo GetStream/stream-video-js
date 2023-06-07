@@ -5,7 +5,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
@@ -33,9 +32,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
-  const [connectedUser, setConnectedUser] = useState<User | undefined>(
-    undefined,
-  );
   const [call] = useState<Call>(() => client.call(callType, callId));
 
   const tokenProvider = useCallback(async () => {
@@ -51,15 +47,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, [apiKey, user.id]);
 
   useEffect(() => {
-    client
-      .connectUser(user, tokenProvider)
-      .then(() => setConnectedUser(user))
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
-      });
+    client.connectUser(user, tokenProvider).catch((err) => {
+      console.error(`Failed to establish connection`, err);
+    });
 
     return () => {
-      client.disconnectUser().then(() => setConnectedUser(undefined));
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, tokenProvider, user?.id]);
@@ -71,11 +66,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useEffect(() => {
-    if (!client || !connectedUser) return;
     call.getOrCreate().catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call, client, connectedUser]);
+  }, [call, client]);
 
   useGleap(gleapApiKey, client, user);
 

@@ -47,9 +47,6 @@ const App = () => {
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(process.env.REACT_APP_STREAM_API_KEY!), // see <video>/data/fixtures/apps.yaml for API key/secret
   );
-  const [connectedUser, setConnectedUser] = useState<User | undefined>(
-    undefined,
-  );
   const [callId, setCallId] = useState<string | undefined>(undefined);
   const [callType, setCallType] = useState<string>('default');
   const [callInput, setCallInput] = useState<JoinCallData | undefined>(
@@ -82,12 +79,12 @@ const App = () => {
       return;
     }
 
-    client
-      .connectUser(user, participants[currentUser])
-      .then(() => setConnectedUser(user));
+    client.connectUser(user, participants[currentUser]);
 
     return () => {
-      client.disconnectUser().then(() => setConnectedUser(undefined));
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [currentUser, user, client]);
 
@@ -99,11 +96,11 @@ const App = () => {
   }, [callId, callType, client]);
 
   useEffect(() => {
-    if (!call || !connectedUser) {
+    if (!call) {
       return;
     }
     call.join(callInput);
-  }, [call, callInput, connectedUser]);
+  }, [call, callInput]);
 
   const createCall = async (id: string, invitees: string[]) => {
     setCallId(id);

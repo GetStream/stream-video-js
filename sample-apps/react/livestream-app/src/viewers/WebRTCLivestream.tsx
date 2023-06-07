@@ -5,7 +5,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
@@ -18,9 +17,6 @@ export const WebRTCLivestream = () => {
   const [call, setCall] = useState<Call | undefined>(undefined);
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
-  );
-  const [connectedUser, setConnectedUser] = useState<User | undefined>(
-    undefined,
   );
   const tokenProvider = useCallback(async () => {
     const endpoint = new URL(
@@ -50,19 +46,21 @@ export const WebRTCLivestream = () => {
     };
     client
       .connectAnonymousUser(user, tokenProvider)
-      .then(() => setConnectedUser(user));
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
-      client.disconnectUser().then(() => setConnectedUser(undefined));
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [tokenProvider, client]);
 
   useEffect(() => {
-    if (!call || !connectedUser) {
+    if (!call) {
       return;
     }
     call.join();
-  }, [call, connectedUser]);
+  }, [call]);
 
   return (
     <StreamVideo client={client}>

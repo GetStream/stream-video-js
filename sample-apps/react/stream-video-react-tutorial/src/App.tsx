@@ -44,10 +44,14 @@ export default function App() {
       id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
     };
     const tokenProvider = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
-    client.connectUser(user, tokenProvider);
+    client
+      .connectUser(user, tokenProvider)
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
-      client.disconnectUser();
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [client]);
 

@@ -31,7 +31,7 @@ export const Backstage = () => {
   }, [callId, client]);
 
   useEffect(() => {
-    if (!call || !connectedUser) {
+    if (!call) {
       return;
     }
     call.join({
@@ -45,7 +45,7 @@ export const Backstage = () => {
         ],
       },
     });
-  }, [call, connectedUser]);
+  }, [call]);
 
   return (
     <>

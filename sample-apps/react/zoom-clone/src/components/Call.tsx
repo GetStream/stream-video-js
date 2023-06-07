@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Call,
   StreamCall,
-  useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
@@ -13,17 +12,16 @@ import { ChatSidebar } from './ChatSidebar';
 export const CallUI = () => {
   const { callId } = useParams();
   const client = useStreamVideoClient();
-  const user = useConnectedUser();
   const [chatOpen, setChatOpen] = useState(false);
   const [call, setCall] = useState<Call | undefined>(undefined);
 
   useEffect(() => {
-    if (!callId || !client || !user) {
+    if (!callId || !client) {
       return;
     }
 
     setCall(client.call('default', callId));
-  }, [client, user, callId]);
+  }, [client, callId]);
 
   useEffect(() => {
     if (!call) {

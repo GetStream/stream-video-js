@@ -37,10 +37,14 @@ export const Viewers = () => {
       name: randomCharacter,
       role: 'user',
     };
-    client.connectUser(user, tokenProvider);
+    client
+      .connectUser(user, tokenProvider)
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
-      client.disconnectUser();
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [client, tokenProvider, randomCharacter]);
 

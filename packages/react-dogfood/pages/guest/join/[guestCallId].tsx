@@ -4,7 +4,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -36,22 +35,19 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
-  const [connectedUser, setConnectedUser] = useState<User | undefined>(
-    undefined,
-  );
   const [call] = useState<Call>(() => client.call(callType, callId));
 
   useEffect(() => {
     const connectRequest = isAnonymous
       ? client.connectAnonymousUser(userToConnect, tokenToUse)
       : client.connectUser(userToConnect, tokenToUse);
-    connectRequest
-      .then(() => setConnectedUser(userToConnect))
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
-      });
+    connectRequest.catch((err) => {
+      console.error(`Failed to establish connection`, err);
+    });
     return () => {
-      client.disconnectUser().then(() => setConnectedUser(undefined));
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, userToConnect?.id, tokenToUse, isAnonymous]);
@@ -77,11 +73,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   }, [client, guestUserId, mode]);
 
   useEffect(() => {
-    if (!connectedUser) return;
     call.getOrCreate().catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call, connectedUser]);
+  }, [call]);
 
   useGleap(gleapApiKey, client, userToConnect);
   return (
