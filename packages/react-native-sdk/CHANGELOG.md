@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.131](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.130...@stream-io/video-react-native-sdk-0.0.1-alpha.131) (2023-06-07)
+
+
+### Bug Fixes
+
+* **react-native:** revive call flow in dogfood app ([#604](https://github.com/GetStream/stream-video-js/issues/604)) ([83b1c7e](https://github.com/GetStream/stream-video-js/commit/83b1c7e63f9746ca23f1d17f61495726dd5a7ffb))
+
+
+
 ## [0.0.1-alpha.130](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.129...@stream-io/video-react-native-sdk-0.0.1-alpha.130) (2023-06-07)
 
 
