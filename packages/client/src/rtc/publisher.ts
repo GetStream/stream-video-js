@@ -362,6 +362,9 @@ export class Publisher {
     this.sfuClient = sfuClient;
 
     if (this.announcedTracks.length > 0) {
+      // FIXME OL: hack, we probably should not do this.
+      await this.updateVideoPublishQuality(['q', 'h', 'f']);
+
       // negotiate only if there are tracks to publish
       await this.negotiate({ iceRestart: true });
     }
