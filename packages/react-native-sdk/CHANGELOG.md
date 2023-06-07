@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.129](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.128...@stream-io/video-react-native-sdk-0.0.1-alpha.129) (2023-06-07)
+
+
+### Features
+
+* **react-native:** revive call flow in react native call starter kit ([#599](https://github.com/GetStream/stream-video-js/issues/599)) ([8b769d3](https://github.com/GetStream/stream-video-js/commit/8b769d36f7fb5806d50dca0be9880a246f69a0df))
+
+
+
 ## [0.0.1-alpha.128](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.127...@stream-io/video-react-native-sdk-0.0.1-alpha.128) (2023-06-06)
 
 
