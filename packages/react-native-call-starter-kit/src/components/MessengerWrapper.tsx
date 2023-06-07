@@ -44,6 +44,8 @@ const CallPanel = ({show}: {show: ScreenTypes}) => {
           <AuthProgressLoader />
         </View>
       );
+    case 'none':
+      return null;
     default:
       return null;
   }
