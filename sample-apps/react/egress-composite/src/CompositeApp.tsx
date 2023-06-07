@@ -5,7 +5,7 @@ import {
   StreamClientOptions,
   StreamTheme,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-sdk';
 import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
@@ -19,14 +19,22 @@ export const CompositeApp = () => {
   if (config.baseURL) {
     options.baseURL = config.baseURL;
   }
-  const client = useCreateStreamVideoClient({
-    apiKey: config.apiKey,
-    tokenOrProvider: config.token,
-    options,
-    user: {
-      id: config.userId,
-    },
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(config.apiKey, options),
+  );
+
+  useEffect(() => {
+    client.connectUser(
+      {
+        id: config.userId,
+      },
+      config.token,
+    );
+
+    return () => {
+      client.disconnectUser();
+    };
+  }, [client, config.token]);
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {

@@ -5,7 +5,7 @@ import {
   Call,
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
 
@@ -13,6 +13,9 @@ const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
   const randomCharacter = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * characters.length);
     return characters[randomIndex];
@@ -28,15 +31,18 @@ export const Viewers = () => {
     return response.token as string;
   }, [randomCharacter]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenProvider,
-    user: {
+  useEffect(() => {
+    const user = {
       id: randomCharacter,
       name: randomCharacter,
       role: 'user',
-    },
-  });
+    };
+    client.connectUser(user, tokenProvider);
+
+    return () => {
+      client.disconnectUser();
+    };
+  }, [client, tokenProvider, randomCharacter]);
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {

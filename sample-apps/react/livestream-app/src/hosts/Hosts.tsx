@@ -1,9 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import { useMemo } from 'react';
-import {
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { useEffect, useMemo, useState } from 'react';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 
 // a list of random star-wars characters
 export const characters = [
@@ -24,14 +21,22 @@ export const characters = [
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const Hosts = () => {
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+
   const randomCharacter = useMemo(() => {
     const index = Math.floor(Math.random() * characters.length);
     return characters[index];
   }, []);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: async () => {
+  useEffect(() => {
+    const user = {
+      id: randomCharacter,
+      name: randomCharacter,
+      role: 'host',
+    };
+    const tokenProvider = async () => {
       const endpoint = new URL(
         'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
       );
@@ -39,13 +44,14 @@ export const Hosts = () => {
       endpoint.searchParams.set('user_id', randomCharacter);
       const response = await fetch(endpoint).then((res) => res.json());
       return response.token as string;
-    },
-    user: {
-      id: randomCharacter,
-      name: randomCharacter,
-      role: 'host',
-    },
-  });
+    };
+
+    client.connectUser(user, tokenProvider);
+
+    return () => {
+      client.disconnectUser();
+    };
+  }, [client]);
 
   return (
     <StreamVideo client={client}>
