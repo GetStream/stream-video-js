@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.11...@stream-io/video-react-sdk-0.0.12) (2023-06-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.6`
+
+### Documentation
+
+* **react-sdk:** keyboard shortcuts guide ([#606](https://github.com/GetStream/stream-video-js/issues/606)) ([7da0ae8](https://github.com/GetStream/stream-video-js/commit/7da0ae85f53663d8f48dabcf7ea9411ec71d71c4))
+
 ### [0.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.10...@stream-io/video-react-sdk-0.0.11) (2023-06-07)
 
 ### [0.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.9...@stream-io/video-react-sdk-0.0.10) (2023-06-06)
