@@ -1,4 +1,4 @@
-.str-video__participant-placeholder {
+.str-video__video-placeholder {
   aspect-ratio: 4/3;
   height: 100%;
   width: 100%;
@@ -6,14 +6,13 @@
   align-items: center;
   justify-content: center;
 
-  .str-video__participant-placeholder--avatar {
+  .str-video__video-placeholder__avatar {
     width: 100px;
     height: 100px;
     object-fit: cover;
-    // margin-inline: 5vh;
   }
 
-  .str-video__participant-placeholder--initials-fallback {
+  .str-video__video-placeholder__initials-fallback {
     display: flex;
     justify-content: center;
     align-items: center;

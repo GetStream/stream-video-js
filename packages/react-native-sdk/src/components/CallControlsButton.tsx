@@ -13,7 +13,7 @@ interface CallControlsButtonProps {
   /**
    * `onPress` handler called when a single tap gesture is detected.
    */
-  onPress: PressableProps['onPress'];
+  onPress?: PressableProps['onPress'];
   /**
    * The background color of the button rendered.
    */

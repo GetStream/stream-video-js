@@ -8,11 +8,11 @@
     "ios": "react-native run-ios",
     "ios-device": "react-native run-ios --device",
     "start": "react-native start",
+    "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.17.11",
     "@react-native-camera-roll/camera-roll": "^5.2.0",
     "@react-native-community/netinfo": "^9.3.7",
     "@react-navigation/native": "^6.1.1",
@@ -20,6 +20,7 @@
     "@react-navigation/stack": "^6.3.10",
     "@stream-io/flat-list-mvcp": "^0.10.2",
     "@stream-io/video-react-native-sdk": "workspace:^",
+    "intl-pluralrules": "^2.0.0",
     "react": "18.2.0",
     "react-native": "0.70.6",
     "react-native-callkeep": "^4.3.3",

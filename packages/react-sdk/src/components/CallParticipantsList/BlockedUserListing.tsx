@@ -1,24 +1,15 @@
-import {
-  useActiveCall,
-  useCallMetadata,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
 
-import { Restricted } from '../Moderation';
 import { TextButton } from '../Button';
 
-export const BlockedUserListing = () => {
-  const callMetadata = useCallMetadata();
-
-  const blockedUsers = callMetadata!.blocked_user_ids;
-
-  if (!blockedUsers.length) return null;
+export const BlockedUserListing = ({ data }: { data: string[] }) => {
+  if (!data.length) return null;
 
   return (
     <>
-      <div>Blocked users</div>
       <div className="str-video__participant-listing">
-        {blockedUsers.map((userId) => (
+        {data.map((userId) => (
           <BlockedUserListingItem key={userId} userId={userId} />
         ))}
       </div>
@@ -27,11 +18,10 @@ export const BlockedUserListing = () => {
 };
 
 const BlockedUserListingItem = ({ userId }: { userId: string }) => {
-  const localParticipant = useLocalParticipant();
-  const activeCall = useActiveCall();
+  const call = useCall();
 
   const unblockUserClickHandler = () => {
-    if (userId) activeCall?.unblockUser(userId);
+    if (userId) call?.unblockUser(userId);
   };
 
   return (
@@ -39,10 +29,7 @@ const BlockedUserListingItem = ({ userId }: { userId: string }) => {
       <div className="str-video__participant-listing-item__display-name">
         {userId}
       </div>
-      <Restricted
-        availableGrants={localParticipant?.ownCapabilities ?? []}
-        requiredGrants={['block-users']}
-      >
+      <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <TextButton onClick={unblockUserClickHandler}>Unblock</TextButton>
       </Restricted>
     </div>

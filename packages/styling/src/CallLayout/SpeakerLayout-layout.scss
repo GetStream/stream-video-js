@@ -1,94 +1,133 @@
 $scope-name: 'str-video__speaker-layout';
 
-.str-video__speaker-layout--wrapper {
+.str-video__speaker-layout__wrapper {
   flex-grow: 1;
+  overflow-y: hidden;
 }
 
 .str-video__speaker-layout {
   display: flex;
-  flex-direction: column-reverse;
-  padding-inline: 1.25rem;
+  flex-direction: column;
+  justify-content: center;
   height: 100%;
   width: 100%;
+  gap: 1rem;
+  padding-inline: 2px; // to see "speaking" outline
 
-  // FIXME: remove this rule and adjust this layout to 4:3 aspect ratio
-  .str-video__participant-placeholder,
-  .str-video__remote-video {
-    aspect-ratio: 16/9 !important;
+  .str-video__participant-view {
+    aspect-ratio: 16/9;
   }
 
-  .str-video__speaker-layout--spotlight {
-    flex: 1;
+  .str-video__speaker-layout__spotlight {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 0;
 
-    .str-video__participant {
-      height: 100%;
-      width: auto;
+    .str-video__participant-view--speaking:has(
+        .str-video__video--screen-share
+      ) {
+      outline: none;
     }
 
-    .str-video__participant--no-video {
-      width: 100%;
+    .str-video__video {
+      object-fit: contain;
+    }
+
+    .str-video__participant-details,
+    .str-video__call-controls__button {
+      opacity: 1;
     }
   }
 
-  .str-video__speaker-layout--participants-bar-buttons-wrapper {
+  .str-video__speaker-layout__participants-bar-buttons-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
 
-    .str-video__speaker-layout--participants-bar-button-left {
-      position: absolute;
-      left: 0.5rem;
-      z-index: 1;
-
-      .str-video__call-controls__button--icon {
-        width: 0.8rem;
-        height: 0.8rem;
+    & > .str-video__call-controls__button {
+      .str-video__icon {
+        width: 1rem;
+        height: 1rem;
       }
     }
-    .str-video__speaker-layout--participants-bar-button-right {
+
+    .str-video__speaker-layout__participants-bar--button-left {
+      position: absolute;
+      left: 0.5rem;
+    }
+    .str-video__speaker-layout__participants-bar--button-right {
       position: absolute;
       right: 0.5rem;
-      z-index: 1;
-
-      .str-video__call-controls__button--icon {
-        width: 0.8rem;
-        height: 0.8rem;
-      }
+    }
+    .str-video__speaker-layout__participants-bar--button-top {
+      position: absolute;
+      top: 0.5rem;
+    }
+    .str-video__speaker-layout__participants-bar--button-bottom {
+      position: absolute;
+      bottom: 0.5rem;
     }
   }
 
-  .str-video__speaker-layout--participants-bar-wrapper {
-    overflow-x: auto;
+  .str-video__speaker-layout__participants-bar-wrapper {
     scrollbar-width: none;
     &::-webkit-scrollbar {
       display: none;
     }
 
-    .str-video__speaker-layout--participants-bar {
+    .str-video__speaker-layout__participants-bar {
       display: flex;
-      flex-direction: row;
       align-items: center;
-      gap: 10px;
-      height: 160px;
-      min-height: 160px;
 
-      .str-video__speaker-layout--participant-tile {
-        width: 240px;
-        min-width: 240px;
-
-        &:first-child {
-          margin-left: auto;
-        }
-
-        &:last-child {
-          margin-right: auto;
-        }
+      .str-video__speaker-layout__participant-tile {
+        width: 280px;
+        min-width: 280px;
+        max-width: 25vh;
+        // to see "speaking" outline
+        padding: 5px;
       }
+    }
+  }
+
+  &--variant-top {
+    flex-direction: column-reverse;
+  }
+  &--variant-left {
+    flex-direction: row-reverse;
+  }
+  &--variant-right {
+    flex-direction: row;
+  }
+
+  &--variant-left,
+  &--variant-right {
+    .str-video__speaker-layout__participants-bar-wrapper {
+      overflow-y: auto;
+      max-height: 100%;
+    }
+    .str-video__speaker-layout__participants-bar {
+      flex-direction: column;
+    }
+    .str-video__speaker-layout__spotlight {
+      width: 100%;
+    }
+    .str-video__participant-view {
+      max-width: unset;
+    }
+  }
+
+  &--variant-top,
+  &--variant-bottom {
+    .str-video__speaker-layout__participants-bar-wrapper {
+      overflow-x: auto;
+    }
+    .str-video__speaker-layout__participants-bar {
+      flex-direction: row;
+    }
+    .str-video__participant-view {
+      max-width: 110vh;
     }
   }
 }

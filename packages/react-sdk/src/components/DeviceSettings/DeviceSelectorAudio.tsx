@@ -1,5 +1,9 @@
 import { DeviceSelector } from './DeviceSelector';
-import { useMediaDevices } from '../../contexts';
+import {
+  useMediaDevices,
+  useAudioInputDevices,
+  useAudioOutputDevices,
+} from '../../core';
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
@@ -8,8 +12,8 @@ export type DeviceSelectorAudioInputProps = {
 export const DeviceSelectorAudioInput = ({
   title = 'Select a Mic',
 }: DeviceSelectorAudioInputProps) => {
-  const { audioInputDevices, selectedAudioInputDeviceId, switchDevice } =
-    useMediaDevices();
+  const { selectedAudioInputDeviceId, switchDevice } = useMediaDevices();
+  const audioInputDevices = useAudioInputDevices();
 
   return (
     <DeviceSelector
@@ -31,11 +35,12 @@ export const DeviceSelectorAudioOutput = ({
   title = 'Select speakers',
 }: DeviceSelectorAudioOutputProps) => {
   const {
-    audioOutputDevices,
     isAudioOutputChangeSupported,
     selectedAudioOutputDeviceId,
     switchDevice,
   } = useMediaDevices();
+
+  const audioOutputDevices = useAudioOutputDevices();
 
   if (!isAudioOutputChangeSupported) return null;
 

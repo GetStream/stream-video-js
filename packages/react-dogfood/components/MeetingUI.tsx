@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
-  Call,
   CallingState,
   CallParticipantsList,
   CallStatsButton,
@@ -12,18 +11,17 @@ import {
   IconButton,
   LoadingIndicator,
   noopComparator,
+  PermissionRequests,
   ReactionsButton,
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  StreamCallProvider,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
-  ToggleParticipantListButton,
+  ToggleVideoPublishingButton,
+  useCall,
   useCallCallingState,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { InviteLinkButton } from './InviteLinkButton';
+
 import { Lobby } from './Lobby';
 import { Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
@@ -35,10 +33,10 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import { DeviceSettingsCaptor } from './DeviceSettingsCaptor';
-import { useWatchChannel } from '../hooks';
-import { LayoutMap } from './LayoutSelector';
+import { useKeyboardShortcuts, useWatchChannel } from '../hooks';
+import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
+import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 
 const contents = {
   'error-join': {
@@ -49,28 +47,37 @@ const contents = {
   },
 };
 
-export const MeetingUI = ({
-  chatClient,
-}: {
-  chatClient: StreamChat | null;
-}) => {
+type MeetingUIProps = {
+  chatClient?: StreamChat | null;
+  enablePreview?: boolean;
+};
+export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
   const router = useRouter();
-  const callId = router.query['callId'] as string;
-  const callType = (router.query['type'] as string) || 'default';
-  const client = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<Call>();
+  const activeCall = useCall();
+  const callState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>('LegacyGrid');
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
+    const storedLayout = getLayoutSettings()?.selectedLayout;
+
+    if (!storedLayout) return DEFAULT_LAYOUT;
+
+    return Object.hasOwn(LayoutMap, storedLayout)
+      ? storedLayout
+      : DEFAULT_LAYOUT;
+  });
 
   const showSidebar = showParticipants || showChat;
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
-  const channelWatched = useWatchChannel({ chatClient, channelId: callId });
+  const channelWatched = useWatchChannel({
+    chatClient,
+    channelId: activeCall?.id,
+  });
 
   const toggleParticipantList = useCallback(
     () => setShowParticipants((prev) => !prev),
@@ -80,19 +87,15 @@ export const MeetingUI = ({
   const hideParticipantList = useCallback(() => setShowParticipants(false), []);
 
   const onJoin = useCallback(async () => {
-    if (!client) return;
     setShow('loading');
     try {
-      const call = client.call(callType, callId);
-      setActiveCall(call);
-
-      await call.join({ create: true });
+      await activeCall?.join({ create: true });
       setShow('active-call');
     } catch (e) {
       console.error(e);
       setShow('error-join');
     }
-  }, [callId, callType, client]);
+  }, [activeCall]);
 
   const onLeave = useCallback(async () => {
     setShow('loading');
@@ -105,16 +108,25 @@ export const MeetingUI = ({
   }, [router]);
 
   useEffect(() => {
+    if (callState === CallingState.LEFT) {
+      void onLeave();
+    }
+  }, [callState, onLeave]);
+
+  useEffect(() => {
     const handlePageLeave = async () => {
-      if (activeCall?.state.callingState !== CallingState.LEFT) {
-        await activeCall?.leave();
+      if (
+        activeCall &&
+        [CallingState.JOINING, CallingState.JOINED].includes(callState)
+      ) {
+        await activeCall.leave();
       }
     };
     router.events.on('routeChangeStart', handlePageLeave);
     return () => {
       router.events.off('routeChangeStart', handlePageLeave);
     };
-  }, [activeCall, router.events]);
+  }, [activeCall, callState, router.events]);
 
   const isSortingDisabled = router.query['enableSorting'] === 'false';
   useEffect(() => {
@@ -127,59 +139,62 @@ export const MeetingUI = ({
     }
   }, [activeCall, isSortingDisabled]);
 
+  useKeyboardShortcuts();
+
+  let ComponentToRender: JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {
-    return (
+    ComponentToRender = (
       <ErrorPage
         heading={contents[show].heading}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
     );
-  }
-  if (show === 'lobby') return <Lobby onJoin={onJoin} />;
-
-  if (show === 'loading')
-    return (
-      <StreamCallProvider call={activeCall}>
-        <LoadingScreen />;
-      </StreamCallProvider>
+  } else if (show === 'lobby') {
+    ComponentToRender = (
+      <Lobby
+        onJoin={onJoin}
+        callId={activeCall?.id}
+        enablePreview={enablePreview}
+      />
     );
-
-  if (!activeCall)
-    return (
+  } else if (show === 'loading') {
+    ComponentToRender = <LoadingScreen />;
+  } else if (!activeCall) {
+    ComponentToRender = (
       <ErrorPage
         heading={'Lost active call connection'}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
     );
-
-  return (
-    <StreamCallProvider call={activeCall}>
-      <div className="str-video str-video__call">
-        <div className="str-video__call__main">
+  } else {
+    ComponentToRender = (
+      <div className="str-video__call">
+        <div className="str-video__main-call-panel">
           <ActiveCallHeader
             selectedLayout={layout}
             onMenuItemClick={setLayout}
           />
+          <PermissionRequests />
           <Stage selectedLayout={layout} />
           <div
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
           >
-            <div className="rd-call-controls-group">
-              <RecordCallButton call={activeCall} />
-              <ScreenShareButton call={activeCall} />
+            <div className="str-video__call-controls--group">
+              <RecordCallButton />
+              <ScreenShareButton />
               <ReactionsButton />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
-              <ToggleCameraPublishingButton />
-              <CancelCallButton call={activeCall} onLeave={onLeave} />
+              <ToggleVideoPublishingButton />
+              <CancelCallButton onLeave={onLeave} />
             </div>
-            <div className="rd-call-controls-group">
+            <div className="str-video__call-controls--group">
               <CallStatsButton />
               <ToggleParticipantListButton
                 enabled={showParticipants}
@@ -203,7 +218,7 @@ export const MeetingUI = ({
                     <UnreadCountBadge
                       channelWatched={channelWatched}
                       chatClient={chatClient}
-                      channelId={callId}
+                      channelId={activeCall.id}
                     />
                   )}
                 </div>
@@ -214,10 +229,7 @@ export const MeetingUI = ({
         {showSidebar && (
           <div className="str-video__sidebar">
             {showParticipants && (
-              <CallParticipantsList
-                onClose={hideParticipantList}
-                InviteLinkButton={InviteLinkButton}
-              />
+              <CallParticipantsList onClose={hideParticipantList} />
             )}
 
             <ChatWrapper chatClient={chatClient}>
@@ -225,7 +237,7 @@ export const MeetingUI = ({
                 <div className="str-video__chat">
                   <ChatUI
                     onClose={() => setShowChat(false)}
-                    channelId={callId}
+                    channelId={activeCall.id}
                   />
                 </div>
               )}
@@ -233,9 +245,10 @@ export const MeetingUI = ({
           </div>
         )}
       </div>
-      <DeviceSettingsCaptor />
-    </StreamCallProvider>
-  );
+    );
+  }
+
+  return ComponentToRender;
 };
 
 type ErrorPageProps = {
@@ -296,7 +309,7 @@ export const LoadingScreen = () => {
     }
   }, [callingState]);
   return (
-    <div className=" str-video str-video__call">
+    <div className="str-video__call">
       <div className="str-video__call__loading-screen">
         <LoadingIndicator text={message} />
       </div>

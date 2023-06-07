@@ -29,9 +29,11 @@ export type AggregatedStatsReport = {
   highestFrameHeight: number;
   highestFramesPerSecond: number;
   timestamp: number;
+  rawReport: StatsReport;
 };
 
 export type ParticipantsStatsReport = {
+  // sessionId -> stats for every available MediaStreamTrack
   [sessionId: string]: StatsReport[] | undefined;
 };
 

@@ -8,16 +8,28 @@ import {
   useState,
 } from 'react';
 import { useRouter } from 'next/router';
-
+import Link from 'next/link';
 import PhotoCameraFrontIcon from '@mui/icons-material/PhotoCameraFront';
 import { Box, Button, Stack, Typography } from '@mui/material';
-import Link from 'next/link';
-import { meetingId } from '../lib/meetingId';
+import { StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
 
 import { LobbyHeader } from '../components/LobbyHeader';
 
-export default function Home() {
+import { meetingId } from '../lib/meetingId';
+import translations from '../translations';
+import { useSettings } from '../context/SettingsContext';
+import { Countdown } from '../components/Countdown';
+
+type HomeProps = {
+  launchDeadlineTimestamp: number;
+};
+
+export default function Home({ launchDeadlineTimestamp }: HomeProps) {
   const { data: session, status } = useSession();
+  const {
+    settings: { language },
+  } = useSettings();
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       void signIn();
@@ -29,6 +41,19 @@ export default function Home() {
   }
 
   return (
+    <StreamI18nProvider
+      translationsOverrides={translations}
+      language={language}
+    >
+      <HomeContent launchDeadlineTimestamp={launchDeadlineTimestamp} />
+    </StreamI18nProvider>
+  );
+}
+
+const HomeContent = ({ launchDeadlineTimestamp }: HomeProps) => {
+  const { t } = useI18n();
+
+  return (
     <>
       <LobbyHeader />
       <Stack
@@ -38,22 +63,24 @@ export default function Home() {
         spacing={2}
         flexGrow={1}
       >
-        <Stack spacing={2} alignItems="center">
+        <Stack spacing={2} alignItems="center" flexGrow={1}>
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
-              Stream Meetings
+              {t('Stream Meetings')}
             </Typography>
           </Box>
           <JoinCallForm />
         </Stack>
       </Stack>
+      <Countdown deadlineTimestamp={launchDeadlineTimestamp} />
     </>
   );
-}
+};
 
 const JoinCallForm = () => {
-  const ref = useRef<HTMLInputElement | null>(null);
+  const { t } = useI18n();
   const router = useRouter();
+  const ref = useRef<HTMLInputElement | null>(null);
   const [disabled, setDisabled] = useState(true);
   const onJoin = useCallback(() => {
     router.push(`join/${ref.current!.value}`);
@@ -93,7 +120,7 @@ const JoinCallForm = () => {
             fullWidth
           >
             <PhotoCameraFrontIcon sx={{ mr: 1 }} />
-            New meeting
+            {t('New meeting')}
           </Button>
         </Link>
       ) : (
@@ -102,7 +129,7 @@ const JoinCallForm = () => {
           variant="contained"
           onClick={onJoin}
         >
-          Join
+          {t('Join')}
         </Button>
       )}
       <input
@@ -111,8 +138,21 @@ const JoinCallForm = () => {
         ref={ref}
         onChange={handleChange}
         onKeyUp={handleKeyUp}
-        placeholder="Or join a call with code"
+        placeholder={t('Or join a call with code')}
       />
     </div>
   );
+};
+
+export const getServerSideProps = async () => {
+  const launchDeadlineTimestamp = new Date(
+    new Date(process.env.LAUNCH_DEADLINE || '2023-06-01T00:00:00Z').getTime() +
+      12 * 3600 * 1000,
+  ).getTime();
+
+  return {
+    props: {
+      launchDeadlineTimestamp,
+    } as HomeProps,
+  };
 };

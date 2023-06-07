@@ -1,0 +1,55 @@
+.str-video__permission-requests {
+  background-color: var(--str-video__background-color1);
+  border-radius: 8px;
+  padding: 10px;
+  position: relative;
+
+  .str-video__permission-requests__notification,
+  .str-video__permission-request {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    align-items: center;
+  }
+
+  .str-video__permission-requests__notification__message,
+  .str-video__permission-request__message {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .str-video__permission-request__button {
+    background-color: transparent;
+    border: 1px solid var(--str-video__text-color1);
+    border-radius: 4px;
+    color: var(--str-video__color1);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px;
+    min-width: 120px;
+  }
+
+  .str-video__permission-request__button--allow {
+    background-color: var(--str-video__primary-color);
+    border: 1px solid var(--str-video__primary-color);
+  }
+
+  .str-video__permission-requests-list {
+    background-color: var(--str-video__background-color1);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 10px;
+    width: 100%;
+    z-index: 1;
+    opacity: 0.9;
+    overflow-x: scroll;
+    overflow-y: hidden;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}

@@ -2,6 +2,7 @@
 id: 05-participant-list
 title: Custom Participants List layout
 ---
+
 import FinalLayout1 from '../assets/06-ui-cookbook/05-participant-list/01-final-layout.png';
 import FinalLayout2 from '../assets/06-ui-cookbook/05-participant-list/02-final-layout.png';
 
@@ -22,9 +23,9 @@ display the video streams of all participants in a "Zoom Speaker View"-like layo
 
 The final layout looks like this:
 
-| Layout when screen is shared | Call Layout |
-| :--- | :--- |
-| <img src={FinalLayout1} /> | <img src={FinalLayout2} /> |
+| Layout when screen is shared | Call Layout                |
+| :--------------------------- | :------------------------- |
+| <img src={FinalLayout1} />   | <img src={FinalLayout2} /> |
 
 ## Prerequisites
 
@@ -35,12 +36,13 @@ In order to do that, please follow these steps:
 - To install the Stream React Native Video SDK and it's dependencies follow this [guide](01-basics/03-installation.mdx).
 
 We will start by creating our root component where we will initialize the Stream Video SDK and connect to Stream's edge infrastructure.
-We will wrap our root component with the `StreamVideo` component and pass the `videoClient` instance to it.
+We will wrap our root component with the `StreamVideoCall` component and pass the `videoClient` instance to it.
 This will ensure that the `videoClient` instance, among other APIs (see explanation below) will be available to all the components in the component tree.
 
 ```tsx
 import { useCreateStreamVideoClient } from '@stream-io/video-react-sdk';
 import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import { Platform } from 'react-native';
 // This is the component that will render the custom layout.
 // we can assume that the implementation of this component is empty for now.
 import { MyActiveCall } from './MyActiveCall';
@@ -55,24 +57,37 @@ const USER = {
   },
 };
 
+const CALL_ID = 'some-call-id';
+
 export default () => {
   // Create a StreamVideoClient instance using the useCreateStreamVideoClient hook.
   const videoClient = useCreateStreamVideoClient({
     user: USER,
-    tokenOrProvider: USER?.custom?.token,
+    tokenOrProvider: USER.custom.token,
     apiKey: STREAM_API_KEY,
+    options: {
+      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+    },
   });
 
   return (
-    // Wrap the MyActiveCall component with the StreamVideo component.
-    // StreamVideo will provide the necessary context (client, callCycleHandlers,
-    // device info and other relevant information about your calls) to the MyActiveCall component.
-    <StreamVideo client={videoClient}>
+    // Wrap the MyActiveCall component with the StreamVideoCall component.
+    // Behind the scenes StreamVideoCall will provide the necessary context (callId, client, callCycleHandlers,
+    // device info and other relevant information about your calls) to the MyActiveCall component. StreamVideoCall
+    // will also take care of the call lifecycle. In addition to that everytime a new callId is provided StreamVideoCall
+    // will create a new [Call](../04-call-engine/Call.md) instance ready for use.
+    <StreamVideoCall
+      client={videoClient}
+      callId={CALL_ID}
+      callCycleHandlers={{onCallHungUp: ()=> {
+        console.log("Call hung up");
+        // Do something when the call is hung up
+      }}}
+    >
       <MyActiveCall />
-    </StreamVideo>
+    </StreamVideoCall>
   );
 };
-
 ```
 
 ## Joining a Call
@@ -82,35 +97,39 @@ To join a call, we need to know its ID and type. The call ID and type can come f
 In our example, we are going to hard code the call ID and type, but you can use any other method that will suit your business logics to get this information.
 
 ```tsx
-import React, {useEffect} from 'react';
-import {usePublishStreams, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import React, { useEffect } from 'react';
+import {
+  usePublishStreams,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
 import InCallManager from 'react-native-incall-manager';
 import { View, Text } from 'react-native';
 
-
-const CALL_ID = 'some-call-id';
-
 const MyActiveCall = () => {
-  // Get the videoClient instance from the context.
-  const videoClient = useStreamVideoClient();
+  // Get the call instance from the context provided by StreamVideoCall.
+  const call = useCall();
   // Start publishing the local audio and video streams.
   usePublishStreams();
 
-  // Join the call when the component is mounted.
+  // Join the call directly after the component is mounted.
   useEffect(() => {
-    const startCall = async ()=> {
-      try {
-        // Join the call and start the call cycle.
-        await videoClient?.call('default', CALL_ID).join();
-        // Start InCallManager and enable the speakerphone.
-        InCallManager.start({media: 'video'});
-        InCallManager.setForceSpeakerphoneOn(true);
-      } catch (e) {
-        console.log('Error joining call', e);
+      if (!call) {
+        return;
       }
-    };
-    startCall();
-  }, []);
+      const startCall = async () => {
+        try {
+          // Join the call.
+          await call.join({create: true});
+
+          // Start InCallManager and enable the speakerphone.
+          InCallManager.start({media: 'video'});
+          InCallManager.setForceSpeakerphoneOn(true);
+        } catch (e) {
+          console.log('Error joining call', e);
+        }
+      };
+      startCall();
+  }, [call]);
 
   return (
     <View>
@@ -120,8 +139,8 @@ const MyActiveCall = () => {
 };
 ```
 
-Behind the scenes, by calling `ideoClient?.call('default', CALL_ID).join()` a new [Call](../04-call-engine/Call.md) instance will be created and the connected user will join the call automatically.
-The active call instance will be exposed down in the component tree through a React Context in the [CallState](../04-call-engine/contexts.md/#streamcallprovider) object.
+Balling `call.join({create: true})` the connected user will join the call.
+The active call instance will be exposed down in the component tree through a React Context in the [CallState](../04-call-engine/hooks-and-contexts.md/#streamcallprovider) object.
 
 You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../04-call-engine/01-overview.gen.mdx).
 
@@ -131,9 +150,9 @@ Now that we have successfully set up the React Native Video SDK and joined the c
 For that purpose, we are going to utilize some fundamental React Video SDK components and hooks.
 
 - [`<ParticipantView />`](../03-ui/components.md#participantview) - A component that renders a video stream of a participant.
-- [`useCall()`](../04-call-engine/contexts.md#usecall) - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
-- [`useParticipants()`](../04-call-engine/hooks.md#useparticipants) - A hook that returns the list of all participants in the call.
-- [`useDominantSpeaker()`](../04-call-engine/hooks.md#usedominantspeaker) - A hook that returns the current dominant speaker in the call.
+- [`useCall()`](../04-call-engine/hooks-and-contexts.md#usecall) - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
+- [`useParticipants()`](../04-call-engine/hooks-and-contexts.md#useparticipants) - A hook that returns the list of all participants in the call.
+- [`useDominantSpeaker()`](../04-call-engine/hooks-and-contexts.md#usedominantspeaker) - A hook that returns the current dominant speaker in the call.
 
 On top of these hooks, we are going to apply some custom participant sorting logic:
 
@@ -154,6 +173,7 @@ In that case, we heuristically determine the dominant speaker by looking at the 
 pick one who is either sharing their screen or has both audio and video enabled.
 
 Let's start by creating some utility functions that will help us determine the participant's state:
+
 ```tsx
 import {
   SfuModels,
@@ -170,16 +190,15 @@ export const hasAudio = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.AUDIO);
 ```
 
-
 Now let's introduce our first custom hook `useSpotlightParticipant`:
 
 ```tsx
-import {useMemo} from 'react';
+import { useMemo } from 'react';
 import {
   useDominantSpeaker,
   useParticipants,
 } from '@stream-io/video-react-native-sdk';
-import {hasAudio, hasScreenShare, hasVideo} from './utils';
+import { hasAudio, hasScreenShare, hasVideo } from './utils';
 
 /**
  * Returns the participant to be shown in the spotlight.
@@ -193,7 +212,7 @@ export const useSpotlightParticipant = () => {
     return (
       dominantSpeaker ||
       participants.find(
-        p => hasScreenShare(p) || (hasVideo(p) && hasAudio(p)),
+        (p) => hasScreenShare(p) || (hasVideo(p) && hasAudio(p)),
       ) ||
       participants[0]
     );
@@ -207,9 +226,9 @@ Now that we have the dominant speaker, we can sort the rest of the participants.
 Similar to the spotlight participant, we are going to use a custom hook to encapsulate the sorting logic:
 
 ```tsx
-import {useParticipants} from '@stream-io/video-react-native-sdk';
-import {useSpotlightParticipant} from './useSpotlightParticipant';
-import {hasAudio, hasScreenShare, hasVideo} from './utils';
+import { useParticipants } from '@stream-io/video-react-native-sdk';
+import { useSpotlightParticipant } from './useSpotlightParticipant';
+import { hasAudio, hasScreenShare, hasVideo } from './utils';
 
 /**
  * Sorts participants so that:
@@ -221,24 +240,24 @@ export const useSortedParticipants = () => {
   const participantInSpotlight = useSpotlightParticipant();
   // we filter out the participant in spotlight if they are not sharing screen
   const allParticipants = useParticipants();
-  const participants = allParticipants.filter(p => {
+  const participants = allParticipants.filter((p) => {
     return (
       hasScreenShare(participantInSpotlight) || p !== participantInSpotlight
     );
   });
 
-  const presenters = participants.filter(p => hasScreenShare(p));
+  const presenters = participants.filter((p) => hasScreenShare(p));
   const videoAndAudioParticipants = participants.filter(
-    p => hasVideo(p) && hasAudio(p),
+    (p) => hasVideo(p) && hasAudio(p),
   );
   const videoOnlyParticipants = participants.filter(
-    p => hasVideo(p) && !hasAudio(p),
+    (p) => hasVideo(p) && !hasAudio(p),
   );
   const audioOnlyParticipants = participants.filter(
-    p => !hasVideo(p) && hasAudio(p),
+    (p) => !hasVideo(p) && hasAudio(p),
   );
   const muteParticipants = participants.filter(
-    p => !hasVideo(p) && !hasAudio(p),
+    (p) => !hasVideo(p) && !hasAudio(p),
   );
 
   return [
@@ -257,12 +276,12 @@ export const useSortedParticipants = () => {
 Now that we have all the data we need, organized in the way we want, we can render the layout in a new component `MyCallParticipantsView`:
 
 ```tsx
-import {ParticipantView} from '@stream-io/video-react-native-sdk';
-import {useSortedParticipants} from './useSortedParticipants';
-import {FlatList, StyleSheet, View} from 'react-native';
-import {StreamVideoParticipant} from '@stream-io/video-client';
-import {hasScreenShare} from './utils';
-import {useConnectedUser} from '@stream-io/video-react-bindings';
+import { ParticipantView } from '@stream-io/video-react-native-sdk';
+import { useSortedParticipants } from './useSortedParticipants';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { StreamVideoParticipant } from '@stream-io/video-client';
+import { hasScreenShare } from './utils';
+import { useConnectedUser } from '@stream-io/video-react-bindings';
 
 export const MyCallParticipantsView = () => {
   // we use the custom hook we've just built to get the sorted participants
@@ -271,7 +290,11 @@ export const MyCallParticipantsView = () => {
   // we use the built-in hook to get the current user
   const connectedUser = useConnectedUser();
 
-  const renderItem = ({item: participant}: {item: StreamVideoParticipant}) => {
+  const renderItem = ({
+    item: participant,
+  }: {
+    item: StreamVideoParticipant;
+  }) => {
     return (
       // we use the built-in ParticipantView component to render the participant
       <ParticipantView
@@ -299,7 +322,7 @@ export const MyCallParticipantsView = () => {
         {/*render remaining participants on the lower part of the screen in an horizontal FlatList.*/}
         <FlatList<StreamVideoParticipant>
           data={otherParticipants}
-          keyExtractor={item => item.sessionId}
+          keyExtractor={(item) => item.sessionId}
           renderItem={renderItem}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -332,61 +355,54 @@ const styles = StyleSheet.create({
 ```
 
 ### Render it all together
+
 Now we're ready to continue with the implementation of the `MyActiveCall` component from the previous [step](#joining-a-call).
+
 ```tsx
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import React, {useEffect} from 'react';
-import {CallControlsView, StreamCallProvider, useActiveCall, usePublishStreams, useStreamVideoClient, } from '@stream-io/video-react-native-sdk';
+import {CallControlsView, StreamCallProvider, usePublishStreams, useCall, } from '@stream-io/video-react-native-sdk';
 import InCallManager from 'react-native-incall-manager';
 // import the custom call participants view that we've just built
 import {MyCallParticipantsView} from './MyCallParticipantsView';
 
-
-const CALL_ID = 'some-call-id';
-
 const MyActiveCall = () => {
-  // Get the videoClient instance from the context.
-  const videoClient = useStreamVideoClient();
+  // Get the call instance from the context provided by StreamVideoCall.
+  const call = useCall();
   // Start publishing the local audio and video streams.
   usePublishStreams();
-  // Get the active call from the context.
-  const activeCall = useActiveCall();
 
-  // Join the call when the component is mounted.
+  // Join the call directly after the component is mounted.
   useEffect(() => {
-    const startCall = async ()=> {
-      try {
-        // Join the call and start the call cycle.
-        await videoClient?.call('default', CALL_ID).join();
-        // Start InCallManager and enable the speakerphone.
-        InCallManager.start({media: 'video'});
-        InCallManager.setForceSpeakerphoneOn(true);
-      } catch (e) {
-        console.log('Error joining call', e);
+      if (!call) {
+        return;
       }
-    };
-    startCall();
-  }, []);
+      const startCall = async () => {
+        try {
+          // Join the call.
+          await call.join({create: true});
 
-  if (!activeCall) {
+          // Start InCallManager and enable the speakerphone.
+          InCallManager.start({media: 'video'});
+          InCallManager.setForceSpeakerphoneOn(true);
+        } catch (e) {
+          console.log('Error joining call', e);
+        }
+      };
+      startCall();
+  }, [call]);
+
+  if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <StreamCallProvider call={activeCall}>
-      <View style={styles.wrapper}>
-        {/*render the custom call participants view that we've just built*/}
-        <MyCallParticipantsView />
-        {/*render the built-in call controls view (containing mute/hangup/toggle camera buttons etc.)*/}
-        <CallControlsView
-          onHangupCall={() => {
-            // You can use this callback to navigate back to your previous/home screen for instance.
-            return;
-          }}
-        />
-      </View>
-      }
-    </StreamCallProvider>
+    <View style={styles.wrapper}>
+      {/*render the custom call participants view that we've just built*/}
+      <MyCallParticipantsView />
+      {/*render the built-in call controls view (containing mute/hangup/toggle camera buttons etc.)*/}
+      <CallControlsView />
+    </View>
   );
 };
 

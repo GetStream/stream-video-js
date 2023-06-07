@@ -1,0 +1,162 @@
+.str-video__icon {
+  background-color: var(--str-video__text-color1);
+
+  &--chat {
+    mask-image: var(--str-video__icon--chat);
+    -webkit-mask-image: var(--str-video__icon--chat);
+  }
+
+  &--reactions {
+    -webkit-mask-image: var(--str-video__icon--reactions);
+    mask-image: var(--str-video__icon--reactions);
+  }
+
+  &--recording-on {
+    mask-image: var(--str-video__icon--recording-on);
+    -webkit-mask-image: var(--str-video__icon--recording-on);
+    background-color: var(--str-video__danger-color);
+  }
+
+  &--recording-off {
+    mask-image: var(--str-video__icon--recording-off);
+    -webkit-mask-image: var(--str-video__icon--recording-off);
+  }
+
+  &--screen-share-on {
+    mask-image: var(--str-video__icon--screen-share-on);
+    -webkit-mask-image: var(--str-video__icon--screen-share-on);
+  }
+
+  &--screen-share-off {
+    mask-image: var(--str-video__icon--screen-share-off);
+    -webkit-mask-image: var(--str-video__icon--screen-share-off);
+  }
+
+  &--caret-down {
+    transform: rotate(180deg);
+    mask-image: var(--str-video__icon--caret);
+    -webkit-mask-image: var(--str-video__icon--caret);
+  }
+
+  &--caret-up {
+    mask-image: var(--str-video__icon--caret);
+    -webkit-mask-image: var(--str-video__icon--caret);
+  }
+
+  &--caret-right {
+    transform: rotate(90deg);
+    mask-image: var(--str-video__icon--caret);
+    -webkit-mask-image: var(--str-video__icon--caret);
+  }
+
+  &--caret-left {
+    transform: rotate(-90deg);
+    mask-image: var(--str-video__icon--caret);
+    -webkit-mask-image: var(--str-video__icon--caret);
+  }
+
+  &--mic {
+    mask-image: var(--str-video__icon--mic);
+    -webkit-mask-image: var(--str-video__icon--mic);
+  }
+
+  &--mic-off {
+    mask-image: var(--str-video__icon--mic-off);
+    -webkit-mask-image: var(--str-video__icon--mic-off);
+  }
+
+  &--camera {
+    mask-image: var(--str-video__icon--camera);
+    -webkit-mask-image: var(--str-video__icon--camera);
+  }
+
+  &--camera-off {
+    mask-image: var(--str-video__icon--camera-off);
+    -webkit-mask-image: var(--str-video__icon--camera-off);
+  }
+
+  &--camera-off-outline {
+    mask-image: var(--str-video__icon--camera-off-outline);
+    -webkit-mask-image: var(--str-video__icon--camera-off-outline);
+  }
+
+  &--call-end {
+    mask-image: var(--str-video__icon--call-end);
+    -webkit-mask-image: var(--str-video__icon--call-end);
+  }
+
+  &--call-accept {
+    mask-image: var(--str-video__icon--call-accept);
+    -webkit-mask-image: var(--str-video__icon--call-accept);
+  }
+
+  &--info {
+    -webkit-mask-image: var(--str-video__icon--info-icon);
+    mask-image: var(--str-video__icon--info-icon);
+  }
+
+  &--info-document {
+    -webkit-mask-image: var(--str-video__icon--info-document);
+    mask-image: var(--str-video__icon--info-document);
+  }
+
+  &--stats {
+    -webkit-mask-image: var(--str-video__icon--stats);
+    mask-image: var(--str-video__icon--stats);
+  }
+
+  &--participants {
+    mask-image: var(--str-video__icon--participants);
+    -webkit-mask-image: var(--str-video__icon--participants);
+  }
+
+  &--user-plus {
+    mask-image: var(--str-video__icon--user-plus);
+    -webkit-mask-image: var(--str-video__icon--user-plus);
+  }
+
+  &--speaker {
+    mask-image: var(--str-video__icon--speaker);
+    -webkit-mask-image: var(--str-video__icon--speaker);
+  }
+
+  &--ellipsis {
+    mask-image: var(--str-video__icon--ellipsis);
+    -webkit-mask-image: var(--str-video__icon--ellipsis);
+  }
+
+  &--grid {
+    mask-image: var(--str-video__icon--grid);
+    -webkit-mask-image: var(--str-video__icon--grid);
+  }
+
+  &--pin {
+    mask-image: var(--str-video__icon--pin);
+    -webkit-mask-image: var(--str-video__icon--pin);
+  }
+
+  &--no-audio {
+    mask-image: var(--str-video__icon--no-audio);
+    -webkit-mask-image: var(--str-video__icon--no-audio);
+  }
+
+  &--not-allowed {
+    mask-image: var(--str-video__icon--not-allowed);
+    -webkit-mask-image: var(--str-video__icon--not-allowed);
+  }
+
+  &--call-recordings {
+    mask-image: var(--str-video__icon--film-roll);
+    -webkit-mask-image: var(--str-video__icon--film-roll);
+  }
+
+  &--device-settings {
+    mask-image: var(--str-video__icon--settings);
+    -webkit-mask-image: var(--str-video__icon--settings);
+  }
+
+  &--refresh {
+    mask-image: var(--str-video__icon--refresh);
+    -webkit-mask-image: var(--str-video__icon--refresh);
+  }
+}

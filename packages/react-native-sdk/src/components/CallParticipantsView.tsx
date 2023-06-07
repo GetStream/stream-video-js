@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
-import { useDebouncedValue } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
 import { CallParticipantsList } from './CallParticipantsList';
 
 export const CallParticipantsView = () => {
@@ -11,7 +11,9 @@ export const CallParticipantsView = () => {
 
   const isUserAloneInCall = remoteParticipants?.length === 0;
 
-  if (isUserAloneInCall) return <LocalVideoView layout={'fullscreen'} />;
+  if (isUserAloneInCall) {
+    return <LocalVideoView layout={'fullscreen'} />;
+  }
 
   return (
     <View style={styles.container}>

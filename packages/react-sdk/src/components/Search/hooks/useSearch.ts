@@ -1,23 +1,8 @@
-import throttle from 'lodash.throttle';
-import {
-  ChangeEventHandler,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 
 export type SearchController<T> = {
-  /** Clears / resets the search input value */
-  clearInput: () => void;
-  /** Resets the search state to inactive */
-  exitSearch: () => void;
-  /** Search input's change event handler */
-  handleInputChange: ChangeEventHandler;
   /** Flag signals that the search request is flight await the response */
   searchQueryInProgress: boolean;
-  /** Search input value */
-  searchQuery: string;
   /** Array of items returned by the search query */
   searchResults: T[];
 };
@@ -26,64 +11,42 @@ export type UseSearchParams<T> = {
   /** Search function performing the search request */
   searchFn: (searchQuery: string) => Promise<T[]>;
   /** Debounce interval applied to the search function */
-  throttleInterval: number;
+  debounceInterval: number;
+  /** Search query string */
+  searchQuery?: string;
 };
 
 export const useSearch = <T>({
-  throttleInterval,
+  debounceInterval,
   searchFn,
+  searchQuery = '',
 }: UseSearchParams<T>): SearchController<T> => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<T[]>([]);
   const [searchQueryInProgress, setSearchQueryInProgress] = useState(false);
-  const queryAborted = useRef(false);
 
-  const doSearch = useMemo(
-    () => throttle(searchFn, throttleInterval),
-    [throttleInterval, searchFn],
-  );
+  useEffect(() => {
+    if (!searchQuery.length) return setSearchResults([]);
 
-  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    async (event) => {
-      const query = event.target.value;
-      setSearchQuery(query);
-      if (query) {
-        setSearchQueryInProgress(true);
-        const results = await doSearch(query);
-        if (queryAborted.current) {
-          queryAborted.current = false;
-        } else {
-          setSearchResults(results || []);
-        }
+    setSearchQueryInProgress(true);
+
+    const timeout = setTimeout(async () => {
+      try {
+        const results = await searchFn(searchQuery);
+        setSearchResults(results);
+      } catch (error) {
+        console.error(error);
+      } finally {
         setSearchQueryInProgress(false);
-      } else {
-        setSearchResults([]);
       }
-    },
-    [doSearch, queryAborted],
-  );
+    }, debounceInterval);
 
-  const abortQuery = useCallback(() => {
-    queryAborted.current = true;
-  }, [queryAborted]);
-
-  const clearInput = useCallback(() => {
-    setSearchQuery('');
-  }, []);
-
-  const exitSearch = useCallback(() => {
-    abortQuery();
-    clearInput();
-    setSearchResults([]);
-    setSearchQueryInProgress(false);
-  }, [abortQuery, clearInput]);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [debounceInterval, searchFn, searchQuery]);
 
   return {
-    clearInput,
-    exitSearch,
-    handleInputChange,
     searchQueryInProgress,
-    searchQuery,
     searchResults,
   };
 };

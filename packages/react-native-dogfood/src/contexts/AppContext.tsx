@@ -4,7 +4,7 @@ interface AppGlobalStore {
   username: string;
   userImageUrl?: string;
   loopbackMyVideo: boolean;
-  appMode: 'Meeting' | 'Ringing' | 'None';
+  appMode: 'Meeting' | 'Call' | 'None';
 }
 
 export const {

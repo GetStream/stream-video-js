@@ -17,7 +17,6 @@ import {
   getVideoStream,
   IconButton,
   MediaDevicesProvider,
-  useActiveCall,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -68,9 +67,6 @@ export const Preview = {
     const [initialVideoMuted, setInitialVideoMuted] = useState<boolean>(false);
     const [initialAudioMuted, setInitialAudioMuted] = useState<boolean>(false);
 
-    // FIXME: not sure about this
-    const activeCall = useActiveCall();
-
     return (
       <PreviewContext.Provider
         value={{
@@ -84,15 +80,7 @@ export const Preview = {
           setInitialAudioMuted,
         }}
       >
-        <MediaDevicesProvider
-          enumerate={
-            (videoState.type === 'finished' &&
-              audioState.type === 'finished') ||
-            !!activeCall
-          }
-        >
-          {children}
-        </MediaDevicesProvider>
+        <MediaDevicesProvider>{children}</MediaDevicesProvider>
       </PreviewContext.Provider>
     );
   },
@@ -111,7 +99,7 @@ export const Preview = {
 
       if (initialAudioMuted) return;
 
-      getAudioStream(selectedAudioInputDeviceId)
+      getAudioStream({ deviceId: selectedAudioInputDeviceId })
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 
@@ -119,8 +107,8 @@ export const Preview = {
 
           disposeOfSoundDetector = createSoundDetector(
             ms,
-            (_, p) => {
-              setPercentage(p);
+            ({ audioLevel }) => {
+              setPercentage(audioLevel);
             },
             { detectionFrequencyInMs: 50 },
           );
@@ -160,7 +148,7 @@ export const Preview = {
 
       if (initialVideoMuted) return;
 
-      getVideoStream(selectedVideoDeviceId)
+      getVideoStream({ deviceId: selectedVideoDeviceId })
         .then((ms) => {
           if (interrupted) return disposeOfMediaStream(ms);
 

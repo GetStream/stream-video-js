@@ -4,14 +4,14 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { Dispatcher } from './Dispatcher';
 
 export type SubscriberOpts = {
-  rpcClient: StreamSfuClient;
+  sfuClient: StreamSfuClient;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   onTrack?: (e: RTCTrackEvent) => void;
 };
 
 export const createSubscriber = ({
-  rpcClient,
+  sfuClient,
   dispatcher,
   connectionConfig,
   onTrack,
@@ -26,7 +26,7 @@ export const createSubscriber = ({
       return;
     }
 
-    await rpcClient.iceTrickle({
+    await sfuClient.iceTrickle({
       iceCandidate: getIceCandidate(candidate),
       peerType: PeerType.SUBSCRIBER,
     });
@@ -36,7 +36,7 @@ export const createSubscriber = ({
     subscriber.addEventListener('track', onTrack);
   }
 
-  const { iceTrickleBuffer } = rpcClient;
+  const { iceTrickleBuffer } = sfuClient;
   const unsubscribe = dispatcher.on('subscriberOffer', async (message) => {
     if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
     const { subscriberOffer } = message.eventPayload;
@@ -60,7 +60,7 @@ export const createSubscriber = ({
     const answer = await subscriber.createAnswer();
     await subscriber.setLocalDescription(answer);
 
-    await rpcClient.sendAnswer({
+    await sfuClient.sendAnswer({
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
     });

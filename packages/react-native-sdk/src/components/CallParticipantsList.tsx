@@ -10,9 +10,13 @@ import { ParticipantView } from './ParticipantView';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  StreamVideoParticipantPatches,
+  VisibilityState,
 } from '@stream-io/video-client';
 import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/hooks';
+import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
+import { useCall } from '@stream-io/video-react-bindings';
+import { A11yComponents } from '../constants/A11yLabels';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -57,25 +61,43 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
   const forceUpdateValue = useDebouncedValue(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
 
+  // we use a ref to store the active call object
+  // so that it can be used in the onViewableItemsChanged callback
+  const activeCall = useCall();
+  const activeCallRef = useRef(activeCall);
+  activeCallRef.current = activeCall;
   // This is the function that gets called when the user scrolls the list of participants.
   // It updates viewableParticipantSessionIds HashSet with the session IDs
   // of the participants that are currently visible.
   const onViewableItemsChanged = useRef<
     FlatListProps['onViewableItemsChanged']
   >(({ viewableItems }) => {
-    // NOTE: viewableItems is more reliable when items are added to the list
-    // but it is not reliable when items are removed from the list.
-    // Hence we clear the HashSet and add the viewable items to it.
-    // We could have also used changed to remove the items from the HashSet one by one, yet we chose to clear the HashSet
-    viewableParticipantSessionIds.current.clear();
-
-    // viewableItems: Visible items are the ones that are currently visible on the screen
-    viewableItems.forEach((viewToken) => {
-      if (viewToken.isViewable) {
-        viewableParticipantSessionIds.current.add(viewToken.key);
+    const participantPatches: StreamVideoParticipantPatches = {};
+    let mustUpdate = false;
+    const newVisibleParticipantSessionIds = new Set<string>(
+      viewableItems.map((v) => v.key),
+    );
+    const oldVisibleParticipantSessionIds =
+      viewableParticipantSessionIds.current;
+    newVisibleParticipantSessionIds.forEach((key) => {
+      if (!oldVisibleParticipantSessionIds.has(key)) {
+        mustUpdate = true;
+        participantPatches[key] = {
+          viewportVisibilityState: VisibilityState.VISIBLE,
+        };
       }
     });
-    if (viewableItems.length) {
+    oldVisibleParticipantSessionIds.forEach((key) => {
+      if (!newVisibleParticipantSessionIds.has(key)) {
+        mustUpdate = true;
+        participantPatches[key] = {
+          viewportVisibilityState: VisibilityState.INVISIBLE,
+        };
+      }
+    });
+    viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
+    if (mustUpdate) {
+      activeCallRef.current?.state.updateParticipants(participantPatches);
       forceUpdate();
     }
   }).current;
@@ -103,7 +125,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
-      const isVideoViewable = viewableParticipantSessionIds.current.has(
+      const isVisible = viewableParticipantSessionIds.current.has(
         participant.sessionId,
       );
       return (
@@ -111,7 +133,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
           participant={participant}
           containerStyle={itemContainerStyle}
           kind="video"
-          disableVideo={!isVideoViewable}
+          isVisible={isVisible}
         />
       );
     },
@@ -131,6 +153,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
       horizontal={horizontal}
       showsHorizontalScrollIndicator={false}
       extraData={`${forceUpdateValue}${containerWidth}`} // this is important to force re-render when visibility changes
+      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_LIST}
     />
   );
 };

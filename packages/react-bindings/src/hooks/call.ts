@@ -7,8 +7,28 @@ import { useCallState, useStore } from './store';
  * @category Call State
  */
 export const useIsCallRecordingInProgress = () => {
-  const { callRecordingInProgress$ } = useCallState();
-  return useObservableValue(callRecordingInProgress$);
+  const metadata = useCallMetadata();
+  return !!metadata?.recording;
+};
+
+/**
+ * Utility hook which provides information whether the current call is broadcasting.
+ *
+ * @category Call State
+ */
+export const useIsCallBroadcastingInProgress = () => {
+  const metadata = useCallMetadata();
+  return !!metadata?.egress.broadcasting;
+};
+
+/**
+ * Utility hook which provides information whether the current call is live.
+ *
+ * @category Call State
+ */
+export const useIsCallLive = () => {
+  const metadata = useCallMetadata();
+  return !metadata?.backstage;
 };
 
 /**
@@ -34,7 +54,7 @@ export const useHasOngoingScreenShare = () => {
  *
  * @category Call State
  */
-export const useCurrentCallStatsReport = () => {
+export const useCallStatsReport = () => {
   const { callStatsReport$ } = useCallState();
   return useObservableValue(callStatsReport$);
 };
@@ -50,31 +70,22 @@ export const useDominantSpeaker = () => {
 };
 
 /**
- * Utility hook which provides controller for the currently active call and active call's metadata.
- * `activeCall$` will be set after calling [`join` on a `Call` instance](./Call.md/#join) and cleared after calling [`leave`](./Call.md/#leave).
- *
- * @category Call State
- */
-export const useActiveCall = () => {
-  const { activeCall$ } = useStore();
-  return useObservableValue(activeCall$);
-};
-
-/**
  * Utility hook which provides a list of all notifications about created calls.
  * In the ring call settings, these calls can be outgoing (I have called somebody)
  * or incoming (somebody has called me).
  *
  * @category Client State
  */
-export const usePendingCalls = () => {
-  const { pendingCalls$ } = useStore();
-  return useObservableValue(pendingCalls$);
+export const useCalls = () => {
+  const { calls$ } = useStore();
+  return useObservableValue(calls$);
 };
 
 /**
  * Utility hook which provides a list of all incoming ring calls (somebody calls me).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useIncomingCalls = () => {
@@ -85,6 +96,8 @@ export const useIncomingCalls = () => {
 /**
  * Utility hook which provides a list of all outgoing ring calls (I call somebody).
  *
+ * @deprecated derive from useCalls()/useCall() instead.
+ * @internal
  * @category Client State
  */
 export const useOutgoingCalls = () => {
@@ -93,18 +106,9 @@ export const useOutgoingCalls = () => {
 };
 
 /**
- *
- * @returns
- *
- * @category Client State
- */
-export const useAcceptedCall = () => {
-  const { acceptedCall$ } = useStore();
-  return useObservableValue(acceptedCall$);
-};
-
-/**
  * Utility hook which provides call metadata (such as blocked users and own capabilities).
+ *
+ * @category Call State
  */
 export const useCallMetadata = () => {
   const { metadata$ } = useCallState();
@@ -113,6 +117,8 @@ export const useCallMetadata = () => {
 
 /**
  * Utility hook which provides a list of call members.
+ *
+ * @category Call State
  */
 export const useCallMembers = () => {
   const { members$ } = useCallState();
@@ -121,6 +127,8 @@ export const useCallMembers = () => {
 
 /**
  * Utility hook providing the latest list of recordings performed during the active call
+ *
+ * @category Call State
  */
 export const useCallRecordings = () => {
   const { callRecordingList$ } = useCallState();
@@ -129,8 +137,21 @@ export const useCallRecordings = () => {
 
 /**
  * Utility hook providing the current calling state of the call.
+ *
+ * @category Call State
  */
 export const useCallCallingState = () => {
   const { callingState$ } = useCallState();
   return useObservableValue(callingState$);
+};
+
+/**
+ * Utility hook providing the actual start time of the call.
+ * Useful for calculating the call duration.
+ *
+ * @category Call State
+ */
+export const useCallStartedAt = () => {
+  const { startedAt$ } = useCallState();
+  return useObservableValue(startedAt$);
 };

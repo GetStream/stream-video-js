@@ -1,0 +1,44 @@
+.root {
+  @apply grid relative bg-video-grey-700 w-screen h-screen p-2;
+}
+
+.layoutContainer {
+  @apply grid pt-5 md:pt-0 relative z-10 w-full;
+  height: calc(100vh - 20px);
+  pointer-events: none;
+  grid-template-rows: 100vh;
+
+  grid-template-areas: 'body';
+}
+
+@media screen(md) {
+  .layoutContainer {
+    @apply grid relative z-10 w-full;
+    height: calc(100vh - 20px);
+    pointer-events: none;
+    grid-template-rows: 30px calc(100vh - 30px);
+
+    grid-template-areas:
+      'header'
+      'body';
+  }
+}
+
+.latencyMap {
+  @apply absolute z-0 rounded-container overflow-hidden;
+  top: 10px;
+  left: 10px;
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
+}
+
+.header {
+  @apply hidden md:flex h-10 pl-4 pr-4 pt-4;
+  grid-area: header;
+}
+
+.body {
+  grid-area: body;
+  @apply flex justify-center items-center;
+  pointer-events: none;
+}

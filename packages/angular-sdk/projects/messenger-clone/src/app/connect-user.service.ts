@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { StreamVideoService } from '@stream-io/video-angular-sdk';
-import { CALL_CONFIG } from '@stream-io/video-client';
 import { BehaviorSubject, take } from 'rxjs';
 import { ChatClientService } from 'stream-chat-angular';
 import { environment } from '../environments/environment';
@@ -44,7 +43,7 @@ export class ConnectUserService implements CanActivate {
       } else {
         try {
           const apiKey = environment.apiKey;
-          this.videoService.init(apiKey, CALL_CONFIG.ring);
+          this.videoService.init(apiKey);
           await this.videoService.videoClient?.connectUser(
             user.user,
             user.token,

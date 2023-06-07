@@ -1,14 +1,14 @@
 import {
   CallControls,
   DeviceSettings,
-  Stage,
-  useActiveCall,
+  SpeakerLayout,
+  useCall,
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router-dom';
 import { PropsWithChildren } from 'react';
 
 export const MeetingUI = ({ children }: PropsWithChildren) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const navigate = useNavigate();
 
   if (!activeCall)
@@ -28,12 +28,9 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
         </h4>
         <DeviceSettings />
       </div>
-      <Stage call={activeCall} />
+      <SpeakerLayout />
       <div className="relative flex justify-center items-center">
-        <CallControls
-          call={activeCall}
-          onLeave={() => navigate('/call/lobby')}
-        />
+        <CallControls onLeave={() => navigate('/call/lobby')} />
         {children}
       </div>
     </div>

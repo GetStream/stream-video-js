@@ -1,0 +1,48 @@
+.root {
+  @apply relative;
+}
+
+.layoutContainer {
+  @apply grid relative z-10;
+  grid-template-areas:
+    'header'
+    'body'
+    'footer';
+}
+
+.header {
+  @apply w-screen h-10 p-4;
+  grid-area: header;
+}
+
+.callIdentification {
+  @apply flex items-center text-video-white;
+}
+
+.logo {
+  @apply mr-2;
+}
+
+.body {
+  grid-area: body;
+}
+
+.footer {
+  @apply w-screen h-10;
+  grid-area: footer;
+}
+
+.lobbyPanel {
+}
+
+.loadingPanel {
+  @apply relative fixed flex flex-col items-center justify-center bg-video-grey-600/5 p-2 sm:p-0 md:w-4/12 h-full text-video-white -mt-[40px];
+}
+
+.image {
+  @apply w-[160px];
+}
+
+.loadingSentence {
+  @apply absolute mt-[83px] text-sm;
+}

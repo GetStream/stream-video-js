@@ -28,7 +28,8 @@
 
 .str-video__tooltip {
   @include utils.component-layer-overrides('tooltip');
-  font: var(--str-video__caption-text);
+  font-size: 0.75rem;
+  line-height: 1rem;
 
   &::after {
     background-color: var(--str-video__tooltip-background-color);

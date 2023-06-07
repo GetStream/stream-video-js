@@ -1,0 +1,102 @@
+.root {
+  z-index: 0;
+}
+
+.swiper {
+  @apply flex h-full w-full;
+}
+
+/* Vertical Slider */
+
+.root.vertical {
+  @apply relative w-full;
+}
+
+.slide.vertical {
+  height: auto;
+  width: 100%;
+}
+
+.participant.vertical {
+  width: 100%;
+  border-radius: 12px;
+  aspect-ratio: auto;
+}
+
+.participant.vertical video {
+  object-fit: contain;
+}
+
+.participant.vertical.videoDisabled {
+  @apply min-h-[120px];
+}
+
+/* End Vertical Slider */
+
+/* Horizontal Slider */
+.root.horizontal {
+  @apply relative h-full  w-full;
+}
+
+.slide.horizontal {
+  @apply min-w-[30%] max-w-[55%] max-h-[125px];
+}
+
+@media screen(md) {
+  .root.horizontal {
+    @apply w-full;
+  }
+
+  .slide.horizontal {
+    @apply max-w-[30%] max-h-full;
+  }
+}
+
+.participant.horizontal {
+  max-height: 100%;
+  border-radius: 12px;
+  aspect-ratio: auto;
+  overflow: hidden;
+}
+.participant.horizontal video {
+  @apply min-h-[125px];
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.participant.horizontal.videoDisabled {
+  @apply min-h-[125px];
+}
+
+/* End Horizontal Slider */
+
+.next,
+.previous {
+  @apply flex items-center justify-center absolute bg-video-black text-video-white h-10 w-10 rounded-container;
+  z-index: 20;
+}
+
+.next:hover,
+.previous:hover {
+  @apply cursor-pointer;
+}
+
+.previous.vertical {
+  @apply top-0;
+  left: 45%;
+}
+
+.previous.horizontal {
+  @apply left-0;
+  top: 35%;
+}
+
+.next.horizontal {
+  @apply right-0;
+  top: 35%;
+}
+
+.next.vertical {
+  @apply bottom-0;
+  left: 45%;
+}

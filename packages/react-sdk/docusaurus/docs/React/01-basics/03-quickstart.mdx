@@ -1,0 +1,197 @@
+---
+title: Quickstart
+description: For when you're in a hurry and want to quickly get up and running
+---
+
+The Stream Video React SDK is a highly customizable software development kit
+that enables audio and video calling features for new and existing applications.
+
+It consists of the Call Engine, a set of core components that form the foundation of the SDK,
+and numerous UI components that integrators can utilize as-is or with minor customization options.
+
+This chapter provides a guide on how to add the Stream Video React SDK to a new or existing project,
+establish a connection to the Stream platform and build a simple video calling interface with the built-in UI components.
+
+## Install and Connect
+
+To get started with the Stream Video React SDK, a few steps are required. These steps include:
+
+Install the SDK using your package manager of choice, such as `npm`, `yarn`, or `pnpm`.
+
+```bash
+# example with yarn
+yarn add @stream-io/video-react-sdk
+```
+
+Collect the necessary configuration parameters, as:
+
+- `apiKey`: The API key for your application, which you can find in the [Stream Dashboard](https://dashboard.getstream.io/dashboard).
+- `user_id`: The unique identifier for the user connecting to the Stream platform.
+- `token`: The authentication token for the user connecting to the Stream platform. You can generate this token using the following [Stream Token Tool](https://getstream.io/chat/docs/react/tokens_and_authentication/?language=javascript#manually-generating-tokens)
+
+These parameters are essential for authentication and authorization to access the Stream platform.
+
+```ts
+const apiKey = 'your-api-key';
+const userId = 'user-id';
+const token = 'authentication-token';
+```
+
+:::note
+You can read more about user authentication and authorization
+in the [Authenticating Your Users](../../guides/client-auth) chapter.
+:::
+
+Create an instance of [`StreamVideoClient`](../../call-engine/StreamVideoClient/) by utilizing the [`useCreateStreamVideoClient`](../../call-engine/hooks-and-contexts#usecreatestreamvideoclient) hook provided by the SDK.
+
+This hook initializes the client with the provided configuration parameters,
+and establishes a connection to the Stream platform.
+
+```ts
+import { useCreateStreamVideoClient, User } from '@stream-io/video-react-sdk';
+
+const apiKey = 'your-api-key';
+const userId = 'user-id';
+const token = 'authentication-token';
+
+export const MyApp = () => {
+  const user: User = { id: userId };
+  const client = useCreateStreamVideoClient({
+    apiKey,
+    user,
+    tokenOrProvider: token,
+  });
+
+  // Further logic and rendering
+};
+```
+
+## Bridge it together
+
+Now, as you have a working instance of the `StreamVideoClient`,
+you can integrate it into your application and start using the SDK's features and functionalities.
+
+:::tip
+In this example, we are going to use the fundamental (core) components provided by the SDK to build a simple video calling interface.
+
+You can read a brief overview of them in the [Core Components](./04-core-components.mdx) chapter.
+:::
+
+Within your application, add the `<StreamVideo client={client} />` provider component.
+This component makes the `StreamVideoClient` instance available to all child components via the React Context API.
+Many of the SDK's components rely on this context to function correctly.
+
+```tsx
+import { StreamVideo } from '@stream-io/video-react-sdk';
+
+export const MyApp = () => {
+  // Assuming you have the 'client' instance created
+  return (
+    // highlight-start
+    <StreamVideo client={client}>
+      {/* Your application's components and UI */}
+    </StreamVideo>
+    // highlight-end
+  );
+};
+```
+
+[Enable the default theme](../../ui-components/video-theme/) by importing the `@stream-io/video-react-sdk/dist/css/styles.css` stylesheet
+and wrap your UI code with the `<StreamTheme />` component.
+This ensures a consistent and visually appealing look for your video calling interface.
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import { StreamTheme, StreamVideo } from '@stream-io/video-react-sdk';
+
+export const MyApp = () => {
+  // Assuming you have the 'client' instance created
+  return (
+    <StreamVideo client={client}>
+      // highlight-next-line
+      <StreamTheme>{/* Your application's components and UI */}</StreamTheme>
+    </StreamVideo>
+  );
+};
+```
+
+Choose a UI layout from the SDK-provided ones, such as `<SpeakerLayout>`, which provides a layout suitable for speaker-focused video calls.
+Additionally, hook in the default `<CallControls />` component to enable call control functionalities (such as mute, hang up, etc.).
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import {
+  CallControls,
+  SpeakerLayout,
+  StreamVideo,
+  StreamTheme,
+} from '@stream-io/video-react-sdk';
+
+export const MyApp = () => {
+  // Assuming you have the 'client' instance created
+  return (
+    <StreamVideo client={client}>
+      <StreamTheme>
+        // highlight-start
+        <SpeakerLayout />
+        <CallControls />
+        // highlight-end
+      </StreamTheme>
+    </StreamVideo>
+  );
+};
+```
+
+Wrap your chosen UI layout with the `<StreamCall>` component, wich would take care of call creation and joining.
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import {
+  CallControls,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  SpeakerLayout,
+} from '@stream-io/video-react-sdk';
+
+const MyApp = () => {
+  // Assuming you have the 'client' instance created
+  return (
+    <StreamVideo client={client}>
+      <StreamTheme>
+        // highlight-start
+        <StreamCall
+          callType="default"
+          callId="my-first-call"
+          data={{ create: true }}
+          autoJoin
+        >
+          <SpeakerLayout />
+          <CallControls />
+        </StreamCall>
+        // highlight-end
+      </StreamTheme>
+    </StreamVideo>
+  );
+};
+```
+
+## See it in action
+
+We have prepared a [CodeSandbox example](https://codesandbox.io/embed/stream-video-quickstart-y0wo3m)
+that demonstrates the above steps in action.
+Feel free to play around with it and explore the SDK's features.
+
+<iframe
+  src="https://codesandbox.io/embed/stream-video-quickstart-y0wo3m?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '500px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="stream-video-quickstart"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>

@@ -1,0 +1,15 @@
+.animate-in-enter {
+  opacity: 0;
+  display: grid;
+}
+.animate-in-enter-active {
+  opacity: 1;
+  transition: opacity 700ms;
+}
+.animate-in-exit {
+  opacity: 1;
+}
+.animate-in-exit-active {
+  opacity: 0;
+  transition: opacity 200ms;
+}

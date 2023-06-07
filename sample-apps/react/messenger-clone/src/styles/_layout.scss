@@ -11,91 +11,88 @@ code {
 }
 
 html,
-body,
-#root {
+body {
   margin: unset;
   padding: unset;
   height: 100%;
   width: 100%;
 }
 
+#root, .main-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
 
-$stream-chat-theme-version: '2';
 
-@if $stream-chat-theme-version == '2' {
-  #root {
-    display: flex;
-    height: 100%;
+.str-chat-channel-list {
+  position: fixed;
+  z-index: 1;
+  width: 0;
 
-    .str-chat-channel-list {
-      position: fixed;
-      z-index: 1;
-      width: 0;
+  &--open {
+    width: 100%;
+  }
+}
 
-      &--open {
-        width: 100%;
-      }
-    }
+.str-chat-channel {
+  width: 100%;
+}
 
-    .str-chat-channel {
-      width: 100%;
-    }
+.str-chat__thread {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  z-index: 1;
+}
 
-    .str-chat__thread {
-      width: 100%;
-      height: 100%;
-      position: fixed;
-      z-index: 1;
-    }
+.str-chat__channel-header .str-chat__header-hamburger {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
 
-    .str-chat__channel-header .str-chat__header-hamburger {
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: none;
-      background: transparent;
+  svg {
+    width: 25px;
+    height: 25px;
+  }
 
-      svg {
-        width: 25px;
-        height: 25px;
-      }
-
-      &:hover {
-        svg path {
-          fill: var(--primary-color);
-        }
-      }
-    }
-
-    @media screen and (min-width: 768px) {
-      .str-chat-channel-list {
-        width: 100%;
-        max-width: 420px;
-        position: initial;
-        z-index: 0;
-      }
-
-      .str-chat__thread {
-        position: initial;
-        z-index: 0;
-      }
-
-      .str-chat__channel-header .str-chat__header-hamburger {
-        display: none;
-      }
-    }
-
-    @media screen and (min-width: 1024px) {
-      .str-chat__thread {
-        width: 45%;
-      }
-
-      .str-chat__channel-header .str-chat__header-hamburger {
-        display: none;
-      }
+  &:hover {
+    svg path {
+      fill: var(--primary-color);
     }
   }
 }
+
+@media screen and (min-width: 768px) {
+  .str-chat-channel-list {
+    width: 100%;
+    max-width: 420px;
+    position: initial;
+    z-index: 0;
+  }
+
+  .str-chat__thread {
+    position: initial;
+    z-index: 0;
+  }
+
+  .str-chat__channel-header .str-chat__header-hamburger {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .str-chat__thread {
+    width: 45%;
+  }
+
+  .str-chat__channel-header .str-chat__header-hamburger {
+    display: none;
+  }
+}
+

@@ -1,0 +1,33 @@
+.root {
+  @apply min-w-[200px] h-auto;
+}
+
+.root > div:nth-child(2) {
+  @apply pl-0 pr-0;
+}
+
+.controls {
+  @apply flex flex-col pt-2;
+}
+
+.option {
+  @apply flex flex-row items-center text-sm mb-2 mr-2 ml-2 p-2;
+  border-bottom: 1px solid #272a30;
+}
+
+.option:hover {
+  @apply bg-video-grey-700 cursor-pointer;
+  border-radius: 4px;
+}
+
+.option:last-child {
+  @apply border-none mb-0;
+}
+
+.video,
+.mic,
+.people {
+  @apply flex text-video-white mr-2;
+  width: 15px;
+  height: 15px;
+}

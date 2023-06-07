@@ -1,0 +1,79 @@
+.root {
+  @apply flex items-start;
+}
+
+.cameraSettings,
+.audioSettings {
+  @apply flex justify-center items-center right-0 left-0 bottom-0 h-full fixed bg-video-grey-800/70 sm:bg-video-transparent pointer-events-none sm:pointer-events-auto;
+  z-index: 9999;
+}
+
+@media screen(md) {
+  .cameraSettings,
+  .audioSettings {
+    margin-right: 1rem;
+    position: absolute;
+    right: 0;
+    bottom: 42%;
+    left: 0;
+    z-index: 9999;
+    height: auto;
+  }
+
+  .cameraSettings {
+    width: 300px;
+    margin-left: -75px;
+  }
+
+  .audioSettings {
+    width: 400px;
+    margin-left: -150px;
+  }
+}
+
+.portal:empty {
+  @apply hidden;
+}
+
+.portal {
+  @apply absolute;
+  min-width: 300px;
+  left: -50%;
+  width: 100%;
+}
+
+.videoButton,
+.audioButton {
+  @apply ml-2 mr-2;
+}
+
+.speakerButton {
+  @apply hidden ml-0 mr-0 md:flex md:ml-2 md:mr-2;
+}
+
+.panel {
+  @apply relative;
+}
+
+.deviceList {
+}
+
+.device {
+  @apply p-1 pr-2 pl-2;
+}
+
+.selectedDevice {
+  @apply bg-video-grey-700;
+}
+
+.label {
+  @apply text-video-white;
+}
+
+.radioButton {
+  @apply mr-2;
+}
+
+.panel .footer {
+  @apply flex items-center justify-center text-video-white text-xs;
+}

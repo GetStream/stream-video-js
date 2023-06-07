@@ -1,15 +1,15 @@
 .spotlight-container {
   height: 100vh;
 
-  .str-video__participant {
+  .str-video__participant-view {
     max-width: 100%;
   }
 
-  .str-video__remote-video {
+  .str-video__video {
     height: 100vh;
   }
 
-  .str-video__participant-placeholder {
+  .str-video__video-placeholder {
     height: 100vh;
   }
 }

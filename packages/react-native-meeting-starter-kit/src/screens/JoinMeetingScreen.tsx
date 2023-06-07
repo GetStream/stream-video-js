@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from 'react';
 import {
-  StyleSheet,
-  TextInput,
-  SafeAreaView,
-  View,
-  Text,
   Button,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import {meetingId} from '../utils/meetingId';
@@ -19,23 +19,23 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const [callID, setCallId] = useState('');
+  const [callId, setCallId] = useState<string>('');
   const {navigation} = props;
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('CallLobbyScreen', {callId: callID});
-  }, [navigation, callID]);
+    navigation.navigate('MeetingScreen', {callId});
+  }, [navigation, callId]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
+        <Text style={styles.headerText}>{"What's the call ID?"}</Text>
         <Button
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const ramdomCallID = meetingId();
-            setCallId(ramdomCallID);
+            const randomCallID = meetingId();
+            setCallId(randomCallID);
           }}
         />
       </View>
@@ -43,15 +43,15 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
+        value={callId}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={text => setCallId(text.trim().split(' ').join('-'))}
       />
       <Button
-        title={'Create meeting with callID: ' + callID}
+        title={'Create meeting with callID: ' + callId}
         color="blue"
-        disabled={!callID}
+        disabled={!callId}
         onPress={joinCallHandler}
       />
     </SafeAreaView>

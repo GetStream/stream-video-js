@@ -1,10 +1,12 @@
 import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
-import { createWebSocketSignalChannel } from './rtc/signal';
+import {
+  createWebSocketSignalChannel,
+  Dispatcher,
+  IceTrickleBuffer,
+} from './rtc';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
-import { Dispatcher } from './rtc/Dispatcher';
-import { IceTrickleBuffer } from './rtc/IceTrickleBuffer';
 import {
   SendAnswerRequest,
   SetPublisherRequest,
@@ -22,28 +24,32 @@ import {
   sleep,
 } from './coordinator/connection/utils';
 
-const hostnameFromUrl = (url: string) => {
-  try {
-    const u = new URL(url);
-    return {
-      hostname: u.hostname,
-      port: u.port,
-    };
-  } catch (e) {
-    console.warn(`Invalid URL. Can't extract hostname from it.`, e);
-    return {
-      hostname: url,
-      port: 3031,
-    };
-  }
-};
+export type StreamSfuClientConstructor = {
+  /**
+   * The event dispatcher instance to use.
+   */
+  dispatcher: Dispatcher;
 
-const toURL = (url: string) => {
-  try {
-    return new URL(url);
-  } catch (e) {
-    return null;
-  }
+  /**
+   * The URL of the SFU to connect to.
+   */
+  url: string;
+
+  /**
+   * The WebSocket endpoint of the SFU to connect to.
+   */
+  wsEndpoint: string;
+
+  /**
+   * The JWT token to use for authentication.
+   */
+  token: string;
+
+  /**
+   * An optional `sessionId` to use for the connection.
+   * If not provided, a random UUIDv4 will be generated.
+   */
+  sessionId?: string;
 };
 
 /**
@@ -84,10 +90,18 @@ export class StreamSfuClient {
    *
    * @param dispatcher the event dispatcher to use.
    * @param url the URL of the SFU.
+   * @param wsEndpoint the WebSocket endpoint of the SFU.
    * @param token the JWT token to use for authentication.
+   * @param sessionId the `sessionId` of the currently connected participant.
    */
-  constructor(dispatcher: Dispatcher, url: string, token: string) {
-    this.sessionId = generateUUIDv4();
+  constructor({
+    dispatcher,
+    url,
+    wsEndpoint,
+    token,
+    sessionId,
+  }: StreamSfuClientConstructor) {
+    this.sessionId = sessionId || generateUUIDv4();
     this.token = token;
     this.rpc = createSignalClient({
       baseUrl: url,
@@ -97,18 +111,6 @@ export class StreamSfuClient {
         }),
       ],
     });
-
-    // FIXME: OL: this should come from the coordinator API
-    const { hostname, port } = hostnameFromUrl(url);
-    let wsEndpoint = `ws://${hostname}:${port}/ws`;
-    if (!['localhost', '127.0.0.1'].includes(hostname)) {
-      const sfuUrl = toURL(url);
-      if (sfuUrl) {
-        sfuUrl.protocol = 'wss:';
-        sfuUrl.pathname = '/ws';
-        wsEndpoint = sfuUrl.toString();
-      }
-    }
 
     // Special handling for the ICETrickle kind of events.
     // These events might be triggered by the SFU before the initial RTC
@@ -138,8 +140,11 @@ export class StreamSfuClient {
     });
   }
 
-  close = (code: number = 1000) => {
-    this.signalWs.close(code, 'Requested signal connection close');
+  close = (
+    code: number = 1000,
+    reason: string = 'Requested signal connection close',
+  ) => {
+    this.signalWs.close(code, reason);
 
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
@@ -253,7 +258,10 @@ export class StreamSfuClient {
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
           console.log('SFU connection unhealthy, closing');
-          this.close(4001);
+          this.close(
+            4001,
+            `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,
+          );
         }
       }
     }, this.unhealthyTimeoutInMs);

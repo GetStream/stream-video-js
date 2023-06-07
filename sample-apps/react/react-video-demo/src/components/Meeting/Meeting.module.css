@@ -1,0 +1,54 @@
+.content {
+  @apply flex flex-col md:flex-row items-center justify-around h-full;
+}
+
+.content.showParticipants {
+  @apply flex flex-row;
+  align-items: baseline;
+}
+
+.content.activeTour {
+  @apply relative grid gap-y-3;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'stage'
+    'tour';
+}
+
+@media screen(sm) {
+  .content.activeTour {
+    @apply relative grid gap-y-0 h-auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: 50vh 1fr;
+    grid-template-areas:
+      'stage'
+      'tour';
+  }
+}
+
+.stage {
+  grid-area: stage;
+  @apply h-full w-full flex justify-center;
+}
+
+.stage.showParticipants {
+  @apply h-auto;
+}
+
+@media screen(sm) {
+  .stage {
+    grid-area: stage;
+    @apply h-full w-full flex justify-center;
+  }
+}
+
+.participantsPanel {
+  @apply max-w-none m-4;
+}
+.tour {
+  @apply flex items-center justify-center w-full;
+  bottom: 10px;
+  margin: 0 auto;
+  grid-area: tour;
+}

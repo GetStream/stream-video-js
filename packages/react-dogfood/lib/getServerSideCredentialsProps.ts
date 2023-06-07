@@ -36,8 +36,9 @@ export const getServerSideCredentialsProps = async (
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
 
   // Chat does not allow for Id's to include special characters
-  // a-z, 0-9, @, _ and - are allowed
-  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const streamUserId = userId
+    .replace(/[^_\-0-9a-zA-Z@]/g, '_')
+    .replace('@getstream_io', '');
   const userName = session.user?.name || userId;
   return {
     props: {

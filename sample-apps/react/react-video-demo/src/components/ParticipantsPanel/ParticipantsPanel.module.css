@@ -1,0 +1,93 @@
+.search {
+  @apply hidden sm:flex bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
+  border: 1px solid #272a30;
+  border-radius: 44px;
+  height: 35px;
+}
+
+.amount {
+  @apply text-video-grey-400;
+}
+
+.input {
+  @apply bg-video-transparent p-4 relative border-none text-sm z-10 cursor-pointer w-full h-full;
+}
+
+.input:focus,
+.input:hover {
+  @apply bg-video-transparent relative border-none cursor-pointer;
+}
+
+.searchIcon {
+  @apply absolute z-0;
+  right: 8px;
+}
+
+.participants {
+  @apply overflow-hidden mb-4 mt-2;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 60px);
+}
+
+.participant {
+  @apply flex items-center justify-between mt-2 text-sm;
+}
+
+.name {
+  @apply block items-center min-w-[140px] max-w-[140px];
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.media {
+  @apply flex items-center;
+}
+
+.video,
+.mic,
+.block,
+.options {
+  @apply flex text-video-white;
+  width: 15px;
+  height: 15px;
+}
+
+.mic,
+.micMuted {
+  @apply mr-2;
+}
+
+.video,
+.videoOff {
+  @apply mr-1;
+}
+
+.videoOff,
+.micMuted {
+  @apply flex text-video-red-400;
+  width: 15px;
+  height: 15px;
+}
+
+.video:hover,
+.mic:hover,
+.block:hover,
+.videoOff:hover,
+.micMuted:hover .options:hover {
+  @apply cursor-pointer;
+}
+
+.options {
+  @apply ml-3;
+}
+
+.options:hover {
+  @apply cursor-pointer;
+}
+
+.invite {
+  @apply flex flex-col md:hidden;
+}

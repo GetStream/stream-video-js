@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   Avatar,
   useChannelPreviewInfo,
@@ -6,16 +6,10 @@ import {
   useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
-import { LocalPhone, PhoneDisabled } from '@mui/icons-material';
 
 import { MenuIcon } from './icons';
 import type { StreamChatType } from '../../types/chat';
-import {
-  MemberRequest,
-  useActiveCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { meetingId } from '../../utils/meetingId';
+import { CreateCallButton } from '../CreateCallButton';
 
 export type ChannelHeaderProps = {
   /** Manually set the image to render, defaults to the Channel image */
@@ -31,42 +25,15 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
 
   const { channel, watcher_count } =
     useChannelStateContext<StreamChatType>('ChannelHeader');
-  const { openMobileNav, client } =
-    useChatContext<StreamChatType>('ChannelHeader');
+  const { openMobileNav } = useChatContext<StreamChatType>('ChannelHeader');
   const { t } = useTranslationContext('ChannelHeader');
   const { displayImage, displayTitle } = useChannelPreviewInfo({
     channel,
     overrideImage,
     overrideTitle,
   });
-  const videoClient = useStreamVideoClient();
-  const activeCall = useActiveCall();
 
   const { member_count, subtitle } = channel?.data || {};
-
-  const onCreateCall = useCallback(() => {
-    videoClient?.call('default', meetingId()).getOrCreate({
-      ring: true,
-      data: {
-        custom: {
-          channelId: channel.id,
-        },
-        members: Object.values(channel.state.members).reduce<MemberRequest[]>(
-          (acc, member) => {
-            if (member.user_id !== client.user?.id) {
-              acc.push({
-                user_id: member.user_id!,
-              });
-            }
-            return acc;
-          },
-          [],
-        ),
-      },
-    });
-  }, [videoClient, channel.id, channel.state.members, client.user?.id]);
-
-  const disableCreateCall = !videoClient || !!activeCall;
 
   return (
     <div className="str-chat__header-livestream str-chat__channel-header">
@@ -111,24 +78,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           })}
         </p>
       </div>
-      {!activeCall ? (
-        <button
-          className="rmc__button rmc__button--green"
-          disabled={disableCreateCall}
-          onClick={onCreateCall}
-        >
-          <LocalPhone />
-        </button>
-      ) : (
-        <button
-          className="rmc__button rmc__button--red"
-          onClick={() => {
-            activeCall.cancel();
-          }}
-        >
-          <PhoneDisabled />
-        </button>
-      )}
+      <CreateCallButton />
     </div>
   );
 };

@@ -21,14 +21,16 @@ export const SearchInput = ({
     null,
   );
   useEffect(() => {
+    if (!inputElement) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === 'escape') exitSearch();
     };
 
-    inputElement?.addEventListener('keydown', handleKeyDown);
+    inputElement.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      inputElement?.removeEventListener('keydown', handleKeyDown);
+      inputElement.removeEventListener('keydown', handleKeyDown);
     };
   }, [exitSearch, inputElement]);
 

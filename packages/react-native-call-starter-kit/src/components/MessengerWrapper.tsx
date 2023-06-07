@@ -1,142 +1,146 @@
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
-  Chat,
-  OverlayProvider,
-  Streami18n,
-  useChatContext,
-} from 'stream-chat-react-native';
-import React, {PropsWithChildren, useCallback, useMemo} from 'react';
-import {
-  StreamVideo,
-  useCreateStreamVideoClient,
+  ActiveCall,
+  IncomingCallView,
+  OutgoingCallView,
+  StreamCall,
+  theme,
+  useCalls,
 } from '@stream-io/video-react-native-sdk';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {userFromToken} from '../utils/userFromToken';
-import {useChatClient} from '../hooks/useChatClient';
-import {useStreamChatTheme} from '../../useStreamChatTheme';
-import {AuthProgressLoader} from './AuthProgressLoader';
-import type {
-  NavigationStackParamsList,
-  StreamChatGenerics,
-  VideoProps,
-} from '../types';
+
 import {STREAM_API_KEY} from 'react-native-dotenv';
-import {useAppContext} from '../context/AppContext';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {CALL_CONFIG} from '@stream-io/video-client';
+import {ChatWrapper} from './ChatWrapper';
+import {VideoWrapper} from './VideoWrapper';
+import {AuthProgressLoader} from './AuthProgressLoader';
+import {Alert, StyleSheet, View} from 'react-native';
 
 console.log('STREAM_API_KEY', STREAM_API_KEY);
-const APP_CALL_CONFIG = {
-  ...CALL_CONFIG.ring,
-  autoCancelTimeoutInMs: 30 * 1000,
+
+const CallPanel = ({show}: {show: ScreenTypes}) => {
+  switch (show) {
+    case 'incoming':
+      return <IncomingCallView />;
+    case 'outgoing':
+      return (
+        <View style={styles.container}>
+          <OutgoingCallView />
+        </View>
+      );
+    case 'active-call':
+      return (
+        <View style={styles.container}>
+          <ActiveCall />
+        </View>
+      );
+    case 'joining':
+      return (
+        <View style={styles.container}>
+          <AuthProgressLoader />
+        </View>
+      );
+    case 'none':
+      return null;
+    default:
+      return null;
+  }
 };
 
-export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
-  const {client} = useChatContext<StreamChatGenerics>();
-  const {channel} = useAppContext();
-  const token = client._getToken() || '';
+type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
 
-  const user = useMemo<VideoProps['user']>(
-    () => ({
-      id: client.user?.id as string,
-      name: client.user?.name as string,
-      imageUrl: client.user?.image as string,
-      token: token,
-    }),
-    [client.user, token],
-  );
+export const Calls = () => {
+  const calls = useCalls();
+  const [show, setShow] = useState<ScreenTypes>('none');
 
-  const videoClient = useCreateStreamVideoClient({
-    user,
-    tokenOrProvider: token,
-    apiKey: STREAM_API_KEY,
-    callConfig: APP_CALL_CONFIG,
-  });
-  const navigation =
-    useNavigation<NativeStackNavigationProp<NavigationStackParamsList>>();
+  const handleMoreCalls = useCallback(async () => {
+    const lastCallCreatedBy = calls[1].data?.created_by;
+    Alert.alert(
+      `Incoming call from ${
+        lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
+      }, only 1 call at a time is supported`,
+    );
+  }, [calls]);
 
-  const onActiveCall = useCallback(() => {
-    navigation.navigate('ActiveCallScreen');
-  }, [navigation]);
-
-  const onIncomingCall = useCallback(() => {
-    navigation.navigate('IncomingCallScreen');
-  }, [navigation]);
-
-  const onOutgoingCall = useCallback(() => {
-    navigation.navigate('OutgoingCallScreen');
-  }, [navigation]);
-
-  const onHangupCall = useCallback(() => {
-    if (!channel) {
-      navigation.navigate('ChannelListScreen');
-    } else {
-      navigation.navigate('ChannelScreen');
+  // Reset the state of the show variable when there are no calls.
+  useEffect(() => {
+    if (!calls.length) {
+      setShow('none');
     }
-  }, [channel, navigation]);
-
-  const onRejectCall = useCallback(() => {
-    if (!channel) {
-      navigation.navigate('ChannelListScreen');
-    } else {
-      navigation.navigate('ChannelScreen');
+    if (calls.length > 1) {
+      handleMoreCalls();
     }
-  }, [navigation, channel]);
+  }, [calls.length, handleMoreCalls]);
+
+  const onCallJoined = useCallback(() => {
+    setShow('active-call');
+  }, [setShow]);
+
+  const onCallIncoming = useCallback(() => {
+    setShow('incoming');
+  }, [setShow]);
+
+  const onCallOutgoing = useCallback(() => {
+    setShow('outgoing');
+  }, [setShow]);
+
+  const onCallJoining = useCallback(() => {
+    setShow('joining');
+  }, [setShow]);
+
+  const onCallHungUp = useCallback(() => {
+    setShow('none');
+  }, [setShow]);
+
+  const onCallRejected = useCallback(() => {
+    setShow('none');
+  }, [setShow]);
 
   const callCycleHandlers = useMemo(() => {
     return {
-      onActiveCall,
-      onIncomingCall,
-      onOutgoingCall,
-      onHangupCall,
-      onRejectCall,
+      onCallJoined,
+      onCallIncoming,
+      onCallOutgoing,
+      onCallHungUp,
+      onCallRejected,
+      onCallJoining,
     };
   }, [
-    onActiveCall,
-    onIncomingCall,
-    onOutgoingCall,
-    onHangupCall,
-    onRejectCall,
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
+    onCallJoining,
   ]);
 
-  if (!videoClient) {
-    return <AuthProgressLoader />;
-  }
-
   return (
-    <StreamVideo client={videoClient} callCycleHandlers={callCycleHandlers}>
-      {children}
-    </StreamVideo>
+    calls[0] && (
+      <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
+        <CallPanel show={show} />
+      </StreamCall>
+    )
   );
 };
-
-const streami18n = new Streami18n({
-  language: 'en',
-});
 
 export const MessengerWrapper = ({children}: PropsWithChildren<{}>) => {
-  const {userToken} = useAppContext();
-  const user = useMemo(() => userFromToken(userToken), [userToken]);
-  const chatClient = useChatClient({
-    apiKey: STREAM_API_KEY,
-    userData: user,
-    tokenOrProvider: userToken,
-  });
-  const {bottom} = useSafeAreaInsets();
-  const theme = useStreamChatTheme();
-
-  if (!chatClient) {
-    return <AuthProgressLoader />;
-  }
-
   return (
-    <OverlayProvider<StreamChatGenerics>
-      bottomInset={bottom}
-      i18nInstance={streami18n}
-      value={{style: theme}}>
-      <Chat client={chatClient} i18nInstance={streami18n}>
-        <VideoWrapper>{children}</VideoWrapper>
-      </Chat>
-    </OverlayProvider>
+    <ChatWrapper>
+      <VideoWrapper>
+        {children}
+        <Calls />
+      </VideoWrapper>
+    </ChatWrapper>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.light.static_grey,
+  },
+});

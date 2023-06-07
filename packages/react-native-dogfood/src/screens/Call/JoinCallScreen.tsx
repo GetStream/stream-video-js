@@ -8,10 +8,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
+import { NavigationHeader } from '../../components/NavigationHeader';
+import { v4 as uuidv4 } from 'uuid';
 
 const styles = StyleSheet.create({
   container: {
@@ -77,7 +78,7 @@ const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const username = useAppGlobalStoreValue((store) => store.username);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
-  const client = useStreamVideoClient();
+  const videoClient = useStreamVideoClient();
 
   const users = [
     { id: 'steve', name: 'Steve Galilli' },
@@ -88,28 +89,29 @@ const JoinCallScreen = () => {
   ];
 
   const startCallHandler = useCallback(async () => {
-    const callID = uuidv4().toLowerCase();
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers
       : ringingUserIdsText.split(',');
 
-    if (client) {
-      try {
-        await client.call('default', callID).getOrCreate({
-          ring: true,
-          data: {
-            members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
-              return {
-                user_id: ringingUserId,
-              };
-            }),
-          },
-        });
-      } catch (error) {
-        console.log('Failed to createCall', callID, 'default', error);
-      }
+    // we also need to add our own user id in the members
+    ringingUserIds = [...new Set([...ringingUserIds, username])];
+
+    try {
+      const call = videoClient?.call('default', uuidv4().toLowerCase());
+      await call?.getOrCreate({
+        ring: true,
+        data: {
+          members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
+            return {
+              user_id: ringingUserId,
+            };
+          }),
+        },
+      });
+    } catch (error) {
+      console.log('Failed to createCall', error);
     }
-  }, [ringingUsers, ringingUserIdsText, client]);
+  }, [ringingUserIdsText, ringingUsers, videoClient, username]);
 
   const isRingingUserSelected = (userId: string) =>
     ringingUsers.find((ringingUser) => ringingUser === userId);
@@ -126,6 +128,7 @@ const JoinCallScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NavigationHeader />
       <View style={styles.textInputView}>
         <TextInput
           placeholder="Enter comma separated User Ids"

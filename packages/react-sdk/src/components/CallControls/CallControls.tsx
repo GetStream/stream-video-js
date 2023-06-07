@@ -1,32 +1,26 @@
-import { Call } from '@stream-io/video-client';
 import {
   CallStatsButton,
   CancelCallButton,
   RecordCallButton,
   ScreenShareButton,
   ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
+  ToggleVideoPublishingButton,
 } from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
 
 export type CallControlsProps = {
-  call: Call;
   onLeave?: () => void;
 };
 
-export const CallControls = (props: CallControlsProps) => {
-  const { call, onLeave } = props;
-
-  return (
-    <div className="str-video__call-controls">
-      <RecordCallButton call={call} />
-      <CallStatsButton />
-      <ScreenShareButton call={call} />
-      <SpeakingWhileMutedNotification>
-        <ToggleAudioPublishingButton />
-      </SpeakingWhileMutedNotification>
-      <ToggleCameraPublishingButton />
-      <CancelCallButton call={call} onLeave={onLeave} />
-    </div>
-  );
-};
+export const CallControls = ({ onLeave }: CallControlsProps) => (
+  <div className="str-video__call-controls">
+    <RecordCallButton />
+    <CallStatsButton />
+    <ScreenShareButton />
+    <SpeakingWhileMutedNotification>
+      <ToggleAudioPublishingButton />
+    </SpeakingWhileMutedNotification>
+    <ToggleVideoPublishingButton />
+    <CancelCallButton onLeave={onLeave} />
+  </div>
+);

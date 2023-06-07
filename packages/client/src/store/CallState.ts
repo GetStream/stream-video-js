@@ -8,12 +8,13 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
-} from '../rtc/types';
+} from '../types';
 import { CallStatsReport } from '../stats/types';
 import {
   CallRecording,
   CallResponse,
   MemberResponse,
+  OwnCapability,
   PermissionRequestEvent,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -25,9 +26,19 @@ import * as SortingPreset from '../sorting/presets';
  */
 export enum CallingState {
   /**
+   * The call is in an unknown state.
+   */
+  UNKNOWN = 'unknown',
+  /**
    * The call is in an idle state.
    */
   IDLE = 'idle',
+
+  /**
+   * The call is in the process of ringing.
+   * (User hasn't accepted nor rejected the call yet.)
+   */
+  RINGING = 'ringing',
 
   /**
    * The call is in the process of joining.
@@ -82,13 +93,43 @@ export class CallState {
   private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
 
   /**
+   * The list of capabilities of the current user.
+   *
+   * @private
+   */
+  private ownCapabilitiesSubject = new BehaviorSubject<OwnCapability[]>([]);
+
+  /**
    * The calling state.
    *
    * @internal
    */
   private callingStateSubject = new BehaviorSubject<CallingState>(
-    CallingState.IDLE,
+    CallingState.UNKNOWN,
   );
+
+  /**
+   * The time the call session actually started.
+   *
+   * @internal
+   */
+  private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   *
+   * @internal
+   */
+  private participantCountSubject = new BehaviorSubject<number>(0);
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number excludes the regular participants.
+   *
+   * @internal
+   */
+  private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
 
   /**
    * All participants of the current call (including the logged-in user).
@@ -114,22 +155,13 @@ export class CallState {
   >(undefined);
 
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   *
-   * @internal
-   */
-  // FIXME OL: might be derived from `this.call.recording`.
-  private callRecordingInProgressSubject = new BehaviorSubject<boolean>(false);
-
-  /**
-   * Emits a list of details about recordings performed during the active call
+   * Emits a list of details about recordings performed for the current call.
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
   /**
    * Emits the latest call permission request sent by any participant of the
-   * active call. Or `undefined` if there is no active call or if the current
-   * user doesn't have the necessary permission to handle these events.
+   * current call.
    *
    * @internal
    */
@@ -138,13 +170,31 @@ export class CallState {
   >(undefined);
 
   // Derived state
+
+  /**
+   * The time the call session actually started.
+   * Useful for displaying the call duration.
+   */
+  startedAt$: Observable<Date | undefined>;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  participantCount$: Observable<number>;
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number excludes the regular participants.
+   */
+  anonymousParticipantCount$: Observable<number>;
+
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
   participants$: Observable<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >;
-  /**
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -162,7 +212,7 @@ export class CallState {
   pinnedParticipants$: Observable<StreamVideoParticipant[]>;
 
   /**
-   * The currently elected dominant speaker in the active call.
+   * The currently elected dominant speaker in the current call.
    */
   dominantSpeaker$: Observable<StreamVideoParticipant | undefined>;
 
@@ -188,18 +238,12 @@ export class CallState {
   callStatsReport$: Observable<CallStatsReport | undefined>;
 
   /**
-   * Emits a boolean indicating whether a call recording is currently in progress.
-   */
-  callRecordingInProgress$: Observable<boolean>;
-
-  /**
-   * Emits a list of details about recordings performed during the active call
+   * Emits a list of details about recordings performed for the current call
    */
   callRecordingList$: Observable<CallRecording[]>;
 
   /**
-   * Emits the latest call permission request sent by any participant of the active call.
-   * Or `undefined` if there is no active call or if the current user doesn't have the necessary permission to handle these events.
+   * Emits the latest call permission request sent by any participant of the current call.
    */
   callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
 
@@ -209,9 +253,14 @@ export class CallState {
   metadata$: Observable<CallResponse | undefined>;
 
   /**
-   * The list of members of the current call.
+   * The list of members in the current call.
    */
   members$: Observable<MemberResponse[]>;
+
+  /**
+   * The list of capabilities of the current user.
+   */
+  ownCapabilities$: Observable<OwnCapability[]>;
 
   /**
    * The calling state.
@@ -223,18 +272,14 @@ export class CallState {
    *
    * @private
    */
-  private sortParticipantsBy: Comparator<StreamVideoParticipant>;
+  private sortParticipantsBy: Comparator<StreamVideoParticipant> =
+    SortingPreset.defaultSortPreset;
 
   /**
    * Creates a new instance of the CallState class.
    *
-   * @param sortParticipantsBy the comparator that is used to sort the participants.
    */
-  constructor(
-    sortParticipantsBy: Comparator<StreamVideoParticipant> = SortingPreset.defaultSortPreset,
-  ) {
-    this.sortParticipantsBy = sortParticipantsBy;
-
+  constructor() {
     this.participants$ = this.participantsSubject.pipe(
       map((ps) => ps.sort(this.sortParticipantsBy)),
     );
@@ -248,7 +293,7 @@ export class CallState {
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => p.isPinned)),
+      map((participants) => participants.filter((p) => p.pinnedAt)),
     );
 
     this.dominantSpeaker$ = this.participants$.pipe(
@@ -264,14 +309,18 @@ export class CallState {
       distinctUntilChanged(),
     );
 
+    this.startedAt$ = this.startedAtSubject.asObservable();
+    this.participantCount$ = this.participantCountSubject.asObservable();
+    this.anonymousParticipantCount$ =
+      this.anonymousParticipantCountSubject.asObservable();
+
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.callRecordingInProgress$ =
-      this.callRecordingInProgressSubject.asObservable();
     this.callPermissionRequest$ =
       this.callPermissionRequestSubject.asObservable();
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
     this.metadata$ = this.metadataSubject.asObservable();
     this.members$ = this.membersSubject.asObservable();
+    this.ownCapabilities$ = this.ownCapabilitiesSubject.asObservable();
     this.callingState$ = this.callingStateSubject.asObservable();
   }
 
@@ -307,6 +356,60 @@ export class CallState {
    * @return the updated value.
    */
   setCurrentValue = RxUtils.setCurrentValue;
+
+  /**
+   * The server-side counted number of participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  get participantCount() {
+    return this.getCurrentValue(this.participantCount$);
+  }
+
+  /**
+   * Sets the number of participants in the current call.
+   *
+   * @internal
+   * @param count the number of participants.
+   */
+  setParticipantCount = (count: Patch<number>) => {
+    return this.setCurrentValue(this.participantCountSubject, count);
+  };
+
+  /**
+   * The time the call session actually started.
+   * Useful for displaying the call duration.
+   */
+  get startedAt() {
+    return this.getCurrentValue(this.startedAt$);
+  }
+
+  /**
+   * Sets the time the call session actually started.
+   *
+   * @internal
+   * @param startedAt the time the call session actually started.
+   */
+  setStartedAt = (startedAt: Patch<Date | undefined>) => {
+    return this.setCurrentValue(this.startedAtSubject, startedAt);
+  };
+
+  /**
+   * The server-side counted number of anonymous participants connected to the current call.
+   * This number includes the anonymous participants as well.
+   */
+  get anonymousParticipantCount() {
+    return this.getCurrentValue(this.anonymousParticipantCount$);
+  }
+
+  /**
+   * Sets the number of anonymous participants in the current call.
+   *
+   * @internal
+   * @param count the number of anonymous participants.
+   */
+  setAnonymousParticipantCount = (count: Patch<number>) => {
+    return this.setCurrentValue(this.anonymousParticipantCountSubject, count);
+  };
 
   /**
    * The list of participants in the current call.
@@ -396,25 +499,6 @@ export class CallState {
   };
 
   /**
-   * Tells whether a call recording is in progress.
-   */
-  get callRecordingInProgress() {
-    return this.getCurrentValue(this.callRecordingInProgress$);
-  }
-
-  /**
-   * Sets whether a call recording is in progress.
-   *
-   * @param inProgress whether a call recording is in progress.
-   */
-  setCallRecordingInProgress = (inProgress: Patch<boolean>) => {
-    return this.setCurrentValue(
-      this.callRecordingInProgressSubject,
-      inProgress,
-    );
-  };
-
-  /**
    * The last call permission request.
    */
   get callPermissionRequest() {
@@ -486,7 +570,24 @@ export class CallState {
   };
 
   /**
-   * Will try to find the participant with the given sessionId in the active call.
+   * The capabilities of the current user for the current call.
+   */
+  get ownCapabilities() {
+    return this.getCurrentValue(this.ownCapabilities$);
+  }
+
+  /**
+   * Sets the own capabilities.
+   *
+   * @internal
+   * @param capabilities the capabilities to set.
+   */
+  setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
+    return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
+  };
+
+  /**
+   * Will try to find the participant with the given sessionId in the current call.
    *
    * @param sessionId the sessionId of the participant to find.
    * @returns the participant with the given sessionId or undefined if not found.
@@ -498,7 +599,7 @@ export class CallState {
   };
 
   /**
-   * Updates a participant in the active call identified by the given `sessionId`.
+   * Updates a participant in the current call identified by the given `sessionId`.
    * If the participant can't be found, this operation is no-op.
    *
    * @internal
@@ -535,8 +636,39 @@ export class CallState {
   };
 
   /**
-   * Updates all participants in the active call whose session ID is in the given `sessionIds`.
-   * If no patch are provided, this operation is no-op.
+   * Updates a participant in the current call identified by the given `sessionId`.
+   * If a participant with matching `sessionId` can't be found, the provided
+   * `participant` is added to the list of participants.
+   *
+   * @param sessionId the session ID of the participant to update.
+   * @param participant the participant to update or add.
+   */
+  updateOrAddParticipant = (
+    sessionId: string,
+    participant: StreamVideoParticipant,
+  ) => {
+    if (!this.findParticipantBySessionId(sessionId)) {
+      return this.setParticipants((participants) => [
+        ...participants,
+        participant,
+      ]);
+    }
+    return this.setParticipants((participants) =>
+      participants.map((p) => {
+        if (p.sessionId === sessionId) {
+          return {
+            ...p,
+            ...participant,
+          };
+        }
+        return p;
+      }),
+    );
+  };
+
+  /**
+   * Updates all participants in the current call whose session ID is in the given `sessionIds`.
+   * If no patches are provided, this operation is no-op.
    *
    * @internal
    *

@@ -1,30 +1,32 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from './UserInfoView';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useRingCall } from '../hooks/useRingCall';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { VideoRenderer } from './VideoRenderer';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
-import { useCallCycleContext } from '../contexts/CallCycleContext';
 import { theme } from '../theme';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { CallingState } from '@stream-io/video-client';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
+  const call = useCall();
+  const callingState = useCallCallingState();
 
-  const { cancelCall } = useRingCall();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onHangupCall } = callCycleHandlers;
-
-  const hangupCallHandler = useCallback(async () => {
-    await cancelCall();
-    if (onHangupCall) onHangupCall();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cancelCall]);
-
+  const hangupCallHandler = async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave();
+    } catch (error) {
+      console.log('Error leaving Call', error);
+    }
+  };
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -83,15 +85,18 @@ const Background = () => {
   const localVideoStream = useLocalVideoStream();
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
 
-  if (isVideoMuted || !localVideoStream)
-    return <View style={[StyleSheet.absoluteFill, styles.background]} />;
+  if (isVideoMuted || !localVideoStream) {
+    return <View style={styles.background} />;
+  }
   return (
-    <VideoRenderer
-      mediaStream={localVideoStream}
-      zOrder={1}
-      style={styles.stream}
-      mirror
-    />
+    <View style={styles.background}>
+      <VideoRenderer
+        mediaStream={localVideoStream}
+        zOrder={1}
+        style={StyleSheet.absoluteFill}
+        mirror
+      />
+    </View>
   );
 };
 
@@ -105,6 +110,7 @@ const styles = StyleSheet.create({
   },
   background: {
     backgroundColor: theme.light.static_grey,
+    flex: 1,
   },
   content: {},
   callingText: {
@@ -124,7 +130,4 @@ const styles = StyleSheet.create({
   },
   button: {},
   svgContainerStyle: {},
-  stream: {
-    flex: 1,
-  },
 });

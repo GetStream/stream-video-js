@@ -1,5 +1,12 @@
-import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  Animated,
+  PanResponder,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
@@ -7,6 +14,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { theme } from '../theme';
 import { VideoSlash } from '../icons';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
+import { A11yComponents } from '../constants/A11yLabels';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -36,8 +44,6 @@ export interface LocalVideoViewProps {
   zOrder?: number;
 }
 
-const LOCAL_VIDEO_VIEW_POSITION_FROM_TOP = 100;
-
 /**
  * Shows a floating participant UI that can be dragged (to be implemented) within certain bounds.
  *
@@ -56,29 +62,60 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
+  const pan = useRef(new Animated.ValueXY()).current;
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: () => {
+        pan.extractOffset();
+      },
+    }),
+  ).current;
+
   if (!localParticipant) return null;
 
   const isVideoMuted = !localParticipant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
 
-  if (isVideoMuted && layout === 'floating') {
+  if (layout === 'fullscreen') {
     return (
-      <View style={style}>
-        <View style={styles.icon}>
-          <VideoSlash color={theme.light.static_white} />
-        </View>
-      </View>
+      <VideoRenderer
+        mirror={isCameraOnFrontFacingMode}
+        mediaStream={localParticipant.videoStream}
+        style={style}
+        zOrder={zOrder}
+      />
     );
   }
 
   return (
-    <VideoRenderer
-      mirror={isCameraOnFrontFacingMode}
-      mediaStream={localParticipant.videoStream}
-      style={style}
-      zOrder={zOrder}
-    />
+    <Animated.View
+      accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT}
+      style={{
+        zIndex: 5,
+        transform: [{ translateX: pan.x }, { translateY: pan.y }],
+      }}
+      {...panResponder.panHandlers}
+    >
+      {isVideoMuted ? (
+        <View style={style}>
+          <View style={theme.icon.md}>
+            <VideoSlash color={theme.light.static_white} />
+          </View>
+        </View>
+      ) : (
+        <VideoRenderer
+          mirror={isCameraOnFrontFacingMode}
+          mediaStream={localParticipant.videoStream}
+          style={style}
+          zOrder={zOrder}
+        />
+      )}
+    </Animated.View>
   );
 };
 
@@ -88,7 +125,7 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     right: theme.spacing.lg * 2,
-    top: LOCAL_VIDEO_VIEW_POSITION_FROM_TOP,
+    top: theme.margin.md,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     zIndex: 1,
     overflow: 'hidden',
@@ -100,9 +137,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  icon: {
-    height: 25,
-    width: 25,
   },
 });

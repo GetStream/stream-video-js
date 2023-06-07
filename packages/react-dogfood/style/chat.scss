@@ -71,16 +71,16 @@
 
 .str-chat__chat-button__unread-count-bubble {
   font-size: 10px;
-  background-color: var(--str-video__danger-color2);
-  width: 20px;
-  height: 20px;
+  background-color: var(--str-video__danger-color--accent);
+  width: 17px;
+  height: 17px;
   position: absolute;
-  border-radius: 9999px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
-  top: -10px;
-  right: -10px;
+  top: -7px;
+  left: -7px;
   font-weight: bold;
 }
 

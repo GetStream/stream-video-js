@@ -1,0 +1,69 @@
+.root {
+  @apply inline-flex items-center justify-center border-2 rounded-button font-body;
+}
+
+.container {
+  @apply flex flex-col items-center;
+}
+
+.label {
+  @apply hidden md:flex text-video-white text-xs mt-1;
+}
+
+.primary {
+  @apply bg-video-stream-500 text-video-white  border-video-stream-500;
+}
+
+.secondary {
+  @apply bg-video-grey-500 text-video-white border-video-grey-500;
+  transition: background 300ms;
+}
+
+.secondary:hover {
+  @apply bg-video-grey-400 text-video-white border-video-grey-400;
+  transition: background 300ms;
+  transition: border 100ms;
+}
+
+.danger {
+  @apply bg-video-red-600 text-video-white border-video-red-600;
+}
+
+.danger:hover {
+  @apply bg-video-red-300  border-video-red-300;
+}
+
+.transparent {
+  @apply bg-video-transparent text-video-white border-video-transparent;
+}
+
+.active {
+  @apply bg-video-grey-400 text-video-white border-video-grey-400;
+  transition: background 300ms;
+}
+
+.active:hover {
+  @apply bg-video-grey-800 text-video-white border-video-grey-800;
+  transition: background 300ms;
+}
+
+.circle {
+  @apply rounded-full;
+}
+
+.square {
+  @apply rounded-input flex items-center;
+  width: 42px;
+  height: 42px;
+  padding: 4px;
+}
+
+.rectangle {
+  @apply pt-1 pb-1 pl-2 pr-2 rounded-input flex items-center;
+  height: 42px;
+}
+
+.oval {
+  @apply pt-1 pb-1 pl-3 pr-3 uppercase tracking-wider text-xs font-extrabold;
+  border-radius: 59px;
+}

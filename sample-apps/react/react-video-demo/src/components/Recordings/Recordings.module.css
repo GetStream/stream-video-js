@@ -1,0 +1,40 @@
+.root {
+  @apply min-w-[300px] md:min-w-[400px];
+}
+
+.loading {
+  @apply flex items-center pt-2 pb-2 text-video-grey-200;
+}
+
+.loadingSpinner {
+  @apply h-5 w-5 mr-4;
+}
+
+.notFound {
+  @apply flex items-center pt-2 pb-2 text-video-grey-200;
+}
+
+.list {
+  @apply mt-2;
+}
+
+.item {
+  @apply flex justify-between items-center text-sm p-2;
+}
+
+.item:not(:last-of-type) {
+  @apply mb-2;
+}
+
+.item:hover {
+  @apply bg-video-grey-300 cursor-pointer;
+  border-radius: 3px;
+}
+
+.link {
+  @apply flex w-full justify-between items-center text-sm;
+}
+
+.download {
+  @apply h-4 w-4;
+}

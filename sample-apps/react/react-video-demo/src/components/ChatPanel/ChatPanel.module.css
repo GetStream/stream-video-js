@@ -1,0 +1,6 @@
+.root > div:nth-child(2) {
+  @apply pl-0 pr-0 pb-0;
+  border-radius: 0 0 12px 12px;
+  background-color: rgb(18 20 22 / var(--tw-bg-opacity));
+  z-index: 2;
+}

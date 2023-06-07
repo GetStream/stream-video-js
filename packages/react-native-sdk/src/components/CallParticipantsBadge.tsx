@@ -1,39 +1,42 @@
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
-import { useParticipants } from '@stream-io/video-react-bindings';
+import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
-interface CallParticipantsBadgeProps {
-  /**
-   * Handler called when the participants info button is pressed in the active call screen.
-   */
-  onOpenCallParticipantsInfoView: () => void;
-}
+import { useCallback, useState } from 'react';
+import { CallParticipantsInfoView } from './CallParticipantsInfoView';
+import { A11yButtons } from '../constants/A11yLabels';
 
-export const CallParticipantsBadge = ({
-  onOpenCallParticipantsInfoView,
-}: CallParticipantsBadgeProps) => {
-  const participants = useParticipants();
+export const CallParticipantsBadge = () => {
+  const participantCount = useParticipantCount();
+  const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =
+    useState<boolean>(false);
+
+  const onOpenCallParticipantsInfoView = useCallback(() => {
+    setIsCallParticipantsViewVisible(true);
+  }, [setIsCallParticipantsViewVisible]);
 
   return (
     <Pressable
       style={styles.participantIcon}
       onPress={onOpenCallParticipantsInfoView}
+      accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
     >
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>{participants.length}</Text>
+        <Text style={styles.badgeText}>{participantCount}</Text>
       </View>
       <View style={[styles.svgContainerStyle, theme.icon.md]}>
         <Participants color={theme.light.static_white} />
       </View>
+      <CallParticipantsInfoView
+        isCallParticipantsViewVisible={isCallParticipantsViewVisible}
+        setIsCallParticipantsViewVisible={setIsCallParticipantsViewVisible}
+      />
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
   participantIcon: {
-    position: 'absolute',
-    right: 2 * theme.spacing.lg,
-    top: Platform.OS === 'ios' ? 3 * theme.spacing.lg : theme.spacing.lg,
     zIndex: 2,
   },
   svgContainerStyle: {},
@@ -44,7 +47,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     left: theme.spacing.lg,
     top: theme.spacing.lg,
-    zIndex: 4,
+    zIndex: 2,
   },
   badgeText: {
     color: theme.light.static_white,

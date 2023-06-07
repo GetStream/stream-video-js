@@ -59,10 +59,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.inCallDeviceManager.start();
     this.subscriptions.push(
       this.streamVideoService.outgoingCalls$.subscribe((calls) => {
-        if (
-          calls.length > 0 &&
-          this.streamVideoService.videoClient?.callConfig.joinCallInstantly
-        ) {
+        if (calls.length > 0) {
           const outgoingCall = calls[0];
           this.ngZone.runOutsideAngular(() =>
             this.streamVideoService.videoClient?.joinCall(
@@ -75,10 +72,7 @@ export class CallComponent implements OnInit, AfterViewChecked, OnDestroy {
     );
     this.subscriptions.push(
       this.streamVideoService.acceptedCall$.subscribe((call) => {
-        if (
-          call &&
-          !this.streamVideoService.videoClient?.callConfig.joinCallInstantly
-        ) {
+        if (call) {
           this.ngZone.runOutsideAngular(() => {
             const [type, id] = call.call_cid.split(':');
             return this.streamVideoService.videoClient?.joinCall(id, type);

@@ -1,0 +1,41 @@
+@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+
+body, html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+* {
+  transition: background-color 0.2s ease-out;
+  font-family: var(--str-video__font-family);
+}
+
+#root {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+
+}
+
+.str-video {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+
+.str-video__call__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+h4 {
+  margin: 0;
+}

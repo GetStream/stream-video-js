@@ -1,8 +1,6 @@
 import React from 'react';
 import {UserList} from './src/components/UserList';
 import {NavigationStackParamsList} from './src/types';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {useStreamChatTheme} from './useStreamChatTheme';
 import {
   NativeStackHeaderProps,
   createNativeStackNavigator,
@@ -16,13 +14,7 @@ import {SafeAreaView, StyleSheet} from 'react-native';
 import {NavigationHeader} from './src/components/NavigationHeader';
 import {MessengerWrapper} from './src/components/MessengerWrapper';
 import {ChannelHeader} from './src/components/ChannelHeader';
-import {ActiveCallScreen} from './src/screens/ActiveCallScreen';
 import {AppProvider, useAppContext} from './src/context/AppContext';
-import {
-  CallParticipantsInfoView,
-  IncomingCallView,
-  OutgoingCallView,
-} from '@stream-io/video-react-native-sdk';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
@@ -31,9 +23,9 @@ function ChannelHeaderComponent(props: NativeStackHeaderProps) {
 }
 
 const Messenger = () => {
-  const {userId, userToken} = useAppContext();
+  const {user} = useAppContext();
 
-  if (!(userId && userToken)) {
+  if (!user) {
     return (
       <SafeAreaView>
         <UserList />
@@ -57,46 +49,19 @@ const Messenger = () => {
           }}
         />
         <Stack.Screen name="ThreadScreen" component={ThreadScreen} />
-        <Stack.Screen
-          name="IncomingCallScreen"
-          component={IncomingCallView}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="ActiveCallScreen"
-          component={ActiveCallScreen}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="OutgoingCallScreen"
-          component={OutgoingCallView}
-          options={{headerShown: false}}
-        />
-        <Stack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipantsInfoView}
-        />
       </Stack.Navigator>
     </MessengerWrapper>
   );
 };
 
 const App = () => {
-  const theme = useStreamChatTheme();
-
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaProvider
-        style={[
-          styles.container,
-          {backgroundColor: theme.colors?.white_snow || '#FCFCFC'},
-        ]}>
-        <NavigationContainer>
-          <AppProvider>
-            <Messenger />
-          </AppProvider>
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <NavigationContainer>
+        <AppProvider>
+          <Messenger />
+        </AppProvider>
+      </NavigationContainer>
     </GestureHandlerRootView>
   );
 };

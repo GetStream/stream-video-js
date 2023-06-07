@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
+  Button,
   StyleSheet,
+  Switch,
+  Text,
   TextInput,
   View,
-  Text,
-  Switch,
-  Button,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -13,8 +13,6 @@ import {
   useAppGlobalStoreValue,
 } from '../../contexts/AppContext';
 import { meetingId } from '../../modules/helpers/meetingId';
-
-import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
 
@@ -24,34 +22,23 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
+  const [callId, setCallId] = useState<string>('');
   const loopbackMyVideo = useAppGlobalStoreValue(
     (store) => store.loopbackMyVideo,
   );
-  const [callID, setCallId] = useState('');
   const { navigation } = props;
-
-  const setState = useAppGlobalStoreSetState();
+  const appStoreSetState = useAppGlobalStoreSetState();
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('LobbyViewScreen', { callID: callID });
-  }, [navigation, callID]);
-
-  useEffect(() => {
-    const subscription = prontoCallId$.subscribe((prontoCallId) => {
-      if (prontoCallId) {
-        setCallId(prontoCallId);
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [joinCallHandler]);
+    navigation.navigate('MeetingScreen', { callId });
+  }, [navigation, callId]);
 
   const handleCopyInviteLink = useCallback(
     () =>
       Clipboard.setString(
-        `https://stream-calls-dogfood.vercel.app/join/${callID}/`,
+        `https://stream-calls-dogfood.vercel.app/join/${callId}/`,
       ),
-    [callID],
+    [callId],
   );
 
   return (
@@ -62,8 +49,8 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           title={'Randomise'}
           color="blue"
           onPress={() => {
-            const ramdomCallID = meetingId();
-            setCallId(ramdomCallID);
+            const randomCallID = meetingId();
+            setCallId(randomCallID);
           }}
         />
       </View>
@@ -71,15 +58,17 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         style={styles.textInput}
         placeholder={'Type your call ID here...'}
         placeholderTextColor={'#8C8C8CFF'}
-        value={callID}
+        value={callId}
         autoCapitalize="none"
         autoCorrect={false}
-        onChangeText={(text) => setCallId(text.trim().split(' ').join('-'))}
+        onChangeText={(text) => {
+          setCallId(text.trim().split(' ').join('-'));
+        }}
       />
       <Button
-        title={'Create or Join call with callID: ' + callID}
+        title={'Create or Join call with callID: ' + callId}
         color="blue"
-        disabled={!callID}
+        disabled={!callId}
         onPress={joinCallHandler}
       />
       <View style={styles.switchContainer}>
@@ -87,7 +76,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         <Switch
           value={loopbackMyVideo}
           onChange={() => {
-            setState((prevState) => ({
+            appStoreSetState((prevState) => ({
               loopbackMyVideo: !prevState.loopbackMyVideo,
             }));
           }}

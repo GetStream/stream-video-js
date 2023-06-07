@@ -1,0 +1,132 @@
+.root {
+  @apply p-2 sm:p-0 md:w-6/12 lg:w-4/12 flex flex-col items-center;
+  pointer-events: visible;
+}
+
+.heading {
+  @apply text-video-white text-2xl lg:text-3xl text-center;
+}
+
+.description {
+  @apply text-video-grey-200 text-center xl:mt-1 xl:mb-4 2xl:mt-2 2xl:mb-2;
+}
+
+.callContainer {
+  @apply overflow-hidden border-2 border-video-transparent bg-video-grey-600/50 relative mt-5 mb-5 rounded-container w-full h-[225px];
+}
+
+@media screen(2xl) {
+  .callContainer {
+    @apply h-[500px];
+  }
+}
+
+.callContainer.audioEnabled {
+  @apply border-video-stream-500;
+}
+
+.disabledPreview {
+  @apply flex items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full;
+  border-radius: 10px;
+}
+
+.enableBrowserSettings {
+  @apply flex  flex-col items-center justify-center text-video-white text-sm bg-video-grey-700 w-full h-full p-8;
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.enableIcons {
+  @apply flex p-4;
+}
+
+.enableMic {
+  @apply text-video-grey-400 mr-1;
+}
+
+.enableVideo {
+  @apply text-video-grey-400 ml-1;
+}
+
+.enableHeading {
+  @apply text-video-white text-lg text-center mb-2;
+}
+
+.enableDescription {
+  @apply text-center text-video-grey-400;
+}
+
+.fallbackAvatar {
+  @apply flex items-center justify-center uppercase text-2xl font-bold bg-video-stream-500 text-video-white h-20 w-20 rounded-full;
+}
+
+.callContainer > div:not(.videoOverlay) {
+  @apply flex w-auto md:w-full h-full;
+}
+
+.callContainer video {
+  @apply w-full h-auto  h-[225px];
+  aspect-ratio: 16/9;
+  border-radius: 10px;
+}
+
+@media screen(2xl) {
+  .callContainer video {
+    @apply w-full h-auto  h-[500px];
+    aspect-ratio: 16/9;
+  }
+}
+
+.videoOverlay {
+  @apply absolute top-0 left-0 w-full h-full flex items-center justify-center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.name {
+  @apply flex items-center absolute bottom-0 left-0 mb-4 ml-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.server {
+  @apply absolute top-0 left-0 ml-4 mt-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.latency {
+  @apply absolute flex items-center top-0 right-0 mt-4 mr-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.latencyIndicator {
+  @apply h-1 w-1 rounded-full mr-2 ml-1  bg-video-green-500;
+}
+
+.signal {
+  @apply absolute bottom-0 right-0 mb-4 mr-4 text-xs bg-video-grey-800 p-2 pt-1 pb-1 text-video-white;
+  border-radius: 4px;
+}
+
+.micMuted {
+  @apply ml-1 h-4 w-4 text-video-red-600;
+}
+
+.signalIcon {
+  @apply h-4 w-4;
+}
+
+.controls {
+  @apply mb-2;
+}
+
+.avatar {
+  @apply rounded-container object-cover w-full -translate-y-10;
+}
+
+.lobbyContainer {
+  @apply sm:ml-10 sm:mr-10;
+}
+
+.poweredBy {
+  @apply mt-4 md:mt-2 2xl:mt-4;
+}

@@ -7,8 +7,13 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import { disposeOfMediaStream } from '@stream-io/video-client';
-import { BaseVideo } from './BaseVideo';
-import { DEVICE_STATE, useMediaDevices } from '../../contexts';
+import { BaseVideo } from '../../core/components/Video';
+import {
+  DEVICE_STATE,
+  useMediaDevices,
+  useOnUnavailableVideoDevices,
+  useVideoDevices,
+} from '../../core';
 import { LoadingIndicator } from '../LoadingIndicator';
 
 const DefaultDisabledVideoPreview = () => {
@@ -32,10 +37,25 @@ const DefaultVideoErrorPreview = ({ message }: VideoErrorPreviewProps) => {
 };
 
 export type VideoPreviewProps = {
+  /**
+   * Enforces mirroring of the video on the X axis. Defaults to true.
+   */
   mirror?: boolean;
+  /**
+   * Component rendered when user turns off the video.
+   */
   DisabledVideoPreview?: ComponentType;
+  /**
+   * Component rendered when no camera devices are available.
+   */
   NoCameraPreview?: ComponentType;
+  /**
+   * Component rendered above the BaseVideo until the video is ready (meaning until the play event is emitted).
+   */
   StartingCameraPreview?: ComponentType;
+  /**
+   * Component rendered when the video stream could not be retrieved.
+   */
   VideoErrorPreview?: ComponentType<VideoErrorPreviewProps>;
 };
 
@@ -47,19 +67,24 @@ export const VideoPreview = ({
   VideoErrorPreview = DefaultVideoErrorPreview,
 }: VideoPreviewProps) => {
   const [stream, setStream] = useState<MediaStream>();
-
   const {
-    videoDevices,
     selectedVideoDeviceId,
     getVideoStream,
     initialVideoState,
     setInitialVideoState,
   } = useMediaDevices();
+  // When there are 0 video devices (e.g. when laptop lid closed),
+  // we do not restart the video automatically when the device is again available,
+  // but rather leave turning the video on manually to the user.
+  useOnUnavailableVideoDevices(() =>
+    setInitialVideoState(DEVICE_STATE.stopped),
+  );
+  const videoDevices = useVideoDevices();
 
   useEffect(() => {
-    if (!initialVideoState.enabled || videoDevices.length === 0) return;
+    if (!initialVideoState.enabled) return;
 
-    getVideoStream(selectedVideoDeviceId)
+    getVideoStream({ deviceId: selectedVideoDeviceId })
       .then((s) => {
         setStream((previousStream) => {
           if (previousStream) {

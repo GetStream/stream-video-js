@@ -1,0 +1,104 @@
+.sidebar {
+  @apply gap-y-3 h-full flex flex-col relative;
+}
+
+.panel {
+  width: 100%;
+}
+
+.invitePanel {
+  grid-area: invitePanel;
+}
+
+.participantsPanel {
+  display: none;
+}
+
+.participantsPanel > div {
+  width: 100%;
+}
+
+.participantsPanel.visible {
+  display: flex;
+  height: 100%;
+  max-height: 50vh;
+}
+
+.chatPanel {
+  display: none;
+}
+
+.chatPanel.visible {
+  display: flex;
+  height: 100%;
+  max-height: 50vh;
+}
+
+.chatPanel.withParticipants {
+  max-height: 30vh;
+}
+
+.participantsPanel.withChat {
+  max-height: 25vh;
+}
+
+.chat {
+  @apply w-full;
+}
+
+.participants {
+  @apply w-full;
+}
+
+.participants > div:last-child {
+  max-height: calc(100% - 61px);
+  height: calc(100% - 61px);
+  overflow: hidden;
+}
+
+.chat > div:last-child {
+  max-height: calc(100% - 61px);
+  height: calc(100% - 61px);
+}
+
+.branding {
+  @apply flex items-center absolute w-full;
+  z-index: 0;
+  bottom: 40px;
+  left: 15%;
+}
+
+@media screen(lg) {
+  .branding {
+    left: 30%;
+  }
+}
+
+.logo {
+  @apply mr-2;
+}
+
+.animation-enter {
+  z-index: 2;
+  opacity: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+.animation-enter-active {
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 700ms;
+  height: 100%;
+  width: 100%;
+}
+.animation-exit {
+  z-index: 2;
+  opacity: 1;
+}
+.animation-exit-active {
+  z-index: 2;
+  opacity: 0;
+  display: none;
+  transition: opacity 200ms;
+}

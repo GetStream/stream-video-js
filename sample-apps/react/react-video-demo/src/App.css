@@ -1,0 +1,33 @@
+@import './styles/chat.css';
+@import './styles/animation.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+.mapboxgl-popup {
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  z-index: 9999;
+  top: 0;
+  width: 140px;
+  min-width: 160px;
+  max-width: 160px;
+  left: 55px;
+}
+
+.str-video__participant_details {
+  display: none;
+}
+
+.mapboxgl-control-container {
+  display: none;
+}

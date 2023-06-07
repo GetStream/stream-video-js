@@ -1,0 +1,39 @@
+{
+  "name": "@stream-io/video-react-native-sdk",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "version": {
+      "executor": "@jscutlery/semver:version",
+      "options": {
+        "dryRun": false,
+        "preset": {
+          "name": "angular",
+          "preMajor": true,
+          "types": [
+            {"type": "feat", "section": "Features"},
+            {"type": "fix", "section": "Bug Fixes"},
+            {"type": "chore", "hidden": true},
+            {"type": "docs", "section": "Documentation"},
+            {"type": "style", "hidden": true},
+            {"type": "refactor", "hidden": true},
+            {"type": "perf", "section": "Features"},
+            {"type": "test", "hidden": true}
+          ]
+        },
+        "preid": "alpha",
+        "releaseAs": "prerelease",
+        "trackDeps": true,
+        "push": true,
+        "skipCommitTypes": ["chore", "ci"],
+        "postTargets": ["@stream-io/video-react-native-sdk:github"]
+      }
+    },
+    "github": {
+      "executor": "@jscutlery/semver:github",
+      "options": {
+        "tag": "${tag}",
+        "notes": "${notes}"
+      }
+    }
+  }
+}

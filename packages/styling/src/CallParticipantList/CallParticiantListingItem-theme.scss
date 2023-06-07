@@ -17,7 +17,7 @@
     .str-video__participant-listing-item__icon-mic-off {
       @include utils.apply-mask-image(
           var(--str-video__icon--mic-off),
-          var(--str-video__danger-color1),
+          var(--str-video__danger-color),
           contain,
       );
     }
@@ -33,7 +33,15 @@
     .str-video__participant-listing-item__icon-camera-off {
       @include utils.apply-mask-image(
           var(--str-video__icon--camera-off),
-          var(--str-video__danger-color1),
+          var(--str-video__danger-color),
+          contain,
+      );
+    }
+
+    .str-video__participant-listing-item__icon-pinned {
+      @include utils.apply-mask-image(
+          var(--str-video__icon--pin),
+          var(--str-video__text-color1),
           contain,
       );
     }

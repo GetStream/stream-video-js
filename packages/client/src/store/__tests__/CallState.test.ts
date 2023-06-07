@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { StreamVideoParticipant, VisibilityState } from '../../rtc/types';
+import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallState } from '../CallState';
 import {
   combineComparators,
@@ -17,7 +17,8 @@ import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
   it('should emit sorted participants', () => {
-    const state = new CallState(noopComparator());
+    const state = new CallState();
+    state.setSortParticipantsBy(noopComparator());
     state.setParticipants(TestData.participants());
 
     // initial sort criteria

@@ -10,7 +10,9 @@ export type UserType = {
   id: string;
   name: string;
   imageUrl: string;
-  token: string;
+  custom: {
+    token: string;
+  };
 };
 
 export type StreamChatGenerics = {
@@ -30,7 +32,6 @@ export type NavigationStackParamsList = {
   IncomingCallScreen: undefined;
   OutgoingCallScreen: undefined;
   ActiveCallScreen: undefined;
-  CallParticipantsInfoScreen: undefined;
 };
 
 export type VideoProps = {

@@ -1,5 +1,5 @@
 import { StreamVideoEvent } from '../coordinator/connection/types';
-import { StreamVideoWriteableStateStore } from '../store';
+import { CallState } from '../store';
 
 /**
  * Event handler that watches for `call.blocked_user` events,
@@ -7,28 +7,11 @@ import { StreamVideoWriteableStateStore } from '../store';
  * `event.user_id` to the list
  */
 export const watchBlockedUser =
-  (store: StreamVideoWriteableStateStore) => (event: StreamVideoEvent) => {
-    if (event.type !== 'call.blocked_user') {
-      return;
-    }
-    const activeCall = store.activeCall;
-    if (!activeCall || activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Received "call.blocked_user" for an inactive or unknown call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
-    // FIXME: end call
-    if (state.localParticipant?.userId === event.user.id) {
-      activeCall.leave();
-    }
-
+  (state: CallState) => (event: StreamVideoEvent) => {
+    if (event.type !== 'call.blocked_user') return;
     state.setMetadata((metadata) => ({
       ...metadata!,
-      blocked_user_ids: [...metadata!.blocked_user_ids, event.user.id],
+      blocked_user_ids: [...(metadata?.blocked_user_ids || []), event.user.id],
     }));
   };
 
@@ -38,22 +21,10 @@ export const watchBlockedUser =
  * removing `event.user_id` from the list
  */
 export const watchUnblockedUser =
-  (store: StreamVideoWriteableStateStore) => (event: StreamVideoEvent) => {
-    if (event.type !== 'call.unblocked_user') {
-      return;
-    }
-    const activeCall = store.activeCall;
-    if (!activeCall || activeCall.cid !== event.call_cid) {
-      console.warn(
-        `Received "call.unblocked_user" for an inactive or unknown call`,
-        event,
-      );
-      return;
-    }
-
-    const state = activeCall.state;
+  (state: CallState) => (event: StreamVideoEvent) => {
+    if (event.type !== 'call.unblocked_user') return;
     state.setMetadata((metadata) => {
-      const blocked_user_ids = metadata!.blocked_user_ids.filter(
+      const blocked_user_ids = (metadata?.blocked_user_ids || []).filter(
         (userId) => event.user.id !== userId,
       );
       return {

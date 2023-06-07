@@ -5,12 +5,12 @@ FROM_REPO=$1;
 
 if  [ "$FROM_REPO" == 'chat' ]; then
   PROTOCOL_REPO_DIR="../../../chat"
-else 
+else
   PROTOCOL_REPO_DIR="../../../protocol"
 fi
 if  [ "$FROM_REPO" == 'chat' ]; then
   SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi.yaml"
-else 
+else
   SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi.yaml"
 fi
 
@@ -32,10 +32,9 @@ yarn openapi-generator-cli generate \
   -i "$SCHEMA_FILE" \
   -g typescript-fetch \
   -o "$TEMP_OUTPUT_DIR" \
-  --skip-validate-spec \
   --additional-properties=supportsES6=true \
   --additional-properties=modelPropertyNaming=original \
-  --additional-properties=enumPropertyNaming=original \
+  --additional-properties=enumPropertyNaming=UPPERCASE \
   --additional-properties=withoutRuntimeChecks=true
 
 # Remove the generated API client, just keep the models

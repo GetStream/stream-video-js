@@ -1,0 +1,115 @@
+.root {
+  @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
+  max-width: 300px;
+}
+
+.root.focused {
+  @apply border-video-stream-500;
+  box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+}
+
+.header {
+  border: 1px solid #272a30;
+}
+
+.heading {
+  @apply p-4;
+}
+
+.content {
+  @apply p-4;
+}
+
+.copy {
+  @apply bg-video-grey-500 p-2 flex items-center relative text-video-white/50;
+  border: 1px solid #272a30;
+  border-radius: 6px;
+}
+
+.copy:hover {
+  @apply text-video-white;
+}
+
+.limit {
+  @apply hidden w-[90%];
+}
+
+.limit.canCopy {
+  @apply block;
+}
+
+.input {
+  @apply bg-video-transparent relative border-none z-10 cursor-pointer w-full h-full text-xs;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.input:focus,
+.input:hover {
+  @apply bg-video-transparent relative border-none cursor-pointer;
+}
+
+.copied {
+  @apply hidden items-center justify-around text-video-white text-xs;
+}
+
+.copied.isCopied {
+  @apply flex;
+}
+
+.copiedIcon {
+  @apply mr-1 h-[18px];
+}
+
+.copyIcon {
+  @apply absolute z-0 h-[18px];
+  right: 8px;
+  top: 11px;
+}
+
+.copyIcon:hover {
+  @apply cursor-pointer;
+}
+
+.reload {
+  @apply absolute z-0 h-[14px] right-[8px] top-[11px];
+}
+
+.reload:hover {
+  @apply cursor-pointer;
+}
+
+.description {
+  @apply mt-4 mb-4 text-xs flex;
+}
+
+.description:last-of-type {
+  @apply hidden lg:inline-block;
+}
+
+.qr {
+  @apply hidden lg:flex 2xl:bg-video-grey-700 rounded-container 2xl:p-4 flex justify-center;
+}
+
+.qr.hide {
+  @apply hidden;
+}
+
+.showQrIndicator {
+  @apply inline-block ml-2 cursor-pointer;
+  transform: rotate(0deg);
+  transition: transform 0.3s;
+}
+
+.showQrIndicator.transform {
+  transform: rotate(-90deg);
+  transition: transform 0.3s;
+}
+
+.code {
+  @apply bg-video-white rounded-container md:p-2 2xl:p-4 h-[80px] w-[80px];
+}
+
+.share {
+  @apply mt-3 w-full;
+}

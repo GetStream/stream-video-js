@@ -1,0 +1,127 @@
+.footer {
+  @apply grid items-center;
+  grid-template-areas: 'settings toggles controls';
+}
+
+@media screen(md) {
+  .footer {
+    @apply w-full;
+    grid-template-columns: 0.5fr 1fr 1fr;
+    grid-template-areas: 'settings controls toggles';
+  }
+}
+
+@media screen(lg) {
+  .footer {
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: 'settings controls toggles';
+  }
+}
+
+.settingsContainer {
+  @apply flex justify-start items-center;
+  grid-area: settings;
+}
+.settings.active > div {
+  @apply bg-video-stream-500;
+}
+
+.settingsPortal {
+  @apply ml-3 md:ml-6;
+  position: absolute;
+  bottom: 0;
+  z-index: 9999;
+  min-width: 250px;
+  margin-left: 0px;
+}
+
+.reactions {
+  @apply hidden xl:flex md:ml-4;
+}
+
+.reactionsPortal {
+  @apply absolute h-auto w-[150px];
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.likeIcon {
+  @apply h-[18px];
+}
+
+.record {
+  @apply hidden lg:flex ml-4;
+}
+
+.record.recording button {
+  @apply w-auto;
+}
+
+.loadingSpinner {
+  @apply h-10 w-10;
+}
+
+.shareScreen {
+  @apply hidden lg:flex ml-4;
+}
+
+.controls {
+  @apply flex justify-center;
+
+  grid-area: controls;
+
+  @apply flex;
+}
+
+.cancel {
+  @apply ml-2 lg:ml-8 flex max-w-[150px];
+  transition: width 100ms;
+  opacity: 1;
+}
+
+.cancel:hover {
+  opacity: 1;
+  width: 100%;
+  transition: width 400ms;
+}
+
+.endCall {
+  @apply hidden sm:flex ml-2 uppercase font-medium;
+  opacity: 0;
+  white-space: nowrap;
+  z-index: -1;
+  position: absolute;
+  transition: all 200ms ease;
+}
+
+.cancel:hover .endCall {
+  @apply hidden sm:flex;
+  opacity: 1;
+  transition-delay: 300ms;
+  position: relative;
+  z-index: 0;
+  transition: all 600ms ease;
+}
+
+.toggles {
+  @apply flex justify-center sm:justify-end items-center;
+  grid-area: toggles;
+}
+
+.participants {
+  @apply hidden md:flex relative;
+}
+
+.chat {
+  @apply ml-3 mr-2 md:ml-0 md:mr-4 relative;
+}
+
+.chatCounter {
+  @apply absolute top-0 right-0 rounded-full flex items-center justify-center -mt-2 -mr-2 h-4 w-4 text-xs bg-video-red-600 text-video-white;
+}
+
+.participantCounter {
+  @apply absolute top-0 right-0 rounded-full flex items-center justify-center mr-1 -mt-2 h-4 w-4 text-xs bg-video-grey-300 text-video-white;
+}

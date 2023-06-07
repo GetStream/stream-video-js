@@ -1,7 +1,8 @@
 import {
-  useActiveCall,
+  name,
+  useCall,
   useConnectedUser,
-  useRemoteParticipants,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
 import { HomeButton } from './LobbyHeader';
@@ -11,22 +12,22 @@ type CallTitleProps = {
 };
 
 export const CallHeaderTitle = ({ title }: CallTitleProps) => {
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
   const connectedUser = useConnectedUser();
-  const remoteParticipants = useRemoteParticipants();
+  const participants = useParticipants({ sortBy: name });
 
   const standInTitle = useMemo(() => {
     if (!connectedUser) return 'Connecting...';
 
-    if (!remoteParticipants.length) return connectedUser.name;
+    if (!participants.length) return connectedUser.name;
     return (
       'Call with: ' +
-      remoteParticipants
+      participants
         .slice(0, 3)
         .map((p) => p.name || p.userId)
         .join(', ')
     );
-  }, [connectedUser, remoteParticipants]);
+  }, [connectedUser, participants]);
 
   if (!activeCall) return null;
 

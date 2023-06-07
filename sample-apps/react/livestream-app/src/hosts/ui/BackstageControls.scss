@@ -1,0 +1,33 @@
+.backstage-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding-bottom: 10px;
+
+  .livestream-toggle-button {
+    background-color: #005fff;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 500;
+    padding: 4px 10px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-left: 15px;
+
+    &:hover {
+      background-color: #0049d6;
+    }
+
+    &.broadcasting {
+      background-color: #ff3742;
+
+      &:hover {
+        background-color: #d62a33;
+      }
+    }
+  }
+}

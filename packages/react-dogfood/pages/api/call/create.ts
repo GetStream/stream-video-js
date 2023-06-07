@@ -30,12 +30,21 @@ const createCallSlackHookAPI = async (
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream Pronto Bot';
   const { _, $0, ...args } = await yargs().parse(req.body.text || '');
-  const queryParams = new URLSearchParams(
-    args as Record<string, string>,
-  ).toString();
+  const queryParams = new URLSearchParams(args as Record<string, string>);
+
+  // handle the special case /pronto --edges
+  if (queryParams.get('edges')) {
+    const message = await listAvailableEdges(client);
+    return res.status(200).json(message);
+  }
 
   try {
-    const call = client.call('default', meetingId());
+    let [type, id] = queryParams.get('cid')?.split(':') || [];
+    if (!id && type) {
+      id = type;
+      type = 'default';
+    }
+    const call = client.call(type || 'default', id || meetingId());
     await call.getOrCreate({
       ring: false,
     });
@@ -49,7 +58,7 @@ const createCallSlackHookAPI = async (
         req.headers.host,
         '/join/',
         call.id,
-        queryParams && `?${queryParams}`,
+        queryParams.toString() && `?${queryParams.toString()}`,
       ]
         .filter(Boolean)
         .join('');
@@ -98,6 +107,53 @@ const notifyError = (message: string) => {
         },
       },
     ],
+  };
+};
+
+const listAvailableEdges = async (client: StreamVideoClient) => {
+  const { edges } = await client.edges();
+  const message = edges
+    .map((edge) => {
+      const url = new URL(edge.latency_test_url);
+      url.pathname = '';
+      return `- ${edge.id}: ${url.toString()}`;
+    })
+    .join('\n');
+
+  // Slack limits the message size to 3000 characters
+  const limit = 2900;
+  const chunks = Math.ceil(message.length / limit);
+  const chunkedMessages = [
+    `
+    Static edges:
+    sfu-000c954.fdc-ams1.stream-io-video.com
+    sfu-039364a.lsw-ams1.stream-io-video.com
+    sfu-9c050b4.ovh-lon1.stream-io-video.com
+    sfu-9c0dc03.ovh-lim1.stream-io-video.com
+    sfu-9f0306f.eqx-nyc1.stream-io-video.com
+    sfu-a69b58a.blu-tal1.stream-io-video.com
+    sfu-e74550c.aws-sin1.stream-io-video.com
+    sfu-f079b1a.dpk-den1.stream-io-video.com
+    sfu-dd73d37.aws-mum1.stream-io-video.com
+    `,
+  ];
+  for (let i = 0; i < chunks; i++) {
+    chunkedMessages.push(message.substring(i * limit, (i + 1) * limit));
+  }
+
+  // https://app.slack.com/block-kit-builder/
+  // useful too for testing the formatting of the Slack messages
+  return {
+    response_type: 'ephemeral', // notify just the initiator
+    blocks: chunkedMessages.map((msg) => {
+      return {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `Available edges: \`\`\`${msg.trim()}\`\`\``,
+        },
+      };
+    }),
   };
 };
 

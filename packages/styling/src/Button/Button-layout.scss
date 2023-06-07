@@ -33,7 +33,7 @@
 .str-video__call-controls__button {
   padding: 0.5rem;
 
-  &--variant-danger {
+  &--variant-danger, &--variant-success {
     padding: 0.5rem 1rem;
   }
 
@@ -43,28 +43,23 @@
     opacity: 0.7;
   }
 
-  .str-video__call-controls__button--icon {
-    mask-repeat: no-repeat;
-    -webkit-mask-repeat: no-repeat;
-    mask-position: center;
-    -webkit-mask-position: center;
-    mask-size: contain;
-    -webkit-mask-size: contain;
-    display: block;
-    width: 1.375rem;
-    height: 1.375rem;
-
-    &-caret-down {
+  .str-video__icon {
+    &--caret-down {
       width: 0.5rem;
       height: 0.5rem;
     }
 
-    &-caret-up {
+    &--caret-up {
       width: 0.5rem;
       height: 0.5rem;
     }
 
-    &-call-end {
+    &--call-end {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    &--call-accept {
       width: 1.5rem;
       height: 1.5rem;
     }

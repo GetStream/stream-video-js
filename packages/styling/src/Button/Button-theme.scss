@@ -18,7 +18,7 @@
 
   /* The background color of the component */
   --str-video__composite-button__button-group-active--background-color: var(
-    --str-video__text-color3
+    --str-video__background-color7
   );
 }
 
@@ -38,6 +38,8 @@
   font-size: 12px;
   line-height: 15px;
   text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .str-video__composite-button__button-group:hover,
@@ -62,137 +64,22 @@
   }
 
   &--variant-danger {
-    background-color: var(--str-video__danger-color1);
+    background-color: var(--str-video__danger-color);
 
     &:hover {
-      background-color: var(--str-video__danger-color2);
+      background-color: var(--str-video__danger-color--accent);
+    }
+  }
+
+  &--variant-success {
+    background-color: var(--str-video__info-color);
+
+    &:hover {
+      background-color: var(--str-video__info-color--accent);
     }
   }
 
   &--enabled {
-    background: var(--str-video__text-color3);
-  }
-
-  .str-video__call-controls__button--icon {
-    background-color: var(--str-video__text-color1);
-
-    &-chat {
-      mask-image: var(--str-video__icon--chat);
-      -webkit-mask-image: var(--str-video__icon--chat);
-    }
-
-    &-reactions {
-      -webkit-mask-image: var(--str-video__icon--reactions);
-      mask-image: var(--str-video__icon--reactions);
-    }
-
-    &-recording-on {
-      mask-image: var(--str-video__icon--recording-on);
-      -webkit-mask-image: var(--str-video__icon--recording-on);
-      background-color: var(--str-video__danger-color1);
-    }
-
-    &-recording-off {
-      mask-image: var(--str-video__icon--recording-off);
-      -webkit-mask-image: var(--str-video__icon--recording-off);
-    }
-
-    &-screen-share-on {
-      mask-image: var(--str-video__icon--screen-share-on);
-      -webkit-mask-image: var(--str-video__icon--screen-share-on);
-    }
-
-    &-screen-share-off {
-      mask-image: var(--str-video__icon--screen-share-off);
-      -webkit-mask-image: var(--str-video__icon--screen-share-off);
-    }
-
-    &-caret-down {
-      transform: rotate(180deg);
-      mask-image: var(--str-video__icon--caret);
-      -webkit-mask-image: var(--str-video__icon--caret);
-    }
-
-    &-caret-up {
-      mask-image: var(--str-video__icon--caret);
-      -webkit-mask-image: var(--str-video__icon--caret);
-    }
-
-    &-caret-right {
-      transform: rotate(90deg);
-      mask-image: var(--str-video__icon--caret);
-      -webkit-mask-image: var(--str-video__icon--caret);
-    }
-
-    &-caret-left {
-      transform: rotate(-90deg);
-      mask-image: var(--str-video__icon--caret);
-      -webkit-mask-image: var(--str-video__icon--caret);
-    }
-
-    &-mic {
-      mask-image: var(--str-video__icon--mic);
-      -webkit-mask-image: var(--str-video__icon--mic);
-    }
-
-    &-mic-off {
-      mask-image: var(--str-video__icon--mic-off);
-      -webkit-mask-image: var(--str-video__icon--mic-off);
-    }
-
-    &-camera {
-      mask-image: var(--str-video__icon--camera);
-      -webkit-mask-image: var(--str-video__icon--camera);
-    }
-
-    &-camera-off {
-      mask-image: var(--str-video__icon--camera-off);
-      -webkit-mask-image: var(--str-video__icon--camera-off);
-    }
-
-    &-call-end {
-      mask-image: var(--str-video__icon--call-end);
-      -webkit-mask-image: var(--str-video__icon--call-end);
-    }
-
-    &-info {
-      -webkit-mask-image: var(--str-video__icon--info-icon);
-      mask-image: var(--str-video__icon--info-icon);
-    }
-
-    &-info-document {
-      -webkit-mask-image: var(--str-video__icon--info-document);
-      mask-image: var(--str-video__icon--info-document);
-    }
-
-    &-stats {
-      -webkit-mask-image: var(--str-video__icon--stats);
-      mask-image: var(--str-video__icon--stats);
-    }
-
-    &-participants {
-      mask-image: var(--str-video__icon--participants);
-      -webkit-mask-image: var(--str-video__icon--participants);
-    }
-
-    &-user-plus {
-      mask-image: var(--str-video__icon--user-plus);
-      -webkit-mask-image: var(--str-video__icon--user-plus);
-    }
-
-    &-speaker {
-      mask-image: var(--str-video__icon--speaker);
-      -webkit-mask-image: var(--str-video__icon--speaker);
-    }
-
-    &-ellipsis {
-      mask-image: var(--str-video__icon--ellipsis);
-      -webkit-mask-image: var(--str-video__icon--ellipsis);
-    }
-
-    &-grid {
-      mask-image: var(--str-video__icon--grid);
-      -webkit-mask-image: var(--str-video__icon--grid);
-    }
+    background: var(--str-video__background-color7);
   }
 }

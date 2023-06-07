@@ -1,5 +1,8 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  useI18n,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import {
@@ -9,12 +12,11 @@ import {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   avatar: {
@@ -30,13 +32,14 @@ const styles = StyleSheet.create({
 
 export const NavigationHeader = () => {
   const videoClient = useStreamVideoClient();
+  const { t } = useI18n();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
       {
-        text: 'Cancel',
+        text: t('Cancel'),
         onPress: () => {},
         style: 'cancel',
       },

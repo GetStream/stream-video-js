@@ -1,0 +1,78 @@
+.root {
+  @apply flex flex-col items-center;
+}
+
+.portalContainer {
+  @apply absolute;
+}
+
+.toggle {
+  @apply flex items-center bg-video-grey-500 rounded-container pl-1 pr-1;
+  transition: background 300ms;
+  transition: border 100ms;
+}
+
+.toggle:hover {
+  @apply bg-video-grey-400 text-video-white border-video-grey-400 cursor-pointer;
+  transition: background 300ms;
+  transition: border 100ms;
+}
+
+.toggle:hover {
+  @apply cursor-pointer;
+}
+
+.toggle.active {
+  @apply bg-video-grey-400;
+}
+
+.toggle.disabled {
+  @apply bg-video-grey-300;
+}
+
+.container {
+  @apply relative;
+}
+
+.button {
+  @apply grid p-0;
+  grid-template-areas: 'prefix toggleIndicator';
+}
+
+.prefix {
+  grid-area: prefix;
+}
+
+.toggleIndicator {
+  @apply bg-video-transparent rounded-container flex items-center  p-1;
+  grid-area: toggleIndicator;
+  width: 15px;
+  height: 100%;
+  transition: background 300ms;
+}
+
+.toggle:hover .toggleIndicator {
+  @apply bg-video-grey-600;
+  transition: background 300ms;
+}
+
+.toggleIndicator.active {
+  @apply bg-video-grey-600;
+}
+
+.toggleIndicator.disabled {
+  @apply bg-video-grey-300;
+}
+
+.toggleIcon {
+  @apply text-video-grey-400;
+  height: 15px;
+}
+
+.toggleIcon.active {
+  @apply rotate-180;
+}
+
+.label {
+  @apply hidden md:flex text-video-white text-xs mt-1;
+}

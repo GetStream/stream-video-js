@@ -2,7 +2,7 @@
   "name": "@stream-io/video-js-root",
   "description": "Stream Video JS SDKs",
   "author": "https://getstream.io",
-  "packageManager": "yarn@3.4.1",
+  "packageManager": "yarn@3.5.0",
   "private": true,
   "license": "See license in LICENSE",
   "workspaces": [
@@ -19,6 +19,7 @@
     "start:react:app": "yarn workspace @stream-io/video-react-sample-app run start",
     "start:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run start",
     "build:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run build",
+    "test:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run test",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "start:react-native:ios:app": "yarn workspace @stream-io/react-native-sample-app run ios",
@@ -27,14 +28,17 @@
     "start:styling": "yarn workspace @stream-io/video-styling run start",
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
+    "start:i18n": "yarn workspace @stream-io/i18n start",
+    "build:i18n": "yarn workspace @stream-io/i18n build",
     "build:angular:deps": "yarn build:client && yarn build:styling",
-    "build:react:deps": "yarn build:client && yarn build:react:bindings && yarn build:react:sdk && yarn build:styling",
-    "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
+    "build:react:deps": "yarn build:client && yarn build:i18n && yarn build:styling && yarn build:react:bindings && yarn build:react:sdk",
+    "build:react-native:deps": "yarn build:client && yarn build:i18n && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
     "build:react:app": "yarn build:react:deps && yarn workspace @stream-io/video-react-sample-app run build",
+    "build:react:video-demo": "yarn build:react:deps && yarn workspace react-video-demo run build:website",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
-    "build:all": "yarn workspaces foreach -vt run build",
+    "build:all": "yarn workspaces foreach -v --topological-dev run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
     "lint:ci:all": "eslint --cache 'packages/**/*.{ts,tsx}'",
@@ -48,9 +52,17 @@
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
     "generate-docs:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run generate-docs",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
-    "bootstrap": "scripts/bootstrap-rn.sh"
+    "bootstrap": "scripts/bootstrap-rn.sh",
+    "release": "nx run-many --target version --parallel=1",
+    "release:18n": "yarn workspace @stream-io/i18n npm publish --access=public",
+    "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
+    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.0.0",
+    "@commitlint/config-angular": "^17.0.0",
+    "@jscutlery/semver": "^2.30.1",
+    "@nrwl/devkit": "^16.0.1",
     "@types/eslint": "^8.4.8",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
@@ -60,11 +72,14 @@
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "ngx-deploy-npm": "^5.2.0",
+    "nx": "16.0.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "vercel": "^28.16.15"
+    "vercel": "^29.3.0"
   },
   "resolutions": {
-    "react-native-pure-jwt@^3.0.1": "patch:react-native-pure-jwt@npm%3A3.0.1#./.yarn/patches/react-native-pure-jwt-npm-3.0.1-3e5e2c9059.patch"
+    "react-native-incall-manager@^4.0.0": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch",
+    "react-native-incall-manager@^4.0.1": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch"
   }
 }

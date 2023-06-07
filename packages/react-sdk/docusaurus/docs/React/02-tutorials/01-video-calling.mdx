@@ -1,0 +1,249 @@
+---
+title: Video Call Tutorial
+description: How to build a video call similar to Zoom or facebook messenger
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+
+import JoinViewImage from '../assets/01-basics/01-tutorial/join-view.png';
+import ConnectingViewImage from '../assets/01-basics/01-tutorial/connecting-view.png';
+import ActiveCallViewImage from '../assets/01-basics/01-tutorial/active-call-view.png';
+
+In this tutorial, we are building a video call application using the Stream Video React SDK. We will be implementing a "Meeting Room" scenario, where users can join and leave the call independently, without causing the call to be terminated. The topics we are covering in this tutorial are:
+
+- Setting up the project
+- Creating the call UI using built-in components
+
+If you are looking to build a "Ring Call" scenario, where the call is dropped, once the number of participants is reduced to 1, then please, follow the guide integration of [video calls in a chat app](../../advanced/chat-with-video)
+
+## Set up for success
+
+This tutorial replicates a creation of an existing sample application. We have made <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial" target="_blank">the source code</a> available for your convenience. Feel free to take a look at the project for a complete overview.
+
+### Create a new project
+
+There are plenty of tools that allow you to set up a React project. We recommend to use <a href="https://vitejs.dev/guide/why.html" target="_blank">Vite</a> because of the excellent developer experience it provides. In this tutorial we will use Vite's react-ts template:
+
+```bash
+yarn create vite stream-video-react-tutorial --template react-ts
+```
+
+### Install the dependencies
+
+The only dependency we need to install is Stream's React SDK `@stream-io/video-react-sdk`:
+
+```bash
+yarn add @stream-io/video-react-sdk
+```
+
+### Stream app
+
+<a href="https://getstream.io/try-for-free/" target="_blank">
+  Register a Stream account
+</a> if you don't have one already. Once logged in, you will be introduced to our
+dashboard. There you can manage your "apps". The "app" represents Stream's dedicated
+infrastructure that will handle you app's video calls.
+
+Make sure to [create a video application](**TODO: image/gif showing the UI creating the app**) in your Stream dashboard. The API key and secret will be generated automatically upon the app's creation. Those are the credentials we will need for authentication.
+
+### App credentials, environment variables, user data
+
+In order to be able to communicate with Stream's back-end video service, you will need to gather the following values and store them in a `.env` file in the root of the project:
+
+```bash
+VITE_STREAM_API_KEY=<your_api_key>
+VITE_STREAM_USER_TOKEN=<manually_generated_token>
+VITE_STREAM_USER_ID=<user_id>
+```
+
+To establish the call, we will need to authenticate ourselves against the Stream's video infrastructure. The authentication is based on JSON Web Tokens (JWT). You can generate JWT for your application by using <a href="https://getstream.io/chat/docs/react/token_generator/" target="_blank">Stream's JWT generator</a>. Token generated with Stream's generator will contain a single field `user_id` in the payload. In the real-life scenario, your client application will need to request short-lived JWT in the runtime from a dedicated back-end service. Such back-end service will be using the Stream app's secret (again to be found in the Stream's dashboard) to generate short-lived JWTs. It will also allow you to include more custom fields in your JWT.
+
+## Building the app
+
+Our app transitions between 3 views:
+
+1. Join view - contains a single "Join" button
+2. Connecting view - contains a loading indicator meanwhile the connection is being established in the background
+3. Active call view
+
+All the code fits into a single `.tsx` file.
+
+<ImageShowcase
+  items={[
+    {
+      image: JoinViewImage,
+      caption: 'Join view',
+      alt: "Application's join view image",
+    },
+    {
+      image: ConnectingViewImage,
+      caption: 'Connecting call view',
+      alt: "Application's connecting view image",
+    },
+    {
+      image: ActiveCallViewImage,
+      caption: 'Active call view',
+      alt: "Application's active call view image",
+    },
+  ]}
+/>
+
+### The App component
+
+The <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/App.tsx" target="_blank">`App` component</a> takes care of the following:
+
+1. Creates a [`StreamVideoClient`](../../call-engine/StreamVideoClient) instance and establishes a WS connection (hook `useCreateStreamVideoClient`)
+2. Provides the `StreamVideoClient` instance to children through [`StreamVideo`](../../call-engine/hooks-and-contexts#streamvideo) provider
+3. Creates a call instance and provides it to children (by [`StreamCall`](../../ui-components/core/stream-call))
+4. Renders the app UI
+
+:::note
+If you would like to connect with a different user than the one specified by your `VITE_STREAM_USER_TOKEN` you can use URL search params to pass custom values for:
+
+1. `user_id` - has to match the token's `user_id`
+2. `ut` - token that will replace the one specified by `VITE_STREAM_USER_TOKEN`
+   :::
+
+:::note
+To connect to the same call from multiple tabs, use URL search param `call_id`. The call id can be found in the active call header and is the second part of the call CID separated by ":" from the call type (for example in "default:123456" the call id is "123456").
+:::
+
+```tsx
+import { useEffect, useMemo } from 'react';
+import {
+  CallControls,
+  CallingState,
+  CallParticipantsView,
+  LoadingIndicator,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  useCall,
+  useCallCallingState,
+  useCreateStreamVideoClient,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+import './style.css';
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, property) => searchParams.get(property as string),
+}) as unknown as Record<string, string | null>;
+
+export default function App() {
+  const client = useCreateStreamVideoClient({
+    apiKey: import.meta.env.VITE_STREAM_API_KEY,
+    tokenOrProvider: params.ut || import.meta.env.VITE_STREAM_USER_TOKEN,
+    user: {
+      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
+    },
+  });
+
+  const callId = useMemo(
+    () => params.call_id || String(Math.round(Math.random() * 100000000)),
+    [],
+  );
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall
+        callType="default"
+        callId={callId}
+        autoJoin={false}
+        data={{ create: true }}
+      >
+        <StreamTheme>
+          <UI />
+        </StreamTheme>
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+### The app UI component
+
+In the UI component we heavily rely on the [`Call` object](../../call-engine/Call) created and provided through [`StreamCall`](../../ui-components/core/stream-call) component. The `Call` object exposes an API to control a call (create, join, leave, etc.). The call connection state can be observed through [`CallingState` object](../../call-engine/hooks-and-contexts#usecallcallingstate) that is constantly updated in response to connection changes. It also lets us know, when we can start to send audio and video data to the server as we do in the `useEffect` hook in our example.
+
+```tsx
+import { useEffect, useMemo } from 'react';
+import {
+  CallControls,
+  CallingState,
+  CallParticipantsView,
+  LoadingIndicator,
+  StreamCall,
+  StreamVideo,
+  useCall,
+  useCallCallingState,
+  useCreateStreamVideoClient,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+import './style.css';
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, property) => searchParams.get(property as string),
+}) as unknown as Record<string, string | null>;
+
+export default function App() {
+    ...
+}
+
+// highlight-start
+export const UI = () => {
+  const call = useCall();
+  const { publishVideoStream, publishAudioStream } = useMediaDevices();
+  const callingState = useCallCallingState();
+
+  useEffect(() => {
+    if (callingState === CallingState.JOINED) {
+      publishVideoStream();
+      publishAudioStream();
+    }
+  }, [publishVideoStream, publishAudioStream, callingState]);
+
+  return (
+    <>
+      {callingState === CallingState.JOINED ? (
+        <div className="str-video__call">
+          <div className="str-video__call__header">
+            <h4 className="str-video__call__header-title">Call: {call.cid}</h4>
+          </div>
+          <CallParticipantsView call={call} />
+          <CallControls />
+        </div>
+      ) : callingState === CallingState.JOINING ? (
+        <LoadingIndicator text="Connecting ..." />
+      ) : [CallingState.LEFT, CallingState.UNKNOWN, CallingState.IDLE].includes(
+          callingState,
+        ) ? (
+        <button onClick={() => call.join()}>Join</button>
+      ) : null}
+    </>
+  );
+};
+// highlight-end
+```
+
+### App styling
+
+The app styles reside in [`style.css`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style.css) that is imported into [`App.tsx`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/App.tsx)
+
+```ts
+import './style.css';
+```
+
+In the project we use pre-built components only. Each component comes with its styling. CSS styles for the SDK components are bundled with ` @stream-io/video-react-sdk`. We import the CSS for the pre-built components into the [`style.css`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/style.css) file:
+
+```css
+@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+```
+
+We also write custom CSS into `style.css` to tweak the page layout.
+
+### Where to go next
+
+In this tutorial, we have built a simple video calling application in simple "meeting room" scenario. Users can join and leave the call independently, without causing the call to be interrupted.
+
+**TODO: Recommendations on the nexts steps**

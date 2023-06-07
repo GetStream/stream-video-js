@@ -1,0 +1,23 @@
+.rmc__channel-preview__call-controls {
+    display: flex;
+    gap: 0.5rem;
+
+  .str-video__call-controls__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+
+    .str-video__icon--call-accept {
+      width: 10px;
+      height: 10px;
+    }
+
+    .str-video__icon--call-end {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}

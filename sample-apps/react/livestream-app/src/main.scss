@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #272a30;
+  color: #fcfcfc;
+  font-family: Roboto, serif;
+}
+
+.livestream-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}

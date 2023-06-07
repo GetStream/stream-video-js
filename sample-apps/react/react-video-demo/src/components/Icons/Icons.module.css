@@ -1,0 +1,4 @@
+.root {
+  display: block;
+  @apply h-6 w-6;
+}

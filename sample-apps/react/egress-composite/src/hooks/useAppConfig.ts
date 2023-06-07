@@ -11,6 +11,7 @@ export type AppConfig = {
   callType: string;
   spotlightMode: SpotlightMode;
   layout: LayoutId;
+  gridSize: number;
 };
 
 export const useAppConfig = () => {
@@ -24,6 +25,7 @@ export const useAppConfig = () => {
     const spotlightMode =
       (urlParams.get('spotlight_mode') as SpotlightMode) || DEFAULT_LAYOUT_ID;
     const layout = (urlParams.get('layout') as LayoutId) || DEFAULT_LAYOUT_ID;
+    const gridSize = Number(urlParams.get('grid.size')) || 25;
 
     return {
       apiKey: apiKey,
@@ -34,6 +36,7 @@ export const useAppConfig = () => {
       baseURL: urlParams.get('base_url')!,
       spotlightMode: spotlightMode,
       layout: layout,
+      gridSize: gridSize,
     };
   }, [query]);
 };

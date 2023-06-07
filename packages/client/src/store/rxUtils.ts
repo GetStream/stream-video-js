@@ -41,3 +41,19 @@ export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
   subject.next(next);
   return next;
 };
+
+/**
+ * Creates a subscription and returns a function to unsubscribe.
+ *
+ * @param observable the observable to subscribe to.
+ * @param handler the handler to call when the observable emits a value.
+ */
+export const createSubscription = <T>(
+  observable: Observable<T>,
+  handler: (value: T) => void,
+) => {
+  const subscription = observable.subscribe(handler);
+  return () => {
+    subscription.unsubscribe();
+  };
+};

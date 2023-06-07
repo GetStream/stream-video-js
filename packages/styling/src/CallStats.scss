@@ -1,9 +1,15 @@
 .str-video__call-stats {
   background-color: var(--str-video__background-color1);
-  border-radius: var(--str-video__border-radius1);
-  padding: 0.625rem 1rem;
-  width: 30%;
-  z-index: 1;
+  border-radius: var(--str-video__border-radius-xs);
+  padding: 0.75rem;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  h3 {
+    margin: unset;
+  }
 
   &.str-video__call-stats-angular {
     width: 400px;
@@ -14,34 +20,17 @@
     }
   }
 
-  .str-video__call-stats__title {
-    .str-video__call-stats__close {
-      float: right;
-      font-size: 1.25rem;
-      color: var(--str-video__text-color2);
-      cursor: pointer;
-      width: 2rem;
-      text-align: center;
-      border-radius: var(--str-video__border-radius1);
-
-      &:hover {
-        background-color: var(--str-video__background-color1);
-      }
-    }
-  }
-
   .str-video__call-stats__card-container {
     --gap: 1rem;
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
     gap: var(--gap);
-    padding: 0 0 1rem 0;
   }
 
   .str-video__call-stats__card {
     background-color: var(--str-video__background-color2);
-    border-radius: var(--str-video__border-radius1);
+    border-radius: var(--str-video__border-radius-xs);
     width: calc(50% - calc(var(--gap) / 2));
     padding: 0.5rem 0.5rem;
 

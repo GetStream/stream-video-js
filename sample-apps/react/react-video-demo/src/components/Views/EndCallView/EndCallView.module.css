@@ -1,0 +1,38 @@
+.root {
+  @apply flex flex-col items-center justify-center bg-video-grey-700;
+  height: 100dvh;
+}
+
+@supports (not (height: 100dvh)) {
+  .root {
+    height: 100vh;
+  }
+}
+
+.panel {
+  @apply mr-4 ml-4 sm:m-0 md:w-6/12  flex flex-col items-center justify-center;
+}
+
+.image {
+  @apply h-20 w-20;
+}
+
+.heading {
+  @apply text-center text-video-white font-extrabold text-2xl md:text-5xl;
+}
+
+.description {
+  @apply mt-4 text-video-white text-center text-base md:text-xl font-light;
+}
+
+.ctas {
+  @apply mt-8 flex items-center justify-center w-full max-w-md;
+}
+
+.cta {
+  @apply ml-4 mr-4 md:ml-8 md:mr-8;
+}
+
+.feedback {
+  @apply mt-8;
+}

@@ -1,0 +1,430 @@
+---
+title: Chat Integration
+description: How to integrate chat & video
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+
+import IncomingCallsImage from '../assets/10-advanced/06-chat-with-video/incoming-calls.png';
+
+In this tutorial we will guide you through the process of embedding video calling capabilities into a chat application. We will cover the following topics:
+
+- Boilerplate setup (clients instantiation, building blocks)
+- Initiating a ring call
+- Handling different call calling states (ringing, active call, call left etc.)
+- Handling different ring call events (call created, accepted, rejected and ended)
+- Handling multiple pending calls
+- Initiating group calls
+- Terminating a call (pending, active)
+
+## Project setup and prerequisites
+
+Make sure you have the following prerequisites checked:
+
+1. [Registered Stream account](https://getstream.io/try-for-free/)
+2. Have an app created in the [Stream's dashboard](https://dashboard.getstream.io/) to obtain app API key and secret.
+3. Initiate the project (you can follow our [introductory tutorial setup guide](../../tutorials/video-calling#set-up-for-success))
+4. Have installed the Stream video and chat SDKs in the project:
+
+```shell
+npm install @stream-io/video-react-sdk stream-chat-react stream-chat
+```
+
+```shell
+yarn add @stream-io/video-react-sdk stream-chat-react stream-chat
+```
+
+:::important
+When implementing a ring call scenario as we do in this demo, it is important to have a good understanding of our **ring call lifecycle**. You can learn more about the topic in the [doc page dedicated to call lifecycles](../../guides/call-lifecycle#ring-call).
+:::
+
+## App boilerplate
+
+We have prepared a [demo application](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone) to accompany this guide. We do not aim to explain the whole demo application source code. The demo application will serve us to demonstrate the main concepts behind the video-in-chat integration.
+
+:::note
+To initiate chat and video clients you are encouraged to use the same API key. The user tokens should be generated with the same secret. **There is no need to create separate apps for chat and video.**
+:::note
+
+## Initiating chat and video clients
+
+Both clients are initiated using React hooks. The video SDK ships with hook [`useCreateStreamVideoClient`](../../call-engine/hooks-and-contexts#usecreatestreamvideoclient) and the hook [`useCreateChatClient`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/hooks/useCreateChatClient.ts) is implemented specifically for this demo app. Both hooks make sure that potentially WS reconnections do not occur until the previous connection has been terminated.
+
+:::warning
+The UI should not be rendered until the chat client's WS connection is in place. Hook `useCreateChatClient` handles this by setting the chat client instance only after connection has been established.
+:::
+
+```tsx
+import type { UserResponse } from 'stream-chat';
+import { Chat } from 'stream-chat-react';
+import {
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { Channel } from './components/Channel';
+import { Sidebar } from './components/Sidebar';
+import { Video } from './components/Video';
+import { useCreateChatClient } from './hooks';
+
+import type { StreamChatType } from './types/chat';
+
+const Root = ({
+  apiKey,
+  user,
+  userToken,
+}: {
+  apiKey: string;
+  user: UserResponse<StreamChatType>;
+  userToken: string;
+}) => {
+  const chatClient = useCreateChatClient<StreamChatType>({
+    apiKey,
+    tokenOrProvider: userToken,
+    userData: user,
+  });
+  const videoClient = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: userToken,
+    user,
+  });
+
+  if (!chatClient) return null;
+
+  return (
+    <Chat client={chatClient}>
+      <StreamVideo client={videoClient}>
+        <Sidebar user={user} />
+        <Channel />
+        <Video />
+      </StreamVideo>
+    </Chat>
+  );
+};
+```
+
+## Initiating a ring call
+
+In the ring call scenario we recommend to first create a call without immediately joining it. Use the `Call` method [`getOrCreate()`](../../call-engine/Call#getorcreate) to accomplish this. An example can be found in [`CreateCallButton` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/CreateCallButton/CreateCallButton.ts) in the demo app:
+
+```tsx
+import { useCallback } from 'react';
+import {
+  MemberRequest,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { useChannelStateContext, useChatContext } from 'stream-chat-react';
+import { LocalPhone } from '@mui/icons-material';
+import { meetingId } from '../../utils/meetingId';
+import type { StreamChatType } from '../../types/chat';
+
+export const CreateCallButton = () => {
+  const videoClient = useStreamVideoClient();
+  const { client } = useChatContext<StreamChatType>();
+  const { channel } = useChannelStateContext<StreamChatType>();
+
+  const createCall = useCallback(() => {
+    videoClient?.call('default', meetingId()).getOrCreate({
+      // highlight-next-line
+      ring: true,
+      data: {
+        custom: {
+          channelCid: channel.cid,
+        },
+        // highlight-next-line
+        members: Object.values(channel.state.members).reduce<MemberRequest[]>(
+          (acc, member) => {
+            if (member.user_id !== client.user?.id) {
+              acc.push({
+                user_id: member.user_id!,
+              });
+            }
+            return acc;
+          },
+          [],
+        ),
+      },
+    });
+  }, [videoClient, channel.cid, channel.state.members, client.user?.id]);
+
+  const disableCreateCall = !videoClient;
+  return (
+    <button
+      className="rmc__button rmc__button--green"
+      disabled={disableCreateCall}
+      onClick={createCall}
+    >
+      <LocalPhone />
+    </button>
+  );
+};
+```
+
+:::note
+There is a flexibility in what channel members will be included in the call. And so the call can be a 1:1 or a group call. In our implementation we include all channel members.
+:::
+
+## Handling the ring call states
+
+Once a ring call is initiated, call members start to receive ring call events (`call.created`, `call.accepted`, `call.rejected`, `call.ended`) over the WebSocket maintained by the video client. The video client updates the [**calls pool**](../../call-engine/hooks-and-contexts#usecalls) state and [**calling state**](../../call-engine/hooks-and-contexts#usecallcallingstate) of individual affected [`Call`](../../call-engine/Call) in response to these events.
+
+### Observing the calls pool state
+
+The array of all [`Call`](../../call-engine/Call) objects representing created pending (not accepted, rejected, neither ended) calls is continuously updated in response to each new call creation. You can use this array of [`Call`](../../call-engine/Call) objects to display **incoming** or **outgoing calls** in your application's UI. In our app the top-level [`Video`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/Video/Video.tsx) component observes the changes using the [`useCalls`](../../call-engine/hooks-and-contexts#usecalls) hook and re-renders the UI to reflect the changes:
+
+```tsx
+import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
+
+import { CallPanel } from './CallPanel';
+
+export const Video = () => {
+  //highlight-next-line
+  const calls = useCalls();
+  return (
+    <>
+      {calls.map((call) => (
+        <StreamCall call={call} autoJoin={false} key={call.cid}>
+          <CallPanel />
+        </StreamCall>
+      ))}
+    </>
+  );
+};
+```
+
+:::note
+To identify an outgoing call, use the [`Call.isCreatedByMe`](../../call-engine/Call#iscreatedbyme) flag.
+:::
+
+In our demo app, we reflect the incoming calls state in channel list. Channel preview shows buttons to accept or reject the incoming call. The outgoing call or incoming call in an active channel is represented by a [`CallPanel` component](../../ui-components/call/pending-call-panel) floating above the chat UI:
+
+<ImageShowcase
+  items={[
+    {
+      image: IncomingCallsImage,
+      caption: 'Incoming calls in channel preview',
+      alt: 'Image of incoming calls in channel preview',
+    },
+  ]}
+/>
+
+This is done by embedding [custom component `ChannelPreviewCallControls`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/ChannelPreview/ChannelPreviewCallControls.tsx) in a [`ChannelPreview` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/ChannelPreview/ChannelPreview.tsx):
+
+```tsx
+import {
+  AcceptCallButton,
+  CallingState,
+  CancelCallButton,
+  useCall,
+  useCallCallingState,
+} from '@stream-io/video-react-sdk';
+import { useChatContext } from 'stream-chat-react';
+
+export const ChannelPreviewCallControls = () => {
+  const { channel: activeChannel } = useChatContext();
+  // highlight-next-line
+  // the Call instance is passed down from StreamCallProvider located in StreamCall
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  const callingToActiveChannel =
+    activeChannel && call && activeChannel.cid === call.data?.custom.channelCid;
+
+  const isRinging = callingState === CallingState.RINGING;
+
+  if (call && isRinging && !callingToActiveChannel) {
+    return (
+      <div className="rmc__channel-preview__call-controls">
+        <AcceptCallButton
+          onClick={(e) => {
+            e.stopPropagation();
+            call.join();
+          }}
+        />
+        <CancelCallButton
+          onClick={(e) => {
+            e.stopPropagation();
+            call.leave({ reject: true });
+          }}
+        />
+      </div>
+    );
+  }
+  return null;
+};
+```
+
+### Observing the state of a specific call
+
+Each call can pass through different states as already described in the [Calling state section](../../guides/call-lifecycle#call-calling-state) of the call lifecycle documentation. The call calling state is made available through [`useCallCallingState` hook](../../call-engine/hooks-and-contexts#usecallcallingstate). Therefore, our [custom `CallPanel` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/Video/CallPanel.tsx) displays different UI (pending call, active call) based on the information provided by the hook:
+
+```tsx
+import {
+  PendingCallPanel,
+  // highlight-next-line
+  CallingState,
+  CallParticipantsView,
+  useCall,
+  useCallCallingState,
+  ScreenShareButton,
+  SpeakingWhileMutedNotification,
+  ToggleAudioPublishingButton,
+  ToggleVideoPublishingButton,
+  CancelCallButton,
+  useCallMetadata,
+} from '@stream-io/video-react-sdk';
+import { useChatContext } from 'stream-chat-react';
+import { useState } from 'react';
+import { useDraggable } from '../../hooks';
+
+export const CallPanel = () => {
+  const call = useCall();
+  // highlight-next-line
+  const callingState = useCallCallingState();
+  const metadata = useCallMetadata();
+  const { channel: activeChannel } = useChatContext();
+  const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
+  useDraggable(panelElement);
+
+  if (!call) return null;
+
+  const callingToActiveChannel =
+    activeChannel?.cid === metadata?.custom.channelCid;
+
+  // highlight-next-line
+  if (CallingState.RINGING === callingState && !callingToActiveChannel)
+    return null;
+
+  // highlight-next-line
+  if (callingState === CallingState.JOINED) {
+    return (
+      <div
+        className="str-video__call-panel rmc__call-panel-wrapper"
+        ref={setPanelElement}
+      >
+        <CallParticipantsView call={call} />
+        <div className="rmc__active-call-controls">
+          <ScreenShareButton />
+          <SpeakingWhileMutedNotification>
+            <ToggleAudioPublishingButton />
+          </SpeakingWhileMutedNotification>
+          <ToggleVideoPublishingButton />
+          <CancelCallButton />
+        </div>
+      </div>
+    );
+  } else if (
+    // highlight-next-line
+    [CallingState.RINGING, CallingState.JOINING].includes(callingState)
+  ) {
+    return (
+      <div className="rmc__call-panel-wrapper" ref={setPanelElement}>
+        <PendingCallPanel />
+      </div>
+    );
+  }
+
+  return null;
+};
+```
+
+## Terminating a call
+
+What call termination means depends on the perspective:
+
+1. A user can reject an incoming pending call.
+2. A user can end / cancel own outgoing pending call.
+3. A call participant (who joined a call) can leave a call.
+
+In case of the group call scenario, a single user rejecting an incoming call or participant leaving a call does not terminate the call for anybody else. However, a user who initiated a pending call will end it for everybody if it has not been joined by others yet. Call is ended also, if the last member rejected the incoming call.
+
+A user who rejected or left a call can re-join the same call again as long as the call has not been ended. The call cannot be re-joined only if ended.
+
+So depending on the context, we associate a bit different click handlers with the button, that terminates the call for the current user:
+
+**Reject an incoming call**
+Our [`PendingCallControls`](../../ui-components/call/pending-call-panel/#pending-call-controls) attaches the following callback to the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button that rejects the call:
+
+```tsx
+<CancelCallButton
+  onClick={() => {
+    call.leave({ reject: true });
+  }}
+/>
+```
+
+**End/Cancel an outgoing call & Leave already joined call**
+The default callback of the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button is pure `call.leave()` without any parameters. Again the [`PendingCallControls`](../../ui-components/call/pending-call-panel/#pending-call-controls) as well as the demo's active call panel components make use of this by not overriding the default `onClick`:
+
+```tsx
+<CancelCallButton />
+```
+
+## Adding default styles
+
+In order the default styles that come with both the chat and video SDKs can be applied, we import them into the file [`index.scss`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/style/index.scss):
+
+```scss
+@layer default-chat-sdk {
+  @import 'stream-chat-react/dist/scss/v2/index.scss';
+}
+
+@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+```
+
+File [`index.scss`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/style/index.scss) is then imported into [`App.tsx`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/App.tsx). Additionally, we add [`StreamTheme`](../../ui-components/video-theme) component to wrap the app in an element carrying CSS class `str-video`. This will make sure all the variables and styles are applied to the child components:
+
+```tsx
+import type { UserResponse } from 'stream-chat';
+import { Chat } from 'stream-chat-react';
+import {
+  StreamTheme,
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { Channel } from './components/Channel';
+import { Sidebar } from './components/Sidebar';
+import { Video } from './components/Video';
+import { useCreateChatClient } from './hooks';
+
+//highlight-next-line
+import './styles/index.scss';
+
+import type { StreamChatType } from './types/chat';
+
+const Root = ({
+  apiKey,
+  user,
+  userToken,
+}: {
+  apiKey: string;
+  user: UserResponse<StreamChatType>;
+  userToken: string;
+}) => {
+  const chatClient = useCreateChatClient<StreamChatType>({
+    apiKey,
+    tokenOrProvider: userToken,
+    userData: user,
+  });
+  const videoClient = useCreateStreamVideoClient({
+    apiKey,
+    tokenOrProvider: userToken,
+    user,
+  });
+
+  if (!chatClient) return null;
+
+  return (
+    // highlight-next-line
+    <StreamTheme as="main" className="main-container">
+      <Chat client={chatClient}>
+        <StreamVideo client={videoClient}>
+          <Sidebar user={user} />
+          <Channel />
+          <Video />
+        </StreamVideo>
+      </Chat>
+      {/*// highlight-next-line*/}
+    </StreamTheme>
+  );
+};
+```

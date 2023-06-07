@@ -7,24 +7,33 @@
   flex-direction: column;
   gap: 1px;
 
-  .str-video__generic-menu-item {
+  .str-video__generic-menu--item {
     display: flex;
     button {
       all: unset;
       width: 100%;
       font-size: 13px;
-      padding: 5px 10px 5px 26px;
+      padding: 5px 10px;
       border-radius: var(--str-video__border-radius-xs);
-
+      gap: 10px;
       display: flex;
       align-items: center;
       position: relative;
+
+      .str-video__icon {
+        width: 1.1rem;
+        height: 1rem;
+      }
     }
+
     // TODO: remove once "device selector" component becomes reusable
+    button[aria-selected] {
+      padding: 5px 10px 5px 26px;
+    }
     button[aria-selected='true']::after {
       content: '●';
       font-size: 10px;
-      left: 8px;
+      left: 10px;
       position: absolute;
     }
   }

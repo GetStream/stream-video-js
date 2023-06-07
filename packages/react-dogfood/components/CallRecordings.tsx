@@ -6,7 +6,7 @@ import {
   IconButton,
   MenuToggle,
   ToggleMenuButtonProps,
-  useActiveCall,
+  useCall,
   useCallRecordings,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
@@ -17,7 +17,7 @@ const POLL_INTERVAL_MS = 10 * 1000;
 export const CallRecordings = () => {
   const callRecordings = useCallRecordings();
   const client = useStreamVideoClient();
-  const activeCall = useActiveCall();
+  const activeCall = useCall();
 
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
   const recordingPollRequestsCount = useRef(0);
@@ -40,6 +40,7 @@ export const CallRecordings = () => {
           const response = await activeCall.queryRecordings();
           recordings = response.recordings;
         } catch (e) {
+          console.error('Failed to query recordings', e);
         } finally {
           recordingPollRequestsCount.current++;
           const hasNewRecordings = callRecordings.length < recordings.length;

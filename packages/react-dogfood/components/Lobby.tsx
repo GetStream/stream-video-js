@@ -1,15 +1,21 @@
-import { useEffect, useMemo } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
+import { useEffect, useMemo, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
+  checkIfAudioOutputChangeSupported,
+  DeviceSelectorAudioInput,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
-  ToggleCameraPreviewButton,
-  useMediaDevices,
+  ToggleVideoPreviewButton,
+  useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
-import { LobbyHeader } from './LobbyHeader';
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
+import { LobbyHeader } from './LobbyHeader';
+import { ParticipantsPreview } from './ParticipantsPreview';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -22,11 +28,17 @@ const subtitles = [
 
 type LobbyProps = {
   onJoin: () => void;
+  callId?: string;
+  enablePreview?: boolean;
 };
-export const Lobby = ({ onJoin }: LobbyProps) => {
+export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { initialVideoState, isAudioOutputChangeSupported } = useMediaDevices();
+  const [isAudioOutputChangeSupported] = useState(() =>
+    checkIfAudioOutputChangeSupported(),
+  );
+  const { t } = useI18n();
 
+  const router = useRouter();
   useEffect(() => {
     if (status === 'unauthenticated') {
       void signIn();
@@ -52,37 +64,41 @@ export const Lobby = ({ onJoin }: LobbyProps) => {
         spacing={2}
         flexGrow={1}
       >
+        <Box
+          sx={{
+            position: 'fixed',
+            left: '1rem',
+            top: '80px',
+          }}
+        >
+          <ParticipantsPreview />
+        </Box>
         <Stack spacing={2} alignItems="center">
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">
               Stream Meetings
             </Typography>
 
-            <Typography
-              textAlign="center"
-              color={
-                initialVideoState.type === 'playing'
-                  ? 'currentcolor'
-                  : 'transparent'
-              }
-              variant="subtitle1"
-            >
+            <Typography textAlign="center" variant="subtitle1">
               {subtitle}
             </Typography>
-
-            <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                marginTop: '0.75rem',
-              }}
-            >
-              <ToggleAudioPreviewButton />
-              <ToggleCameraPreviewButton />
-              {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
-            </div>
+            {enablePreview && (
+              <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
+            )}
+            {enablePreview && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  marginTop: '0.75rem',
+                }}
+              >
+                <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
+                <ToggleVideoPreviewButton />
+                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
+              </div>
+            )}
           </Box>
           <Button
             style={{ width: '200px' }}
@@ -90,10 +106,26 @@ export const Lobby = ({ onJoin }: LobbyProps) => {
             variant="contained"
             onClick={onJoin}
           >
-            Join
+            {t('Join')}
           </Button>
+          {!router.pathname.includes('/guest') ? (
+            <Link href={`/guest?callId=${callId}`}>
+              <Button>Join as guest or anonymously</Button>
+            </Link>
+          ) : (
+            <Link href={`/join/${callId}`}>
+              <Button>Join with your Stream Account</Button>
+            </Link>
+          )}
         </Stack>
       </Stack>
     </Stack>
   );
 };
+
+const LobbyToggleAudioMenu = () => (
+  <>
+    <DeviceSelectorAudioInput />
+    <AudioVolumeIndicator />
+  </>
+);

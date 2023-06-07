@@ -48,207 +48,49 @@ npx react-native init StreamMeetingTutorial --template react-native-template-typ
 
 Follow this [guide](01-basics/03-installation.mdx) to install the dependencies and setup the project.
 
-## Creating and providing the Video Client
-
-We will start by creating a simple video meeting with Stream's Video SDK.
-
-### Create a StreamVideoClient
-
-First things first we will create a `StreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
-This expects an API key as the first argument. It also expects `options` and Call configuration object for type `meeting`(`CALL_CONFIG.meeting`).
-The call configs helps adding some default configs of the meeting.
-
-```tsx
-import React from 'react';
-import { StreamVideoClient } from '@stream-io/video-client';
-
-const user = {
-  id: 'micheal',
-  name: 'Micheal',
-  imageUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
-};
-const USER_TOKEN = 'YOUR_TOKEN';
-const API_KEY = 'YOUR_TOKEN';
-const videoClient = new StreamVideoClient(API_KEY, {}, CALL_CONFIG.meeting);
-```
-
-### Connecting and disconnecting from the video client
-
-We will connect to the Stream's client instance we've created right after the component has mounted.
-When the component un-mounts we will disconnect from the client.
-
-```tsx
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, SafeAreaView, StyleSheet} from 'react-native';
-
-...
-const App = () => {
-  const [connected, setConnected] = useState(false);
-  const [error, setError] = useState(undefined);
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        await videoClient.connect(user, USER_TOKEN);
-        setConnected(true);
-      } catch (err) {
-        console.error('Failed to establish connection', err);
-      }
-    };
-    run();
-
-    return () => {
-      videoClient.disconnect();
-    };
-  }, []);
-
-  if (!connected) {
-    return (
-      <SafeAreaView style={{flex: 1}}>
-        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-      </SafeAreaView>
-    );
-  }
-
-  return !error ? (
-    <SafeAreaView style={{flex: 1}}>
-      <Text>We're connected now and ready to go 🚀</Text>
-    </SafeAreaView>
-  ) : (
-    <Text>{error}</Text>
-  );
-};
-```
-
-For simplicity you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
-
-### Provide the video client logic to the rest of the app
-
-Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
-
-The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
-
-_Note: Make sure to wrap your entire application in `StreamVideo`._
-
-```tsx title="App.tsx"
-import React from 'react';
-import {ActivityIndicator, StyleSheet} from 'react-native';
-import {StreamMeeting, StreamCall } from '@stream-io/video-react-native-sdk';
-...
-
-const App = () => {
-  const {videoClient} = useVideoClient({
-    user: user,
-    token: user?.token,
-  });
-
-  if (!videoClient) {
-    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
-  }
-
-  return (
-    <StreamVideo client={videoClient}>
-      {children}
-    </StreamVideo>
-  );
-};
-```
-
-### Adding call cycle handlers
-
-`StreamVideo` component has a `callCycleHandlers` prop of type object that expects `onActiveCall` and `onHangupCall` handlers to deal with the case when the call is active and when the call is hung up. These handlers can be used to navigate to particular screens depending on the state.
-
-An example can be seen below:
-
-```tsx title="App.tsx"
-import React from 'react';
-import {ActivityIndicator, StyleSheet} from 'react-native';
-import {StreamMeeting, StreamCall } from '@stream-io/video-react-native-sdk';
-...
-
-const App = () => {
-  ...
-
-  return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
-      }}>
-      {children}
-    </StreamVideo>
-  );
-};
-```
-
 ## Planning the Screens
 
-The app is supposed to have 4 screens each for entering meeting id, lobby view, active call and call participants info screen.
-
+The app is supposed to have 2 screens, one for creating a meeting with a meeting id through a text input, and the other for handling the meeting.
 We use [react-navigation](http://reactnavigation.org/) to set up the navigator. To do this, we will firstly define the types.
 
 ```tsx title="src/types.ts"
 export type NavigationStackParamsList = {
-  CallLobbyScreen: { callId: string };
-  ActiveCallScreen: undefined;
-  CallParticipantsInfoScreen: undefined;
   JoinMeetingScreen: undefined;
+  MeetingScreen: { callId: string; callType: string };
 };
 ```
 
-Finally setup the stack navigator and the stack screen.
+Finally, set up the stack navigator and the stack screen.
 
 ```tsx title="App.tsx"
 import React from 'react';
 import { NavigationStackParamsList } from './src/types';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { StreamVideo } from '@stream-io/video-react-native-sdk';
 import { JoinMeetingScreen } from './src/screens/JoinMeetingScreen';
-import { LobbyViewScreen } from './src/screens/LobbyViewScreen';
-import { ActiveCallScreen } from './src/screens/ActiveCallScreen';
-import { CallParticipansInfoScreen } from './src/screens/CallParticipantsInfoScreen';
+import { MeetingScreen } from './src/screens/MeetingScreen';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
-const Navigator = () => {
-  ...
-
+const UltimateRoot = () => {
   return (
-    <StreamVideo
-      client={videoClient}
-      callCycleHandlers={{
-        onActiveCall: () => navigation.navigate('ActiveCallScreen'),
-        onHangupCall: () => navigation.navigate('JoinMeetingScreen'),
-      }}>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="JoinMeetingScreen"
-          component={JoinMeetingScreen}
-        />
-        <Stack.Screen
-          name="CallLobbyScreen"
-          component={LobbyViewScreen}
-        />
-        <Stack.Screen
-          name="ActiveCallScreen"
-          component={ActiveCallScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="CallParticipantsInfoScreen"
-          component={CallParticipansInfoScreen}
-        />
-      </Stack.Navigator>
-    </StreamVideo>
+    <Stack.Navigator>
+      <Stack.Screen name="JoinMeetingScreen" component={JoinMeetingScreen} />
+      <Stack.Screen
+        name="MeetingScreen"
+        component={MeetingScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 };
 
 function App(): JSX.Element {
   return (
     <NavigationContainer>
-      <Navigator />
+      {/* Providing our app's global state*/}
+      {/*Root of our app*/}
+      <UltimateRoot />
     </NavigationContainer>
   );
 }
@@ -256,18 +98,15 @@ function App(): JSX.Element {
 export default App;
 ```
 
-### Join Meeting screen
+### Creating Join Meeting screen
 
 This screen is required to have a text input where the id of the meeting to be joined can be entered and a button to create/start the call.
-
 We can use the create call button to show/navigate to LobbyView component/screen.
-
 Our implementation of this screen is as follows:
 
 ```tsx title="src/screens/JoinMeetingScreen.tsx"
 import React, { useCallback, useState } from 'react';
-import { TextInput, SafeAreaView, View, Text, Button } from 'react-native';
-
+import { Button, SafeAreaView, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NavigationStackParamsList } from '../types';
 
@@ -277,12 +116,15 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 >;
 
 export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
-  const [callID, setCallId] = useState('');
+  const [callId, setCallId] = useState<string>('');
   const { navigation } = props;
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('CallLobbyScreen', { callId: callID });
-  }, [navigation, callID]);
+    navigation.navigate('MeetingScreen', {
+      callId: callId,
+      callType: 'default',
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView>
@@ -290,13 +132,13 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         <Text>{'Whats the call ID?'}</Text>
       </View>
       <TextInput
-        value={callID}
+        value={callId}
         onChangeText={(text) => setCallId(text.trim().split(' ').join('-'))}
       />
       <Button
-        title={'Create meeting with callID: ' + callID}
+        title={'Create meeting with callID: ' + callId}
         color="blue"
-        disabled={!callID}
+        disabled={!callId}
         onPress={joinCallHandler}
       />
     </SafeAreaView>
@@ -304,87 +146,229 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 };
 ```
 
-### Render the Lobby View component
+## Creating Meeting Screen
 
-To render the call lobby component, you can import `LobbyView` component from the Video SDK and use it in the Screen/View. `LobbyView` component expects a meeting id that will be used to join the call.
+### Creating and providing the Video Client
 
-```tsx title="src/screens/LobbyViewScreen.tsx"
+We will start by creating a simple video meeting with Stream's Video SDK.
+
+#### Create a video client
+
+To create a client, we can use `useCreateStreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
+This expects an API key as the first argument, user token as the second and the user object with id, name, image and other details.
+The `useCreateStreamVideoClient` is internally responsible to create a client, connect with the user and disconnect with the user when the component is unmounted.
+
+```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import { LobbyView } from '@stream-io/video-react-native-sdk';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { NavigationStackParamsList } from '../types';
+import { StreamVideoClient } from '@stream-io/video-client';
 
-type CallLobbyScreenProps = NativeStackScreenProps<
-  NavigationStackParamsList,
-  'CallLobbyScreen'
->;
+export const MeetingScreen = () => {
+  const user = {
+    id: 'micheal',
+    name: 'Micheal',
+    imageUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
+  };
+  const USER_TOKEN = 'YOUR_TOKEN';
+  const API_KEY = 'YOUR_TOKEN';
+  const videoClient = useCreateStreamVideoClient({
+    API_KEY,
+    tokenOrProvider: USER_TOKEN,
+    user,
+  });
 
-export const LobbyViewScreen = (props: CallLobbyScreenProps) => {
-  const { route } = props;
-  const {
-    params: { callId },
-  } = route;
-
-  return <LobbyView callID={callId} onActiveCall={onActiveCall} />;
+  ...
 };
 ```
 
-### Rendering the Active call view
+#### Provide the video client logic to the rest of the app
 
-To render the active call view, you can import `ActiveCall` component from the Video SDK and use it in the Screen/View where you want to render it. This component expects a handler to deal with the case of what should happen when user clicks on the Participants View icon(`onOpenCallParticipantsInfoView`).
+Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
+The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
 
-```tsx title="src/screens/ActiveCallScreen.tsx"
-import React, { useCallback } from 'react';
-import { ActiveCall, useActiveCall } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet } from 'react-native';
-import { NavigationStackParamsList } from '../types';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+```tsx title="src/screens/MeetingScreen.tsx"
+import React from 'react';
+import {ActivityIndicator, StyleSheet} from 'react-native';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
+...
 
-type ActiveCallScreenProps = NativeStackScreenProps<
-  NavigationStackParamsList,
-  'ActiveCallScreen'
->;
+const MeetingScreen = () => {
+  const user = {
+    id: 'micheal',
+    name: 'Micheal',
+    imageUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
+  };
+  const USER_TOKEN = 'YOUR_TOKEN';
+  const API_KEY = 'YOUR_TOKEN';
+  const videoClient = useCreateStreamVideoClient({
+    API_KEY,
+    tokenOrProvider: USER_TOKEN,
+    user,
+  });
 
-export const ActiveCallScreen = ({ navigation }: ActiveCallScreenProps) => {
-  const activeCall = useActiveCall();
-
-  // Handler executed when the call participants icon is clicked. This is used to render CallParticipantsInfoView.
-  const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
-    navigation.navigate('CallParticipantsInfoScreen');
-  }, [navigation]);
-
-  // Since the call takes time to join we show an activityindicator until then.
-  if (!activeCall) {
+  if (!videoClient) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
+
   return (
-    <ActiveCall
-      onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoViewHandler}
-    />
+    <StreamVideo
+      client={videoClient}
+    >
+      {children}
+    </StreamVideo>
   );
 };
 ```
 
-### Rendering the CallParticipantsInfoView component
+### Providing and creating call
 
-To render the call participants info view, you can import `CallParticipantsInfoView` from the Video SDK and use it in the Screen/View where you want to render it.
+Our `StreamCall` component internally serves the purpose of creating the call for the given call id and call type. We can use it and wrap it to the screen/component where the call should be available.
 
-```tsx title="src/screens/CallParticipansInfoScreen.tsx"
+```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import { CallParticipantsInfoView } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { StreamVideo, StreamCall } from '@stream-io/video-react-native-sdk';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from '../types';
 
-export const CallParticipansInfoScreen = () => {
-  return <CallParticipantsInfoView />;
+type Props = NativeStackScreenProps<NavigationStackParamsList, 'MeetingScreen'>;
+
+const MeetingScreen = (props: Props) => {
+  ...
+  const { route } = props;
+  const {
+    params: { callId, callType },
+  } = route;
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamCall callId={callId} callType={callType}>
+        {children}
+      </StreamCall>
+    </StreamVideo>
+  );
 };
+```
+
+### Adding call cycle handlers
+
+`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` and `onCallJoining` handlers (among other handlers) to deal with transitions between the call states.
+These handlers can be used to perform preparation/teardown tasks or navigation between screens.
+
+An example can be seen below:
+
+```tsx title="src/screens/MeetingScreen.tsx"
+import { StreamVideo, StreamCall } from '@stream-io/video-react-native-sdk';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from '../types';
+
+type Props = NativeStackScreenProps<NavigationStackParamsList, 'MeetingScreen'>;
+
+const MeetingScreen = (props: Props) => {
+  const [show, setShow] = useState<
+    'lobby' | 'loading' | 'active-call'
+  >('lobby');
+
+  ...
+  const { navigation, route } = props;
+  const {
+    callParams: { callId, callType },
+  } = route;
+  ...
+
+  const onJoin = () => {
+    setShow('active-call');
+  };
+
+  const onLeave = () => {
+    setShow('lobby');
+    navigation.goBack();
+  };
+
+  const onJoining = () => {
+    setShow('loading');
+  };
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamCall
+        callId={callId}
+        callType={callType}
+        callCycleHandlers={{
+          onCallJoined: onJoin,
+          onCallJoining: onJoining,
+          onCallHungUp: onLeave,
+        }}
+      >
+        {children}
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+### Rendering the LobbyView and ActiveCall components
+
+To render the call lobby component and active call components, you can import `LobbyView` and `ActiveCall` component from the Video SDK and use it
+in the Screen/View.
+
+```tsx title="src/screens/MeetingScreen.tsx"
+import React from 'react';
+import { ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import {
+  LobbyView,
+  ActiveCall,
+} from '@stream-io/video-react-native-sdk';
+
+export const MeetingScreen = () => {
+  const [show, setShow] = useState<'lobby' | 'loading' | 'active-call'>(
+    'lobby',
+  );
+  ...
+  let ComponentToRender: JSX.Element | null = null;
+
+  if (show === 'lobby') {
+    ComponentToRender = <LobbyView />;
+  } else if (show === 'loading') {
+    ComponentToRender = (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  } else {
+    ComponentToRender = <ActiveCall />;
+  }
+
+  return (
+    <StreamVideo client={videoClient}>
+      <StreamCall
+        callId={callId}
+        callType={callType}
+        callCycleHandlers={{
+          onCallJoined: onJoin,
+          onCallJoining: onJoining,
+          onCallHungUp: onLeave,
+        }}
+      >
+        {ComponentToRender}
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 ```
 
 ## Further Integration
 
-Congratulations on completing the Stream Video React Native SDK tutorial. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
+Congratulations on completing this tutorial. You've learned how to build two very popular use cases - Meeting and Ringing Calls. However, our SDK supports multiple other use cases and more advanced features. If you're looking to integrate more of our supported functionality, we recommend checking out the following guides:
 
 [//]: # '* [guide](05-advanced/02-push-notification/01-overview.mdx)'
 
-(../02-guides/04-socket-events.mdx)
+(../02-guides/05-socket-events.mdx)
 
 - [Call Lifecycle](../02-guides/02-call-lifecycle.mdx): It's important to understand the lifecycle of our SDK and Calls to properly build complex use cases for your users.
 - [Call Engine](../02-guides/03-call-engine.mdx): If you're looking to utilize our state machine to the fullest, explore what our internal CallEngine does and how to listen to state.

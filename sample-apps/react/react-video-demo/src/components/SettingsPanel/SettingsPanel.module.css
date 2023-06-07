@@ -1,0 +1,43 @@
+.root {
+  @apply flex flex-col bg-video-grey-500 rounded-container pt-4 pb-4 mb-4 text-video-white;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.list {
+  @apply flex flex-col;
+}
+
+.item {
+  @apply flex items-center p-2 border-b-2 border-video-grey-700;
+}
+
+.item.settings {
+  @apply sm:border-b-0;
+}
+
+.participants,
+.chat,
+.leave {
+  @apply flex sm:hidden;
+}
+
+.share,
+.record {
+  @apply flex lg:hidden;
+}
+
+.settingsIcon {
+  @apply mr-4 text-video-grey-400 h-5;
+}
+
+.item:last-of-type {
+  @apply border-0;
+}
+
+.item:hover {
+  @apply cursor-pointer;
+}
+
+.item:hover .settingsIcon {
+  @apply text-video-white;
+}

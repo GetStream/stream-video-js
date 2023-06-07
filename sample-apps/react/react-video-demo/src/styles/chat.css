@@ -1,0 +1,107 @@
+.str-chat {
+  --str-chat__primary-color: var(--color-video-grey-600);
+  --str-chat__primary-overlay-color: var(--color-video-grey-800);
+  --str-chat__primary-color-low-emphasis: var(--str-chat__blue700);
+  --str-chat__active-primary-color: var(--str-chat__blue600);
+  --str-chat__on-primary-color: var(--str-chat__grey50);
+  --str-chat__background-color: var(--color-video-grey-600);
+  --str-chat__secondary-background-color: var(--str-chat__grey900);
+  --str-chat__primary-surface-color: var(--color-video-grey-700);
+
+  --str-chat__message-input-background-color: var(--color-video-grey-800);
+
+  --str-chat__own-message-bubble-background-color: #272a30;
+
+  --str-chat__message-reactions-option-selected-background-color: var(
+    --color-video-grey-600
+  );
+  --str-chat__own-message-reaction-color: #ffffff;
+  --str-chat__own-message-reaction-background-color: #121416;
+  --str-chat__avatar-background-color: #005fff;
+}
+
+.str-chat__channel .str-chat__container {
+  @apply bg-video-black md:bg-video-grey-500;
+}
+
+.str-chat__channel .str-chat__container .str-chat__main-panel {
+  @apply flex;
+}
+
+.str-chat__main-panel-inner {
+  grid-area: messages;
+  height: calc(100% - 60px);
+  flex: 1;
+  display: flex;
+}
+
+.str-chat__message-input {
+  grid-area: input;
+  background: #121416;
+  box-shadow: 0px -0.807453px 0px #272a30;
+}
+
+.str-chat__list {
+  overflow-y: auto;
+}
+
+.str-chat__message-actions-box:not(
+    .str-chat__message-actions-box-angular
+  ).str-chat__message-actions-box--mine {
+  inset-inline-start: -50%;
+}
+
+.str-chat__reaction-selector
+  .str-chat__message-reactions-options
+  .str-chat__message-reactions-option {
+  height: 20px;
+  width: 20px;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.str-chat__modal--open .str-chat__modal__inner {
+  width: 90%;
+}
+
+@media screen(md) {
+  .str-chat__modal--open .str-chat__modal__inner {
+    width: 40%;
+  }
+}
+
+.str-chat__attachment-preview-list
+  button.str-chat__attachment-preview-delete
+  svg {
+  @apply bg-video-white/50 h-6 w-6;
+}
+
+.str-chat__attachment-preview-list
+  button.str-chat__attachment-preview-delete
+  svg
+  path {
+  @apply fill-video-black;
+}
+
+.str-chat__attachment-preview-list .str-chat__attachment-list-scroll-container {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 155px;
+}
+
+.str-chat__attachment-list
+  .str-chat__message-attachment--gallery
+  .str-chat__gallery
+  .str-chat__gallery-placeholder
+  p {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.str-chat__message-simple-name {
+  font-weight: bold;
+}
+
+.str-chat__list-notifications {
+  display: none;
+}

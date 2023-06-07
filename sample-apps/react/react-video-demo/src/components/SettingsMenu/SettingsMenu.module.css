@@ -1,0 +1,18 @@
+.root {
+  @apply flex flex-col bg-video-grey-500 rounded-container  mb-4;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  pointer-events: initial;
+}
+
+.header {
+  @apply text-video-white p-4 flex;
+  font-weight: 400;
+  border-bottom: 1px solid #121416;
+}
+
+.heading {
+  @apply ml-2 font-semibold text-lg;
+}
+.body {
+  @apply pl-4 pb-4 pr-4;
+}

@@ -1,6 +1,6 @@
 import { Comparator } from './';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { StreamVideoParticipant } from '../rtc/types';
+import { StreamVideoParticipant } from '../types';
 
 /**
  * A comparator which sorts participants by the fact that they are the dominant speaker or not.
@@ -69,8 +69,14 @@ export const publishingAudio: Comparator<StreamVideoParticipant> = (a, b) => {
  * @param b the second participant.
  */
 export const pinned: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (a.isPinned && !b.isPinned) return -1;
-  if (!a.isPinned && b.isPinned) return 1;
+  if (a.pinnedAt && b.pinnedAt) {
+    if (a.pinnedAt > b.pinnedAt) return -1;
+    if (a.pinnedAt < b.pinnedAt) return 1;
+  }
+
+  if (a.pinnedAt && !b.pinnedAt) return -1;
+  if (!a.pinnedAt && b.pinnedAt) return 1;
+
   return 0;
 };
 

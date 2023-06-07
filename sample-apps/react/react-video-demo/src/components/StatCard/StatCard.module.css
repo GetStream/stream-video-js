@@ -1,0 +1,24 @@
+.root {
+  @apply p-2 text-video-white bg-video-grey-700;
+  border-radius: 3px;
+}
+
+.label {
+  @apply flex items-center font-medium  text-video-grey-400 uppercase text-xs  tracking-wider;
+}
+
+.info {
+  @apply h-4 w-4 ml-2  text-video-grey-400;
+}
+
+.info:hover {
+  @apply cursor-pointer;
+}
+
+.value {
+  @apply flex items-center font-bold text-sm mt-2;
+}
+
+.condition {
+  @apply ml-2;
+}

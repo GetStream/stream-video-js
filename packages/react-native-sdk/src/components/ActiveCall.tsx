@@ -1,26 +1,29 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  StreamCallProvider,
-  useActiveCall,
+  useCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { useCallCycleContext } from '../contexts';
-import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { CallParticipantsScreenView } from './CallParticipantsScreenView';
+import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
+import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
+import { usePermissionRequest } from '../hooks/usePermissionRequest';
+import { CallParticipantsBadge } from './CallParticipantsBadge';
+import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * Props to be passed for the ActiveCall component.
  */
 export interface ActiveCallProps {
   /**
-   * Handler called when the participants info button is pressed in the active call screen.
+   * The mode of the call view. Defaults to 'grid'.
+   * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
-  onOpenCallParticipantsInfoView: () => void;
+  mode?: 'grid' | 'spotlight';
 }
 /**
  * View for an active call, includes call controls and participant handling.
@@ -31,23 +34,35 @@ export interface ActiveCallProps {
  */
 
 export const ActiveCall = (props: ActiveCallProps) => {
-  const activeCall = useActiveCall();
-  if (!activeCall) return null;
+  const activeCall = useCall();
+  const activeCallRef = useRef(activeCall);
+  activeCallRef.current = activeCall;
 
-  return (
-    <StreamCallProvider call={activeCall}>
-      <InnerActiveCall {...props} />
-    </StreamCallProvider>
-  );
+  useEffect(() => {
+    // when the component mounts, we ask for necessary permissions.
+    verifyAndroidBluetoothPermissions();
+
+    return () => {
+      if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
+        activeCallRef.current?.leave();
+      }
+    };
+  }, []);
+
+  if (!activeCall) {
+    return null;
+  }
+  return <InnerActiveCall {...props} />;
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { onOpenCallParticipantsInfoView } = props;
+  const { mode = 'grid' } = props;
   const hasScreenShare = useHasOngoingScreenShare();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onHangupCall } = callCycleHandlers;
+
+  useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
+  usePermissionRequest();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
@@ -58,25 +73,28 @@ const InnerActiveCall = (props: ActiveCallProps) => {
     );
   };
 
+  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
+
   return (
     <View style={styles.container}>
-      <CallParticipantsBadge
-        onOpenCallParticipantsInfoView={onOpenCallParticipantsInfoView}
-      />
+      <View style={styles.iconGroup}>
+        <CallParticipantsBadge />
+      </View>
+
       <View
         style={[
           styles.callParticipantsWrapper,
           { paddingBottom: height + theme.padding.lg },
         ]}
       >
-        {hasScreenShare ? (
-          <CallParticipantsScreenView />
+        {showSpotLightModeView ? (
+          <CallParticipantsSpotlightView />
         ) : (
           <CallParticipantsView />
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView onHangupCall={onHangupCall} />
+        <CallControlsView />
       </View>
     </View>
   );
@@ -89,4 +107,16 @@ const styles = StyleSheet.create({
   },
   callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  svgContainerStyle: {
+    zIndex: 2,
+    marginRight: theme.margin.md,
+    marginTop: theme.margin.sm,
+  },
+  iconGroup: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    marginRight: theme.margin.md,
+  },
 });

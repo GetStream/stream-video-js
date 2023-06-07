@@ -1,6 +1,6 @@
-import { Dispatcher } from '../rtc/Dispatcher';
+import { Dispatcher } from '../rtc';
 import { CallState } from '../store';
-import { StreamVideoParticipantPatches } from '../rtc/types';
+import { StreamVideoParticipantPatches } from '../types';
 
 /**
  * Watches for `dominantSpeakerChanged` events.

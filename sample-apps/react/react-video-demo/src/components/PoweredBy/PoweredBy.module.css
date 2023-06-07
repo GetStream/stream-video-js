@@ -1,0 +1,9 @@
+.branding {
+  @apply flex items-center;
+  font-size: 11px;
+  color: #4f4f4f;
+}
+
+.logo {
+  @apply mr-2;
+}

@@ -1,0 +1,164 @@
+.root {
+  @apply grid gap-4 p-4 bg-video-grey-500 rounded-container;
+
+  grid-template-rows: 1fr;
+  grid-template-areas:
+    'heading'
+    'body';
+
+  max-width: 924px;
+  max-height: 80vh;
+  box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+}
+
+@media screen(sm) {
+  .root {
+    @apply gap-0;
+    grid-template-columns: 2fr min-content;
+  }
+}
+
+.heading {
+  grid-area: heading;
+  @apply grid items-center;
+  font-weight: 400;
+  border-bottom: 1px solid #121416;
+
+  grid-template-columns: 1fr 2fr 0.25fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: 'header callId close';
+}
+
+.header {
+  grid-area: header;
+  @apply text-video-white flex items-center sm:pl-4 text-xl font-bold;
+}
+
+.cog {
+  @apply mr-2;
+}
+.sidebarInfo {
+  @apply mr-2 ml-2;
+}
+
+.callId {
+  grid-area: callId;
+  @apply hidden sm:flex text-video-grey-400 ml-2;
+}
+
+.callIdContainer {
+  @apply pb-2 mb-4 flex sm:hidden;
+  border-bottom: 1px solid #121416;
+}
+.id {
+  @apply flex sm:hidden  text-video-grey-400;
+}
+
+.close {
+  @apply flex justify-end items-center;
+  grid-area: close;
+}
+
+.body {
+  grid-area: body;
+  @apply grid gap-4 h-full;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: 'content';
+}
+
+@media screen(sm) {
+  .body {
+    grid-area: body;
+    @apply grid gap-4 h-full;
+    overflow: hidden;
+    grid-template-columns: 1fr 2fr 0.25fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: 'sidebar content closebar';
+  }
+}
+
+.content {
+  @apply text-video-white mt-4 h-[50vh];
+  grid-area: content;
+  overflow-y: scroll;
+}
+.stats {
+}
+
+.statsHeader {
+  @apply text-xl font-bold;
+}
+
+.containerHeader {
+  @apply flex items-center mt-6;
+}
+
+.containerHeading {
+  @apply text-lg font-bold;
+}
+
+.bargraph {
+  @apply h-5 w-5 mr-2;
+}
+
+.latency {
+  @apply h-5 w-5 mr-2;
+}
+
+.info {
+  @apply h-5 w-5 ml-2  text-video-grey-400;
+}
+
+.info:hover {
+  @apply cursor-pointer;
+}
+
+.description {
+  @apply text-video-grey-400 mt-2 mb-4;
+}
+
+.chartContainer {
+  @apply p-4 mt-4 mb-4 text-video-white bg-video-grey-450 rounded-container;
+}
+.chart {
+  @apply p-4 m-2 rounded-container bg-video-grey-500;
+  min-height: 300px;
+}
+
+.statCards {
+  @apply grid gap-2;
+  grid-template-columns: 1fr;
+}
+
+@media screen(sm) {
+  .statCards {
+    @apply grid gap-2;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.sidebar {
+  @apply hidden sm:flex;
+  grid-area: sidebar;
+}
+
+.statistics {
+  @apply flex items-center mt-4 ml-2 bg-video-grey-700 text-video-white w-full h-10;
+}
+
+.info {
+  @apply mr-2;
+}
+.closebar {
+  @apply hidden sm:flex;
+  grid-area: closebar;
+}
+
+.button {
+  @apply bg-video-black;
+}
+
+.closeIcon {
+  @apply text-video-grey-400 w-5 h-5;
+}

@@ -1,0 +1,80 @@
+.feedback {
+  @apply p-4 bg-video-grey-500 flex flex-col rounded-container max-w-md w-full;
+  box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+}
+
+.heading {
+  @apply font-bold text-lg text-video-white;
+}
+
+.description {
+  @apply text-video-grey-400  text-sm mt-1 mb-3;
+}
+
+.form {
+  @apply flex flex-col;
+}
+
+.input {
+  @apply pt-1 pb-1 pl-2 pr-2 mb-2 flex items-center text-sm w-full bg-video-black text-video-white h-[44px];
+  border: 1px solid #272a30;
+  border-radius: 6px;
+}
+
+.textarea {
+  @apply pt-2 pb-1 pl-2 pr-2 flex items-center text-sm w-full  bg-video-black text-video-white h-[96px];
+  border: 1px solid #272a30;
+  border-radius: 6px;
+}
+
+.footer {
+  @apply flex justify-between mt-4;
+}
+
+.ratingDescription {
+  @apply text-video-grey-400 text-xs mr-2;
+}
+
+.rating {
+  @apply flex flex-col md:flex-row;
+}
+
+.ratingStars {
+  @apply flex flex-row mt-2 md:mt-0;
+}
+
+.star {
+  @apply text-video-grey-200 mr-1;
+}
+
+.star:hover {
+  @apply cursor-pointer;
+}
+.star.active {
+  @apply text-video-yellow-500;
+}
+
+.sent {
+  @apply p-4 bg-video-grey-500 flex flex-col rounded-container max-w-md w-full;
+  box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+}
+
+.button {
+  @apply font-medium text-xs;
+}
+
+.heading {
+  @apply flex items-center justify-between font-semibold text-lg;
+}
+
+.close {
+  @apply text-video-grey-400 bg-video-grey-800 rounded-button p-1 h-auto w-auto;
+}
+
+.close:hover {
+  @apply cursor-pointer;
+}
+
+.closeIcon {
+  @apply h-4 w-4;
+}

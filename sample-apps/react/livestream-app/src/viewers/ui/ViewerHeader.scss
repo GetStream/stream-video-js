@@ -1,0 +1,43 @@
+.viewer-header {
+  display: flex;
+  padding: 15px 20px;
+
+  .section {
+    flex: 1;
+    display: flex;
+  }
+
+  .section.center-section {
+    justify-content: center;
+  }
+
+  .section.right-section {
+    justify-content: flex-end;
+  }
+
+  .quality-selector {
+    width: 320px;
+
+    .quality-selector-title {
+      border-bottom: 1px solid black;
+      margin: 0;
+      padding: 10px 15px;
+    }
+
+    .quality-selector-body {
+      padding: 0 15px 10px;
+    }
+
+    .quality-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .quality-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+}

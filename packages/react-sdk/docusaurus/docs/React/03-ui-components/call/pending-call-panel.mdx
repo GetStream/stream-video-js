@@ -1,0 +1,60 @@
+---
+id: pending-call-panel
+title: Pending call panel
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import PendingCallPanelIncoming from '../../assets/03-ui-components/pending-call-panel-incoming.png'
+import PendingCallPanelOutgoing from '../../assets/03-ui-components/pending-call-panel-outgoing.png'
+
+
+The component [`PendingCallPanel`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/PendingCallPanel) is designed to represent incoming or outgoing [ring call](../../../guides/call-lifecycle#ring-call). The default implementation displays:
+
+- call member avatars
+- call connection status
+- pending call control buttons to accept or cancel the call
+
+<ImageShowcase
+    items={[
+        {
+            image: PendingCallPanelIncoming,
+            caption: 'Default incoming call panel',
+            alt: 'Default incoming call panell',
+        },
+        {
+            image: PendingCallPanelOutgoing,
+            caption: 'Default outgoing call panel',
+            alt: 'Default outgoing call panel',
+        },
+    ]}
+/>
+
+:::note
+To learn more about creating custom pending call panel, have a look at our [pending call panel customization guide](../../../ui-cookbook/pending-call).
+:::
+
+
+## Pending call controls
+The `PendingCallPanel` component features [`CancelCallButton`](../call-controls#cancelcallbutton) to reject resp. cancel the pending call and in case of incoming call panel, also [`AcceptCallButton`](../call-controls#acceptcallbutton) is displayed.
+
+## Props PendingCallPanel
+
+### `includeSelf`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `boolean` \| `undefined` | `false` |
+
+Whether to include the current user in the list of members to show.
+
+### `totalMembersToShow`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `number` \| `undefined` | `3` |
+
+The maximum number of members to show.
+
+## Props PendingCallControls
+
+None

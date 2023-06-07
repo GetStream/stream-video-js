@@ -8,7 +8,7 @@ import axios, {
 import https from 'https';
 import WebSocket from 'isomorphic-ws';
 import { StableWSConnection } from './connection';
-import { DevToken } from './signing';
+import { DevToken, JWTUserToken } from './signing';
 import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
@@ -65,15 +65,15 @@ export class StreamClient {
   defaultWSTimeout: number;
   resolveConnectionId!: Function;
   rejectConnectionId!: Function;
-  connectionIdPromise: Promise<void>;
+  connectionIdPromise: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
 
   /**
    * Initialize a client.
    *
    * @param {string} key - the api key
-   * @param {string} [secret] - the api secret
    * @param {StreamClientOptions} [options] - additional options, here you can pass custom options to axios instance
+   * @param {string} [options.secret] - the api secret
    * @param {boolean} [options.browser] - enforce the client to be in browser mode
    * @param {boolean} [options.warmUp] - default to false, if true, client will open a connection as soon as possible to speed up following requests
    * @param {Logger} [options.Logger] - custom logger
@@ -99,7 +99,7 @@ export class StreamClient {
     this.node = !this.browser;
 
     this.options = {
-      timeout: 3000,
+      timeout: 5000,
       withCredentials: false, // making sure cookies are not sent
       warmUp: false,
       ...inputOptions,
@@ -112,10 +112,12 @@ export class StreamClient {
       });
     }
 
-    this.connectionIdPromise = new Promise((resolve, reject) => {
-      this.resolveConnectionId = resolve;
-      this.rejectConnectionId = reject;
-    });
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
 
     this.setBaseURL(
       this.options.baseURL || 'https://video.stream-io-api.com/video',
@@ -224,7 +226,11 @@ export class StreamClient {
     this.userID = user.id;
     this.anonymous = false;
 
-    const setTokenPromise = this._setToken(user, userTokenOrProvider);
+    const setTokenPromise = this._setToken(
+      user,
+      userTokenOrProvider,
+      this.anonymous,
+    );
     this._setUser(user);
 
     const wsPromise = this.openConnection();
@@ -246,8 +252,16 @@ export class StreamClient {
     }
   };
 
-  _setToken = (user: OwnUserResponse, userTokenOrProvider: TokenOrProvider) =>
-    this.tokenManager.setTokenOrProvider(userTokenOrProvider, user);
+  _setToken = (
+    user: OwnUserResponse,
+    userTokenOrProvider: TokenOrProvider,
+    isAnonymous: boolean,
+  ) =>
+    this.tokenManager.setTokenOrProvider(
+      userTokenOrProvider,
+      user,
+      isAnonymous,
+    );
 
   _setUser(user: OwnUserResponse) {
     /**
@@ -362,34 +376,22 @@ export class StreamClient {
     await this.closeConnection(timeout);
 
     this.tokenManager.reset();
-    // drop all event listeners on user disconnect
-    this.listeners = {};
   };
 
   /**
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
-  connectAnonymousUser = () => {
-    if (
-      (this._isUsingServerAuth() || this.node) &&
-      !this.options.allowServerSideConnect
-    ) {
-      console.warn(
-        'Please do not use connectUser server side. connectUser impacts MAU and concurrent connection usage and thus your bill. If you have a valid use-case, add "allowServerSideConnect: true" to the client options to disable this warning.',
-      );
-    }
-
+  connectAnonymousUser = async (
+    user: OwnUserResponse,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
     this.anonymous = true;
-    this.userID = randomId();
-    const anonymousUser = {
-      id: this.userID,
-      anon: true,
-    } as unknown as OwnUserResponse;
-
-    this._setToken(anonymousUser, '');
-    this._setUser(anonymousUser);
-
-    return this.openConnection();
+    await this._setToken(user, tokenOrProvider, this.anonymous);
+    this._setUser(user);
+    // some endpoints require a connection_id to be resolved.
+    // as anonymous users aren't allowed to open WS connections, we just
+    // resolve the connection_id here.
+    this.resolveConnectionId();
   };
 
   /**
@@ -485,10 +487,10 @@ export class StreamClient {
     });
   }
 
-  doAxiosRequest = async <T>(
+  doAxiosRequest = async <T, D = unknown>(
     type: string,
     url: string,
-    data?: unknown,
+    data?: D,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     } = {},
@@ -538,7 +540,7 @@ export class StreamClient {
             await sleep(retryInterval(this.consecutiveFailures));
           }
           await this.tokenManager.loadToken();
-          return await this.doAxiosRequest<T>(type, url, data, options);
+          return await this.doAxiosRequest<T, D>(type, url, data, options);
         }
         return this.handleResponse(e.response);
       } else {
@@ -549,25 +551,25 @@ export class StreamClient {
   };
 
   get<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('get', url, null, {
+    return this.doAxiosRequest<T, unknown>('get', url, null, {
       params,
     });
   }
 
-  put<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('put', url, data);
+  put<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('put', url, data);
   }
 
-  post<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('post', url, data);
+  post<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('post', url, data);
   }
 
-  patch<T>(url: string, data?: unknown) {
-    return this.doAxiosRequest<T>('patch', url, data);
+  patch<T, D = unknown>(url: string, data?: D) {
+    return this.doAxiosRequest<T, D>('patch', url, data);
   }
 
   delete<T>(url: string, params?: AxiosRequestConfig['params']) {
-    return this.doAxiosRequest<T>('delete', url, null, {
+    return this.doAxiosRequest<T, unknown>('delete', url, null, {
       params,
     });
   }
@@ -778,7 +780,7 @@ export class StreamClient {
   }
 
   _getToken() {
-    if (!this.tokenManager || this.anonymous) return null;
+    if (!this.tokenManager) return null;
 
     return this.tokenManager.getToken();
   }
@@ -792,7 +794,6 @@ export class StreamClient {
     return JSON.stringify({
       user_id: this.userID,
       user_details: this._user,
-      // device: this.options.device,
       client_request_id,
     });
   };
@@ -802,5 +803,43 @@ export class StreamClient {
    */
   createAbortControllerForNextRequest() {
     return (this.nextRequestAbortController = new AbortController());
+  }
+
+  /**
+   * createToken - Creates a token to authenticate this user. This function is used server side.
+   * The resulting token should be passed to the client side when the users registers or logs in.
+   *
+   * @param {string} userID The User ID
+   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
+   *
+   * @return {string} Returns a token
+   */
+  createToken(
+    userID: string,
+    exp?: number,
+    iat?: number,
+    call_cids?: string[],
+  ) {
+    if (this.secret == null) {
+      throw Error(
+        `tokens can only be created server-side using the API Secret`,
+      );
+    }
+    const extra: { exp?: number; iat?: number; call_cids?: string[] } = {};
+
+    if (exp) {
+      extra.exp = exp;
+    }
+
+    if (iat) {
+      extra.iat = iat;
+    }
+
+    if (call_cids) {
+      extra.call_cids = call_cids;
+    }
+
+    return JWTUserToken(this.secret, userID, extra, {});
   }
 }

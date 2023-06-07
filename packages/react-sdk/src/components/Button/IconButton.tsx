@@ -1,11 +1,13 @@
 import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import clsx from 'clsx';
 
+import { Icon, IconProps } from '../Icon';
+
 export type ButtonWithIconProps = {
-  icon: string;
   enabled?: boolean;
   variant?: string;
-} & ComponentProps<'button'>;
+} & ComponentProps<'button'> &
+  IconProps;
 
 export const IconButton = forwardRef(
   (props: ButtonWithIconProps, ref: ForwardedRef<HTMLButtonElement>) => {
@@ -23,12 +25,7 @@ export const IconButton = forwardRef(
         ref={ref}
         {...rest}
       >
-        <span
-          className={clsx(
-            'str-video__call-controls__button--icon',
-            icon && `str-video__call-controls__button--icon-${icon}`,
-          )}
-        ></span>
+        <Icon icon={icon} />
       </button>
     );
   },

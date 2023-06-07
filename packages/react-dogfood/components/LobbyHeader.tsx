@@ -10,7 +10,10 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import SearchIcon from '@mui/icons-material/Search';
 import SubjectIcon from '@mui/icons-material/Subject';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { USAGE_GUIDE_LINK } from './index';
+import { useSettings } from '../context/SettingsContext';
+import { useI18n } from '@stream-io/video-react-sdk';
 
 export const LobbyHeader = () => {
   return (
@@ -35,6 +38,7 @@ export const HomeButton = () => (
 );
 
 const Navbar = () => {
+  const { t } = useI18n();
   const navbarLinkStyle = {
     display: 'flex',
     alignItems: 'center',
@@ -55,14 +59,14 @@ const Navbar = () => {
         paddingInline: '3rem;',
       }}
     >
-      <Tooltip title={"Learn about the app's capabilities and shortcomings"}>
+      <Tooltip title={t("Learn about the app's capabilities and shortcomings")}>
         <MuiLink href={USAGE_GUIDE_LINK} target="_blank" sx={navbarLinkStyle}>
-          <SubjectIcon /> Guide
+          <SubjectIcon /> {t('Guide')}
         </MuiLink>
       </Tooltip>
-      <Tooltip title={'Search, share & download call recordngs'}>
+      <Tooltip title={t('Search, share & download call recordings')}>
         <MuiLink href="/call-recordings" sx={navbarLinkStyle}>
-          <SearchIcon /> Recordings
+          <SearchIcon /> {t('Recordings')}
         </MuiLink>
       </Tooltip>
     </Box>
@@ -71,6 +75,8 @@ const Navbar = () => {
 
 const UserInfo = () => {
   const { data: theSession } = useSession();
+  const { setOpen } = useSettings();
+  const { t } = useI18n();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: MouseEvent<HTMLElement>) => {
@@ -118,21 +124,30 @@ const UserInfo = () => {
             overflow: 'visible',
             filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
             mt: 1.5,
+            // color: '#fff',
+            // background: '#45484d',
           },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
+        <MenuItem onClick={() => setOpen(true)}>
+          <ListItemIcon>
+            <SettingsIcon sx={{ fill: '#9e9e9e' }} fontSize="small" />
+          </ListItemIcon>
+          {t('Settings')}
+        </MenuItem>
         <MenuItem
+          // sx={{ '&:hover': { background: '#2f2f2f' } }}
           onClick={() => {
             signOut();
             handleClose();
           }}
         >
           <ListItemIcon>
-            <Logout fontSize="small" />
+            <Logout sx={{ fill: '#9e9e9e' }} fontSize="small" />
           </ListItemIcon>
-          Logout
+          {t('Logout')}
         </MenuItem>
       </Menu>
     </Stack>

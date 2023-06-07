@@ -27,7 +27,8 @@ export type FontTypes =
   | 'heading6'
   | 'subtitle'
   | 'subtitleBold'
-  | 'caption';
+  | 'caption'
+  | 'bodyBold';
 export type FontStyle = {
   fontSize: TextStyle['fontSize'];
   fontWeight: TextStyle['fontWeight'];

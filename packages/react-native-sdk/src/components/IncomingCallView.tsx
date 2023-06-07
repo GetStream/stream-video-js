@@ -2,30 +2,37 @@ import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
+  useCall,
+  useCallCallingState,
+  useCallMembers,
   useConnectedUser,
-  useIncomingCalls,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './UserInfoView';
-import { useCallCycleContext } from '../contexts';
-import { useRingCall } from '../hooks/useRingCall';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
-import { getMembersForIncomingCall } from '../utils';
 import { useMutingState } from '../hooks/useMutingState';
+import { CallingState, UserResponse } from '@stream-io/video-client';
 
 export const IncomingCallView = () => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
-  const { answerCall, rejectCall } = useRingCall();
-  const { callCycleHandlers } = useCallCycleContext();
-  const { onRejectCall } = callCycleHandlers;
+  const call = useCall();
+  const callingState = useCallCallingState();
 
   const answerCallHandler = async () => {
-    await answerCall();
+    try {
+      await call?.join();
+    } catch (error) {
+      console.log('Error joining Call', error);
+    }
   };
 
   const rejectCallHandler = async () => {
-    await rejectCall();
-    if (onRejectCall) onRejectCall();
+    try {
+      if (callingState === CallingState.LEFT) return;
+      await call?.leave({ reject: true });
+    } catch (error) {
+      console.log('Error leaving Call', error);
+    }
   };
 
   return (
@@ -74,18 +81,21 @@ export const IncomingCallView = () => {
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [incomingCall] = useIncomingCalls();
   const connectedUser = useConnectedUser();
-  if (!incomingCall) return null;
+  const members = useCallMembers();
+  const includeSelf = false;
 
-  const members = getMembersForIncomingCall(incomingCall, connectedUser);
+  // take the first N members to show their avatars
+  const membersToShow: UserResponse[] = (members || [])
+    .map(({ user }) => user)
+    .filter((user) => user.id !== connectedUser?.id || includeSelf);
 
   if (members.length) {
     return (
       <ImageBackground
         blurRadius={10}
         source={{
-          uri: members[0].image,
+          uri: membersToShow[0].image,
         }}
         style={[StyleSheet.absoluteFill, styles.background]}
       >

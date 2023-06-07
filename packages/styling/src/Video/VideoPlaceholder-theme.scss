@@ -1,17 +1,12 @@
-.str-video__participant-placeholder {
+.str-video__video-placeholder {
   background: var(--str-video__background-color5);
-  border-radius: var(--str-video__border-radius-sm);
+  border-radius: inherit;
 
-  .str-video__participant-placeholder--avatar {
+  .str-video__video-placeholder__avatar {
     border-radius: var(--str-video__border-radius-circle);
   }
 
-  .str-video__participant-placeholder--avatar-speaking {
-    outline: 2px solid var(--str-video__text-color1);
-    transition: outline 100ms ease-in;
-  }
-
-  .str-video__participant-placeholder--initials-fallback {
+  .str-video__video-placeholder__initials-fallback {
     background-color: var(--str-video__primary-color);
     border-radius: var(--str-video__border-radius-circle);
     font-size: 32px;

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  ExtendableGenerics,
   DefaultGenerics,
+  ExtendableGenerics,
   OwnUserResponse,
-  UserResponse,
-  TokenOrProvider,
   StreamChat,
+  TokenOrProvider,
+  UserResponse,
 } from 'stream-chat';
 
 export const useCreateStreamChatClient = <
@@ -22,7 +22,9 @@ export const useCreateStreamChatClient = <
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
 
   useEffect(() => {
-    const client = new StreamChat<SCG>(apiKey);
+    const client = new StreamChat<SCG>(apiKey, {
+      timeout: 5000,
+    });
 
     let didUserConnectInterrupt = false;
     const connectionPromise = client

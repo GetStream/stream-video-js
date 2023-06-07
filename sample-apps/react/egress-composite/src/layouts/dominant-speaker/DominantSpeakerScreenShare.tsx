@@ -1,7 +1,7 @@
 import {
-  ParticipantBox,
+  DefaultParticipantViewUI,
+  ParticipantView,
   SfuModels,
-  useActiveCall,
   useRemoteParticipants,
   Video,
 } from '@stream-io/video-react-sdk';
@@ -10,16 +10,16 @@ import './ScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeakerScreenShare = () => {
-  const call = useActiveCall();
   const participants = useRemoteParticipants();
   const screenSharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
   );
 
-  const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts(
-    screenSharingParticipant!,
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const { setVideoElement, setVideoPlaceholderElement } =
+    useEgressReadyWhenAnyParticipantMounts(
+      screenSharingParticipant!,
+      SfuModels.TrackType.SCREEN_SHARE,
+    );
 
   if (!screenSharingParticipant) return <h2>No active screen share</h2>;
 
@@ -29,21 +29,24 @@ export const DominantSpeakerScreenShare = () => {
         <Video
           className="screen-share-player"
           participant={screenSharingParticipant}
-          call={call!}
           kind="screen"
           autoPlay
           muted
-          setVideoElementRef={setParticipantVideoRef}
+          refs={{ setVideoElement, setVideoPlaceholderElement }}
         />
         <span>
           Presenter:{' '}
           {screenSharingParticipant.name || screenSharingParticipant.userId}
         </span>
         <div className="current-speaker">
-          <ParticipantBox
+          <ParticipantView
             participant={screenSharingParticipant}
-            call={call!}
-            indicatorsVisible={false}
+            ParticipantViewUI={
+              <DefaultParticipantViewUI
+                indicatorsVisible={false}
+                showMenuButton={false}
+              />
+            }
           />
         </div>
       </div>

@@ -1,9 +1,9 @@
-name: Test and release
+name: Test and deploy dogfood
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
   # Trigger flow when pushing in main or pull requests, and when creating
@@ -45,17 +45,10 @@ jobs:
         run: yarn lint:ci:all
 
       - name: Build packages
-        run: yarn build:all
+        run: NODE_ENV=production yarn build:all
 
       - name: Test packages
         run: yarn test:ci:all
-
-      # TODO OL: Enable SonarCloud once we go public
-      # - name: SonarCloud Scan
-      #  uses: sonarsource/sonarcloud-github-action@master
-
-      - name: Release packages
-        run: echo 'TODO'
 
       # Vercel deployment: Dogfood (Preview)
       - name: Vercel Pull Configuration Dogfood (Preview)
@@ -90,3 +83,9 @@ jobs:
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master

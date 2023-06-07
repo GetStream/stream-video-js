@@ -1,38 +1,29 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import InCallManager from 'react-native-incall-manager';
+import React, { useCallback } from 'react';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
+  useCall,
   useConnectedUser,
-  useStreamVideoClient,
+  useParticipantCount,
 } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useCallCycleContext } from '../contexts';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
-
-/**
- * Props to be passed for the ActiveCall component.
- */
-export interface LobbyViewProps {
-  /**
-   * Call ID of the call that is to be joined.
-   */
-  callID: string;
-}
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted } = useMutingState();
   return (
     <View style={styles.status}>
-      <Text style={styles.userNameLabel}>{connectedUser?.id}</Text>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {connectedUser?.id}
+      </Text>
       {isAudioMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
@@ -40,26 +31,24 @@ const ParticipantStatus = () => {
       )}
       {isVideoMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          {isVideoMuted && <VideoSlash color={theme.light.error} />}
+          <VideoSlash color={theme.light.error} />
         </View>
       )}
     </View>
   );
 };
 
-export const LobbyView = (props: LobbyViewProps) => {
+export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
-  const videoClient = useStreamVideoClient();
   const connectedUser = useConnectedUser();
-  const { callCycleHandlers } = useCallCycleContext();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
   const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
     (store) => store.isCameraOnFrontFacingMode,
   );
   const isVideoAvailable = !!localVideoStream && !isVideoMuted;
-  const { onActiveCall } = callCycleHandlers;
-  const { callID } = props;
+  const count = useParticipantCount();
+  const call = useCall();
 
   const MicIcon = isAudioMuted ? (
     <MicOff color={theme.light.static_white} />
@@ -72,25 +61,20 @@ export const LobbyView = (props: LobbyViewProps) => {
     <Video color={theme.light.static_black} />
   );
 
-  const joinCallHandler = () => {
-    videoClient
-      ?.call('default', callID)
-      .join({ create: true })
-      .then(() => {
-        if (onActiveCall) {
-          onActiveCall();
-          InCallManager.start({ media: 'video' });
-          InCallManager.setForceSpeakerphoneOn(true);
-        }
-      })
-      .catch((err) => {
-        console.log('Error joining call', err);
-      });
-  };
+  const onJoinCallHandler = useCallback(async () => {
+    try {
+      await call?.join({ create: true });
+    } catch (error) {
+      console.log('Error joining call:', error);
+      if (error instanceof AxiosError) {
+        Alert.alert(error.response?.data.message);
+      }
+    }
+  }, [call]);
+
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
-    // @ts-ignore
-    image: connectedUser?.imageUrl,
+    image: connectedUser?.image,
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
@@ -101,55 +85,62 @@ export const LobbyView = (props: LobbyViewProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.heading}>Before Joining</Text>
-        <Text style={styles.subHeading}>Setup your audio and video</Text>
-        <View style={styles.videoView}>
-          {isVideoAvailable ? (
-            <VideoRenderer
-              mirror={isCameraOnFrontFacingMode}
-              mediaStream={localVideoStream}
-              objectFit="cover"
-              style={styles.stream}
-            />
-          ) : (
-            <Avatar participant={connectedUserAsParticipant} />
-          )}
-          <ParticipantStatus />
-        </View>
-        <View style={styles.buttonGroup}>
-          <CallControlsButton
-            onPress={toggleAudioState}
-            color={muteStatusColor(isAudioMuted)}
-            style={[
-              styles.button,
-              theme.button.md,
-              {
-                shadowColor: muteStatusColor(isAudioMuted),
-              },
-            ]}
-          >
-            {MicIcon}
-          </CallControlsButton>
-          <CallControlsButton
-            onPress={toggleVideoState}
-            color={muteStatusColor(isVideoMuted)}
-            style={[
-              styles.button,
-              theme.button.md,
-              {
-                shadowColor: muteStatusColor(isVideoMuted),
-              },
-            ]}
-          >
-            {VideoIcon}
-          </CallControlsButton>
-        </View>
+        {connectedUser && (
+          <>
+            <Text style={styles.heading}>Before Joining</Text>
+            <Text style={styles.subHeading}>Setup your audio and video</Text>
+            <View style={styles.videoView}>
+              <View style={styles.topView} />
+              {isVideoAvailable ? (
+                <VideoRenderer
+                  mirror={isCameraOnFrontFacingMode}
+                  mediaStream={localVideoStream}
+                  objectFit="cover"
+                  style={StyleSheet.absoluteFillObject}
+                />
+              ) : (
+                <Avatar participant={connectedUserAsParticipant} />
+              )}
+              <ParticipantStatus />
+            </View>
+            <View style={styles.buttonGroup}>
+              <CallControlsButton
+                onPress={toggleAudioState}
+                color={muteStatusColor(isAudioMuted)}
+                style={[
+                  styles.button,
+                  theme.button.md,
+                  {
+                    shadowColor: muteStatusColor(isAudioMuted),
+                  },
+                ]}
+              >
+                {MicIcon}
+              </CallControlsButton>
+              <CallControlsButton
+                onPress={toggleVideoState}
+                color={muteStatusColor(isVideoMuted)}
+                style={[
+                  styles.button,
+                  theme.button.md,
+                  {
+                    shadowColor: muteStatusColor(isVideoMuted),
+                  },
+                ]}
+              >
+                {VideoIcon}
+              </CallControlsButton>
+            </View>
+          </>
+        )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            You are about to join a test call at Stream. 3 more people are in
-            the call now.
+            You are about to join a call with id {call?.id} at Stream.{' '}
+            {count
+              ? `${count}  more people are in the call now.`
+              : 'You are first to Join the call.'}
           </Text>
-          <Pressable style={styles.joinButton} onPress={joinCallHandler}>
+          <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>
@@ -172,9 +163,6 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading4,
   },
-  stream: {
-    flex: 1,
-  },
   subHeading: {
     color: theme.light.text_low_emphasis,
     ...theme.fonts.subtitle,
@@ -184,11 +172,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.disabled,
     height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     overflow: 'hidden',
     marginVertical: theme.margin.md,
     width: '100%',
+    padding: theme.padding.sm,
   },
+  topView: {},
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -220,11 +211,9 @@ const styles = StyleSheet.create({
     ...theme.fonts.subtitleBold,
   },
   status: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    left: theme.spacing.sm,
-    bottom: theme.spacing.sm,
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
@@ -237,6 +226,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   userNameLabel: {
+    flexShrink: 1,
     color: theme.light.static_white,
     ...theme.fonts.caption,
   },

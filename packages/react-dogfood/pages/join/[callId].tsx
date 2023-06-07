@@ -1,31 +1,49 @@
-import { useEffect } from 'react';
-import Gleap from 'gleap';
+import { useCallback } from 'react';
 import { useRouter } from 'next/router';
 import {
-  Call,
-  MediaDevicesProvider,
+  StreamCall,
   StreamVideo,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
-
 import { useCreateStreamChatClient } from '../../hooks';
-import { LoadingScreen, MeetingUI } from '../../components';
-import { getDeviceSettings } from '../../components/DeviceSettingsCaptor';
+import { MeetingUI } from '../../components';
 import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
+import { useGleap } from '../../hooks/useGleap';
+import { useSettings } from '../../context/SettingsContext';
+import translations from '../../translations';
+import {
+  DeviceSettingsCaptor,
+  getDeviceSettings,
+} from '../../components/DeviceSettingsCaptor';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
+  const {
+    settings: { language },
+  } = useSettings();
   const callId = router.query['callId'] as string;
-
+  const callType = (router.query['type'] as string) || 'default';
   const { userToken, user, apiKey, gleapApiKey } = props;
+
+  const tokenProvider = useCallback(async () => {
+    const { token } = await fetch(
+      '/api/auth/create-token?' +
+        new URLSearchParams({
+          api_key: apiKey,
+          user_id: user.id,
+        }),
+      {},
+    ).then((res) => res.json());
+    return token as string;
+  }, [apiKey, user.id]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    tokenOrProvider: userToken,
+    tokenOrProvider: tokenProvider,
     user,
   });
 
@@ -35,86 +53,37 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     userData: user,
   });
 
-  useEffect(() => {
-    if (gleapApiKey) {
-      Gleap.initialize(gleapApiKey);
-      Gleap.identify(user.name || user.id, {
-        name: user.name,
-      });
-    }
-  }, [gleapApiKey, user.name, user.id]);
+  useGleap(gleapApiKey, client, user);
 
-  useEffect(() => {
-    if (!gleapApiKey) return;
-
-    Gleap.on('flow-started', () => {
-      try {
-        const { getCurrentValue, ...state } = client.readOnlyStateStore;
-        const data = Object.entries(state).reduce<Record<string, any>>(
-          (acc, [key, observable]) => {
-            if (!!observable && typeof observable.subscribe === 'function') {
-              const value = getCurrentValue<unknown>(observable);
-              if (key === 'activeCall$' && value && value instanceof Call) {
-                // special handling for the active call
-                const call = value;
-                const ignoredKeys = [
-                  // these two are derived from participants$.
-                  // we don't want to send the same data twice.
-                  'localParticipant$',
-                  'remoteParticipants$',
-                ];
-                Object.entries(call.state)
-                  .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
-                  .forEach(([k, v]) => {
-                    if (!!v && typeof v.subscribe === 'function') {
-                      acc[`${key}.${k}`] = getCurrentValue(v);
-                    } else {
-                      acc[`${key}.${k}`] = v;
-                    }
-                  });
-              } else {
-                acc[key] = value;
-              }
-            }
-            return acc;
-          },
-          {},
-        );
-        console.log('!!State Store', data);
-        Gleap.attachCustomData(data);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  }, [client.readOnlyStateStore, gleapApiKey]);
-
-  const deviceSettings = getDeviceSettings();
-
-  if (!client) {
-    return <LoadingScreen />;
-  }
-
+  const settings = getDeviceSettings();
   return (
-    <div style={{ flexGrow: 1, minHeight: 0 }}>
+    <>
       <Head>
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <StreamVideo client={client}>
-        <MediaDevicesProvider
-          enumerate
-          initialAudioEnabled={!deviceSettings?.isAudioMute}
-          initialVideoEnabled={!deviceSettings?.isVideoMute}
-          initialVideoInputDeviceId={deviceSettings?.selectedVideoDeviceId}
-          initialAudioInputDeviceId={deviceSettings?.selectedAudioInputDeviceId}
-          initialAudioOutputDeviceId={
-            deviceSettings?.selectedAudioOutputDeviceId
-          }
+      <StreamVideo
+        client={client}
+        language={language}
+        translationsOverrides={translations}
+      >
+        <StreamCall
+          callId={callId}
+          callType={callType}
+          autoJoin={false}
+          mediaDevicesProviderProps={{
+            initialAudioEnabled: !settings?.isAudioMute,
+            initialVideoEnabled: !settings?.isVideoMute,
+            initialVideoInputDeviceId: settings?.selectedVideoDeviceId,
+            initialAudioInputDeviceId: settings?.selectedAudioInputDeviceId,
+            initialAudioOutputDeviceId: settings?.selectedAudioOutputDeviceId,
+          }}
         >
           <MeetingUI chatClient={chatClient} />
-        </MediaDevicesProvider>
+          <DeviceSettingsCaptor />
+        </StreamCall>
       </StreamVideo>
-    </div>
+    </>
   );
 };
 

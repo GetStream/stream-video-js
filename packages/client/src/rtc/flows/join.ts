@@ -1,77 +1,89 @@
 import {
-  DatacenterResponse,
-  GetCallEdgeServerRequest,
-  GetCallEdgeServerResponse,
   ICEServer,
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import { measureResourceLoadLatencyTo } from './latency';
+import { JoinCallData } from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
 
-export const watch = async (
-  httpClient: StreamClient,
-  type: string,
-  id: string,
-  data?: JoinCallRequest,
-) => {
-  await httpClient.connectionIdPromise;
-  let joinCallResponse: JoinCallResponse;
-  try {
-    joinCallResponse = await httpClient.post<JoinCallResponse>(
-      `/call/${type}/${id}/join`,
-      data,
-    );
-  } catch (e) {
-    // fallback scenario, until we get a new Coordinator deployed
-    joinCallResponse = await httpClient.post<JoinCallResponse>(
-      `/join_call/${type}/${id}`,
-      data,
-    );
-  }
-  return joinCallResponse;
-};
-
+/**
+ * Collects all necessary information to join a call, talks to the coordinator
+ * and returns the necessary information to join the call.
+ *
+ * @param httpClient the http client to use.
+ * @param type the type of the call.
+ * @param id the id of the call.
+ * @param data the data for the call.
+ */
 export const join = async (
   httpClient: StreamClient,
   type: string,
   id: string,
-  data?: JoinCallRequest,
+  data?: JoinCallData,
 ) => {
-  const joinCallResponse = await watch(httpClient, type, id, data);
-  const { call, edges, members } = joinCallResponse;
+  await httpClient.connectionIdPromise;
 
-  const { credentials } = await getCallEdgeServer(httpClient, type, id, edges);
+  const joinCallResponse = await doJoin(httpClient, type, id, data);
+  const { call, credentials, members, own_capabilities } = joinCallResponse;
   return {
     connectionConfig: toRtcConfiguration(credentials.ice_servers),
     sfuServer: credentials.server,
     token: credentials.token,
     metadata: call,
     members,
+    ownCapabilities: own_capabilities,
   };
 };
 
-const getCallEdgeServer = async (
+const doJoin = async (
   httpClient: StreamClient,
   type: string,
   id: string,
-  edges: DatacenterResponse[],
+  data?: JoinCallData,
 ) => {
-  const latencyByEdge: GetCallEdgeServerRequest['latency_measurements'] = {};
-  await Promise.all(
-    edges.map(async (edge) => {
-      latencyByEdge[edge.name] = await measureResourceLoadLatencyTo(
-        edge.latency_url,
-      );
-    }),
-  );
+  const location = await getLocationHint();
+  const request: JoinCallRequest = {
+    ...data,
+    location,
+  };
 
-  return httpClient.post<GetCallEdgeServerResponse>(
-    `/call/${type}/${id}/get_edge_server`,
-    {
-      latency_measurements: latencyByEdge,
-    },
+  // FIXME OL: remove this once cascading is enabled by default
+  const cascadingModeParams = getCascadingModeParams();
+  if (cascadingModeParams) {
+    return httpClient.doAxiosRequest<JoinCallResponse, JoinCallRequest>(
+      'post',
+      `/call/${type}/${id}/join`,
+      request,
+      {
+        params: {
+          ...cascadingModeParams,
+        },
+      },
+    );
+  }
+  return httpClient.post<JoinCallResponse, JoinCallRequest>(
+    `/call/${type}/${id}/join`,
+    request,
   );
+};
+
+const getLocationHint = async () => {
+  const hintURL = `https://hint.stream-io-video.com/`;
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), 1000);
+  try {
+    const response = await fetch(hintURL, {
+      method: 'HEAD',
+      signal: abortController.signal,
+    });
+    const awsPop = response.headers.get('x-amz-cf-pop') || 'ERR';
+    return awsPop.substring(0, 3); // AMS1-P2 -> AMS
+  } catch (e) {
+    console.error(`Failed to get location hint from ${hintURL}`, e);
+    return 'ERR';
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 const toRtcConfiguration = (config?: ICEServer[]) => {
@@ -84,4 +96,18 @@ const toRtcConfiguration = (config?: ICEServer[]) => {
     })),
   };
   return rtcConfig;
+};
+
+const getCascadingModeParams = () => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location?.search);
+  const cascadingEnabled = params.get('cascading') !== null;
+  if (cascadingEnabled) {
+    const rawParams: Record<string, string> = {};
+    params.forEach((value, key) => {
+      rawParams[key] = value;
+    });
+    return rawParams;
+  }
+  return null;
 };
