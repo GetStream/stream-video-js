@@ -18,7 +18,7 @@ type InitWithCallCID = {
   /**
    * The call instance to use.
    */
-  call?: never;
+  call?: Call;
 };
 
 type InitWithCallInstance = {
@@ -29,11 +29,11 @@ type InitWithCallInstance = {
   /**
    * The call type.
    */
-  callType?: never;
+  callType?: string;
   /**
    * The call id.
    */
-  callId?: never;
+  callId?: string;
 };
 
 type InitStreamCall = InitWithCallCID | InitWithCallInstance;
