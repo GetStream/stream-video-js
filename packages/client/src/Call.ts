@@ -799,8 +799,8 @@ export class Call {
       // fails to respond in time
       const { callState } = await this.waitForJoinResponse();
       if (isMigrating) {
-        await this.subscriber.migrateTo(sfuClient);
-        await this.publisher.migrateTo(sfuClient);
+        await this.subscriber.migrateTo(sfuClient, connectionConfig);
+        await this.publisher.migrateTo(sfuClient, connectionConfig);
       }
       const currentParticipants = callState?.participants || [];
       const participantCount = callState?.participantCount;

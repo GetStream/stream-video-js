@@ -76,8 +76,13 @@ export class Subscriber {
    * Migrates the subscriber to a new SFU client.
    *
    * @param sfuClient the new SFU client to migrate to.
+   * @param connectionConfig the new connection configuration to use.
    */
-  migrateTo = (sfuClient: StreamSfuClient) => {
+  migrateTo = (
+    sfuClient: StreamSfuClient,
+    connectionConfig?: RTCConfiguration,
+  ) => {
+    this.subscriber.setConfiguration(connectionConfig);
     this.sfuClient = sfuClient;
   };
 
