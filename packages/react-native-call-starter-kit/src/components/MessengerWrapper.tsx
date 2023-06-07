@@ -23,29 +23,30 @@ import {Alert, StyleSheet, View} from 'react-native';
 console.log('STREAM_API_KEY', STREAM_API_KEY);
 
 const CallPanel = ({show}: {show: ScreenTypes}) => {
-  if (show === 'incoming') {
-    return <IncomingCallView />;
-  } else if (show === 'outgoing') {
-    return (
-      <View style={styles.container}>
-        <OutgoingCallView />
-      </View>
-    );
-  } else if (show === 'active-call') {
-    return (
-      <View style={styles.container}>
-        <ActiveCall />
-      </View>
-    );
-  } else if (show === 'joining') {
-    return (
-      <View style={styles.container}>
-        <AuthProgressLoader />
-      </View>
-    );
+  switch (show) {
+    case 'incoming':
+      return <IncomingCallView />;
+    case 'outgoing':
+      return (
+        <View style={styles.container}>
+          <OutgoingCallView />
+        </View>
+      );
+    case 'active-call':
+      return (
+        <View style={styles.container}>
+          <ActiveCall />
+        </View>
+      );
+    case 'joining':
+      return (
+        <View style={styles.container}>
+          <AuthProgressLoader />
+        </View>
+      );
+    default:
+      return null;
   }
-
-  return null;
 };
 
 type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
