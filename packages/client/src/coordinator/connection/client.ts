@@ -8,7 +8,7 @@ import axios, {
 import https from 'https';
 import WebSocket from 'isomorphic-ws';
 import { StableWSConnection } from './connection';
-import { DevToken } from './signing';
+import { DevToken, JWTUserToken } from './signing';
 import { TokenManager } from './token_manager';
 import { WSConnectionFallback } from './connection_fallback';
 import { isErrorResponse, isWSFailure } from './errors';
@@ -803,5 +803,33 @@ export class StreamClient {
    */
   createAbortControllerForNextRequest() {
     return (this.nextRequestAbortController = new AbortController());
+  }
+
+  /**
+   * createToken - Creates a token to authenticate this user. This function is used server side.
+   * The resulting token should be passed to the client side when the users registers or logs in.
+   *
+   * @param {string} userID The User ID
+   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   *
+   * @return {string} Returns a token
+   */
+  createToken(userID: string, exp?: number, iat?: number) {
+    if (this.secret == null) {
+      throw Error(
+        `tokens can only be created server-side using the API Secret`,
+      );
+    }
+    const extra: { exp?: number; iat?: number } = {};
+
+    if (exp) {
+      extra.exp = exp;
+    }
+
+    if (iat) {
+      extra.iat = iat;
+    }
+
+    return JWTUserToken(this.secret, userID, extra, {});
   }
 }
