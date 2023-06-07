@@ -1,16 +1,11 @@
-import React, {PropsWithChildren, useEffect, useReducer, useState} from 'react';
+import React, {PropsWithChildren, useState} from 'react';
 import {Channel as ChannelType} from 'stream-chat';
 import {StreamChatGenerics} from '../types';
 import {ThreadContextValue} from 'stream-chat-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {User} from '@stream-io/video-react-native-sdk';
 
-type AuthState = {
-  userId?: string;
-  userToken?: string;
-  userImageUrl?: string;
-};
-
-type AppContextType = AuthState & {
+type AppContextType = {
+  user: User | undefined;
   channel: ChannelType<StreamChatGenerics> | undefined;
   setChannel: React.Dispatch<
     React.SetStateAction<ChannelType<StreamChatGenerics> | undefined>
@@ -21,87 +16,24 @@ type AppContextType = AuthState & {
     >
   >;
   thread: ThreadContextValue<StreamChatGenerics>['thread'] | undefined;
-  loginHandler: (payload: AuthState) => void;
+  loginHandler: (payload: User) => void;
   logoutHandler: () => void;
 };
 
 export const AppContext = React.createContext({} as AppContextType);
 
-const initialState: AuthState = {
-  userId: undefined,
-  userImageUrl: undefined,
-  userToken: undefined,
-};
-
-function authReducer(
-  prevState: AuthState,
-  action: {
-    type: 'LOGIN' | 'LOGOUT';
-    payload?: AuthState;
-  },
-): AuthState {
-  const {type, payload} = action;
-  switch (type) {
-    case 'LOGIN':
-      return {
-        ...prevState,
-        userToken: payload?.userToken,
-        userImageUrl: payload?.userImageUrl,
-        userId: payload?.userId,
-      };
-    case 'LOGOUT':
-      return {
-        ...prevState,
-        ...initialState,
-      };
-    default:
-      return prevState;
-  }
-}
-
 export const AppProvider = ({children}: PropsWithChildren<{}>) => {
   const [channel, setChannel] = useState<ChannelType<StreamChatGenerics>>();
   const [thread, setThread] =
     useState<ThreadContextValue<StreamChatGenerics>['thread']>();
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [user, setUser] = useState<User | undefined>(undefined);
 
-  useEffect(() => {
-    const getValue = async () => {
-      const userId = await AsyncStorage.getItem('userId');
-      const userToken = await AsyncStorage.getItem('userToken');
-      const userImageUrl = await AsyncStorage.getItem('userImageUrl');
-
-      if (userId && userToken && userImageUrl) {
-        dispatch({type: 'LOGIN', payload: {userId, userToken, userImageUrl}});
-      }
-    };
-
-    getValue();
-  }, []);
-
-  const loginHandler = ({userId, userImageUrl, userToken}: AuthState) => {
-    if (userId && userImageUrl && userToken) {
-      AsyncStorage.setItem('userToken', userToken);
-      AsyncStorage.setItem('userId', userId);
-      AsyncStorage.setItem('userImageUrl', userImageUrl);
-      dispatch({
-        type: 'LOGIN',
-        payload: {
-          userId,
-          userImageUrl,
-          userToken,
-        },
-      });
-    }
+  const loginHandler = (userData: User) => {
+    setUser(userData);
   };
 
   const logoutHandler = () => {
-    AsyncStorage.removeItem('userToken');
-    AsyncStorage.removeItem('userId');
-    AsyncStorage.removeItem('userImageUrl');
-    dispatch({
-      type: 'LOGOUT',
-    });
+    setUser(undefined);
   };
 
   return (
@@ -111,9 +43,7 @@ export const AppProvider = ({children}: PropsWithChildren<{}>) => {
         setChannel,
         thread,
         setThread,
-        userId: state.userId,
-        userToken: state.userToken,
-        userImageUrl: state.userImageUrl,
+        user: user,
         loginHandler,
         logoutHandler,
       }}>

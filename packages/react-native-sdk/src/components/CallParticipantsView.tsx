@@ -11,7 +11,9 @@ export const CallParticipantsView = () => {
 
   const isUserAloneInCall = remoteParticipants?.length === 0;
 
-  if (isUserAloneInCall) return <LocalVideoView layout={'fullscreen'} />;
+  if (isUserAloneInCall) {
+    return <LocalVideoView layout={'fullscreen'} />;
+  }
 
   return (
     <View style={styles.container}>

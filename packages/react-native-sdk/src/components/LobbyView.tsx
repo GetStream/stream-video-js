@@ -31,7 +31,7 @@ const ParticipantStatus = () => {
       )}
       {isVideoMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          {isVideoMuted && <VideoSlash color={theme.light.error} />}
+          <VideoSlash color={theme.light.error} />
         </View>
       )}
     </View>
@@ -74,7 +74,6 @@ export const LobbyView = () => {
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
-    // @ts-ignore
     image: connectedUser?.image,
     name: connectedUser?.name,
   } as StreamVideoParticipant;
@@ -86,53 +85,53 @@ export const LobbyView = () => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.heading}>Before Joining</Text>
-        <Text style={styles.subHeading}>Setup your audio and video</Text>
         {connectedUser && (
-          <View style={styles.videoView}>
-            <View style={styles.topView} />
-            {isVideoAvailable ? (
-              <VideoRenderer
-                mirror={isCameraOnFrontFacingMode}
-                mediaStream={localVideoStream}
-                objectFit="cover"
-                style={StyleSheet.absoluteFillObject}
-              />
-            ) : (
-              <Avatar participant={connectedUserAsParticipant} />
-            )}
-            <ParticipantStatus />
-          </View>
-        )}
-        {connectedUser && (
-          <View style={styles.buttonGroup}>
-            <CallControlsButton
-              onPress={toggleAudioState}
-              color={muteStatusColor(isAudioMuted)}
-              style={[
-                styles.button,
-                theme.button.md,
-                {
-                  shadowColor: muteStatusColor(isAudioMuted),
-                },
-              ]}
-            >
-              {MicIcon}
-            </CallControlsButton>
-            <CallControlsButton
-              onPress={toggleVideoState}
-              color={muteStatusColor(isVideoMuted)}
-              style={[
-                styles.button,
-                theme.button.md,
-                {
-                  shadowColor: muteStatusColor(isVideoMuted),
-                },
-              ]}
-            >
-              {VideoIcon}
-            </CallControlsButton>
-          </View>
+          <>
+            <Text style={styles.heading}>Before Joining</Text>
+            <Text style={styles.subHeading}>Setup your audio and video</Text>
+            <View style={styles.videoView}>
+              <View style={styles.topView} />
+              {isVideoAvailable ? (
+                <VideoRenderer
+                  mirror={isCameraOnFrontFacingMode}
+                  mediaStream={localVideoStream}
+                  objectFit="cover"
+                  style={StyleSheet.absoluteFillObject}
+                />
+              ) : (
+                <Avatar participant={connectedUserAsParticipant} />
+              )}
+              <ParticipantStatus />
+            </View>
+            <View style={styles.buttonGroup}>
+              <CallControlsButton
+                onPress={toggleAudioState}
+                color={muteStatusColor(isAudioMuted)}
+                style={[
+                  styles.button,
+                  theme.button.md,
+                  {
+                    shadowColor: muteStatusColor(isAudioMuted),
+                  },
+                ]}
+              >
+                {MicIcon}
+              </CallControlsButton>
+              <CallControlsButton
+                onPress={toggleVideoState}
+                color={muteStatusColor(isVideoMuted)}
+                style={[
+                  styles.button,
+                  theme.button.md,
+                  {
+                    shadowColor: muteStatusColor(isVideoMuted),
+                  },
+                ]}
+              >
+                {VideoIcon}
+              </CallControlsButton>
+            </View>
+          </>
         )}
         <View style={styles.info}>
           <Text style={styles.infoText}>

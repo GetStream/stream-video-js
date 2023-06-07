@@ -14,6 +14,7 @@ import { useStreamVideoStoreValue } from '../contexts';
 import { theme } from '../theme';
 import { VideoSlash } from '../icons';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
+import { A11yComponents } from '../constants/A11yLabels';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -93,6 +94,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
 
   return (
     <Animated.View
+      accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT}
       style={{
         zIndex: 5,
         transform: [{ translateX: pan.x }, { translateY: pan.y }],
