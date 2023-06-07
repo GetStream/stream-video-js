@@ -79,7 +79,9 @@ const App = () => {
       return;
     }
 
-    client.connectUser(user, participants[currentUser]);
+    client
+      .connectUser(user, participants[currentUser])
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
       client
@@ -99,7 +101,9 @@ const App = () => {
     if (!call) {
       return;
     }
-    call.join(callInput);
+    call
+      .join(callInput)
+      .catch((err) => console.error('Failed to join call', err));
   }, [call, callInput]);
 
   const createCall = async (id: string, invitees: string[]) => {

@@ -28,10 +28,14 @@ export const CallRecordingsPage = ({
   );
 
   useEffect(() => {
-    videoClient.connectUser(user, userToken);
+    videoClient
+      .connectUser(user, userToken)
+      .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {
-      videoClient.disconnectUser();
+      videoClient
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
     };
   }, [videoClient, user, userToken]);
 
