@@ -50,7 +50,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
     };
   }, []);
 
-  if (!activeCall) return null;
+  if (!activeCall) {
+    return null;
+  }
   return <InnerActiveCall {...props} />;
 };
 

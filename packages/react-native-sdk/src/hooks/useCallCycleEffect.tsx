@@ -30,7 +30,7 @@ export const useCallCycleEffect = (
     if (!call || NON_ACTIVE_CALLING_STATES.includes(callingState)) return;
     const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
     const isCallCreatedByOther =
-      !!call?.data?.created_by.id && !isCallCreatedByMe;
+      !!call.data?.created_by.id && !isCallCreatedByMe;
     const isIncomingCall =
       callingState === CallingState.RINGING &&
       !isCallCreatedByMe &&
