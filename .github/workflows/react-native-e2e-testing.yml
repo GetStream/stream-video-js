@@ -12,6 +12,11 @@ on:
       - 'packages/react-native-sdk/**'
       - 'packages/react-native-meeting-starter-kit/**'
       - '.github/**'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
 concurrency:
   group: react-native-e2e-testing-${{ github.ref }}
   cancel-in-progress: true
