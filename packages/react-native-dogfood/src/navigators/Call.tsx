@@ -107,12 +107,16 @@ const Calls = () => {
     onCallJoining,
   ]);
 
+  const firstCall = calls[0];
+
+  if (!firstCall) {
+    return null;
+  }
+
   return (
-    calls[0] && (
-      <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
-        <CallPanel show={show} />
-      </StreamCall>
-    )
+    <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
+      <CallPanel show={show} />
+    </StreamCall>
   );
 };
 
