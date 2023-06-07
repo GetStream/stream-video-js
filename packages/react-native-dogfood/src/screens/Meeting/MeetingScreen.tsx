@@ -40,10 +40,6 @@ export const MeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  const onJoining = () => {
-    setShow('loading');
-  };
-
   const user = {
     id: username,
     name: username,
@@ -80,7 +76,6 @@ export const MeetingScreen = (props: Props) => {
         callType={'default'}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >
