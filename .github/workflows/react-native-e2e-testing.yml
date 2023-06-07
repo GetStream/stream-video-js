@@ -11,12 +11,7 @@ on:
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
       - 'packages/react-native-meeting-starter-kit/**'
-      - '.github/**'
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
+      - '.github/react-native-e2e-testing.yml'
 concurrency:
   group: react-native-e2e-testing-${{ github.ref }}
   cancel-in-progress: true
@@ -72,9 +67,9 @@ jobs:
       - name: Install Maestro
         run: curl -Ls "https://get.maestro.mobile.dev" | bash
       - name: Run tests
-        with:
-          working-directory: packages/react-native-meeting-starter-kit
-        run: ./e2e/run_tests.sh --android
+        run: |
+          cd packages/react-native-meeting-starter-kit
+          ./e2e/run_tests.sh --ios
 
   deploy_android:
     name: Test Android
@@ -99,6 +94,6 @@ jobs:
       - name: Install Maestro
         run: curl -Ls "https://get.maestro.mobile.dev" | bash
       - name: Run tests
-        with:
-          working-directory: packages/react-native-meeting-starter-kit
-        run: ./e2e/run_tests.sh --android
+        run: |
+          cd packages/react-native-meeting-starter-kit
+          ./e2e/run_tests.sh --android
