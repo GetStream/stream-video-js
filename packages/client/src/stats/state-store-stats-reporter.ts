@@ -5,10 +5,10 @@ import type {
   StatsReport,
 } from './types';
 import { CallState } from '../store';
-import { Publisher } from '../rtc';
+import { Publisher, Subscriber } from '../rtc';
 
 export type StatsReporterOpts = {
-  subscriber: RTCPeerConnection;
+  subscriber: Subscriber;
   publisher: Publisher;
   state: CallState;
   pollingIntervalInMs?: number;

@@ -1,12 +1,12 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
-  createSubscriber,
   Dispatcher,
   getGenericSdp,
   isSfuEvent,
   Publisher,
   SfuEventKinds,
   SfuEventListener,
+  Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
 import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
@@ -155,7 +155,7 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
-  private subscriber?: RTCPeerConnection;
+  private subscriber?: Subscriber;
   private publisher?: Publisher;
   private trackSubscriptionsSubject = new BehaviorSubject<{
     type: DebounceType;
@@ -554,16 +554,12 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async (data?: JoinCallData) => {
-    if (
-      [CallingState.JOINED, CallingState.JOINING].includes(
-        this.state.callingState,
-      )
-    ) {
+    const callingState = this.state.callingState;
+    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    const previousCallingState = this.state.callingState;
-    const isMigrating = this.state.callingState === CallingState.MIGRATING;
+    const isMigrating = callingState === CallingState.MIGRATING;
     this.state.setCallingState(CallingState.JOINING);
 
     if (data?.ring && !this.ringing) {
@@ -593,7 +589,7 @@ export class Call {
       }
     } catch (error) {
       // restore the previous call state if the join-flow fails
-      this.state.setCallingState(previousCallingState);
+      this.state.setCallingState(callingState);
       throw error;
     }
 
@@ -612,11 +608,7 @@ export class Call {
       sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
     }
 
-    const previousSubscriber = this.subscriber;
-    const previousPublisher = this.publisher;
-    const previousStatsReporter = this.statsReporter;
     const previousSfuClient = this.sfuClient;
-
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,
       url: sfuUrl,
@@ -642,9 +634,9 @@ export class Call {
 
       const disconnectFromPreviousSfu = () => {
         if (!migrate) {
-          previousSubscriber?.close();
-          previousPublisher?.stopPublishing({ stopTracks: false });
-          previousStatsReporter?.stop();
+          this.subscriber?.close();
+          this.publisher?.stopPublishing({ stopTracks: false });
+          this.statsReporter?.stop();
         }
         previousSfuClient?.close(); // clean up previous connection
       };
@@ -739,8 +731,8 @@ export class Call {
       );
     }
 
-    if (!isMigrating || !this.subscriber) {
-      this.subscriber = createSubscriber({
+    if (!this.subscriber) {
+      this.subscriber = new Subscriber({
         sfuClient,
         dispatcher: this.dispatcher,
         connectionConfig,
@@ -752,7 +744,7 @@ export class Call {
     const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
     const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
 
-    if (!isMigrating || !this.publisher) {
+    if (!this.publisher) {
       this.publisher = new Publisher({
         sfuClient,
         state: this.state,
@@ -791,7 +783,7 @@ export class Call {
             ? {
                 fromSfuId: data?.migrating_from || '',
                 subscriptions: subscriptions.data || [],
-                announcedTracks: previousPublisher?.announcedTracks || [],
+                announcedTracks: this.publisher?.announcedTracks || [],
               }
             : undefined;
 
@@ -806,8 +798,9 @@ export class Call {
       // this will throw an error if the SFU rejects the join request or
       // fails to respond in time
       const { callState } = await this.waitForJoinResponse();
-      if (isMigrating && previousPublisher) {
-        await previousPublisher.migrateTo(sfuClient);
+      if (isMigrating) {
+        await this.subscriber.migrateTo(sfuClient);
+        await this.publisher.migrateTo(sfuClient);
       }
       const currentParticipants = callState?.participants || [];
       const participantCount = callState?.participantCount;
