@@ -811,16 +811,22 @@ export class StreamClient {
    *
    * @param {string} userID The User ID
    * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
    *
    * @return {string} Returns a token
    */
-  createToken(userID: string, exp?: number, iat?: number) {
+  createToken(
+    userID: string,
+    exp?: number,
+    iat?: number,
+    call_cids?: string[],
+  ) {
     if (this.secret == null) {
       throw Error(
         `tokens can only be created server-side using the API Secret`,
       );
     }
-    const extra: { exp?: number; iat?: number } = {};
+    const extra: { exp?: number; iat?: number; call_cids?: string[] } = {};
 
     if (exp) {
       extra.exp = exp;
@@ -828,6 +834,10 @@ export class StreamClient {
 
     if (iat) {
       extra.iat = iat;
+    }
+
+    if (call_cids) {
+      extra.call_cids = call_cids;
     }
 
     return JWTUserToken(this.secret, userID, extra, {});

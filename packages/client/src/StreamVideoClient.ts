@@ -375,10 +375,16 @@ export class StreamVideoClient {
    *
    * @param {string} userID The User ID
    * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
    *
    * @return {string} Returns a token
    */
-  createToken(userID: string, exp?: number, iat?: number) {
-    return this.streamClient.createToken(userID, exp, iat);
+  createToken(
+    userID: string,
+    exp?: number,
+    iat?: number,
+    call_cids?: string[],
+  ) {
+    return this.streamClient.createToken(userID, exp, iat, call_cids);
   }
 }
