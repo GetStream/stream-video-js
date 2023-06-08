@@ -1,5 +1,5 @@
 .str-video__screen-share-overlay {
-  background: rgba(0, 0, 0, 0.9);
+  background: var(--str-video__overlay-color);
   backdrop-filter: blur(15px);
   border-radius: inherit;
 
