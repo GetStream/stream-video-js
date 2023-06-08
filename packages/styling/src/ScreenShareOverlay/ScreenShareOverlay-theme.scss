@@ -1,0 +1,19 @@
+.str-video__screen-share-overlay {
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(15px);
+  border-radius: inherit;
+
+  .str-video__screen-share-overlay__title {
+    font-size: 1.3rem;
+  }
+
+  .str-video__screen-share-overlay__button {
+    color: white;
+    background: var(--str-video__danger-color);
+    border-radius: var(--str-video__border-radius-xs);
+
+    &:hover {
+      background-color: var(--str-video__danger-color--accent);
+    }
+  }
+}
