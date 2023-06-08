@@ -1,3 +1,5 @@
+import { ComponentProps } from 'react';
+
 export function CloseIcon(): JSX.Element {
   return (
     <svg
@@ -6,7 +8,7 @@ export function CloseIcon(): JSX.Element {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className="w-6 h-6"
+      className="close-icon"
     >
       <path
         strokeLinecap="round"
@@ -109,7 +111,7 @@ export function RaiseHandIcon(): JSX.Element {
   );
 }
 
-export function MicrophoneButton(): JSX.Element {
+export function MicrophoneIcon(): JSX.Element {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -123,7 +125,21 @@ export function MicrophoneButton(): JSX.Element {
   );
 }
 
-export function MutedButton(): JSX.Element {
+export function MuteMicrophoneIcon(props: ComponentProps<'svg'>): JSX.Element {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1024 1024"
+      className={'mute-microphone-icon' + (props.className || '')}
+    >
+      <path d="m412.16 592.128-45.44 45.44A191.232 191.232 0 0 1 320 512V256a192 192 0 1 1 384 0v44.352l-64 64V256a128 128 0 1 0-256 0v256c0 30.336 10.56 58.24 28.16 80.128zm51.968 38.592A128 128 0 0 0 640 512v-57.152l64-64V512a192 192 0 0 1-287.68 166.528l47.808-47.808zM314.88 779.968l46.144-46.08A222.976 222.976 0 0 0 480 768h64a224 224 0 0 0 224-224v-32a32 32 0 1 1 64 0v32a288 288 0 0 1-288 288v64h64a32 32 0 1 1 0 64H416a32 32 0 1 1 0-64h64v-64c-61.44 0-118.4-19.2-165.12-52.032zM266.752 737.6A286.976 286.976 0 0 1 192 544v-32a32 32 0 0 1 64 0v32c0 56.832 21.184 108.8 56.064 148.288L266.752 737.6z" />
+      <path d="M150.72 859.072a32 32 0 0 1-45.44-45.056l704-708.544a32 32 0 0 1 45.44 45.056l-704 708.544z" />
+    </svg>
+  );
+}
+
+export function SpeakerOffIcon(): JSX.Element {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -154,3 +170,15 @@ export function AcceptIcon(): JSX.Element {
     </svg>
   );
 }
+
+export const BellIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="currentColor"
+    viewBox="0 0 1024 1024"
+  >
+    <path d="M512 64a64 64 0 0 1 64 64v64H448v-64a64 64 0 0 1 64-64z" />
+    <path d="M256 768h512V448a256 256 0 1 0-512 0v320zm256-640a320 320 0 0 1 320 320v384H192V448a320 320 0 0 1 320-320z" />
+    <path d="M96 768h832q32 0 32 32t-32 32H96q-32 0-32-32t32-32zm352 128h128a64 64 0 0 1-128 0z" />
+  </svg>
+);
