@@ -1,7 +1,7 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Publisher } from '../publisher';
+import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Dispatcher } from '../Dispatcher';
