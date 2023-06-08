@@ -9,17 +9,16 @@ description: How to setup the client and authenticate
 Before joining a call, it is necessary to set up the video client. Here's a basic example:
 
 ```ts
-
 // TODO: this is not the current constructor for StreamVideoClient
 // TODO: token param is nicer than tokenOrTokenProvider
 // TODO: logging is missing
 
-import {StreamVideoClient} from "@stream-io/video-client";
+import { StreamVideoClient } from '@stream-io/video-client';
 
 const client = new StreamVideoClient({
-    apiKey: apiKey,
-    token: token,
-    user,
+  apiKey: apiKey,
+  token: token,
+  user,
 });
 ```
 
@@ -34,6 +33,10 @@ Typically, you'll want to initialize the client when your application loads and 
 - Tokens need to be generated server side. You can use our server side SDKs to quickly add support for this. Typically you integrate this into the part of your codebase where you login or register users. The tokens provide a way to authenticate a user or give access to a specific set of calls.
 - Here's a valid user and token to help you get started on the client side, before integrating with your backend API.
 
+:::note
+For development purposes, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/).
+:::
+
 ## Different types of users
 
 - Authenticated users are users that have an account on your app.
@@ -47,6 +50,7 @@ This example shows the client setup for a guest user:
 ```
 
 And here's an example for an anonymous user
+
 ```ts
 // TODO: for this we need {id, type="anonymous"}
 ```
@@ -56,6 +60,7 @@ And here's an example for an anonymous user
 Here's a more complete example of the client options:
 
 ```ts
+
 ```
 
 The full list of supported options is:
@@ -74,16 +79,14 @@ You can use the `StreamVideo` context provider to make the SDK client available 
 
 ```tsx
 import { useMemo, useCallback } from 'react';
-import {StreamVideoClient} from "@stream-io/video-client";
-import {
-  StreamVideo,
-  User,
-} from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideo, User } from '@stream-io/video-react-sdk';
 
 export const App = () => {
   const user = useMemo<User>(
     () => ({
-      id, name,
+      id,
+      name,
     }),
     [],
   );

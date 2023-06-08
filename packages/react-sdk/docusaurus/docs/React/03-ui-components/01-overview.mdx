@@ -33,16 +33,11 @@ import {
 } from '@stream-io/video-react-sdk';
 
 const MyApp = () => {
-  // Assuming you have the 'client' instance created
+  // Assuming you have the 'client' and 'call' instance created
   return (
     <StreamVideo client={client}>
       <StreamTheme>
-        <StreamCall
-          callType="default"
-          callId="my-first-call"
-          data={{ create: true }}
-          autoJoin
-        >
+        <StreamCall call={call}>
           <SpeakerLayout />
           <CallControls />
         </StreamCall>
