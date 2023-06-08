@@ -19,11 +19,12 @@ import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { isComponentType, applyElementToRef } from '../../../utilities';
 
-export type ParticipantViewContextValue = Pick<
-  ParticipantViewProps,
-  'participant'
+export type ParticipantViewContextValue = Required<
+  Pick<ParticipantViewProps, 'participant' | 'videoKind'>
 > & {
   participantViewElement: HTMLDivElement | null;
+  videoElement: HTMLVideoElement | null;
+  videoPlaceholderElement: HTMLDivElement | null;
 };
 
 const ParticipantViewContext = createContext<
@@ -84,7 +85,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       sinkId,
       videoKind = 'video',
       muteAudio,
-      refs,
+      refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
       VideoPlaceholder,
       ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
@@ -106,6 +107,12 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       null,
     );
 
+    const [contextVideoElement, setContextVideoElement] =
+      useState<HTMLVideoElement | null>(null);
+
+    const [contextVideoPlaceholderElement, setContextVideoPlaceholderElement] =
+      useState<HTMLDivElement | null>(null);
+
     // TODO: allow to pass custom ViewportTracker instance from props
     useTrackElementVisibility({
       sessionId,
@@ -113,8 +120,34 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     });
 
     const participantViewContextValue = useMemo(
-      () => ({ participant, participantViewElement: trackedElement }),
-      [participant, trackedElement],
+      () => ({
+        participant,
+        participantViewElement: trackedElement,
+        videoElement: contextVideoElement,
+        videoPlaceholderElement: contextVideoPlaceholderElement,
+        videoKind,
+      }),
+      [
+        contextVideoElement,
+        contextVideoPlaceholderElement,
+        participant,
+        trackedElement,
+        videoKind,
+      ],
+    );
+
+    const videoRefs: VideoProps['refs'] = useMemo(
+      () => ({
+        setVideoElement: (element) => {
+          setVideoElement?.(element);
+          setContextVideoElement(element);
+        },
+        setVideoPlaceholderElement: (element) => {
+          setVideoPlaceholderElement?.(element);
+          setContextVideoPlaceholderElement(element);
+        },
+      }),
+      [setVideoElement, setVideoPlaceholderElement],
     );
 
     return (
@@ -142,7 +175,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
             kind={videoKind}
-            refs={refs}
+            refs={videoRefs}
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (
