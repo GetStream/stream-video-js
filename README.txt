@@ -34,14 +34,6 @@ Run the application `yarn start:react:app` (make sure the server is already runn
 If you want to connect to the SFU and the coordinator running locally, you have to change the URL in
 [App.tsx](packages/react-sample-app/src/App.tsx). It should look something like this
 
-```ts
-const client = useCreateStreamVideoClient({
-  apiKey: 'us83cfwuhy8n', // see <video>/data/fixtures/apps.yaml for API key/secret
-  token: participants[currentUser],
-  user,
-});
-```
-
 Then recompile the app - step (3) in [Setup](#setup) section here and then `yarn start:react:app`.
 
 ### Angular

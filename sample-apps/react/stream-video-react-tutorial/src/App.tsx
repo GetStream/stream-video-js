@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Call,
   CallControls,
   CallingState,
   LoadingIndicator,
@@ -7,9 +8,10 @@ import {
   StreamCall,
   StreamTheme,
   StreamVideo,
+  StreamVideoClient,
   useCall,
   useCallCallingState,
-  useCreateStreamVideoClient,
+  useConnectedUser,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -20,31 +22,48 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 }) as unknown as Record<string, string | null>;
 
 export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: import.meta.env.VITE_STREAM_API_KEY,
-    tokenOrProvider: params.ut || import.meta.env.VITE_STREAM_USER_TOKEN,
-    user: {
-      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
-    },
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(import.meta.env.VITE_STREAM_API_KEY),
+  );
+  const [call, setCall] = useState<Call | undefined>(undefined);
 
   const callId = useMemo(
     () => params.call_id || String(Math.round(Math.random() * 100000000)),
     [],
   );
 
+  useEffect(() => {
+    if (!callId) {
+      return;
+    }
+    setCall(client.call('default', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    const user = {
+      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
+    };
+    const tokenProvider = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
+    client
+      .connectUser(user, tokenProvider)
+      .catch((err) => console.error('Failed to establish connection', err));
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+  }, [client]);
+
   return (
     <StreamVideo client={client}>
-      <StreamCall
-        callType="default"
-        callId={callId}
-        autoJoin={false}
-        data={{ create: true }}
-      >
-        <StreamTheme>
-          <UI />
-        </StreamTheme>
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <StreamTheme>
+            <UI />
+          </StreamTheme>
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 }
@@ -53,6 +72,7 @@ export const UI = () => {
   const call = useCall();
   const { publishVideoStream, publishAudioStream } = useMediaDevices();
   const callingState = useCallCallingState();
+  const user = useConnectedUser();
 
   useEffect(() => {
     if (callingState === CallingState.JOINED) {
@@ -76,7 +96,9 @@ export const UI = () => {
       ) : [CallingState.LEFT, CallingState.UNKNOWN, CallingState.IDLE].includes(
           callingState,
         ) ? (
-        <button onClick={() => call.join()}>Join</button>
+        <button disabled={!user} onClick={() => call.join({ create: true })}>
+          Join
+        </button>
       ) : null}
     </>
   );
