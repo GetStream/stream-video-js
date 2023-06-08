@@ -93,8 +93,18 @@ export class Subscriber {
     connectionConfig?: RTCConfiguration,
   ) => {
     this.sfuClient = sfuClient;
-    this.subscriber.close();
-    this.subscriber = this.createPeerConnection(connectionConfig);
+
+    // when migrating, we want to keep the previous subscriber open
+    // until the new one is connected
+    const previousSubscriber = this.subscriber;
+    const subscriber = this.createPeerConnection(connectionConfig);
+    subscriber.addEventListener('connectionstatechange', () => {
+      if (subscriber.connectionState === 'connected') {
+        previousSubscriber.close();
+      }
+    });
+
+    this.subscriber = subscriber;
   };
 
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
