@@ -358,8 +358,8 @@ export class Publisher {
     sfuClient: StreamSfuClient,
     connectionConfig?: RTCConfiguration,
   ) => {
-    this.publisher.setConfiguration(connectionConfig);
     this.sfuClient = sfuClient;
+    this.publisher.setConfiguration(connectionConfig);
 
     if (this.announcedTracks.length > 0) {
       // FIXME OL: hack, we probably should not do this.

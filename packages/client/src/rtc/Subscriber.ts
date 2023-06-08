@@ -16,8 +16,9 @@ export type SubscriberOpts = {
  * media streams from the SFU.
  */
 export class Subscriber {
-  private readonly subscriber: RTCPeerConnection;
+  private subscriber: RTCPeerConnection;
   private readonly unregisterOnSubscriberOffer: () => void;
+  private readonly onTrack: (e: RTCTrackEvent) => void;
   private sfuClient: StreamSfuClient;
   private dispatcher: Dispatcher;
 
@@ -37,13 +38,9 @@ export class Subscriber {
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.dispatcher = dispatcher;
+    this.onTrack = onTrack;
 
-    const pc = new RTCPeerConnection(connectionConfig);
-    pc.addEventListener('icecandidate', this.onIceCandidate);
-    pc.addEventListener('track', onTrack);
-    attachDebugEventListeners(pc);
-
-    this.subscriber = pc;
+    this.subscriber = this.createPeerConnection(connectionConfig);
 
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
@@ -54,6 +51,19 @@ export class Subscriber {
       },
     );
   }
+
+  /**
+   * Creates a new `RTCPeerConnection` instance with the given configuration.
+   *
+   * @param connectionConfig the connection configuration to use.
+   */
+  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
+    const pc = new RTCPeerConnection(connectionConfig);
+    pc.addEventListener('icecandidate', this.onIceCandidate);
+    pc.addEventListener('track', this.onTrack);
+    attachDebugEventListeners(pc);
+    return pc;
+  };
 
   /**
    * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
@@ -82,8 +92,9 @@ export class Subscriber {
     sfuClient: StreamSfuClient,
     connectionConfig?: RTCConfiguration,
   ) => {
-    this.subscriber.setConfiguration(connectionConfig);
     this.sfuClient = sfuClient;
+    this.subscriber.close();
+    this.subscriber = this.createPeerConnection(connectionConfig);
   };
 
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
