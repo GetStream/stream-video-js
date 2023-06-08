@@ -11,7 +11,6 @@ export const getPreferredCodecs = (
     return;
   }
   const cap = RTCRtpSender.getCapabilities(kind);
-  console.log('s4e');
   if (!cap) return;
   const matched: RTCRtpCodecCapability[] = [];
   const partialMatched: RTCRtpCodecCapability[] = [];
@@ -37,7 +36,6 @@ export const getPreferredCodecs = (
       }
       return;
     }
-    console.log('matched', matched);
     matched.push(c);
   });
 
