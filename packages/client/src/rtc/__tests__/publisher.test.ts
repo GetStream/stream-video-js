@@ -6,6 +6,7 @@ import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Dispatcher } from '../Dispatcher';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -140,5 +141,59 @@ describe('Publisher', () => {
       TrackType.VIDEO,
     );
     expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
+  });
+
+  describe('Publisher migration', () => {
+    it('should update the sfuClient and peer connection configuration', async () => {
+      const newSfuClient = new StreamSfuClient({
+        dispatcher: new Dispatcher(),
+        url: 'https://getstream.io/',
+        wsEndpoint: 'https://getstream.io/ws',
+        token: 'token',
+      });
+
+      const newPeerConnectionConfig = {
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      };
+
+      vi.spyOn(publisher['publisher'], 'setConfiguration');
+
+      await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
+
+      expect(publisher['sfuClient']).toEqual(newSfuClient);
+      expect(publisher['publisher'].setConfiguration).toHaveBeenCalledWith(
+        newPeerConnectionConfig,
+      );
+    });
+
+    it('should initiate ICE Restart when tracks there are published tracks', async () => {
+      // @ts-expect-error
+      publisher.announcedTracks.push({ trackType: TrackType.VIDEO });
+
+      vi.spyOn(publisher['publisher'], 'getTransceivers').mockReturnValue([]);
+      // @ts-ignore
+      sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
+      sfuClient.setPublisher = vi.fn().mockResolvedValue({
+        response: {
+          sessionId: 'new-session-id',
+          sdp: 'new-sdp',
+          iceRestart: false,
+        },
+      });
+
+      await publisher.migrateTo(sfuClient, {
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+
+      expect(publisher['publisher'].createOffer).toHaveBeenCalledWith({
+        iceRestart: true,
+      });
+      expect(publisher['publisher'].setLocalDescription).toHaveBeenCalled();
+      expect(publisher['publisher'].setRemoteDescription).toHaveBeenCalledWith({
+        type: 'answer',
+        sdp: 'new-sdp',
+      });
+      expect(sfuClient.setPublisher).toHaveBeenCalled();
+    });
   });
 });

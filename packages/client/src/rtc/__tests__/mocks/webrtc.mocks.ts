@@ -5,6 +5,14 @@ const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
     addEventListener: vi.fn(),
     getTransceivers: vi.fn(),
     addTransceiver: vi.fn(),
+    getConfiguration: vi.fn(),
+    setConfiguration: vi.fn(),
+    createOffer: vi.fn().mockResolvedValue({}),
+    createAnswer: vi.fn().mockResolvedValue({}),
+    setLocalDescription: vi.fn().mockResolvedValue({}),
+    setRemoteDescription: vi.fn().mockResolvedValue({}),
+    close: vi.fn(),
+    connectionState: 'connected',
   };
 });
 vi.stubGlobal('RTCPeerConnection', RTCPeerConnectionMock);
