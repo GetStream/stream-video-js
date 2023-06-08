@@ -16,14 +16,6 @@ on:
       - 'packages/react-native-sdk/**'
       - 'packages/react-sdk/**'
       - '.github/workflows/docusaurus-deploy.yml'
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - 'packages/react-bindings/**'
-      - 'packages/client/**'
-      - 'packages/react-native-sdk/**'
-      - 'packages/react-sdk/**'
-      - '.github/workflows/docusaurus-deploy.yml'
 
 jobs:
   push_docusaurus:
