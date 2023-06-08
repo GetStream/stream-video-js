@@ -1,28 +1,21 @@
-import React, {
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import JoinCallScreen from '../screens/Call/JoinCallScreen';
+
 import {
-  ActiveCall,
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
   theme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
+import { VideoWrapper } from '../components/VideoWrapper';
+import { AuthenticationProgress } from '../components/AuthenticatingProgress';
+import { Alert, StyleSheet, View } from 'react-native';
+import { ActiveCallComponent } from '../components/ActiveCallComponent';
 
-import {STREAM_API_KEY} from 'react-native-dotenv';
-import {ChatWrapper} from './ChatWrapper';
-import {VideoWrapper} from './VideoWrapper';
-import {AuthProgressLoader} from './AuthProgressLoader';
-import {Alert, StyleSheet, View} from 'react-native';
+type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
 
-console.log('STREAM_API_KEY', STREAM_API_KEY);
-
-const CallPanel = ({show}: {show: ScreenTypes}) => {
+const CallPanel = ({ show }: { show: ScreenTypes }) => {
   switch (show) {
     case 'incoming':
       return <IncomingCallView />;
@@ -35,27 +28,23 @@ const CallPanel = ({show}: {show: ScreenTypes}) => {
     case 'active-call':
       return (
         <View style={styles.container}>
-          <ActiveCall />
+          <ActiveCallComponent />
         </View>
       );
     case 'joining':
       return (
         <View style={styles.container}>
-          <AuthProgressLoader />
+          <AuthenticationProgress />
         </View>
       );
-    case 'none':
-      return null;
     default:
       return null;
   }
 };
 
-type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
-
-export const Calls = () => {
-  const calls = useCalls();
+const Calls = () => {
   const [show, setShow] = useState<ScreenTypes>('none');
+  const calls = useCalls();
 
   const handleMoreCalls = useCallback(async () => {
     const lastCallCreatedBy = calls[1].data?.created_by;
@@ -76,31 +65,31 @@ export const Calls = () => {
     }
   }, [calls.length, handleMoreCalls]);
 
-  const onCallJoined = useCallback(() => {
+  const onCallJoined = React.useCallback(() => {
     setShow('active-call');
   }, [setShow]);
 
-  const onCallIncoming = useCallback(() => {
+  const onCallIncoming = React.useCallback(() => {
     setShow('incoming');
   }, [setShow]);
 
-  const onCallOutgoing = useCallback(() => {
+  const onCallOutgoing = React.useCallback(() => {
     setShow('outgoing');
   }, [setShow]);
 
-  const onCallJoining = useCallback(() => {
+  const onCallHungUp = React.useCallback(() => {
+    setShow('none');
+  }, [setShow]);
+
+  const onCallRejected = React.useCallback(() => {
+    setShow('none');
+  }, [setShow]);
+
+  const onCallJoining = React.useCallback(() => {
     setShow('joining');
   }, [setShow]);
 
-  const onCallHungUp = useCallback(() => {
-    setShow('none');
-  }, [setShow]);
-
-  const onCallRejected = useCallback(() => {
-    setShow('none');
-  }, [setShow]);
-
-  const callCycleHandlers = useMemo(() => {
+  const callCycleHandlers = React.useMemo(() => {
     return {
       onCallJoined,
       onCallIncoming,
@@ -118,23 +107,25 @@ export const Calls = () => {
     onCallJoining,
   ]);
 
+  const firstCall = calls[0];
+
+  if (!firstCall) {
+    return null;
+  }
+
   return (
-    calls[0] && (
-      <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
-        <CallPanel show={show} />
-      </StreamCall>
-    )
+    <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
+      <CallPanel show={show} />
+    </StreamCall>
   );
 };
 
-export const MessengerWrapper = ({children}: PropsWithChildren<{}>) => {
+export const Call = () => {
   return (
-    <ChatWrapper>
-      <VideoWrapper>
-        {children}
-        <Calls />
-      </VideoWrapper>
-    </ChatWrapper>
+    <VideoWrapper>
+      <JoinCallScreen />
+      <Calls />
+    </VideoWrapper>
   );
 };
 

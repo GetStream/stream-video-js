@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.133](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.132...@stream-io/video-react-native-sdk-0.0.1-alpha.133) (2023-06-07)
+
+
+
+## [0.0.1-alpha.132](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.131...@stream-io/video-react-native-sdk-0.0.1-alpha.132) (2023-06-07)
+
+
+
+## [0.0.1-alpha.131](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.130...@stream-io/video-react-native-sdk-0.0.1-alpha.131) (2023-06-07)
+
+
+### Bug Fixes
+
+* **react-native:** revive call flow in dogfood app ([#604](https://github.com/GetStream/stream-video-js/issues/604)) ([83b1c7e](https://github.com/GetStream/stream-video-js/commit/83b1c7e63f9746ca23f1d17f61495726dd5a7ffb))
+
+
+
+## [0.0.1-alpha.130](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.129...@stream-io/video-react-native-sdk-0.0.1-alpha.130) (2023-06-07)
+
+
+
+## [0.0.1-alpha.129](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.128...@stream-io/video-react-native-sdk-0.0.1-alpha.129) (2023-06-07)
+
+
+### Features
+
+* **react-native:** revive call flow in react native call starter kit ([#599](https://github.com/GetStream/stream-video-js/issues/599)) ([8b769d3](https://github.com/GetStream/stream-video-js/commit/8b769d36f7fb5806d50dca0be9880a246f69a0df))
+
+
+
+## [0.0.1-alpha.128](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.127...@stream-io/video-react-native-sdk-0.0.1-alpha.128) (2023-06-06)
+
+
+
+## [0.0.1-alpha.127](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.126...@stream-io/video-react-native-sdk-0.0.1-alpha.127) (2023-06-06)
+
+
+### Bug Fixes
+
+* **react-native:** Don't get video if device id is undefined ([#602](https://github.com/GetStream/stream-video-js/issues/602)) ([a15540e](https://github.com/GetStream/stream-video-js/commit/a15540edc52a364d6dbd92f85e3382c084cc72e1))
+
+
+
 ## [0.0.1-alpha.126](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.125...@stream-io/video-react-native-sdk-0.0.1-alpha.126) (2023-06-06)
 
 
