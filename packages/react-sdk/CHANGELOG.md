@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.12...@stream-io/video-react-sdk-0.0.13) (2023-06-08)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.7`
+
+### Features
+
+* StreamCall signature, video client creation ([#596](https://github.com/GetStream/stream-video-js/issues/596)) ([5c3000c](https://github.com/GetStream/stream-video-js/commit/5c3000cc6fc3f8b7904609d7b11fa025b7458cad))
+
 ### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.11...@stream-io/video-react-sdk-0.0.12) (2023-06-07)
 
 ### Dependency Updates
