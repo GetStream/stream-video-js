@@ -51,7 +51,7 @@ export const Hosts = () => {
     return () => {
       client.disconnectUser();
     };
-  }, [client]);
+  }, [client, randomCharacter]);
 
   return (
     <StreamVideo client={client}>
