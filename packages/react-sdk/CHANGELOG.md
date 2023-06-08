@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.15...@stream-io/video-react-sdk-0.0.16) (2023-06-08)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.1`
+
+### Features
+
+* **react-sdk:** ScreenShareOverlay component ([#610](https://github.com/GetStream/stream-video-js/issues/610)) ([37aada1](https://github.com/GetStream/stream-video-js/commit/37aada1f20b4a562edf07314df2e962f252069ef))
+
 ### [0.0.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.14...@stream-io/video-react-sdk-0.0.15) (2023-06-08)
 
 
