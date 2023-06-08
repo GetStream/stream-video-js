@@ -1,6 +1,6 @@
 .str-video__screen-share-overlay {
   background: var(--str-video__overlay-color);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(3px);
   border-radius: inherit;
 
   .str-video__screen-share-overlay__title {
