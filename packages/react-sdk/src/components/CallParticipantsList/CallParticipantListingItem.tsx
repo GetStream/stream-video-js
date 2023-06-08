@@ -1,5 +1,11 @@
 import clsx from 'clsx';
-import { ComponentProps, ComponentType, forwardRef, useState } from 'react';
+import {
+  ComponentProps,
+  ComponentType,
+  forwardRef,
+  useEffect,
+  useState,
+} from 'react';
 import {
   Restricted,
   useCall,
@@ -120,12 +126,17 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 export const ParticipantActionsContextMenu = ({
   participant,
   participantViewElement,
+  videoElement,
 }: {
   participant: StreamVideoParticipant;
   participantViewElement?: HTMLDivElement | null;
+  videoElement?: HTMLVideoElement | null;
 }) => {
   const [fullscreenModeOn, setFullscreenModeOn] = useState(
     !!document.fullscreenElement,
+  );
+  const [pictureInPictureElement, setPictureInPictureElement] = useState(
+    document.pictureInPictureElement,
   );
   const activeCall = useCall();
 
@@ -186,6 +197,43 @@ export const ParticipantActionsContextMenu = ({
       .finally(() => setFullscreenModeOn(false));
   };
 
+  useEffect(() => {
+    if (!videoElement) return;
+
+    const handlePictureInPicture = () => {
+      setPictureInPictureElement(document.pictureInPictureElement);
+    };
+
+    videoElement.addEventListener(
+      'enterpictureinpicture',
+      handlePictureInPicture,
+    );
+    videoElement.addEventListener(
+      'leavepictureinpicture',
+      handlePictureInPicture,
+    );
+
+    return () => {
+      videoElement.removeEventListener(
+        'enterpictureinpicture',
+        handlePictureInPicture,
+      );
+      videoElement.removeEventListener(
+        'leavepictureinpicture',
+        handlePictureInPicture,
+      );
+    };
+  }, [videoElement]);
+
+  const togglePictureInPicture = () => {
+    if (videoElement && pictureInPictureElement !== videoElement)
+      return videoElement
+        .requestPictureInPicture()
+        .catch(console.error) as Promise<void>;
+
+    document.exitPictureInPicture().catch(console.error);
+  };
+
   return (
     <GenericMenu>
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
@@ -235,6 +283,12 @@ export const ParticipantActionsContextMenu = ({
       {participantViewElement && (
         <GenericMenuButtonItem onClick={toggleFullscreenMode}>
           {fullscreenModeOn ? 'Leave' : 'Enter'} fullscreen
+        </GenericMenuButtonItem>
+      )}
+      {videoElement && document.pictureInPictureEnabled && (
+        <GenericMenuButtonItem onClick={togglePictureInPicture}>
+          {pictureInPictureElement === videoElement ? 'Leave' : 'Enter'}{' '}
+          picture-in-picture
         </GenericMenuButtonItem>
       )}
       <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
