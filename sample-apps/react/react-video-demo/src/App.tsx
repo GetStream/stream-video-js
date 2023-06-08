@@ -62,7 +62,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const { setSteps } = useTourContext();
 
   useEffect(() => {
-    client.connectUser(user, token);
+    client.connectUser(user, token).catch(console.error);
 
     return () => {
       client.disconnectUser();

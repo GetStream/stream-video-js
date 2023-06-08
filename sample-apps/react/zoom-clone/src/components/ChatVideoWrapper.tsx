@@ -25,7 +25,6 @@ export const ChatVideoWrapper = () => {
     if (!token || !userData) {
       return;
     }
-    console.log(token, userData);
     videoClient.connectUser(
       {
         id: userData.id,

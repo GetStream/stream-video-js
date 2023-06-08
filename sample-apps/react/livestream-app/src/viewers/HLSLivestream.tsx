@@ -20,7 +20,6 @@ export const HLSLivestreamUI = () => {
   const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   useEffect(() => {
-    console.log(isBroadcasting);
     if (!videoRef) return;
     let timeoutId: NodeJS.Timeout;
     if (autoJoin && isBroadcasting && metadata && metadata.egress.hls) {

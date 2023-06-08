@@ -46,7 +46,7 @@ export const Hosts = () => {
       return response.token as string;
     };
 
-    client.connectUser(user, tokenProvider);
+    client.connectUser(user, tokenProvider).catch(console.error);
 
     return () => {
       client.disconnectUser();

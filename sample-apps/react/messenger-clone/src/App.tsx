@@ -52,7 +52,7 @@ const Root = ({
   );
 
   useEffect(() => {
-    videoClient.connectUser(user, userToken);
+    videoClient.connectUser(user, userToken).catch(console.error);
 
     return () => {
       videoClient.disconnectUser();

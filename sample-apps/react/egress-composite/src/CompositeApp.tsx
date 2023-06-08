@@ -34,7 +34,7 @@ export const CompositeApp = () => {
     return () => {
       client.disconnectUser();
     };
-  }, [client, config.token]);
+  }, [client, config.userId, config.token]);
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
