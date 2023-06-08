@@ -27,6 +27,7 @@ import {
   useAudioInputDeviceFallback,
   useAudioOutputDeviceFallback,
   useAudioPublisher,
+  useCheckBrowserPermissions,
   useVideoDeviceFallback,
   useVideoPublisher,
 } from '../hooks';
@@ -243,7 +244,12 @@ export const MediaDevicesProvider = ({
   const callState = useCallState();
   const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
-
+  const canObserveVideo = useCheckBrowserPermissions(
+    'camera' as PermissionName,
+  );
+  const canObserveAudio = useCheckBrowserPermissions(
+    'microphone' as PermissionName,
+  );
   const [selectedAudioInputDeviceId, selectAudioInputDeviceId] = useState<
     MediaDevicesContextAPI['selectedAudioInputDeviceId']
   >(initialAudioInputDeviceId);
@@ -345,14 +351,18 @@ export const MediaDevicesProvider = ({
 
   useAudioInputDeviceFallback(
     () => switchDevice('audioinput', DEFAULT_DEVICE_ID),
+    canObserveAudio,
     selectedAudioInputDeviceId,
   );
   useAudioOutputDeviceFallback(
     () => switchDevice('audiooutput', DEFAULT_DEVICE_ID),
+    // audiooutput devices can be enumerated only with microphone permissions
+    canObserveAudio,
     selectedAudioOutputDeviceId,
   );
   useVideoDeviceFallback(
     () => switchDevice('videoinput', DEFAULT_DEVICE_ID),
+    canObserveVideo,
     selectedVideoDeviceId,
   );
 
@@ -362,7 +372,9 @@ export const MediaDevicesProvider = ({
   }, [call, callingState, selectedAudioOutputDeviceId]);
 
   useEffect(() => {
-    if (!localParticipant$) return;
+    // audiooutput devices can be enumerated only with microphone permissions
+    if (!localParticipant$ || !canObserveAudio) return;
+
     const subscription = watchForDisconnectedAudioOutputDevice(
       localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
     ).subscribe(async () => {
@@ -371,7 +383,7 @@ export const MediaDevicesProvider = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [localParticipant$]);
+  }, [canObserveAudio, localParticipant$]);
 
   const contextValue: MediaDevicesContextAPI = {
     disposeOfMediaStream,
