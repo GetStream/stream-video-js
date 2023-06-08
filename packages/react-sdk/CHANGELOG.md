@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.16...@stream-io/video-react-sdk-0.0.17) (2023-06-08)
+
+
+### Documentation
+
+* pull token generator from shared repo ([#615](https://github.com/GetStream/stream-video-js/issues/615)) ([fcf0093](https://github.com/GetStream/stream-video-js/commit/fcf009300307fb08a08346ef01981cb2ea254851))
+
 ### [0.0.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.15...@stream-io/video-react-sdk-0.0.16) (2023-06-08)
 
 ### Dependency Updates
