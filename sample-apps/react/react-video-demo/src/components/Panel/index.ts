@@ -1,1 +1,1 @@
-export { Panel as default } from './Panel';
+export { Panel as default, AnimatedPanel } from './Panel';
