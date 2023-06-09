@@ -1,7 +1,4 @@
-import {
-  useCreateStreamVideoClient,
-  StreamVideo,
-} from '@stream-io/video-react-sdk';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { Chat } from 'stream-chat-react';
 
 import { useChatClient } from '../hooks';
@@ -10,11 +7,13 @@ import type { User } from '../main';
 
 import { Preview } from './Preview';
 import { Outlet, useLoaderData } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 const apiKey = import.meta.env.VITE_STREAM_KEY as string;
 
 export const ChatVideoWrapper = () => {
   const { token, ...userData } = useLoaderData() as User;
+  const [videoClient] = useState(() => new StreamVideoClient(apiKey));
 
   const chatClient = useChatClient({
     apiKey,
@@ -22,17 +21,25 @@ export const ChatVideoWrapper = () => {
     tokenOrProvider: token,
   });
 
-  const videoClient = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userData.id,
-      image: userData.image,
-      name: userData.name,
-      role: 'user',
-      teams: [],
-    },
-  });
+  useEffect(() => {
+    if (!token || !userData) {
+      return;
+    }
+    videoClient.connectUser(
+      {
+        id: userData.id,
+        image: userData.image,
+        name: userData.name,
+        role: 'user',
+        teams: [],
+      },
+      token,
+    );
+
+    return () => {
+      videoClient.disconnectUser();
+    };
+  }, [videoClient, userData, token]);
 
   if (!chatClient || !videoClient) return null;
 

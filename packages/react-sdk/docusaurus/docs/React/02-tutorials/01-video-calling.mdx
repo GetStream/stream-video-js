@@ -92,35 +92,39 @@ All the code fits into a single `.tsx` file.
 
 The <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/App.tsx" target="_blank">`App` component</a> takes care of the following:
 
-1. Creates a [`StreamVideoClient`](../../call-engine/StreamVideoClient) instance and establishes a WS connection (hook `useCreateStreamVideoClient`)
+1. Creates a [`StreamVideoClient`](../../call-engine/StreamVideoClient) instance and establishes a WS connection
 2. Provides the `StreamVideoClient` instance to children through [`StreamVideo`](../../call-engine/hooks-and-contexts#streamvideo) provider
 3. Creates a call instance and provides it to children (by [`StreamCall`](../../ui-components/core/stream-call))
 4. Renders the app UI
 
 :::note
+
 If you would like to connect with a different user than the one specified by your `VITE_STREAM_USER_TOKEN` you can use URL search params to pass custom values for:
 
 1. `user_id` - has to match the token's `user_id`
 2. `ut` - token that will replace the one specified by `VITE_STREAM_USER_TOKEN`
-   :::
+
+:::
 
 :::note
 To connect to the same call from multiple tabs, use URL search param `call_id`. The call id can be found in the active call header and is the second part of the call CID separated by ":" from the call type (for example in "default:123456" the call id is "123456").
 :::
 
 ```tsx
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Call,
   CallControls,
   CallingState,
-  CallParticipantsView,
   LoadingIndicator,
+  PaginatedGridLayout,
   StreamCall,
   StreamTheme,
   StreamVideo,
+  StreamVideoClient,
   useCall,
   useCallCallingState,
-  useCreateStreamVideoClient,
+  useConnectedUser,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -131,31 +135,48 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 }) as unknown as Record<string, string | null>;
 
 export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: import.meta.env.VITE_STREAM_API_KEY,
-    tokenOrProvider: params.ut || import.meta.env.VITE_STREAM_USER_TOKEN,
-    user: {
-      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
-    },
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(import.meta.env.VITE_STREAM_API_KEY),
+  );
+  const [call, setCall] = useState<Call | undefined>(undefined);
 
   const callId = useMemo(
     () => params.call_id || String(Math.round(Math.random() * 100000000)),
     [],
   );
 
+  useEffect(() => {
+    if (!callId) {
+      return;
+    }
+    setCall(client.call('default', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    const user = {
+      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
+    };
+    const tokenProvider = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
+    client
+      .connectUser(user, tokenProvider)
+      .catch((err) => console.error('Failed to establish connection', err));
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+  }, [client]);
+
   return (
     <StreamVideo client={client}>
-      <StreamCall
-        callType="default"
-        callId={callId}
-        autoJoin={false}
-        data={{ create: true }}
-      >
-        <StreamTheme>
-          <UI />
-        </StreamTheme>
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <StreamTheme>
+            <UI />
+          </StreamTheme>
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 }
@@ -163,20 +184,23 @@ export default function App() {
 
 ### The app UI component
 
-In the UI component we heavily rely on the [`Call` object](../../call-engine/Call) created and provided through [`StreamCall`](../../ui-components/core/stream-call) component. The `Call` object exposes an API to control a call (create, join, leave, etc.). The call connection state can be observed through [`CallingState` object](../../call-engine/hooks-and-contexts#usecallcallingstate) that is constantly updated in response to connection changes. It also lets us know, when we can start to send audio and video data to the server as we do in the `useEffect` hook in our example.
+In the UI component we heavily rely on the [`Call` object](../../call-engine/Call) provided through [`StreamCall`](../../ui-components/core/stream-call) component. The `Call` object exposes an API to control a call (create, join, leave, etc.). The call connection state can be observed through [`CallingState` object](../../call-engine/hooks-and-contexts#usecallcallingstate) that is constantly updated in response to connection changes. It also lets us know, when we can start to send audio and video data to the server as we do in the `useEffect` hook in our example.
 
 ```tsx
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  Call,
   CallControls,
   CallingState,
-  CallParticipantsView,
   LoadingIndicator,
+  PaginatedGridLayout,
   StreamCall,
+  StreamTheme,
   StreamVideo,
+  StreamVideoClient,
   useCall,
   useCallCallingState,
-  useCreateStreamVideoClient,
+  useConnectedUser,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 

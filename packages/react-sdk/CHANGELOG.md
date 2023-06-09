@@ -2,6 +2,59 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.16...@stream-io/video-react-sdk-0.0.17) (2023-06-08)
+
+
+### Documentation
+
+* pull token generator from shared repo ([#615](https://github.com/GetStream/stream-video-js/issues/615)) ([fcf0093](https://github.com/GetStream/stream-video-js/commit/fcf009300307fb08a08346ef01981cb2ea254851))
+
+### [0.0.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.15...@stream-io/video-react-sdk-0.0.16) (2023-06-08)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.1`
+
+### Features
+
+* **react-sdk:** ScreenShareOverlay component ([#610](https://github.com/GetStream/stream-video-js/issues/610)) ([37aada1](https://github.com/GetStream/stream-video-js/commit/37aada1f20b4a562edf07314df2e962f252069ef))
+
+### [0.0.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.14...@stream-io/video-react-sdk-0.0.15) (2023-06-08)
+
+
+### Documentation
+
+* Update to latest public API ([#613](https://github.com/GetStream/stream-video-js/issues/613)) ([8a196e1](https://github.com/GetStream/stream-video-js/commit/8a196e1ff2641414b0300028d3c43fbd4a560a7f))
+
+### [0.0.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.13...@stream-io/video-react-sdk-0.0.14) (2023-06-08)
+
+
+### Documentation
+
+* Feedback ([#609](https://github.com/GetStream/stream-video-js/issues/609)) ([3a948d1](https://github.com/GetStream/stream-video-js/commit/3a948d1b3c82ed62d95a2245e0d1a14dfae1d491))
+
+### [0.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.12...@stream-io/video-react-sdk-0.0.13) (2023-06-08)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.7`
+
+### Features
+
+* StreamCall signature, video client creation ([#596](https://github.com/GetStream/stream-video-js/issues/596)) ([5c3000c](https://github.com/GetStream/stream-video-js/commit/5c3000cc6fc3f8b7904609d7b11fa025b7458cad))
+
+### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.11...@stream-io/video-react-sdk-0.0.12) (2023-06-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.6`
+
+### Documentation
+
+* **react-sdk:** keyboard shortcuts guide ([#606](https://github.com/GetStream/stream-video-js/issues/606)) ([7da0ae8](https://github.com/GetStream/stream-video-js/commit/7da0ae85f53663d8f48dabcf7ea9411ec71d71c4))
+
 ### [0.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.10...@stream-io/video-react-sdk-0.0.11) (2023-06-07)
 
 ### [0.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.9...@stream-io/video-react-sdk-0.0.10) (2023-06-06)

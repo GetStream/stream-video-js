@@ -8,7 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 
 import { Root } from './Root';
 import { UserList } from './components/UserList';
-import { Call } from './components/Call';
+import { CallUI } from './components/Call';
 import { ChatVideoWrapper } from './components/ChatVideoWrapper';
 import { CallLobby } from './components/CallLobby';
 
@@ -68,7 +68,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: 'room/:callId?',
-            element: <Call />,
+            element: <CallUI />,
             loader: ({ params: { callId } }) => {
               if (!callId) return redirect('/call/lobby');
               return null;

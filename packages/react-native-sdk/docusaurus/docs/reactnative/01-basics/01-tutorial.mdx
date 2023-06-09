@@ -160,7 +160,7 @@ The `useCreateStreamVideoClient` is internally responsible to create a client, c
 
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { useCreateStreamVideoClient } from '@stream-io/video-client';
 
 export const MeetingScreen = () => {
   const user = {
@@ -169,7 +169,7 @@ export const MeetingScreen = () => {
     imageUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
   };
   const USER_TOKEN = 'YOUR_TOKEN';
-  const API_KEY = 'YOUR_TOKEN';
+  const API_KEY = 'YOUR_API_KEY';
   const videoClient = useCreateStreamVideoClient({
     API_KEY,
     tokenOrProvider: USER_TOKEN,
@@ -183,12 +183,15 @@ export const MeetingScreen = () => {
 #### Provide the video client logic to the rest of the app
 
 Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
-The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
+The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import {ActivityIndicator, StyleSheet} from 'react-native';
-import { StreamVideo } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  StreamVideo,
+  useCreateStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 ...
 
 const MeetingScreen = () => {
@@ -209,13 +212,7 @@ const MeetingScreen = () => {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
-  return (
-    <StreamVideo
-      client={videoClient}
-    >
-      {children}
-    </StreamVideo>
-  );
+  return <StreamVideo client={videoClient}>{children}</StreamVideo>;
 };
 ```
 

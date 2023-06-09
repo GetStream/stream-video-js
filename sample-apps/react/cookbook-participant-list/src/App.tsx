@@ -3,10 +3,11 @@ import { createTheme, ThemeProvider } from '@mui/material';
 import { CallSetup } from './CallSetup';
 import { useEffect, useState } from 'react';
 import {
+  Call,
   StreamCall,
   StreamTheme,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { SpeakerView } from './SpeakerView';
 
@@ -26,18 +27,35 @@ const userId = import.meta.env.VITE_USER_ID as string;
 
 const App = () => {
   const [callId, setCallId] = useState<string>();
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+  const [call, setCall] = useState<Call | undefined>(undefined);
+
+  useEffect(() => {
+    client
+      .connectUser({ id: userId }, token)
+      .catch((err) => console.error('Failed to establish connection', err));
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+  }, [client]);
 
   useEffect(() => {
     if (!callId) return;
     window.location.hash = `call_id=${callId}`;
-  }, [callId]);
+    setCall(client.call('default', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+    call.join({ create: true });
+  }, [call]);
 
   return (
     <StreamTheme as="main" className="main-container">
@@ -45,14 +63,11 @@ const App = () => {
         {!callId && <CallSetup onJoin={setCallId} />}
         {callId && (
           <StreamVideo client={client}>
-            <StreamCall
-              callId={callId}
-              callType="default"
-              data={{ create: true }}
-              autoJoin
-            >
-              <SpeakerView />
-            </StreamCall>
+            {call && (
+              <StreamCall call={call}>
+                <SpeakerView />
+              </StreamCall>
+            )}
           </StreamVideo>
         )}
       </ThemeProvider>
