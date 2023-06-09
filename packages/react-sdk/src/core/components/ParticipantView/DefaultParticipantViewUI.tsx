@@ -69,7 +69,7 @@ export const DefaultParticipantViewUI = ({
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
   const call = useCall()!;
-  const { participant, participantViewElement, videoKind } =
+  const { participant, participantViewElement, videoKind, videoElement } =
     useParticipantViewContext();
   const { reaction, sessionId, publishedTracks } = participant;
 
@@ -96,6 +96,7 @@ export const DefaultParticipantViewUI = ({
           <ParticipantActionsContextMenu
             participantViewElement={participantViewElement}
             participant={participant}
+            videoElement={videoElement}
           />
         </MenuToggle>
       )}
