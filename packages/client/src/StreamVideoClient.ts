@@ -71,11 +71,7 @@ export class StreamVideoClient {
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
     const connectUser = () => {
-      return this.streamClient.connectUser(
-        // @ts-expect-error
-        user,
-        tokenOrProvider,
-      );
+      return this.streamClient.connectUser(user, tokenOrProvider);
     };
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
@@ -83,7 +79,10 @@ export class StreamVideoClient {
 
     this.connectionPromise?.finally(() => (this.connectionPromise = undefined));
     const connectUserResponse = await this.connectionPromise;
-    this.writeableStateStore.setConnectedUser(user);
+    // connectUserResponse will be void if connectUser called twice for the same user
+    if (connectUserResponse?.me) {
+      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+    }
 
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (e) => {
@@ -175,7 +174,6 @@ export class StreamVideoClient {
     tokenOrProvider: TokenOrProvider,
   ) => {
     const connectAnonymousUser = () =>
-      // @ts-expect-error
       this.streamClient.connectAnonymousUser(user, tokenOrProvider);
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectAnonymousUser())

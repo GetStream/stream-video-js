@@ -27,15 +27,15 @@ import {
   ErrorFromResponse,
   EventHandler,
   Logger,
-  OwnUserResponse,
   StreamClientOptions,
   StreamVideoEvent,
   TokenOrProvider,
+  User,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
 
 export class StreamClient {
-  _user?: OwnUserResponse;
+  _user?: User;
   anonymous: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
@@ -52,7 +52,7 @@ export class StreamClient {
   secret?: string;
   setUserPromise: ConnectAPIResponse | null;
   tokenManager: TokenManager;
-  user?: OwnUserResponse;
+  user?: User;
   userAgent?: string;
   userID?: string;
   wsBaseURL?: string;
@@ -183,15 +183,12 @@ export class StreamClient {
   /**
    * connectUser - Set the current user and open a WebSocket connection
    *
-   * @param {OwnUserResponse} user Data about this user. IE {name: "john"}
+   * @param user Data about this user. IE {name: "john"}
    * @param {TokenOrProvider} userTokenOrProvider Token or provider
    *
    * @return {ConnectAPIResponse} Returns a promise that resolves when the connection is setup
    */
-  connectUser = async (
-    user: OwnUserResponse,
-    userTokenOrProvider: TokenOrProvider,
-  ) => {
+  connectUser = async (user: User, userTokenOrProvider: TokenOrProvider) => {
     if (!user.id) {
       throw new Error('The "id" field on the user is missing');
     }
@@ -253,7 +250,7 @@ export class StreamClient {
   };
 
   _setToken = (
-    user: OwnUserResponse,
+    user: User,
     userTokenOrProvider: TokenOrProvider,
     isAnonymous: boolean,
   ) =>
@@ -263,7 +260,7 @@ export class StreamClient {
       isAnonymous,
     );
 
-  _setUser(user: OwnUserResponse) {
+  _setUser(user: User) {
     /**
      * This one is used by the frontend. This is a copy of the current user object stored on backend.
      * It contains reserved properties and own user properties which are not present in `this._user`.
@@ -382,7 +379,7 @@ export class StreamClient {
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
   connectAnonymousUser = async (
-    user: OwnUserResponse,
+    user: User,
     tokenOrProvider: TokenOrProvider,
   ) => {
     this.anonymous = true;
