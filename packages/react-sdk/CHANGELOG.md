@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.18...@stream-io/video-react-sdk-0.0.19) (2023-06-09)
+
+
+### Bug Fixes
+
+* **react-sdk:** do not try to watch devices, if browser permission is  not granted ([#617](https://github.com/GetStream/stream-video-js/issues/617)) ([abff44d](https://github.com/GetStream/stream-video-js/commit/abff44d2e66d6c4c515c7d4590fb3767b2560e64))
+
+
+### Documentation
+
+* **react-sdk:** rename 13-custom-call-layout.mdx to 04-video-layout.mdx ([#586](https://github.com/GetStream/stream-video-js/issues/586)) ([e832092](https://github.com/GetStream/stream-video-js/commit/e832092aac5b2de2327294d1a45bcc02d33db4a4))
+
 ### [0.0.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.17...@stream-io/video-react-sdk-0.0.18) (2023-06-09)
 
 ### Dependency Updates
