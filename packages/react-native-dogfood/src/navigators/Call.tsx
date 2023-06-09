@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
+  CallingState,
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
@@ -55,15 +56,15 @@ const Calls = () => {
     );
   }, [calls]);
 
-  // Reset the state of the show variable when there are no calls.
   useEffect(() => {
-    if (!calls.length) {
-      setShow('none');
-    }
-    if (calls.length > 1) {
+    const activeCalls = calls.filter(
+      (call) => call.state.callingState !== CallingState.LEFT,
+    );
+    // Trigger an alert for more than one active calls
+    if (activeCalls.length > 1) {
       handleMoreCalls();
     }
-  }, [calls.length, handleMoreCalls]);
+  }, [calls, handleMoreCalls]);
 
   const onCallJoined = React.useCallback(() => {
     setShow('active-call');
@@ -107,16 +108,20 @@ const Calls = () => {
     onCallJoining,
   ]);
 
-  const firstCall = calls[0];
-
-  if (!firstCall) {
-    return null;
-  }
-
   return (
-    <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
-      <CallPanel show={show} />
-    </StreamCall>
+    <>
+      {calls.map((call) => {
+        return (
+          <StreamCall
+            key={call.cid}
+            call={call}
+            callCycleHandlers={callCycleHandlers}
+          >
+            <CallPanel show={show} />
+          </StreamCall>
+        );
+      })}
+    </>
   );
 };
 
