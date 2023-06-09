@@ -51,10 +51,6 @@ export const GuestMeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  const onJoining = () => {
-    setShow('loading');
-  };
-
   useEffect(() => {
     const intitializeToken = async () => {
       const token = await createToken({
@@ -120,7 +116,6 @@ export const GuestMeetingScreen = (props: Props) => {
         callCycleHandlers={{
           onCallJoined: onJoin,
           onCallHungUp: onLeave,
-          onCallJoining: onJoining,
         }}
       >
         <MeetingUI

@@ -142,5 +142,4 @@ export type ScreenTypes =
   | 'lobby'
   | 'error-join'
   | 'error-leave'
-  | 'loading'
   | 'active-call';

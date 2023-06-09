@@ -17,6 +17,7 @@
     "@stream-io/video-react-bindings": "workspace:^"
   },
   "peerDependencies": {
+    "@react-native-community/netinfo": ">=9.0.0",
     "react": ">=17.0.0",
     "react-native": ">=0.67.0",
     "react-native-callkeep": ">=4.3.4",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
     "@react-native-community/eslint-config": "^3.2.0",
+    "@react-native-community/netinfo": "9.3.9",
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@types/jest": "^29.5.1",

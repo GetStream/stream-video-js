@@ -30,10 +30,6 @@ export const MeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  const onJoining = () => {
-    setShow('loading');
-  };
-
   useEffect(() => {
     if (!activeCall) {
       return;
@@ -51,7 +47,6 @@ export const MeetingScreen = (props: Props) => {
         callType={'default'}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >

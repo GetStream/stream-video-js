@@ -135,6 +135,16 @@ export class Call {
    */
   readonly state = new CallState();
 
+  private rejoinPromise: (() => Promise<void>) | undefined;
+
+  /**
+   * A promise that exposes the reconnection logic
+   * The use-case is for the react-native platform where online/offline events are not available in the window
+   */
+  get rejoin(): (() => Promise<void>) | undefined {
+    return this.rejoinPromise;
+  }
+
   /**
    * Flag indicating whether this call is "watched" and receives
    * updates from the backend.
@@ -370,6 +380,7 @@ export class Call {
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
+    this.rejoinPromise = undefined;
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -642,7 +653,7 @@ export class Call {
       await sleep(retryInterval(this.reconnectAttempts));
       await this.join(data);
       console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
-      if (localParticipant) {
+      if (localParticipant && !isReactNative()) {
         const {
           audioStream,
           videoStream,
@@ -657,6 +668,8 @@ export class Call {
       console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
     };
 
+    this.rejoinPromise = rejoin;
+
     // reconnect if the connection was closed unexpectedly. example:
     // - SFU crash or restart
     // - network change
@@ -667,6 +680,8 @@ export class Call {
         // do nothing if the connection was closed because of a policy violation
         // e.g., the user has been blocked by an admin or moderator
         if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
+        // do nothing for react-native as its handled by SDK
+        if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
             console.log(
