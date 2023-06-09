@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.17...@stream-io/video-react-sdk-0.0.18) (2023-06-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.8`
+
+### Features
+
+* **react-sdk:** Picture-in-Picture Pronto integration + guide ([#614](https://github.com/GetStream/stream-video-js/issues/614)) ([5b7662a](https://github.com/GetStream/stream-video-js/commit/5b7662a8d17f151796d58c6eed2d9fed7d3d9ba8))
+
 ### [0.0.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.16...@stream-io/video-react-sdk-0.0.17) (2023-06-08)
 
 
