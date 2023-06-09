@@ -40,13 +40,16 @@ export const useCallControls = () => {
     (store) => store.currentVideoDevice,
   );
 
+  const audioDeviceId = currentAudioDevice?.deviceId;
+  const videoDeviceId = currentVideoDevice?.deviceId;
+
   const publishAudioStream = useCallback(async () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (currentAudioDevice && isOnlineRef.current) {
+      if (audioDeviceId && isOnlineRef.current) {
         const audioStream = await getAudioStream({
-          deviceId: currentAudioDevice.deviceId,
+          deviceId: audioDeviceId,
         });
         if (call) {
           await call.publishAudioStream(audioStream);
@@ -55,13 +58,13 @@ export const useCallControls = () => {
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
-  }, [currentAudioDevice, call]);
+  }, [audioDeviceId, call]);
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (currentVideoDevice && isOnlineRef.current) {
+      if (videoDeviceId && isOnlineRef.current) {
         const videoStream = await getVideoStream({
-          deviceId: currentVideoDevice.deviceId,
+          deviceId: videoDeviceId,
         });
         if (call) {
           await call.publishVideoStream(videoStream);
@@ -70,7 +73,7 @@ export const useCallControls = () => {
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, currentVideoDevice]);
+  }, [call, videoDeviceId]);
 
   const isAudioPublished = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
