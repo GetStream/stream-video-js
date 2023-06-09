@@ -74,7 +74,7 @@ PODS:
     - GTMSessionFetcher/Core (< 3.0, >= 1.5)
   - GTMSessionFetcher/Core (2.3.0)
   - hermes-engine (0.70.6)
-  - JitsiWebRTC (106.0.0)
+  - JitsiWebRTC (111.0.2)
   - libevent (2.1.12)
   - nanopb (2.30909.0):
     - nanopb/decode (= 2.30909.0)
@@ -316,8 +316,8 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-webrtc (106.0.7):
-    - JitsiWebRTC (~> 106.0.0)
+  - react-native-webrtc (111.0.1):
+    - JitsiWebRTC (~> 111.0.0)
     - React-Core
   - React-perflogger (0.70.6)
   - React-RCTActionSheet (0.70.6):
@@ -616,7 +616,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
   hermes-engine: 2af7b7a59128f250adfd86f15aa1d5a2ecd39995
-  JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
+  JitsiWebRTC: 80f62908fcf2a1160e0d14b584323fb6e6be630b
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
@@ -637,7 +637,7 @@ SPEC CHECKSUMS:
   React-logger: 1623c216abaa88974afce404dc8f479406bbc3a0
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
-  react-native-webrtc: 0df36747802476e758af6b6dceccdeaed8c826c2
+  react-native-webrtc: 2702afae1e59882b423e6077768ca0d1e6fc42ed
   React-perflogger: 8c79399b0500a30ee8152d0f9f11beae7fc36595
   React-RCTActionSheet: 7316773acabb374642b926c19aef1c115df5c466
   React-RCTAnimation: 5341e288375451297057391227f691d9b2326c3d
@@ -667,4 +667,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 89f12fe5c2ae4f9306852e0c3520cd5bff67328a
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1

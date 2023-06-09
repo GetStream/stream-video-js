@@ -9019,7 +9019,7 @@ __metadata:
     react-native-svg: ^13.6.0
     react-native-url-polyfill: ^1.3.0
     react-native-voip-push-notification: ~3.3.1
-    react-native-webrtc: ~111.0.0
+    react-native-webrtc: 111.0.1
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
     text-encoding-polyfill: ^0.6.7
@@ -31976,6 +31976,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-webrtc@npm:111.0.1":
+  version: 111.0.1
+  resolution: "react-native-webrtc@npm:111.0.1"
+  dependencies:
+    adm-zip: 0.5.9
+    base64-js: 1.5.1
+    debug: 4.3.4
+    event-target-shim: 6.0.2
+    tar: 6.1.11
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: ce986b0bcf8222749f08edf366fc76136ec7f590b1827dbe26f82379b5586c0f69cc26282b1adc97fdb39ff8685ad76a32c4bed331307992992da7d035a1b28b
+  languageName: node
+  linkType: hard
+
 "react-native-webrtc@npm:^106.0.4, react-native-webrtc@npm:^106.0.7, react-native-webrtc@npm:~106.0.4":
   version: 106.0.7
   resolution: "react-native-webrtc@npm:106.0.7"
@@ -31988,21 +32003,6 @@ __metadata:
   peerDependencies:
     react-native: ">=0.60.0"
   checksum: 0bbe048ec9b519f391c47f8d8a2dabe3dfa229b3883473c23bf2389ab6f3b90561d93bb6a24ad0a62c2f3e434ce829988a24d56b193a5ffb30fd6026f38fbf7b
-  languageName: node
-  linkType: hard
-
-"react-native-webrtc@npm:~111.0.0":
-  version: 111.0.0
-  resolution: "react-native-webrtc@npm:111.0.0"
-  dependencies:
-    adm-zip: 0.5.9
-    base64-js: 1.5.1
-    debug: 4.3.4
-    event-target-shim: 6.0.2
-    tar: 6.1.11
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: 2787a3c22546148148d9a649d65b7bcfe789bf148a050dbca11c5b9829e21eeb80be46d8b3b233ccc58fd07d2a9994ae77650c908f119c2740aeaa25ff3a8a02
   languageName: node
   linkType: hard
 
