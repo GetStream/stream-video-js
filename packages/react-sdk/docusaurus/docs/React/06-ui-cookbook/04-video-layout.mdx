@@ -33,103 +33,10 @@ To do that, we follow these steps:
 
 - [Register for a Stream account](https://getstream.io/try-for-free/) and obtain our API key and secret.
 - Install the Stream React Video SDK:
-  - `npm install @stream-io/video-react-sdk`
-  - `yarn add @stream-io/video-react-sdk`
-- Initialize the SDK by passing in your API key, token and user information:
-
-:::note
-For the token generation, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/).
-:::
-
-```tsx
-import {
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-
-// This is the component that will render the custom layout.
-// We can assume that the implementation of this component is empty for now.
-import { SpeakerView } from './SpeakerView';
-
-// We are going to use Vite's environment variables to store our API key and token.
-// https://vitejs.dev/guide/env-and-mode.html#env-files
-//
-// You can use any other method to store your API key and token.
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const token = import.meta.env.VITE_STREAM_TOKEN as string;
-const userId = import.meta.env.VITE_USER_ID as string;
-
-export const App = () => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
-  });
-
-  return (
-    <StreamVideo client={client}>
-      <SpeakerView />
-    </StreamVideo>
-  );
-};
-```
-
-## Joining a Call
-
-To join a call, we need to know its ID and type. The call ID and type can come from any source we like such as an API or user input.
-In our example, we are going to get the call ID and type from the URL query parameters.
-
-Once we have that information, we can join the call by choosing one of the two options:
-
-1. Declarative, using the [`<StreamCall />`](../../ui-components/core/stream-call) component.
-2. Imperative, using the [`StreamVideoClient`](../04-call-engine/StreamVideoClient.md) API methods (advanced usage).
-
-In our example, we are going to use the declarative approach because it is easier to understand and
-has less code (see full example [here](https://github.com/GetStream/stream-video-js/blob/main/sample-apps/react/cookbook-participant-list/src/App.tsx)):
-
-```tsx
-/* Imports and previous setup. */
-const randomId = () => Math.random().toString(36).substring(2, 12);
-
-export const App = () => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user: {
-      id: userId,
-    },
-  });
-
-  // highlight-start
-  // will load the call ID from the URL query params,
-  // or generate a random one in case it is not present
-  const [callId, setCallId] = useState(() => {
-    const params = new URLSearchParams(
-      window.location.search || window.location.hash,
-    );
-
-    return params.get('call_id') || randomId();
-  });
-  // highlight-end
-
-  return (
-    <StreamVideo client={client}>
-      {/* highlight-next-line */}
-      <StreamCall callId={callId} callType="default" input={{ create: true }}>
-        <SpeakerView />
-        {/* highlight-next-line */}
-      </StreamCall>
-    </StreamVideo>
-  );
-};
-```
-
-Behind the scenes, the `<StreamCall />` component will set up and join a new [Call](../04-call-engine/Call.md) instance,
-and will expose the [CallState](../04-call-engine/hooks-and-contexts.md/#streamcallprovider) object down in the component tree through a [React Context](https://react.dev/learn/passing-data-deeply-with-context).
-
-You can read more about this mechanism as part of our [React Bindings and Hooks documentation](../../call-engine/01-call-engine-overview).
+- `npm install @stream-io/video-react-sdk`
+- `yarn add @stream-io/video-react-sdk`
+- [Initialize the SDK](../../guides/client-auth) by passing in your API key, token and user information
+- [Create and join a call](../../guides/joining-and-creating-calls)
 
 ## Building and rendering the layout
 
@@ -211,11 +118,11 @@ that would follow the following rules:
 - Dominant speaker will be displayed next
 - Pinned participants will be displayed after, as we want them to be pinned at the beginning of the participant list
 - The rest of the participants will be sorted at the top of the screen according to the following criteria:
-  - Participants who are speaking or have their hand raised
-  - Participants with audio and video will be displayed next
-  - Followed by video-only participants
-  - Followed by audio-only participants
-  - Muted participants will be displayed last
+- Participants who are speaking or have their hand raised
+- Participants with audio and video will be displayed next
+- Followed by video-only participants
+- Followed by audio-only participants
+- Muted participants will be displayed last
 
 ### Configure the sorting logic
 
