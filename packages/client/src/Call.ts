@@ -401,6 +401,7 @@ export class Call {
     // Call all leave call hooks, e.g. to clean up global event handlers
     this.leaveCallHooks.forEach((hook) => hook());
 
+    this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
   };
 
