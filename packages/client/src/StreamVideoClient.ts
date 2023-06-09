@@ -5,6 +5,7 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import type {
+  ConnectedEvent,
   CreateCallTypeRequest,
   CreateCallTypeResponse,
   CreateDeviceRequest,
@@ -40,6 +41,8 @@ export class StreamVideoClient {
   streamClient: StreamClient;
 
   private eventHandlersToUnregister: Array<() => void> = [];
+  private connectionPromise: Promise<void | ConnectedEvent> | undefined;
+  private disconnectionPromise: Promise<void> | undefined;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -48,8 +51,6 @@ export class StreamVideoClient {
    */
   constructor(apiKey: string, opts?: StreamClientOptions) {
     this.streamClient = new StreamClient(apiKey, {
-      // FIXME: OL: fix SSR.
-      browser: true,
       persistUserOnConnectionFailure: true,
       ...opts,
     });
@@ -69,11 +70,19 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
-    const connectUserResponse = await this.streamClient.connectUser(
-      // @ts-expect-error
-      user,
-      tokenOrProvider,
-    );
+    const connectUser = () => {
+      return this.streamClient.connectUser(
+        // @ts-expect-error
+        user,
+        tokenOrProvider,
+      );
+    };
+    this.connectionPromise = this.disconnectionPromise
+      ? this.disconnectionPromise.then(() => connectUser())
+      : connectUser();
+
+    this.connectionPromise?.finally(() => (this.connectionPromise = undefined));
+    const connectUserResponse = await this.connectionPromise;
     this.writeableStateStore.setConnectedUser(user);
 
     this.eventHandlersToUnregister.push(
@@ -165,8 +174,14 @@ export class StreamVideoClient {
     user: User,
     tokenOrProvider: TokenOrProvider,
   ) => {
-    // @ts-expect-error
-    return this.streamClient.connectAnonymousUser(user, tokenOrProvider);
+    const connectAnonymousUser = () =>
+      // @ts-expect-error
+      this.streamClient.connectAnonymousUser(user, tokenOrProvider);
+    this.connectionPromise = this.disconnectionPromise
+      ? this.disconnectionPromise.then(() => connectAnonymousUser())
+      : connectAnonymousUser();
+    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
+    return this.connectionPromise;
   };
 
   /**
@@ -178,7 +193,14 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    await this.streamClient.disconnectUser(timeout);
+    const disconnectUser = () => this.streamClient.disconnectUser(timeout);
+    this.disconnectionPromise = this.connectionPromise
+      ? this.connectionPromise.then(() => disconnectUser())
+      : disconnectUser();
+    this.disconnectionPromise.finally(
+      () => (this.disconnectionPromise = undefined),
+    );
+    await this.disconnectionPromise;
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
     this.writeableStateStore.setConnectedUser(undefined);
@@ -370,4 +392,23 @@ export class StreamVideoClient {
       ...(userID ? { user_id: userID } : {}),
     });
   };
+
+  /**
+   * createToken - Creates a token to authenticate this user. This function is used server side.
+   * The resulting token should be passed to the client side when the users registers or logs in.
+   *
+   * @param {string} userID The User ID
+   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
+   *
+   * @return {string} Returns a token
+   */
+  createToken(
+    userID: string,
+    exp?: number,
+    iat?: number,
+    call_cids?: string[],
+  ) {
+    return this.streamClient.createToken(userID, exp, iat, call_cids);
+  }
 }

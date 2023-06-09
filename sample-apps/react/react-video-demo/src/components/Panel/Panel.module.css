@@ -1,6 +1,10 @@
 .root {
-  @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
+  @apply bg-video-grey-600 h-auto rounded-container text-video-white border-video-transparent border-2;
   pointer-events: initial;
+}
+
+.root.open.fulllHeight {
+  @apply h-full;
 }
 
 .root.focused {

@@ -1,8 +1,9 @@
 import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {
   CallControlsView,
-  StreamVideoCall,
+  StreamCall,
+  StreamVideo,
   useCall,
   useCreateStreamVideoClient,
   usePublishMediaStreams,
@@ -47,12 +48,14 @@ export default () => {
   const handleOnCallHungUp = () => navigation.navigate('WelcomeScreen');
 
   return (
-    <StreamVideoCall
-      callId={generateCallId()}
-      client={videoClient}
-      callCycleHandlers={{onCallHungUp: handleOnCallHungUp}}>
-      <MyActiveCall />
-    </StreamVideoCall>
+    <StreamVideo client={videoClient}>
+      <StreamCall
+        callId={generateCallId()}
+        callType="default"
+        callCycleHandlers={{onCallHungUp: handleOnCallHungUp}}>
+        <MyActiveCall />
+      </StreamCall>
+    </StreamVideo>
   );
 };
 

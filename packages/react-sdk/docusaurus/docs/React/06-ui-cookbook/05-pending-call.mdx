@@ -135,7 +135,6 @@ export const Video = () => {
       {calls.map((call) => (
         <StreamCall
           call={call}
-          autoJoin={false}
           key={call.cid}
           // highlight-next-line
           mediaDevicesProviderProps={{ initialVideoEnabled: true }}

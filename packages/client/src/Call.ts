@@ -613,12 +613,14 @@ export class Call {
       sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
     }
 
-    const sfuClient = (this.sfuClient = new StreamSfuClient(
-      this.dispatcher,
-      sfuUrl,
-      sfuWsUrl,
-      sfuToken,
-    ));
+    const previousSessionId = this.sfuClient?.sessionId;
+    const sfuClient = (this.sfuClient = new StreamSfuClient({
+      dispatcher: this.dispatcher,
+      url: sfuUrl,
+      wsEndpoint: sfuWsUrl,
+      token: sfuToken,
+      sessionId: previousSessionId,
+    }));
 
     /**
      * A closure which hides away the re-connection logic.

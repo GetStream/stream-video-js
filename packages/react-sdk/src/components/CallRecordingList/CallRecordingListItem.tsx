@@ -4,7 +4,7 @@ import { CallRecording } from '@stream-io/video-client';
 import { CopyToClipboardButtonWithPopup } from '../Button';
 
 export type CallRecordingListItemProps = {
-  /** Array of CallRecording objects */
+  /** CallRecording object to represent */
   recording: CallRecording;
 };
 export const CallRecordingListItem = ({

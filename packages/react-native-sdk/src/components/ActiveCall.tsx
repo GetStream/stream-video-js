@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   useCall,
-  useCallCallingState,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
@@ -36,7 +35,6 @@ export interface ActiveCallProps {
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useCall();
-  const callingState = useCallCallingState();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
 
@@ -45,13 +43,15 @@ export const ActiveCall = (props: ActiveCallProps) => {
     verifyAndroidBluetoothPermissions();
 
     return () => {
-      if (callingState !== CallingState.LEFT) {
+      if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
         activeCallRef.current?.leave();
       }
     };
-  }, [callingState]);
+  }, []);
 
-  if (!activeCall) return null;
+  if (!activeCall) {
+    return null;
+  }
   return <InnerActiveCall {...props} />;
 };
 

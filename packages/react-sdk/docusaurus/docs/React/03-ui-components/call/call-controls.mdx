@@ -14,19 +14,17 @@ The `CallControls` component displays the available call controls (based on [use
 ```tsx
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import {
+  Call,
   CallControls,
   StreamCall,
   SpeakerLayout,
 } from '@stream-io/video-react-sdk';
 
 const CallUI = () => {
+  let call: Call;
+
   return (
-    <StreamCall
-      callType="default"
-      callId="my-first-call"
-      data={{ create: true }}
-      autoJoin
-    >
+    <StreamCall call={call}>
       <SpeakerLayout />
       // highlight-next-line
       <CallControls />

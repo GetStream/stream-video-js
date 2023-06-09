@@ -22,11 +22,8 @@ To do that, we follow these steps:
 - Install the Stream React Video SDK:
   - `npm install @stream-io/video-react-sdk`
   - `yarn add @stream-io/video-react-sdk`
-- [Initialize the SDK](../../guides/client-auth) by passing in your API key, token and user information:
-
-:::note
-For the token generation, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/).
-:::
+- [Initialize the SDK](../../guides/client-auth) by passing in your API key, token and user information
+- [Create and join a call](../../guides/joining-and-creating-calls)
 
 ## Start point
 
@@ -34,7 +31,6 @@ Let's start with a simple call UI where we create an `audio_room` call.
 
 ```tsx
 import {
-  useCreateStreamVideoClient,
   StreamVideo,
   StreamCall,
   CallParticipantsView,
@@ -45,23 +41,12 @@ import {
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: '<API Key>',
-    tokenOrProvider: '<token provider>',
-    user: {
-      id: '<user id>',
-    },
-  });
+  // create client and call
 
   return (
     <StreamTheme>
       <StreamVideo client={client}>
-        <StreamCall
-          callId={'test-call-permission-requests'}
-          callType={'audio_room'}
-          data={{ create: true }}
-          autoJoin
-        >
+        <StreamCall call={call}>
           <CallUI />
         </StreamCall>
       </StreamVideo>
@@ -227,7 +212,6 @@ Here is the full example:
 
 ```tsx
 import {
-  useCreateStreamVideoClient,
   StreamVideo,
   StreamCall,
   CallParticipantsView,
@@ -242,23 +226,12 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { useEffect, useState } from 'react';
 
 export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: '<API Key>',
-    tokenOrProvider: '<token provider>',
-    user: {
-      id: '<user id>',
-    },
-  });
+  // create client and call
 
   return (
     <StreamTheme>
       <StreamVideo client={client}>
-        <StreamCall
-          callId={'test-call-permission-requests'}
-          callType={'audio_room'}
-          data={{ create: true }}
-          autoJoin
-        >
+        <StreamCall call={call}>
           <CallUI />
         </StreamCall>
       </StreamVideo>

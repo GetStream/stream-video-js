@@ -14,23 +14,13 @@ import {
 import Panel from '../Panel';
 import { Invite } from '../InvitePanel';
 import ParticipantsControlModal from '../ParticipantsControlModal';
-import {
-  Mic,
-  MicMuted,
-  Options,
-  People,
-  Search,
-  Video,
-  VideoOff,
-} from '../Icons';
+import { Mic, MicMuted, Options, Search, Video, VideoOff } from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
-import { useBreakpoint } from '../../hooks/useBreakpoints';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './ParticipantsPanel.module.css';
-import { is } from 'date-fns/locale';
 
 export type Props = {
   className?: string;
@@ -38,6 +28,7 @@ export type Props = {
   isFocused?: boolean;
   callId: string;
   close?: () => void;
+  fulllHeight?: boolean;
 };
 
 export type RemoteParticipant = {
@@ -65,7 +56,6 @@ export const Participant: FC<RemoteParticipant> = ({
   handleMuteUser,
   handleDisableVideo,
   handleBlockUser,
-  isLocalParticipant,
 }) => {
   const { setComponent } = useModalContext();
 
@@ -134,6 +124,7 @@ export const ParticipantsPanel: FC<Props> = ({
   className,
   participants,
   callId,
+  fulllHeight,
 }) => {
   const [value, setValue]: any = useState(undefined);
 
@@ -148,7 +139,7 @@ export const ParticipantsPanel: FC<Props> = ({
     (participantId: string) => {
       call?.blockUser(participantId);
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
@@ -158,7 +149,7 @@ export const ParticipantsPanel: FC<Props> = ({
     (participantId: string) => {
       call?.muteUser(participantId, 'audio');
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
@@ -168,7 +159,7 @@ export const ParticipantsPanel: FC<Props> = ({
     (participantId: string) => {
       call?.muteUser(participantId, 'video');
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
@@ -185,6 +176,7 @@ export const ParticipantsPanel: FC<Props> = ({
       }
       isFocused={isFocused}
       canCollapse={true}
+      fulllHeight={fulllHeight}
       close={close}
     >
       <div className={styles.search}>

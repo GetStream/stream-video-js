@@ -1,9 +1,10 @@
-import { Call } from '@stream-io/video-client';
-import { DefaultParticipantViewUI, ParticipantView } from '../../core';
 import {
   useLocalParticipant,
   useParticipants,
-} from '@stream-io/video-react-bindings';
+  DefaultParticipantViewUI,
+  ParticipantView,
+  Call,
+} from '@stream-io/video-react-sdk';
 
 export const CallParticipantsView = (props: { call: Call }) => {
   const localParticipant = useLocalParticipant();

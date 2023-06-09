@@ -50,9 +50,6 @@ jobs:
       - name: Test packages
         run: yarn test:ci:all
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
-
       # Vercel deployment: Dogfood (Preview)
       - name: Vercel Pull Configuration Dogfood (Preview)
         if: ${{ github.base_ref == 'main' }}
@@ -86,3 +83,9 @@ jobs:
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
