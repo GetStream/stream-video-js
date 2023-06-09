@@ -94,6 +94,7 @@ export class Publisher {
       'icegatheringstatechange',
       this.onIceGatheringStateChange,
     );
+    pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
 
     this.publisher = pc;
     this.sfuClient = sfuClient;
@@ -361,13 +362,8 @@ export class Publisher {
     this.sfuClient = sfuClient;
     this.publisher.setConfiguration(connectionConfig);
 
-    if (this.announcedTracks.length > 0) {
-      // FIXME OL: hack, we probably should not do this.
-      await this.updateVideoPublishQuality(['q', 'h', 'f']);
-
-      // negotiate only if there are tracks to publish
-      await this.negotiate({ iceRestart: true });
-    }
+    // negotiate only if there are tracks to publish
+    await this.negotiate({ iceRestart: true });
   };
 
   private onNegotiationNeeded = async () => {
@@ -498,6 +494,13 @@ export class Publisher {
     console.log(
       `Publisher: ICE Gathering State`,
       this.publisher.iceGatheringState,
+    );
+  };
+
+  private onSignalingStateChange = () => {
+    console.log(
+      `Publisher: Signaling state changed`,
+      this.publisher.signalingState,
     );
   };
 
