@@ -27,11 +27,11 @@ export const usePublishMediaStreams = () => {
     if (
       !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)
     ) {
-      console.log(`No permission to publish audio`);
+      console.log('No permission to publish audio');
       return;
     }
     if (currentAudioDevice && !isAudioMuted) {
-      getAudioStream(currentAudioDevice.deviceId)
+      getAudioStream({ deviceId: currentAudioDevice.deviceId })
         .then((stream) => activeCall?.publishAudioStream(stream))
         .catch((error) => {
           console.log(error);
@@ -43,11 +43,11 @@ export const usePublishMediaStreams = () => {
     if (
       !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
     ) {
-      console.log(`No permission to publish video`);
+      console.log('No permission to publish video');
       return;
     }
     if (currentVideoDevice && !isVideoMuted) {
-      getVideoStream(currentVideoDevice.deviceId)
+      getVideoStream({ deviceId: currentVideoDevice.deviceId })
         .then((stream) => {
           activeCall?.publishVideoStream(stream);
         })

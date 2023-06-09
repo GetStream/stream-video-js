@@ -45,7 +45,9 @@ export const useCallControls = () => {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
       if (currentAudioDevice && isOnlineRef.current) {
-        const audioStream = await getAudioStream(currentAudioDevice.deviceId);
+        const audioStream = await getAudioStream({
+          deviceId: currentAudioDevice.deviceId,
+        });
         if (call) {
           await call.publishAudioStream(audioStream);
         }
@@ -58,7 +60,9 @@ export const useCallControls = () => {
   const publishVideoStream = useCallback(async () => {
     try {
       if (currentVideoDevice && isOnlineRef.current) {
-        const videoStream = await getVideoStream(currentVideoDevice.deviceId);
+        const videoStream = await getVideoStream({
+          deviceId: currentVideoDevice.deviceId,
+        });
         if (call) {
           await call.publishVideoStream(videoStream);
         }
@@ -99,7 +103,9 @@ export const useCallControls = () => {
       const { isConnected, isInternetReachable } = state;
       const isOnline = isConnected !== false && isInternetReachable !== false;
       isOnlineRef.current = isOnline;
-      if (!callRef.current) return;
+      if (!callRef.current) {
+        return;
+      }
       const callToJoin = callRef.current;
       await rejoinCall(
         callToJoin,
