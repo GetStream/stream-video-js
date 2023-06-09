@@ -22,20 +22,20 @@ export const HLSLivestreamUI = () => {
   useEffect(() => {
     if (!videoRef) return;
     let timeoutId: NodeJS.Timeout;
-    if (autoJoin && isBroadcasting && metadata) {
-      const { hls_playlist_url } = metadata;
+    if (autoJoin && isBroadcasting && metadata && metadata.egress.hls) {
+      const { playlist_url } = metadata.egress.hls;
       hls.on(HLS.Events.ERROR, (e, data) => {
         console.error('HLS error, attempting to recover', e, data);
 
         setIsPlaying(false);
         timeoutId = setTimeout(() => {
-          hls.loadSource(hls_playlist_url);
+          hls.loadSource(playlist_url);
         }, 1000);
       });
       hls.on(HLS.Events.LEVELS_UPDATED, (e, data) => {
         console.error('HLS levels updated', e, data);
       });
-      hls.loadSource(hls_playlist_url);
+      hls.loadSource(playlist_url);
       hls.attachMedia(videoRef);
     }
     return () => {

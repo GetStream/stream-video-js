@@ -35,12 +35,12 @@ describe('Publisher', () => {
 
   beforeEach(() => {
     const dispatcher = new Dispatcher();
-    sfuClient = new StreamSfuClient(
+    sfuClient = new StreamSfuClient({
       dispatcher,
-      'https://getstream.io/',
-      'https://getstream.io/ws',
-      'token',
-    );
+      url: 'https://getstream.io/',
+      wsEndpoint: 'https://getstream.io/ws',
+      token: 'token',
+    });
 
     // @ts-ignore
     sfuClient['sessionId'] = sessionId;

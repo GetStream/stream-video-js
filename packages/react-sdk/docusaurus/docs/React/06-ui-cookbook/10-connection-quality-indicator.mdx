@@ -51,11 +51,9 @@ const ConnectionQualityIndicator = () => {
 };
 
 const CustomParticipantViewUI = () => {
-  const { participant } = useParticipantViewContext();
-
   return (
     <>
-      <ConnectionQualityIndicator participant={participant} />
+      <ConnectionQualityIndicator />
       {/* other UI components... */}
     </>
   );

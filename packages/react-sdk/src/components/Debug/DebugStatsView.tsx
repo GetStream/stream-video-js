@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useFloatingUIPreset } from '../../hooks';
 import { StatCard } from '../CallStats';
@@ -8,8 +8,9 @@ export const DebugStatsView = (props: {
   call: Call;
   mediaStream?: MediaStream;
   sessionId: string;
+  userId: string;
 }) => {
-  const { call, mediaStream, sessionId } = props;
+  const { call, mediaStream, sessionId, userId } = props;
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {
@@ -21,6 +22,22 @@ export const DebugStatsView = (props: {
 
   const reportForTracks = callStatsReport?.participants[sessionId];
   const trackStats = reportForTracks?.flatMap((report) => report.streams);
+
+  const previousWidth = useRef<Record<string, number>>({ f: 0, h: 0, q: 0 });
+  const previousHeight = useRef<Record<string, number>>({ f: 0, h: 0, q: 0 });
+  trackStats?.forEach((track) => {
+    if (track.kind !== 'video') return;
+    const { frameWidth = 0, frameHeight = 0, rid = '' } = track;
+    if (
+      frameWidth !== previousWidth.current[rid] ||
+      frameHeight !== previousHeight.current[rid]
+    ) {
+      const trackSize = `${frameWidth}x${frameHeight}`;
+      console.log(`Track stats (${userId}/${sessionId}): ${rid}(${trackSize})`);
+      previousWidth.current[rid] = frameWidth;
+      previousHeight.current[rid] = frameHeight;
+    }
+  });
 
   const { refs, strategy, y, x } = useFloatingUIPreset({
     placement: 'top',

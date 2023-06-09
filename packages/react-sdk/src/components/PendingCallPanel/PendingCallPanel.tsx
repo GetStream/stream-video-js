@@ -55,7 +55,7 @@ export const PendingCallPanel = (props: PendingCallPanelProps) => {
     !membersToShow.find((user) => user.id === connectedUser?.id)
   ) {
     // if the current user is not in the initial batch of members,
-    // add it to the beginning of the list
+    // replace the first item in membersToShow array with the current user
     const self = members.find(({ user }) => user.id === connectedUser?.id);
     if (self) {
       membersToShow.splice(0, 1, self.user);

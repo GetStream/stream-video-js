@@ -10,7 +10,9 @@ export type UserType = {
   id: string;
   name: string;
   imageUrl: string;
-  token: string;
+  custom: {
+    token: string;
+  };
 };
 
 export type StreamChatGenerics = {

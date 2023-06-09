@@ -18,7 +18,7 @@ export const useIsCallRecordingInProgress = () => {
  */
 export const useIsCallBroadcastingInProgress = () => {
   const metadata = useCallMetadata();
-  return !!metadata?.broadcasting;
+  return !!metadata?.egress.broadcasting;
 };
 
 /**

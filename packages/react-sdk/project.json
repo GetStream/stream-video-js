@@ -6,10 +6,8 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
-        "preid": "alpha",
-        "releaseAs": "prerelease",
         "preset": {
-          "name": "angular",
+          "name": "conventionalcommits",
           "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},

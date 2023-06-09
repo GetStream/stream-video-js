@@ -15,7 +15,7 @@ You'll cover the following:
 
 - Creating a Chat app.
 - Adding Stream dependencies.
-- Creating Stream clients.
+- Creating Stream Chat and Video client.
 - Authenticating Chat and Video users.
 - Building custom Call attachments and "Start Call" UI.
 
@@ -42,23 +42,29 @@ follow [React Native Chat Tutorial](https://getstream.io/chat/react-native-chat/
 
 Follow this [guide](01-basics/03-installation.mdx) to install the dependencies and setup the project.
 
-### Create `StreamVideoClient`
+### Creating and Providing the Video Client
 
 Firstly we need to authenticate the Video SDK’s Client.
+
+#### Creating the client
+
 You will need a user and token to authenticate a client.
 You can use the `client` from the Chat SDK to create the user object.
-To do this, you can import the hook, `useChatContext`, and use the `client` from it, as in the example below.
-`StreamVideoClient` expects API Key as the first arguments. It also expects `options`.
+To do this, you can import the hook, `useChatContext`, and use the `client` from it to create the user, as in the example below.
+To create a client, we can use `useCreateStreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
+The `useCreateStreamVideoClient` is internally responsible to create a client, connect with the user and disconnect with the user when the component is unmounted.
 
-```tsx
-import { useChatContext } from 'stream-chat-react-native';
-import { StreamVideoClient } from '@stream-io/video-client';
+```tsx title="src/components/VideoWrapper.tsx"
 import { useMemo } from 'react';
+import { useChatContext } from 'stream-chat-react-native';
+import { useCreateStreamVideoClient } from '@stream-io/video-client';
 
 // Inside your component
 const { client: chatClient } = useChatContext();
+const token = chatClient._getToken() ?? `Your Token`;
+const STREAM_API_KEY = 'YOUR API KEY';
 
-const user = useMemo<VideoProps['user']>(
+const user = useMemo(
   () => ({
     id: client.user?.id as string,
     name: client.user?.name as string,
@@ -68,293 +74,268 @@ const user = useMemo<VideoProps['user']>(
 );
 
 //fetch the token
-const token = chatClient._getToken() || `Your Token`;
 
-const APIParams = {
-  apiKey: `Your Key`,
-};
-
-// authenticate and create the video client
-const client = new StreamVideoClient(APIParams.apiKey);
+const videoClient = useCreateStreamVideoClient({
+  user,
+  tokenOrProvider: token,
+  apiKey: STREAM_API_KEY,
+  options: {
+    preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+  },
+});
 ```
 
-All types used in the example above can be found in the end version of this [project](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/src/types.ts)
+#### Providing the client
 
-### Connecting and disconnecting from the video client
+Our `StreamVideo` component will provide our recently created video client to the rest of the underlying components.
+The `videoClient` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
 
-We will connect to the Stream's client instance we've created right after the component has mounted.
-When the component un-mounts, we will disconnect from the client.
-
-_Note: We will use the API key, user and the token from the previous step._
-
-```tsx
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, SafeAreaView, StyleSheet, Text} from 'react-native';
+```tsx title="src/components/VideoWrapper.tsx"
+import React from 'react';
+import { ActivityIndicator } from 'react-native';
+import { StreamVideo } from '@stream-io/video-react-native-sdk';
 ...
 
-const App = () => {
+const VideoWrapper = () => {
   ...
-  const [connected, setConnected] = useState(false);
-  const [error, setError] = useState(undefined);
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        await client.connect(user, token);
-        setConnected(true);
-      } catch (err) {
-        setError(`Failed to establish connection - ${err}`);
-      }
-    };
-    run();
-    return () => {
-      client.disconnect();
-    };
-  }, []);
-
-  if (!connected) {
-    return (
-      <SafeAreaView style={{ flex: 1 }}>
-        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-      </SafeAreaView>
-    );
+  if (!videoClient) {
+    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
-  return !error ? (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Text>We're connected now and ready to go 🚀</Text>
-    </SafeAreaView>
-  ) : (
-    <Text>{error}</Text>
-  );
+  return <StreamVideo client={videoClient}>{children}</StreamVideo>;
 };
 ```
 
-For simplicity, you can also use the `useCreateStreamVideoClient` [hook](../../call-engine/hooks#usecreatestreamvideoclient) to connect and disconnect from the client.
+### Creating and Providing the call
 
-### Providing the video client and Call logic to the rest of the app
-
-Our `StreamVideoCall` component will provide our recently created video client to the rest of the underlying components.
-The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideoCall` component.
-
-_Note: Make sure to wrap your entire application in `StreamVideoCall`._
+In the case of call flow, we get all the created or incoming calls through the hook `useCalls`.
+This hook can be used to retrieve the call details and pass it to the StreamCall component.
 
 ```tsx
-import React, {useState} from 'react';
-import {StreamVideoCall} from '@stream-io/video-react-native-sdk';
-...
+import { useCalls, StreamCall } from '@stream-io/video-react-native-sdk';
 
-const App = () => {
-  const [callId, SetCallId] = useState<string>(uuidv4().toLowerCase());
-    const videoClient = useCreateStreamVideoClient({
-    user,
-    tokenOrProvider: token,
-    apiKey: APIParams.apiKey,
-  });
+export const Calls = () => {
+  const calls = useCalls();
+  const callCycleHandlers = {};
 
-  ...
   return (
-    <StreamVideoCall
-      callId={callId}
-      client={client}
-    >
-      {children}
-    </StreamVideoCall>
+    <>
+      {calls.map((call) => {
+        return (
+          <StreamCall
+            key={call.cid}
+            call={call}
+            callCycleHandlers={callCycleHandlers}
+          ></StreamCall>
+        );
+      })}
+    </>
   );
 };
-
 ```
 
-### Adding call cycle handlers
+### Adding the Call Cycle handlers
 
-`StreamVideoCall` component has also a `callCycleHandlers` prop of type object that expects:
+`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` and `onCallJoining`, `onCallIncoming`, `onCallOutgoing` and `onCallRejected` handlers to deal with transitions between the call states.
+These handlers can be used to perform preparation/teardown tasks or navigation between screens.
 
 - `onCallJoined` callback that is called after the user joins the call.
+- `onCallJoining` callback that is called when the call is in a joining state.
 - `onCallHungUp` callback that is called after the user hangs up the call.
 - `onCallIncoming` callback that is called when a callee receives an incoming call.
 - `onCallOutgoing` callback that is called after a caller creates an outgoing call.
 - `onCallRejected` callback that is called after a callee rejects an incoming call.
 
-These handlers can be used for preparing/tearing down or for navigation to particular screens depending on the call state.
-
 An example can be seen below:
 
-```tsx title="App.tsx"
-import React from 'react';
-import {ActivityIndicator, StyleSheet} from 'react-native';
-import {StreamVideoCall } from '@stream-io/video-react-native-sdk';
-...
+```tsx
+import React, { useCallback, useState, useMemo } from 'react';
+import { useCalls, StreamCall } from '@stream-io/video-react-native-sdk';
 
-const App = () => {
-  ...
+type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
+
+export const Calls = () => {
+  const calls = useCalls();
+  const [show, setShow] = useState<ScreenTypes>('none');
+
+  const onCallJoined = useCallback(() => {
+    setShow('active-call');
+  }, [setShow]);
+
+  const onCallIncoming = useCallback(() => {
+    setShow('incoming');
+  }, [setShow]);
+
+  const onCallOutgoing = useCallback(() => {
+    setShow('outgoing');
+  }, [setShow]);
+
+  const onCallJoining = useCallback(() => {
+    setShow('joining');
+  }, [setShow]);
+
+  const onCallHungUp = useCallback(() => {
+    setShow('none');
+  }, [setShow]);
+
+  const onCallRejected = useCallback(() => {
+    setShow('none');
+  }, [setShow]);
+
+  const callCycleHandlers = useMemo(() => {
+    return {
+      onCallJoined,
+      onCallIncoming,
+      onCallOutgoing,
+      onCallHungUp,
+      onCallRejected,
+      onCallJoining,
+    };
+  }, [
+    onCallJoined,
+    onCallIncoming,
+    onCallOutgoing,
+    onCallHungUp,
+    onCallRejected,
+    onCallJoining,
+  ]);
 
   return (
-    <StreamVideoCall
-      callId={callId}
-      client={videoClient}
-      callCycleHandlers={{
-        onCallJoined: () => console.log("Moving to active call screen"),
-        onCallIncoming: () => console.log("Incoming call created"),
-        onCallOutgoing: () => console.log("Outgoing call created"),
-        onCallHungUp: () => console.log("Call hung up"),
-        onCallRejected: () => console.log("Incoming call rejected"),
-      }}>
-      {children}
-    </StreamVideoCall>
+    <>
+      {calls.map((call) => {
+        return (
+          <StreamCall
+            key={call.cid}
+            call={call}
+            callCycleHandlers={callCycleHandlers}
+          ></StreamCall>
+        );
+      })}
+    </>
   );
 };
 ```
 
-_Note: In our example, we navigate to particular screens where we render the `IncomingCallView`, `OutgoingCallView` and `ActiveCall` components.
-This is done using the package [react-navigation](http://reactnavigation.org/)._
+### Rendering the IncomingCallView, OutgoingCallView, ActiveCall components
+
+To render the incoming call view, outgoing call view component and active call components, you can import `IncomingCallView`, `OutgoingCallView` and `ActiveCall` component from the Video SDK and use it
+in the Screen/View.
+
+An example is shared below:
+
+```tsx
+import React from 'react';
+import {
+  ActiveCall,
+  IncomingCallView,
+  OutgoingCallView,
+} from '@stream-io/video-react-native-sdk';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
+
+const CallPanel = ({ show }: { show: ScreenTypes }) => {
+  switch (show) {
+    case 'incoming':
+      return <IncomingCallView />;
+    case 'outgoing':
+      return (
+        <View style={styles.container}>
+          <OutgoingCallView />
+        </View>
+      );
+    case 'active-call':
+      return (
+        <View style={styles.container}>
+          <ActiveCall />
+        </View>
+      );
+    case 'joining':
+      return (
+        <View style={styles.container}>
+          <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+        </View>
+      );
+    case 'none':
+      return null;
+    default:
+      return null;
+  }
+};
+
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.light.static_grey,
+  },
+});
+```
+
+This `CallPanel` component can be passed as a children to the `StreamCall` component above.
+
+```tsx
+export const Calls = () => {
+  ...
+
+  return (
+    <>
+      {calls.map((call) => {
+        return (
+          <StreamCall
+            key={call.cid}
+            call={call}
+            callCycleHandlers={callCycleHandlers}
+          >
+            <CallPanel show={show}/>
+          </StreamCall>
+        );
+      })}
+    </>
+  );
+};
+```
 
 ### Creating the call
 
-StreamVideoCall already created a call instance based on the provided `callId`.
-We retrieve this call instance using the `useCall` hook.
+To create a call, we will use the `call` method of the video client that we created before.
 To start a ring call we use the `getOrCreateCall` function from the call instance.
 This function expects a `members` to whom we want to call and a `ring` `boolean` to indicate that we want to have a ring call.
 
 An example of the usage is shared below:
 
 ```tsx
-import React, {useCallback} from 'react';
-import {useAppContext} from '../context/AppContext';
-import {useCall} from '@stream-io/video-react-native-sdk';
-import {useChatContext} from 'stream-chat-react-native';
-...
-
-export default () => {
-  const {channel} = useAppContext();
-  const {client} = useChatContext();
-  const call = useCall();
-  const members = Object.keys(channel?.state?.members || {}).filter(
-    member => member !== client.user?.id,
-  );
-  const joinCallHandler = useCallback(async () => {
-    if (!call) {
-      return;
-    }
-
-    try {
-      await call.getOrCreate({
-        ring: true,
-        data: {
-          members: members.map(ringingUserId => {
-            return {
-              user_id: ringingUserId,
-            };
-          }),
-        },
-      });
-    } catch (error) {
-      console.log('Failed to createCall', call.id, 'default', error);
-    }
-  }, [call, members]);
-}
-```
-
-_Note: In our application, we derive the `members` from `channel.state?.members`._
-
-### Rendering the Active call view
-
-To render the active call view, you can import `ActiveCall` component from the React Native Video SDK.
-Use it in the Screen/View where you want to render it.
-To handle the case of what should happen when user clicks on the Participants View icon, you can pass your custom handlers to `StreamVideoRN.setConfig` as in the example below.
-
-```tsx
 import React, { useCallback } from 'react';
-import {
-  ActiveCall,
-  useCall,
-  StreamVideoRN,
-} from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { NavigationStackParamsList } from '../types';
-import { theme } from '@stream-io/video-react-native-sdk/src/theme';
+import { useAppContext } from '../context/AppContext';
+import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import { useChatContext } from 'stream-chat-react-native';
 
-type Props = NativeStackScreenProps<
-  NavigationStackParamsList,
-  'ActiveCallScreen'
->;
+// Inside the component in which you will trigger the call.
+// The channel is retrieved from the App Context. Please refer the chat tutorial for more info.
+const { channel } = useAppContext();
+const videoClient = useStreamVideoClient();
+const members = Object.values(channel?.state?.members ?? {}).map<MemberRequest>(
+  (member) => ({
+    user_id: member.user_id!,
+  }),
+);
 
-export function ActiveCallScreen({ navigation }: Props) {
-  const activeCall = useCall();
-
-  // Handler executed when the call participants icon is clicked. This is used to render CallParticipantsInfoView.
-  const onOpenCallParticipantsInfoViewHandler = useCallback(() => {
-    navigation.navigate('CallParticipantsInfoScreen');
-  }, [navigation]);
-
-  StreamVideoRN.setConfig({
-    onOpenCallParticipantsInfoView: onOpenCallParticipantsInfoViewHandler,
-  });
-
-  // Since joining the call might take some time, we render an ActivityIndicator.
-  if (!activeCall) {
-    return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
+const joinCallHandler = useCallback(async () => {
+  try {
+    const callType = 'default';
+    const callId = 'some-random-unique-call-id';
+    const call = videoClient?.call(callType, callId);
+    await call?.getOrCreate({
+      ring: true,
+      data: {
+        custom: { channelCid: channel?.cid },
+        members: members,
+      },
+    });
+  } catch (error) {
+    console.log('Failed to createCall:', error);
   }
-  return (
-    <SafeAreaView style={styles.wrapper}>
-      <ActiveCall />
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: theme.light.static_grey,
-  },
-});
+}, [videoClient, members, channel?.cid]);
 ```
 
-### Rendering the Incoming call view
-
-To render the incoming call view, you can import `IncomingCallView` from the React Native Video SDK and use it in the
-Screen/View of your choice.
-
-_Note: In our [react-native-call-starter-kit](https://github.com/GetStream/stream-video-js/blob/a42a72fcde67877287f4df292524311723ea4e0f/packages/react-native-call-starter-kit/), we use the handlers to navigate among screens._
-
-```tsx
-import React from 'react';
-import { IncomingCallView } from '@stream-io/video-react-native-sdk';
-
-const IncomingCallScreen = () => {
-  return <IncomingCallView />;
-};
-
-export default IncomingCallScreen;
-```
-
-### Rendering the Outgoing call view
-
-To render the outgoing call view, you can import `OutgoingCallView` from the React Native Video SDK and use it in the Screen/View of your choice.
-
-```tsx
-import React from 'react';
-import { OutgoingCallView } from '@stream-io/video-react-native-sdk';
-
-const OutgoingCallScreen = () => {
-  return <OutgoingCallView />;
-};
-
-export default OutgoingCallScreen;
-```
-
-### Rendering the CallParticipantsInfoView component
-
-To render the call participants info view, you can import `CallParticipantsInfoView` from the Video SDK and use it in the Screen/View where you want to render it.
-
-```tsx
-import React from 'react';
-import { CallParticipantsInfoView } from '@stream-io/video-react-native-sdk';
-
-export function CallParticipansInfoScreen() {
-  return <CallParticipantsInfoView />;
-}
-```
+_Note: In our application, we derive the `members` from `channel.state?.members`. Also, `joinCallHandler` can now be used on press of a button._
 
 ## Further Integration
 
