@@ -685,6 +685,11 @@ export class Call {
         // do nothing if the connection was closed because of a policy violation
         // e.g., the user has been blocked by an admin or moderator
         if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
+        // When the SFU is being shut down, it sends a goAway message.
+        // While we migrate to another SFU, we might have the WS connection
+        // to the old SFU closed abruptly. In this case, we don't want
+        // to reconnect to the old SFU, but rather to the new one.
+        if (isMigrating && e.code === KnownCodes.WS_CLOSED_ABRUPTLY) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
             console.log(
