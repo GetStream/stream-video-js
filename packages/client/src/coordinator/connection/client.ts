@@ -36,7 +36,7 @@ import { InsightMetrics, postInsights } from './insights';
 
 export class StreamClient {
   _user?: User;
-  anonymous: boolean;
+  anonymous?: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
   baseURL?: string;
@@ -490,9 +490,11 @@ export class StreamClient {
     data?: D,
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
-    } = {},
+    } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
-    await this.tokenManager.tokenReady();
+    if (!options.publicEndpoint || this.user) {
+      await this.tokenManager.tokenReady();
+    }
     const requestConfig = this._enrichAxiosOptions(options);
     try {
       let response: AxiosResponse<T>;
@@ -736,13 +738,16 @@ export class StreamClient {
   _isUsingServerAuth = () => !!this.secret;
 
   _enrichAxiosOptions(
-    options: AxiosRequestConfig & { config?: AxiosRequestConfig } = {
+    options: AxiosRequestConfig & { config?: AxiosRequestConfig } & {
+      publicEndpoint?: boolean;
+    } = {
       params: {},
       headers: {},
       config: {},
     },
   ): AxiosRequestConfig {
-    const token = this._getToken();
+    const token =
+      options.publicEndpoint && !this.user ? undefined : this._getToken();
     const authorization = token ? { Authorization: token } : undefined;
     let signal: AbortSignal | null = null;
     if (this.nextRequestAbortController !== null) {
@@ -766,7 +771,10 @@ export class StreamClient {
       },
       headers: {
         ...authorization,
-        'stream-auth-type': this.getAuthType(),
+        'stream-auth-type':
+          options.publicEndpoint && !this.user
+            ? 'anonymous'
+            : this.getAuthType(),
         'X-Stream-Client': this.getUserAgent(),
         ...options.headers,
       },

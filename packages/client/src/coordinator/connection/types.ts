@@ -1,19 +1,16 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
-import {
-  ConnectedEvent,
-  OwnUserResponse,
-  VideoEvent,
-} from '../../gen/coordinator';
+import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
-export type UserType = 'regular' | 'anonymous' | 'guest';
-
-export type User = Pick<OwnUserResponse, 'id'> &
-  Partial<
-    Pick<OwnUserResponse, 'custom' | 'image' | 'name' | 'role' | 'teams'>
-  > & { type?: UserType };
+export type User =
+  | (UserRequest & { type?: 'authenticated' })
+  | (UserRequest & { type: 'guest' })
+  | (UserRequest & {
+      id: '!anon';
+      type: 'anonymous';
+    });
 
 export type { OwnUserResponse } from '../../gen/coordinator';
 

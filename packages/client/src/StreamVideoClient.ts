@@ -69,9 +69,25 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
    */
-  connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
+  async connectUser(
+    user: User | (Partial<Pick<User, 'id'>> & User & { type: 'anonymous' }),
+    token: TokenOrProvider,
+  ): Promise<void | ConnectedEvent> {
+    if (user.type === 'anonymous') {
+      user.id = '!anon';
+      return this.connectAnonymousUser(user, token);
+    }
+    if (user.type === 'guest') {
+      const response = await this.createGuestUser({
+        user: {
+          ...user,
+          role: 'guest',
+        },
+      });
+      return this.connectUser(response.user, response.access_token);
+    }
     const connectUser = () => {
-      return this.streamClient.connectUser(user, tokenOrProvider);
+      return this.streamClient.connectUser(user, token);
     };
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
@@ -161,26 +177,7 @@ export class StreamVideoClient {
     );
 
     return connectUserResponse;
-  };
-
-  /**
-   * Connects the given anonymous user to the client.
-   *
-   * @param user the user to connect.
-   * @param tokenOrProvider a token or a function that returns a token.
-   */
-  connectAnonymousUser = async (
-    user: User,
-    tokenOrProvider: TokenOrProvider,
-  ) => {
-    const connectAnonymousUser = () =>
-      this.streamClient.connectAnonymousUser(user, tokenOrProvider);
-    this.connectionPromise = this.disconnectionPromise
-      ? this.disconnectionPromise.then(() => connectAnonymousUser())
-      : connectAnonymousUser();
-    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
-    return this.connectionPromise;
-  };
+  }
 
   /**
    * Disconnects the currently connected user from the client.
@@ -248,10 +245,10 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    return this.streamClient.post<CreateGuestResponse, CreateGuestRequest>(
-      '/guest',
-      data,
-    );
+    return this.streamClient.doAxiosRequest<
+      CreateGuestResponse,
+      CreateGuestRequest
+    >('post', '/guest', data, { publicEndpoint: true });
   };
 
   /**
@@ -409,4 +406,23 @@ export class StreamVideoClient {
   ) {
     return this.streamClient.createToken(userID, exp, iat, call_cids);
   }
+
+  /**
+   * Connects the given anonymous user to the client.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  private connectAnonymousUser = async (
+    user: User,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
+    const connectAnonymousUser = () =>
+      this.streamClient.connectAnonymousUser(user, tokenOrProvider);
+    this.connectionPromise = this.disconnectionPromise
+      ? this.disconnectionPromise.then(() => connectAnonymousUser())
+      : connectAnonymousUser();
+    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
+    return this.connectionPromise;
+  };
 }
