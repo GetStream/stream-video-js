@@ -22,6 +22,7 @@ import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMo
  * @internal
  */
 export type VideoPublisherInit = {
+  canObserveVideo?: boolean;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
@@ -31,6 +32,7 @@ export type VideoPublisherInit = {
  * @category Device Management
  */
 export const useVideoPublisher = ({
+  canObserveVideo,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
@@ -82,7 +84,7 @@ export const useVideoPublisher = ({
   }, [callingState, initialVideoMuted, publishVideoStream]);
 
   useEffect(() => {
-    if (!localParticipant$) return;
+    if (!localParticipant$ || !canObserveVideo) return;
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
@@ -93,7 +95,7 @@ export const useVideoPublisher = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [localParticipant$, call]);
+  }, [canObserveVideo, localParticipant$, call]);
 
   useEffect(() => {
     if (!participant?.videoStream || !call || !isPublishingVideo) return;
