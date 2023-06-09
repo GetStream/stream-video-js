@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UserResponse } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
 import {
   StreamTheme,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { Channel } from './components/Channel';
 import { Sidebar } from './components/Sidebar';
@@ -47,11 +47,17 @@ const Root = ({
     tokenOrProvider: userToken,
     userData: user,
   });
-  const videoClient = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: userToken,
-    user,
-  });
+  const [videoClient] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+
+  useEffect(() => {
+    videoClient.connectUser(user, userToken).catch(console.error);
+
+    return () => {
+      videoClient.disconnectUser();
+    };
+  }, [videoClient, user, userToken]);
 
   if (!chatClient) return null;
 

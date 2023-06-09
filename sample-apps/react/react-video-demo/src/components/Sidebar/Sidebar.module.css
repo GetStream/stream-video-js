@@ -1,53 +1,12 @@
 .sidebar {
-  @apply hidden relative sm:flex flex-col  gap-y-3 h-screen;
-}
-
-.invitePanel {
-  grid-area: invitePanel;
-}
-
-.particpantsPanel {
-  grid-area: particpantsPanel;
-}
-
-.chatPanel {
-  grid-area: chatPanel;
+  @apply gap-y-3 h-full flex flex-col relative;
 }
 
 .branding {
-  @apply flex items-center absolute w-full;
-  z-index: 0;
+  @apply flex items-center justify-center w-full;
   bottom: 40px;
-  left: 15%;
-}
-
-@media screen(lg) {
-  .branding {
-    left: 30%;
-  }
 }
 
 .logo {
   @apply mr-2;
-}
-
-.animation-enter {
-  z-index: 2;
-  opacity: 0;
-  display: block;
-}
-.animation-enter-active {
-  z-index: 2;
-  opacity: 1;
-  transition: opacity 700ms;
-}
-.animation-exit {
-  z-index: 2;
-  opacity: 1;
-}
-.animation-exit-active {
-  z-index: 2;
-  opacity: 0;
-  display: none;
-  transition: opacity 200ms;
 }

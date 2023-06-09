@@ -19,11 +19,12 @@ import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { isComponentType, applyElementToRef } from '../../../utilities';
 
-export type ParticipantViewContextValue = Pick<
-  ParticipantViewProps,
-  'participant'
+export type ParticipantViewContextValue = Required<
+  Pick<ParticipantViewProps, 'participant' | 'videoKind'>
 > & {
   participantViewElement: HTMLDivElement | null;
+  videoElement: HTMLVideoElement | null;
+  videoPlaceholderElement: HTMLDivElement | null;
 };
 
 const ParticipantViewContext = createContext<
@@ -35,12 +36,12 @@ export const useParticipantViewContext = () =>
 
 export type ParticipantViewProps = {
   /**
-   * The participant bound to this component.
+   * The participant whose video/audio stream we want to play.
    */
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 
   /**
-   * Component used to render user interface elements (details, network status...),
+   * Override the default UI for rendering participant information/actions.
    * pass `null` if you wish to not render anything
    * @default DefaultParticipantViewUI
    */
@@ -48,7 +49,8 @@ export type ParticipantViewProps = {
 
   /**
    * In supported browsers, this sets the default audio output.
-   * The value of this prop should be a valid Audio Output `deviceId`.
+   * The value of this prop should be a valid audio output device ID.
+   * You can set this using `audioOutputDeviceId` field of the local participant.
    */
   sinkId?: string;
 
@@ -58,13 +60,13 @@ export type ParticipantViewProps = {
   videoKind?: 'video' | 'screen';
 
   /**
-   * Turns on/off the audio for the participant.
+   * You can mute the audio of the given participant (this is a local action, it won't have any effect on the published audio of the participant). The `ParticipantView` will mute the audio of the local participant by default.
    */
   muteAudio?: boolean;
 
   /**
-   * An object with set functions meant for exposing the "native" video
-   * and video placeholder elements to the integrators.
+   * An object with set functions meant for exposing the video
+   * and video placeholder elements to the integrators. It's useful when you want to attach custom event handlers to these elements.
    * - `refs.setVideoElement`
    * - `refs.setVideoPlaceholderElement`
    */
@@ -83,7 +85,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       sinkId,
       videoKind = 'video',
       muteAudio,
-      refs,
+      refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
       VideoPlaceholder,
       ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
@@ -105,6 +107,12 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       null,
     );
 
+    const [contextVideoElement, setContextVideoElement] =
+      useState<HTMLVideoElement | null>(null);
+
+    const [contextVideoPlaceholderElement, setContextVideoPlaceholderElement] =
+      useState<HTMLDivElement | null>(null);
+
     // TODO: allow to pass custom ViewportTracker instance from props
     useTrackElementVisibility({
       sessionId,
@@ -112,8 +120,34 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     });
 
     const participantViewContextValue = useMemo(
-      () => ({ participant, participantViewElement: trackedElement }),
-      [participant, trackedElement],
+      () => ({
+        participant,
+        participantViewElement: trackedElement,
+        videoElement: contextVideoElement,
+        videoPlaceholderElement: contextVideoPlaceholderElement,
+        videoKind,
+      }),
+      [
+        contextVideoElement,
+        contextVideoPlaceholderElement,
+        participant,
+        trackedElement,
+        videoKind,
+      ],
+    );
+
+    const videoRefs: VideoProps['refs'] = useMemo(
+      () => ({
+        setVideoElement: (element) => {
+          setVideoElement?.(element);
+          setContextVideoElement(element);
+        },
+        setVideoPlaceholderElement: (element) => {
+          setVideoPlaceholderElement?.(element);
+          setContextVideoPlaceholderElement(element);
+        },
+      }),
+      [setVideoElement, setVideoPlaceholderElement],
     );
 
     return (
@@ -141,7 +175,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
             kind={videoKind}
-            refs={refs}
+            refs={videoRefs}
             autoPlay
           />
           {isComponentType(ParticipantViewUI) ? (

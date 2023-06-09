@@ -54,6 +54,11 @@
     mask-image: var(--str-video__icon--caret);
     -webkit-mask-image: var(--str-video__icon--caret);
   }
+  
+  &--close {
+    mask-image: var(--str-video__icon--close);
+    -webkit-mask-image: var(--str-video__icon--close);
+  }
 
   &--mic {
     mask-image: var(--str-video__icon--mic);

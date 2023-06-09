@@ -132,14 +132,6 @@ export type MeetingStackParamList = {
   GuestMeetingScreen: GuestMeetingScreenParams;
 };
 
-export type CallStackParamList = {
-  JoinCallScreen: undefined;
-  CallScreen: undefined;
-  IncomingCallScreen: undefined;
-  OutgoingCallScreen: undefined;
-  CallParticipantsInfoScreen: undefined;
-};
-
 export type RootStackParamList = {
   Login: undefined;
   Meeting: undefined;
@@ -150,5 +142,4 @@ export type ScreenTypes =
   | 'lobby'
   | 'error-join'
   | 'error-leave'
-  | 'loading'
   | 'active-call';

@@ -7,9 +7,10 @@
 }
 
 .toggle {
-  @apply flex items-center bg-video-grey-500 rounded-container pl-1 pr-1;
+  @apply flex items-center bg-video-grey-500 pl-1 pr-1;
   transition: background 300ms;
   transition: border 100ms;
+  border-radius: 6px;
 }
 
 .toggle:hover {

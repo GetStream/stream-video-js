@@ -6,29 +6,22 @@ import {
   getVideoDevices,
 } from '@stream-io/video-client';
 
-export const useCheckBrowserPermissions = (permissionName: PermissionName) => {
+export const useHasBrowserPermissions = (permissionName: PermissionName) => {
   const [canSubscribe, enableSubscription] = useState(false);
 
   useEffect(() => {
     let permissionState: PermissionStatus;
     const handlePermissionChange = (e: Event) => {
       const { state } = (e as unknown as ChangeEvent<PermissionStatus>).target;
-      if (state === 'granted') {
-        enableSubscription(true);
-      } else {
-        enableSubscription(false);
-      }
+      enableSubscription(state === 'granted');
     };
     const checkPermissions = async () => {
       try {
         permissionState = await navigator.permissions.query({
           name: permissionName,
         });
-        if (permissionState.state !== 'granted') {
-          permissionState.addEventListener('change', handlePermissionChange);
-        } else {
-          enableSubscription(true);
-        }
+        permissionState.addEventListener('change', handlePermissionChange);
+        enableSubscription(permissionState.state === 'granted');
       } catch (e) {
         // permission does not exist - cannot be queried
         // an example would be Firefox - camera, neither microphone perms can be queried

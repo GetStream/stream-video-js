@@ -1,8 +1,9 @@
 import { GetServerSidePropsContext } from 'next';
 import {
+  Call,
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
   UserResponse,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -31,12 +32,25 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const [userToConnect, setUserToConnect] = useState(user);
   const [tokenToUse, setTokenToUse] = useState(token);
   const [isAnonymous, setIsAnonymous] = useState(true);
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenToUse,
-    user: userToConnect,
-    isAnonymous: isAnonymous,
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+  const [call] = useState<Call>(() => client.call(callType, callId));
+
+  useEffect(() => {
+    const connectRequest = isAnonymous
+      ? client.connectAnonymousUser(userToConnect, tokenToUse)
+      : client.connectUser(userToConnect, tokenToUse);
+    connectRequest.catch((err) => {
+      console.error(`Failed to establish connection`, err);
+    });
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, userToConnect?.id, tokenToUse, isAnonymous]);
 
   useEffect(() => {
     if (mode !== 'guest') return;
@@ -58,6 +72,12 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       });
   }, [client, guestUserId, mode]);
 
+  useEffect(() => {
+    call.getOrCreate().catch((err) => {
+      console.error(`Failed to get or create call`, err);
+    });
+  }, [call]);
+
   useGleap(gleapApiKey, client, userToConnect);
   return (
     <>
@@ -66,7 +86,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamCall callId={callId} callType={callType} autoJoin={false}>
+        <StreamCall call={call}>
           <MeetingUI enablePreview={mode !== 'anon'} />
         </StreamCall>
       </StreamVideo>

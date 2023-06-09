@@ -48,25 +48,17 @@ To initiate chat and video clients you are encouraged to use the same API key. T
 
 ## Initiating chat and video clients
 
-Both clients are initiated using React hooks. The video SDK ships with hook [`useCreateStreamVideoClient`](../../call-engine/hooks-and-contexts#usecreatestreamvideoclient) and the hook [`useCreateChatClient`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/hooks/useCreateChatClient.ts) is implemented specifically for this demo app. Both hooks make sure that potentially WS reconnections do not occur until the previous connection has been terminated.
-
-:::warning
-The UI should not be rendered until the chat client's WS connection is in place. Hook `useCreateChatClient` handles this by setting the chat client instance only after connection has been established.
-:::
-
 ```tsx
 import type { UserResponse } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
-import {
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { Channel } from './components/Channel';
 import { Sidebar } from './components/Sidebar';
 import { Video } from './components/Video';
 import { useCreateChatClient } from './hooks';
 
 import type { StreamChatType } from './types/chat';
+import { useState, useEffect } from 'react';
 
 const Root = ({
   apiKey,
@@ -82,11 +74,19 @@ const Root = ({
     tokenOrProvider: userToken,
     userData: user,
   });
-  const videoClient = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: userToken,
-    user,
-  });
+  const [videoClient] = useState(() => new StreamVideoClient(apiKey));
+
+  useEffect(() => {
+    videoClient
+      .connectUser(user, userToken)
+      .catch((err) => console.error('Failed to establish connection', err));
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+  }, [videoClient, user, userToken]);
 
   if (!chatClient) return null;
 
@@ -182,7 +182,7 @@ export const Video = () => {
   return (
     <>
       {calls.map((call) => (
-        <StreamCall call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} key={call.cid}>
           <CallPanel />
         </StreamCall>
       ))}
@@ -376,11 +376,7 @@ File [`index.scss`](https://github.com/GetStream/stream-video-js/tree/main/sampl
 ```tsx
 import type { UserResponse } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
-import {
-  StreamTheme,
-  StreamVideo,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { StreamTheme, StreamVideo } from '@stream-io/video-react-sdk';
 import { Channel } from './components/Channel';
 import { Sidebar } from './components/Sidebar';
 import { Video } from './components/Video';
@@ -400,18 +396,7 @@ const Root = ({
   user: UserResponse<StreamChatType>;
   userToken: string;
 }) => {
-  const chatClient = useCreateChatClient<StreamChatType>({
-    apiKey,
-    tokenOrProvider: userToken,
-    userData: user,
-  });
-  const videoClient = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: userToken,
-    user,
-  });
-
-  if (!chatClient) return null;
+  // create clients and connect users
 
   return (
     // highlight-next-line
