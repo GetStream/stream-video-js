@@ -1,5 +1,12 @@
 import { JWTUserToken } from 'stream-chat';
 
+/**
+ * The maximum validity of a token, in seconds.
+ * Defaults to 7 days.
+ */
+export const maxTokenValidityInSeconds: number =
+  Number(process.env.MAX_TOKEN_EXP_IN_SECONDS) || 7 * 24 * 60 * 60; // 7 days
+
 export const createToken = (
   userId: string,
   jwtSecret: string,
@@ -10,12 +17,12 @@ export const createToken = (
     ...rest
   } = params;
 
-  const maxValidityInSeconds = 3 * 60 * 60;
   const expiryFromNowInSeconds = exp
     ? parseInt(exp as string, 10)
-    : maxValidityInSeconds;
+    : maxTokenValidityInSeconds;
   const expiration = Math.round(
-    Date.now() / 1000 + Math.min(expiryFromNowInSeconds, maxValidityInSeconds),
+    Date.now() / 1000 +
+      Math.min(expiryFromNowInSeconds, maxTokenValidityInSeconds),
   );
 
   const payload: Record<string, unknown> = {
