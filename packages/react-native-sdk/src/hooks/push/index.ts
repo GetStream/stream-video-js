@@ -1,6 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
 import { setupFirebaseHandlerAndroid, setupCallkeep } from '../../utils/push';
 import { useCallKeepEffect } from './useCallKeepEffect';
 import { useIosPushEffect } from './useIosPushEffect';
@@ -19,11 +18,9 @@ export const usePushRegisterEffect = (client: StreamVideoClient) => {
   }
 
   useCallKeepEffect();
-  useIosPushEffect();
+  useIosPushEffect(client);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      setupFirebaseHandlerAndroid(client);
-    }
+    setupFirebaseHandlerAndroid(client);
   }, [client]);
 };

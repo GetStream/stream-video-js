@@ -6,6 +6,7 @@ import PushLibs, {
   messagingIsInstalled,
   notifeeIsInstalled,
 } from './optionalLibs';
+import { Platform } from 'react-native';
 
 const { callkeep, notifee, messaging } = PushLibs;
 
@@ -35,19 +36,31 @@ const options: Parameters<RNCallKeepType['setup']>[0] = {
 };
 
 export async function setupCallkeep() {
-  if (!callkeepIsInstalled(callkeep)) return;
+  if (!callkeepIsInstalled(callkeep)) {
+    return;
+  }
   return callkeep.setup(options).then((accepted) => {
-    if (accepted) callkeep.setAvailable(true);
+    if (accepted) {
+      callkeep.setAvailable(true);
+    }
   });
 }
 
 /** Firebase RemoteMessage handler **/
 export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
-  if (!messagingIsInstalled(messaging) || !notifeeIsInstalled(notifee)) return;
+  if (
+    Platform.OS !== 'android' ||
+    !messagingIsInstalled(messaging) ||
+    !notifeeIsInstalled(notifee)
+  ) {
+    return;
+  }
   const firebaseListener = async (
     message: FirebaseMessagingTypes.RemoteMessage,
   ) => {
-    if (!callkeepIsInstalled(callkeep)) return;
+    if (!callkeepIsInstalled(callkeep)) {
+      return;
+    }
     /* Example data from firebase
       "message": {
           "data": {
@@ -97,7 +110,9 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
 }
 
 export async function setForegroundService() {
-  if (!notifeeIsInstalled(notifee)) return;
+  if (!notifeeIsInstalled(notifee)) {
+    return;
+  }
   try {
     await notifee.createChannel({
       id: FOREGROUND_SERVICE_CHANNEL_ID,
@@ -117,7 +132,9 @@ export async function setForegroundService() {
 }
 
 export async function startForegroundService() {
-  if (!notifeeIsInstalled(notifee)) return;
+  if (!notifeeIsInstalled(notifee)) {
+    return;
+  }
   // TODO: allow user to customise this
   await notifee.displayNotification({
     title: 'Call in progress',
@@ -135,6 +152,8 @@ export async function startForegroundService() {
 }
 
 export async function stopForegroundService() {
-  if (!notifeeIsInstalled(notifee)) return;
+  if (!notifeeIsInstalled(notifee)) {
+    return;
+  }
   await notifee.stopForegroundService();
 }
