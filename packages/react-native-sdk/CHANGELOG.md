@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.141](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.140...@stream-io/video-react-native-sdk-0.0.1-alpha.141) (2023-06-09)
+
+
+### Features
+
+*  upgrade to latest rn webrtc (111) ([#545](https://github.com/GetStream/stream-video-js/issues/545)) ([f7b89c1](https://github.com/GetStream/stream-video-js/commit/f7b89c1b22bdac3b42233ecc703be65a129b43f0))
+* **react-native:** support reconnection flow ([#458](https://github.com/GetStream/stream-video-js/issues/458)) ([89f2dda](https://github.com/GetStream/stream-video-js/commit/89f2ddafd1397d91f8ddea5a3c69dd62ae027313))
+
+
+
 ## [0.0.1-alpha.140](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.139...@stream-io/video-react-native-sdk-0.0.1-alpha.140) (2023-06-09)
 
 
