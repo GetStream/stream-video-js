@@ -11,6 +11,15 @@
     "test": "jest --coverage",
     "generate-docs": "../../scripts/generate-docs.sh reactnative @stream-io/video-react-native-sdk react-native-sdk"
   },
+  "files": [
+    "dist",
+    "src",
+    "index.ts",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
