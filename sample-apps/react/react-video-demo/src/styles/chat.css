@@ -42,7 +42,12 @@
 }
 
 .str-chat__list {
-  overflow-y: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
 }
 
 .str-chat__message-actions-box:not(
@@ -104,4 +109,13 @@
 
 .str-chat__list-notifications {
   display: none;
+}
+
+.str-chat__message.str-chat__message--me .str-chat__message-inner,
+.str-chat__quoted-message-preview.str-chat__message--me
+  .str-chat__message-inner {
+  grid-template-areas:
+    'options message-bubble'
+    'reactions reactions';
+  grid-template-columns: 1fr auto;
 }

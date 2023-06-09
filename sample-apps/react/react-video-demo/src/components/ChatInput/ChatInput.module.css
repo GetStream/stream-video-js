@@ -57,5 +57,5 @@
 }
 
 .button {
-  @apply flex items-center justify-center h-[25px] w-[25px] bg-video-grey-300 rounded-full ml-4;
+  @apply flex items-center justify-center h-[25px] w-[25px] bg-video-grey-300 rounded-full ml-4 mr-1 mb-1;
 }
