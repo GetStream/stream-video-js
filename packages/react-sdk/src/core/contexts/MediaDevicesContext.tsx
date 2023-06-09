@@ -27,7 +27,7 @@ import {
   useAudioInputDeviceFallback,
   useAudioOutputDeviceFallback,
   useAudioPublisher,
-  useCheckBrowserPermissions,
+  useHasBrowserPermissions,
   useVideoDeviceFallback,
   useVideoPublisher,
 } from '../hooks';
@@ -244,10 +244,8 @@ export const MediaDevicesProvider = ({
   const callState = useCallState();
   const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
-  const canObserveVideo = useCheckBrowserPermissions(
-    'camera' as PermissionName,
-  );
-  const canObserveAudio = useCheckBrowserPermissions(
+  const canObserveVideo = useHasBrowserPermissions('camera' as PermissionName);
+  const canObserveAudio = useHasBrowserPermissions(
     'microphone' as PermissionName,
   );
   const [selectedAudioInputDeviceId, selectAudioInputDeviceId] = useState<

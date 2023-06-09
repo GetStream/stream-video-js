@@ -6,7 +6,7 @@ import {
   getVideoDevices,
 } from '@stream-io/video-client';
 
-export const useCheckBrowserPermissions = (permissionName: PermissionName) => {
+export const useHasBrowserPermissions = (permissionName: PermissionName) => {
   const [canSubscribe, enableSubscription] = useState(false);
 
   useEffect(() => {
