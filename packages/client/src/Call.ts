@@ -73,7 +73,6 @@ import {
   BehaviorSubject,
   debounce,
   map,
-  of,
   pairwise,
   Subject,
   takeWhile,
@@ -231,7 +230,7 @@ export class Call {
     this.leaveCallHooks.push(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
-          debounce((v) => (!v.type ? of(null) : timer(v.type))),
+          debounce((v) => timer(v.type)),
           map((v) => v.data),
         ),
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
@@ -635,8 +634,11 @@ export class Call {
       const disconnectFromPreviousSfu = () => {
         if (!migrate) {
           this.subscriber?.close();
+          this.subscriber = undefined;
           this.publisher?.stopPublishing({ stopTracks: false });
+          this.publisher = undefined;
           this.statsReporter?.stop();
+          this.statsReporter = undefined;
         }
         previousSfuClient?.close(); // clean up previous connection
       };
@@ -691,9 +693,10 @@ export class Call {
         // to reconnect to the old SFU, but rather to the new one.
         if (isMigrating && e.code === KnownCodes.WS_CLOSED_ABRUPTLY) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          rejoin().catch(() => {
+          rejoin().catch((err) => {
             console.log(
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+              err,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
@@ -717,9 +720,10 @@ export class Call {
         window.removeEventListener('online', handleOnOnline);
         if (this.state.callingState === CallingState.OFFLINE) {
           console.log('Join: Going online...');
-          rejoin().catch(() => {
+          rejoin().catch((err) => {
             console.log(
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+              err,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
