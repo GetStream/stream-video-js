@@ -9065,7 +9065,7 @@ __metadata:
     react-native-callkeep: ">=4.3.4"
     react-native-incall-manager: ^4.0.0
     react-native-svg: ">=13.6.0"
-    react-native-webrtc: ">=106.0.4"
+    react-native-webrtc: ">=111.0.1"
   peerDependenciesMeta:
     react-native-callkeep:
       optional: true
