@@ -9015,8 +9015,6 @@ __metadata:
     react-native-voip-push-notification: ">=3.3.1"
     react-native-webrtc: ">=111.0.1"
   peerDependenciesMeta:
-    "@notifee/react-native":
-      optional: true
     "@react-native-firebase/app":
       optional: true
     "@react-native-firebase/messaging":
