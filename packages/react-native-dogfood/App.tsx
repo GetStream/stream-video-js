@@ -16,13 +16,6 @@ import {
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import {
-  setFirebaseHandler,
-  setForegroundService,
-} from './src/modules/push/android';
-import { useIosPushEffect } from './src/hooks/useIosPushEffect';
-import { Platform } from 'react-native';
-import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
 import { navigationRef } from './src/utils/staticNavigationUtils';
 import Logger from 'react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
@@ -34,11 +27,6 @@ Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-if (Platform.OS === 'android') {
-  setFirebaseHandler();
-  setForegroundService();
-}
-
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const username = useAppGlobalStoreValue((store) => store.username);
@@ -48,8 +36,6 @@ const StackNavigator = () => {
     useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
   useProntoLinkEffect();
-  useIosPushEffect();
-  useCallKeepEffect();
 
   let mode;
   switch (appMode) {

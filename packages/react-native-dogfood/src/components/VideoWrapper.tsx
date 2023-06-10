@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useCallback, useMemo } from 'react';
 import {
   StreamVideo,
   useCreateStreamVideoClient,
+  usePushRegisterEffect,
 } from '@stream-io/video-react-native-sdk';
 import { STREAM_API_KEY } from 'react-native-dotenv';
 import { Platform } from 'react-native';
@@ -35,6 +36,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
     },
   });
+
+  usePushRegisterEffect(videoClient);
 
   return (
     <StreamVideo client={videoClient} translationsOverrides={translations}>

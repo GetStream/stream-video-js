@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import PushLibs, { callkeepIsInstalled } from '../../utils/push/optionalLibs';
+import PushLibs, { callkeepIsInstalled } from '../../utils/push/libs';
 
 const { callkeep } = PushLibs;
 

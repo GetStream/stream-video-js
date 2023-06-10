@@ -3,41 +3,20 @@ export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 export type RNCallKeepType = typeof import('react-native-callkeep').default;
 export type FirebaseMessagingType =
   typeof import('@react-native-firebase/messaging').default;
-export type NotifeeType = typeof import('@notifee/react-native').default;
 export type VoipPushNotificationType =
   typeof import('react-native-voip-push-notification').default;
 
 let callkeep: RNCallKeepType | undefined;
 let messaging: FirebaseMessagingType | undefined;
-let notifee: NotifeeType | undefined;
 let voipPushNotification: VoipPushNotificationType | undefined;
-
-try {
-  callkeep = require('react-native-callkeep').default;
-} catch (e) {}
 
 try {
   messaging = require('@react-native-firebase/messaging').default;
 } catch (e) {}
 
 try {
-  notifee = require('@notifee/react-native').default;
-} catch (e) {}
-
-try {
   voipPushNotification = require('react-native-voip-push-notification').default;
 } catch (e) {}
-
-export function notifeeIsInstalled(
-  n: NotifeeType | undefined,
-): n is NotifeeType {
-  if (!n) {
-    throw Error(
-      "notifee library is not installed. Please install it using 'yarn add @notifee/react-native' or 'npm install @notifee/react-native'",
-    );
-  }
-  return !!n;
-}
 
 export function callkeepIsInstalled(
   ck: RNCallKeepType | undefined,
@@ -75,7 +54,6 @@ export function voipPushNotificationIsInstalled(
 const defaultExport = {
   callkeep,
   messaging,
-  notifee,
   voipPushNotification,
 };
 

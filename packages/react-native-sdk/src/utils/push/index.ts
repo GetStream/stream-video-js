@@ -1,16 +1,14 @@
 import { StreamVideoClient } from '@stream-io/video-client';
+import notifee from '@notifee/react-native';
+import { Platform } from 'react-native';
 import PushLibs, {
   RNCallKeepType,
   FirebaseMessagingTypes,
-  callkeepIsInstalled,
   messagingIsInstalled,
-  notifeeIsInstalled,
-} from './optionalLibs';
-import { Platform } from 'react-native';
+  callkeepIsInstalled,
+} from './libs';
 
-const { callkeep, notifee, messaging } = PushLibs;
-
-const FOREGROUND_SERVICE_CHANNEL_ID = 'stream_call_foreground_service';
+const { messaging, callkeep } = PushLibs;
 const INCOMING_CALL_CHANNEL_ID = 'stream_incoming_call';
 
 const options: Parameters<RNCallKeepType['setup']>[0] = {
@@ -26,12 +24,12 @@ const options: Parameters<RNCallKeepType['setup']>[0] = {
     okButton: 'ok',
     additionalPermissions: [],
     // Required to get audio in background when using Android 11
-    foregroundService: {
-      channelId: 'com.company.my',
-      channelName: 'Foreground service for my app',
-      notificationTitle: 'My app is running on background',
-      notificationIcon: 'Path to the resource icon of the notification',
-    },
+    // foregroundService: {
+    //   channelId: 'com.company.my',
+    //   channelName: 'Foreground service for my app',
+    //   notificationTitle: 'My app is running on background',
+    //   notificationIcon: 'Path to the resource icon of the notification',
+    // },
   },
 };
 
@@ -48,11 +46,7 @@ export async function setupCallkeep() {
 
 /** Firebase RemoteMessage handler **/
 export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
-  if (
-    Platform.OS !== 'android' ||
-    !messagingIsInstalled(messaging) ||
-    !notifeeIsInstalled(notifee)
-  ) {
+  if (Platform.OS !== 'android' || !messagingIsInstalled(messaging)) {
     return;
   }
   const firebaseListener = async (
@@ -75,7 +69,7 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
           },
           // other stuff
       }
-      */
+    */
     // Check if the message is for Stream Video Call
     if (message.data?.sender !== 'stream.video' || !message.data) {
       return;
@@ -107,53 +101,4 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
     name: 'Service to keep call alive', // TODO: allow user to customise this
     importance: 4, // AndroidImportance.HIGH
   });
-}
-
-export async function setForegroundService() {
-  if (!notifeeIsInstalled(notifee)) {
-    return;
-  }
-  try {
-    await notifee.createChannel({
-      id: FOREGROUND_SERVICE_CHANNEL_ID,
-      name: 'Service to keep call alive', // TODO: allow user to customise this
-      lights: false,
-      vibration: false,
-      importance: 3, // AndroidImportance.DEFAULT
-    });
-    notifee.registerForegroundService(() => {
-      return new Promise(() => {
-        console.log('Foreground service running for call in progress');
-      });
-    });
-  } catch (err) {
-    // Handle Error
-  }
-}
-
-export async function startForegroundService() {
-  if (!notifeeIsInstalled(notifee)) {
-    return;
-  }
-  // TODO: allow user to customise this
-  await notifee.displayNotification({
-    title: 'Call in progress',
-    body: 'Tap to return to the call',
-    android: {
-      channelId: FOREGROUND_SERVICE_CHANNEL_ID,
-      asForegroundService: true,
-      ongoing: true,
-      pressAction: {
-        id: 'default',
-        launchActivity: 'default',
-      },
-    },
-  });
-}
-
-export async function stopForegroundService() {
-  if (!notifeeIsInstalled(notifee)) {
-    return;
-  }
-  await notifee.stopForegroundService();
 }

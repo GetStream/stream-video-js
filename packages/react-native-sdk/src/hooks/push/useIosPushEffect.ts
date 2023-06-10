@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import PushLibs, {
   voipPushNotificationIsInstalled,
-} from '../../utils/push/optionalLibs';
+} from '../../utils/push/libs';
 
 import { Platform } from 'react-native';
 import { StreamVideoClient } from '@stream-io/video-client';

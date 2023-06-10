@@ -30,9 +30,6 @@
     "react-native-webrtc": ">=111.0.1"
   },
   "peerDependenciesMeta": {
-    "@notifee/react-native": {
-      "optional": true
-    },
     "@react-native-firebase/app": {
       "optional": true
     },

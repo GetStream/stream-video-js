@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StreamCall, useCall } from '@stream-io/video-react-native-sdk';
+import { StreamCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
-import {
-  startForegroundService,
-  stopForegroundService,
-} from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
 import { VideoWrapper } from '../../components/VideoWrapper';
 
@@ -19,8 +15,6 @@ export const MeetingScreen = (props: Props) => {
     params: { callId },
   } = route;
 
-  const activeCall = useCall();
-
   const onJoin = () => {
     setShow('active-call');
   };
@@ -29,16 +23,6 @@ export const MeetingScreen = (props: Props) => {
     setShow('lobby');
     navigation.goBack();
   };
-
-  useEffect(() => {
-    if (!activeCall) {
-      return;
-    }
-    startForegroundService();
-    return () => {
-      stopForegroundService();
-    };
-  }, [activeCall]);
 
   return (
     <VideoWrapper>
