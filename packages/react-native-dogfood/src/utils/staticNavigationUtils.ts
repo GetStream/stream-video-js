@@ -10,11 +10,7 @@ export class StaticNavigationService {
     | undefined = undefined;
 
   /**
-   * Navigate to a route
-   *
-   * if the route is already in the stack, replace the route with the new params
-   *
-   * else create a new route and navigate to it
+   * Navigate to a route in the Root StackNavigator
    */
   static navigate<RouteName extends keyof RootStackParamList>(
     name: RouteName,
