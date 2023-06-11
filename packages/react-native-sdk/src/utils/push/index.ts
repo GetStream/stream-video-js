@@ -95,6 +95,7 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
     await notifee.displayNotification({
       title: getTitle(createdUserName),
       body: getBody(createdUserName),
+      data,
       android: {
         channelId,
         ongoing: true,
@@ -107,12 +108,14 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
             title: 'Accept',
             pressAction: {
               id: ACCEPT_CALL_ACTION_ID,
+              launchActivity: 'default',
             },
           },
           {
             title: 'Decline',
             pressAction: {
               id: DECLINE_CALL_ACTION_ID,
+              launchActivity: 'default',
             },
           },
         ],
@@ -144,8 +147,7 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
     const didPressDecline =
       type === EventType.ACTION_PRESS &&
       pressAction.id === DECLINE_CALL_ACTION_ID;
-    const didDismiss = type === EventType.DISMISSED;
-    if (didPressDecline || didDismiss) {
+    if (didPressDecline) {
       // Remove the notification
       await notifee.cancelNotification(notificationId);
     }

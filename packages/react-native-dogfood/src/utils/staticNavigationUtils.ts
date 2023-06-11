@@ -1,7 +1,4 @@
-import {
-  StackActions,
-  createNavigationContainerRef,
-} from '@react-navigation/native';
+import { createNavigationContainerRef } from '@react-navigation/native';
 
 import { RootStackParamList } from '../../types';
 
@@ -24,13 +21,8 @@ export class StaticNavigationService {
     params: RootStackParamList[RouteName] | undefined = undefined,
   ) {
     if (navigationRef.isReady()) {
-      const currentRoute = navigationRef.getCurrentRoute();
-      if (currentRoute?.name === name) {
-        navigationRef.dispatch(StackActions.replace(name, params));
-      } else {
-        // @ts-ignore
-        navigationRef.navigate(name, params);
-      }
+      // @ts-ignore
+      navigationRef.navigate(name, params);
     }
   }
   static goBack() {
