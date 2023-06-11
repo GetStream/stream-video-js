@@ -16,16 +16,24 @@ import {
   useAppGlobalStoreValue,
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { navigationRef } from './src/utils/staticNavigationUtils';
+import {
+  StaticNavigationService,
+  navigationRef,
+} from './src/utils/staticNavigationUtils';
 import Logger from 'react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
 import { Login } from './src/navigators/Login';
+import { setPushConfig } from './src/utils/setPushConfig';
 
 // @ts-expect-error
 Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// All the push notification related config must be done as soon the app starts
+// since the app can be opened from a dead state through a push notification
+setPushConfig();
 
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
@@ -69,6 +77,15 @@ const StackNavigator = () => {
 
     return () => subscription.unsubscribe();
   }, [appMode, setState, meetingNavigation]);
+
+  useEffect(() => {
+    if (username && userImageUrl) {
+      StaticNavigationService.authenticationInfo = {
+        username,
+        userImageUrl,
+      };
+    }
+  }, [username, userImageUrl]);
 
   if (!(username && userImageUrl)) {
     return <Login />;

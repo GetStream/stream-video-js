@@ -1,14 +1,17 @@
 import { useEffect } from 'react';
-import PushLibs, { callkeepIsInstalled } from '../../utils/push/libs';
-
-const { callkeep } = PushLibs;
+import { getCallKeepLib } from '../../utils/push/libs';
+import { pushAcceptedIncomingCallCId$ } from '.';
+import { getPushConfig } from '../../utils/push/config';
+import { Platform } from 'react-native/types';
 
 /**
  * This hook is used to listen to callkeep events and do the necessary actions
  */
-export const useCallKeepEffect = () => {
+export const useIosCallKeepEffect = () => {
   useEffect(() => {
-    if (!callkeepIsInstalled(callkeep)) {
+    const callkeep = getCallKeepLib();
+    const pushConfig = getPushConfig();
+    if (Platform.OS !== 'ios') {
       return;
     }
     callkeep.addEventListener(
@@ -21,8 +24,9 @@ export const useCallKeepEffect = () => {
       console.log('answerCall', { callUUID });
       callkeep.backToForeground();
       // close the dialer screen so that the app can be seen (only android needs this)
-      callkeep.endCall(callUUID);
-      // TODO: on answer call -- move to active call screen and accept the relevant call
+      // callkeep.endCall(callUUID);
+      pushAcceptedIncomingCallCId$.next(callUUID);
+      pushConfig.navigateAcceptCall();
     });
     callkeep.addEventListener('endCall', ({ callUUID }) => {
       if (callUUID) {

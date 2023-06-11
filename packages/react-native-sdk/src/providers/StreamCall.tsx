@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
-import { useCallCycleEffect } from '../hooks';
+import { pushAcceptedIncomingCallCId$, useCallCycleEffect } from '../hooks';
 
 type InitWithCallCID = {
   /**
@@ -57,14 +57,35 @@ export const StreamCall = ({
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
-    if (call) return call;
-    if (!videoClient || !callId || !callType) return;
+    if (call) {
+      return call;
+    }
+    if (!videoClient || !callId || !callType) {
+      return;
+    }
     return videoClient?.call(callType, callId);
   });
 
+  // The Effect to join call automatically when incoming call was received and accepted from push notification
+  useEffect(() => {
+    if (!activeCall) {
+      return;
+    }
+    const subscription = pushAcceptedIncomingCallCId$.subscribe((callCId) => {
+      if (!callCId || activeCall.cid !== callCId) {
+        return;
+      }
+      activeCall.join();
+      pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this component
+    });
+    return () => subscription.unsubscribe();
+  }, [activeCall]);
+
   // Effect to create a new call with the given call id and type if the call doesn't exist
   useEffect(() => {
-    if (!videoClient) return;
+    if (!videoClient) {
+      return;
+    }
 
     if (callId && callType && !activeCall) {
       const newCall = videoClient.call(callType, callId);
@@ -72,7 +93,9 @@ export const StreamCall = ({
     }
 
     return () => {
-      if (activeCall?.state.callingState === CallingState.LEFT) return;
+      if (activeCall?.state.callingState === CallingState.LEFT) {
+        return;
+      }
       activeCall?.leave().catch((e) => console.log(e));
       setActiveCall(undefined);
     };

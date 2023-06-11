@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
-import PushLibs, {
-  voipPushNotificationIsInstalled,
-} from '../../utils/push/libs';
+import { getVoipPushNotificationLib } from '../../utils/push/libs';
 
 import { Platform } from 'react-native';
 import { StreamVideoClient } from '@stream-io/video-client';
-const { voipPushNotification } = PushLibs;
+import { getPushConfig } from '../../utils/push/config';
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -13,15 +11,14 @@ const { voipPushNotification } = PushLibs;
  */
 export const useIosPushEffect = (client: StreamVideoClient) => {
   useEffect(() => {
-    if (
-      Platform.OS !== 'ios' ||
-      !voipPushNotificationIsInstalled(voipPushNotification)
-    ) {
+    if (Platform.OS !== 'ios') {
       return;
     }
+    const voipPushNotification = getVoipPushNotificationLib();
+    const pushConfig = getPushConfig();
     const onTokenReceived = (token: string) => {
       // send token to stream
-      const push_provider_name = 'prod-voip-apn-ios';
+      const push_provider_name = pushConfig.ios_pushProviderName;
       client.addVoipDevice(token, 'apn', push_provider_name);
     };
     voipPushNotification.addEventListener('register', (token) => {
