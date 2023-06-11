@@ -8,7 +8,7 @@ import {
   RNCallKeepType,
 } from './libs';
 import { getPushConfig } from './config';
-import { pushAcceptedIncomingCallCId$ } from '../../hooks';
+import { pushAcceptedIncomingCallCId$ } from './rxSubjects';
 
 // const options: Parameters<RNCallKeepType['setup']>[0] = {
 //   ios: {

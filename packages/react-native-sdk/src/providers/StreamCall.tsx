@@ -4,7 +4,8 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
-import { pushAcceptedIncomingCallCId$, useCallCycleEffect } from '../hooks';
+import { useCallCycleEffect } from '../hooks';
+import { pushAcceptedIncomingCallCId$ } from '../utils/push/rxSubjects';
 
 type InitWithCallCID = {
   /**

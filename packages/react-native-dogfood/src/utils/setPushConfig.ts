@@ -5,8 +5,8 @@ import { StaticNavigationService } from './staticNavigationUtils';
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
     push: {
-      android_pushProviderName: 'fcm-video',
-      ios_pushProviderName: 'apn-video',
+      android_pushProviderName: 'rn-fcm-video',
+      ios_pushProviderName: 'rn-apn-video',
       ios_appName: 'ReactNativeStreamDogFood',
       android_phoneCallingAccountPermissionTexts: {
         alertTitle: 'Permission Required',

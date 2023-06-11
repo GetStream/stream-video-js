@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { getCallKeepLib } from '../../utils/push/libs';
-import { pushAcceptedIncomingCallCId$ } from '.';
+import { pushAcceptedIncomingCallCId$ } from '../../utils/push/rxSubjects';
 import { getPushConfig } from '../../utils/push/config';
-import { Platform } from 'react-native/types';
+import { Platform } from 'react-native';
 
 /**
  * This hook is used to listen to callkeep events and do the necessary actions
