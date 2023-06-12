@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.22...@stream-io/video-react-sdk-0.0.23) (2023-06-12)
+
+
+### Documentation
+
+* **react-sdk:** add documentation for device settings UI components ([#624](https://github.com/GetStream/stream-video-js/issues/624)) ([25b2636](https://github.com/GetStream/stream-video-js/commit/25b26363a41938ceadf256baa9ba194ffd92a658))
+
 ### [0.0.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.21...@stream-io/video-react-sdk-0.0.22) (2023-06-12)
 
 ### Dependency Updates
