@@ -4,22 +4,21 @@ import {
   Restricted,
   useCall,
   useCallCallingState,
-  useCallMetadata,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 import { LeaveIcon } from '../icons';
 
 export const RoomNavControls = () => {
   const call = useCall();
-  const metadata = useCallMetadata();
   const callingState = useCallCallingState();
+  const isLive = useIsCallLive();
 
-  if (!call || (callingState !== CallingState.JOINED && !metadata?.backstage))
-    return null;
+  if (!call || (callingState !== CallingState.JOINED && !isLive)) return null;
 
   return (
     <div className="room-nav-controls">
-      {metadata?.backstage ? (
+      {!isLive ? (
         <>
           <CloseInactiveRoomButton>Back to overview</CloseInactiveRoomButton>
           <Restricted
@@ -29,8 +28,8 @@ export const RoomNavControls = () => {
             <button
               className="leave-button"
               onClick={async () => {
-                call.goLive();
-                call.join();
+                await call.goLive();
+                await call.join();
               }}
             >
               Go live!
@@ -43,7 +42,13 @@ export const RoomNavControls = () => {
             requiredGrants={[OwnCapability.END_CALL]}
             hasPermissionsOnly
           >
-            <button className="leave-button" onClick={() => call.endCall()}>
+            <button
+              className="leave-button"
+              onClick={async () => {
+                await call.stopLive();
+                await call.endCall();
+              }}
+            >
               <LeaveIcon />
               End room
             </button>
