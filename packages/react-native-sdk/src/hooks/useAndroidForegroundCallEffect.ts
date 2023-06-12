@@ -1,7 +1,8 @@
 import { useCall } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
-import notifee from '@notifee/react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
+import { Platform } from 'react-native';
 
 async function setForegroundService() {
   await notifee.createChannel(
@@ -15,6 +16,9 @@ async function setForegroundService() {
 }
 
 async function startForegroundService() {
+  if (Platform.OS !== 'android') {
+    return;
+  }
   const { title, body } =
     StreamVideoRN.getConfig().android_foregroundServiceNotificationTexts;
   const channelId =
@@ -53,10 +57,16 @@ export const useAndroidForegroundCallEffect = () => {
   }
   const activeCall = useCall();
   useEffect(() => {
-    if (!activeCall) {
+    if (!activeCall || Platform.OS !== 'android') {
       return;
     }
-    startForegroundService();
+    const run = async () => {
+      const settings = await notifee.requestPermission();
+      if (settings.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
+        await startForegroundService();
+      }
+    };
+    run();
     return () => {
       stopForegroundService();
     };

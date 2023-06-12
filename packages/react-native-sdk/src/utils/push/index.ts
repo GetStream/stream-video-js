@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee, { EventType, AuthorizationStatus } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import {
   FirebaseMessagingTypes,
@@ -73,11 +73,15 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
   const push_provider_name = pushConfig.android_pushProviderName;
   await client.addDevice(token, 'firebase', push_provider_name);
   await notifee.createChannel(pushConfig.android_incomingCallChannel);
+  await notifee.requestPermission();
 }
 
 const firebaseMessagingOnMessageHandler = async (
   message: FirebaseMessagingTypes.RemoteMessage,
 ) => {
+  if (Platform.OS !== 'android') {
+    return;
+  }
   const pushConfig = getPushConfig();
   /* Example data from firebase
     "message": {
@@ -100,6 +104,10 @@ const firebaseMessagingOnMessageHandler = async (
   }
   // Check if the message is for Stream Video Call
   if (data.sender !== 'stream.video') {
+    return;
+  }
+  const { authorizationStatus } = await notifee.requestPermission();
+  if (authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
     return;
   }
   const { getTitle, getBody } =
