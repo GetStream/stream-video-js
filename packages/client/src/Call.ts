@@ -278,8 +278,7 @@ export class Call {
           const hasPermission = this.permissionsContext.hasPermission(
             permission as OwnCapability,
           );
-          const isPublishingTrack = this.publisher.isPublishing(trackType);
-          if (!hasPermission && isPublishingTrack) {
+          if (!hasPermission && this.publisher.isPublishing(trackType)) {
             this.stopPublish(trackType).catch((err) => {
               console.error('Error stopping publish', trackType, err);
             });

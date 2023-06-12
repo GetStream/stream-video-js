@@ -219,11 +219,11 @@ export class Publisher {
    *
    * @param trackType the track type to check.
    */
-  isPublishing = (trackType: TrackType) => {
+  isPublishing = (trackType: TrackType): boolean => {
     const transceiverForTrackType = this.transceiverRegistry[trackType];
     if (transceiverForTrackType && transceiverForTrackType.sender) {
       const sender = transceiverForTrackType.sender;
-      return sender.track && sender.track.readyState === 'live';
+      return !!sender.track && sender.track.readyState === 'live';
     }
     return false;
   };
