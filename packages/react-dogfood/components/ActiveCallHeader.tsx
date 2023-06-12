@@ -27,11 +27,9 @@ export const ActiveCallHeader = ({
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
   const isMigrating = callingState === CallingState.MIGRATING;
+  const isJoining = callingState === CallingState.JOINING;
+  const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
-  const isRecoveringConnection = [
-    CallingState.JOINING,
-    CallingState.RECONNECTING,
-  ].includes(callingState);
 
   useEffect(() => {
     activeCall?.queryRecordings().catch((e) => {
@@ -100,12 +98,18 @@ export const ActiveCallHeader = ({
 
           return (
             <Notification
-              isVisible={isRecoveringConnection || isMigrating}
+              isVisible={isJoining || isReconnecting || isMigrating}
               iconClassName={null}
               placement="bottom"
               message={
                 <LoadingIndicator
-                  text={isMigrating ? 'Migrating...' : 'Reconnecting...'}
+                  text={
+                    isMigrating
+                      ? 'Migrating...'
+                      : isJoining
+                      ? 'Joining...'
+                      : 'Reconnecting...'
+                  }
                 />
               }
             >
