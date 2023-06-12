@@ -47,14 +47,13 @@ export const useCallControls = () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (audioDeviceId && isOnlineRef.current) {
-        const audioStream = await getAudioStream({
-          deviceId: audioDeviceId,
-        });
-        if (call) {
-          await call.publishAudioStream(audioStream);
-        }
-      }
+      if (!call || !audioDeviceId || !isOnlineRef.current) return;
+
+      const audioStream = await getAudioStream({
+        deviceId: audioDeviceId,
+      });
+        
+      await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
