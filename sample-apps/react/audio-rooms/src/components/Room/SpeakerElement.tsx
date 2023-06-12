@@ -1,10 +1,10 @@
 import {
   Audio,
-  useCall,
   OwnCapability,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  useCall,
   useCallMetadata,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
@@ -42,6 +42,7 @@ const SpeakerElement = ({
         <div className="speaker-container__controls">
           {!isSpeakerHost && canMuteUsers && (
             <button
+              title="Remove from speakers"
               onClick={() => {
                 call.updateUserPermissions({
                   user_id: speaker.userId,

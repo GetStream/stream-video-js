@@ -35,12 +35,11 @@ export const useSpeakingRequests = () => {
       (event: StreamCallEvent) => {
         if (event.type !== 'call.permission_request') return;
 
-        if (event) {
-          setSpeakingRequests((prevSpeakingRequests) => [
-            ...prevSpeakingRequests,
-            event,
-          ]);
-        }
+        setSpeakingRequests((prevSpeakingRequests) => [
+          ...prevSpeakingRequests,
+          event,
+        ]);
+        setIsOpenRequestList(true);
       },
     );
 
