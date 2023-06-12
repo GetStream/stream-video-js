@@ -47,12 +47,14 @@ export const useCallControls = () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (!call || !audioDeviceId || !isOnlineRef.current) return;
+      if (!call || !audioDeviceId || !isOnlineRef.current) {
+        return;
+      }
 
       const audioStream = await getAudioStream({
         deviceId: audioDeviceId,
       });
-        
+
       await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
@@ -61,12 +63,14 @@ export const useCallControls = () => {
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (!call || !videoDeviceId || !isOnlineRef.current) return;
-      
+      if (!call || !videoDeviceId || !isOnlineRef.current) {
+        return;
+      }
+
       const videoStream = await getVideoStream({
-        deviceId: videoDeviceId
+        deviceId: videoDeviceId,
       });
-      
+
       await call.publishVideoStream(videoStream);
     } catch (e) {
       console.log('Failed to publish video stream', e);
