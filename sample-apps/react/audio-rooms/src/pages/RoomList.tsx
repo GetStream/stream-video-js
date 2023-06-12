@@ -1,28 +1,16 @@
-import { Link, useParams } from 'react-router-dom';
-import { Call, StreamCallProvider, useCalls } from '@stream-io/video-react-sdk';
+import { Link } from 'react-router-dom';
+import { Call, StreamCallProvider } from '@stream-io/video-react-sdk';
 import RoomCard from '../components/RoomCard';
 import {
   isEnded,
   isLive,
   isUpcoming,
   RoomLiveState,
-  isRoomState,
 } from '../utils/roomLiveState';
+import { useCalls } from '../contexts';
 
 const RoomList = () => {
-  const calls = useCalls();
-  const { liveState } = useParams<{ liveState?: RoomLiveState }>();
-
-  if (liveState) {
-    return (
-      <section className="rooms-overview">
-        <RoomListing
-          calls={calls.filter(isRoomState[liveState])}
-          liveState={liveState}
-        />
-      </section>
-    );
-  }
+  const { calls } = useCalls();
 
   return (
     <section className="rooms-overview">

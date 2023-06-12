@@ -1,13 +1,13 @@
 import {
   MediaDevicesProvider,
   StreamCallProvider,
-  useCalls,
 } from '@stream-io/video-react-sdk';
 import { Link, useParams } from 'react-router-dom';
 import { RoomUI } from '../components/Room';
+import { useCalls } from '../contexts';
 
 function Room() {
-  const calls = useCalls();
+  const { calls } = useCalls();
   const { roomId } = useParams<{ roomId: string }>();
   const call = calls.find((c) => c.id === roomId);
 
