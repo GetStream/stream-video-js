@@ -15,7 +15,7 @@ export const useGleap = (
   useEffect(() => {
     if (gleapApiKey) {
       Gleap.initialize(gleapApiKey);
-      Gleap.identify(user.name || user.id, {
+      Gleap.identify(user.name || user.id || '!anon', {
         name: user.name,
       });
     }

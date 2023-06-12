@@ -3,14 +3,16 @@ import { combineLatestWith, map } from 'rxjs/operators';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
-import type { User } from '../coordinator/connection/types';
+import type { OwnUserResponse } from '../coordinator/connection/types';
 import { CallingState } from './CallState';
 
 export class StreamVideoWriteableStateStore {
   /**
    * A store keeping data of a successfully connected user over WS to the coordinator server.
    */
-  connectedUserSubject = new BehaviorSubject<User | undefined>(undefined);
+  connectedUserSubject = new BehaviorSubject<OwnUserResponse | undefined>(
+    undefined,
+  );
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
@@ -88,7 +90,7 @@ export class StreamVideoWriteableStateStore {
   /**
    * The currently connected user.
    */
-  get connectedUser(): User | undefined {
+  get connectedUser(): OwnUserResponse | undefined {
     return this.getCurrentValue(this.connectedUserSubject);
   }
 
@@ -98,7 +100,7 @@ export class StreamVideoWriteableStateStore {
    * @internal
    * @param user the user to set as connected.
    */
-  setConnectedUser = (user: Patch<User | undefined>) => {
+  setConnectedUser = (user: Patch<OwnUserResponse | undefined>) => {
     return this.setCurrentValue(this.connectedUserSubject, user);
   };
 
@@ -173,7 +175,7 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * Data describing a user successfully connected over WS to coordinator server.
    */
-  connectedUser$: Observable<User | undefined>;
+  connectedUser$: Observable<OwnUserResponse | undefined>;
 
   /**
    * A list of {@link Call} objects created/tracked by this client.
@@ -213,7 +215,7 @@ export class StreamVideoReadOnlyStateStore {
   /**
    * The current user connected over WS to the backend.
    */
-  get connectedUser(): User | undefined {
+  get connectedUser(): OwnUserResponse | undefined {
     return RxUtils.getCurrentValue(this.connectedUser$);
   }
 

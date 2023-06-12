@@ -115,7 +115,7 @@ export interface RTCDataChannel extends EventTarget {
 export type EventHandler = (event: SfuEvent) => void;
 
 export type GuestMeetingScreenParams = {
-  guestUserId?: string;
+  guestUserId: string;
   guestCallId: string;
   mode: string;
 };

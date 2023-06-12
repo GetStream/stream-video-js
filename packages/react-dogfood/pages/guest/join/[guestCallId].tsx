@@ -4,6 +4,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -29,19 +30,19 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
-  const [userToConnect, setUserToConnect] = useState(user);
-  const [tokenToUse, setTokenToUse] = useState(token);
-  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [userToConnect] = useState<User>(
+    mode === 'anon'
+      ? { type: 'anonymous' }
+      : { id: guestUserId, type: 'guest' },
+  );
+  const [tokenToUse] = useState(mode === 'anon' ? token : undefined);
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
   const [call] = useState<Call>(() => client.call(callType, callId));
 
   useEffect(() => {
-    const connectRequest = isAnonymous
-      ? client.connectAnonymousUser(userToConnect, tokenToUse)
-      : client.connectUser(userToConnect, tokenToUse);
-    connectRequest.catch((err) => {
+    client.connectUser(userToConnect, tokenToUse).catch((err) => {
       console.error(`Failed to establish connection`, err);
     });
     return () => {
@@ -50,27 +51,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         .catch((err) => console.error('Failed to disconnect', err));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, userToConnect?.id, tokenToUse, isAnonymous]);
-
-  useEffect(() => {
-    if (mode !== 'guest') return;
-    client
-      .createGuestUser({
-        user: {
-          id: guestUserId,
-          name: guestUserId,
-          role: 'guest',
-        },
-      })
-      .then((guestUser) => {
-        setUserToConnect(guestUser.user);
-        setTokenToUse(guestUser.access_token);
-        setIsAnonymous(false);
-      })
-      .catch((err) => {
-        console.error('Error creating guest user', err);
-      });
-  }, [client, guestUserId, mode]);
+  }, [client, userToConnect?.id, tokenToUse]);
 
   useEffect(() => {
     call.getOrCreate().catch((err) => {
@@ -78,7 +59,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     });
   }, [call]);
 
-  useGleap(gleapApiKey, client, userToConnect);
+  useGleap(gleapApiKey, client, user);
   return (
     <>
       <Head>

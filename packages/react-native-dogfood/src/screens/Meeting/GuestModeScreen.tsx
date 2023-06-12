@@ -35,6 +35,7 @@ export const GuestModeScreen = ({
     navigation.navigate('GuestMeetingScreen', {
       mode: 'anon',
       guestCallId: callId,
+      guestUserId: '!anon',
     });
   };
 

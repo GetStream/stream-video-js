@@ -73,7 +73,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     apiKey,
     tokenOrProvider: token,
     userData: {
-      id: user.id,
+      id: user.id || '!anon',
       name: user.name,
       image: user.image,
     },
