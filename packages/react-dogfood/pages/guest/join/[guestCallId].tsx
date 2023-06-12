@@ -37,21 +37,11 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   );
   const [tokenToUse] = useState(mode === 'anon' ? token : undefined);
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
+    () =>
+      new StreamVideoClient({ apiKey, user: userToConnect, token: tokenToUse }),
   );
-  const [call] = useState<Call>(() => client.call(callType, callId));
 
-  useEffect(() => {
-    client.connectUser(userToConnect, tokenToUse).catch((err) => {
-      console.error(`Failed to establish connection`, err);
-    });
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, userToConnect?.id, tokenToUse]);
+  const [call] = useState<Call>(() => client.call(callType, callId));
 
   useEffect(() => {
     call.getOrCreate().catch((err) => {

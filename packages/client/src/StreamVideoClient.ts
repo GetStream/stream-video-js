@@ -56,7 +56,7 @@ export class StreamVideoClient {
     apiKey: string;
     options?: StreamClientOptions;
     user?: User;
-    token?: TokenProvider;
+    token?: TokenOrProvider;
   });
   constructor(
     apiKeyOrArgs:
@@ -65,7 +65,7 @@ export class StreamVideoClient {
           apiKey: string;
           options?: StreamClientOptions;
           user?: User;
-          token?: TokenProvider;
+          token?: TokenOrProvider;
         },
     opts?: StreamClientOptions,
   ) {
@@ -82,6 +82,9 @@ export class StreamVideoClient {
 
       this.user = apiKeyOrArgs.user;
       this.token = apiKeyOrArgs.token;
+      if (this.user) {
+        this.streamClient.startWaitingForConnection();
+      }
     }
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
