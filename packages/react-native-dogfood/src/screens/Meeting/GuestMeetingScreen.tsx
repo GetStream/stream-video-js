@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
@@ -28,14 +28,25 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const [userToConnect, setUserToConnect] = useState<User>({
-    id: '!anon',
-    type: 'anonymous',
-  });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
   const activeCall = useCall();
+
+  const userToConnect: User = useMemo(
+    () =>
+      mode === 'guest'
+        ? {
+            id: guestUserId,
+            name: guestUserId,
+            type: 'guest',
+          }
+        : {
+            id: '!anon',
+            type: 'anonymous',
+          },
+    [mode, guestUserId],
+  );
 
   const onJoin = () => {
     setShow('active-call');
@@ -63,25 +74,6 @@ export const GuestMeetingScreen = (props: Props) => {
     tokenOrProvider: tokenToUse,
     user: userToConnect,
   });
-
-  useEffect(() => {
-    if (mode !== 'guest') {
-      return;
-    }
-    const setGuestUserDetails = async () => {
-      if (!guestUserId) {
-        return;
-      }
-      const user: User = {
-        id: guestUserId,
-        name: guestUserId,
-        type: 'guest',
-      };
-      setUserToConnect(user);
-    };
-
-    setGuestUserDetails();
-  }, [client, guestUserId, mode]);
 
   useEffect(() => {
     if (!activeCall) {
