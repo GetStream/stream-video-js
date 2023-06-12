@@ -20,6 +20,7 @@ import {
   DeviceSettingsCaptor,
   getDeviceSettings,
 } from '../../components/DeviceSettingsCaptor';
+import { User } from '@stream-io/video-react-sdk';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -39,9 +40,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       '/api/auth/create-token?' +
         new URLSearchParams({
           api_key: apiKey,
-          user_id: user.id,
+          user_id: user.id || '!anon',
+          exp: String(4 * 60 * 60), // 4 hours
         }),
-      {},
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
@@ -62,7 +63,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: userToken,
-    userData: user,
+    userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
   });
 
   useEffect(() => {

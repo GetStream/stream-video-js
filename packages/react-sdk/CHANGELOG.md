@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.21...@stream-io/video-react-sdk-0.0.22) (2023-06-12)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.3`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.10`
+### [0.0.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.20...@stream-io/video-react-sdk-0.0.21) (2023-06-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.9`
+### [0.0.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.19...@stream-io/video-react-sdk-0.0.20) (2023-06-12)
+
+
+### Documentation
+
+* **react-sdk:** adjust asset folder names & update asset links ([#620](https://github.com/GetStream/stream-video-js/issues/620)) ([3218309](https://github.com/GetStream/stream-video-js/commit/321830934182797c2893839451365f6866f13c64))
+
+### [0.0.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.18...@stream-io/video-react-sdk-0.0.19) (2023-06-09)
+
+
+### Bug Fixes
+
+* **react-sdk:** do not try to watch devices, if browser permission is  not granted ([#617](https://github.com/GetStream/stream-video-js/issues/617)) ([abff44d](https://github.com/GetStream/stream-video-js/commit/abff44d2e66d6c4c515c7d4590fb3767b2560e64))
+
+
+### Documentation
+
+* **react-sdk:** rename 13-custom-call-layout.mdx to 04-video-layout.mdx ([#586](https://github.com/GetStream/stream-video-js/issues/586)) ([e832092](https://github.com/GetStream/stream-video-js/commit/e832092aac5b2de2327294d1a45bcc02d33db4a4))
+
+### [0.0.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.17...@stream-io/video-react-sdk-0.0.18) (2023-06-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.8`
+
+### Features
+
+* **react-sdk:** Picture-in-Picture Pronto integration + guide ([#614](https://github.com/GetStream/stream-video-js/issues/614)) ([5b7662a](https://github.com/GetStream/stream-video-js/commit/5b7662a8d17f151796d58c6eed2d9fed7d3d9ba8))
+
 ### [0.0.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.16...@stream-io/video-react-sdk-0.0.17) (2023-06-08)
 
 

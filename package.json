@@ -56,7 +56,8 @@
     "release": "nx run-many --target version --parallel=1",
     "release:18n": "yarn workspace @stream-io/i18n npm publish --access=public",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
-    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public"
+    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public",
+    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",

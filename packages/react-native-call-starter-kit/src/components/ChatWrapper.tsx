@@ -6,6 +6,7 @@ import {STREAM_API_KEY} from 'react-native-dotenv';
 import {useStreamChatTheme} from '../../useStreamChatTheme';
 import {AuthProgressLoader} from './AuthProgressLoader';
 import {StreamChatGenerics} from '../types';
+import {User} from '@stream-io/video-react-native-sdk';
 
 const streami18n = new Streami18n({
   language: 'en',
@@ -13,10 +14,14 @@ const streami18n = new Streami18n({
 
 export const ChatWrapper = ({children}: PropsWithChildren<{}>) => {
   const {user} = useAppContext();
+  const chatUser: (Omit<User, 'type'> & {id: string}) | undefined = {
+    id: '!anon',
+    ...user,
+  };
   const chatClient = useChatClient({
     apiKey: STREAM_API_KEY,
-    userData: user,
-    tokenOrProvider: user?.custom && user?.custom.token,
+    userData: chatUser,
+    tokenOrProvider: chatUser?.custom && chatUser?.custom.token,
   });
   const theme = useStreamChatTheme();
 

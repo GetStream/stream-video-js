@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.148](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.147...@stream-io/video-react-native-sdk-0.0.1-alpha.148) (2023-06-12)
+
+
+### Features
+
+* User connect and types ([#627](https://github.com/GetStream/stream-video-js/issues/627)) ([721ef61](https://github.com/GetStream/stream-video-js/commit/721ef611374540ef570a516009c78d58ce4f5360))
+
+
+
+## [0.0.1-alpha.147](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.146...@stream-io/video-react-native-sdk-0.0.1-alpha.147) (2023-06-12)
+
+
+
+## [0.0.1-alpha.146](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.145...@stream-io/video-react-native-sdk-0.0.1-alpha.146) (2023-06-12)
+
+
+
+## [0.0.1-alpha.145](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.144...@stream-io/video-react-native-sdk-0.0.1-alpha.145) (2023-06-09)
+
+
+
+## [0.0.1-alpha.144](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.143...@stream-io/video-react-native-sdk-0.0.1-alpha.144) (2023-06-09)
+
+
+
+## [0.0.1-alpha.143](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.142...@stream-io/video-react-native-sdk-0.0.1-alpha.143) (2023-06-09)
+
+
+
+## [0.0.1-alpha.142](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.141...@stream-io/video-react-native-sdk-0.0.1-alpha.142) (2023-06-09)
+
+
+
+## [0.0.1-alpha.141](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.140...@stream-io/video-react-native-sdk-0.0.1-alpha.141) (2023-06-09)
+
+
+### Features
+
+*  upgrade to latest rn webrtc (111) ([#545](https://github.com/GetStream/stream-video-js/issues/545)) ([f7b89c1](https://github.com/GetStream/stream-video-js/commit/f7b89c1b22bdac3b42233ecc703be65a129b43f0))
+* **react-native:** support reconnection flow ([#458](https://github.com/GetStream/stream-video-js/issues/458)) ([89f2dda](https://github.com/GetStream/stream-video-js/commit/89f2ddafd1397d91f8ddea5a3c69dd62ae027313))
+
+
+
 ## [0.0.1-alpha.140](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.139...@stream-io/video-react-native-sdk-0.0.1-alpha.140) (2023-06-09)
 
 

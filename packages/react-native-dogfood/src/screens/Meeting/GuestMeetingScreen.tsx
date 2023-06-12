@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
   TokenOrProvider,
-  UserResponse,
+  User,
   useCreateStreamVideoClient,
   usePushRegisterEffect,
 } from '@stream-io/video-react-native-sdk';
@@ -24,18 +24,24 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const [userToConnect, setUserToConnect] = useState<UserResponse>({
-    id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    role: 'guest',
-    teams: [],
-    custom: {},
-  });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
-  const [isAnonymous, setIsAnonymous] = useState(true);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
+
+  const userToConnect: User = useMemo(
+    () =>
+      mode === 'guest'
+        ? {
+            id: guestUserId,
+            name: guestUserId,
+            type: 'guest',
+          }
+        : {
+            id: '!anon',
+            type: 'anonymous',
+          },
+    [mode, guestUserId],
+  );
 
   const onJoin = () => {
     setShow('active-call');
@@ -62,38 +68,9 @@ export const GuestMeetingScreen = (props: Props) => {
     apiKey,
     tokenOrProvider: tokenToUse,
     user: userToConnect,
-    isAnonymous: isAnonymous,
   });
 
   usePushRegisterEffect(client);
-
-  useEffect(() => {
-    if (mode !== 'guest') {
-      return;
-    }
-    const setGuestUserDetails = async () => {
-      if (!guestUserId) {
-        return;
-      }
-      try {
-        const response = await client.createGuestUser({
-          user: {
-            id: guestUserId,
-            name: guestUserId,
-            role: 'guest',
-          },
-        });
-        const { user, access_token } = response;
-        setUserToConnect(user);
-        setTokenToUse(access_token);
-        setIsAnonymous(false);
-      } catch (error) {
-        console.log('Error setting guest user credentials:', error);
-      }
-    };
-
-    setGuestUserDetails();
-  }, [client, guestUserId, mode]);
 
   return (
     <StreamVideo client={client}>

@@ -55,6 +55,7 @@ export const Meeting: FC<Props> = ({
           callId={callId}
           close={toggleParticipants}
           participants={participants}
+          visible={true}
         />
       ) : null}
       <div className={contentClasses}>

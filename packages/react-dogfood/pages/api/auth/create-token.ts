@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createToken } from '../../../helpers/jwt';
+import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
 
 const apiKeyAndSecretWhitelist =
   (process.env.STREAM_API_KEY_AND_SECRET_WHITE_LIST as string) || '';
@@ -40,8 +40,7 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   if (!params.exp) {
-    const expiration = 3 * 60 * 60;
-    params.exp = String(expiration);
+    params.exp = String(maxTokenValidityInSeconds);
   }
 
   // by default, we support repeated query params:

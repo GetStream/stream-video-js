@@ -43,20 +43,12 @@ export const useCreateStreamVideoClient = ({
   tokenOrProvider,
   user,
   options,
-  isAnonymous = false,
 }: StreamVideoClientInit) => {
   const [client] = useState(() => new StreamVideoClient(apiKey, options));
 
   const disconnectRef = useRef(Promise.resolve());
   useEffect(() => {
     const connectionPromise = disconnectRef.current.then(() => {
-      if (isAnonymous) {
-        return client
-          .connectAnonymousUser(user, tokenOrProvider)
-          .catch((err) => {
-            console.error(`Failed to establish connection`, err);
-          });
-      }
       return client.connectUser(user, tokenOrProvider).catch((err) => {
         console.error(`Failed to establish connection`, err);
       });
@@ -71,7 +63,7 @@ export const useCreateStreamVideoClient = ({
     };
     // we want to re-run this effect only in some special cases
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, tokenOrProvider, client, isAnonymous, user?.id]);
+  }, [apiKey, tokenOrProvider, client, user?.id]);
 
   return client;
 };
