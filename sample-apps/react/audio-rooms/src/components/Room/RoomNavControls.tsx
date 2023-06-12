@@ -14,7 +14,7 @@ export const RoomNavControls = () => {
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
-  if (!call || (callingState !== CallingState.JOINED && !isLive)) return null;
+  if (!call || (callingState !== CallingState.JOINED && isLive)) return null;
 
   return (
     <div className="room-nav-controls">
