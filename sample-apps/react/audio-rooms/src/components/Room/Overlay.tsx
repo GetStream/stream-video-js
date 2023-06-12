@@ -1,5 +1,9 @@
-import { Call, CallingState } from '@stream-io/video-client';
-import { useCallCallingState } from '@stream-io/video-react-bindings';
+import {
+  CallingState,
+  useCall,
+  useCallCallingState,
+  useIsCallLive,
+} from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 
 export const EndedRoomOverlay = () => {
@@ -10,18 +14,26 @@ export const EndedRoomOverlay = () => {
     </div>
   );
 };
-export const RoomLobby = ({ call }: { call: Call }) => {
+
+export const RoomLobby = () => {
+  const call = useCall();
   const callingState = useCallCallingState();
+  const isLive = useIsCallLive();
 
   return (
     <div className="room-overlay">
+      {isLive && <p>The room is live</p>}
+      {!isLive && (
+        <p>The room isn't live yet. Please wait until the host opens it.</p>
+      )}
       {callingState === CallingState.JOINING && <p>Joining the room...</p>}
       {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
-      {[CallingState.IDLE, CallingState.UNKNOWN, CallingState.LEFT].includes(
-        callingState,
-      ) && <p>The room is live</p>}
       {callingState === CallingState.OFFLINE && <p>You are offline</p>}
-      <button className="leave-button" onClick={() => call.join()}>
+      <button
+        disabled={!isLive}
+        className="leave-button"
+        onClick={() => call?.join()}
+      >
         Join
       </button>
     </div>

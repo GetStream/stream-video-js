@@ -264,22 +264,26 @@ export class Call {
         // update the permission context.
         this.permissionsContext.setPermissions(ownCapabilities);
 
+        if (!this.publisher) return;
+
         // check if the user still has publishing permissions and stop publishing if not.
         const permissionToTrackType = {
           [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
           [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
           [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
         };
-        Object.entries(permissionToTrackType).forEach(([permission, type]) => {
+        for (const [permission, trackType] of Object.entries(
+          permissionToTrackType,
+        )) {
           const hasPermission = this.permissionsContext.hasPermission(
             permission as OwnCapability,
           );
-          if (!hasPermission) {
-            this.stopPublish(type).catch((err) => {
-              console.error('Error stopping publish', type, err);
+          if (!hasPermission && this.publisher.isPublishing(trackType)) {
+            this.stopPublish(trackType).catch((err) => {
+              console.error('Error stopping publish', trackType, err);
             });
           }
-        });
+        }
       }),
 
       // handles the case when the user is blocked by the call owner.

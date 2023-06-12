@@ -42,9 +42,12 @@ export const UserContextProvider: any = ({
 
   const selectUser = useCallback(async (selectedUser: User) => {
     setAuthInProgress(true);
-    selectedUser.token = await tokenProvider(selectedUser.id);
+    const token = await tokenProvider(selectedUser.id);
     sessionStorage.setItem(SESSION_STORAGE_UID_KEY, selectedUser.id);
-    setUser(selectedUser);
+    setUser({
+      ...selectedUser,
+      token,
+    });
     setAuthInProgress(false);
   }, []);
 

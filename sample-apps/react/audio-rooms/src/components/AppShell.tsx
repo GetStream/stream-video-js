@@ -32,9 +32,7 @@ const AppProviders = ({ children }: ChildrenOnly) => {
   );
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
     videoClient
       .connectUser(
         {

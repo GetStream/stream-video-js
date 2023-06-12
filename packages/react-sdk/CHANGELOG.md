@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.19...@stream-io/video-react-sdk-0.0.20) (2023-06-12)
+
+
+### Documentation
+
+* **react-sdk:** adjust asset folder names & update asset links ([#620](https://github.com/GetStream/stream-video-js/issues/620)) ([3218309](https://github.com/GetStream/stream-video-js/commit/321830934182797c2893839451365f6866f13c64))
+
 ### [0.0.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.18...@stream-io/video-react-sdk-0.0.19) (2023-06-09)
 
 

@@ -40,8 +40,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         new URLSearchParams({
           api_key: apiKey,
           user_id: user.id,
+          exp: String(4 * 60 * 60), // 4 hours
         }),
-      {},
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);

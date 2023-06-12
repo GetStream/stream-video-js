@@ -1,19 +1,17 @@
 import {
+  CallingState,
+  OwnCapability,
   Restricted,
+  SfuModels,
+  StreamCallEvent,
   useCall,
   useCallCallingState,
   useCallMetadata,
   useConnectedUser,
   useHasPermissions,
   useLocalParticipant,
-} from '@stream-io/video-react-bindings';
-import {
-  CallingState,
-  OwnCapability,
-  SfuModels,
-  StreamCallEvent,
-} from '@stream-io/video-client';
-import { useMediaDevices } from '@stream-io/video-react-sdk';
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import { CustomCallData } from '../../data/audioRoom';
 import {
@@ -120,12 +118,13 @@ export const LiveRoomControls = ({
         <button
           className={`icon-button ${hasNotifications ? 'notifications' : ''}`}
           onClick={openRequestsList}
+          title="Requests"
         >
           <BellIcon />
         </button>
       </Restricted>
       {/* todo: missing click handler */}
-      <button className="icon-button">
+      <button className="icon-button" title="Invite more">
         <AddPersonIcon />
       </button>
       {showMicButton && (
@@ -133,6 +132,7 @@ export const LiveRoomControls = ({
           className="icon-button"
           disabled={isAwaitingAudioApproval}
           onClick={toggleAudio}
+          title={isAudioMute ? 'Unmute' : 'Mute'}
         >
           {isAudioMute ? <MuteMicrophoneIcon /> : <MicrophoneIcon />}
         </button>
@@ -142,6 +142,7 @@ export const LiveRoomControls = ({
           <button
             className="icon-button"
             disabled={isAwaitingAudioApproval}
+            title="Request to speak"
             onClick={() =>
               call.requestPermissions({
                 permissions: [OwnCapability.SEND_AUDIO],

@@ -113,7 +113,7 @@ export const RoomUI = () => {
           </Restricted>
         )}
         {!!callMetadata?.ended_at && <EndedRoomOverlay />}
-        {showLobby && <RoomLobby call={call} />}
+        {showLobby && <RoomLobby />}
       </div>
     </section>
   );

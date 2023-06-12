@@ -6572,13 +6572,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.6.1":
-  version: 1.6.1
-  resolution: "@remix-run/router@npm:1.6.1"
-  checksum: 4ca65d9c7d6fa277227ad8fd4ef53bebab99460b714d835b609c998f9a7e7c33a964ce2b8af853b50025a60d9113968f256abc5f71f451939ff14a5187d327fe
-  languageName: node
-  linkType: hard
-
 "@remix-run/router@npm:1.6.2":
   version: 1.6.2
   resolution: "@remix-run/router@npm:1.6.2"
@@ -8603,7 +8596,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     typescript: ^4.9.5
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -8622,7 +8615,7 @@ __metadata:
     react-dom: ^18.2.0
     typescript: ^4.9.5
     vercel: ^29.3.0
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -8674,7 +8667,7 @@ __metadata:
     react-router-dom: ^6.11.1
     typescript: ^4.9.5
     vercel: ^29.3.0
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -8700,7 +8693,7 @@ __metadata:
     stream-chat-react: ^10.7.2
     typescript: ^4.9.5
     vercel: ^29.3.0
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -8889,13 +8882,13 @@ __metadata:
     prettier: ^2.8.4
     replace-in-file: ^6.3.5
     rimraf: ^3.0.2
-    rollup: ^3.21.6
+    rollup: ^3.25.1
     rxjs: ~7.8.1
     typedoc: ^0.24.7
     typedoc-plugin-markdown: ^3.15.3
     typescript: ^4.9.5
     ua-parser-js: ^1.0.35
-    vite: ^4.3.5
+    vite: ^4.3.9
     vitest: ^0.30.1
     vitest-mock-extended: ^1.1.3
     webrtc-adapter: ^8.2.2
@@ -9000,7 +8993,6 @@ __metadata:
     "@rnx-kit/metro-config": ^1.3.3
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@sentry/react-native": 5.0.0-alpha.11
-    "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/jest": ^29.0.0
     "@types/react": ^18.0.26
@@ -9166,7 +9158,7 @@ __metadata:
     stream-chat-react: ^10.7.2
     tailwindcss: ^3.2.4
     typescript: ^4.9.5
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -10975,21 +10967,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@vitejs/plugin-react@npm:3.1.0"
-  dependencies:
-    "@babel/core": ^7.20.12
-    "@babel/plugin-transform-react-jsx-self": ^7.18.6
-    "@babel/plugin-transform-react-jsx-source": ^7.19.6
-    magic-string: ^0.27.0
-    react-refresh: ^0.14.0
-  peerDependencies:
-    vite: ^4.1.0-beta.0
-  checksum: 450fac79e67cba9e1581c860f78e687b44108ab4117663ef20db279316e03cd8e87f94fef376e27cc5e200bd52813dcc09b70ea570c7c7cc291fcd47eb260fbc
-  languageName: node
-  linkType: hard
-
 "@vitejs/plugin-react@npm:^4.0.0":
   version: 4.0.0
   resolution: "@vitejs/plugin-react@npm:4.0.0"
@@ -12440,17 +12417,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "audio-rooms@workspace:sample-apps/react/audio-rooms"
   dependencies:
-    "@stream-io/video-client": "workspace:^"
-    "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": ^18.0.28
     "@types/react-dom": ^18.0.11
-    "@vitejs/plugin-react": ^3.1.0
+    "@vitejs/plugin-react": ^4.0.0
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.11.2
-    typescript: ^4.9.3
-    vite: ^4.2.0
+    typescript: ^4.9.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -32283,20 +32258,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.11.1, react-router-dom@npm:^6.7.0":
-  version: 6.11.1
-  resolution: "react-router-dom@npm:6.11.1"
-  dependencies:
-    "@remix-run/router": 1.6.1
-    react-router: 6.11.1
-  peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 44566e10cb1ff475c73be47425dba66e8e834e695e80c572c63ca82543ad03d41f4a1d8e974bf998143150f497792f74ba99714b1219df1c923c62a3b67f187b
-  languageName: node
-  linkType: hard
-
-"react-router-dom@npm:^6.11.2":
+"react-router-dom@npm:^6.11.1, react-router-dom@npm:^6.11.2, react-router-dom@npm:^6.7.0":
   version: 6.11.2
   resolution: "react-router-dom@npm:6.11.2"
   dependencies:
@@ -32306,17 +32268,6 @@ __metadata:
     react: ">=16.8"
     react-dom: ">=16.8"
   checksum: ba44ff37f2956bc18991f2eedb32a3fa46d35832f61ded6c5d167e853ca289868fca6635467866280c73bc3da00dce8437dbbec57da100c0a3e3e3850af00b83
-  languageName: node
-  linkType: hard
-
-"react-router@npm:6.11.1":
-  version: 6.11.1
-  resolution: "react-router@npm:6.11.1"
-  dependencies:
-    "@remix-run/router": 1.6.1
-  peerDependencies:
-    react: ">=16.8"
-  checksum: c5cafbaac13564d0e325f84ce6e4cbc42de5c381b0f619209f3b101d2b6eae4a8f9ee87b492875e869909dd9bb549d05d2f677085708f79622b872bd45d14bbb
   languageName: node
   linkType: hard
 
@@ -32540,7 +32491,7 @@ __metadata:
     typescript: ^4.9.5
     unique-names-generator: ^4.7.1
     uuid: ^9.0.0
-    vite: ^4.3.5
+    vite: ^4.3.9
     vite-plugin-mkcert: ^1.15.0
     vite-plugin-ssr: ^0.4.123
     vite-tsconfig-paths: ^4.2.0
@@ -33533,9 +33484,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^3.18.0":
-  version: 3.23.0
-  resolution: "rollup@npm:3.23.0"
+"rollup@npm:^3.21.0, rollup@npm:^3.25.1":
+  version: 3.25.1
+  resolution: "rollup@npm:3.25.1"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -33543,21 +33494,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: 0721065cf725c5611815be61d2b01f20b4d0027e17035f6e76384d38396b56cf6ed21a3db78eb004d9db4d24c8a6a19da4563b4ff96b5dd36f0a0f7a3baf85e8
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^3.21.0, rollup@npm:^3.21.6":
-  version: 3.21.6
-  resolution: "rollup@npm:3.21.6"
-  dependencies:
-    fsevents: ~2.3.2
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: bb6786ee0d755f253d3aa3820b05806a482abe9c9fd6dad14df83b386a370d48af20c4be66f732a15b5e89c0ae6269a7b82736b64f34ae61552c58de0eecedeb
+  checksum: f483b28a0605097a725b080c088262b0fa21f7bce66f741df73d9ff0be6a3baaf2927916b094ce95412f4f15cc59bb5eae020f59cae3d3a6993d123faceb5b41
   languageName: node
   linkType: hard
 
@@ -35091,7 +35028,7 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     typescript: ^4.9.5
-    vite: ^4.3.5
+    vite: ^4.3.9
   languageName: unknown
   linkType: soft
 
@@ -36747,7 +36684,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.5, typescript@npm:^4.9.3, typescript@npm:^4.9.5":
+"typescript@npm:4.9.5, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -36787,7 +36724,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.9.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.5#~builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
@@ -37790,9 +37727,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.3.5":
-  version: 4.3.5
-  resolution: "vite@npm:4.3.5"
+"vite@npm:^3.0.0 || ^4.0.0, vite@npm:^4.1.4, vite@npm:^4.3.9":
+  version: 4.3.9
+  resolution: "vite@npm:4.3.9"
   dependencies:
     esbuild: ^0.17.5
     fsevents: ~2.3.2
@@ -37823,45 +37760,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 6b7f2189f097110846e49a3f1d463bd620dfe9e4f433b1967e5b99f0789610ff4475e85e3e71476e6fa40be25449bb6f1c45edb95c79deba6f3f173699bff948
-  languageName: node
-  linkType: hard
-
-"vite@npm:^4.2.0":
-  version: 4.2.2
-  resolution: "vite@npm:4.2.2"
-  dependencies:
-    esbuild: ^0.17.5
-    fsevents: ~2.3.2
-    postcss: ^8.4.21
-    resolve: ^1.22.1
-    rollup: ^3.18.0
-  peerDependencies:
-    "@types/node": ">= 14"
-    less: "*"
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 7fff9d046f6091c02e030aa5f45e68939b9bec1dd15d4e2c3c084d82ec185300295f3db26f537daf2e19f9ad191be260bf70e5fe0e2d9054f174a7ad457623f8
+  checksum: 8c45a516278d1e0425fac00c0877336790f71484a851a318346a70e0d2aef9f3b9651deb2f9f002c791ceb920eda7d6a3cda753bdefd657321c99f448b02dd25
   languageName: node
   linkType: hard
 
