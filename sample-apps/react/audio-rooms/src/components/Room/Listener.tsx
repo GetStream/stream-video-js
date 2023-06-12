@@ -1,7 +1,7 @@
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
-} from '@stream-io/video-client';
+} from '@stream-io/video-react-sdk';
 
 export const Listener = ({
   participant: { name, image },

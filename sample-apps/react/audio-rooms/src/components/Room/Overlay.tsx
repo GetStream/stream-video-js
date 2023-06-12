@@ -1,5 +1,8 @@
-import { Call, CallingState } from '@stream-io/video-client';
-import { useCallCallingState } from '@stream-io/video-react-bindings';
+import {
+  Call,
+  CallingState,
+  useCallCallingState,
+} from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 
 export const EndedRoomOverlay = () => {

@@ -1,10 +1,11 @@
 import {
+  CallingState,
+  OwnCapability,
   Restricted,
   useCall,
   useCallCallingState,
   useCallMetadata,
-} from '@stream-io/video-react-bindings';
-import { CallingState, OwnCapability } from '@stream-io/video-client';
+} from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 import { LeaveIcon } from '../icons';
 

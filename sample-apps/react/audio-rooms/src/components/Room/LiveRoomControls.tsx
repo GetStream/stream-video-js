@@ -1,19 +1,17 @@
 import {
+  CallingState,
+  OwnCapability,
   Restricted,
+  SfuModels,
+  StreamCallEvent,
   useCall,
   useCallCallingState,
   useCallMetadata,
   useConnectedUser,
   useHasPermissions,
   useLocalParticipant,
-} from '@stream-io/video-react-bindings';
-import {
-  CallingState,
-  OwnCapability,
-  SfuModels,
-  StreamCallEvent,
-} from '@stream-io/video-client';
-import { useMediaDevices } from '@stream-io/video-react-sdk';
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import { CustomCallData } from '../../data/audioRoom';
 import {
