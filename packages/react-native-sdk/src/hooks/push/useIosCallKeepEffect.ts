@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { getCallKeepLib } from '../../utils/push/libs';
-import { pushAcceptedIncomingCallCId$ } from '../../utils/push/rxSubjects';
+import {
+  pushAcceptedIncomingCallCId$,
+  pushRejectedIncomingCallCId$,
+} from '../../utils/push/rxSubjects';
 import { getPushConfig } from '../../utils/push/config';
 import { Platform } from 'react-native';
 
@@ -32,6 +35,7 @@ export const useIosCallKeepEffect = () => {
       if (callUUID) {
         callkeep.endCall(callUUID);
       }
+      pushRejectedIncomingCallCId$.next(callUUID);
       console.log('endCall', { callUUID });
     });
     callkeep.addEventListener(

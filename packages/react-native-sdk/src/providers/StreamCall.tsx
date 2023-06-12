@@ -5,7 +5,10 @@ import {
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import { useCallCycleEffect } from '../hooks';
-import { pushAcceptedIncomingCallCId$ } from '../utils/push/rxSubjects';
+import {
+  pushAcceptedIncomingCallCId$,
+  pushRejectedIncomingCallCId$,
+} from '../utils/push/rxSubjects';
 
 type InitWithCallCID = {
   /**
@@ -67,23 +70,41 @@ export const StreamCall = ({
     return videoClient?.call(callType, callId);
   });
 
-  // The Effect to join call automatically when incoming call was received and accepted from push notification
+  // The Effect to join/reject call automatically when incoming call was received and processed from push notification
   useEffect(() => {
     if (!activeCall) {
       return;
     }
-    const subscription = pushAcceptedIncomingCallCId$.subscribe((callCId) => {
-      if (!callCId || activeCall.cid !== callCId) {
-        return;
-      }
-      activeCall
-        .join()
-        .catch((e) =>
-          console.log('failed to join call from push notification', e),
-        );
-      pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this component
-    });
-    return () => subscription.unsubscribe();
+    const acceptedCallSubscription = pushAcceptedIncomingCallCId$.subscribe(
+      (callCId) => {
+        if (!callCId || activeCall.cid !== callCId) {
+          return;
+        }
+        activeCall
+          .join()
+          .catch((e) =>
+            console.log('failed to join call from push notification', e),
+          );
+        pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this component
+      },
+    );
+    const declinedCallSubscription = pushRejectedIncomingCallCId$.subscribe(
+      (callCId) => {
+        if (!callCId || activeCall.cid !== callCId) {
+          return;
+        }
+        activeCall
+          .leave({ reject: true })
+          .catch((e) =>
+            console.log('failed to reject call from push notification', e),
+          );
+        pushRejectedIncomingCallCId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this component
+      },
+    );
+    return () => {
+      acceptedCallSubscription.unsubscribe();
+      declinedCallSubscription.unsubscribe();
+    };
   }, [activeCall]);
 
   // Effect to create a new call with the given call id and type if the call doesn't exist

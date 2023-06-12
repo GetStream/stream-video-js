@@ -25,10 +25,10 @@ async function startForegroundService() {
     android: {
       channelId,
       asForegroundService: true,
-      ongoing: true,
+      ongoing: true, // user cannot dismiss the notification
       pressAction: {
         id: 'default',
-        launchActivity: 'default',
+        launchActivity: 'default', // open the app when the notification is pressed
       },
     },
   });
