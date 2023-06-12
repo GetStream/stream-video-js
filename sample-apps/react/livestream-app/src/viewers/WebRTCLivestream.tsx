@@ -5,6 +5,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
@@ -41,11 +42,11 @@ export const WebRTCLivestream = () => {
       return;
     }
 
-    const user = {
-      id: 'anonymous',
+    const user: User = {
+      type: 'anonymous',
     };
     client
-      .connectAnonymousUser(user, tokenProvider)
+      .connectUser(user, tokenProvider)
       .catch((err) => console.error('Failed to establish connection', err));
 
     return () => {

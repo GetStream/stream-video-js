@@ -282,6 +282,12 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
     id: currentUserId,
+    created_at: '',
+    updated_at: '',
+    role: '',
+    custom: {},
+    teams: [],
+    devices: [],
   });
   const client = new StreamClient('api-key');
   return new Call({
