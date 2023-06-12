@@ -1,7 +1,7 @@
 import { Secret } from 'jsonwebtoken';
 import { JWTServerToken, JWTUserToken, UserFromToken } from './signing';
 import { isFunction } from './utils';
-import type { TokenOrProvider, User } from './types';
+import type { TokenOrProvider, UserWithId } from './types';
 
 /**
  * TokenManager
@@ -14,7 +14,7 @@ export class TokenManager {
   secret?: Secret;
   token?: string;
   tokenProvider?: TokenOrProvider;
-  user?: User;
+  user?: UserWithId;
   /**
    * Constructor
    *
@@ -43,7 +43,7 @@ export class TokenManager {
    */
   setTokenOrProvider = async (
     tokenOrProvider: TokenOrProvider,
-    user: User,
+    user: UserWithId,
     isAnonymous: boolean,
   ) => {
     this.validateToken(tokenOrProvider, user, isAnonymous);
@@ -80,7 +80,7 @@ export class TokenManager {
   // Validates the user token.
   validateToken = (
     tokenOrProvider: TokenOrProvider,
-    user: User,
+    user: UserWithId,
     isAnonymous: boolean,
   ) => {
     // allow empty token for anon user
@@ -88,7 +88,7 @@ export class TokenManager {
 
     // Don't allow empty token for non-server side client.
     if (!this.secret && !tokenOrProvider) {
-      throw new Error('User token can not be empty');
+      throw new Error('UserWithId token can not be empty');
     }
 
     if (

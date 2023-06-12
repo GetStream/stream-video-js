@@ -27,6 +27,7 @@ import type {
   StreamClientOptions,
   TokenOrProvider,
   User,
+  UserWithId,
 } from './coordinator/connection/types';
 
 /**
@@ -70,12 +71,12 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   async connectUser(
-    user: User | (Partial<Pick<User, 'id'>> & User & { type: 'anonymous' }),
+    user: User,
     token: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
     if (user.type === 'anonymous') {
       user.id = '!anon';
-      return this.connectAnonymousUser(user, token);
+      return this.connectAnonymousUser(user as UserWithId, token);
     }
     if (user.type === 'guest') {
       const response = await this.createGuestUser({
@@ -414,7 +415,7 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   private connectAnonymousUser = async (
-    user: User,
+    user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
     const connectAnonymousUser = () =>

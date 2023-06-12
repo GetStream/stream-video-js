@@ -30,12 +30,12 @@ import {
   StreamClientOptions,
   StreamVideoEvent,
   TokenOrProvider,
-  User,
+  UserWithId,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
 
 export class StreamClient {
-  _user?: User;
+  _user?: UserWithId;
   anonymous: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
@@ -52,7 +52,7 @@ export class StreamClient {
   secret?: string;
   setUserPromise: ConnectAPIResponse | null;
   tokenManager: TokenManager;
-  user?: User;
+  user?: UserWithId;
   userAgent?: string;
   userID?: string;
   wsBaseURL?: string;
@@ -188,7 +188,10 @@ export class StreamClient {
    *
    * @return {ConnectAPIResponse} Returns a promise that resolves when the connection is setup
    */
-  connectUser = async (user: User, userTokenOrProvider: TokenOrProvider) => {
+  connectUser = async (
+    user: UserWithId,
+    userTokenOrProvider: TokenOrProvider,
+  ) => {
     if (!user.id) {
       throw new Error('The "id" field on the user is missing');
     }
@@ -250,7 +253,7 @@ export class StreamClient {
   };
 
   _setToken = (
-    user: User,
+    user: UserWithId,
     userTokenOrProvider: TokenOrProvider,
     isAnonymous: boolean,
   ) =>
@@ -260,7 +263,7 @@ export class StreamClient {
       isAnonymous,
     );
 
-  _setUser(user: User) {
+  _setUser(user: UserWithId) {
     /**
      * This one is used by the frontend. This is a copy of the current user object stored on backend.
      * It contains reserved properties and own user properties which are not present in `this._user`.
@@ -303,7 +306,7 @@ export class StreamClient {
   openConnection = async () => {
     if (!this.userID) {
       throw Error(
-        'User is not set on client, use client.connectUser or client.connectAnonymousUser instead',
+        'UserWithId is not set on client, use client.connectUser or client.connectAnonymousUser instead',
       );
     }
 
@@ -379,7 +382,7 @@ export class StreamClient {
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
   connectAnonymousUser = async (
-    user: User,
+    user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
     this.anonymous = true;
@@ -814,7 +817,7 @@ export class StreamClient {
    * createToken - Creates a token to authenticate this user. This function is used server side.
    * The resulting token should be passed to the client side when the users registers or logs in.
    *
-   * @param {string} userID The User ID
+   * @param {string} userID The UserWithId ID
    * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
    * @param call_cids for anonymous tokens you have to provide the call cids the use can join
    *

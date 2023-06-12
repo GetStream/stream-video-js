@@ -7,6 +7,14 @@ export type UR = Record<string, unknown>;
 export type User =
   | (UserRequest & { type?: 'authenticated' })
   | (UserRequest & { type: 'guest' })
+  | (Omit<UserRequest, 'id'> & {
+      id?: '!anon';
+      type: 'anonymous';
+    });
+
+export type UserWithId =
+  | (UserRequest & { type?: 'authenticated' })
+  | (UserRequest & { type: 'guest' })
   | (UserRequest & {
       id: '!anon';
       type: 'anonymous';
