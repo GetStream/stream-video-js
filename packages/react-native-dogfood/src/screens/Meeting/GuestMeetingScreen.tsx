@@ -4,7 +4,7 @@ import {
   StreamCall,
   StreamVideo,
   TokenOrProvider,
-  UserResponse,
+  User,
   useCall,
   useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -28,13 +28,9 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const [userToConnect, setUserToConnect] = useState<UserResponse>({
-    id: `anonymous-${Math.random().toString(36).substring(2, 15)}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    role: 'guest',
-    teams: [],
-    custom: {},
+  const [userToConnect, setUserToConnect] = useState<User>({
+    id: '!anon',
+    type: 'anonymous',
   });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [isAnonymous, setIsAnonymous] = useState(true);
@@ -79,16 +75,12 @@ export const GuestMeetingScreen = (props: Props) => {
         return;
       }
       try {
-        const response = await client.createGuestUser({
-          user: {
-            id: guestUserId,
-            name: guestUserId,
-            role: 'guest',
-          },
-        });
-        const { user, access_token } = response;
+        const user: User = {
+          id: guestUserId,
+          name: guestUserId,
+          type: 'guest',
+        };
         setUserToConnect(user);
-        setTokenToUse(access_token);
         setIsAnonymous(false);
       } catch (error) {
         console.log('Error setting guest user credentials:', error);

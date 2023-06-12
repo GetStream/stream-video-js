@@ -51,11 +51,9 @@ export const useCreateStreamVideoClient = ({
   useEffect(() => {
     const connectionPromise = disconnectRef.current.then(() => {
       if (isAnonymous) {
-        return client
-          .connectAnonymousUser(user, tokenOrProvider)
-          .catch((err) => {
-            console.error(`Failed to establish connection`, err);
-          });
+        return client.connectUser(user, tokenOrProvider).catch((err) => {
+          console.error(`Failed to establish connection`, err);
+        });
       }
       return client.connectUser(user, tokenOrProvider).catch((err) => {
         console.error(`Failed to establish connection`, err);
