@@ -36,7 +36,7 @@ import { InsightMetrics, postInsights } from './insights';
 
 export class StreamClient {
   _user?: User;
-  anonymous?: boolean;
+  anonymous: boolean;
   persistUserOnConnectionFailure?: boolean;
   axiosInstance: AxiosInstance;
   baseURL?: string;
