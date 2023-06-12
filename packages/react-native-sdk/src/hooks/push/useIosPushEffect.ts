@@ -19,7 +19,9 @@ export const useIosPushEffect = (client: StreamVideoClient) => {
     const onTokenReceived = (token: string) => {
       // send token to stream
       const push_provider_name = pushConfig.ios_pushProviderName;
-      client.addVoipDevice(token, 'apn', push_provider_name);
+      client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
+        console.warn('Failed to send voip token to APN', err);
+      });
     };
     voipPushNotification.addEventListener('register', (token) => {
       onTokenReceived(token);

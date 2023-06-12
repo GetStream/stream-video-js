@@ -76,7 +76,11 @@ export const StreamCall = ({
       if (!callCId || activeCall.cid !== callCId) {
         return;
       }
-      activeCall.join();
+      activeCall
+        .join()
+        .catch((e) =>
+          console.log('failed to join call from push notification', e),
+        );
       pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this component
     });
     return () => subscription.unsubscribe();
