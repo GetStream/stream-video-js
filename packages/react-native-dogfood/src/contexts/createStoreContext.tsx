@@ -10,6 +10,14 @@ import { MMKV } from 'react-native-mmkv';
 
 const mmkvStorage = new MMKV();
 
+/**
+ * Creates a Atomic store context with a provider and hooks to access the store
+ * Atomic means that each value in the store updates state separately using useStoreValue hook
+ * Extremely minimalistic implementation of Jotai's store context
+ * @param initialState - the initial state of the store
+ * @param persistStateKeys - the keys of the store that needs to be persisted
+ * @returns - {Provider, useStoreValue, useStoreSetState}
+ */
 export default function createStoreContext<
   StoreType extends Record<string, string | number | boolean>,
 >(
