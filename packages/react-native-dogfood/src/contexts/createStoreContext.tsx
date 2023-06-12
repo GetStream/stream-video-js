@@ -6,23 +6,25 @@ import React, {
   useEffect,
 } from 'react';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKV } from 'react-native-mmkv';
 
-export default function createStoreContext<PassedStoreType extends object>(
-  initialState: PassedStoreType,
+const mmkvStorage = new MMKV();
+
+export default function createStoreContext<
+  StoreType extends Record<string, string | number | boolean>,
+>(
+  initialState: StoreType,
   // keys of the parts of the store that needs to be persisted (only string values permitted)
-  persistStateKeys: (keyof PassedStoreType)[] = [],
+  persistStateKeys: Extract<keyof StoreType, string>[] = [],
 ) {
   type SetStateFuncType = (
     partialStateOrFunc:
       | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<PassedStoreType>),
+      | ((prevState: StoreType) => Partial<StoreType>),
   ) => void;
 
   // returns unsubscribe function
   type SubscribeFunc = (callback: () => void) => () => void;
-
-  type StoreType = PassedStoreType & { isStoreInitialized: boolean };
 
   function useStoreData(): {
     getSnapshot: () => StoreType;
@@ -31,10 +33,29 @@ export default function createStoreContext<PassedStoreType extends object>(
   } {
     const storeRef = useRef<StoreType>({
       ...initialState,
-      isStoreInitialized: false,
     });
 
-    const getSnapshot = useRef(() => storeRef.current).current;
+    // have we initialized the values from the state keys that were persisted?
+    const initializedPersistStateKeys = useRef(false);
+
+    const getSnapshot = useRef(() => {
+      // initialize store with persisted values if not already done
+      if (!initializedPersistStateKeys.current) {
+        const persistedValues: Partial<StoreType> = {};
+        persistStateKeys.forEach((key) => {
+          const value = mmkvStorage.getString(key);
+          if (value) {
+            persistedValues[key] = JSON.parse(value);
+          }
+        });
+        storeRef.current = {
+          ...storeRef.current,
+          ...persistedValues,
+        };
+        initializedPersistStateKeys.current = true;
+      }
+      return storeRef.current;
+    }).current;
 
     const subscribersRef = useRef<(() => void)[]>([]);
 
@@ -52,36 +73,9 @@ export default function createStoreContext<PassedStoreType extends object>(
 
       persistStateKeys.forEach((key) => {
         const value = storeRef.current[key];
-        if (typeof value === 'string') {
-          AsyncStorage.setItem(key as string, value);
-        } else {
-          console.log("non string values can't be persisted", { key, value });
-        }
+        mmkvStorage.set(key, JSON.stringify(value));
       });
     }).current;
-
-    useEffect(() => {
-      const initPersistedStateValues = async () => {
-        if (persistStateKeys.length > 0) {
-          try {
-            await Promise.all(
-              persistStateKeys.map(async (key) => {
-                const storedValue = await AsyncStorage.getItem(key as string);
-                if (storedValue) {
-                  // @ts-ignore, we only allow string values to be persisted, so this is fine
-                  storeRef.current[key] = storedValue;
-                }
-              }),
-            );
-          } catch (e) {
-            console.log('error while initalising persisted state', e);
-          }
-          storeRef.current.isStoreInitialized = true;
-          subscribersRef.current.forEach((callback) => callback());
-        }
-      };
-      initPersistedStateValues();
-    }, []);
 
     const subscribe = useRef((callback: () => void) => {
       subscribersRef.current.push(callback);
