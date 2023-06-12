@@ -33,7 +33,6 @@ export const GuestMeetingScreen = (props: Props) => {
     type: 'anonymous',
   });
   const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
-  const [isAnonymous, setIsAnonymous] = useState(true);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
   const activeCall = useCall();
@@ -63,7 +62,6 @@ export const GuestMeetingScreen = (props: Props) => {
     apiKey,
     tokenOrProvider: tokenToUse,
     user: userToConnect,
-    isAnonymous: isAnonymous,
   });
 
   useEffect(() => {
@@ -74,17 +72,12 @@ export const GuestMeetingScreen = (props: Props) => {
       if (!guestUserId) {
         return;
       }
-      try {
-        const user: User = {
-          id: guestUserId,
-          name: guestUserId,
-          type: 'guest',
-        };
-        setUserToConnect(user);
-        setIsAnonymous(false);
-      } catch (error) {
-        console.log('Error setting guest user credentials:', error);
-      }
+      const user: User = {
+        id: guestUserId,
+        name: guestUserId,
+        type: 'guest',
+      };
+      setUserToConnect(user);
     };
 
     setGuestUserDetails();
