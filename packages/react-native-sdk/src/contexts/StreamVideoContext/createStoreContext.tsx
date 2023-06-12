@@ -30,10 +30,7 @@ export default function createStoreContext<StoreType extends object>(
     setState: SetStateFuncType;
     subscribe: SubscribeFunc;
   } {
-    const storeRef = useRef<StoreType>({
-      ...initialState,
-      isStoreInitialized: false,
-    });
+    const storeRef = useRef<StoreType>(initialState);
 
     const getSnapshot = useRef(() => storeRef.current).current;
 

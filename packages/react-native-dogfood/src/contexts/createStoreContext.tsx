@@ -22,7 +22,7 @@ export default function createStoreContext<
   StoreType extends Record<string, string | number | boolean>,
 >(
   initialState: StoreType,
-  // keys of the parts of the store that needs to be persisted (only string values permitted)
+  // keys of the parts of the store that needs to be persisted
   persistStateKeys: Extract<keyof StoreType, string>[] = [],
 ) {
   type SetStateFuncType = (
@@ -39,9 +39,7 @@ export default function createStoreContext<
     setState: SetStateFuncType;
     subscribe: SubscribeFunc;
   } {
-    const storeRef = useRef<StoreType>({
-      ...initialState,
-    });
+    const storeRef = useRef<StoreType>(initialState);
 
     // have we initialized the values from the state keys that were persisted?
     const initializedPersistStateKeys = useRef(false);
