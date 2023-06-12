@@ -40,33 +40,42 @@ export const useCallControls = () => {
     (store) => store.currentVideoDevice,
   );
 
+  const audioDeviceId = currentAudioDevice?.deviceId;
+  const videoDeviceId = currentVideoDevice?.deviceId;
+
   const publishAudioStream = useCallback(async () => {
     try {
       // Client picks up the default audio stream.
       // For mobile devices there will always be one audio input
-      if (currentAudioDevice && isOnlineRef.current) {
-        const audioStream = await getAudioStream(currentAudioDevice.deviceId);
-        if (call) {
-          await call.publishAudioStream(audioStream);
-        }
+      if (!call || !audioDeviceId || !isOnlineRef.current) {
+        return;
       }
+
+      const audioStream = await getAudioStream({
+        deviceId: audioDeviceId,
+      });
+
+      await call.publishAudioStream(audioStream);
     } catch (e) {
       console.log('Failed to publish audio stream', e);
     }
-  }, [currentAudioDevice, call]);
+  }, [audioDeviceId, call]);
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (currentVideoDevice && isOnlineRef.current) {
-        const videoStream = await getVideoStream(currentVideoDevice.deviceId);
-        if (call) {
-          await call.publishVideoStream(videoStream);
-        }
+      if (!call || !videoDeviceId || !isOnlineRef.current) {
+        return;
       }
+
+      const videoStream = await getVideoStream({
+        deviceId: videoDeviceId,
+      });
+
+      await call.publishVideoStream(videoStream);
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
-  }, [call, currentVideoDevice]);
+  }, [call, videoDeviceId]);
 
   const isAudioPublished = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -99,7 +108,9 @@ export const useCallControls = () => {
       const { isConnected, isInternetReachable } = state;
       const isOnline = isConnected !== false && isInternetReachable !== false;
       isOnlineRef.current = isOnline;
-      if (!callRef.current) return;
+      if (!callRef.current) {
+        return;
+      }
       const callToJoin = callRef.current;
       await rejoinCall(
         callToJoin,

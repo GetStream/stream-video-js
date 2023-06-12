@@ -5741,17 +5741,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-async-storage/async-storage@npm:^1.17.10":
-  version: 1.18.1
-  resolution: "@react-native-async-storage/async-storage@npm:1.18.1"
-  dependencies:
-    merge-options: ^3.0.4
-  peerDependencies:
-    react-native: ^0.0.0-0 || 0.60 - 0.72 || 1000.0.0
-  checksum: 58c8497fafdd4d112c4a70b0976783abdc6fa487f0cffca196901efd146fc838dee0cf498fdc4ef67a4634ba4ca97d60fec5a24720aea1d46f1999b0ba8b249b
-  languageName: node
-  linkType: hard
-
 "@react-native-camera-roll/camera-roll@npm:^5.2.0":
   version: 5.3.1
   resolution: "@react-native-camera-roll/camera-roll@npm:5.3.1"
@@ -6183,6 +6172,33 @@ __metadata:
   bin:
     react-native: build/bin.js
   checksum: 893830421059376c74d45ccdd2eddab0840f771f70b66f3eeb1c97591762441a81a6ba3aa61035ed06efeb4dbfa09ba2fae2846a7b53f9d2bfd5b7acec13d8c8
+  languageName: node
+  linkType: hard
+
+"@react-native-community/cli@npm:10.2.2":
+  version: 10.2.2
+  resolution: "@react-native-community/cli@npm:10.2.2"
+  dependencies:
+    "@react-native-community/cli-clean": ^10.1.1
+    "@react-native-community/cli-config": ^10.1.1
+    "@react-native-community/cli-debugger-ui": ^10.0.0
+    "@react-native-community/cli-doctor": ^10.2.2
+    "@react-native-community/cli-hermes": ^10.2.0
+    "@react-native-community/cli-plugin-metro": ^10.2.2
+    "@react-native-community/cli-server-api": ^10.1.1
+    "@react-native-community/cli-tools": ^10.1.1
+    "@react-native-community/cli-types": ^10.0.0
+    chalk: ^4.1.2
+    commander: ^9.4.1
+    execa: ^1.0.0
+    find-up: ^4.1.0
+    fs-extra: ^8.1.0
+    graceful-fs: ^4.1.3
+    prompts: ^2.4.0
+    semver: ^6.3.0
+  bin:
+    react-native: build/bin.js
+  checksum: f3c498c8cc660c53a75cfb8522748a26b589fa087d13a03225cd207dad61c592dfa59ebc26e5d9caf8cb210b8802922bc4a3c907e180273027bc738ee7cc6038
   languageName: node
   linkType: hard
 
@@ -8980,7 +8996,6 @@ __metadata:
     "@babel/core": ^7.12.9
     "@babel/runtime": ^7.12.5
     "@notifee/react-native": ^7.6.1
-    "@react-native-async-storage/async-storage": ^1.17.10
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.1.0
     "@react-native-community/netinfo": 9.3.9
@@ -9015,6 +9030,7 @@ __metadata:
     react-native-dotenv: ^3.4.7
     react-native-get-random-values: ^1.8.0
     react-native-incall-manager: ^4.0.0
+    react-native-mmkv: 2.5.1
     react-native-polyfill-globals: ^3.1.0
     react-native-safe-area-context: ^4.4.1
     react-native-screens: ^3.18.1
@@ -13369,6 +13385,15 @@ __metadata:
   bin:
     browserslist: cli.js
   checksum: 9755986b22e73a6a1497fd8797aedd88e04270be33ce66ed5d85a1c8a798292a65e222b0f251bafa1c2522261e237d73b08b58689d4920a607e5a53d56dc4706
+  languageName: node
+  linkType: hard
+
+"bs-logger@npm:0.x":
+  version: 0.2.6
+  resolution: "bs-logger@npm:0.2.6"
+  dependencies:
+    fast-json-stable-stringify: 2.x
+  checksum: d34bdaf68c64bd099ab97c3ea608c9ae7d3f5faa1178b3f3f345acd94e852e608b2d4f9103fb2e503f5e69780e98293df41691b84be909b41cf5045374d54606
   languageName: node
   linkType: hard
 
@@ -20731,6 +20756,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hotkeys-js@npm:^3.10.2":
+  version: 3.10.2
+  resolution: "hotkeys-js@npm:3.10.2"
+  checksum: c8f75a4113d2b37e7044b068422122308c971e10980ab90fc7b84ebc352307e18aaea5719d39575e15a3599b4c8d1991f35b623548250477f0096b08f34fc1be
+  languageName: node
+  linkType: hard
+
+"hotkeys@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "hotkeys@npm:1.0.0"
+  checksum: b324e170af07e8211bcb63b7b97dff8d98eca44bbf8d79b7bc2d5f31b21e4ca82404cc318038f17ba00d20324461a81a6c1f2002ab0d1c4649cfa62208a2d12b
+  languageName: node
+  linkType: hard
+
 "hpack.js@npm:^2.1.6":
   version: 2.1.6
   resolution: "hpack.js@npm:2.1.6"
@@ -21927,7 +21966,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-plain-obj@npm:2.1.0, is-plain-obj@npm:^2.0.0, is-plain-obj@npm:^2.1.0":
+"is-plain-obj@npm:2.1.0, is-plain-obj@npm:^2.0.0":
   version: 2.1.0
   resolution: "is-plain-obj@npm:2.1.0"
   checksum: cec9100678b0a9fe0248a81743041ed990c2d4c99f893d935545cfbc42876cbe86d207f3b895700c690ad2fa520e568c44afc1605044b535a7820c1d40e38daa
@@ -25672,15 +25711,6 @@ __metadata:
   version: 1.0.1
   resolution: "merge-descriptors@npm:1.0.1"
   checksum: 5abc259d2ae25bb06d19ce2b94a21632583c74e2a9109ee1ba7fd147aa7362b380d971e0251069f8b3eb7d48c21ac839e21fa177b335e82c76ec172e30c31a26
-  languageName: node
-  linkType: hard
-
-"merge-options@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "merge-options@npm:3.0.4"
-  dependencies:
-    is-plain-obj: ^2.1.0
-  checksum: d86ddb3dd6e85d558dbf25dc944f3527b6bacb944db3fdda6e84a3f59c4e4b85231095f58b835758b9a57708342dee0f8de0dffa352974a48221487fe9f4584f
   languageName: node
   linkType: hard
 
@@ -31827,6 +31857,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-gradle-plugin@npm:^0.71.18":
+  version: 0.71.18
+  resolution: "react-native-gradle-plugin@npm:0.71.18"
+  checksum: 19f0a41e29c9210ff495010aaa612f2c2f4f5f937b6c20266c8dc62f4ccedc65bb7576de59b2f3fd2bb8044ce9785e56673879f2eb452f948e6659a5e1fa5894
+  languageName: node
+  linkType: hard
+
 "react-native-haptic-feedback@npm:^1.14.0":
   version: 1.14.0
   resolution: "react-native-haptic-feedback@npm:1.14.0"
@@ -31889,6 +31926,16 @@ __metadata:
     react-native-lightbox: ^0.7.0
     simple-markdown: ^0.7.1
   checksum: be0e07de4839eb6eba3fbd9aab1379d392ca697e04ddc8d28cfa7969655e2aeef1260a686bd7dd48ab6121279c9058cf7b35aca6a64f9463942d7ad8027a0177
+  languageName: node
+  linkType: hard
+
+"react-native-mmkv@npm:2.5.1":
+  version: 2.5.1
+  resolution: "react-native-mmkv@npm:2.5.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 6f0cf484e71d8069c9b3cdb57b76eafaca40aa75f359beb6959c77d0ef66d0481d4459b1ffa94640170ce4744e337fefb38b8ccf6e1a3c3663561ede5f7a2c20
   languageName: node
   linkType: hard
 

@@ -1,11 +1,11 @@
 import createStoreContext from './createStoreContext';
 
-interface AppGlobalStore {
+type AppGlobalStore = {
   username: string;
   userImageUrl?: string;
   loopbackMyVideo: boolean;
   appMode: 'Meeting' | 'Call' | 'None';
-}
+};
 
 export const {
   Provider: AppGlobalContextProvider,
