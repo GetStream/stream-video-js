@@ -15,7 +15,7 @@ import {
 
 // const options: Parameters<RNCallKeepType['setup']>[0] = {
 //   ios: {
-//     appName: 'ReactNativeStreamDogFood', // TODO: allow user to customise this
+//     appName: 'ReactNativeStreamDogFood',
 //     supportsVideo: true,
 //   },
 //   android: {
