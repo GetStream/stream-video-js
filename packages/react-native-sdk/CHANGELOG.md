@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.149](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.148...@stream-io/video-react-native-sdk-0.0.1-alpha.149) (2023-06-12)
+
+
+### Features
+
+* **react-native:** replace async storage with mmkv in dogfood app ([#630](https://github.com/GetStream/stream-video-js/issues/630)) ([fafcb01](https://github.com/GetStream/stream-video-js/commit/fafcb01c6ac7d71bf3ea8b532a9a6ef638df1fb8))
+
+
+
 ## [0.0.1-alpha.148](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.147...@stream-io/video-react-native-sdk-0.0.1-alpha.148) (2023-06-12)
 
 
