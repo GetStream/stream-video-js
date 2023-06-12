@@ -6,29 +6,31 @@ import React, {
   useState,
 } from 'react';
 
-export default function createStoreContext<PassedStoreType extends object>(
-  initialState: PassedStoreType,
+/**
+ * Creates a Atomic store context with a provider and hooks to access the store
+ * Atomic means that each value in the store updates state separately using useStoreValue hook
+ * Extremely minimalistic implementation of Jotai's store context
+ * @param initialState - the initial state of the store
+ * @returns - {Provider, useStoreValue, useStoreSetState}
+ */
+export default function createStoreContext<StoreType extends object>(
+  initialState: StoreType,
 ) {
   type SetStateFuncType = (
     partialStateOrFunc:
       | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<PassedStoreType>),
+      | ((prevState: StoreType) => Partial<StoreType>),
   ) => void;
 
   // returns unsubscribe function
   type SubscribeFunc = (callback: () => void) => () => void;
-
-  type StoreType = PassedStoreType & { isStoreInitialized: boolean };
 
   function useStoreData(): {
     getSnapshot: () => StoreType;
     setState: SetStateFuncType;
     subscribe: SubscribeFunc;
   } {
-    const storeRef = useRef<StoreType>({
-      ...initialState,
-      isStoreInitialized: false,
-    });
+    const storeRef = useRef<StoreType>(initialState);
 
     const getSnapshot = useRef(() => storeRef.current).current;
 
