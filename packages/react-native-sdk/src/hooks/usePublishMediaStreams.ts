@@ -23,31 +23,34 @@ export const usePublishMediaStreams = () => {
   const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
   const isAudioMuted = useStreamVideoStoreValue((store) => store.isAudioMuted);
 
+  const audioDeviceId = currentAudioDevice?.deviceId;
+  const videoDeviceId = currentVideoDevice?.deviceId;
+
   useEffect(() => {
     if (
       !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)
     ) {
-      console.log(`No permission to publish audio`);
+      console.log('No permission to publish audio');
       return;
     }
-    if (currentAudioDevice && !isAudioMuted) {
-      getAudioStream(currentAudioDevice.deviceId)
+    if (audioDeviceId && !isAudioMuted) {
+      getAudioStream({ deviceId: audioDeviceId })
         .then((stream) => activeCall?.publishAudioStream(stream))
         .catch((error) => {
           console.log(error);
         });
     }
-  }, [activeCall, currentAudioDevice, isAudioMuted]);
+  }, [activeCall, audioDeviceId, isAudioMuted]);
 
   useEffect(() => {
     if (
       !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
     ) {
-      console.log(`No permission to publish video`);
+      console.log('No permission to publish video');
       return;
     }
-    if (currentVideoDevice && !isVideoMuted) {
-      getVideoStream(currentVideoDevice.deviceId)
+    if (videoDeviceId && !isVideoMuted) {
+      getVideoStream({ deviceId: videoDeviceId })
         .then((stream) => {
           activeCall?.publishVideoStream(stream);
         })
@@ -55,5 +58,5 @@ export const usePublishMediaStreams = () => {
           console.log(error);
         });
     }
-  }, [activeCall, currentVideoDevice, isVideoMuted]);
+  }, [activeCall, videoDeviceId, isVideoMuted]);
 };
