@@ -3,9 +3,102 @@ title: Custom Label
 description: How to make your own custom label
 ---
 
-Here's a custom label and how to use it
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import DefaultParticipantLabelMuted from '../assets/06-ui-cookbook/03-custom-label/default-participant-label-muted.png';
+import DefaultParticipantLabelConnectionDominantSpeaker from '../assets/06-ui-cookbook/03-custom-label/default-user-label-connection-dominant-speaker.png';
 
-As an example lets say that someone wants to build something like these simple white labels
-https://dribbble.com/shots/19686545-Halycon-Video-call
+There may be a plethora of designs for label that is displayed above the participant video. The SDK's [default label shows](../../ui-components/core/participant-view):
 
-TODO
+- user's name
+- microphone and camera mute state
+- dominant speaker label
+- connection quality indicator
+
+<ImageShowcase
+    items={[
+        {
+            image: DefaultParticipantLabelMuted,
+            caption: 'Default muted participant label',
+            alt: 'Default muted participant label',
+        },
+        {
+            image: DefaultParticipantLabelConnectionDominantSpeaker,
+            caption: 'Default un-muted participant label speaking',
+            alt: 'Default un-muted participant label speaking',
+        },
+    ]}
+/>
+
+It is expected that the default component may not meet all the requirements of all the apps in the world. Therefore, we will look into ways, how to customize the contents of the participant label in this tutorial.
+
+## Custom participant label
+Our custom label will **include a human-readable call join time** in addition to what the design requirements were. To achieve this, we will need to override the whole participant`ParticipantViewUI` component. You can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](../participant-view-customizations).
+
+To retrieve the data about the participant, whose view we are about to render, we use [`useParticipantViewContext`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-sdk/src/core/components/ParticipantView/ParticipantView.tsx) context consumer hook.
+
+```tsx
+import {
+  useParticipantViewContext,
+} from '@stream-io/video-react-sdk';
+
+import { getHumanReadableTimeElapsed } from '../utils';
+
+const ParticipantDetails = () => {
+  const { participant } = useParticipantViewContext();
+
+  const readableTimeSinceJoined = getHumanReadableTimeElapsed(participant.joinedAt);
+
+  return (
+    <div title={participant.name}>
+      <span>{participant.name}</span>
+      <span>{readableTimeSinceJoined}</span>
+    </div>
+  );
+};
+
+export const CustomParticipantViewUI = () => {
+  return (
+    <div>
+      <ParticipantDetails />
+      {/* other UI components... */}
+    </div>
+  );
+};
+```
+
+## Final steps
+
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../participant-view-customizations).
+
+```tsx
+import {
+  useLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-sdk';
+
+import { CustomParticipantViewUI } from '../ParticipantViewUI';
+import { CustomVideoPlaceholder } from '../VideoPlaceholder';
+
+export const CustomCallLayout = () => {
+    const otherParticipants = useParticipants();
+    const localParticipant = useLocalParticipant();
+
+    return (
+        <div>
+        {/* other UI components */}
+        {otherParticipants.map((participant) => (
+            <div key={participant.sessionId}>
+                <ParticipantView
+                  participant={participant}
+                  sinkId={localParticipant?.audioOutputDeviceId}
+                  // highlight-next-line
+                  ParticipantViewUI={CustomParticipantViewUI}
+                  VideoPlaceholder={CustomVideoPlaceholder}
+                />
+            </div>
+            ))}
+    </div>
+    );
+};
+```
+

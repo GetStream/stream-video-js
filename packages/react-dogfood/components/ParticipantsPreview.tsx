@@ -27,7 +27,7 @@ export const ParticipantsPreview = () => {
         }}
       >
         {callMetadata.session.participants.map((participant) => (
-          <Stack alignItems="center">
+          <Stack alignItems="center" key={participant.user.id}>
             <Avatar
               name={participant.user.name}
               imageSrc={participant.user.image}

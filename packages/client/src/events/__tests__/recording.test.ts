@@ -30,25 +30,36 @@ describe('recording and broadcasting events', () => {
 
   it('handles call.broadcasting_started events', () => {
     const state = new CallState();
+    state.setMetadata({
+      // @ts-ignore
+      egress: {
+        broadcasting: false,
+        hls: {
+          playlist_url: '',
+        },
+      },
+    });
     const handler = watchCallBroadcastingStarted(state);
     // @ts-ignore
     handler({
       type: 'call.broadcasting_started',
       hls_playlist_url: 'https://example.com/playlist.m3u8',
     });
-    expect(state.metadata?.broadcasting).toBe(true);
-    expect(state.metadata?.hls_playlist_url).toBe(
+    expect(state.metadata?.egress.broadcasting).toBe(true);
+    expect(state.metadata?.egress.hls?.playlist_url).toBe(
       'https://example.com/playlist.m3u8',
     );
   });
 
   it('handles call.broadcasting_stopped events', () => {
     const state = new CallState();
+    // @ts-ignore
+    state.setMetadata({});
     const handler = watchCallBroadcastingStopped(state);
     // @ts-ignore
     handler({
       type: 'call.broadcasting_stopped',
     });
-    expect(state.metadata?.broadcasting).toBe(false);
+    expect(state.metadata?.egress.broadcasting).toBe(false);
   });
 });

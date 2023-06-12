@@ -2,24 +2,14 @@ import React, {useCallback} from 'react';
 import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
 import {users} from '../data/users';
 import {useAppContext} from '../context/AppContext';
-
-type UserType = {
-  id: string;
-  name: string;
-  image: string;
-  token: string;
-};
+import {UserType} from '../types';
 
 export const UserList = () => {
   const {loginHandler} = useAppContext();
 
   const login = useCallback(
     (user: UserType) => {
-      loginHandler({
-        userId: user.id,
-        userImageUrl: user.image,
-        userToken: user.token,
-      });
+      loginHandler({...user, image: user.imageUrl});
     },
     [loginHandler],
   );
@@ -33,7 +23,7 @@ export const UserList = () => {
             style={styles.user}
             key={user.id}
             onPress={() => login(user)}>
-            <Image source={{uri: user.image}} style={styles.avatar} />
+            <Image source={{uri: user.imageUrl}} style={styles.avatar} />
             <Text style={styles.name}>{user.name}</Text>
             <Text style={styles.arrow}>►</Text>
           </Pressable>

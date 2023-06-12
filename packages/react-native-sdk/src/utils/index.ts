@@ -1,14 +1,18 @@
-import { Call, User, UserResponse } from '@stream-io/video-client';
-import { MAX_AVATARS_IN_VIEW } from '../constants';
 import { theme } from '../theme';
 
 // Utility to join strings with commas and 'and'
-export const generateCallTitle = (memberUserIds: string[]) => {
+export const generateCallTitle = (
+  memberUserIds: string[],
+  totalMembersToShow?: number,
+) => {
   const supportedAmountOfMemberUserIds = memberUserIds.slice(
     0,
-    MAX_AVATARS_IN_VIEW,
+    totalMembersToShow,
   );
-  if (supportedAmountOfMemberUserIds.length < MAX_AVATARS_IN_VIEW) {
+  if (
+    totalMembersToShow &&
+    supportedAmountOfMemberUserIds.length < totalMembersToShow
+  ) {
     return supportedAmountOfMemberUserIds.join(' and ');
   }
 
@@ -32,31 +36,6 @@ export const getInitialsOfName = (name: string) => {
     initials += names[names.length - 1].substring(0, 1).toUpperCase();
   }
   return initials;
-};
-
-// Utility to generate array of member user ids from outgoing call meta data
-export const getMembersForOutgoingCall = (
-  outgoingCall: Call,
-): UserResponse[] => {
-  const users = outgoingCall.state.members;
-  return users.map((member) => member.user);
-};
-
-// Utility to generate array of member user ids from incoming call meta data
-export const getMembersForIncomingCall = (
-  incomingCall: Call,
-  connectedUser: User | undefined,
-): UserResponse[] => {
-  const meta = incomingCall.state.metadata;
-  const users = incomingCall.state.members;
-  let members: UserResponse[] = [];
-  Object.values(users).forEach((user) => {
-    if (connectedUser?.id !== user.user_id) members.push(user.user);
-  });
-  const callCreatedBy = meta!.created_by;
-  members.push(callCreatedBy);
-
-  return members;
 };
 
 export const muteStatusColor = (status: boolean) => {

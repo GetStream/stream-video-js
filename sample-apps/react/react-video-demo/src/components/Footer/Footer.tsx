@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
 import classnames from 'classnames';
 import { isMobile, isTablet } from 'mobile-device-detect';
 
@@ -148,12 +148,7 @@ export const Footer: FC<Props> = ({
         />
       </div>
       <div className={styles.controls}>
-        <ControlMenu
-          className={styles.controlMenu}
-          call={call}
-          initialAudioMuted={true}
-          initialVideoMuted={false}
-        />
+        <ControlMenu className={styles.controlMenu} call={call} />
         <Button
           className={styles.cancel}
           color="danger"

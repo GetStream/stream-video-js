@@ -33,7 +33,7 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import { useWatchChannel } from '../hooks';
+import { useKeyboardShortcuts, useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
@@ -138,6 +138,8 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
       activeCall.setSortParticipantsBy(defaultSortPreset);
     }
   }, [activeCall, isSortingDisabled]);
+
+  useKeyboardShortcuts();
 
   let ComponentToRender: JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {

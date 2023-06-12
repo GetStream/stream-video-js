@@ -1,5 +1,13 @@
-import { FC, ReactNode, useCallback, useState } from 'react';
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useState,
+  useRef,
+  forwardRef,
+} from 'react';
 import classnames from 'classnames';
+import { CSSTransition } from 'react-transition-group';
 
 import { ArrowDown, Close } from '../Icons';
 
@@ -12,18 +20,41 @@ export type Props = {
   title: string | ReactNode;
   isFocused?: boolean;
   canCollapse?: boolean;
+  fulllHeight?: boolean;
   close?: () => void;
   children: ReactNode | undefined;
 };
 
-export const Panel: FC<Props> = ({
+export type AnimatedProps = {
+  visible: boolean;
+};
+
+export const AnimatedPanel: FC<Props & AnimatedProps> = ({
+  visible = false,
+  fulllHeight,
   className,
-  children,
-  title,
-  isFocused,
-  canCollapse,
-  close,
+  ...props
 }) => {
+  const animatedClassNames = classnames(
+    styles.animated,
+    {
+      [styles.visible]: visible,
+    },
+    className,
+  );
+  return (
+    <Panel
+      {...props}
+      className={animatedClassNames}
+      fulllHeight={visible && fulllHeight}
+    />
+  );
+};
+
+export const Panel = forwardRef<any, Props>(function MyInput(
+  { className, children, title, isFocused, fulllHeight, canCollapse, close },
+  ref,
+) {
   const [isOpen, setOpen] = useState(true);
 
   const handleCollapse = useCallback(() => {
@@ -34,6 +65,8 @@ export const Panel: FC<Props> = ({
     styles.root,
     {
       [styles.focused]: isFocused,
+      [styles.open]: isOpen,
+      [styles.fulllHeight]: fulllHeight,
     },
     className,
   );
@@ -47,8 +80,12 @@ export const Panel: FC<Props> = ({
     [styles.open]: !isOpen,
   });
 
+  const contentClassName = classnames(styles.content, {
+    [styles.open]: isOpen,
+  });
+
   return (
-    <div className={rootClassname}>
+    <div className={rootClassname} ref={ref}>
       <div className={headingClassName}>
         <h2 className={styles.heading}>{title}</h2>
 
@@ -74,7 +111,7 @@ export const Panel: FC<Props> = ({
           </Button>
         ) : null}
       </div>
-      {isOpen ? <div className={styles.content}>{children}</div> : null}
+      <div className={contentClassName}>{children}</div>
     </div>
   );
-};
+});

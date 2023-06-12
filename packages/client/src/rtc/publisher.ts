@@ -214,6 +214,20 @@ export class Publisher {
     }
   };
 
+  /**
+   * Returns true if the given track type is currently being published to the SFU.
+   *
+   * @param trackType the track type to check.
+   */
+  isPublishing = (trackType: TrackType): boolean => {
+    const transceiverForTrackType = this.transceiverRegistry[trackType];
+    if (transceiverForTrackType && transceiverForTrackType.sender) {
+      const sender = transceiverForTrackType.sender;
+      return !!sender.track && sender.track.readyState === 'live';
+    }
+    return false;
+  };
+
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
     track: MediaStreamTrack,
@@ -269,19 +283,14 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {
-    console.log(
-      'Updating publish quality, qualities requested by SFU:',
-      enabledRids,
-    );
+    console.log('Update publish quality, requested rids by SFU:', enabledRids);
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
-
     if (!videoSender) return;
 
     const params = videoSender.getParameters();
     let changed = false;
     params.encodings.forEach((enc) => {
-      console.log(enc.rid, enc.active);
       // flip 'active' flag only when necessary
       const shouldEnable = enabledRids.includes(enc.rid!);
       if (shouldEnable !== enc.active) {
@@ -294,6 +303,12 @@ export class Publisher {
         console.warn('No suitable video encoding quality found');
       }
       await videoSender.setParameters(params);
+      console.log(
+        `Update publish quality, enabled rids: ${params.encodings
+          .filter((e) => e.active)
+          .map((e) => e.rid)
+          .join(', ')}`,
+      );
     }
   };
 
@@ -341,7 +356,7 @@ export class Publisher {
     const offer = await this.publisher.createOffer();
     let sdp = offer.sdp;
     if (sdp) {
-      toggleDtx(sdp, this.isDtxEnabled);
+      sdp = toggleDtx(sdp, this.isDtxEnabled);
       if (isReactNative()) {
         if (this.preferredVideoCodec) {
           sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);

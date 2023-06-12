@@ -1,11 +1,33 @@
 .root {
-  @apply bg-video-grey-600 rounded-container text-video-white border-video-transparent border-2;
+  @apply flex flex-col bg-video-grey-600 h-auto rounded-container text-video-white border-video-transparent border-2;
   pointer-events: initial;
+}
+
+.root.fullHeight {
+  @apply h-auto;
+}
+
+.root.open.fulllHeight {
+  @apply h-full;
 }
 
 .root.focused {
   @apply border-video-stream-500;
   box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+}
+
+.animated {
+  visibility: hidden;
+  opacity: 0;
+  height: 0;
+  transition: all 0.3s ease-out;
+}
+
+.animated.visible {
+  visibility: visible;
+  opacity: 1;
+  height: auto;
+  transition: all 0.3s ease-in;
 }
 
 .header {
@@ -51,5 +73,46 @@
 }
 
 .content {
-  @apply pl-4 pr-4 pb-4;
+  @apply pl-4 pr-4 pb-0;
+
+  visibility: hidden;
+  opacity: 0;
+  height: 0;
+  max-height: calc(100% - 61px);
+  overflow: hidden;
+  transition: all 0.1s ease-out;
+}
+
+.content.open {
+  @apply pb-4;
+
+  visibility: visible;
+  height: calc(100% - 61px);
+  opacity: 1;
+  transition: all 0.1s ease-in;
+}
+
+.panel-enter {
+  z-index: 2;
+  opacity: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+.panel-enter-active {
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 700ms;
+  height: 100%;
+  width: 100%;
+}
+.panel-exit {
+  z-index: 2;
+  opacity: 1;
+}
+.panel-exit-active {
+  z-index: 2;
+  opacity: 0;
+  display: none;
+  transition: opacity 200ms;
 }

@@ -12,74 +12,7 @@ This guide shows how to create, join, leave, and end call rooms and ring calls. 
 
 ### Create and join a call
 
-<SDKSpecific name="react">
-
-The easiest way to join a call is to use the `StreamCall` component:
-
-```tsx
-import {
-  CallingState,
-  useCreateStreamVideoClient,
-  StreamCall,
-  StreamVideo,
-  useCall,
-  useCallCallingState,
-} from '@stream-io/video-react-sdk';
-
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-
-export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: '<Your API key>',
-    tokenOrProvider: '<token provider>',
-    user: {
-      id: '<user id>',
-    },
-  });
-  return (
-    <StreamVideo client={client}>
-      <StreamCall
-        callType="default"
-        callId="test-call"
-        autoJoin={true}
-        autoLoad={true}
-        data={{ create: true }}
-      >
-        <MeetingUI />
-      </StreamCall>
-    </StreamVideo>
-  );
-}
-
-const MeetingUI = () => {
-  const call = useCall();
-  const callingState = useCallCallingState();
-  const isCallJoined = callingState === CallingState.JOINED;
-  return (
-    <div style={{ height: '100%' }}>
-      {!call && <div>Loading...</div>}
-      {call && isCallJoined && <div> Joined to call </div>}
-    </div>
-  );
-};
-```
-
-You can configure the call using the `data` props, see below for more information on the possible options.
-
-If you set the `autoJoin` prop to `false` the call won't be joined.
-
-Please also note the `autoLoad` prop. If set to `true` (the default value), the call will be created and loaded from our backend automatically.
-If set to `false`, you will need to either join the call or explicitly invoke `call.get() / getOrCreate()` in order to load its metadata from our backend.
-
-:::note
-By loading a call, the call will be automatically subscribed to receive WebSocket events from our backend although it hasn't been joined yet.
-
-This is useful if you want to show come call information on the UI before joining the call.
-:::
-
-</SDKSpecific>
-
-This is what call join looks like under the hood:
+You create a call by specifying a call type and a call id.
 
 ```ts
 const callType = 'default';
@@ -87,9 +20,11 @@ const callId = 'test-call';
 await videoClient.call(callType, callId).join({ create: true });
 ```
 
-To see possible call configuration options (for example, call members), go to the [`join` method reference](../../call-engine/Call/#join).
+The [call type](../../guides/10-configuring-call-types) controls which features are enabled, and sets up permissions.
 
 One of the flags you can provide there is `create`. Set this to `true` if you want to enable creating new calls. Set it to `false` if you only want to allow joining existing calls.
+
+See all possible options at the [Call creation options section](#call-creation-options)
 
 If you don't want to join a call, just create one, you can use the `getOrCreate` method:
 
@@ -99,7 +34,7 @@ const callId = 'test-call';
 await videoClient.call(callType, callId).getOrCreate();
 ```
 
-To see possible call configuration options (for example, call members), go to the [`getOrCreate` method reference](../../call-engine/Call/#getorcreate).
+See all possible options at the [Call creation options section](#call-creation-options)
 
 ### Leave call
 
@@ -140,6 +75,8 @@ client.call('default', 'test-outgoing-call').getOrCreate({
 });
 ```
 
+See all possible options at the [Call creation options section](#call-creation-options)
+
 This step will start the signaling flow.
 
 The caller will automatically join the call once the first callee accepts the call.
@@ -148,91 +85,11 @@ The calling will automatically stop if all callee rejects the call.
 
 ### Watch for incoming and outgoing calls
 
-<SDKSpecific name="react">
-
 The easiest way to watch for incoming and outgoing calls is to use the [`useCalls`](../../call-engine/hooks-and-contexts/#usecalls) hook.
-
-```tsx
-import {
-  CallingState,
-  useCreateStreamVideoClient,
-  StreamCall,
-  StreamVideo,
-  useCall,
-  useCallCallingState,
-  useCalls,
-} from '@stream-io/video-react-sdk';
-
-export default function App() {
-  const client = useCreateStreamVideoClient({
-    apiKey: '<Your API key>',
-    tokenOrProvider: '<token provider>',
-    user: {
-      id: '<user id>',
-    },
-  });
-
-  return (
-    <StreamVideo client={client}>
-      <MyCalls />
-    </StreamVideo>
-  );
-}
-
-const MyCalls = () => {
-  const calls = useCalls();
-
-  return (
-    <>
-      {calls.map((call) => (
-        // Note that we set autoJoin to false, as the joining is handled by the signal flow, it's not automatic
-        <StreamCall call={call} autoJoin={false} key={call.cid}>
-          <MyCallUI />
-        </StreamCall>
-      ))}
-    </>
-  );
-};
-
-const MyCallUI = () => {
-  const call = useCall();
-  const callingState = useCallCallingState();
-  return (
-    <div style={{ height: '100%' }}>
-      {!call && <div>Loading...</div>}
-      {call && callingState === CallingState.JOINED && <div>Joined call</div>}
-      {call && callingState === CallingState.RINGING && call.isCreatedByMe && (
-        <div>
-          <div>Outgoing call</div>
-          <button onClick={() => call.leave()}>Cancel</button>
-        </div>
-      )}
-      {call && callingState === CallingState.RINGING && !call.isCreatedByMe && (
-        <div>
-          <div>Incoming call</div>
-          <button onClick={() => call.join()}>Accept</button>
-          <button onClick={() => call.leave({ reject: true })}>Reject</button>
-        </div>
-      )}
-    </div>
-  );
-};
-```
-
-The above code snippet will use the `useCalls` hook to display the list of incoming, outgoing, and joined calls.
-
-For the call UI it uses the [`useCall`](../../call-engine/hooks-and-contexts/#usecall) and [`useCallCallingState`](../../call-engine/hooks-and-contexts/#usecallcallingstate) hooks to get the call instance and calling state information.
-
-This is how the call UI works:
-
-- for an outgoing call, it displays the "Cancel" button that can be used to stop the signaling flow (this is only possible until the first callee accepts the call)
-- for an incoming call, it displays the "Accept" and "Reject" buttons for the user to decide to accept or reject the call
-
-</SDKSpecific>
 
 Let's see how the cancel, accept and reject operations work:
 
-#### Canceling a call
+### Canceling a call
 
 A caller can cancel an outgoing call until the first callee accepts the call. Canceling a call will stop the signaling flow.
 
@@ -242,7 +99,7 @@ call.leave();
 
 Please note that calling `call.leave()` after joining the call won't stop the signaling flow.
 
-#### Accepting a call
+### Accepting a call
 
 A callee can accept or reject an incoming call. To accept and join the call:
 
@@ -252,7 +109,7 @@ call.join();
 
 Please note that it's possible to join multiple calls. If you only want to allow one active call, you must leave joined calls before accepting an incoming call.
 
-#### Rejecting a call
+### Rejecting a call
 
 A callee can accept or reject an incoming call. To reject the call:
 
@@ -260,7 +117,7 @@ A callee can accept or reject an incoming call. To reject the call:
 call.leave({ reject: true });
 ```
 
-#### Leave call
+### Leave call
 
 To leave a joined call, you can use the `leave` method:
 
@@ -268,10 +125,23 @@ To leave a joined call, you can use the `leave` method:
 call.leave();
 ```
 
-#### End call
+### End call
 
 Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
 call.endCall();
 ```
+
+## Call creation options
+
+The following options are supported when creating a call:
+
+| Option     | Description                                                                                                     | Default |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | ------- |
+| `members`  | A list of members to add to this call. You can specify the role and custom data on these members                | -       |
+| `custom`   | Any custom data you want to store                                                                               | -       |
+| `settings` | You can overwrite certain call settings for this specific call. This overwrites the call type standard settings | -       |
+| `startsAt` | When the call will start. Used for calls scheduled in the future, livestreams, audio rooms etc                  | -       |
+| `team`     | Restrict the access to this call to a specific team                                                             | -       |
+| `ring`     | If you want the call to ring for each member                                                                    | false   |

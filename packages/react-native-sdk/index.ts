@@ -11,7 +11,7 @@ export * from './src/utils';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
-export { StreamVideo, StreamCall, StreamVideoCall } from './src/providers';
+export { StreamVideo, StreamCall } from './src/providers';
 
 // TODO: set valid version
 setSdkInfo({

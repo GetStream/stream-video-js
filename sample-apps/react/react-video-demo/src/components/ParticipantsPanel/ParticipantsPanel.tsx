@@ -9,28 +9,19 @@ import {
   useConnectedUser,
   useOwnCapabilities,
   User,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
-import Panel from '../Panel';
+import { AnimatedPanel } from '../Panel';
 import { Invite } from '../InvitePanel';
 import ParticipantsControlModal from '../ParticipantsControlModal';
-import {
-  Mic,
-  MicMuted,
-  Options,
-  People,
-  Search,
-  Video,
-  VideoOff,
-} from '../Icons';
+import { Mic, MicMuted, Options, Search, Video, VideoOff } from '../Icons';
 
 import { Restricted } from '../Moderation/Restricted';
 
-import { useBreakpoint } from '../../hooks/useBreakpoints';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './ParticipantsPanel.module.css';
-import { is } from 'date-fns/locale';
 
 export type Props = {
   className?: string;
@@ -38,12 +29,16 @@ export type Props = {
   isFocused?: boolean;
   callId: string;
   close?: () => void;
+  fulllHeight?: boolean;
+  visible: boolean;
 };
 
 export type RemoteParticipant = {
   participant: StreamVideoParticipant;
   handleMuteUser: (userId: string) => void;
+  handleUnmuteUser?: () => void;
   handleDisableVideo: (userId: string) => void;
+  handleEnableVideo?: () => void;
   handleBlockUser: (userId: string) => void;
   isAudioOn: boolean;
   isVideoOn: boolean;
@@ -63,9 +58,10 @@ export const Participant: FC<RemoteParticipant> = ({
   isAudioOn,
   isVideoOn,
   handleMuteUser,
+  handleUnmuteUser,
   handleDisableVideo,
+  handleEnableVideo,
   handleBlockUser,
-  isLocalParticipant,
 }) => {
   const { setComponent } = useModalContext();
 
@@ -86,7 +82,9 @@ export const Participant: FC<RemoteParticipant> = ({
   }, [
     participant,
     handleMuteUser,
+    handleUnmuteUser,
     handleDisableVideo,
+    handleEnableVideo,
     handleBlockUser,
     isAudioOn,
     isVideoOn,
@@ -104,7 +102,9 @@ export const Participant: FC<RemoteParticipant> = ({
               <Mic className={styles.mic} />
             </div>
           ) : (
-            <MicMuted className={styles.micMuted} />
+            <div onClick={handleUnmuteUser}>
+              <MicMuted className={styles.micMuted} />
+            </div>
           )}
         </Restricted>
         <Restricted
@@ -116,13 +116,20 @@ export const Participant: FC<RemoteParticipant> = ({
               <Video className={styles.video} />
             </div>
           ) : (
-            <VideoOff className={styles.videoOff} />
+            <div onClick={handleEnableVideo}>
+              <VideoOff className={styles.videoOff} />
+            </div>
           )}
         </Restricted>
 
-        <div onClick={handleSetComponent}>
-          <Options className={styles.options} />
-        </div>
+        <Restricted
+          availableGrants={ownCapabilities}
+          requiredGrants={[OwnCapability.MUTE_USERS, OwnCapability.BLOCK_USERS]}
+        >
+          <div onClick={handleSetComponent}>
+            <Options className={styles.options} />
+          </div>
+        </Restricted>
       </div>
     </>
   );
@@ -134,6 +141,8 @@ export const ParticipantsPanel: FC<Props> = ({
   className,
   participants,
   callId,
+  fulllHeight,
+  visible,
 }) => {
   const [value, setValue]: any = useState(undefined);
 
@@ -142,13 +151,15 @@ export const ParticipantsPanel: FC<Props> = ({
   const call = useCall();
   const connectedUser = useConnectedUser();
 
+  const { publishVideoStream, publishAudioStream } = useMediaDevices();
+
   const rootClassname = classnames(styles.root, className);
 
   const handleBlockUser = useCallback(
     (participantId: string) => {
       call?.blockUser(participantId);
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
@@ -158,7 +169,7 @@ export const ParticipantsPanel: FC<Props> = ({
     (participantId: string) => {
       call?.muteUser(participantId, 'audio');
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
@@ -168,15 +179,16 @@ export const ParticipantsPanel: FC<Props> = ({
     (participantId: string) => {
       call?.muteUser(participantId, 'video');
       if (isVisible) {
-        closeModal;
+        closeModal();
       }
     },
     [isVisible, closeModal],
   );
 
   return (
-    <Panel
+    <AnimatedPanel
       className={rootClassname}
+      visible={visible}
       title={
         <>
           Participants{' '}
@@ -185,6 +197,7 @@ export const ParticipantsPanel: FC<Props> = ({
       }
       isFocused={isFocused}
       canCollapse={true}
+      fulllHeight={fulllHeight}
       close={close}
     >
       <div className={styles.search}>
@@ -204,9 +217,7 @@ export const ParticipantsPanel: FC<Props> = ({
             const searchValue = value?.toLowerCase();
 
             const isLocalParticipant =
-              participant?.userId === connectedUser?.id
-                ? import.meta.env.VITE_VIDEO_USER_ID
-                : '';
+              participant?.userId === connectedUser?.id;
 
             const isAudioOn = participant.publishedTracks.includes(
               SfuModels.TrackType.AUDIO,
@@ -230,6 +241,12 @@ export const ParticipantsPanel: FC<Props> = ({
                     handleMuteUser={handleMuteUser}
                     handleDisableVideo={handleDisableVideo}
                     handleBlockUser={handleBlockUser}
+                    handleEnableVideo={
+                      isLocalParticipant ? publishVideoStream : undefined
+                    }
+                    handleUnmuteUser={
+                      isLocalParticipant ? publishAudioStream : undefined
+                    }
                     isAudioOn={isAudioOn}
                     isVideoOn={isVideoOn}
                     particpantName={particpantName}
@@ -245,6 +262,6 @@ export const ParticipantsPanel: FC<Props> = ({
       <div className={styles.invite}>
         <Invite callId={callId} canShare />
       </div>
-    </Panel>
+    </AnimatedPanel>
   );
 };
