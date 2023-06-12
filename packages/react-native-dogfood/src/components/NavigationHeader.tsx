@@ -12,12 +12,11 @@ import {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   avatar: {

@@ -1,25 +1,17 @@
-import { Call } from '@stream-io/video-client';
+import { Call } from '@stream-io/video-react-sdk';
 import { User } from './users';
 
-export interface AudioRoom {
-  id: string;
-  title: string;
-  subtitle: string;
-  hosts: User[];
-  listeners: User[];
-  speakers: User[];
-  call?: Call;
-}
+export type CustomCallData = {
+  title?: string;
+  subtitle?: string;
+  hosts?: User[];
+  speakerIds?: string[];
+  description?: string;
+};
 
-export function roomFromCall(call: Call): AudioRoom {
-  const customData = call.data?.custom;
-  return {
-    id: call.id,
-    title: customData?.title,
-    subtitle: customData?.description,
-    hosts: customData?.hosts,
-    listeners: [],
-    speakers: [],
-    call: call,
-  };
-}
+export type AudioRoom = {
+  id: string;
+  isBackstage: boolean;
+  listeners: User[];
+  call?: Call;
+} & CustomCallData;

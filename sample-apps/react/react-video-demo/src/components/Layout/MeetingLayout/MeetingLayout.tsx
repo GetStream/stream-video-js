@@ -9,6 +9,7 @@ import { useModalContext } from '../../../contexts/ModalContext';
 import { usePanelContext } from '../../../contexts/PanelContext';
 
 import { useBreakpoint } from '../../../hooks/useBreakpoints';
+import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';
 
 import styles from './MeetingLayout.module.css';
 
@@ -35,6 +36,7 @@ export const MeetingLayout: FC<Props> = ({
   const { isChatVisible, isParticipantsVisible, toggleChat } =
     usePanelContext();
 
+  // useKeyboardShortcuts();
   const transitionRef = useRef(null);
 
   const breakpoint = useBreakpoint();

@@ -10,7 +10,6 @@ import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { theme } from '@stream-io/video-react-native-sdk/dist/src/theme';
 import { ParticipantListButtons } from '../components/ParticipantListButtons';
 import { LobbyViewComponent } from './LobbyViewComponent';
-import { AuthenticationProgress } from './AuthenticatingProgress';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -50,8 +49,6 @@ export const MeetingUI = ({
     );
   } else if (show === 'lobby') {
     return <LobbyViewComponent callId={callId} {...{ navigation, route }} />;
-  } else if (show === 'loading') {
-    return <AuthenticationProgress />;
   } else if (!call) {
     return (
       <View style={styles.container}>

@@ -1,5 +1,5 @@
 .root {
-  @apply min-w-[200px];
+  @apply min-w-[200px] h-auto;
 }
 
 .root > div:nth-child(2) {

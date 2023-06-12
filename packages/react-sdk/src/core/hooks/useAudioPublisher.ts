@@ -19,6 +19,7 @@ import {
  * @internal
  */
 export type AudioPublisherInit = {
+  canObserveAudio?: boolean;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
@@ -28,6 +29,7 @@ export type AudioPublisherInit = {
  * @category Device Management
  */
 export const useAudioPublisher = ({
+  canObserveAudio,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
@@ -65,7 +67,7 @@ export const useAudioPublisher = ({
   }, [callingState, initialAudioMuted, publishAudioStream]);
 
   useEffect(() => {
-    if (!localParticipant$) return;
+    if (!localParticipant$ || !canObserveAudio) return;
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
@@ -76,7 +78,7 @@ export const useAudioPublisher = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [localParticipant$, call]);
+  }, [canObserveAudio, localParticipant$, call]);
 
   useEffect(() => {
     if (!participant?.audioStream || !call || !isPublishingAudio) return;

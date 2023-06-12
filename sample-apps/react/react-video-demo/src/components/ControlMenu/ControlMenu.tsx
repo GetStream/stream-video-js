@@ -20,18 +20,10 @@ import styles from './ControlMenu.module.css';
 export type Props = {
   className?: string;
   call?: any;
-  initialAudioMuted?: boolean;
-  initialVideoMuted?: boolean;
   preview?: boolean;
 };
 
-export const ControlMenu: FC<Props> = ({
-  className,
-  call,
-  initialAudioMuted,
-  initialVideoMuted,
-  preview,
-}) => {
+export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
   const [isAudioOutputVisible, setAudioOutputVisible] =
     useState<boolean>(false);
   const {

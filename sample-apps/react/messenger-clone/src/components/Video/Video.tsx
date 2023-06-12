@@ -7,7 +7,7 @@ export const Video = () => {
   return (
     <>
       {calls.map((call) => (
-        <StreamCall call={call} autoJoin={false} key={call.cid}>
+        <StreamCall call={call} key={call.cid}>
           <CallPanel />
         </StreamCall>
       ))}

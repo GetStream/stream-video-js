@@ -5,6 +5,7 @@ import {
   StreamVideoWriteableStateStore,
 } from './store';
 import type {
+  ConnectedEvent,
   CreateCallTypeRequest,
   CreateCallTypeResponse,
   CreateDeviceRequest,
@@ -26,6 +27,7 @@ import type {
   StreamClientOptions,
   TokenOrProvider,
   User,
+  UserWithId,
 } from './coordinator/connection/types';
 
 /**
@@ -40,6 +42,8 @@ export class StreamVideoClient {
   streamClient: StreamClient;
 
   private eventHandlersToUnregister: Array<() => void> = [];
+  private connectionPromise: Promise<void | ConnectedEvent> | undefined;
+  private disconnectionPromise: Promise<void> | undefined;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -48,8 +52,6 @@ export class StreamVideoClient {
    */
   constructor(apiKey: string, opts?: StreamClientOptions) {
     this.streamClient = new StreamClient(apiKey, {
-      // FIXME: OL: fix SSR.
-      browser: true,
       persistUserOnConnectionFailure: true,
       ...opts,
     });
@@ -68,13 +70,36 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
    */
-  connectUser = async (user: User, tokenOrProvider: TokenOrProvider) => {
-    const connectUserResponse = await this.streamClient.connectUser(
-      // @ts-expect-error
-      user,
-      tokenOrProvider,
-    );
-    this.writeableStateStore.setConnectedUser(user);
+  async connectUser(
+    user: User,
+    token: TokenOrProvider,
+  ): Promise<void | ConnectedEvent> {
+    if (user.type === 'anonymous') {
+      user.id = '!anon';
+      return this.connectAnonymousUser(user as UserWithId, token);
+    }
+    if (user.type === 'guest') {
+      const response = await this.createGuestUser({
+        user: {
+          ...user,
+          role: 'guest',
+        },
+      });
+      return this.connectUser(response.user, response.access_token);
+    }
+    const connectUser = () => {
+      return this.streamClient.connectUser(user, token);
+    };
+    this.connectionPromise = this.disconnectionPromise
+      ? this.disconnectionPromise.then(() => connectUser())
+      : connectUser();
+
+    this.connectionPromise?.finally(() => (this.connectionPromise = undefined));
+    const connectUserResponse = await this.connectionPromise;
+    // connectUserResponse will be void if connectUser called twice for the same user
+    if (connectUserResponse?.me) {
+      this.writeableStateStore.setConnectedUser(connectUserResponse.me);
+    }
 
     this.eventHandlersToUnregister.push(
       this.on('connection.changed', (e) => {
@@ -153,21 +178,7 @@ export class StreamVideoClient {
     );
 
     return connectUserResponse;
-  };
-
-  /**
-   * Connects the given anonymous user to the client.
-   *
-   * @param user the user to connect.
-   * @param tokenOrProvider a token or a function that returns a token.
-   */
-  connectAnonymousUser = async (
-    user: User,
-    tokenOrProvider: TokenOrProvider,
-  ) => {
-    // @ts-expect-error
-    return this.streamClient.connectAnonymousUser(user, tokenOrProvider);
-  };
+  }
 
   /**
    * Disconnects the currently connected user from the client.
@@ -178,7 +189,14 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    await this.streamClient.disconnectUser(timeout);
+    const disconnectUser = () => this.streamClient.disconnectUser(timeout);
+    this.disconnectionPromise = this.connectionPromise
+      ? this.connectionPromise.then(() => disconnectUser())
+      : disconnectUser();
+    this.disconnectionPromise.finally(
+      () => (this.disconnectionPromise = undefined),
+    );
+    await this.disconnectionPromise;
     this.eventHandlersToUnregister.forEach((unregister) => unregister());
     this.eventHandlersToUnregister = [];
     this.writeableStateStore.setConnectedUser(undefined);
@@ -228,10 +246,10 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    return this.streamClient.post<CreateGuestResponse, CreateGuestRequest>(
-      '/guest',
-      data,
-    );
+    return this.streamClient.doAxiosRequest<
+      CreateGuestResponse,
+      CreateGuestRequest
+    >('post', '/guest', data, { publicEndpoint: true });
   };
 
   /**
@@ -369,5 +387,43 @@ export class StreamVideoClient {
       id,
       ...(userID ? { user_id: userID } : {}),
     });
+  };
+
+  /**
+   * createToken - Creates a token to authenticate this user. This function is used server side.
+   * The resulting token should be passed to the client side when the users registers or logs in.
+   *
+   * @param {string} userID The User ID
+   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
+   *
+   * @return {string} Returns a token
+   */
+  createToken(
+    userID: string,
+    exp?: number,
+    iat?: number,
+    call_cids?: string[],
+  ) {
+    return this.streamClient.createToken(userID, exp, iat, call_cids);
+  }
+
+  /**
+   * Connects the given anonymous user to the client.
+   *
+   * @param user the user to connect.
+   * @param tokenOrProvider a token or a function that returns a token.
+   */
+  private connectAnonymousUser = async (
+    user: UserWithId,
+    tokenOrProvider: TokenOrProvider,
+  ) => {
+    const connectAnonymousUser = () =>
+      this.streamClient.connectAnonymousUser(user, tokenOrProvider);
+    this.connectionPromise = this.disconnectionPromise
+      ? this.disconnectionPromise.then(() => connectAnonymousUser())
+      : connectAnonymousUser();
+    this.connectionPromise.finally(() => (this.connectionPromise = undefined));
+    return this.connectionPromise;
   };
 }

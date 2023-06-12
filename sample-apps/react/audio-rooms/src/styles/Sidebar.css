@@ -1,0 +1,119 @@
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-right: 2px solid #c4c4c4;
+}
+
+.sidebar-top,
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sidebar-bottom {
+  position: relative;
+}
+
+.sidebar img {
+  width: 120px;
+  aspect-ratio: 1 / 1;
+}
+
+.sidebar .sidebar-top > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sidebar .sidebar-navlinks {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding-inline: 1rem;
+}
+
+.sidebar .sidebar-navlinks button {
+  padding-inline:0
+}
+
+.sidebar .nav-button, .sidebar .nav-button:hover {
+  text-align: start;
+  background-color: transparent;
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+  text-transform: capitalize;
+  border-radius: unset;
+  width: 100%;
+  outline: none;
+}
+
+.sidebar .nav-button:hover {
+  border-bottom: 1px solid #646cff;
+}
+
+.sidebar .filled-button {
+  width: 100%;
+}
+
+@media screen and (max-width: 800px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+    border-right: unset;
+    border-bottom: 2px solid #c4c4c4;
+    height: var(--header-height);
+    padding: 0.5rem 1rem;
+    background: var(--background-color);
+  }
+
+  .header-padding {
+    display: block;
+    height: var(--header-height);
+  }
+
+  .sidebar h3 {
+    display: none;
+  }
+
+  .sidebar img {
+    width: 60px;
+  }
+
+  .sidebar .sidebar-top {
+    flex-direction: row-reverse;
+  }
+
+  .sidebar .sidebar-top img {
+    width: 50px;
+  }
+
+  .sidebar .sidebar-top .sidebar-navlinks {
+    display: none;
+  }
+
+  .sidebar .sidebar-bottom {
+    flex-direction: row-reverse;
+  }
+
+  .sidebar .filled-button {
+    padding-inline: 0.75rem;
+  }
+
+  .sidebar .filled-button span {
+    display: none;
+  }
+}

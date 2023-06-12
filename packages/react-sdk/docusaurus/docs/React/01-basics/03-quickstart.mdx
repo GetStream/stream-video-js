@@ -42,25 +42,33 @@ You can read more about user authentication and authorization
 in the [Authenticating Your Users](../../guides/client-auth) chapter.
 :::
 
-Create an instance of [`StreamVideoClient`](../../call-engine/StreamVideoClient/) by utilizing the [`useCreateStreamVideoClient`](../../call-engine/hooks-and-contexts#usecreatestreamvideoclient) hook provided by the SDK.
-
-This hook initializes the client with the provided configuration parameters,
-and establishes a connection to the Stream platform.
+Create an instance of [`StreamVideoClient`](../../call-engine/StreamVideoClient/) and establish WebSocket connection by connecting a user.
 
 ```ts
-import { useCreateStreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { useEffect, useState } from 'react';
 
 const apiKey = 'your-api-key';
 const userId = 'user-id';
 const token = 'authentication-token';
+const user: User = { id: userId };
 
 export const MyApp = () => {
-  const user: User = { id: userId };
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    user,
-    tokenOrProvider: token,
-  });
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+
+  useEffect(() => {
+    client
+      .connectUser(user, token)
+      .catch((err) => console.error('Failed to establish connection', err));
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+  }, [client]);
 
   // Further logic and rendering
 };
@@ -142,7 +150,7 @@ export const MyApp = () => {
 };
 ```
 
-Wrap your chosen UI layout with the `<StreamCall>` component, wich would take care of call creation and joining.
+Next, we need to create and join a `Call` instance, and provide that to the `<StreamCall>` component.
 
 ```tsx
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -153,19 +161,21 @@ import {
   StreamVideo,
   SpeakerLayout,
 } from '@stream-io/video-react-sdk';
+import { useEffect, useState } from 'react';
 
 const MyApp = () => {
+  const [call] = useState(() => client.call('default', 'my-first-call'));
+
+  useEffect(() => {
+    call.join({ create: true });
+  }, [call]);
+
   // Assuming you have the 'client' instance created
   return (
     <StreamVideo client={client}>
       <StreamTheme>
         // highlight-start
-        <StreamCall
-          callType="default"
-          callId="my-first-call"
-          data={{ create: true }}
-          autoJoin
-        >
+        <StreamCall call={call}>
           <SpeakerLayout />
           <CallControls />
         </StreamCall>

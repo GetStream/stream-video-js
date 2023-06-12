@@ -1,5 +1,5 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {ChannelList} from 'stream-chat-react-native';
 import type {ChannelSort} from 'stream-chat';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
@@ -20,15 +20,15 @@ type ChannelListScreenProps = NativeStackScreenProps<
 >;
 
 export function ChannelListScreen({navigation}: ChannelListScreenProps) {
-  const {setChannel, userId} = useAppContext();
+  const {setChannel, user} = useAppContext();
 
   const filters = {
     type: 'messaging',
-    members: {$in: [userId!!]},
+    members: {$in: [user?.id as string]},
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ChannelList<StreamChatGenerics>
         filters={filters}
         onSelect={channel => {
@@ -38,12 +38,12 @@ export function ChannelListScreen({navigation}: ChannelListScreenProps) {
         options={options}
         sort={sort}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
+    flex: 1,
   },
 });

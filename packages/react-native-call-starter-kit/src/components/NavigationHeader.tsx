@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
 });
 
 export const NavigationHeader = () => {
-  const {userImageUrl, logoutHandler} = useAppContext();
+  const {user, logoutHandler} = useAppContext();
 
   const logout = () => {
     Alert.alert('Sign out', 'Are you sure you want to sign out?', [
@@ -48,14 +48,12 @@ export const NavigationHeader = () => {
 
   return (
     <View style={styles.header}>
-      {!!userImageUrl && (
-        <Image
-          source={{
-            uri: userImageUrl,
-          }}
-          style={styles.avatar}
-        />
-      )}
+      <Image
+        source={{
+          uri: user?.image,
+        }}
+        style={styles.avatar}
+      />
       <Pressable onPress={logout}>
         <Text style={styles.unset}>Logout</Text>
       </Pressable>

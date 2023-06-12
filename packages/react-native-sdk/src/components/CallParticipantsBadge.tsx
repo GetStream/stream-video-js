@@ -4,6 +4,7 @@ import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
 import { useCallback, useState } from 'react';
 import { CallParticipantsInfoView } from './CallParticipantsInfoView';
+import { A11yButtons } from '../constants/A11yLabels';
 
 export const CallParticipantsBadge = () => {
   const participantCount = useParticipantCount();
@@ -18,6 +19,7 @@ export const CallParticipantsBadge = () => {
     <Pressable
       style={styles.participantIcon}
       onPress={onOpenCallParticipantsInfoView}
+      accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participantCount}</Text>

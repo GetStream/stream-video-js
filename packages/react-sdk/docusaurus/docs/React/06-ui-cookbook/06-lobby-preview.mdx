@@ -32,7 +32,7 @@ We would like to show some basic information about the call, when users arrive t
 - who is invited
 - who already joined
 
-The initial call information is retrieved internally by [`StreamCall`](../../ui-components/core/stream-call) component and passed down with the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider). Wrapping our UI with [`StreamCall`](../../ui-components/core/stream-call) allows us to access the call data in our UI components with hooks:
+The initial call information can be retrieved by the `get` or `getOrCreate` method of a `Call` instance. Then we can use the following hooks:
 
 - [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata)
 - [`useCallMembers`](../../call-engine/hooks-and-contexts#usecallmembers)

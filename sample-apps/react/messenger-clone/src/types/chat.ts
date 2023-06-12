@@ -7,7 +7,7 @@ export type CommandType = LiteralStringForUnion;
 export type EventType = UR;
 export type MessageType = UR;
 export type ReactionType = UR;
-export type UserType = User;
+export type UserType = Omit<User, 'type'>;
 
 export type StreamChatType = {
   attachmentType: AttachmentType;

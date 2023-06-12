@@ -1,21 +1,59 @@
-import './App.css';
-import Home from './components/home/Home';
-import { AudioRoomContextProvider } from './contexts/AudioRoomContext/AudioRoomContext';
-import { AuthStatus, useUserContext } from './contexts/UserContext/UserContext';
-import Login from './components/login/Login';
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  redirect,
+  RouterProvider,
+} from 'react-router-dom';
 
-function App() {
-  const { authStatus, user } = useUserContext();
+import { Login, Room, RoomList } from './pages';
+import { AppShell } from './components/AppShell';
+import { getSelectedUser, UserContextProvider } from './contexts/UserContext';
+
+const Root = () => <Outlet />;
+
+const router = createBrowserRouter([
+  {
+    path: '/login',
+    Component: Login,
+  },
+  {
+    path: '*',
+    Component: Root,
+    loader: ({ request }) => {
+      const user = getSelectedUser();
+
+      if (!user) return redirect('/login');
+      if (!request.url.includes('/rooms')) return redirect('/rooms');
+      return null;
+    },
+    children: [
+      {
+        path: 'rooms',
+        Component: AppShell,
+        children: [
+          { index: true, Component: RoomList },
+          {
+            path: 'join/:roomId',
+            Component: Room,
+            loader: ({ params: { roomId } }) => {
+              if (!roomId) return redirect('/rooms');
+              return null;
+            },
+          },
+          { path: '*', element: <Navigate to="/" replace /> },
+        ],
+      },
+    ],
+  },
+]);
+
+const App = () => {
   return (
-    <>
-      {authStatus === AuthStatus.loggedOut && <Login />}
-      {(AuthStatus.processing || AuthStatus.loggedIn) && user && (
-        <AudioRoomContextProvider>
-          <Home />
-        </AudioRoomContextProvider>
-      )}
-    </>
+    <UserContextProvider>
+      <RouterProvider router={router} />
+    </UserContextProvider>
   );
-}
+};
 
 export default App;

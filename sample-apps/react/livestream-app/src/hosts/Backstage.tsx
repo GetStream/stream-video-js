@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import {
+  Call,
   CallingState,
   PaginatedGridLayout,
   StreamCall,
@@ -7,35 +8,53 @@ import {
   useCallCallingState,
   useConnectedUser,
   useMediaDevices,
+  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { BackstageHeader } from './ui/BackstageHeader';
 import { BackstageControls } from './ui/BackstageControls';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Backstage = () => {
   const { callId } = useParams();
+  const client = useStreamVideoClient();
+  const [call, setCall] = useState<Call | undefined>(undefined);
   const connectedUser = useConnectedUser();
   if (!callId) return <h3>No Call ID is provided</h3>;
   if (!connectedUser) return <h3>Loading...</h3>;
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    // FIXME OL: change to 'livestream'
+    setCall(client.call('default', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+    call.join({
+      create: true,
+      data: {
+        members: [
+          {
+            user_id: connectedUser.id,
+            role: 'host',
+          },
+        ],
+      },
+    });
+  }, [call]);
+
   return (
-    <StreamCall
-      callType="default" // FIXME OL: change to 'livestream'
-      callId={callId}
-      autoJoin={true}
-      data={{
-        create: true,
-        data: {
-          members: [
-            {
-              user_id: connectedUser.id,
-              role: 'host',
-            },
-          ],
-        },
-      }}
-    >
-      <BackstageUI />
-    </StreamCall>
+    <>
+      {call && (
+        <StreamCall call={call}>
+          <BackstageUI />
+        </StreamCall>
+      )}
+    </>
   );
 };
 

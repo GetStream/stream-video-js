@@ -12,7 +12,11 @@ import {
   PermissionRequestEvent,
   UserResponse,
 } from '@stream-io/video-client';
-import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallPermissionRequest,
+  useHasPermissions,
+} from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
 import { useFloatingUIPreset } from '../../hooks';
@@ -35,16 +39,15 @@ export const PermissionRequests = () => {
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
-
+  const permissionRequest = useCallPermissionRequest();
   useEffect(() => {
-    if (!call || !canUpdateCallPermissions) return;
-    return call.on('call.permission_request', (event) => {
-      if (event.type !== 'call.permission_request') return;
-      setPermissionRequests((requests) =>
-        [...requests, event].sort((a, b) => byNameOrId(a.user, b.user)),
-      );
-    });
-  }, [call, canUpdateCallPermissions]);
+    if (!canUpdateCallPermissions || !permissionRequest) return;
+    setPermissionRequests((requests) =>
+      [...requests, permissionRequest].sort((a, b) =>
+        byNameOrId(a.user, b.user),
+      ),
+    );
+  }, [canUpdateCallPermissions, permissionRequest]);
 
   const handleUpdatePermission = (
     request: PermissionRequestEvent,
