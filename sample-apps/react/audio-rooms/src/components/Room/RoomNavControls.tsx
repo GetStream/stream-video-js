@@ -7,8 +7,10 @@ import {
   useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
+import { useLoadedCalls } from '../../contexts';
 
 export const RoomNavControls = () => {
+  const { setJoinedCall, joinedCall } = useLoadedCalls();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
@@ -27,8 +29,14 @@ export const RoomNavControls = () => {
             <button
               className="leave-button"
               onClick={async () => {
+                if (joinedCall) {
+                  await joinedCall.leave().catch((err) => {
+                    console.error('Error leaving call', err);
+                  });
+                }
                 await call.goLive();
                 await call.join();
+                setJoinedCall(call);
               }}
             >
               Go live!
@@ -46,12 +54,21 @@ export const RoomNavControls = () => {
               onClick={async () => {
                 await call.stopLive();
                 await call.endCall();
+                setJoinedCall(undefined);
               }}
             >
               End room
             </button>
           </Restricted>
-          <button className="leave-button" onClick={() => call.leave()}>
+          <button
+            className="leave-button"
+            onClick={async () => {
+              await call.leave().catch((err) => {
+                console.error('Error leaving call', err);
+              });
+              setJoinedCall(undefined);
+            }}
+          >
             Leave Quietly
           </button>
         </>
