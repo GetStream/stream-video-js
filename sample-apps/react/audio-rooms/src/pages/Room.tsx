@@ -1,7 +1,4 @@
-import {
-  MediaDevicesProvider,
-  StreamCallProvider,
-} from '@stream-io/video-react-sdk';
+import { StreamCall } from '@stream-io/video-react-sdk';
 import { Link, useParams } from 'react-router-dom';
 import { RoomUI } from '../components/Room';
 import { useLoadedCalls } from '../contexts';
@@ -21,11 +18,9 @@ function Room() {
   }
 
   return (
-    <StreamCallProvider call={call}>
-      <MediaDevicesProvider>
-        <RoomUI />
-      </MediaDevicesProvider>
-    </StreamCallProvider>
+    <StreamCall call={call}>
+      <RoomUI />
+    </StreamCall>
   );
 }
 

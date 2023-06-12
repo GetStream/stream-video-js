@@ -1,6 +1,6 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
 import { CloseIcon } from './icons';
-import { useLoadedCalls, useLayoutController } from '../contexts';
+import { useLayoutController, useLoadedCalls } from '../contexts';
 
 type RoomFormProps = {
   close: () => void;
@@ -31,7 +31,7 @@ const CreateRoomForm = ({ close }: RoomFormProps) => {
             <CloseIcon />
           </button>
         </div>
-        <form className="room-form" action="room-form">
+        <form className="room-form">
           <input
             type="text"
             id="title"

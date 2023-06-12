@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Call, StreamCallProvider } from '@stream-io/video-react-sdk';
+import { Call, StreamCall } from '@stream-io/video-react-sdk';
 import RoomCard from '../components/RoomCard';
 import {
   isEnded,
@@ -40,9 +40,9 @@ const RoomListing = ({
               key={call.id}
               className="room-card-button"
             >
-              <StreamCallProvider call={call}>
+              <StreamCall call={call}>
                 <RoomCard />
-              </StreamCallProvider>
+              </StreamCall>
             </Link>
           ))}
         </div>
