@@ -32,22 +32,24 @@ export default function Sidebar() {
             <LeaveIcon />
             <span>Sign out</span>
           </button>
-          <div className="sidebar-navlinks">
-            {roomStates.map((liveState) => (
-              <button
-                className="nav-button"
-                key={`${liveState}-heading-nav-button`}
-                onClick={() => {
-                  const heading = document.querySelector(
-                    `#${liveState}-listing-section`,
-                  );
-                  if (heading) heading.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                {liveState} ({calls.filter(isRoomState[liveState]).length})
-              </button>
-            ))}
-          </div>
+          {showRoomList && (
+            <div className="sidebar-navlinks">
+              {roomStates.map((liveState) => (
+                <button
+                  className="nav-button"
+                  key={`${liveState}-heading-nav-button`}
+                  onClick={() => {
+                    const heading = document.querySelector(
+                      `#${liveState}-listing-section`,
+                    );
+                    if (heading) heading.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  {liveState} ({calls.filter(isRoomState[liveState]).length})
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="sidebar-bottom">
@@ -60,23 +62,25 @@ export default function Sidebar() {
             <span>Start room</span>
           </button>
           {location.pathname.match(/.*join.*/) && (
-            <button
-              className="filled-button filled-button--blue"
-              onClick={toggleShowRoomList}
-              title={`${showRoomList ? 'Hide' : 'Show'} rooms`}
-            >
-              {showRoomList ? <CloseIcon /> : <ListIcon />}
-              <span>{`${showRoomList ? 'Hide' : 'Show'} rooms`}</span>
-            </button>
+            <>
+              <button
+                className="filled-button filled-button--blue"
+                onClick={toggleShowRoomList}
+                title={`${showRoomList ? 'Hide' : 'Show'} rooms`}
+              >
+                {showRoomList ? <CloseIcon /> : <ListIcon />}
+                <span>{`${showRoomList ? 'Hide' : 'Show'} rooms`}</span>
+              </button>
+              <Link
+                title="Back to rooms overview"
+                className="filled-button filled-button--blue"
+                to="/rooms"
+              >
+                <HomeIcon />
+                <span>Rooms</span>
+              </Link>
+            </>
           )}
-          <Link
-            title="Back to rooms overview"
-            className="filled-button filled-button--blue"
-            to="/rooms"
-          >
-            <HomeIcon />
-            <span>Rooms</span>
-          </Link>
         </div>
       </section>
       <div className="header-padding" />
