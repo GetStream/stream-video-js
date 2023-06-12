@@ -26,6 +26,7 @@ import type {
   EventTypes,
   StreamClientOptions,
   TokenOrProvider,
+  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
@@ -38,6 +39,8 @@ export class StreamVideoClient {
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+  readonly user?: User;
+  readonly token?: TokenOrProvider;
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
@@ -47,14 +50,39 @@ export class StreamVideoClient {
 
   /**
    * You should create only one instance of `StreamVideoClient`.
-   * @param apiKey your Stream API key
-   * @param opts the options for the client.
    */
-  constructor(apiKey: string, opts?: StreamClientOptions) {
-    this.streamClient = new StreamClient(apiKey, {
-      persistUserOnConnectionFailure: true,
-      ...opts,
-    });
+  constructor(apiKey: string, opts?: StreamClientOptions);
+  constructor(args: {
+    apiKey: string;
+    options?: StreamClientOptions;
+    user?: User;
+    token?: TokenProvider;
+  });
+  constructor(
+    apiKeyOrArgs:
+      | string
+      | {
+          apiKey: string;
+          options?: StreamClientOptions;
+          user?: User;
+          token?: TokenProvider;
+        },
+    opts?: StreamClientOptions,
+  ) {
+    if (typeof apiKeyOrArgs === 'string') {
+      this.streamClient = new StreamClient(apiKeyOrArgs, {
+        persistUserOnConnectionFailure: true,
+        ...opts,
+      });
+    } else {
+      this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
+        persistUserOnConnectionFailure: true,
+        ...apiKeyOrArgs.options,
+      });
+
+      this.user = apiKeyOrArgs.user;
+      this.token = apiKeyOrArgs.token;
+    }
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(

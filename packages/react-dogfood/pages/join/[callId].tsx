@@ -30,11 +30,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
   const { userToken, user, apiKey, gleapApiKey } = props;
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
-  const [call] = useState<Call>(() => client.call(callType, callId));
-
   const tokenProvider = useCallback(async () => {
     const { token } = await fetch(
       '/api/auth/create-token?' +
@@ -46,19 +41,10 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
-
-  useEffect(() => {
-    client.connectUser(user, tokenProvider).catch((err) => {
-      console.error(`Failed to establish connection`, err);
-    });
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, tokenProvider, user?.id]);
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient({ apiKey, user, token: tokenProvider }),
+  );
+  const [call] = useState<Call>(() => client.call(callType, callId));
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
