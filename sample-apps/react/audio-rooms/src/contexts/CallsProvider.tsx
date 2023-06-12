@@ -8,9 +8,9 @@ import {
 } from 'react';
 
 import {
+  Call,
   ChildrenOnly,
   StreamVideo,
-  Call,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { noop } from '../utils/noop';
@@ -22,6 +22,8 @@ type CreateCallParams = {
 };
 
 type CallContext = {
+  joinedCall?: Call;
+  setJoinedCall: (call?: Call) => void;
   calls: Call[];
   createCall: ({ description, title }: CreateCallParams) => void;
   loadingCalls: boolean;
@@ -31,6 +33,8 @@ type CallContext = {
 };
 
 const CallsContext = createContext<CallContext>({
+  joinedCall: undefined,
+  setJoinedCall: noop,
   calls: [],
   createCall: () => Promise.resolve(),
   loadingCalls: false,
@@ -52,6 +56,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
+  const [joinedCall, setJoinedCall] = useState<Call>();
   const [calls, setCalls] = useState<CallContext['calls']>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error | undefined>();
@@ -134,6 +139,8 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
     <StreamVideo client={client}>
       <CallsContext.Provider
         value={{
+          joinedCall,
+          setJoinedCall,
           calls,
           createCall,
           loadingCalls,
