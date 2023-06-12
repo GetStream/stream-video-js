@@ -1,7 +1,11 @@
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isRoomState, roomStates } from '../utils/roomLiveState';
-import { useCalls, useLayoutController, useUserContext } from '../contexts';
+import {
+  useLoadedCalls,
+  useLayoutController,
+  useUserContext,
+} from '../contexts';
 import { AddIcon, CloseIcon, HomeIcon, LeaveIcon, ListIcon } from './icons';
 
 export default function Sidebar() {
@@ -9,7 +13,7 @@ export default function Sidebar() {
   const { user, logout } = useUserContext();
   const { showRoomList, toggleShowRoomList, toggleShowCreateRoomModal } =
     useLayoutController();
-  const { calls } = useCalls();
+  const { calls } = useLoadedCalls();
   const navigate = useNavigate();
   const location = useLocation();
   return (

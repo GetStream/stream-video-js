@@ -6,7 +6,7 @@ import { LoadingPanel } from './Loading';
 import {
   CallsProvider,
   LayoutControllerProvider,
-  useCalls,
+  useLoadedCalls,
   useLayoutController,
 } from '../contexts';
 import CreateRoomForm from './CreateRoomForm';
@@ -24,7 +24,7 @@ const AppProviders = ({ children }: ChildrenOnly) => (
 );
 
 const AppLayout = () => {
-  const { loadingCalls, loadingError } = useCalls();
+  const { loadingCalls, loadingError } = useLoadedCalls();
   const { showCreateRoomModal, toggleShowCreateRoomModal } =
     useLayoutController();
 

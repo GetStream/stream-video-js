@@ -7,10 +7,10 @@ import {
   isUpcoming,
   RoomLiveState,
 } from '../utils/roomLiveState';
-import { useCalls } from '../contexts';
+import { useLoadedCalls } from '../contexts';
 
 const RoomList = () => {
-  const { calls } = useCalls();
+  const { calls } = useLoadedCalls();
 
   return (
     <section className="rooms-overview">

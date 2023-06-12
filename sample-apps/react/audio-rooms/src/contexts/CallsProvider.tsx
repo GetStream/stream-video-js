@@ -148,4 +148,4 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   );
 };
 
-export const useCalls = () => useContext(CallsContext);
+export const useLoadedCalls = () => useContext(CallsContext);

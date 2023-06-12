@@ -1,12 +1,12 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
 import { CloseIcon } from './icons';
-import { useCalls, useLayoutController } from '../contexts';
+import { useLoadedCalls, useLayoutController } from '../contexts';
 
 type RoomFormProps = {
   close: () => void;
 };
 const CreateRoomForm = ({ close }: RoomFormProps) => {
-  const { createCall } = useCalls();
+  const { createCall } = useLoadedCalls();
   const { toggleShowCreateRoomModal } = useLayoutController();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
