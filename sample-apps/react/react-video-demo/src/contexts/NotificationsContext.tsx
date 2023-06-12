@@ -9,9 +9,9 @@ import {
 type Notification = {
   id: string;
   message: string;
-  icon?: ReactNode | undefined;
-  timer?: number;
+  icon?: ReactNode;
   clickToClose?: boolean;
+  timer?: NodeJS.Timeout;
 };
 type Props = {
   notifications: Notification[];
@@ -27,46 +27,33 @@ const NotificationContext = createContext<Props>({
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, updateNotifications] = useState<Notification[]>([]);
-  const [notificationTimers, updateNotificationTimers] = useState<any>([]);
 
-  const handleAddNotification = useCallback(
-    (notification: Notification) => {
-      const notificationTimer = setTimeout(() => {
-        handleRemoveNotification(notification.id);
-      }, 5000);
+  const addNotification = useCallback((notification: Notification) => {
+    const timer = setTimeout(() => {
+      removeNotification(notification.id);
+    }, 5000);
 
-      const timers = (notificationTimers[notification.id] = notificationTimer);
+    updateNotifications((_n) => [..._n, { ...notification, timer }]);
+  }, []);
 
-      updateNotificationTimers(timers);
+  const removeNotification = useCallback((id: string) => {
+    updateNotifications((_n) => {
+      const notification = _n.find((n) => n.id === id);
 
-      updateNotifications([...notifications, notification]);
-    },
-    [notifications, notificationTimers],
-  );
+      if (notification?.timer) {
+        clearTimeout(notification.timer);
+      }
 
-  const handleRemoveNotification = useCallback(
-    (id: string) => {
-      updateNotifications(notifications.filter((n) => n.id !== id));
-
-      updateNotificationTimers(
-        notificationTimers.filter((_: any, index: string) => index !== id),
-      );
-
-      clearTimeout(notificationTimers[id]);
-
-      updateNotifications(
-        notificationTimers.filter((_: any, index: string) => index !== id),
-      );
-    },
-    [notifications, notificationTimers],
-  );
+      return _n.filter((n) => n.id !== id);
+    });
+  }, []);
 
   return (
     <NotificationContext.Provider
       value={{
         notifications,
-        addNotification: handleAddNotification,
-        removeNotification: handleRemoveNotification,
+        addNotification,
+        removeNotification,
       }}
     >
       {children}

@@ -11,3 +11,7 @@
 .icon {
   @apply mr-2;
 }
+
+.icon svg {
+  @apply  h-5 w-5;
+}
