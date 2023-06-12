@@ -32,7 +32,7 @@ export type DeviceSelectorAudioOutputProps = {
 };
 
 export const DeviceSelectorAudioOutput = ({
-  title = 'Select speakers',
+  title = 'Select Speakers',
 }: DeviceSelectorAudioOutputProps) => {
   const {
     isAudioOutputChangeSupported,
