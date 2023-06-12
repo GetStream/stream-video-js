@@ -1,19 +1,17 @@
-import { StreamVideoClient, useCalls } from '@stream-io/video-react-sdk';
-import { useUserContext } from '../contexts/UserContext';
-import { useState } from 'react';
-import CreateRoomForm from './CreateRoomForm';
-import { Link, useNavigate } from 'react-router-dom';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isRoomState, roomStates } from '../utils/roomLiveState';
+import { useCalls, useLayoutController, useUserContext } from '../contexts';
+import { AddIcon, CloseIcon, HomeIcon, LeaveIcon, ListIcon } from './icons';
 
-export default function Sidebar({
-  client,
-}: {
-  client: StreamVideoClient;
-}): JSX.Element {
+export default function Sidebar() {
+  const client = useStreamVideoClient();
   const { user, logout } = useUserContext();
-  const calls = useCalls();
+  const { showRoomList, toggleShowRoomList, toggleShowCreateRoomModal } =
+    useLayoutController();
+  const { calls } = useCalls();
   const navigate = useNavigate();
-  const [modalOpen, setModalOpen] = useState(false);
+  const location = useLocation();
   return (
     <>
       <section className="sidebar">
@@ -23,15 +21,18 @@ export default function Sidebar({
             <h3>@{user?.name}</h3>
           </div>
           <button
+            className="filled-button filled-button--blue"
             onClick={() => {
+              if (!client) return;
               logout(client);
               navigate('/login');
             }}
+            title="Log out"
           >
-            Sign out
+            <LeaveIcon />
+            <span>Sign out</span>
           </button>
           <div className="sidebar-navlinks">
-            <Link to="/rooms">Rooms</Link>
             {roomStates.map((liveState) => (
               <button
                 className="nav-button"
@@ -50,15 +51,32 @@ export default function Sidebar({
         </div>
 
         <div className="sidebar-bottom">
-          {/* todo: close modal on click outside */}
-          {modalOpen && <CreateRoomForm close={() => setModalOpen(false)} />}
           <button
-            onClick={() => {
-              setModalOpen((prev) => !prev);
-            }}
+            className="filled-button filled-button--blue"
+            onClick={toggleShowCreateRoomModal}
+            title="Create a room"
           >
-            + Start room
+            <AddIcon />
+            <span>Start room</span>
           </button>
+          {location.pathname.match(/.*join.*/) && (
+            <button
+              className="filled-button filled-button--blue"
+              onClick={toggleShowRoomList}
+              title={`${showRoomList ? 'Hide' : 'Show'} rooms`}
+            >
+              {showRoomList ? <CloseIcon /> : <ListIcon />}
+              <span>{`${showRoomList ? 'Hide' : 'Show'} rooms`}</span>
+            </button>
+          )}
+          <Link
+            title="Back to rooms overview"
+            className="filled-button filled-button--blue"
+            to="/rooms"
+          >
+            <HomeIcon />
+            <span>Rooms</span>
+          </Link>
         </div>
       </section>
       <div className="header-padding" />

@@ -1,8 +1,13 @@
-
-.form-container {
+.form-modal-background-overlay {
   position: absolute;
-  left: 0;
-  bottom: 120%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(2px);
+}
+.form-container {
   background: #fff;
   border: 3px solid var(--prominent-color-light);
   padding: 1rem;
@@ -48,20 +53,6 @@ form input {
 
 form button {
   margin-top: 0.75rem;
-}
-
-@media screen and (max-width: 800px) {
-  .form-container {
-    padding: 1rem;
-  }
-
-  .room-form {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    padding-top: 2rem;
-    justify-items: end;
-  }
 }
 
 .create-button {

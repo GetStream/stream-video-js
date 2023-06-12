@@ -21,8 +21,10 @@ import { Listener } from './Listener';
 import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
 import { RoomNavControls } from './RoomNavControls';
+import { useLayoutController } from '../../contexts';
 
 export const RoomUI = () => {
+  const { showRoomList } = useLayoutController();
   const call = useCall();
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
@@ -67,8 +69,8 @@ export const RoomUI = () => {
 
   return (
     <section className="active-room">
-      <RoomList />
-      <div className="room-detail">
+      {showRoomList && <RoomList />}
+      <div className={`room-detail ${showRoomList ? 'with-room-list' : ''}`}>
         <div className="room-detail-header">
           <h2>{title}</h2>
           <LiveRoomControls
@@ -78,11 +80,11 @@ export const RoomUI = () => {
         </div>
         <p className="user-counts secondaryText">
           {participants.length}
-          <PersonIcon />/ {speakers.length ?? 0}
+          <PersonIcon />/ {speakers.length}
           <ChatIcon />
         </p>
         <section className="participants-section">
-          <h3>Speakers ({speakers.length ?? 0})</h3>
+          <h3>Speakers ({speakers.length})</h3>
           <div className="speakers-list">
             {speakers.map((speaker) => (
               <SpeakerElement key={speaker.userId} speaker={speaker} />
@@ -90,7 +92,7 @@ export const RoomUI = () => {
           </div>
         </section>
         <section className="participants-section">
-          <h3>Listeners ({listeners.length ?? 0})</h3>
+          <h3>Listeners ({listeners.length})</h3>
           <div className="listeners-list">
             {listeners.map((listener) => (
               <Listener key={listener.userId} participant={listener} />

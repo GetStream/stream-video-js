@@ -1,5 +1,6 @@
 .active-room {
   display: flex;
+  justify-content: center;
   gap: 2rem;
   width: 100%;
   height: 100%;
@@ -22,6 +23,7 @@
   background: white;
   padding: 2rem;
   height: 100%;
+  max-width: 800px;
 }
 
 .room-detail h2 {
@@ -62,26 +64,6 @@
   gap: 3rem;
 
 }
-
-@media screen and (max-width: 900px) {
-  .active-room {
-    grid-template-columns: 1fr;
-  }
-
-  .detail-room-list {
-    display: none;
-  }
-
-  .room-detail {
-    padding: 1rem;
-  }
-
-  .speakers-list {
-    gap: 1rem;
-  }
-}
-
-
 
 .speakers-list svg {
   width: 1rem;
@@ -337,3 +319,8 @@
 }
 
 
+@media screen and (max-width: 800px) {
+  .with-room-list {
+    display: none;
+  }
+}

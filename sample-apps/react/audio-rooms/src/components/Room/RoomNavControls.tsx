@@ -6,7 +6,6 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
-import { LeaveIcon } from '../icons';
 
 export const RoomNavControls = () => {
   const call = useCall();
@@ -43,12 +42,10 @@ export const RoomNavControls = () => {
             hasPermissionsOnly
           >
             <button className="leave-button" onClick={() => call.endCall()}>
-              <LeaveIcon />
               End room
             </button>
           </Restricted>
           <button className="leave-button" onClick={() => call.leave()}>
-            <LeaveIcon />
             Leave Quietly
           </button>
         </>
