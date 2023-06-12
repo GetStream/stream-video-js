@@ -214,6 +214,20 @@ export class Publisher {
     }
   };
 
+  /**
+   * Returns true if the given track type is currently being published to the SFU.
+   *
+   * @param trackType the track type to check.
+   */
+  isPublishing = (trackType: TrackType): boolean => {
+    const transceiverForTrackType = this.transceiverRegistry[trackType];
+    if (transceiverForTrackType && transceiverForTrackType.sender) {
+      const sender = transceiverForTrackType.sender;
+      return !!sender.track && sender.track.readyState === 'live';
+    }
+    return false;
+  };
+
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
     track: MediaStreamTrack,
