@@ -23,6 +23,11 @@ const mockedDevices = [
   },
 ];
 
+// Mock the notifee module using the mock provided by @notifee/react-native itself
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
+
 // When mocking we implement only the needed navigator APIs, hence the suppression rule
 // @ts-ignore
 global.navigator = {
