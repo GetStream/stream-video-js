@@ -69,7 +69,7 @@
     "typedoc": "^0.24.7",
     "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "~4.7.4",
-    "vercel": "^29.3.0",
+    "vercel": "^30.2.1",
     "wait-on": "^6.0.1"
   }
 }
