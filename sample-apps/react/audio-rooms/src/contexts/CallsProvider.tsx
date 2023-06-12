@@ -6,13 +6,15 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Call } from '@stream-io/video-client';
+
 import {
-  useConnectedUser,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
-import { ChildrenOnly } from '@stream-io/video-react-sdk';
+  ChildrenOnly,
+  StreamVideo,
+  Call,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
 import { noop } from '../utils/noop';
+import { useUserContext } from './UserContext';
 
 type CreateCallParams = {
   title: string;
@@ -43,9 +45,13 @@ const queryCallsParams = {
   limit: 25,
 };
 
+const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+
 export const CallsProvider = ({ children }: ChildrenOnly) => {
-  const client = useStreamVideoClient();
-  const connectedUser = useConnectedUser();
+  const { user } = useUserContext();
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
   const [calls, setCalls] = useState<CallContext['calls']>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error | undefined>();
@@ -64,30 +70,49 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
 
   const createCall = useCallback(
     async ({ description, title }: { title: string; description: string }) => {
-      if (!client) return;
+      if (!(client && user)) return;
+      const { token, ...userData } = user;
       const randomId = Math.random().toString(36).substring(2, 12);
       const call = client.call('audio_room', randomId);
       await call.getOrCreate({
         data: {
-          members: [{ user_id: connectedUser?.id || '', role: 'admin' }],
+          members: [{ user_id: user.id, role: 'admin' }],
           custom: {
             audioRoomCall: true,
             title: title,
             description: description,
-            hosts: [
-              {
-                name: connectedUser?.name,
-                id: connectedUser?.id,
-                imageUrl: connectedUser?.image,
-              },
-            ],
+            hosts: [userData],
           },
         },
       });
       setCalls((prevCalls) => [call, ...prevCalls]);
     },
-    [client, connectedUser],
+    [client, user],
   );
+
+  useEffect(() => {
+    if (!(client && user)) return;
+    client
+      .connectUser(
+        {
+          id: user.id,
+          image: user.imageUrl,
+          name: user.name,
+        },
+        user.token,
+      )
+      .catch((err) => {
+        console.error(`Failed to establish connection`, err);
+        setLoadingError(err);
+      });
+
+    return () => {
+      client.disconnectUser().catch((err) => {
+        console.error('Failed to disconnect', err);
+        setLoadingError(err);
+      });
+    };
+  }, [client, user]);
 
   useEffect(() => {
     if (!client) return;
@@ -106,18 +131,20 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   }, [client]);
 
   return (
-    <CallsContext.Provider
-      value={{
-        calls,
-        createCall,
-        loadingCalls,
-        loadingError,
-        loadMoreCalls,
-        setCalls,
-      }}
-    >
-      {children}
-    </CallsContext.Provider>
+    <StreamVideo client={client}>
+      <CallsContext.Provider
+        value={{
+          calls,
+          createCall,
+          loadingCalls,
+          loadingError,
+          loadMoreCalls,
+          setCalls,
+        }}
+      >
+        {children}
+      </CallsContext.Provider>
+    </StreamVideo>
   );
 };
 
