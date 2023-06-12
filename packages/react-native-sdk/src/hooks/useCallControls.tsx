@@ -61,14 +61,13 @@ export const useCallControls = () => {
 
   const publishVideoStream = useCallback(async () => {
     try {
-      if (videoDeviceId && isOnlineRef.current) {
-        const videoStream = await getVideoStream({
-          deviceId: videoDeviceId,
-        });
-        if (call) {
-          await call.publishVideoStream(videoStream);
-        }
-      }
+      if (!call || !videoDeviceId || !isOnlineRef.current) return;
+      
+      const videoStream = await getVideoStream({
+        deviceId: videoDeviceId
+      });
+      
+      await call.publishVideoStream(videoStream);
     } catch (e) {
       console.log('Failed to publish video stream', e);
     }
