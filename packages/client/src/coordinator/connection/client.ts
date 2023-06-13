@@ -253,6 +253,7 @@ export class StreamClient {
     if (this.resolveConnectPromise) {
       this.resolveConnectPromise();
       this.waitForConnectPromise = undefined;
+      this.resolveConnectPromise = undefined;
     }
 
     try {
@@ -407,6 +408,7 @@ export class StreamClient {
     if (this.resolveConnectPromise) {
       this.resolveConnectPromise();
       this.waitForConnectPromise = undefined;
+      this.resolveConnectPromise = undefined;
     }
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.

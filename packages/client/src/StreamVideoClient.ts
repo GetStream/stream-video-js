@@ -26,7 +26,6 @@ import type {
   EventTypes,
   StreamClientOptions,
   TokenOrProvider,
-  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
@@ -102,24 +101,29 @@ export class StreamVideoClient {
    * @param tokenOrProvider a token or a function that returns a token.
    */
   async connectUser(
-    user: User,
-    token: TokenOrProvider,
+    user?: User,
+    token?: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
-    if (user.type === 'anonymous') {
-      user.id = '!anon';
-      return this.connectAnonymousUser(user as UserWithId, token);
+    const userToConnect = user || this.user;
+    const tokenToUse = token || this.token;
+    if (!userToConnect) {
+      throw new Error('Connect user is called without user');
     }
-    if (user.type === 'guest') {
+    if (userToConnect.type === 'anonymous') {
+      userToConnect.id = '!anon';
+      return this.connectAnonymousUser(userToConnect as UserWithId, tokenToUse);
+    }
+    if (userToConnect.type === 'guest') {
       const response = await this.createGuestUser({
         user: {
-          ...user,
+          ...userToConnect,
           role: 'guest',
         },
       });
       return this.connectUser(response.user, response.access_token);
     }
     const connectUser = () => {
-      return this.streamClient.connectUser(user, token);
+      return this.streamClient.connectUser(userToConnect, tokenToUse);
     };
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
@@ -159,7 +163,7 @@ export class StreamVideoClient {
       this.on('call.created', (event) => {
         if (event.type !== 'call.created') return;
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (userToConnect.id === call.created_by.id) {
           console.warn('Received `call.created` sent by the current user');
           return;
         }
@@ -181,7 +185,7 @@ export class StreamVideoClient {
       this.on('call.ring', async (event) => {
         if (event.type !== 'call.ring') return;
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
+        if (userToConnect.id === call.created_by.id) {
           console.warn('Received `call.ring` sent by the current user');
           return;
         }
@@ -220,6 +224,9 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
+    if (!this.streamClient.user) {
+      return;
+    }
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
     this.disconnectionPromise = this.connectionPromise
       ? this.connectionPromise.then(() => disconnectUser())

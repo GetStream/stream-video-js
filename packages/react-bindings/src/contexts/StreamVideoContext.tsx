@@ -47,13 +47,19 @@ export const StreamVideo = ({
 
     if (client.user) {
       client
-        .connectUser(client.user, client.token)
+        .connectUser()
         .catch((error) =>
           console.error('Failed to establish connection', error),
         );
     }
 
     prevClient.current = client;
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((error) => console.error(`Failed to disconnect`, error));
+    };
   }, [client]);
 
   return (
