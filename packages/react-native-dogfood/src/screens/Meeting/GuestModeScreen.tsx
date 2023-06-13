@@ -33,7 +33,7 @@ export const GuestModeScreen = ({
 
   const joinAnonymously = () => {
     navigation.navigate('GuestMeetingScreen', {
-      mode: 'anon',
+      mode: 'anonymous',
       callId: callId,
       guestUserId: '!anon',
     });
