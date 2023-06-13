@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.11...@stream-io/video-react-bindings-0.0.12) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Features
+
+* Make it possible to provide user and token in StreamVideoClient… ([#631](https://github.com/GetStream/stream-video-js/issues/631)) ([93f9b03](https://github.com/GetStream/stream-video-js/commit/93f9b03313ac74179f1d93b513ea4de306312291))
+
 ### [0.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.10...@stream-io/video-react-bindings-0.0.11) (2023-06-13)
 
 ### Dependency Updates
