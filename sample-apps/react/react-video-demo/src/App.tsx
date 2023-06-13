@@ -57,17 +57,11 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     latency: number;
   }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
-  const [client] = useState(() => new StreamVideoClient(apiKey));
+  const [client] = useState(
+    () => new StreamVideoClient({ apiKey, user, token }),
+  );
 
   const { setSteps } = useTourContext();
-
-  useEffect(() => {
-    client.connectUser(user, token).catch(console.error);
-
-    return () => {
-      client.disconnectUser();
-    };
-  }, [client, user, token]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
