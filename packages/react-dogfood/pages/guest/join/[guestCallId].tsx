@@ -30,16 +30,18 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
-  const [userToConnect] = useState<User>(
-    mode === 'anon'
-      ? { type: 'anonymous' }
-      : { id: guestUserId, type: 'guest' },
-  );
-  const [tokenToUse] = useState(mode === 'anon' ? token : undefined);
-  const [client] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient({ apiKey, user: userToConnect, token: tokenToUse }),
-  );
+  const [client] = useState<StreamVideoClient>(() => {
+    const userToConnect: User =
+      mode === 'anon'
+        ? { type: 'anonymous' }
+        : { id: guestUserId, type: 'guest' };
+    const tokenToUse = mode === 'anon' ? token : undefined;
+    return new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      token: tokenToUse,
+    });
+  });
 
   const call = useMemo<Call>(
     () => client.call(callType, callId),
