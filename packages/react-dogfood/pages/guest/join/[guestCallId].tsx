@@ -41,7 +41,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       new StreamVideoClient({ apiKey, user: userToConnect, token: tokenToUse }),
   );
 
-  const [call] = useState<Call>(() => client.call(callType, callId));
+  const call = useMemo<Call>(() => client.call(callType, callId), [client, callType, callId]);
 
   useEffect(() => {
     call.getOrCreate().catch((err) => {
