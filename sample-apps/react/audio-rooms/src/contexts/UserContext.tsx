@@ -1,12 +1,15 @@
 import {
   createContext,
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from 'react';
-import { StreamVideoClient, TokenOrProvider } from '@stream-io/video-react-sdk';
+import {
+  ChildrenOnly,
+  StreamVideoClient,
+  TokenOrProvider,
+} from '@stream-io/video-react-sdk';
 import users, { User } from '../data/users';
 import { SESSION_STORAGE_UID_KEY } from '../utils/constants';
 import { noop } from '../utils/noop';
@@ -36,19 +39,13 @@ export const getSelectedUser = () =>
       u.id === sessionStorage.getItem(SESSION_STORAGE_UID_KEY) || undefined,
   );
 
-export const UserContextProvider: any = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
+export const UserContextProvider: any = ({ children }: ChildrenOnly) => {
   const [user, setUser] = useState<User | undefined>();
   const [authInProgress, setAuthInProgress] = useState(false);
 
   const selectUser = useCallback(async (selectedUser: User) => {
-    setAuthInProgress(true);
     sessionStorage.setItem(SESSION_STORAGE_UID_KEY, selectedUser.id);
     setUser(selectedUser);
-    setAuthInProgress(false);
   }, []);
 
   const logout = useCallback(async (client: StreamVideoClient) => {
@@ -72,8 +69,11 @@ export const UserContextProvider: any = ({
     const url = new URL(tokenProviderURL);
     url.searchParams.set('api_key', apiKey);
     url.searchParams.set('user_id', user.id);
+
+    setAuthInProgress(true);
     const response = await fetch(url.toString());
     const { token } = await response.json();
+    setAuthInProgress(false);
     return token;
   }, [user]);
 
