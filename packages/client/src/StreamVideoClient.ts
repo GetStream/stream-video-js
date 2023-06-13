@@ -98,7 +98,7 @@ export class StreamVideoClient {
    * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
    *
    * @param user the user to connect.
-   * @param tokenOrProvider a token or a function that returns a token.
+   * @param token a token or a function that returns a token.
    */
   async connectUser(
     user?: User,
