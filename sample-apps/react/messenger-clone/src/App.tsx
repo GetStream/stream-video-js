@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { UserResponse } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
 import {
@@ -48,16 +48,8 @@ const Root = ({
     userData: user,
   });
   const [videoClient] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
+    () => new StreamVideoClient({ apiKey, user, token: userToken }),
   );
-
-  useEffect(() => {
-    videoClient.connectUser(user, userToken).catch(console.error);
-
-    return () => {
-      videoClient.disconnectUser();
-    };
-  }, [videoClient, user, userToken]);
 
   if (!chatClient) return null;
 

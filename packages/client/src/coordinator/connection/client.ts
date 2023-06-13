@@ -520,6 +520,7 @@ export class StreamClient {
   ): Promise<T> => {
     if (!options.publicEndpoint || this.user) {
       if (this.waitForConnectPromise) {
+        console.log('waiting for connect promise');
         await this.waitForConnectPromise;
       }
       await this.tokenManager.tokenReady();
