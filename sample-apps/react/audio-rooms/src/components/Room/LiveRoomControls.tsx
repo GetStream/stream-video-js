@@ -17,6 +17,7 @@ import { CustomCallData } from '../../data/audioRoom';
 import {
   AddPersonIcon,
   BellIcon,
+  LoadingIcon,
   MicrophoneIcon,
   MuteMicrophoneIcon,
   RaiseHandIcon,
@@ -140,7 +141,13 @@ export const LiveRoomControls = ({
           onClick={toggleAudio}
           title={isAudioMute ? 'Unmute' : 'Mute'}
         >
-          {isAudioMute ? <MuteMicrophoneIcon /> : <MicrophoneIcon />}
+          {isAwaitingAudioApproval ? (
+            <LoadingIcon />
+          ) : isAudioMute ? (
+            <MuteMicrophoneIcon />
+          ) : (
+            <MicrophoneIcon />
+          )}
         </button>
       )}
       {!showMicButton && (
