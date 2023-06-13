@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.26...@stream-io/video-react-sdk-0.0.27) (2023-06-13)
+
+
+### Documentation
+
+* add usage of token snippet into Audio Room guide ([#638](https://github.com/GetStream/stream-video-js/issues/638)) ([4fbaad6](https://github.com/GetStream/stream-video-js/commit/4fbaad6e0760bd5b4c18b4f635ad9a77ce1f342b))
+
 ### [0.0.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.25...@stream-io/video-react-sdk-0.0.26) (2023-06-13)
 
 ### Dependency Updates
