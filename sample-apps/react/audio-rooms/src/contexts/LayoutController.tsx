@@ -2,14 +2,14 @@ import { createContext, useCallback, useContext, useState } from 'react';
 import { ChildrenOnly } from '@stream-io/video-react-sdk';
 import { noop } from '../utils/noop';
 
-type LayutController = {
+type LayoutController = {
   showCreateRoomModal: boolean;
   showRoomList: boolean;
   toggleShowCreateRoomModal: () => void;
   toggleShowRoomList: () => void;
 };
 
-const LayutControllerContext = createContext<LayutController>({
+const LayoutControllerContext = createContext<LayoutController>({
   showCreateRoomModal: false,
   showRoomList: false,
   toggleShowCreateRoomModal: noop,
@@ -31,7 +31,7 @@ export const LayoutControllerProvider = ({ children }: ChildrenOnly) => {
   );
 
   return (
-    <LayutControllerContext.Provider
+    <LayoutControllerContext.Provider
       value={{
         showCreateRoomModal,
         showRoomList,
@@ -40,8 +40,8 @@ export const LayoutControllerProvider = ({ children }: ChildrenOnly) => {
       }}
     >
       {children}
-    </LayutControllerContext.Provider>
+    </LayoutControllerContext.Provider>
   );
 };
 
-export const useLayoutController = () => useContext(LayutControllerContext);
+export const useLayoutController = () => useContext(LayoutControllerContext);
