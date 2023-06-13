@@ -2,7 +2,9 @@ import { Platform, PermissionsAndroid } from 'react-native';
 
 export const verifyAndroidBluetoothPermissions = async () => {
   const shouldCheckForPermissions = Number(Platform.Version) >= 31;
-  if (!shouldCheckForPermissions) return true;
+  if (!shouldCheckForPermissions) {
+    return true;
+  }
   const getCheckPermissionPromise = () => {
     return PermissionsAndroid.check(
       PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,

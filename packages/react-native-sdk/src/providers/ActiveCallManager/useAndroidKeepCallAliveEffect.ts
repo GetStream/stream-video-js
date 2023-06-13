@@ -1,4 +1,4 @@
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { useRef, useEffect } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../../utils';
@@ -9,9 +9,8 @@ async function setForegroundService() {
   if (Platform.OS !== 'android') {
     return;
   }
-  await notifee.createChannel(
-    StreamVideoRN.getConfig().android_foregroundServiceChannel,
-  );
+  const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
+  await notifee.createChannel(foregroundServiceConfig.android.channel);
   notifee.registerForegroundService(() => {
     return new Promise(() => {
       console.log('Foreground service running for call in progress');
@@ -23,10 +22,9 @@ async function startForegroundService() {
   if (Platform.OS !== 'android') {
     return;
   }
-  const { title, body } =
-    StreamVideoRN.getConfig().android_foregroundServiceNotificationTexts;
-  const channelId =
-    StreamVideoRN.getConfig().android_foregroundServiceChannel.id;
+  const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
+  const { title, body } = foregroundServiceConfig.android.notificationTexts;
+  const channelId = foregroundServiceConfig.android.channel.id;
   await notifee.displayNotification({
     title,
     body,
@@ -34,6 +32,7 @@ async function startForegroundService() {
       channelId,
       asForegroundService: true,
       ongoing: true, // user cannot dismiss the notification
+      colorized: true,
       pressAction: {
         id: 'default',
         launchActivity: 'default', // open the app when the notification is pressed
@@ -65,50 +64,36 @@ export const useAndroidKeepCallAliveEffect = () => {
     );
   }
   const foregroundServiceStartedRef = useRef(false);
-  const call = useCall();
-  const callingState$ = call?.state.callingState$;
+
+  const callingState = useCallCallingState();
 
   useEffect(() => {
     if (Platform.OS !== 'android') {
       return;
     }
-    if (!callingState$ && foregroundServiceStartedRef.current) {
-      // there is no call object so stop the foreground service if present
+
+    // start foreground service as soon as the call is joined
+    if (callingState === CallingState.JOINED) {
+      const run = async () => {
+        if (foregroundServiceStartedRef.current) {
+          return;
+        }
+        // request for notification permission and then start the foreground service
+        const settings = await notifee.requestPermission();
+        if (settings.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
+          await startForegroundService();
+          foregroundServiceStartedRef.current = true;
+        }
+      };
+      run();
+    } else {
+      if (!foregroundServiceStartedRef.current) {
+        return;
+      }
+      // stop foreground service when the call is not active
       stopForegroundService();
       foregroundServiceStartedRef.current = false;
       return;
     }
-    const subscription = callingState$?.subscribe(
-      (callingState: CallingState) => {
-        // start foreground service as soon as the call is joined
-        if (callingState === CallingState.JOINED) {
-          const run = async () => {
-            if (foregroundServiceStartedRef.current) {
-              return;
-            }
-            // request for notification permission and then start the foreground service
-            const settings = await notifee.requestPermission();
-            if (
-              settings.authorizationStatus === AuthorizationStatus.AUTHORIZED
-            ) {
-              await startForegroundService();
-              foregroundServiceStartedRef.current = true;
-            }
-          };
-          run();
-        } else {
-          if (!foregroundServiceStartedRef.current) {
-            return;
-          }
-          // stop foreground service when the call is not active
-          stopForegroundService();
-          foregroundServiceStartedRef.current = false;
-          return;
-        }
-      },
-    );
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [callingState$]);
+  }, [callingState]);
 };

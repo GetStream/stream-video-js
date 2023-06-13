@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import notifee, { EventType } from '@notifee/react-native';
+import notifee, { EventType, Event } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import {
   FirebaseMessagingTypes,
@@ -7,11 +7,11 @@ import {
   getFirebaseMessagingLib,
   RNCallKeepType,
 } from './libs';
-import { getPushConfig } from './config';
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
 } from './rxSubjects';
+import type { StreamVideoConfig } from '../StreamVideoRN/types';
 
 // const options: Parameters<RNCallKeepType['setup']>[0] = {
 //   ios: {
@@ -38,22 +38,23 @@ import {
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
 
-export async function setupCallkeep() {
-  const pushConfig = getPushConfig();
-  if (!pushConfig) {
-    return;
-  }
+type PushConfig = NonNullable<StreamVideoConfig['push']>;
+
+export async function setupCallkeep(pushConfig: PushConfig) {
   const callkeep = getCallKeepLib();
   const options: Parameters<RNCallKeepType['setup']>[0] = {
     ios: {
-      appName: pushConfig.ios_appName,
+      appName: pushConfig.ios.appName,
       supportsVideo: true,
     },
     android: {
-      ...pushConfig.android_phoneCallingAccountPermissionTexts,
+      ...pushConfig.android.phoneCallingAccountPermissionTexts,
       additionalPermissions: [],
     },
   };
+  if (Platform.OS !== 'ios') {
+    return;
+  }
   return callkeep.setup(options).then((accepted) => {
     if (accepted) {
       callkeep.setAvailable(true);
@@ -62,28 +63,41 @@ export async function setupCallkeep() {
 }
 
 /** Setup Firebase push message handler **/
-export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
-  const pushConfig = getPushConfig();
-  if (Platform.OS !== 'android' || !pushConfig) {
+export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
+  if (Platform.OS !== 'android') {
     return;
   }
   const messaging = getFirebaseMessagingLib();
-
-  messaging().setBackgroundMessageHandler(firebaseMessagingOnMessageHandler);
+  messaging().setBackgroundMessageHandler((msg) =>
+    firebaseMessagingOnMessageHandler(msg, pushConfig),
+  );
   // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
-  notifee.onBackgroundEvent(onNotifeeBackgroundEvent);
+  notifee.onBackgroundEvent((event) =>
+    onNotifeeBackgroundEvent(event, pushConfig),
+  );
+}
+
+/** Send token to stream, create notification channel,  */
+export async function initAndroidPushTokenAndRest(
+  client: StreamVideoClient,
+  pushConfig: PushConfig,
+) {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  const messaging = getFirebaseMessagingLib();
   const token = await messaging().getToken();
-  const push_provider_name = pushConfig.android_pushProviderName;
+  const push_provider_name = pushConfig.android.pushProviderName;
   await client.addDevice(token, 'firebase', push_provider_name);
-  await notifee.createChannel(pushConfig.android_incomingCallChannel);
+  await notifee.createChannel(pushConfig.android.incomingCallChannel);
   await notifee.requestPermission();
 }
 
 const firebaseMessagingOnMessageHandler = async (
   message: FirebaseMessagingTypes.RemoteMessage,
+  pushConfig: PushConfig,
 ) => {
-  const pushConfig = getPushConfig();
-  if (Platform.OS !== 'android' || !pushConfig) {
+  if (Platform.OS !== 'android') {
     return;
   }
   /* Example data from firebase
@@ -106,8 +120,8 @@ const firebaseMessagingOnMessageHandler = async (
     return;
   }
   const { getTitle, getBody } =
-    pushConfig.android_incomingCallNotificationTextGetters;
-  const channelId = pushConfig.android_incomingCallChannel.id;
+    pushConfig.android.incomingCallNotificationTextGetters;
+  const channelId = pushConfig.android.incomingCallChannel.id;
   const createdUserName = data.created_by_display_name;
   await notifee.displayNotification({
     title: getTitle(createdUserName),
@@ -143,13 +157,11 @@ const firebaseMessagingOnMessageHandler = async (
   // callkeep.displayIncomingCall(uuid, handle, localizedCallerName);
 };
 
-const onNotifeeBackgroundEvent: Parameters<
-  typeof notifee.onBackgroundEvent
->[0] = async ({ type, detail }) => {
-  const pushConfig = getPushConfig();
-  if (!pushConfig) {
-    return;
-  }
+const onNotifeeBackgroundEvent = async (
+  event: Event,
+  pushConfig: PushConfig,
+) => {
+  const { type, detail } = event;
   const { notification, pressAction } = detail;
   const notificationId = notification?.id;
   const data = notification?.data;
@@ -184,3 +196,44 @@ const onNotifeeBackgroundEvent: Parameters<
     pushConfig.navigateAcceptCall();
   }
 };
+
+export async function setAndroidInitialNotificationListener(
+  videoClient: StreamVideoClient,
+) {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+
+  const initialNotification = await notifee.getInitialNotification();
+  if (!initialNotification) {
+    return;
+  }
+  const { pressAction, notification } = initialNotification;
+  const data = notification.data;
+  if (!data || !pressAction || data.sender !== 'stream.video') {
+    return;
+  }
+  const call_cid = data.call_cid as string;
+  const [callType, callId] = call_cid.split(':');
+  const call = videoClient.call(callType, callId);
+  try {
+    await call.get();
+    const didPressDecline = pressAction.id === DECLINE_CALL_ACTION_ID;
+    const didPressAccept = pressAction.id === ACCEPT_CALL_ACTION_ID;
+    if (didPressDecline) {
+      await call.reject();
+      await call.leave();
+    } else if (didPressAccept) {
+      await call.accept();
+      await call.join();
+    }
+  } catch (err) {
+    console.warn(
+      "Couldn't process the incoming call that opened app from quit state",
+      call_cid,
+      err,
+    );
+    return undefined;
+  }
+  return call;
+}

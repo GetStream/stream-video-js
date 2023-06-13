@@ -4,8 +4,7 @@ import {
   pushRejectedIncomingCallCId$,
 } from '../../utils/push/rxSubjects';
 import { useEffect } from 'react';
-import { getPushConfig } from '../../utils/push/config';
-
+import { StreamVideoRN } from '../../utils';
 /**
  * This hook is used to process the incoming call via push notifications.
  * It starts a foreground service to keep the call alive as soon as the call is joined
@@ -15,7 +14,7 @@ export const useProcessPushCallEffect = () => {
   const activeCall = useCall();
   // The Effect to join/reject call automatically when incoming call was received and processed from push notification
   useEffect(() => {
-    const pushConfig = getPushConfig();
+    const pushConfig = StreamVideoRN.getConfig().push;
     if (!pushConfig || !activeCall) {
       return;
     }

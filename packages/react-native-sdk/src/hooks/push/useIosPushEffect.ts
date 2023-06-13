@@ -3,7 +3,7 @@ import { getVoipPushNotificationLib } from '../../utils/push/libs';
 
 import { Platform } from 'react-native';
 import { StreamVideoClient } from '@stream-io/video-client';
-import { getPushConfig } from '../../utils/push/config';
+import { StreamVideoRN } from '../../utils';
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -11,14 +11,14 @@ import { getPushConfig } from '../../utils/push/config';
  */
 export const useIosPushEffect = (client: StreamVideoClient) => {
   useEffect(() => {
-    const pushConfig = getPushConfig();
+    const pushConfig = StreamVideoRN.getConfig().push;
     if (Platform.OS !== 'ios' || !pushConfig) {
       return;
     }
     const voipPushNotification = getVoipPushNotificationLib();
     const onTokenReceived = (token: string) => {
       // send token to stream
-      const push_provider_name = pushConfig.ios_pushProviderName;
+      const push_provider_name = pushConfig.ios.pushProviderName;
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
         console.warn('Failed to send voip token to APN', err);
       });

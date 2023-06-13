@@ -4,15 +4,15 @@ import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
 } from '../../utils/push/rxSubjects';
-import { getPushConfig } from '../../utils/push/config';
 import { Platform } from 'react-native';
+import { StreamVideoRN } from '../../utils';
 
 /**
  * This hook is used to listen to callkeep events and do the necessary actions
  */
 export const useIosCallKeepEffect = () => {
   useEffect(() => {
-    const pushConfig = getPushConfig();
+    const pushConfig = StreamVideoRN.getConfig().push;
     if (Platform.OS !== 'ios' || !pushConfig) {
       return;
     }
