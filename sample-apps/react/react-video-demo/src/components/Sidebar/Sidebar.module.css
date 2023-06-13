@@ -1,5 +1,10 @@
 .sidebar {
-  @apply gap-y-3 h-full flex flex-col relative;
+  @apply h-full flex flex-col relative;
+}
+
+.sidebar.chatVisible,
+.sidebar.participantsVisible {
+  @apply gap-y-3;
 }
 
 .branding {
