@@ -391,10 +391,11 @@ export class StreamVideoClient {
 
   /**
    * createToken - Creates a token to authenticate this user. This function is used server side.
-   * The resulting token should be passed to the client side when the users registers or logs in.
+   * The resulting token should be passed to the client side when the users register or logs in.
    *
    * @param {string} userID The User ID
    * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param {number} [iat] The timestamp when a token has been issued
    * @param call_cids for anonymous tokens you have to provide the call cids the use can join
    *
    * @return {string} Returns a token
