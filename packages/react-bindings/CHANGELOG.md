@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.12...@stream-io/video-react-bindings-0.0.13) (2023-06-13)
+
+
+### Features
+
+* Update React sample apps for new connect flow ([#637](https://github.com/GetStream/stream-video-js/issues/637)) ([4f71f01](https://github.com/GetStream/stream-video-js/commit/4f71f01c882f350f67df03a4b06f214b06746460))
+
 ### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.11...@stream-io/video-react-bindings-0.0.12) (2023-06-13)
 
 ### Dependency Updates
