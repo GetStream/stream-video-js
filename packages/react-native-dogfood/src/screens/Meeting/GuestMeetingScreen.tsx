@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
-  TokenOrProvider,
   User,
   useCall,
   useCreateStreamVideoClient,
@@ -28,7 +27,6 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const guestCallType = 'default';
 
-  const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
   const activeCall = useCall();
@@ -48,30 +46,17 @@ export const GuestMeetingScreen = (props: Props) => {
     [mode, guestUserId],
   );
 
-  const onJoin = () => {
-    setShow('active-call');
-  };
-
-  const onLeave = () => {
-    setShow('lobby');
-    navigation.goBack();
-  };
-
-  useEffect(() => {
-    const intitializeToken = async () => {
-      const token = await createToken({
-        user_id: '!anon',
-        call_cids: `${guestCallType}:${guestCallId}`,
-      });
-      setTokenToUse(token);
-    };
-
-    intitializeToken();
+  const tokenOrProvider = useCallback(async () => {
+    const token = await createToken({
+      user_id: '!anon',
+      call_cids: `${guestCallType}:${guestCallId}`,
+    });
+    return token;
   }, [guestCallId, guestCallType]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    tokenOrProvider: tokenToUse,
+    tokenOrProvider: mode === 'guest' ? undefined : tokenOrProvider,
     user: userToConnect,
   });
 
@@ -84,6 +69,15 @@ export const GuestMeetingScreen = (props: Props) => {
       stopForegroundService();
     };
   }, [activeCall]);
+
+  const onJoin = () => {
+    setShow('active-call');
+  };
+
+  const onLeave = () => {
+    setShow('lobby');
+    navigation.goBack();
+  };
 
   return (
     <StreamVideo client={client}>
