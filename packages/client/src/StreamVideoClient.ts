@@ -72,11 +72,11 @@ export class StreamVideoClient {
    */
   async connectUser(
     user: User,
-    token: TokenOrProvider,
+    tokenOrProvider: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
     if (user.type === 'anonymous') {
       user.id = '!anon';
-      return this.connectAnonymousUser(user as UserWithId, token);
+      return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
     }
     if (user.type === 'guest') {
       const response = await this.createGuestUser({
@@ -88,7 +88,7 @@ export class StreamVideoClient {
       return this.connectUser(response.user, response.access_token);
     }
     const connectUser = () => {
-      return this.streamClient.connectUser(user, token);
+      return this.streamClient.connectUser(user, tokenOrProvider);
     };
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
