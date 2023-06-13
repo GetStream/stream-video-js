@@ -3,7 +3,6 @@ import { User } from './users';
 
 export type CustomCallData = {
   title?: string;
-  subtitle?: string;
   hosts?: User[];
   speakerIds?: string[];
   description?: string;
