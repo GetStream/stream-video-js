@@ -6,13 +6,21 @@ import { useOwnCapabilities } from '../hooks';
 
 type RestrictedProps = PropsWithChildren<{
   /**
+   * Required grants for the component to be able to render supplied children elements
+   */
+  requiredGrants: OwnCapability[];
+  /**
    * OwnCapabilities of the participant - grants they have available
    */
   availableGrants?: OwnCapability[];
   /**
-   * Required grants for the component to be able to render supplied children elements
+   * Render children only if user can request capability, but does not have it
    */
-  requiredGrants: OwnCapability[];
+  canRequestOnly?: boolean;
+  /**
+   * Render children only if user has capability
+   */
+  hasPermissionsOnly?: boolean;
   /**
    * Require all grants specified in `requiredGrants` to be available in the `availableGrants`,
    * component by default requires only one grant to appear in both arrays to render its children
@@ -22,6 +30,8 @@ type RestrictedProps = PropsWithChildren<{
 
 export const Restricted = ({
   availableGrants: availableGrantsFromProps,
+  canRequestOnly,
+  hasPermissionsOnly,
   requiredGrants,
   requireAll = true,
   children,
@@ -32,9 +42,16 @@ export const Restricted = ({
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
     (capability) => availableGrants.includes(capability),
   );
+
+  if (hasPermissionsOnly) return hasPermissions ? <>{children}</> : null;
+
   const canRequest = requiredGrants.some(
     (capability) => !!call && call.permissionsContext.canRequest(capability),
   );
+
+  if (canRequestOnly) return canRequest ? <>{children}</> : null;
+
   if (hasPermissions || canRequest) return <>{children}</>;
+
   return null;
 };

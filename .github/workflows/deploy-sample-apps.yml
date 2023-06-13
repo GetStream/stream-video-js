@@ -39,6 +39,8 @@ jobs:
             project-id: prj_8vo9hxdzh9FnRjO950qpt1fwUuPl
           - name: livestream-app-react
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
+          - name: audio-rooms
+            project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -52,6 +54,7 @@ jobs:
       VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
+      VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
     steps:
       - uses: actions/checkout@v3
         with:
