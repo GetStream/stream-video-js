@@ -689,6 +689,7 @@ export class Call {
     // - SFU crash or restart
     // - network change
     sfuClient.signalReady.then(() => {
+      // register a handler for the "goAway" event
       const unregisterGoAway = this.dispatcher.on('goAway', (event) => {
         if (event.eventPayload.oneofKind !== 'goAway') return;
         const { reason } = event.eventPayload.goAway;
@@ -699,6 +700,8 @@ export class Call {
       });
 
       sfuClient.signalWs.addEventListener('close', (e) => {
+        // unregister the "goAway" handler, as we won't need it anymore for this connection.
+        // the upcoming re-join will register a new handler anyway
         unregisterGoAway();
         // do nothing if the connection was closed on purpose
         if (e.code === KnownCodes.WS_CLOSED_SUCCESS) return;

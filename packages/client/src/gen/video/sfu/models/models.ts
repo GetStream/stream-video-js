@@ -548,6 +548,14 @@ export enum ErrorCode {
    */
   PARTICIPANT_MIGRATION_FAILED = 202,
   /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATING = 203;
+   */
+  PARTICIPANT_MIGRATING = 203,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_RECONNECT_FAILED = 204;
+   */
+  PARTICIPANT_RECONNECT_FAILED = 204,
+  /**
    * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
    */
   CALL_NOT_FOUND = 300,

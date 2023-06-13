@@ -391,6 +391,10 @@ export interface JoinResponse {
    * @generated from protobuf field: stream.video.sfu.models.CallState call_state = 1;
    */
   callState?: CallState;
+  /**
+   * @generated from protobuf field: bool ice_restart = 2;
+   */
+  iceRestart: boolean;
 }
 /**
  * ParticipantJoined is fired when a user joins a call
@@ -2054,10 +2058,11 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
   constructor() {
     super('stream.video.sfu.event.JoinResponse', [
       { no: 1, name: 'call_state', kind: 'message', T: () => CallState },
+      { no: 2, name: 'ice_restart', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
   create(value?: PartialMessage<JoinResponse>): JoinResponse {
-    const message = {};
+    const message = { iceRestart: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
       value: this,
@@ -2084,6 +2089,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
             options,
             message.callState,
           );
+          break;
+        case /* bool ice_restart */ 2:
+          message.iceRestart = reader.bool();
           break;
         default:
           let u = options.readUnknownField;
@@ -2116,6 +2124,9 @@ class JoinResponse$Type extends MessageType<JoinResponse> {
         writer.tag(1, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* bool ice_restart = 2; */
+    if (message.iceRestart !== false)
+      writer.tag(2, WireType.Varint).bool(message.iceRestart);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
