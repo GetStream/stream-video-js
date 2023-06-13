@@ -12,11 +12,11 @@ import { Platform } from 'react-native';
  */
 export const useIosCallKeepEffect = () => {
   useEffect(() => {
-    const callkeep = getCallKeepLib();
     const pushConfig = getPushConfig();
-    if (Platform.OS !== 'ios') {
+    if (Platform.OS !== 'ios' || !pushConfig) {
       return;
     }
+    const callkeep = getCallKeepLib();
     callkeep.addEventListener(
       'didReceiveStartCallAction',
       ({ handle, callUUID, name }) => {

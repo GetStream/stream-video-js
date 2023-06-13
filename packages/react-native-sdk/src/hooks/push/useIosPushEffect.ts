@@ -11,11 +11,11 @@ import { getPushConfig } from '../../utils/push/config';
  */
 export const useIosPushEffect = (client: StreamVideoClient) => {
   useEffect(() => {
-    if (Platform.OS !== 'ios') {
+    const pushConfig = getPushConfig();
+    if (Platform.OS !== 'ios' || !pushConfig) {
       return;
     }
     const voipPushNotification = getVoipPushNotificationLib();
-    const pushConfig = getPushConfig();
     const onTokenReceived = (token: string) => {
       // send token to stream
       const push_provider_name = pushConfig.ios_pushProviderName;

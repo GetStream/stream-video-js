@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-client';
-import notifee, { EventType, AuthorizationStatus } from '@notifee/react-native';
+import notifee, { EventType } from '@notifee/react-native';
 import { Platform } from 'react-native';
 import {
   FirebaseMessagingTypes,
@@ -39,8 +39,11 @@ const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
 
 export async function setupCallkeep() {
-  const callkeep = getCallKeepLib();
   const pushConfig = getPushConfig();
+  if (!pushConfig) {
+    return;
+  }
+  const callkeep = getCallKeepLib();
   const options: Parameters<RNCallKeepType['setup']>[0] = {
     ios: {
       appName: pushConfig.ios_appName,
@@ -60,11 +63,11 @@ export async function setupCallkeep() {
 
 /** Setup Firebase push message handler **/
 export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
-  if (Platform.OS !== 'android') {
+  const pushConfig = getPushConfig();
+  if (Platform.OS !== 'android' || !pushConfig) {
     return;
   }
   const messaging = getFirebaseMessagingLib();
-  const pushConfig = getPushConfig();
 
   messaging().setBackgroundMessageHandler(firebaseMessagingOnMessageHandler);
   // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
@@ -79,10 +82,10 @@ export async function setupFirebaseHandlerAndroid(client: StreamVideoClient) {
 const firebaseMessagingOnMessageHandler = async (
   message: FirebaseMessagingTypes.RemoteMessage,
 ) => {
-  if (Platform.OS !== 'android') {
+  const pushConfig = getPushConfig();
+  if (Platform.OS !== 'android' || !pushConfig) {
     return;
   }
-  const pushConfig = getPushConfig();
   /* Example data from firebase
     "message": {
         "data": {
@@ -99,15 +102,7 @@ const firebaseMessagingOnMessageHandler = async (
     }
   */
   const data = message.data;
-  if (!data) {
-    return;
-  }
-  // Check if the message is for Stream Video Call
-  if (data.sender !== 'stream.video') {
-    return;
-  }
-  const { authorizationStatus } = await notifee.requestPermission();
-  if (authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
+  if (!data || data.sender !== 'stream.video') {
     return;
   }
   const { getTitle, getBody } =
@@ -152,6 +147,9 @@ const onNotifeeBackgroundEvent: Parameters<
   typeof notifee.onBackgroundEvent
 >[0] = async ({ type, detail }) => {
   const pushConfig = getPushConfig();
+  if (!pushConfig) {
+    return;
+  }
   const { notification, pressAction } = detail;
   const notificationId = notification?.id;
   const data = notification?.data;

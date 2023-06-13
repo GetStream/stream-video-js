@@ -14,7 +14,6 @@ import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
-import { useAndroidForegroundCallEffect } from '../hooks';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -38,8 +37,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const activeCall = useCall();
   const activeCallRef = useRef(activeCall);
   activeCallRef.current = activeCall;
-
-  useAndroidForegroundCallEffect();
 
   useEffect(() => {
     // when the component mounts, we ask for necessary permissions.

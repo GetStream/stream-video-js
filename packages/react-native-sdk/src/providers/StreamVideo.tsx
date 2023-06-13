@@ -6,6 +6,7 @@ import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { MediaDevices } from './MediaDevices';
+import { usePushRegisterEffect } from '../hooks';
 
 /**
  *
@@ -33,6 +34,8 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
 
     return unsubscribe;
   }, [client]);
+
+  usePushRegisterEffect(client);
 
   return (
     <StreamVideoProvider

@@ -6,7 +6,6 @@ import {
   TokenOrProvider,
   User,
   useCreateStreamVideoClient,
-  usePushRegisterEffect,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
@@ -69,8 +68,6 @@ export const GuestMeetingScreen = (props: Props) => {
     tokenOrProvider: tokenToUse,
     user: userToConnect,
   });
-
-  usePushRegisterEffect(client);
 
   return (
     <StreamVideo client={client}>
