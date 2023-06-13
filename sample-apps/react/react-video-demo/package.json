@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@nivo/line": "^0.80.0",
-    "@sentry/react": "^7.51.2",
+    "@sentry/react": "^7.54.0",
     "@stream-io/stream-chat-css": "^3.9.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
