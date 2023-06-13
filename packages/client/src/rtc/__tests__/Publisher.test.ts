@@ -157,6 +157,8 @@ describe('Publisher', () => {
       };
 
       vi.spyOn(publisher['publisher'], 'setConfiguration');
+      // @ts-ignore
+      vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
 
       await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
 
@@ -164,6 +166,7 @@ describe('Publisher', () => {
       expect(publisher['publisher'].setConfiguration).toHaveBeenCalledWith(
         newPeerConnectionConfig,
       );
+      expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
     });
 
     it('should initiate ICE Restart when tracks there are published tracks', async () => {
