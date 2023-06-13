@@ -26,6 +26,7 @@ import type {
   EventTypes,
   StreamClientOptions,
   TokenOrProvider,
+  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
@@ -55,7 +56,8 @@ export class StreamVideoClient {
     apiKey: string;
     options?: StreamClientOptions;
     user?: User;
-    token?: TokenOrProvider;
+    token?: string;
+    tokenProvider?: TokenProvider;
   });
   constructor(
     apiKeyOrArgs:
@@ -64,7 +66,8 @@ export class StreamVideoClient {
           apiKey: string;
           options?: StreamClientOptions;
           user?: User;
-          token?: TokenOrProvider;
+          token?: string;
+          tokenProvider?: TokenProvider;
         },
     opts?: StreamClientOptions,
   ) {
@@ -80,7 +83,7 @@ export class StreamVideoClient {
       });
 
       this.user = apiKeyOrArgs.user;
-      this.token = apiKeyOrArgs.token;
+      this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (this.user) {
         this.streamClient.startWaitingForConnection();
       }
