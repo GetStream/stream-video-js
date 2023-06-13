@@ -52,7 +52,7 @@ const queryCallsParams = {
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const CallsProvider = ({ children }: ChildrenOnly) => {
-  const { user } = useUserContext();
+  const { user, tokenProvider } = useUserContext();
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
@@ -76,7 +76,6 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   const createCall = useCallback(
     async ({ description, title }: { title: string; description: string }) => {
       if (!(client && user)) return;
-      const { token, ...userData } = user;
       const randomId = Math.random().toString(36).substring(2, 12);
       const call = client.call('audio_room', randomId);
       await call.getOrCreate({
@@ -86,7 +85,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
             audioRoomCall: true,
             title: title,
             description: description,
-            hosts: [userData],
+            hosts: [user],
           },
         },
       });
@@ -104,7 +103,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
           image: user.imageUrl,
           name: user.name,
         },
-        user.token,
+        tokenProvider,
       )
       .catch((err) => {
         console.error(`Failed to establish connection`, err);
@@ -117,7 +116,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
         setLoadingError(err);
       });
     };
-  }, [client, user]);
+  }, [client, tokenProvider, user]);
 
   useEffect(() => {
     if (!client) return;

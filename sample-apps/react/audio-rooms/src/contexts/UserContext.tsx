@@ -6,24 +6,28 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { StreamVideoClient, TokenOrProvider } from '@stream-io/video-react-sdk';
 import users, { User } from '../data/users';
-import { tokenProvider } from '../utils/tokenProvider';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
 import { SESSION_STORAGE_UID_KEY } from '../utils/constants';
 import { noop } from '../utils/noop';
+
+const apiKey = import.meta.env.VITE_STREAM_API_KEY;
+const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL;
 
 export interface UserState {
   authInProgress: boolean;
   user: User | undefined;
   selectUser: (user: User) => Promise<void>;
   logout: (client: StreamVideoClient) => void;
+  tokenProvider: TokenOrProvider;
 }
 
 const UserContext = createContext<UserState>({
   authInProgress: false,
-  user: undefined,
-  selectUser: () => Promise.resolve(),
   logout: noop,
+  selectUser: () => Promise.resolve(),
+  tokenProvider: () => Promise.resolve(''),
+  user: undefined,
 });
 
 export const getSelectedUser = () =>
@@ -42,12 +46,8 @@ export const UserContextProvider: any = ({
 
   const selectUser = useCallback(async (selectedUser: User) => {
     setAuthInProgress(true);
-    const token = await tokenProvider(selectedUser.id);
     sessionStorage.setItem(SESSION_STORAGE_UID_KEY, selectedUser.id);
-    setUser({
-      ...selectedUser,
-      token,
-    });
+    setUser(selectedUser);
     setAuthInProgress(false);
   }, []);
 
@@ -56,6 +56,26 @@ export const UserContextProvider: any = ({
     sessionStorage.removeItem(SESSION_STORAGE_UID_KEY);
     setUser(undefined);
   }, []);
+
+  const tokenProvider = useCallback(async (): Promise<string> => {
+    if (!apiKey) {
+      throw new Error('Missing VITE_STREAM_API_KEY');
+    }
+    if (!tokenProviderURL) {
+      throw new Error('Missing VITE_TOKEN_PROVIDER_URL');
+    }
+
+    if (!user) {
+      throw new Error('User is not selected');
+    }
+
+    const url = new URL(tokenProviderURL);
+    url.searchParams.set('api_key', apiKey);
+    url.searchParams.set('user_id', user.id);
+    const response = await fetch(url.toString());
+    const { token } = await response.json();
+    return token;
+  }, [user]);
 
   useEffect(() => {
     const sessionUser = getSelectedUser();
@@ -69,9 +89,10 @@ export const UserContextProvider: any = ({
     <UserContext.Provider
       value={{
         authInProgress,
-        user,
-        selectUser,
         logout,
+        selectUser,
+        tokenProvider,
+        user,
       }}
     >
       {children}
