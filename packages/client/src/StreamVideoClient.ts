@@ -324,6 +324,7 @@ export class StreamVideoClient {
    * @param {string} push_provider the push provider name (eg. apn, firebase)
    * @param {string} push_provider_name user provided push provider name
    * @param {string} [userID] the user id (defaults to current user)
+   * @param {boolean} [voip_token] enables use of VoIP token for push notifications on iOS platform
    */
   addDevice = async (
     id: string,
