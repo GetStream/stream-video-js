@@ -5,11 +5,13 @@ import {
   useCall,
   useCallCallingState,
   useIsCallLive,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 import { useLoadedCalls } from '../../contexts';
 
 export const RoomNavControls = () => {
+  const { setInitialAudioEnabled } = useMediaDevices();
   const { setJoinedCall, joinedCall } = useLoadedCalls();
   const call = useCall();
   const callingState = useCallCallingState();
@@ -33,6 +35,7 @@ export const RoomNavControls = () => {
                   await joinedCall.leave().catch((err) => {
                     console.error('Error leaving call', err);
                   });
+                  setInitialAudioEnabled(false);
                 }
                 await call.goLive();
                 await call.join();
@@ -66,6 +69,7 @@ export const RoomNavControls = () => {
               await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
+              setInitialAudioEnabled(false);
               setJoinedCall(undefined);
             }}
           >
