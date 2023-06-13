@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 
 // a list of random star-wars characters

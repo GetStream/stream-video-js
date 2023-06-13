@@ -5,7 +5,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-sdk';
 import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
