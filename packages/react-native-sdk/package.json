@@ -11,18 +11,28 @@
     "test": "jest --coverage",
     "generate-docs": "../../scripts/generate-docs.sh reactnative @stream-io/video-react-native-sdk react-native-sdk"
   },
+  "files": [
+    "dist",
+    "src",
+    "index.ts",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^"
   },
   "peerDependencies": {
+    "@react-native-community/netinfo": ">=9.0.0",
     "react": ">=17.0.0",
     "react-native": ">=0.67.0",
     "react-native-callkeep": ">=4.3.4",
     "react-native-incall-manager": "^4.0.0",
     "react-native-svg": ">=13.6.0",
-    "react-native-webrtc": ">=106.0.4"
+    "react-native-webrtc": ">=111.0.1"
   },
   "peerDependenciesMeta": {
     "react-native-callkeep": {
@@ -32,6 +42,7 @@
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
     "@react-native-community/eslint-config": "^3.2.0",
+    "@react-native-community/netinfo": "9.3.9",
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@types/jest": "^29.5.1",
@@ -55,5 +66,5 @@
     "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "^4.9.5"
   },
-  "version": "0.0.1-alpha.128"
+  "version": "0.0.1-alpha.152"
 }

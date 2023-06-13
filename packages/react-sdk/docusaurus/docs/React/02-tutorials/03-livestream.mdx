@@ -43,13 +43,14 @@ In this tutorial, we will skip the details on how a `StreamVideoClient` can be s
 In the code snippet provided, we establish a connection to the Stream Edge server as the live stream host. We then proceed to join the call and publish our audio and video content to the live stream.
 In this example, we use the predefined [`<PaginatedGridLayout>`](../../ui-components/core/call-layout/#paginatedgridlayout) for the live stream.
 
-If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../../ui-cookbook/custom-call-layout/)
+If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../../ui-cookbook/video-layout/)
 
 ```tsx
+import { useEffect, useState } from 'react';
 import {
+  Call,
   useCall,
   useCallCallingState,
-  useCreateStreamVideoClient,
   useMediaDevices,
   CancelCallButton,
   PaginatedGridLayout,
@@ -62,28 +63,41 @@ import {
 // ... API key, provider, and user setup
 
 export const HostApp = () => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider,
-    user,
-  });
+  const client = /* ... */;
+  const [call, setCall] = useState<Call | undefined>(undefined);
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    setCall(client.call('livestream', callId));
+  }, [callId, client]);
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+    call.join({
+      create: true,
+      data: {
+        // optionally, invite other hosts to the live stream
+        members: [
+          {
+            user_id: connectedUser.id,
+            role: 'host',
+          },
+        ],
+      },
+    });
+  }, [call]);
 
   return (
     <StreamVideo client={client}>
-      <StreamCall
-        callType="livestream"
-        callId="some-random-call-id"
-        autoJoin={true}
-        data={{
-          create: true,
-          // optionally, invite other hosts to the live stream
-          data: {
-            members: [...],
-          }
-        }}
-      >
-        <BackstageUI />
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <BackstageUI />
+        </StreamCall>
+      )}
     </StreamVideo>
   )
 }
@@ -213,8 +227,8 @@ Alternatively, you can keep polling the backend for the current state of the cal
 
 ```tsx
 import {
+  Call,
   useCallCallingState,
-  useCreateStreamVideoClient,
   CallingState,
   LoadingIndicator,
   PaginatedGridLayout,
@@ -225,12 +239,7 @@ import {
 // ... API key, provider, and user setup
 
 export const ViewerApp = (props) => {
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider,
-    user,
-    isAnonymous: true,
-  });
+  const client = /* ... */;
 
   // `callId` needs to be provided from some party.
   // it is up to the developer to decide how to do that (prop, query param, etc.)
@@ -253,11 +262,20 @@ export const ViewerApp = (props) => {
       });
   }, [client, callId]);
 
+  useEffect(() => {
+    if (!activeCall) {
+      return;
+    }
+    activeCall.join();
+  }, [activeCall]);
+
   return (
     <StreamVideo client={client}>
-      <StreamCall call={activeCall} autoJoin={true}>
-        <WebRTCLivestreamUI />
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <WebRTCLivestreamUI />
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 };
@@ -298,18 +316,13 @@ import HLS from 'hls.js';
 
 export const ViewerApp = () => {
   // pseudo-code for simplicity, see the previous example for the full code
-  const client = useCreateStreamVideoClient({...});
+  const client = /* ... */;
   const [activeCall] = client.queryCalls({...});
   return (
     <StreamVideo client={client}>
-      <StreamCall
-        call={activeCall}
-        // we don't want to join this call, as that would switch to WebRTC-based live streaming.
-        // we are going to use HLS.js to play the live stream
-        autoJoin={false}
-      >
+      {activeCall && <StreamCall call={activeCall}>
         <HLSLivestreamUI />
-      </StreamCall>
+      </StreamCall>}
     </StreamVideo>
   )
 }

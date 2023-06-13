@@ -46,7 +46,8 @@
     "lint:ci:client": "eslint --cache 'packages/client/**/*.{ts,tsx}'",
     "test:ci:client": "yarn workspace @stream-io/video-client run test-ci",
     "sample:react:messenger": "yarn workspace @stream-io/messenger-clone-react run dev",
-    "sample:react:tutorial": "yarn workspace stream-video-react-tutorial run dev",
+    "sample:react:audio-rooms": "yarn workspace @stream-io/audio-rooms run dev",
+    "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
     "generate-docs:client": "yarn workspace @stream-io/video-client run generate-docs",
     "generate-docs:react:bindings": "yarn workspace @stream-io/video-react-bindings run generate-docs",
     "generate-docs:react:sdk": "yarn workspace @stream-io/video-react-sdk run generate-docs",
@@ -56,7 +57,8 @@
     "release": "nx run-many --target version --parallel=1",
     "release:18n": "yarn workspace @stream-io/i18n npm publish --access=public",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
-    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public"
+    "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public",
+    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
@@ -76,7 +78,7 @@
     "nx": "16.0.1",
     "prettier": "^2.8.4",
     "typescript": "^4.9.5",
-    "vercel": "^29.3.0"
+    "vercel": "^30.2.1"
   },
   "resolutions": {
     "react-native-incall-manager@^4.0.0": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch",

@@ -132,6 +132,16 @@ export class Call {
    */
   readonly state = new CallState();
 
+  private rejoinPromise: (() => Promise<void>) | undefined;
+
+  /**
+   * A promise that exposes the reconnection logic
+   * The use-case is for the react-native platform where online/offline events are not available in the window
+   */
+  get rejoin(): (() => Promise<void>) | undefined {
+    return this.rejoinPromise;
+  }
+
   /**
    * Flag indicating whether this call is "watched" and receives
    * updates from the backend.
@@ -139,14 +149,14 @@ export class Call {
   watching: boolean;
 
   /**
-   * The permissions context of this call.
-   */
-  readonly permissionsContext = new PermissionsContext();
-
-  /**
    * Flag telling whether this call is a "ringing" call.
    */
   private readonly ringingSubject: Subject<boolean>;
+
+  /**
+   * The permissions context of this call.
+   */
+  readonly permissionsContext = new PermissionsContext();
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -251,22 +261,26 @@ export class Call {
         // update the permission context.
         this.permissionsContext.setPermissions(ownCapabilities);
 
+        if (!this.publisher) return;
+
         // check if the user still has publishing permissions and stop publishing if not.
         const permissionToTrackType = {
           [OwnCapability.SEND_AUDIO]: TrackType.AUDIO,
           [OwnCapability.SEND_VIDEO]: TrackType.VIDEO,
           [OwnCapability.SCREENSHARE]: TrackType.SCREEN_SHARE,
         };
-        Object.entries(permissionToTrackType).forEach(([permission, type]) => {
+        for (const [permission, trackType] of Object.entries(
+          permissionToTrackType,
+        )) {
           const hasPermission = this.permissionsContext.hasPermission(
             permission as OwnCapability,
           );
-          if (!hasPermission) {
-            this.stopPublish(type).catch((err) => {
-              console.error('Error stopping publish', type, err);
+          if (!hasPermission && this.publisher.isPublishing(trackType)) {
+            this.stopPublish(trackType).catch((err) => {
+              console.error('Error stopping publish', trackType, err);
             });
           }
-        });
+        }
       }),
 
       // handles the case when the user is blocked by the call owner.
@@ -367,6 +381,7 @@ export class Call {
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
+    this.rejoinPromise = undefined;
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -652,7 +667,7 @@ export class Call {
       disconnectFromPreviousSfu();
 
       console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
-      if (localParticipant) {
+      if (localParticipant && !isReactNative()) {
         const {
           audioStream,
           videoStream,
@@ -666,6 +681,8 @@ export class Call {
       }
       console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
     };
+
+    this.rejoinPromise = rejoin;
 
     // reconnect if the connection was closed unexpectedly. example:
     // - SFU crash or restart
@@ -692,6 +709,8 @@ export class Call {
         // to the old SFU closed abruptly. In this case, we don't want
         // to reconnect to the old SFU, but rather to the new one.
         if (isMigrating && e.code === KnownCodes.WS_CLOSED_ABRUPTLY) return;
+        // do nothing for react-native as it is handled by SDK
+        if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch((err) => {
             console.log(

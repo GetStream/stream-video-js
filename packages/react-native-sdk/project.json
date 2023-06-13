@@ -25,7 +25,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-native-sdk:github"]
+        "postTargets": ["@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
       }
     },
     "github": {
@@ -33,6 +33,17 @@
       "options": {
         "tag": "${tag}",
         "notes": "${notes}"
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn release:react-native-sdk",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }

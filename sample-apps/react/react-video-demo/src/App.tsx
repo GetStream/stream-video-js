@@ -12,7 +12,7 @@ import {
   MediaDevicesProvider,
   StreamCallProvider,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
@@ -57,20 +57,23 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     latency: number;
   }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
+  const [client] = useState(() => new StreamVideoClient(apiKey));
 
   const { setSteps } = useTourContext();
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: token,
-    user,
-  });
+  useEffect(() => {
+    client.connectUser(user, token).catch(console.error);
+
+    return () => {
+      client.disconnectUser();
+    };
+  }, [client, user, token]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
     tokenOrProvider: token,
     userData: {
-      id: user.id,
+      id: user.id || '!anon',
       name: user.name,
       image: user.image,
     },

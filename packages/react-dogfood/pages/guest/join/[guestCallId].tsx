@@ -1,8 +1,10 @@
 import { GetServerSidePropsContext } from 'next';
 import {
+  Call,
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
+  User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -28,37 +30,36 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
-  const [userToConnect, setUserToConnect] = useState(user);
-  const [tokenToUse, setTokenToUse] = useState(token);
-  const [isAnonymous, setIsAnonymous] = useState(true);
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenToUse,
-    user: userToConnect,
-    isAnonymous: isAnonymous,
-  });
+  const [userToConnect] = useState<User>(
+    mode === 'anon'
+      ? { type: 'anonymous' }
+      : { id: guestUserId, type: 'guest' },
+  );
+  const [tokenToUse] = useState(mode === 'anon' ? token : undefined);
+  const [client] = useState<StreamVideoClient>(
+    () => new StreamVideoClient(apiKey),
+  );
+  const [call] = useState<Call>(() => client.call(callType, callId));
 
   useEffect(() => {
-    if (mode !== 'guest') return;
-    client
-      .createGuestUser({
-        user: {
-          id: guestUserId,
-          name: guestUserId,
-          role: 'guest',
-        },
-      })
-      .then((guestUser) => {
-        setUserToConnect(guestUser.user);
-        setTokenToUse(guestUser.access_token);
-        setIsAnonymous(false);
-      })
-      .catch((err) => {
-        console.error('Error creating guest user', err);
-      });
-  }, [client, guestUserId, mode]);
+    client.connectUser(userToConnect, tokenToUse).catch((err) => {
+      console.error(`Failed to establish connection`, err);
+    });
+    return () => {
+      client
+        .disconnectUser()
+        .catch((err) => console.error('Failed to disconnect', err));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client, userToConnect?.id, tokenToUse]);
 
-  useGleap(gleapApiKey, client, userToConnect);
+  useEffect(() => {
+    call.getOrCreate().catch((err) => {
+      console.error(`Failed to get or create call`, err);
+    });
+  }, [call]);
+
+  useGleap(gleapApiKey, client, user);
   return (
     <>
       <Head>
@@ -66,7 +67,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
       <StreamVideo client={client}>
-        <StreamCall callId={callId} callType={callType} autoJoin={false}>
+        <StreamCall call={call}>
           <MeetingUI enablePreview={mode !== 'anon'} />
         </StreamCall>
       </StreamVideo>

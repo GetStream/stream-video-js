@@ -32,7 +32,12 @@
 }
 
 .participant {
-  @apply flex items-center justify-between mt-2 text-sm;
+  @apply flex items-center justify-between p-2 text-sm;
+}
+
+.participant:hover {
+  @apply bg-video-grey-700 text-video-white;
+  border-radius: 6px;
 }
 
 .name {

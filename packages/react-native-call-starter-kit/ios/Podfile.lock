@@ -392,8 +392,6 @@ PODS:
     - React-Core
   - RNCallKeep (4.3.8):
     - React
-  - RNCAsyncStorage (1.18.1):
-    - React-Core
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.9.0):
@@ -515,7 +513,6 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeIncallManager (from `../node_modules/react-native-incall-manager`)
   - RNCallKeep (from `../node_modules/react-native-callkeep`)
-  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
@@ -630,8 +627,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-incall-manager"
   RNCallKeep:
     :path: "../node_modules/react-native-callkeep"
-  RNCAsyncStorage:
-    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
@@ -706,7 +701,6 @@ SPEC CHECKSUMS:
   ReactCommon: 349be31adeecffc7986a0de875d7fb0dcf4e251c
   ReactNativeIncallManager: 0d2cf9f4d50359728a30c08549762fe67a2efb81
   RNCallKeep: bf4040e9e5785469cd581d95c386fd2ca7e0507f
-  RNCAsyncStorage: b90b71f45b8b97be43bc4284e71a6af48ac9f547
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNImageCropPicker: 648356d68fbf9911a1016b3e3723885d28373eda
@@ -721,4 +715,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: d851fcc60ec0203011403e87942ce46ac609b89d
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.11.3
