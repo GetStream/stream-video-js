@@ -82,30 +82,6 @@ export const useCalls = () => {
 };
 
 /**
- * Utility hook which provides a list of all incoming ring calls (somebody calls me).
- *
- * @deprecated derive from useCalls()/useCall() instead.
- * @internal
- * @category Client State
- */
-export const useIncomingCalls = () => {
-  const { incomingCalls$ } = useStore();
-  return useObservableValue(incomingCalls$);
-};
-
-/**
- * Utility hook which provides a list of all outgoing ring calls (I call somebody).
- *
- * @deprecated derive from useCalls()/useCall() instead.
- * @internal
- * @category Client State
- */
-export const useOutgoingCalls = () => {
-  const { outgoingCalls$ } = useStore();
-  return useObservableValue(outgoingCalls$);
-};
-
-/**
  * Utility hook which provides call metadata (such as blocked users and own capabilities).
  *
  * @category Call State
