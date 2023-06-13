@@ -3,6 +3,8 @@ title: Audio Room Tutorial
 description: How to build an audio room using Stream's video SDKs
 ---
 
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
 In this guide, you'll build an audio room experience similar to Twitter Spaces / Clubhouse.
 
 The final result will look like this:
@@ -123,6 +125,10 @@ export interface User {
 ```
 
 With this, the user will be logged in and authenticated versus the Stream backend.
+
+Feel free to also use the data from this snippet, so that you can test everything without needing to setup anything on your own:
+
+<TokenSnippet sampleApp="audio-rooms" />
 
 ### Creating rooms via the API
 
