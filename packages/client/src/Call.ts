@@ -102,6 +102,7 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './sdk-info';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * An object representation of a `Call`.
