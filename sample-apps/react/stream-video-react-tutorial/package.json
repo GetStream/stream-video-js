@@ -1,5 +1,5 @@
 {
-  "name": "stream-video-react-tutorial",
+  "name": "@stream-io/stream-video-react-tutorial",
   "private": true,
   "version": "0.0.0",
   "type": "module",
