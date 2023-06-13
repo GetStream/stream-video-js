@@ -11,7 +11,6 @@ import {
   StreamVideoClient,
   useCall,
   useCallCallingState,
-  useConnectedUser,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -22,9 +21,19 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 }) as unknown as Record<string, string | null>;
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(import.meta.env.VITE_STREAM_API_KEY),
-  );
+  const [client] = useState<StreamVideoClient>(() => {
+    const user = {
+      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
+    };
+    const token = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
+
+    return new StreamVideoClient({
+      apiKey: import.meta.env.VITE_STREAM_API_KEY,
+      user,
+      token,
+    });
+  });
+
   const [call, setCall] = useState<Call | undefined>(undefined);
 
   const callId = useMemo(
@@ -38,22 +47,6 @@ export default function App() {
     }
     setCall(client.call('default', callId));
   }, [callId, client]);
-
-  useEffect(() => {
-    const user = {
-      id: params.user_id || import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const tokenProvider = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
-    client
-      .connectUser(user, tokenProvider)
-      .catch((err) => console.error('Failed to establish connection', err));
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-  }, [client]);
 
   return (
     <StreamVideo client={client}>
@@ -72,7 +65,6 @@ export const UI = () => {
   const call = useCall();
   const { publishVideoStream, publishAudioStream } = useMediaDevices();
   const callingState = useCallCallingState();
-  const user = useConnectedUser();
 
   useEffect(() => {
     if (callingState === CallingState.JOINED) {
@@ -96,9 +88,7 @@ export const UI = () => {
       ) : [CallingState.LEFT, CallingState.UNKNOWN, CallingState.IDLE].includes(
           callingState,
         ) ? (
-        <button disabled={!user} onClick={() => call.join({ create: true })}>
-          Join
-        </button>
+        <button onClick={() => call.join({ create: true })}>Join</button>
       ) : null}
     </>
   );

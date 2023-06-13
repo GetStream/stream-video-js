@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 
 // a list of random star-wars characters
@@ -21,16 +21,12 @@ export const characters = [
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const Hosts = () => {
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
-
   const randomCharacter = useMemo(() => {
     const index = Math.floor(Math.random() * characters.length);
     return characters[index];
   }, []);
 
-  useEffect(() => {
+  const [client] = useState<StreamVideoClient>(() => {
     const user = {
       id: randomCharacter,
       name: randomCharacter,
@@ -45,13 +41,8 @@ export const Hosts = () => {
       const response = await fetch(endpoint).then((res) => res.json());
       return response.token as string;
     };
-
-    client.connectUser(user, tokenProvider).catch(console.error);
-
-    return () => {
-      client.disconnectUser();
-    };
-  }, [client, randomCharacter]);
+    return new StreamVideoClient({ apiKey, user, tokenProvider });
+  });
 
   return (
     <StreamVideo client={client}>

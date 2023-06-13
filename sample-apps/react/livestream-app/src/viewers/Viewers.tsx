@@ -13,9 +13,6 @@ const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
   const randomCharacter = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * characters.length);
     return characters[randomIndex];
@@ -30,23 +27,14 @@ export const Viewers = () => {
     const response = await fetch(endpoint).then((res) => res.json());
     return response.token as string;
   }, [randomCharacter]);
-
-  useEffect(() => {
+  const [client] = useState<StreamVideoClient>(() => {
     const user = {
       id: randomCharacter,
       name: randomCharacter,
       role: 'user',
     };
-    client
-      .connectUser(user, tokenProvider)
-      .catch((err) => console.error('Failed to establish connection', err));
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-  }, [client, tokenProvider, randomCharacter]);
+    return new StreamVideoClient({ apiKey, user, tokenProvider });
+  });
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {

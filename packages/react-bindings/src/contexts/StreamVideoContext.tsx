@@ -39,12 +39,6 @@ export const StreamVideo = ({
   const prevClient = useRef<StreamVideoClient | undefined>(undefined);
 
   useEffect(() => {
-    if (prevClient.current) {
-      prevClient.current
-        .disconnectUser()
-        .catch((error) => console.error(`Failed to disconnect`, error));
-    }
-
     if (client.user) {
       client
         .connectUser()
@@ -56,8 +50,8 @@ export const StreamVideo = ({
     prevClient.current = client;
 
     return () => {
-      client
-        .disconnectUser()
+      prevClient.current
+        ?.disconnectUser()
         .catch((error) => console.error(`Failed to disconnect`, error));
     };
   }, [client]);
