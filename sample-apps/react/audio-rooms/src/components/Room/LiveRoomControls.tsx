@@ -107,6 +107,12 @@ export const LiveRoomControls = ({
     }
   }, [canSendAudio]);
 
+  useEffect(() => {
+    if (callingState !== CallingState.LEFT) {
+      setIsAwaitingAudioApproval(false);
+    }
+  }, [callingState]);
+
   if (!call || callingState !== CallingState.JOINED) return null;
 
   const showMicButton =
@@ -152,6 +158,11 @@ export const LiveRoomControls = ({
             <RaiseHandIcon />
           </button>
         </Restricted>
+      )}
+      {isAwaitingAudioApproval && (
+        <div className="live-room-controls__notificaton">
+          Waiting for permission to speak
+        </div>
       )}
     </div>
   );
