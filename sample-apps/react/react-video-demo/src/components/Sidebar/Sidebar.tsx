@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { StreamChat } from 'stream-chat';
 import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import classnames from 'classnames';
 
 import InvitePanel from '../InvitePanel';
 import ParticipantsPanel from '../ParticipantsPanel';
@@ -24,7 +25,12 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
   const { current: currenTourStep } = useTourContext();
 
   return (
-    <div className={styles.sidebar}>
+    <div
+      className={classnames(styles.sidebar, {
+        [styles.chatVisible]: isChatVisible,
+        [styles.participantsVisible]: isParticipantsVisible,
+      })}
+    >
       <InvitePanel
         callId={callId}
         isFocused={currenTourStep === StepNames.Invite}

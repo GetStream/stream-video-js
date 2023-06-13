@@ -19,45 +19,36 @@ export const useParticipantNotification = () => {
   const remoteParticipants = useRemoteParticipants();
 
   useEffect(() => {
+    if (remoteParticipants.length > oldParticipants.length) {
+      const newParticipant = remoteParticipants.filter(
+        (participant) =>
+          !oldParticipants
+            .map((p) => p.sessionId)
+            .includes(participant.sessionId),
+      )[0];
+
+      addNotification({
+        id: uuid(),
+        message: `${newParticipant.name} has joined the call`,
+        icon: <People />,
+      });
+    }
+
+    if (remoteParticipants.length < oldParticipants.length) {
+      const leavingParticipant = oldParticipants.filter(
+        (participant) =>
+          !remoteParticipants
+            .map((p) => p.sessionId)
+            .includes(participant.sessionId),
+      )[0];
+
+      addNotification({
+        id: uuid(),
+        message: `${leavingParticipant.name} has left the call`,
+        icon: <People />,
+      });
+    }
+
     setOldParticpantList(remoteParticipants);
-  }, []);
-
-  useEffect(() => {
-    const leftParticipants = oldParticipants.filter(
-      (oldParticipant) =>
-        !remoteParticipants.some(
-          (newParticipant) =>
-            newParticipant.sessionId === oldParticipant.sessionId,
-        ),
-    );
-
-    if (leftParticipants.length > 0) {
-      leftParticipants.forEach((participant) => {
-        addNotification({
-          id: uuid(),
-          message: `${participant.name} has left the call`,
-        });
-      });
-    }
-  }, [remoteParticipants, oldParticipants]);
-
-  useEffect(() => {
-    const joinedParticipants = remoteParticipants.filter(
-      (newParticipant) =>
-        !oldParticipants.some(
-          (oldParticipant) =>
-            oldParticipant.sessionId === newParticipant.sessionId,
-        ),
-    );
-
-    if (joinedParticipants.length > 0) {
-      joinedParticipants.forEach((participant) => {
-        addNotification({
-          id: uuid(),
-          message: `${participant.name} has joined the call`,
-          icon: <People />,
-        });
-      });
-    }
-  }, [remoteParticipants, oldParticipants]);
+  }, [remoteParticipants, oldParticipants, addNotification]);
 };

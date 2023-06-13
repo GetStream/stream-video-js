@@ -11,7 +11,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { MeetingUI } from '../../../components';
 import { createToken } from '../../../helpers/jwt';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
 
 type GuestCallRoomProps = {
@@ -30,28 +30,23 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
-  const [userToConnect] = useState<User>(
-    mode === 'anon'
-      ? { type: 'anonymous' }
-      : { id: guestUserId, type: 'guest' },
-  );
-  const [tokenToUse] = useState(mode === 'anon' ? token : undefined);
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
-  const [call] = useState<Call>(() => client.call(callType, callId));
-
-  useEffect(() => {
-    client.connectUser(userToConnect, tokenToUse).catch((err) => {
-      console.error(`Failed to establish connection`, err);
+  const [client] = useState<StreamVideoClient>(() => {
+    const userToConnect: User =
+      mode === 'anon'
+        ? { type: 'anonymous' }
+        : { id: guestUserId, type: 'guest' };
+    const tokenToUse = mode === 'anon' ? token : undefined;
+    return new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      token: tokenToUse,
     });
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, userToConnect?.id, tokenToUse]);
+  });
+
+  const call = useMemo<Call>(
+    () => client.call(callType, callId),
+    [client, callType, callId],
+  );
 
   useEffect(() => {
     call.getOrCreate().catch((err) => {

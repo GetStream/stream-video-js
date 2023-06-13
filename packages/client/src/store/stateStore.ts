@@ -1,10 +1,8 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { combineLatestWith, map } from 'rxjs/operators';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
 import type { OwnUserResponse } from '../coordinator/connection/types';
-import { CallingState } from './CallState';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -19,18 +17,6 @@ export class StreamVideoWriteableStateStore {
    */
   callsSubject = new BehaviorSubject<Call[]>([]);
 
-  /**
-   * A list of objects describing incoming calls.
-   * @deprecated derive from calls$ instead.
-   */
-  incomingCalls$: Observable<Call[]>;
-
-  /**
-   * A list of objects describing calls initiated by the current user (connectedUser).
-   * @deprecated derive from calls$ instead.
-   */
-  outgoingCalls$: Observable<Call[]>;
-
   constructor() {
     this.connectedUserSubject.subscribe(async (user) => {
       // leave all calls when the user disconnects.
@@ -40,32 +26,6 @@ export class StreamVideoWriteableStateStore {
         }
       }
     });
-
-    this.incomingCalls$ = this.callsSubject.pipe(
-      combineLatestWith(this.connectedUserSubject),
-      map(([calls, connectedUser]) =>
-        calls.filter((call) => {
-          const { metadata, callingState } = call.state;
-          return (
-            metadata?.created_by.id !== connectedUser?.id &&
-            callingState === CallingState.RINGING
-          );
-        }),
-      ),
-    );
-
-    this.outgoingCalls$ = this.callsSubject.pipe(
-      combineLatestWith(this.connectedUserSubject),
-      map(([calls, connectedUser]) =>
-        calls.filter((call) => {
-          const { metadata, callingState } = call.state;
-          return (
-            metadata?.created_by.id === connectedUser?.id &&
-            callingState === CallingState.RINGING
-          );
-        }),
-      ),
-    );
   }
 
   /**
@@ -148,22 +108,6 @@ export class StreamVideoWriteableStateStore {
   findCall = (type: string, id: string) => {
     return this.calls.find((c) => c.type === type && c.id === id);
   };
-
-  /**
-   * A list of objects describing incoming calls.
-   * @deprecated derive from calls$ instead.
-   */
-  get incomingCalls(): Call[] {
-    return this.getCurrentValue(this.incomingCalls$);
-  }
-
-  /**
-   * A list of objects describing calls initiated by the current user.
-   * @deprecated derive from calls$ instead.
-   */
-  get outgoingCalls(): Call[] {
-    return this.getCurrentValue(this.outgoingCalls$);
-  }
 }
 
 /**
@@ -183,18 +127,6 @@ export class StreamVideoReadOnlyStateStore {
   calls$: Observable<Call[]>;
 
   /**
-   * A list of objects describing calls initiated by the current user (connectedUser).
-   * @deprecated derive from calls$ instead.
-   */
-  outgoingCalls$: Observable<Call[]>;
-
-  /**
-   * A list of objects describing incoming calls.
-   * @deprecated derive from calls$ instead.
-   */
-  incomingCalls$: Observable<Call[]>;
-
-  /**
    * This method allows you the get the current value of a state variable.
    *
    * @param observable the observable to get the current value of.
@@ -206,10 +138,6 @@ export class StreamVideoReadOnlyStateStore {
     // convert and expose subjects as observables
     this.connectedUser$ = store.connectedUserSubject.asObservable();
     this.calls$ = store.callsSubject.asObservable();
-
-    // re-expose observables
-    this.incomingCalls$ = store.incomingCalls$;
-    this.outgoingCalls$ = store.outgoingCalls$;
   }
 
   /**
@@ -224,21 +152,5 @@ export class StreamVideoReadOnlyStateStore {
    */
   get calls(): Call[] {
     return RxUtils.getCurrentValue(this.calls$);
-  }
-
-  /**
-   * A list of objects describing incoming calls.
-   * @deprecated derive from calls$ instead.
-   */
-  get incomingCalls(): Call[] {
-    return RxUtils.getCurrentValue(this.incomingCalls$);
-  }
-
-  /**
-   * A list of objects describing calls initiated by the current user.
-   * @deprecated derive from calls$ instead.
-   */
-  get outgoingCalls(): Call[] {
-    return RxUtils.getCurrentValue(this.outgoingCalls$);
   }
 }

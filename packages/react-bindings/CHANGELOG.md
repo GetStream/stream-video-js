@@ -2,6 +2,33 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.12...@stream-io/video-react-bindings-0.0.13) (2023-06-13)
+
+
+### Features
+
+* Update React sample apps for new connect flow ([#637](https://github.com/GetStream/stream-video-js/issues/637)) ([4f71f01](https://github.com/GetStream/stream-video-js/commit/4f71f01c882f350f67df03a4b06f214b06746460))
+
+### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.11...@stream-io/video-react-bindings-0.0.12) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Features
+
+* Make it possible to provide user and token in StreamVideoClient… ([#631](https://github.com/GetStream/stream-video-js/issues/631)) ([93f9b03](https://github.com/GetStream/stream-video-js/commit/93f9b03313ac74179f1d93b513ea4de306312291))
+
+### [0.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.10...@stream-io/video-react-bindings-0.0.11) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Features
+
+* add audio room demo app ([#572](https://github.com/GetStream/stream-video-js/issues/572)) ([77f7b65](https://github.com/GetStream/stream-video-js/commit/77f7b6596047d59e10c8e58abad38c4f48cc162f))
+
 ### [0.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.9...@stream-io/video-react-bindings-0.0.10) (2023-06-12)
 
 ### Dependency Updates

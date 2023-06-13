@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.26...@stream-io/video-react-sdk-0.0.27) (2023-06-13)
+
+
+### Documentation
+
+* add usage of token snippet into Audio Room guide ([#638](https://github.com/GetStream/stream-video-js/issues/638)) ([4fbaad6](https://github.com/GetStream/stream-video-js/commit/4fbaad6e0760bd5b4c18b4f635ad9a77ce1f342b))
+
+### [0.0.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.25...@stream-io/video-react-sdk-0.0.26) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `0.0.13`
+### [0.0.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.24...@stream-io/video-react-sdk-0.0.25) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.12`
+### [0.0.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.23...@stream-io/video-react-sdk-0.0.24) (2023-06-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.11`
+
+### Features
+
+* add audio room demo app ([#572](https://github.com/GetStream/stream-video-js/issues/572)) ([77f7b65](https://github.com/GetStream/stream-video-js/commit/77f7b6596047d59e10c8e58abad38c4f48cc162f))
+
+### [0.0.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.22...@stream-io/video-react-sdk-0.0.23) (2023-06-12)
+
+
+### Documentation
+
+* **react-sdk:** add documentation for device settings UI components ([#624](https://github.com/GetStream/stream-video-js/issues/624)) ([25b2636](https://github.com/GetStream/stream-video-js/commit/25b26363a41938ceadf256baa9ba194ffd92a658))
+
 ### [0.0.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.21...@stream-io/video-react-sdk-0.0.22) (2023-06-12)
 
 ### Dependency Updates
