@@ -1,5 +1,5 @@
 import { useCallMetadata } from '@stream-io/video-react-sdk';
-import { CustomCallData } from '../data/audioRoom';
+import type { CustomCallData } from '../types';
 
 const RoomCard = () => {
   const metadata = useCallMetadata();

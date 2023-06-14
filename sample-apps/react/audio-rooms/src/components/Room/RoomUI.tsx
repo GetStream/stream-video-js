@@ -14,7 +14,6 @@ import { useMemo } from 'react';
 import RoomList from '../../pages/RoomList';
 import { ChatIcon, PersonIcon } from '../icons';
 import SpeakerElement from './SpeakerElement';
-import { CustomCallData } from '../../data/audioRoom';
 import SpeakingRequestsList from './SpeakingRequestsList';
 import { useSpeakingRequests } from '../../hooks/useSpeakingRequests';
 import { Listener } from './Listener';
@@ -22,6 +21,7 @@ import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
 import { RoomNavControls } from './RoomNavControls';
 import { useLayoutController } from '../../contexts';
+import type { CustomCallData } from '../../types';
 
 export const RoomUI = () => {
   const { showRoomList } = useLayoutController();

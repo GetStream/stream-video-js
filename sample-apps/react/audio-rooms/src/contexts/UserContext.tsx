@@ -10,9 +10,10 @@ import {
   StreamVideoClient,
   TokenOrProvider,
 } from '@stream-io/video-react-sdk';
-import users, { User } from '../data/users';
+import users from '../data/users';
 import { SESSION_STORAGE_UID_KEY } from '../utils/constants';
 import { noop } from '../utils/noop';
+import type { User } from '../types';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY;
 const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL;

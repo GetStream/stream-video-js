@@ -13,7 +13,6 @@ import {
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
-import { CustomCallData } from '../../data/audioRoom';
 import {
   AddPersonIcon,
   BellIcon,
@@ -22,6 +21,7 @@ import {
   MuteMicrophoneIcon,
   RaiseHandIcon,
 } from '../icons';
+import type { CustomCallData } from '../../types';
 
 type LiveRoomControlsProps = {
   hasNotifications: boolean;

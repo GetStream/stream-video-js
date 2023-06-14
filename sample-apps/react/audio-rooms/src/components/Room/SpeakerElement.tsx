@@ -9,7 +9,7 @@ import {
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { CloseIcon, MuteMicrophoneIcon, StarIcon } from '../icons';
-import { CustomCallData } from '../../data/audioRoom';
+import type { CustomCallData } from '../../types';
 
 const SpeakerElement = ({
   speaker,

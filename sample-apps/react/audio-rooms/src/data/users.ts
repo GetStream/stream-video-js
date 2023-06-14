@@ -1,8 +1,4 @@
-export interface User {
-  id: string;
-  name: string;
-  imageUrl: string;
-}
+import { User } from '../types';
 
 const users: User[] = [
   {
