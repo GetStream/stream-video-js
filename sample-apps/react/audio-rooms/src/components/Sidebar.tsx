@@ -36,7 +36,7 @@ export default function Sidebar() {
             <LeaveIcon />
             <span>Sign out</span>
           </button>
-          {showRoomList && (
+          {(showRoomList || !location.pathname.match('/join')) && (
             <div className="sidebar-navlinks">
               {roomStates.map((liveState) => (
                 <button
