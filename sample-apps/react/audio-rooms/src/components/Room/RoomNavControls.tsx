@@ -12,7 +12,7 @@ import { useLoadedCalls } from '../../contexts';
 
 export const RoomNavControls = () => {
   const { setInitialAudioEnabled } = useMediaDevices();
-  const { setJoinedCall, joinedCall } = useLoadedCalls();
+  const { setJoinedCall, joinedCall, leaveCall } = useLoadedCalls();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
@@ -32,7 +32,7 @@ export const RoomNavControls = () => {
               className="leave-button"
               onClick={async () => {
                 if (joinedCall) {
-                  await joinedCall.leave().catch((err) => {
+                  await leaveCall(joinedCall).catch((err) => {
                     console.error('Error leaving call', err);
                   });
                   setInitialAudioEnabled(false);
@@ -66,7 +66,7 @@ export const RoomNavControls = () => {
           <button
             className="leave-button"
             onClick={async () => {
-              await call.leave().catch((err) => {
+              await leaveCall(call).catch((err) => {
                 console.error('Error leaving call', err);
               });
               setInitialAudioEnabled(false);

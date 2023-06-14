@@ -17,7 +17,7 @@ export const EndedRoomOverlay = () => {
 };
 
 export const RoomLobby = () => {
-  const { joinedCall, setJoinedCall } = useLoadedCalls();
+  const { joinedCall, setJoinedCall, leaveCall } = useLoadedCalls();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
@@ -47,7 +47,7 @@ export const RoomLobby = () => {
         className="leave-button"
         onClick={async () => {
           if (joinedCall) {
-            await joinedCall?.leave().catch((err) => {
+            await leaveCall(joinedCall).catch((err) => {
               console.log(err);
             });
           }

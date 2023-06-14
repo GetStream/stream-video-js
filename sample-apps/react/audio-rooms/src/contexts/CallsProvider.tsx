@@ -26,6 +26,7 @@ type CallContext = {
   setJoinedCall: (call?: Call) => void;
   calls: Call[];
   createCall: ({ description, title }: CreateCallParams) => void;
+  leaveCall: (call: Call) => Promise<void>;
   loadingCalls: boolean;
   loadMoreCalls: () => Promise<void>;
   setCalls: (calls: Call[]) => void;
@@ -37,13 +38,14 @@ const CallsContext = createContext<CallContext>({
   setJoinedCall: noop,
   calls: [],
   createCall: () => Promise.resolve(),
+  leaveCall: () => Promise.resolve(),
   loadingCalls: false,
   loadMoreCalls: () => Promise.resolve(),
   setCalls: noop,
 });
 
 const queryCallsParams = {
-  filter_conditions: { audioRoomCall: true },
+  filter_conditions: { type: 'audio_room' },
   sort: [],
   watch: true,
   limit: 25,
@@ -82,7 +84,6 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
         data: {
           members: [{ user_id: user.id, role: 'admin' }],
           custom: {
-            audioRoomCall: true,
             title: title,
             description: description,
             hosts: [user],
@@ -92,6 +93,21 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
       setCalls((prevCalls) => [call, ...prevCalls]);
     },
     [client, user],
+  );
+
+  const leaveCall = useCallback(
+    async (call: Call) => {
+      await call.leave();
+      const newCall = client.call(call.type, call.id);
+      await newCall.get();
+
+      setCalls((prevCalls) => [
+        ...prevCalls.map((c) => {
+          return c.cid === call.cid ? newCall : c;
+        }),
+      ]);
+    },
+    [client],
   );
 
   useEffect(() => {
@@ -142,6 +158,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
           setJoinedCall,
           calls,
           createCall,
+          leaveCall,
           loadingCalls,
           loadingError,
           loadMoreCalls,
