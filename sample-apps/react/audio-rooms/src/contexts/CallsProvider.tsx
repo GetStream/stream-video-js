@@ -10,11 +10,12 @@ import {
 import {
   Call,
   ChildrenOnly,
-  StreamVideo,
-  StreamVideoClient,
+  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { noop } from '../utils/noop';
 import { useUserContext } from './UserContext';
+
+const CALL_TYPE = 'audio_room';
 
 type CreateCallParams = {
   title: string;
@@ -45,19 +46,15 @@ const CallsContext = createContext<CallContext>({
 });
 
 const queryCallsParams = {
-  filter_conditions: { type: 'audio_room' },
+  filter_conditions: { type: CALL_TYPE },
   sort: [],
   watch: true,
   limit: 25,
 };
 
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-
 export const CallsProvider = ({ children }: ChildrenOnly) => {
-  const { user, tokenProvider } = useUserContext();
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
+  const { user } = useUserContext();
+  const client = useStreamVideoClient();
   const [joinedCall, setJoinedCall] = useState<Call>();
   const [calls, setCalls] = useState<CallContext['calls']>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
@@ -79,7 +76,7 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
     async ({ description, title }: { title: string; description: string }) => {
       if (!(client && user)) return;
       const randomId = Math.random().toString(36).substring(2, 12);
-      const call = client.call('audio_room', randomId);
+      const call = client.call(CALL_TYPE, randomId);
       await call.getOrCreate({
         data: {
           members: [{ user_id: user.id, role: 'admin' }],
@@ -97,6 +94,8 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
 
   const leaveCall = useCallback(
     async (call: Call) => {
+      if (!client) return;
+
       await call.leave();
       const newCall = client.call(call.type, call.id);
       await newCall.get();
@@ -109,30 +108,6 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
     },
     [client],
   );
-
-  useEffect(() => {
-    if (!(client && user)) return;
-    client
-      .connectUser(
-        {
-          id: user.id,
-          image: user.imageUrl,
-          name: user.name,
-        },
-        tokenProvider,
-      )
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
-        setLoadingError(err);
-      });
-
-    return () => {
-      client.disconnectUser().catch((err) => {
-        console.error('Failed to disconnect', err);
-        setLoadingError(err);
-      });
-    };
-  }, [client, tokenProvider, user]);
 
   useEffect(() => {
     if (!client) return;
@@ -151,23 +126,21 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   }, [client]);
 
   return (
-    <StreamVideo client={client}>
-      <CallsContext.Provider
-        value={{
-          joinedCall,
-          setJoinedCall,
-          calls,
-          createCall,
-          leaveCall,
-          loadingCalls,
-          loadingError,
-          loadMoreCalls,
-          setCalls,
-        }}
-      >
-        {children}
-      </CallsContext.Provider>
-    </StreamVideo>
+    <CallsContext.Provider
+      value={{
+        joinedCall,
+        setJoinedCall,
+        calls,
+        createCall,
+        leaveCall,
+        loadingCalls,
+        loadingError,
+        loadMoreCalls,
+        setCalls,
+      }}
+    >
+      {children}
+    </CallsContext.Provider>
   );
 };
 

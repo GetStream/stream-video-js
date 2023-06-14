@@ -10,6 +10,7 @@ import {
   useLayoutController,
 } from '../contexts';
 import CreateRoomForm from './CreateRoomForm';
+import { VideoClientProvider } from '../contexts/VideoClientProvider';
 
 export const AppShell = () => (
   <AppProviders>
@@ -19,7 +20,9 @@ export const AppShell = () => (
 
 const AppProviders = ({ children }: ChildrenOnly) => (
   <LayoutControllerProvider>
-    <CallsProvider>{children}</CallsProvider>
+    <VideoClientProvider>
+      <CallsProvider>{children}</CallsProvider>
+    </VideoClientProvider>
   </LayoutControllerProvider>
 );
 
