@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.28...@stream-io/video-react-sdk-0.0.29) (2023-06-14)
+
+
+### Documentation
+
+* Remove the Core Components page ([9790299](https://github.com/GetStream/stream-video-js/commit/9790299b04d5d52e5dedfdacf6cdae506eeb00fe))
+
 ### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.27...@stream-io/video-react-sdk-0.0.28) (2023-06-14)
 
 
