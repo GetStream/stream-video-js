@@ -100,17 +100,11 @@ const tokenProvider = useCallback(async () => {
 Having this we can create a client object:
 
 ```tsx
-const client = useCreateStreamVideoClient({
+const client = new StreamVideoClient({
   apiKey,
-  tokenOrProvider: tokenProvider,
+  tokenProvider,
   user,
 });
-```
-
-Whenever a user hits the login button we can authenticate them using a call to `connectUser`:
-
-```tsx
-await client.connectUser(user, user.token);
 ```
 
 For this to work we need a `User` object which is a simple typescript file with the following properties:
@@ -119,8 +113,7 @@ For this to work we need a `User` object which is a simple typescript file with 
 export interface User {
   id: string;
   name: string;
-  imageUrl: string;
-  token?: string;
+  image: string;
 }
 ```
 
