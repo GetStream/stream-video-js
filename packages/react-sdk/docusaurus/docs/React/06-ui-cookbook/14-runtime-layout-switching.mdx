@@ -1,0 +1,59 @@
+---
+id: runtime-layout-switching
+title: Runtime layout switching
+---
+
+## Introduction
+
+During your application's lifecycle there will be situations where you'll want to direct your users to a different [video layout](./04-video-layout.mdx) upon certain event. In this case we'll explore how to automatically switch to a video layout that is better suited for when any of the participants starts a screen share session.
+
+### Defining Stage component
+
+In this guide, we'll introduce a concept component called `Stage` that'll handle the automatic switching logic and renders appropriate layout component.
+
+```tsx
+import {
+  PaginatedGridLayout,
+  SpeakerLayout,
+  useHasOngoingScreenshare,
+} from '@stream-io/video-react-sdk';
+
+const LayoutMap = {
+  Speaker: {
+    component: SpeakerLayout,
+    title: 'Speaker layout with spotlight',
+    props: {},
+  },
+  PaginatedGrid: {
+    component: PaginatedGridLayout,
+    title: 'Paginated grid layout',
+    props: {
+      groupSize: 12,
+    },
+  },
+};
+
+export const Stage = () => {
+  const [selectedLayout, setSelectedLayout] =
+    useState<keyof typeof LayoutMap>('Grid');
+  const hasOngoingScreenshare = useHasOngoingScreenshare();
+
+  const LayoutComponent = LayoutMap[selectedLayout].component;
+  const componentProps = LayoutMap[selectedLayout].props;
+
+  useEffect(() => {
+    // set screen share compatible layout
+    if (hasOngoingScreenshare) return setSelectedLayout('Speaker');
+
+    return setSelectedLayout('PaginatedGrid');
+  }, [hasOngoingScreenshare]);
+
+  return <LayoutComponent {...componentProps} />;
+};
+```
+
+### Optional enhancements
+
+If your application supports more than two video layouts you might want to consider storing preferred layout in the `localStorage` so when your application toggles back - it switches to the preffered one.
+
+Consider using versioned persisted application states like the one in [Zustand](https://github.com/pmndrs/zustand#persist-middleware).
