@@ -4,10 +4,10 @@
 
 1. Move to the root folder of the repo
 2. Run `yarn` to install dependencies
-3. Make sure you have a `.env` file in `packages/react-native-dogfood` with the following keys: `STREAM_API_KEY`
+3. Make sure you have a `.env` file in `sample-apps/react-native/dogfood` with the following keys: `STREAM_API_KEY`
    and `STREAM_API_SECRET`
 4. Run `yarn build:all` to build the dependent packages
-5. Move to `cd packages/react-native-dogfood/`
+5. Move to `cd sample-apps/react-native/dogfood/`
 6. Run `npx pod-install` to install pods (ios only)
 7. Follow [this guide](https://www.notion.so/stream-wiki/Video-dogfood-app-8fd4b72b2ac9495eb55872f5a70b5f6d) and setup
    Sentry error tracking (or: `SENTRY_RN_AUTH_TOKEN=<your-token> ./scripts/create-sentry-properties.sh`)
