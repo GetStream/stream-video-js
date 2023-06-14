@@ -195,22 +195,20 @@ export class StreamVideoClient {
 
         // The call might already be tracked by the client,
         // if `call.created` was received before `call.ring`.
-        // In that case, we just reuse the already tracked call.
-        let theCall = this.writeableStateStore.findCall(call.type, call.id);
-        if (!theCall) {
-          // otherwise, we create a new call
-          theCall = new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            members,
-            clientStore: this.writeableStateStore,
-            ringing: true,
-          });
-        }
-
+        // In that case, we cleanup reuse the already tracked call.
+        const prevCall = this.writeableStateStore.findCall(call.type, call.id);
+        await prevCall?.leave();
+        // we create a new call
+        const theCall = new Call({
+          streamClient: this.streamClient,
+          type: call.type,
+          id: call.id,
+          members,
+          clientStore: this.writeableStateStore,
+          ringing: true,
+        });
         // we fetch the latest metadata for the call from the server
-        await theCall.get(undefined, true);
+        await theCall.get();
         this.writeableStateStore.registerCall(theCall);
       }),
     );
