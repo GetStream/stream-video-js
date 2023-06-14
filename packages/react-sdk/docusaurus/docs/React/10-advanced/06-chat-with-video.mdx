@@ -58,7 +58,7 @@ import { Video } from './components/Video';
 import { useCreateChatClient } from './hooks';
 
 import type { StreamChatType } from './types/chat';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const Root = ({
   apiKey,
@@ -74,19 +74,14 @@ const Root = ({
     tokenOrProvider: userToken,
     userData: user,
   });
-  const [videoClient] = useState(() => new StreamVideoClient(apiKey));
-
-  useEffect(() => {
-    videoClient
-      .connectUser(user, userToken)
-      .catch((err) => console.error('Failed to establish connection', err));
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-  }, [videoClient, user, userToken]);
+  const [videoClient] = useState(
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user: userData,
+        token: userToken,
+      }),
+  );
 
   if (!chatClient) return null;
 
