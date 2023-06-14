@@ -14,6 +14,11 @@ const CustomParticipantViewUISpotlight = () => {
   const constraintsElementRef = useRef<HTMLDivElement | null>(null);
   const hasOngoingScreenShare = useHasOngoingScreenShare();
 
+  const participantToRender =
+    hasOngoingScreenShare && !participantInSpotlight.isLoggedInUser
+      ? participantInSpotlight
+      : otherParticipant;
+
   return (
     <>
       <motion.div
@@ -35,12 +40,8 @@ const CustomParticipantViewUISpotlight = () => {
           dragElastic={0}
         >
           <ParticipantView
-            muteAudio
-            participant={
-              hasOngoingScreenShare && !participantInSpotlight.isLoggedInUser
-                ? participantInSpotlight
-                : otherParticipant
-            }
+            muteAudio={participantToRender.isLoggedInUser}
+            participant={participantToRender}
           />
         </motion.div>
       </motion.div>
