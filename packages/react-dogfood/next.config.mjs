@@ -29,6 +29,15 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/api/call/sample',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
     ];
   },
 

@@ -28,21 +28,9 @@ const userId = import.meta.env.VITE_USER_ID as string;
 const App = () => {
   const [callId, setCallId] = useState<string>();
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
+    () => new StreamVideoClient({ apiKey, user: { id: userId }, token }),
   );
   const [call, setCall] = useState<Call | undefined>(undefined);
-
-  useEffect(() => {
-    client
-      .connectUser({ id: userId }, token)
-      .catch((err) => console.error('Failed to establish connection', err));
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-  }, [client]);
 
   useEffect(() => {
     if (!callId) return;

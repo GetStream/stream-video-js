@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -53,9 +54,20 @@ const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const CallsProvider = ({ children }: ChildrenOnly) => {
   const { user } = useUserContext();
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
+  const client = useMemo(() => {
+    if (!user) {
+      return undefined;
+    }
+    return new StreamVideoClient({
+      apiKey,
+      user: {
+        id: user.id,
+        image: user.imageUrl,
+        name: user.name,
+      },
+      token: user?.token,
+    });
+  }, [user]);
   const [joinedCall, setJoinedCall] = useState<Call>();
   const [calls, setCalls] = useState<CallContext['calls']>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
@@ -96,30 +108,6 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   );
 
   useEffect(() => {
-    if (!(client && user)) return;
-    client
-      .connectUser(
-        {
-          id: user.id,
-          image: user.imageUrl,
-          name: user.name,
-        },
-        user.token,
-      )
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
-        setLoadingError(err);
-      });
-
-    return () => {
-      client.disconnectUser().catch((err) => {
-        console.error('Failed to disconnect', err);
-        setLoadingError(err);
-      });
-    };
-  }, [client, user]);
-
-  useEffect(() => {
     if (!client) return;
 
     setLoadingCalls(true);
@@ -136,22 +124,26 @@ export const CallsProvider = ({ children }: ChildrenOnly) => {
   }, [client]);
 
   return (
-    <StreamVideo client={client}>
-      <CallsContext.Provider
-        value={{
-          joinedCall,
-          setJoinedCall,
-          calls,
-          createCall,
-          loadingCalls,
-          loadingError,
-          loadMoreCalls,
-          setCalls,
-        }}
-      >
-        {children}
-      </CallsContext.Provider>
-    </StreamVideo>
+    <>
+      {client && (
+        <StreamVideo client={client}>
+          <CallsContext.Provider
+            value={{
+              joinedCall,
+              setJoinedCall,
+              calls,
+              createCall,
+              loadingCalls,
+              loadingError,
+              loadMoreCalls,
+              setCalls,
+            }}
+          >
+            {children}
+          </CallsContext.Provider>
+        </StreamVideo>
+      )}
+    </>
   );
 };
 

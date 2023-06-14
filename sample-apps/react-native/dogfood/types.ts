@@ -116,8 +116,8 @@ export type EventHandler = (event: SfuEvent) => void;
 
 export type GuestMeetingScreenParams = {
   guestUserId: string;
-  guestCallId: string;
-  mode: string;
+  callId: string;
+  mode: 'guest' | 'anonymous';
 };
 
 export type LoginStackParamList = {

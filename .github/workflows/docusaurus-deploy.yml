@@ -8,7 +8,7 @@ on:
     branches:
       - main
       - docs
-      - architecture-introduction
+      - docs/*
 
     paths:
       - 'packages/react-bindings/**'

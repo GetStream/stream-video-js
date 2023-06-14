@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
-  TokenOrProvider,
   User,
   useCall,
   useCreateStreamVideoClient,
@@ -24,11 +23,10 @@ type Props = NativeStackScreenProps<
 export const GuestMeetingScreen = (props: Props) => {
   const apiKey = process.env.STREAM_API_KEY as string;
   const {
-    params: { guestUserId, guestCallId, mode },
+    params: { guestUserId, callId, mode },
   } = props.route;
-  const guestCallType = 'default';
+  const callType = 'default';
 
-  const [tokenToUse, setTokenToUse] = useState<TokenOrProvider>(undefined);
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
   const activeCall = useCall();
@@ -48,30 +46,17 @@ export const GuestMeetingScreen = (props: Props) => {
     [mode, guestUserId],
   );
 
-  const onJoin = () => {
-    setShow('active-call');
-  };
-
-  const onLeave = () => {
-    setShow('lobby');
-    navigation.goBack();
-  };
-
-  useEffect(() => {
-    const intitializeToken = async () => {
-      const token = await createToken({
-        user_id: '!anon',
-        call_cids: `${guestCallType}:${guestCallId}`,
-      });
-      setTokenToUse(token);
-    };
-
-    intitializeToken();
-  }, [guestCallId, guestCallType]);
+  const tokenOrProvider = useCallback(async () => {
+    const token = await createToken({
+      user_id: '!anon',
+      call_cids: `${callType}:${callId}`,
+    });
+    return token;
+  }, [callId, callType]);
 
   const client = useCreateStreamVideoClient({
     apiKey,
-    tokenOrProvider: tokenToUse,
+    tokenOrProvider: mode === 'guest' ? undefined : tokenOrProvider,
     user: userToConnect,
   });
 
@@ -85,22 +70,26 @@ export const GuestMeetingScreen = (props: Props) => {
     };
   }, [activeCall]);
 
+  const onJoin = () => {
+    setShow('active-call');
+  };
+
+  const onLeave = () => {
+    setShow('lobby');
+    navigation.goBack();
+  };
+
   return (
     <StreamVideo client={client}>
       <StreamCall
-        callId={guestCallId}
-        callType={guestCallType}
+        callId={callId}
+        callType={callType}
         callCycleHandlers={{
           onCallJoined: onJoin,
           onCallHungUp: onLeave,
         }}
       >
-        <MeetingUI
-          show={show}
-          setShow={setShow}
-          callId={guestCallId}
-          {...props}
-        />
+        <MeetingUI show={show} setShow={setShow} callId={callId} {...props} />
       </StreamCall>
     </StreamVideo>
   );
