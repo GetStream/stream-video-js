@@ -4,7 +4,7 @@ const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
 const { getDefaultConfig } = require('metro-config');
 
 const root = path.resolve(__dirname, '..');
-const reactNativeSdkPak = require('../react-native-sdk/package.json');
+const reactNativeSdkPak = require('../../../packages/react-native-sdk/package.json');
 const reactNativeSdkModules = Object.keys({
   ...reactNativeSdkPak.peerDependencies,
 });
