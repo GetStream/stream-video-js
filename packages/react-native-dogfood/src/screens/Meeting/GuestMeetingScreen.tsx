@@ -44,7 +44,7 @@ export const GuestMeetingScreen = (props: Props) => {
     [mode, guestUserId],
   );
 
-  const tokenOrProvider = useCallback(async () => {
+  const tokenProvider = useCallback(async () => {
     const token = await createToken({
       user_id: '!anon',
       call_cids: `${callType}:${callId}`,
@@ -57,7 +57,7 @@ export const GuestMeetingScreen = (props: Props) => {
       new StreamVideoClient({
         apiKey,
         user: userToConnect,
-        tokenProvider: mode === 'anonymous' ? tokenOrProvider : undefined,
+        tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
       }),
   );
 
