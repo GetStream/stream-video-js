@@ -54,7 +54,6 @@ export const GuestMeetingScreen = (props: Props) => {
     user: userToConnect,
   });
 
-
   const onJoin = () => {
     setShow('active-call');
   };
@@ -63,24 +62,6 @@ export const GuestMeetingScreen = (props: Props) => {
     setShow('lobby');
     navigation.goBack();
   };
-
-  useEffect(() => {
-    const intitializeToken = async () => {
-      const token = await createToken({
-        user_id: '!anon',
-        call_cids: `${guestCallType}:${guestCallId}`,
-      });
-      setTokenToUse(token);
-    };
-
-    intitializeToken();
-  }, [guestCallId, guestCallType]);
-
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: tokenToUse,
-    user: userToConnect,
-  });
 
   return (
     <StreamVideo client={client}>
