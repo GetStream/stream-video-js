@@ -3,7 +3,7 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 
 import {MeetingUI} from '../components/MeetingUI';
@@ -43,14 +43,17 @@ export const MeetingScreen = (props: Props) => {
     image: loggedInUser?.image,
   };
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: loggedInUser?.custom && loggedInUser?.custom.token,
-    user,
-  });
+  const [videoClient] = useState<StreamVideoClient>(
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user,
+        token: loggedInUser?.custom && loggedInUser?.custom.token,
+      }),
+  );
 
   return (
-    <StreamVideo client={client}>
+    <StreamVideo client={videoClient}>
       <StreamCall
         callId={callId}
         callType={'default'}

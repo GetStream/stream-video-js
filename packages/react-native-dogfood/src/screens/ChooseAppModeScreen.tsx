@@ -1,23 +1,16 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { Button, SafeAreaView, StyleSheet, View } from 'react-native';
-import { LoginStackParamList } from '../../types';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 
-type Props = NativeStackScreenProps<LoginStackParamList, 'ChooseFlowScreen'>;
-
-export const ChooseFlowScreen = (props: Props) => {
-  const { navigation } = props;
+export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
 
   const onMeetingSelect = () => {
     setState({ appMode: 'Meeting' });
-    navigation.navigate('LoginScreen');
   };
 
   const onRingingSelect = () => {
     setState({ appMode: 'Call' });
-    navigation.navigate('LoginScreen');
   };
 
   return (

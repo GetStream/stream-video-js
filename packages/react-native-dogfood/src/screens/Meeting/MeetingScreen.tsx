@@ -7,7 +7,6 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
-import { VideoWrapper } from '../../components/VideoWrapper';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
@@ -41,17 +40,15 @@ export const MeetingScreen = (props: Props) => {
   }, [activeCall]);
 
   return (
-    <VideoWrapper>
-      <StreamCall
-        callId={callId}
-        callType={'default'}
-        callCycleHandlers={{
-          onCallJoined: onJoin,
-          onCallHungUp: onLeave,
-        }}
-      >
-        <MeetingUI show={show} setShow={setShow} callId={callId} {...props} />
-      </StreamCall>
-    </VideoWrapper>
+    <StreamCall
+      callId={callId}
+      callType={'default'}
+      callCycleHandlers={{
+        onCallJoined: onJoin,
+        onCallHungUp: onLeave,
+      }}
+    >
+      <MeetingUI show={show} setShow={setShow} callId={callId} {...props} />
+    </StreamCall>
   );
 };

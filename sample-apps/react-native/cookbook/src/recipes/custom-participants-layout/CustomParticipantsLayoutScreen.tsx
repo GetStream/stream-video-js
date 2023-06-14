@@ -1,11 +1,11 @@
 import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   CallControlsView,
   StreamCall,
   StreamVideo,
+  StreamVideoClient,
   useCall,
-  useCreateStreamVideoClient,
   usePublishMediaStreams,
 } from '@stream-io/video-react-native-sdk';
 import {
@@ -37,14 +37,18 @@ const generateCallId = () => nanoid(5);
 export default () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const videoClient = useCreateStreamVideoClient({
-    user: USER,
-    tokenOrProvider: USER.custom.token,
-    apiKey: STREAM_API_KEY,
-    options: {
-      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
-    },
-  });
+  const [videoClient] = useState<StreamVideoClient>(
+    () =>
+      new StreamVideoClient({
+        apiKey: STREAM_API_KEY,
+        user: USER,
+        token: USER.custom.token,
+        options: {
+          preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+        },
+      }),
+  );
+
   const handleOnCallHungUp = () => navigation.navigate('WelcomeScreen');
 
   return (

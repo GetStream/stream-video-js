@@ -3,9 +3,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
+  StreamVideoClient,
   User,
   useCall,
-  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
 import {
@@ -36,11 +36,9 @@ export const GuestMeetingScreen = (props: Props) => {
       mode === 'guest'
         ? {
             id: guestUserId,
-            name: guestUserId,
             type: 'guest',
           }
         : {
-            id: '!anon',
             type: 'anonymous',
           },
     [mode, guestUserId],
@@ -54,11 +52,14 @@ export const GuestMeetingScreen = (props: Props) => {
     return token;
   }, [callId, callType]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: mode === 'guest' ? undefined : tokenOrProvider,
-    user: userToConnect,
-  });
+  const [videoClient] = useState<StreamVideoClient>(
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user: userToConnect,
+        tokenProvider: mode === 'anonymous' ? tokenOrProvider : undefined,
+      }),
+  );
 
   useEffect(() => {
     if (!activeCall) {
@@ -80,7 +81,7 @@ export const GuestMeetingScreen = (props: Props) => {
   };
 
   return (
-    <StreamVideo client={client}>
+    <StreamVideo client={videoClient}>
       <StreamCall
         callId={callId}
         callType={callType}

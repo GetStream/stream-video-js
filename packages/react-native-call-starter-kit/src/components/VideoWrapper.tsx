@@ -1,9 +1,9 @@
-import React, {PropsWithChildren, useMemo} from 'react';
+import React, {PropsWithChildren, useMemo, useState} from 'react';
 import {useChatContext} from 'stream-chat-react-native';
 import {StreamChatGenerics} from '../types';
 import {
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import {STREAM_API_KEY} from 'react-native-dotenv';
 import {Platform} from 'react-native';
@@ -21,14 +21,17 @@ export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
     [client.user],
   );
 
-  const videoClient = useCreateStreamVideoClient({
-    user,
-    tokenOrProvider: token,
-    apiKey: STREAM_API_KEY,
-    options: {
-      preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
-    },
-  });
+  const [videoClient] = useState<StreamVideoClient>(
+    () =>
+      new StreamVideoClient({
+        apiKey: STREAM_API_KEY,
+        user,
+        token,
+        options: {
+          preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
+        },
+      }),
+  );
 
   return <StreamVideo client={videoClient}>{children}</StreamVideo>;
 };
