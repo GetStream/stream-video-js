@@ -8,7 +8,6 @@ import {
   useCall,
   useConnectedUser,
   useHasPermissions,
-  useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -26,6 +25,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { A11yButtons } from '../constants/A11yLabels';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -136,7 +136,6 @@ export const CallParticipantsInfoView = ({
   setIsCallParticipantsViewVisible,
 }: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
-  const participantCount = useParticipantCount();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -180,11 +179,12 @@ export const CallParticipantsInfoView = ({
           <View style={styles.header}>
             <View style={styles.leftHeaderElement} />
             <Text style={styles.headerText}>
-              Participants ({participantCount})
+              Participants ({participants.length})
             </Text>
             <Pressable
               style={[styles.closeIcon, theme.icon.sm]}
               onPress={onCloseCallParticipantsViewVisible}
+              accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
             >
               <Cross color={theme.light.primary} />
             </Pressable>
