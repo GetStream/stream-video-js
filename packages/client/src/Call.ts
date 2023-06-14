@@ -477,7 +477,10 @@ export class Call {
   }) => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
-      params,
+      {
+        ...params,
+        ring: this.isCreatedByMe ? params?.ring : false,
+      },
     );
 
     if (params?.ring && !this.ringing) {
