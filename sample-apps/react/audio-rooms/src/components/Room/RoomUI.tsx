@@ -87,7 +87,7 @@ export const RoomUI = () => {
           <h3>Speakers ({speakers.length})</h3>
           <div className="speakers-list">
             {speakers.map((speaker) => (
-              <SpeakerElement key={speaker.userId} speaker={speaker} />
+              <SpeakerElement key={speaker.sessionId} speaker={speaker} />
             ))}
           </div>
         </section>
@@ -95,7 +95,7 @@ export const RoomUI = () => {
           <h3>Listeners ({listeners.length})</h3>
           <div className="listeners-list">
             {listeners.map((listener) => (
-              <Listener key={listener.userId} participant={listener} />
+              <Listener key={listener.sessionId} participant={listener} />
             ))}
           </div>
         </section>
