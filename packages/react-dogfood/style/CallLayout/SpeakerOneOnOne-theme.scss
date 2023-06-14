@@ -1,0 +1,15 @@
+.str-video__speaker-layout {
+  .rd__framer-participant-view-wrapper {
+    .str-video__participant-details,
+    .str-video__call-controls__button {
+      opacity: 0.3;
+    }
+  }
+
+  .rd__framer-participant-view-wrapper:hover {
+    .str-video__participant-details,
+    .str-video__call-controls__button {
+      opacity: 1;
+    }
+  }
+}

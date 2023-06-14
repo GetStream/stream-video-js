@@ -27,13 +27,7 @@ const CustomParticipantViewUISpotlight = () => {
       >
         <motion.div
           dragConstraints={constraintsElementRef}
-          className="custom-participant-view"
-          style={{
-            position: 'absolute',
-            width: '320px',
-            top: '0.875rem',
-            left: '0.875rem',
-          }}
+          className="rd__framer-participant-view-wrapper"
           drag
           dragMomentum
           dragTransition={{ timeConstant: 100, power: 0.1 }}
