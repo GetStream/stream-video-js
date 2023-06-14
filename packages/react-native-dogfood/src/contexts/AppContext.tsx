@@ -3,7 +3,6 @@ import createStoreContext from './createStoreContext';
 type AppGlobalStore = {
   username: string;
   userImageUrl?: string;
-  loopbackMyVideo: boolean;
   appMode: 'Meeting' | 'Call' | 'None';
 };
 
@@ -15,7 +14,6 @@ export const {
   {
     username: '',
     userImageUrl: '',
-    loopbackMyVideo: false,
     appMode: 'None',
   },
   ['username', 'userImageUrl', 'appMode'],

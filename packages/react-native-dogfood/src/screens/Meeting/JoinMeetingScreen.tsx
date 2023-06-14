@@ -1,20 +1,19 @@
 import React, { useCallback, useState } from 'react';
 import {
-  Button,
+  Image,
+  Pressable,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import {
-  useAppGlobalStoreSetState,
-  useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
+import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { meetingId } from '../../modules/helpers/meetingId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
+import { theme } from '@stream-io/video-react-native-sdk';
+import Copy from '../../assets/Copy';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -23,15 +22,18 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
-  const loopbackMyVideo = useAppGlobalStoreValue(
-    (store) => store.loopbackMyVideo,
-  );
+
   const { navigation } = props;
-  const appStoreSetState = useAppGlobalStoreSetState();
+  const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
+  const username = useAppGlobalStoreValue((store) => store.username);
 
   const joinCallHandler = useCallback(() => {
     navigation.navigate('MeetingScreen', { callId });
   }, [navigation, callId]);
+
+  const startNewCallHandler = (call_id: string) => {
+    navigation.navigate('MeetingScreen', { callId: call_id });
+  };
 
   const handleCopyInviteLink = useCallback(
     () =>
@@ -43,50 +45,53 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 
   return (
     <View style={styles.container}>
+      <Image source={{ uri: userImageUrl }} style={styles.logo} />
+      <View>
+        <Text style={styles.title}>Hello, {username}</Text>
+        <Text style={styles.subTitle}>
+          Start or join a meeting by entering the call ID.
+        </Text>
+      </View>
       <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
-        <Button
-          title={'Randomise'}
-          color="blue"
+        <Pressable
+          style={[styles.button, styles.longButton]}
           onPress={() => {
             const randomCallID = meetingId();
-            setCallId(randomCallID);
+            startNewCallHandler(randomCallID);
+          }}
+        >
+          <Text style={styles.buttonText}>Start a new Call</Text>
+        </Pressable>
+      </View>
+      <View style={styles.createCall}>
+        <TextInput
+          style={styles.textInput}
+          placeholder={'Type your Call ID'}
+          placeholderTextColor={'#8C8C8CFF'}
+          value={callId}
+          autoCapitalize="none"
+          autoCorrect={false}
+          onChangeText={(text) => {
+            setCallId(text.trim().split(' ').join('-'));
           }}
         />
+
+        <Pressable
+          style={[styles.button, !callId ? styles.disabledButtonStyle : null]}
+          onPress={joinCallHandler}
+          disabled={!callId}
+        >
+          <Text style={styles.buttonText}>Join a Call</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, styles.iconButton]}
+          onPress={handleCopyInviteLink}
+        >
+          <View style={styles.svgContainer}>
+            <Copy color={'white'} />
+          </View>
+        </Pressable>
       </View>
-      <TextInput
-        style={styles.textInput}
-        placeholder={'Type your call ID here...'}
-        placeholderTextColor={'#8C8C8CFF'}
-        value={callId}
-        autoCapitalize="none"
-        autoCorrect={false}
-        onChangeText={(text) => {
-          setCallId(text.trim().split(' ').join('-'));
-        }}
-      />
-      <Button
-        title={'Create or Join call with callID: ' + callId}
-        color="blue"
-        disabled={!callId}
-        onPress={joinCallHandler}
-      />
-      <View style={styles.switchContainer}>
-        <Text style={styles.loopbackText}>Loopback my video(Debug Mode)</Text>
-        <Switch
-          value={loopbackMyVideo}
-          onChange={() => {
-            appStoreSetState((prevState) => ({
-              loopbackMyVideo: !prevState.loopbackMyVideo,
-            }));
-          }}
-        />
-      </View>
-      <Button
-        title="Copy Invite Link"
-        color="blue"
-        onPress={handleCopyInviteLink}
-      />
     </View>
   );
 };
@@ -94,23 +99,73 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    backgroundColor: theme.light.static_grey,
+    flex: 1,
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
+  logo: {
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+  },
+  title: {
+    fontSize: 30,
+    color: 'white',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  subTitle: {
+    color: '#979797',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 15,
+    marginHorizontal: 50,
+  },
+  button: {
+    backgroundColor: '#005FFF',
+    paddingVertical: 12,
+    width: 100,
+    marginLeft: 10,
+    justifyContent: 'center',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  longButton: {
+    width: 300,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '500',
+    textAlign: 'center',
+    fontSize: 17,
+  },
+  disabledButtonStyle: {
+    backgroundColor: '#4C525C',
+  },
+  svgContainer: {
+    height: 20,
+    width: 16,
+  },
+  iconButton: {
+    width: 40,
   },
   textInput: {
-    color: '#000',
-    height: 40,
-    width: '100%',
-    borderRadius: 5,
+    paddingLeft: 15,
+    height: 50,
+    backgroundColor: '#1C1E22',
+    borderRadius: 8,
+    borderColor: '#4C525C',
     borderWidth: 1,
-    borderColor: 'gray',
-    paddingLeft: 10,
-    marginVertical: 8,
+    color: 'white',
+    width: 170,
+    fontSize: 17,
   },
-  switchContainer: {
+  createCall: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'space-between',
   },
   headerContainer: {
     flexDirection: 'row',
