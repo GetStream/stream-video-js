@@ -469,21 +469,22 @@ export class Call {
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
    * @param params.members_limit the members limit.
+   * @param makeRinging if set to true, the `state.callingState` will change to 'ringing'.
    */
-  get = async (params?: {
-    ring?: boolean;
-    notify?: boolean;
-    members_limit?: number;
-  }) => {
+  get = async (
+    params?: {
+      ring?: boolean;
+      notify?: boolean;
+      members_limit?: number;
+    },
+    makeRinging = false,
+  ) => {
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
-      {
-        ...params,
-        ring: this.isCreatedByMe ? params?.ring : false,
-      },
+      params,
     );
 
-    if (params?.ring && !this.ringing) {
+    if ((params?.ring || makeRinging) && !this.ringing) {
       this.ringingSubject.next(true);
     }
 

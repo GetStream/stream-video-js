@@ -210,7 +210,7 @@ export class StreamVideoClient {
         }
 
         // we fetch the latest metadata for the call from the server
-        await theCall.get({ ring: true });
+        await theCall.get(undefined, true);
         this.writeableStateStore.registerCall(theCall);
       }),
     );
