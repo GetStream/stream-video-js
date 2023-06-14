@@ -141,7 +141,7 @@ export default function App() {
     };
     const token = params.ut || import.meta.env.VITE_STREAM_USER_TOKEN;
     const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-    new StreamVideoClient({ apiKey, user, token });
+    return new StreamVideoClient({ apiKey, user, token });
   });
   const [call, setCall] = useState<Call | undefined>(undefined);
 

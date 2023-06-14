@@ -86,8 +86,8 @@ You can use the `StreamVideo` context provider to make the SDK client available 
 ```tsx
 import { useState } from 'react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
-
-  const client = useState(() => {
+export const App = () => {
+  const [client] = useState(() => {
     const user = {
       id: '<id>',
       name: '<name>',
