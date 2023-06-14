@@ -39,7 +39,7 @@ export const getSelectedUser = () =>
       u.id === sessionStorage.getItem(SESSION_STORAGE_UID_KEY) || undefined,
   );
 
-export const UserContextProvider: any = ({ children }: ChildrenOnly) => {
+export const UserContextProvider = ({ children }: ChildrenOnly) => {
   const [user, setUser] = useState<User | undefined>();
   const [authInProgress, setAuthInProgress] = useState(false);
 
