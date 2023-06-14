@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.27...@stream-io/video-react-sdk-0.0.28) (2023-06-14)
+
+
+### Documentation
+
+* Update authentication guide ([#641](https://github.com/GetStream/stream-video-js/issues/641)) ([92fbb1e](https://github.com/GetStream/stream-video-js/commit/92fbb1eadbc9b497362413cdafa9b6bbaaa12442))
+
 ### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.26...@stream-io/video-react-sdk-0.0.27) (2023-06-13)
 
 
