@@ -108,6 +108,7 @@ jobs:
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: '2.7.5'
           working-directory: sample-apps/react-native/dogfood
           bundler-cache: true
       - uses: actions/setup-java@v3
