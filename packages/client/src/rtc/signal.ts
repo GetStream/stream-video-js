@@ -1,23 +1,25 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
+import { getLogger } from '../logger';
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
   onMessage?: (message: SfuEvent) => void;
 }) => {
+  const logger = getLogger(['sfu-client']);
   const { endpoint, onMessage } = opts;
   const ws = new WebSocket(endpoint);
   ws.binaryType = 'arraybuffer'; // do we need this?
 
   ws.addEventListener('error', (e) => {
-    console.log('Signaling WS channel error', e);
+    logger?.('error', 'Signaling WS channel error', e);
   });
 
   ws.addEventListener('close', (e) => {
-    console.log('Signaling WS channel is closed', e);
+    logger?.('info', 'Signaling WS channel is closed', e);
   });
 
   ws.addEventListener('open', (e) => {
-    console.log('Signaling WS channel is open', e);
+    logger?.('info', 'Signaling WS channel is open', e);
   });
 
   if (onMessage) {
@@ -30,11 +32,10 @@ export const createWebSocketSignalChannel = (opts: {
 
         onMessage(message);
       } catch (err) {
-        console.error(
+        logger?.(
+          'error',
           'Failed to decode a message. Check whether the Proto models match.',
-          e.data,
-          e,
-          err,
+          { event: e, error: err },
         );
       }
     });

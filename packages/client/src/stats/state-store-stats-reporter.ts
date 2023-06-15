@@ -6,6 +6,7 @@ import type {
 } from './types';
 import { CallState } from '../store';
 import { Publisher } from '../rtc';
+import { getLogger } from '../logger';
 
 export type StatsReporterOpts = {
   subscriber: RTCPeerConnection;
@@ -69,6 +70,7 @@ export const createStatsReporter = ({
   edgeName,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
+  const logger = getLogger(['stats']);
   const getRawStatsForTrack = async (
     kind: 'subscriber' | 'publisher',
     selector?: MediaStreamTrack,
@@ -78,7 +80,7 @@ export const createStatsReporter = ({
     } else if (kind === 'publisher' && publisher) {
       return publisher.getStats(selector);
     } else {
-      console.warn(`Can't retrieve RTC stats for`, kind);
+      logger('warn', `Can't retrieve RTC stats for ${kind}`);
       return undefined;
     }
   };
@@ -136,7 +138,11 @@ export const createStatsReporter = ({
             mergedStream.removeTrack(t);
           });
         } catch (e) {
-          console.error(`Failed to collect stats for ${kind}`, participant, e);
+          logger(
+            'error',
+            `Failed to collect stats for ${kind} if ${participant.userId}`,
+            e,
+          );
         }
       }
     }
@@ -182,7 +188,7 @@ export const createStatsReporter = ({
   if (pollingIntervalInMs > 0) {
     const loop = async () => {
       await run().catch((e) => {
-        console.log('Failed to collect stats', e);
+        logger('warn', 'Failed to collect stats', e);
       });
       timeoutId = setTimeout(loop, pollingIntervalInMs);
     };

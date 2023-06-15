@@ -35,7 +35,6 @@ export class WSConnectionFallback {
 
   _log(msg: string, extra: UR = {}, level: LogLevel = 'info') {
     this.client.logger(level, 'WSConnectionFallback:' + msg, {
-      tags: ['connection_fallback', 'connection'],
       ...extra,
     });
   }

@@ -1,6 +1,7 @@
 import { CallingState, CallState } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
 import { Call } from '../Call';
+import { getLogger } from '../logger';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.
@@ -35,15 +36,21 @@ export const watchCallRejected = (call: Call) => {
     const { session: callSession } = eventCall;
 
     if (!callSession) {
-      console.log('No call session provided. Ignoring call.rejected event.');
+      call.logger(
+        'warn',
+        'No call session provided. Ignoring call.rejected event.',
+        event,
+      );
       return;
     }
 
     const rejectedBy = callSession.rejected_by;
     const { members, callingState } = call.state;
     if (callingState !== CallingState.RINGING) {
-      console.log(
+      call.logger(
+        'warn',
         'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
+        event,
       );
       return;
     }
@@ -52,12 +59,12 @@ export const watchCallRejected = (call: Call) => {
         .filter((m) => m.user_id !== call.currentUserId)
         .every((m) => rejectedBy[m.user_id]);
       if (everyoneElseRejected) {
-        console.log('everyone rejected, leaving the call');
+        call.logger('info', 'everyone rejected, leaving the call');
         await call.leave();
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
-        console.log('call creator rejected, leaving call');
+        call.logger('info', 'call creator rejected, leaving call');
         await call.leave();
       }
     }

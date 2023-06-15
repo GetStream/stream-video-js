@@ -1,24 +1,25 @@
 import { isReactNative } from '../helpers/platforms';
 import { removeCodec, setPreferredCodec } from '../helpers/sdp-munging';
+import { getLogger } from '../logger';
 
 export const getPreferredCodecs = (
   kind: 'audio' | 'video',
   preferredCodec: string,
   codecToRemove?: string,
 ): RTCRtpCodecCapability[] | undefined => {
+  const logger = getLogger(['codecs']);
   if (!('getCapabilities' in RTCRtpSender)) {
-    console.warn('RTCRtpSender.getCapabilities is not supported');
+    logger?.('warn', 'RTCRtpSender.getCapabilities is not supported');
     return;
   }
   const cap = RTCRtpSender.getCapabilities(kind);
-  console.log('s4e');
   if (!cap) return;
   const matched: RTCRtpCodecCapability[] = [];
   const partialMatched: RTCRtpCodecCapability[] = [];
   const unmatched: RTCRtpCodecCapability[] = [];
   cap.codecs.forEach((c) => {
     const codec = c.mimeType.toLowerCase();
-    console.log(c);
+    logger?.('debug', `Found supported codec: ${codec}`);
     const shouldRemoveCodec =
       codecToRemove && codec === `${kind}/${codecToRemove}`;
     if (shouldRemoveCodec) return;
@@ -37,11 +38,12 @@ export const getPreferredCodecs = (
       }
       return;
     }
-    console.log('matched', matched);
     matched.push(c);
   });
 
-  return [...matched, ...partialMatched, ...unmatched];
+  const result = [...matched, ...partialMatched, ...unmatched];
+  logger?.('info', `Preffered codecs: `, result);
+  return result;
 };
 
 export const getGenericSdp = async (
