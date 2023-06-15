@@ -9,10 +9,10 @@ import {
 import ControlMenu from '../ControlMenu';
 import { MicMuted, Signal, Mic, Video } from '../Icons';
 
+import { PoweredBy } from '../PoweredBy/PoweredBy';
 import JoinContainer from '../JoinContainer';
 
 import styles from './LobbyPanel.module.css';
-import { PoweredBy } from '../PoweredBy/PoweredBy';
 
 export type Props = {
   joinCall(): void;
