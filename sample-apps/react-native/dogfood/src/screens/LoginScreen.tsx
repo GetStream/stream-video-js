@@ -84,6 +84,7 @@ const LoginScreen = () => {
       setState({
         username: _username,
         userImageUrl: _userImageUrl,
+        appMode: 'None',
       });
     } catch (error) {
       console.log(error);

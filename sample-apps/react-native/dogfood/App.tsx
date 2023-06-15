@@ -1,11 +1,8 @@
 import * as React from 'react';
 import { useEffect } from 'react';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import {
-  createNativeStackNavigator,
-  NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
-import { MeetingStackParamList, RootStackParamList } from './types';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { RootStackParamList } from './types';
 import {
   prontoCallId$,
   useProntoLinkEffect,
@@ -27,7 +24,9 @@ import { navigationRef } from './src/utils/staticNavigationUtils';
 import Logger from 'react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
-import { Login } from './src/navigators/Login';
+import { VideoWrapper } from './src/components/VideoWrapper';
+import LoginScreen from './src/screens/LoginScreen';
+import { ChooseAppModeScreen } from './src/screens/ChooseAppModeScreen';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -44,8 +43,6 @@ const StackNavigator = () => {
   const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const setState = useAppGlobalStoreSetState();
-  const meetingNavigation =
-    useNavigation<NativeStackNavigationProp<MeetingStackParamList>>();
 
   useProntoLinkEffect();
   useIosPushEffect();
@@ -71,24 +68,36 @@ const StackNavigator = () => {
         />
       );
       break;
+    case 'None':
+      mode = (
+        <Stack.Screen
+          name="ChooseAppMode"
+          component={ChooseAppModeScreen}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
   }
 
   useEffect(() => {
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
       if (prontoCallId) {
-        meetingNavigation.navigate('MeetingScreen', { callId: prontoCallId });
-        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+        setState({ appMode: 'Meeting' });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [appMode, setState, meetingNavigation]);
+  }, [setState]);
 
   if (!(username && userImageUrl)) {
-    return <Login />;
+    return <LoginScreen />;
   }
 
-  return <Stack.Navigator>{mode}</Stack.Navigator>;
+  return (
+    <VideoWrapper>
+      <Stack.Navigator>{mode}</Stack.Navigator>
+    </VideoWrapper>
+  );
 };
 
 export default function App() {

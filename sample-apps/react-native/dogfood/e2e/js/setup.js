@@ -33,8 +33,7 @@ output.assertions = {
   joinMeeting: {
     signOutModalTitle: 'Sign out',
   },
-  chooseFlow: {
-    meeting: 'Meeting',
-    call: 'Call',
+  login: {
+    customUserInputField: 'Enter the custom user',
   },
 };

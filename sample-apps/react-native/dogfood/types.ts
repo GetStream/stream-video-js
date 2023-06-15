@@ -133,9 +133,9 @@ export type MeetingStackParamList = {
 };
 
 export type RootStackParamList = {
-  Login: undefined;
   Meeting: undefined;
   Call: undefined;
+  ChooseAppMode: undefined;
 };
 
 export type ScreenTypes =
