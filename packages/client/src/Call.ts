@@ -668,6 +668,9 @@ export class Call {
       disconnectFromPreviousSfu();
 
       console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
+      // we shouldn't be republishing the streams if we're migrating
+      // as the underlying peer connection will take care of it as part
+      // of the ice-restart process
       if (localParticipant && !isReactNative() && !migrate) {
         const {
           audioStream,
@@ -1146,9 +1149,12 @@ export class Call {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
-    console.log(`Got remote ${trackType} track:`, e.track);
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
+    );
+    console.log(
+      `Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
+      e.track,
     );
     if (!participantToUpdate) {
       console.error('Received track for unknown participant', trackId, e);
@@ -1196,7 +1202,9 @@ export class Call {
     }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
-      console.log(`Cleaning up previous remote tracks`, e.track.kind);
+      console.log(
+        `Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
+      );
       previousStream.getTracks().forEach((t) => {
         t.stop();
         previousStream.removeTrack(t);
