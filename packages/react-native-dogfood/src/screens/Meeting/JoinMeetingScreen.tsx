@@ -52,17 +52,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           Start or join a meeting by entering the call ID.
         </Text>
       </View>
-      <View style={styles.headerContainer}>
-        <Pressable
-          style={[styles.button, styles.longButton]}
-          onPress={() => {
-            const randomCallID = meetingId();
-            startNewCallHandler(randomCallID);
-          }}
-        >
-          <Text style={styles.buttonText}>Start a new Call</Text>
-        </Pressable>
-      </View>
+
       <View style={styles.createCall}>
         <TextInput
           style={styles.textInput}
@@ -81,7 +71,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           onPress={joinCallHandler}
           disabled={!callId}
         >
-          <Text style={styles.buttonText}>Join a Call</Text>
+          <Text style={styles.buttonText}>Join Call</Text>
         </Pressable>
         <Pressable
           style={[styles.button, styles.iconButton]}
@@ -92,6 +82,15 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           </View>
         </Pressable>
       </View>
+      <Pressable
+        style={[styles.button, styles.longButton]}
+        onPress={() => {
+          const randomCallID = meetingId();
+          startNewCallHandler(randomCallID);
+        }}
+      >
+        <Text style={styles.buttonText}>Start a new Call</Text>
+      </Pressable>
     </View>
   );
 };
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   longButton: {
-    width: 300,
+    width: 320,
   },
   buttonText: {
     color: 'white',
@@ -165,10 +164,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerContainer: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
   },
   headerText: {
