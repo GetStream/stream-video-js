@@ -1153,17 +1153,21 @@ export class Call {
       (p) => p.trackLookupPrefix === trackId,
     );
     console.log(
-      `Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
+      `[onTrack]: Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
       e.track,
     );
     if (!participantToUpdate) {
-      console.error('Received track for unknown participant', trackId, e);
+      console.error(
+        '[onTrack]: Received track for unknown participant',
+        trackId,
+        e,
+      );
       return;
     }
 
     e.track.addEventListener('mute', () => {
       console.log(
-        `Track muted:`,
+        `[onTrack]: Track muted:`,
         participantToUpdate.userId,
         `${trackType}:${trackId}`,
         e.track,
@@ -1172,7 +1176,7 @@ export class Call {
 
     e.track.addEventListener('unmute', () => {
       console.log(
-        `Track unmuted:`,
+        `[onTrack]: Track unmuted:`,
         participantToUpdate.userId,
         `${trackType}:${trackId}`,
         e.track,
@@ -1181,7 +1185,7 @@ export class Call {
 
     e.track.addEventListener('ended', () => {
       console.log(
-        `Track ended:`,
+        `[onTrack]: Track ended:`,
         participantToUpdate.userId,
         `${trackType}:${trackId}`,
         e.track,
@@ -1197,13 +1201,13 @@ export class Call {
     )[trackType];
 
     if (!streamKindProp) {
-      console.error('Unknown track type', trackType);
+      console.error('[onTrack]: Unknown track type', trackType);
       return;
     }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
       console.log(
-        `Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
+        `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
         t.stop();
