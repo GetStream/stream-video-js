@@ -86,6 +86,12 @@ export class StreamSfuClient {
    */
   signalReady: Promise<WebSocket>;
 
+  /**
+   * A flag indicating whether the client is currently migrating away
+   * from this SFU.
+   */
+  isMigratingAway = false;
+
   private readonly rpc: SignalServerClient;
   private readonly token: string;
   private keepAliveInterval?: NodeJS.Timeout;
@@ -146,10 +152,12 @@ export class StreamSfuClient {
     });
 
     this.signalReady = new Promise((resolve) => {
-      this.signalWs.addEventListener('open', () => {
+      const onOpen = () => {
+        this.signalWs.removeEventListener('open', onOpen);
         this.keepAlive();
         resolve(this.signalWs);
-      });
+      };
+      this.signalWs.addEventListener('open', onOpen);
     });
   }
 

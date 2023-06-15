@@ -446,21 +446,6 @@ export class Call {
     return this.state.metadata?.created_by.id === this.currentUserId;
   }
 
-  private waitForJoinResponse = (timeout: number = 5000) =>
-    new Promise<JoinResponse>((resolve, reject) => {
-      const unsubscribe = this.on('joinResponse', (event) => {
-        if (event.eventPayload.oneofKind !== 'joinResponse') return;
-        clearTimeout(timeoutId);
-        unsubscribe();
-        resolve(event.eventPayload.joinResponse);
-      });
-
-      const timeoutId = setTimeout(() => {
-        unsubscribe();
-        reject(new Error('Waiting for "joinResponse" has timed out'));
-      }, timeout);
-    });
-
   /**
    * Loads the information about the call.
    *
@@ -637,7 +622,16 @@ export class Call {
      * A closure which hides away the re-connection logic.
      */
     const rejoin = async ({ migrate = false } = {}) => {
-      console.log(`Rejoining call ${this.cid} (${this.reconnectAttempts})...`);
+      if (migrate) {
+        console.log(
+          `[Migration]: migrating call ${this.cid} away from ${sfuServer.edge_name}`,
+        );
+        sfuClient.isMigratingAway = true;
+      } else {
+        console.log(
+          `[Rejoin]: Rejoining call ${this.cid} (${this.reconnectAttempts})...`,
+        );
+      }
       this.reconnectAttempts++;
       this.state.setCallingState(
         migrate ? CallingState.MIGRATING : CallingState.RECONNECTING,
@@ -650,11 +644,11 @@ export class Call {
       const disconnectFromPreviousSfu = () => {
         if (!migrate) {
           this.subscriber?.close();
-          this.subscriber = undefined;
+          // this.subscriber = undefined;
           this.publisher?.stopPublishing({ stopTracks: false });
-          this.publisher = undefined;
+          // this.publisher = undefined;
           this.statsReporter?.stop();
-          this.statsReporter = undefined;
+          // this.statsReporter = undefined;
         }
         previousSfuClient?.close(); // clean up previous connection
       };
@@ -667,7 +661,7 @@ export class Call {
 
       disconnectFromPreviousSfu();
 
-      console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
+      console.log(`[Rejoin]: attempt ${this.reconnectAttempts} successful!`);
       // we shouldn't be republishing the streams if we're migrating
       // as the underlying peer connection will take care of it as part
       // of the ice-restart process
@@ -683,7 +677,9 @@ export class Call {
         if (videoStream) await this.publishVideoStream(videoStream);
         if (screenShare) await this.publishScreenShareStream(screenShare);
       }
-      console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
+      console.log(
+        `[Rejoin]: state restored. Attempt: ${this.reconnectAttempts}`,
+      );
     };
 
     this.rejoinPromise = rejoin;
@@ -696,9 +692,11 @@ export class Call {
       const unregisterGoAway = this.dispatcher.on('goAway', (event) => {
         if (event.eventPayload.oneofKind !== 'goAway') return;
         const { reason } = event.eventPayload.goAway;
-        console.log(`Going away from SFU... Reason: ${GoAwayReason[reason]}`);
+        console.log(
+          `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
+        );
         rejoin({ migrate: true }).catch((err) => {
-          console.warn(`Failed to migrate to another SFU.`, err);
+          console.warn(`[Migration]: Failed to migrate to another SFU.`, err);
         });
       });
 
@@ -715,19 +713,23 @@ export class Call {
         // While we migrate to another SFU, we might have the WS connection
         // to the old SFU closed abruptly. In this case, we don't want
         // to reconnect to the old SFU, but rather to the new one.
-        if (isMigrating && e.code === KnownCodes.WS_CLOSED_ABRUPTLY) return;
+        if (
+          sfuClient.isMigratingAway &&
+          e.code === KnownCodes.WS_CLOSED_ABRUPTLY
+        )
+          return;
         // do nothing for react-native as it is handled by SDK
         if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch((err) => {
-            console.log(
-              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            console.warn(
+              `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         } else {
-          console.log('Reconnect attempts exceeded. Giving up...');
+          console.warn('[Rejoin]: Reconnect attempts exceeded. Giving up...');
           this.state.setCallingState(CallingState.RECONNECTING_FAILED);
         }
       });
@@ -738,17 +740,17 @@ export class Call {
     if (typeof window !== 'undefined' && window.addEventListener) {
       const handleOnOffline = () => {
         window.removeEventListener('offline', handleOnOffline);
-        console.log('Join: Going offline...');
+        console.log('[Rejoin]: Going offline...');
         this.state.setCallingState(CallingState.OFFLINE);
       };
 
       const handleOnOnline = () => {
         window.removeEventListener('online', handleOnOnline);
         if (this.state.callingState === CallingState.OFFLINE) {
-          console.log('Join: Going online...');
+          console.log('[Rejoin]: Going online...');
           rejoin().catch((err) => {
-            console.log(
-              `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+            console.warn(
+              `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
@@ -859,17 +861,33 @@ export class Call {
     } catch (err) {
       // join failed, try to rejoin
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        console.log(`Rejoin ${this.reconnectAttempts} failed.`, err);
+        console.log(`[Rejoin]: Rejoin ${this.reconnectAttempts} failed.`, err);
         await rejoin();
-        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
+        console.log(`[Rejoin]: Rejoin ${this.reconnectAttempts} successful!`);
       } else {
         console.log(
-          `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+          `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
         );
         this.state.setCallingState(CallingState.RECONNECTING_FAILED);
         throw new Error('Join failed');
       }
     }
+  };
+
+  private waitForJoinResponse = (timeout: number = 5000) => {
+    return new Promise<JoinResponse>((resolve, reject) => {
+      const unsubscribe = this.on('joinResponse', (event) => {
+        if (event.eventPayload.oneofKind !== 'joinResponse') return;
+        clearTimeout(timeoutId);
+        unsubscribe();
+        resolve(event.eventPayload.joinResponse);
+      });
+
+      const timeoutId = setTimeout(() => {
+        unsubscribe();
+        reject(new Error('Waiting for "joinResponse" has timed out'));
+      }, timeout);
+    });
   };
 
   /**
