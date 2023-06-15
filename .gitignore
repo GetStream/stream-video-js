@@ -33,7 +33,6 @@ packages/react-sdk/docusaurus/docs/React/04-call-engine/**/*.md
 *.gen.mdx
 
 packages/react-native-sdk/docusaurus/docs/reactnative/assets/02-guides_02-call-lifecycle/**
-/packages/react-native-sample-app/ios/Pods/
 
 video-buddy-session.json
 lefthook.yml
