@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.30...@stream-io/video-react-sdk-0.0.31) (2023-06-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.14`
+### [0.0.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.29...@stream-io/video-react-sdk-0.0.30) (2023-06-14)
+
+
+### Documentation
+
+* Clean up broken links ([#647](https://github.com/GetStream/stream-video-js/issues/647)) ([1e879e1](https://github.com/GetStream/stream-video-js/commit/1e879e1ec6f450f0224f4d3fe8f02815328f225c))
+
+### [0.0.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.28...@stream-io/video-react-sdk-0.0.29) (2023-06-14)
+
+
+### Documentation
+
+* Remove the Core Components page ([9790299](https://github.com/GetStream/stream-video-js/commit/9790299b04d5d52e5dedfdacf6cdae506eeb00fe))
+
+### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.27...@stream-io/video-react-sdk-0.0.28) (2023-06-14)
+
+
+### Documentation
+
+* Update authentication guide ([#641](https://github.com/GetStream/stream-video-js/issues/641)) ([92fbb1e](https://github.com/GetStream/stream-video-js/commit/92fbb1eadbc9b497362413cdafa9b6bbaaa12442))
+
+### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.26...@stream-io/video-react-sdk-0.0.27) (2023-06-13)
+
+
+### Documentation
+
+* add usage of token snippet into Audio Room guide ([#638](https://github.com/GetStream/stream-video-js/issues/638)) ([4fbaad6](https://github.com/GetStream/stream-video-js/commit/4fbaad6e0760bd5b4c18b4f635ad9a77ce1f342b))
+
 ### [0.0.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.25...@stream-io/video-react-sdk-0.0.26) (2023-06-13)
 
 ### Dependency Updates

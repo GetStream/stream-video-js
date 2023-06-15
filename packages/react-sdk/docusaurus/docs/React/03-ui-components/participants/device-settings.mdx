@@ -4,10 +4,10 @@ title: Device settings
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import DeviceSettings from '../../assets/03-ui-components/device-settings.png'
-import DeviceSelectorVideo from '../../assets/03-ui-components/device-selector-video.png'
-import DeviceSelectorAudioInput from '../../assets/03-ui-components/device-selector-audio-input.png'
-import DeviceSelectorAudioOutput from '../../assets/03-ui-components/device-selector-audio-output.png'
+import DeviceSettings from '../../assets/03-ui-components/device-settings.png';
+import DeviceSelectorVideo from '../../assets/03-ui-components/device-selector-video.png';
+import DeviceSelectorAudioInput from '../../assets/03-ui-components/device-selector-audio-input.png';
+import DeviceSelectorAudioOutput from '../../assets/03-ui-components/device-selector-audio-output.png';
 
 The SDK's default implementation of device settings components consists of audio and video device selectors. These are:
 
@@ -17,37 +17,36 @@ The SDK's default implementation of device settings components consists of audio
 
 There is also a composing component `DeviceSettings` putting these together.
 
-All the selector components make use of [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
+All the selector components make use of [`MediaDevicesContextAPI`](../../../call-engine/hooks-and-contexts/#mediadevicescontextapi) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
 
-- [`useVideoDevices`](../../call-engine/hooks-and-contexts#usevideodevices)
-- [`useAudioInputDevices`](../../call-engine/hooks-and-contexts#useaudioinputdevices)
-- [`useAudioOutputDevices`](../../call-engine/hooks-and-contexts#useaudiooutputdevices)
+- [`useVideoDevices`](../../../call-engine/hooks-and-contexts#usevideodevices)
+- [`useAudioInputDevices`](../../../call-engine/hooks-and-contexts#useaudioinputdevices)
+- [`useAudioOutputDevices`](../../../call-engine/hooks-and-contexts#useaudiooutputdevices)
 
 <ImageShowcase
-    items={[
-        {
-            image: DeviceSettings,
-            caption: 'Default device settings panel',
-            alt: 'Default device settings panel',
-        },
-        {
-            image: DeviceSelectorVideo,
-            caption: 'Default camera device selector',
-            alt: 'Default camera device selector',
-        },
-        {
-            image: DeviceSelectorAudioInput,
-            caption: 'Default audio input device selector',
-            alt: 'Default audio input device selector',
-        },
-        {
-            image: DeviceSelectorAudioOutput,
-            caption: 'Default audio output device selector',
-            alt: 'Default audio output device selector',
-        },
-    ]}
+  items={[
+    {
+      image: DeviceSettings,
+      caption: 'Default device settings panel',
+      alt: 'Default device settings panel',
+    },
+    {
+      image: DeviceSelectorVideo,
+      caption: 'Default camera device selector',
+      alt: 'Default camera device selector',
+    },
+    {
+      image: DeviceSelectorAudioInput,
+      caption: 'Default audio input device selector',
+      alt: 'Default audio input device selector',
+    },
+    {
+      image: DeviceSelectorAudioOutput,
+      caption: 'Default audio output device selector',
+      alt: 'Default audio output device selector',
+    },
+  ]}
 />
-
 
 ## Props
 
@@ -59,8 +58,8 @@ None
 
 ### `title`
 
-| Type                    | Default |
-| ----------------------- | ------- |
+| Type                    | Default             |
+| ----------------------- | ------------------- |
 | `string` \| `undefined` | `'Select a Camera'` |
 
 String displayed at the top of the selector component.
@@ -69,8 +68,8 @@ String displayed at the top of the selector component.
 
 ### `title`
 
-| Type                    | Default |
-| ----------------------- | ------- |
+| Type                    | Default          |
+| ----------------------- | ---------------- |
 | `string` \| `undefined` | `'Select a Mic'` |
 
 String displayed at the top of the selector component.
@@ -79,8 +78,8 @@ String displayed at the top of the selector component.
 
 ### `title`
 
-| Type                    | Default |
-| ----------------------- | ------- |
+| Type                    | Default             |
+| ----------------------- | ------------------- |
 | `string` \| `undefined` | `'Select Speakers'` |
 
 String displayed at the top of the selector component.
