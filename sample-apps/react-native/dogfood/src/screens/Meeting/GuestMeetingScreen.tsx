@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
@@ -52,13 +58,12 @@ export const GuestMeetingScreen = (props: Props) => {
     return token;
   }, [callId, callType]);
 
-  const [videoClient] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        user: userToConnect,
-        tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-      }),
+  const videoClientRef = useRef<StreamVideoClient>(
+    new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
+    }),
   );
 
   useEffect(() => {
@@ -81,7 +86,7 @@ export const GuestMeetingScreen = (props: Props) => {
   };
 
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo client={videoClientRef.current}>
       <StreamCall
         callId={callId}
         callType={callType}
