@@ -5,7 +5,10 @@ import {
 } from '../../utils/push/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
-import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import {
+  useConnectedUser,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { filter } from 'rxjs/operators';
 
@@ -15,10 +18,11 @@ import { filter } from 'rxjs/operators';
  */
 export const useProcessPushCallEffect = () => {
   const client = useStreamVideoClient();
+  const connectedUserId = useConnectedUser()?.id;
   // The Effect to join/reject call automatically when incoming call was received and processed from push notification
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
-    if (!pushConfig || !client) {
+    if (!pushConfig || !client || !connectedUserId) {
       return;
     }
 
@@ -52,7 +56,7 @@ export const useProcessPushCallEffect = () => {
       acceptedCallSubscription.unsubscribe();
       declinedCallSubscription.unsubscribe();
     };
-  }, [client]);
+  }, [client, connectedUserId]);
 };
 
 /**
