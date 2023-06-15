@@ -23,7 +23,15 @@ end
 
 target 'StreamReactNativeVideoSDKSample' do
   config = use_native_modules!
-  use_frameworks! :linkage => :static
+
+  # Flipper is not compatible with use_frameworks
+  # workaround to enable flipper described [here](https://github.com/invertase/react-native-firebase/issues/6425#issuecomment-1527949355)
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreExtension', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
 
   # Flags change depending on the env values.
   flags = get_default_flags()
