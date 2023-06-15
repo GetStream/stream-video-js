@@ -269,13 +269,15 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call, if not provided a unique random value is used
+   * @param {boolean} [ringing] whether the call should be created in the ringing state.
    */
-  call = (type: string, id: string) => {
+  call = (type: string, id: string, ringing?: boolean) => {
     return new Call({
       streamClient: this.streamClient,
       id: id,
       type: type,
       clientStore: this.writeableStateStore,
+      ringing,
     });
   };
 
