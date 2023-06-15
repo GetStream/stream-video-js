@@ -1,7 +1,7 @@
 import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { useRef, useEffect } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
-import { StreamVideoRN } from '../../utils';
+import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
 import { CallingState } from '@stream-io/video-client';
 
