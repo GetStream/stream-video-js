@@ -26,6 +26,10 @@ interface CallControlsButtonProps {
    * Style of the SVG rendered inside the button.
    */
   svgContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * Accessibility label for the button.
+   */
+  accessibilityLabel?: string;
 }
 
 const DEFAULT_ICON_SIZE = theme.icon.md;
@@ -34,7 +38,14 @@ const DEFAULT_BUTTON_SIZE = theme.button.sm;
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
-  const { onPress, children, color, style, svgContainerStyle } = props;
+  const {
+    onPress,
+    children,
+    color,
+    style,
+    svgContainerStyle,
+    accessibilityLabel,
+  } = props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     DEFAULT_BUTTON_SIZE,
@@ -47,7 +58,11 @@ export const CallControlsButton = (
   ];
 
   return (
-    <Pressable style={pressableStyle} onPress={onPress}>
+    <Pressable
+      style={pressableStyle}
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+    >
       <View
         style={[
           styles.svgContainerStyle,

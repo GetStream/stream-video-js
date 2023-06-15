@@ -14,7 +14,7 @@ env:
 on:
   push:
     paths:
-      - 'packages/react-native-dogfood/**'
+      - 'sample-apps/react-native/dogfood/**'
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
@@ -55,13 +55,13 @@ jobs:
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
-          working-directory: packages/react-native-dogfood
+          working-directory: sample-apps/react-native/dogfood
           bundler-cache: true
       - name: Cache pods
         uses: actions/cache@v3
         with:
-          path: packages/react-native-dogfood/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('packages/react-native-dogfood/ios/Podfile.lock') }}
+          path: sample-apps/react-native/dogfood/ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('sample-apps/react-native/dogfood/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
       - name: iOS pods setup
@@ -70,11 +70,11 @@ jobs:
           timeout_minutes: 30
           max_attempts: 3
           command: |
-            cd packages/react-native-dogfood/ios;
+            cd sample-apps/react-native/dogfood/ios;
             bundle exec pod install;
       - name: Build and optionally deploy
         run: |
-          cd packages/react-native-dogfood;
+          cd sample-apps/react-native/dogfood;
           ./scripts/create-sentry-properties.sh;
           bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
   deploy_android:
@@ -107,7 +107,7 @@ jobs:
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
-          working-directory: packages/react-native-dogfood
+          working-directory: sample-apps/react-native/dogfood
           bundler-cache: true
       - uses: actions/setup-java@v3
         with:
@@ -120,11 +120,11 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('packages/react-native-dogfood/*.gradle*', 'packages/react-native-dogfood/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('sample-apps/react-native/dogfood/*.gradle*', 'sample-apps/react-native/dogfood/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Build and optionally deploy
         run: |
-          cd packages/react-native-dogfood;
+          cd sample-apps/react-native/dogfood;
           ./scripts/create-sentry-properties.sh;
           bundle exec fastlane build_android deploy:${{ github.ref == 'refs/heads/main' }};

@@ -12,7 +12,6 @@ import {
 import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
-
 import { Mic, MicMuted, Speaker, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';
@@ -39,6 +38,14 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     initialAudioEnabled,
     isAudioOutputChangeSupported,
   } = useMediaDevices();
+
+  console.log({
+    selectedAudioInputDeviceId,
+    selectedVideoDeviceId,
+    selectedAudioOutputDeviceId,
+    initialVideoState,
+    initialAudioEnabled,
+  });
 
   const localParticipant = useLocalParticipant();
   const videoDevices = useVideoDevices();

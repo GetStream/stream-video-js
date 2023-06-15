@@ -82,7 +82,7 @@ export const useKeyboardShortcuts = () => {
   }, [toggleAudioMuteState]);
 
   useEffect(() => {
-    const key = `${KeyboardShortcut.TOGGLE_VIDEO_MAC},${KeyboardShortcut.TOGGLE_AUDIO_OTHER}`;
+    const key = `${KeyboardShortcut.TOGGLE_VIDEO_MAC},${KeyboardShortcut.TOGGLE_VIDEO_OTHER}`;
     const isMac = isMacOS();
 
     hotkeys(key, (e, ke) => {

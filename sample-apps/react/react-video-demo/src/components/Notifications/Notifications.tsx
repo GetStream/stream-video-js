@@ -3,6 +3,8 @@ import classnames from 'classnames';
 
 import { useScreenShareNotification } from '../../hooks/useScreenShareNotification';
 import { useScreenRecordingNotification } from '../../hooks/useScreenRecordingNotification';
+import { useSpeakingWhileMutedNotification } from '../../hooks/useSpeakingWhileMutedNotification';
+import { useParticipantNotification } from '../../hooks/useParticipantNotification';
 
 import { useNotificationContext } from '../../contexts/NotificationsContext';
 
@@ -18,6 +20,10 @@ export const Notifications: FC<Props> = ({ className }) => {
 
   useScreenShareNotification();
   useScreenRecordingNotification();
+  useSpeakingWhileMutedNotification();
+  useParticipantNotification();
+
+  console.log(notifications);
 
   return (
     <ul className={rootClassNames}>
