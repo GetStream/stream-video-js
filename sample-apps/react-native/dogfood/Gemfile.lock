@@ -283,7 +283,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  cocoapods (~> 1.11, >= 1.11.3)
+  cocoapods (>= 1.11.3)
   fastlane
   fastlane-plugin-firebase_app_distribution
   fastlane-plugin-increment_version_code
