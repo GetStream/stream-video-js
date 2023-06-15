@@ -130,7 +130,6 @@ export const InvitePanel: FC<Props> = ({
       className={rootClassname}
       title="Invite more people"
       isFocused={isFocused}
-      fulllHeight={fulllHeight}
     >
       <>
         <Invite callId={callId} canShare={false} />
