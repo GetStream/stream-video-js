@@ -197,6 +197,7 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
+        const prevMetadata = prevCall?.state.metadata;
         await prevCall?.leave();
         // we create a new call
         const theCall = new Call({
@@ -206,6 +207,7 @@ export class StreamVideoClient {
           members,
           clientStore: this.writeableStateStore,
           ringing: true,
+          metadata: prevMetadata,
         });
         // we fetch the latest metadata for the call from the server
         await theCall.get();
