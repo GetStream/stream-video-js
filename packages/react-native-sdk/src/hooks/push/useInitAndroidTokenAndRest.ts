@@ -12,12 +12,7 @@ export const useInitAndroidTokenAndRest = () => {
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     // NOTE: we need to wait for user to be connected before we can send the push token
-    if (
-      !client ||
-      !connectedUserId ||
-      client.user?.id !== connectedUserId ||
-      !pushConfig
-    ) {
+    if (!client || !connectedUserId || !pushConfig) {
       return;
     }
     initAndroidPushTokenAndRest(client, pushConfig);
