@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
@@ -27,6 +21,9 @@ type Props = NativeStackScreenProps<
 >;
 
 export const GuestMeetingScreen = (props: Props) => {
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+    undefined,
+  );
   const apiKey = process.env.STREAM_API_KEY as string;
   const {
     params: { guestUserId, callId, mode },
@@ -58,13 +55,19 @@ export const GuestMeetingScreen = (props: Props) => {
     return token;
   }, [callId, callType]);
 
-  const videoClientRef = useRef<StreamVideoClient>(
-    new StreamVideoClient({
+  useEffect(() => {
+    const _videoClient = new StreamVideoClient({
       apiKey,
       user: userToConnect,
       tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-    }),
-  );
+    });
+    setVideoClient(_videoClient);
+
+    return () => {
+      _videoClient?.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, [tokenProvider, userToConnect, apiKey, mode]);
 
   useEffect(() => {
     if (!activeCall) {
@@ -85,8 +88,12 @@ export const GuestMeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
+  if (!videoClient) {
+    return null;
+  }
+
   return (
-    <StreamVideo client={videoClientRef.current}>
+    <StreamVideo client={videoClient}>
       <StreamCall
         callId={callId}
         callType={callType}
