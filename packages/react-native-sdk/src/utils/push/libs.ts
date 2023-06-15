@@ -25,7 +25,7 @@ try {
 export function getCallKeepLib() {
   if (!callkeep) {
     throw Error(
-      "react-native-callkeep library is not installed. Please install it using 'yarn add react-native-callkeep' or 'npm install react-native-callkeep'",
+      'react-native-callkeep library is not installed. Please see https://github.com/react-native-webrtc/react-native-callkeep#Installation for installation instructions',
     );
   }
   return callkeep;
