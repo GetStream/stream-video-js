@@ -15,6 +15,7 @@ import {
 import { meetingId } from '../../modules/helpers/meetingId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -42,7 +43,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>{'Whats the call ID?'}</Text>
         <Button
@@ -87,7 +88,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         color="blue"
         onPress={handleCopyInviteLink}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

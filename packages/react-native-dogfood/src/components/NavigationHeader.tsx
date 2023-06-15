@@ -4,29 +4,22 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
+import { A11yButtons } from '../constants/A11yLabels';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
   avatar: {
     height: 50,
     width: 50,
     borderRadius: 50,
-  },
-  unset: {
-    color: 'purple',
-    fontWeight: 'bold',
   },
 });
 
@@ -65,8 +58,11 @@ export const NavigationHeader = () => {
   };
 
   return (
-    <View style={styles.header}>
-      <Pressable onPress={logoutHandler}>
+    <SafeAreaView style={styles.header}>
+      <Pressable
+        onPress={logoutHandler}
+        accessibilityLabel={A11yButtons.LOG_OUT_AVATAR}
+      >
         {!!userImageUrl && (
           <Image
             source={{
@@ -76,6 +72,6 @@ export const NavigationHeader = () => {
           />
         )}
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
