@@ -48,10 +48,14 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
     OwnCapability.BLOCK_USERS,
   );
   const optionsOpenHandler = useCallback(() => {
-    if (!participantIsLoggedInUser) setSelectedParticipant(participant);
+    if (!participantIsLoggedInUser) {
+      setSelectedParticipant(participant);
+    }
   }, [participant, setSelectedParticipant, participantIsLoggedInUser]);
 
-  if (!participant) return null;
+  if (!participant) {
+    return null;
+  }
   const { publishedTracks } = participant;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);

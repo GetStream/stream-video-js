@@ -7,4 +7,3 @@ export * from './useIncallManager';
 export * from './usePublishMediaStreams';
 export * from './usePermissionRequest';
 export * from './usePermissionNotification';
-export * from './useCreateStreamVideoClient';

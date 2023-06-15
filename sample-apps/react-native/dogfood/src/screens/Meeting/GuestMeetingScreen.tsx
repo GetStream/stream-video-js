@@ -1,11 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
+  StreamVideoClient,
   User,
   useCall,
-  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
 import {
@@ -36,17 +42,15 @@ export const GuestMeetingScreen = (props: Props) => {
       mode === 'guest'
         ? {
             id: guestUserId,
-            name: guestUserId,
             type: 'guest',
           }
         : {
-            id: '!anon',
             type: 'anonymous',
           },
     [mode, guestUserId],
   );
 
-  const tokenOrProvider = useCallback(async () => {
+  const tokenProvider = useCallback(async () => {
     const token = await createToken({
       user_id: '!anon',
       call_cids: `${callType}:${callId}`,
@@ -54,11 +58,13 @@ export const GuestMeetingScreen = (props: Props) => {
     return token;
   }, [callId, callType]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: mode === 'guest' ? undefined : tokenOrProvider,
-    user: userToConnect,
-  });
+  const videoClientRef = useRef<StreamVideoClient>(
+    new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
+    }),
+  );
 
   useEffect(() => {
     if (!activeCall) {
@@ -80,7 +86,7 @@ export const GuestMeetingScreen = (props: Props) => {
   };
 
   return (
-    <StreamVideo client={client}>
+    <StreamVideo client={videoClientRef.current}>
       <StreamCall
         callId={callId}
         callType={callType}
