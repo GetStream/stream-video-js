@@ -8,4 +8,4 @@ export * from './usePermissionRequest';
 export * from './usePermissionNotification';
 export * from './useCreateStreamVideoClient';
 export * from './push';
-export * from '../providers/ActiveCallManager/useAndroidKeepCallAliveEffect';
+export * from './useAndroidKeepCallAliveEffect';

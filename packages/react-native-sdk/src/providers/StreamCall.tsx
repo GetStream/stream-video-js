@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
-import { useAndroidKeepCallAliveEffect, useCallCycleEffect } from '../hooks';
+import { useCallCycleEffect } from '../hooks';
 
 type InitWithCallCID = {
   /**
@@ -88,7 +88,6 @@ export const StreamCall = ({
 
   return (
     <StreamCallProvider call={activeCall}>
-      <AndroidKeepCallAlive />
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
         {children}
       </CallCycleLogicsWrapper>
@@ -97,7 +96,7 @@ export const StreamCall = ({
 };
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export type CallCycleHandlersType = {
@@ -142,15 +141,4 @@ export const CallCycleLogicsWrapper = ({
   useCallCycleEffect(callCycleHandlers);
 
   return <>{children}</>;
-};
-
-/**
- * A renderless component that runs useAndroidKeepCallAliveEffect hook.
- * The hook must be a child of StreamCallProvider so we create a renderless component to use it
- * @internal
- */
-export const AndroidKeepCallAlive = (): React.ReactElement | null => {
-  useAndroidKeepCallAliveEffect();
-
-  return null;
 };

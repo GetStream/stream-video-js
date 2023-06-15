@@ -14,6 +14,7 @@ import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
+import { useAndroidKeepCallAliveEffect } from '../hooks';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -63,6 +64,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
   usePermissionRequest();
+  useAndroidKeepCallAliveEffect();
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     setHeight(
