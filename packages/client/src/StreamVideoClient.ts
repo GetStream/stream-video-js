@@ -195,7 +195,7 @@ export class StreamVideoClient {
 
         // The call might already be tracked by the client,
         // if `call.created` was received before `call.ring`.
-        // In that case, we cleanup reuse the already tracked call.
+        // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
         await prevCall?.leave();
         // we create a new call
