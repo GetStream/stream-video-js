@@ -33,35 +33,40 @@ const styles = StyleSheet.create({
 export const NavigationHeader = () => {
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
+  const username = useAppGlobalStoreValue((store) => store.username);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      {
-        text: t('Cancel'),
-        onPress: () => {},
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: async () => {
-          try {
-            await Promise.all([
-              GoogleSignin.signOut(),
-              videoClient?.disconnectUser(),
-            ]);
-
-            appStoreSetState({
-              username: '',
-              userImageUrl: '',
-            });
-          } catch (error) {
-            console.error('Failed to disconnect', error);
-          }
+    Alert.alert(
+      `Sign out as user: ${username}`,
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: t('Cancel'),
+          onPress: () => {},
+          style: 'cancel',
         },
-      },
-    ]);
+        {
+          text: 'OK',
+          onPress: async () => {
+            try {
+              await Promise.all([
+                GoogleSignin.signOut(),
+                videoClient?.disconnectUser(),
+              ]);
+
+              appStoreSetState({
+                username: '',
+                userImageUrl: '',
+              });
+            } catch (error) {
+              console.error('Failed to disconnect', error);
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (

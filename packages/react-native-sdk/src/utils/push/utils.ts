@@ -75,6 +75,13 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
   notifee.onBackgroundEvent((event) =>
     onNotifeeBackgroundEvent(event, pushConfig),
   );
+
+  notifee.onForegroundEvent((event) => {
+    console.log('onForegroundEvent', event);
+    onNotifeeBackgroundEvent(event, pushConfig);
+  });
+
+  console.log('setupFirebaseHandlerAndroid done');
 }
 
 /** Send token to stream, create notification channel,  */
@@ -116,6 +123,7 @@ const firebaseMessagingOnMessageHandler = async (
     }
   */
   const data = message.data;
+  console.log('firebaseMessagingOnMessageHandler', { data });
   if (!data || data.sender !== 'stream.video') {
     return;
   }
@@ -192,7 +200,9 @@ const onNotifeeBackgroundEvent = async (
   const didPressAccept =
     type === EventType.ACTION_PRESS && pressAction.id === ACCEPT_CALL_ACTION_ID;
   if (didPressAccept) {
+    console.log('didPressAccept', call_cid);
     pushAcceptedIncomingCallCId$.next(call_cid);
+    console.log('navigateAcceptCall');
     pushConfig.navigateAcceptCall();
   }
 };

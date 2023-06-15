@@ -2,17 +2,18 @@ import { useEffect } from 'react';
 import { getVoipPushNotificationLib } from '../../utils/push/libs';
 
 import { Platform } from 'react-native';
-import { StreamVideoClient } from '@stream-io/video-client';
 import { StreamVideoRN } from '../../utils';
+import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 
 /**
  * This hook is used to do the initial setup of listeners
  * for ios voip push notifications.
  */
-export const useIosPushEffect = (client: StreamVideoClient) => {
+export const useIosPushEffect = () => {
+  const client = useStreamVideoClient();
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
-    if (Platform.OS !== 'ios' || !pushConfig) {
+    if (Platform.OS !== 'ios' || !pushConfig || !client) {
       return;
     }
     const voipPushNotification = getVoipPushNotificationLib();

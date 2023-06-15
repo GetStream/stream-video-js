@@ -35,8 +35,6 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
     return unsubscribe;
   }, [client]);
 
-  usePushRegisterEffect(client);
-
   return (
     <StreamVideoProvider
       client={client}
@@ -46,8 +44,18 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
     >
       <StreamVideoStoreProvider>
         <MediaDevices />
+        <PushRegister />
         {children}
       </StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
+};
+
+/**
+ * The usePushRegisterEffect needs to be a child of StreamVideoStoreProvider
+ * So we create a renderless component to use it
+ */
+const PushRegister = () => {
+  usePushRegisterEffect();
+  return null;
 };
