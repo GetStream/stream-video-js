@@ -64,8 +64,8 @@ export const GuestMeetingScreen = (props: Props) => {
     setVideoClient(_videoClient);
 
     return () => {
-      setVideoClient(undefined);
       _videoClient?.disconnectUser();
+      setVideoClient(undefined);
     };
   }, [tokenProvider, userToConnect, apiKey, mode]);
 

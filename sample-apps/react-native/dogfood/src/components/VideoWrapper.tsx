@@ -45,8 +45,8 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     setVideoClient(_videoClient);
 
     return () => {
-      setVideoClient(undefined);
       _videoClient.disconnectUser();
+      setVideoClient(undefined);
     };
   }, [tokenProvider, user]);
 
