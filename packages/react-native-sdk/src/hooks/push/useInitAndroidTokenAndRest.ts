@@ -4,8 +4,11 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
-import { initAndroidPushTokenAndRest } from '../../utils/push/utils';
+import { initAndroidPushTokenAndAskPermissions } from '../../utils/push/utils';
 
+/**
+ * This hook is used to initialize the push token for Android and ask notification permissions.
+ */
 export const useInitAndroidTokenAndRest = () => {
   const client = useStreamVideoClient();
   const connectedUserId = useConnectedUser()?.id;
@@ -15,6 +18,6 @@ export const useInitAndroidTokenAndRest = () => {
     if (!client || !connectedUserId || !pushConfig) {
       return;
     }
-    initAndroidPushTokenAndRest(client, pushConfig);
+    initAndroidPushTokenAndAskPermissions(client, pushConfig);
   }, [client, connectedUserId]);
 };

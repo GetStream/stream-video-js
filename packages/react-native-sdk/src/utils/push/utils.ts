@@ -77,15 +77,12 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
   );
 
   notifee.onForegroundEvent((event) => {
-    console.log('onForegroundEvent', event);
     onNotifeeBackgroundEvent(event, pushConfig);
   });
-
-  console.log('setupFirebaseHandlerAndroid done');
 }
 
 /** Send token to stream, create notification channel,  */
-export async function initAndroidPushTokenAndRest(
+export async function initAndroidPushTokenAndAskPermissions(
   client: StreamVideoClient,
   pushConfig: PushConfig,
 ) {
@@ -96,7 +93,6 @@ export async function initAndroidPushTokenAndRest(
   const token = await messaging().getToken();
   const push_provider_name = pushConfig.android.pushProviderName;
   await client.addDevice(token, 'firebase', push_provider_name);
-  await notifee.createChannel(pushConfig.android.incomingCallChannel);
   await notifee.requestPermission();
 }
 
@@ -123,10 +119,10 @@ const firebaseMessagingOnMessageHandler = async (
     }
   */
   const data = message.data;
-  console.log('firebaseMessagingOnMessageHandler', { data });
   if (!data || data.sender !== 'stream.video') {
     return;
   }
+  await notifee.createChannel(pushConfig.android.incomingCallChannel);
   const { getTitle, getBody } =
     pushConfig.android.incomingCallNotificationTextGetters;
   const channelId = pushConfig.android.incomingCallChannel.id;
