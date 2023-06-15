@@ -37,16 +37,16 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   );
 
   useEffect(() => {
-    setVideoClient(
-      new StreamVideoClient({
-        apiKey: STREAM_API_KEY,
-        user,
-        tokenProvider,
-      }),
-    );
+    const _videoClient = new StreamVideoClient({
+      apiKey: STREAM_API_KEY,
+      user,
+      tokenProvider,
+    });
+    setVideoClient(_videoClient);
 
     return () => {
       setVideoClient(undefined);
+      _videoClient.disconnectUser();
     };
   }, [tokenProvider, user]);
 

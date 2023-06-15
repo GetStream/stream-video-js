@@ -56,16 +56,16 @@ export const GuestMeetingScreen = (props: Props) => {
   }, [callId, callType]);
 
   useEffect(() => {
-    setVideoClient(
-      new StreamVideoClient({
-        apiKey,
-        user: userToConnect,
-        tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-      }),
-    );
+    const _videoClient = new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
+    });
+    setVideoClient(_videoClient);
 
     return () => {
       setVideoClient(undefined);
+      _videoClient?.disconnectUser();
     };
   }, [tokenProvider, userToConnect, apiKey, mode]);
 
