@@ -668,7 +668,7 @@ export class Call {
       disconnectFromPreviousSfu();
 
       console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
-      if (localParticipant && !isReactNative()) {
+      if (localParticipant && !isReactNative() && !migrate) {
         const {
           audioStream,
           videoStream,
