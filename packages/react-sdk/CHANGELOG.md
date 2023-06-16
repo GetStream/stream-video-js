@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.33...@stream-io/video-react-sdk-0.0.34) (2023-06-16)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.5`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.17`
+
+### Documentation
+
+* **react-sdk:** Runtime layout switching guide ([#642](https://github.com/GetStream/stream-video-js/issues/642)) ([1557168](https://github.com/GetStream/stream-video-js/commit/1557168da69660b71a0a420a94a0c354466681a7))
+
 ### [0.0.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.32...@stream-io/video-react-sdk-0.0.33) (2023-06-16)
 
 ### Dependency Updates
