@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.34...@stream-io/video-react-sdk-0.0.35) (2023-06-16)
+
+
+### Features
+
+* Rename videoKind prop to videoMode ([#661](https://github.com/GetStream/stream-video-js/issues/661)) ([781e908](https://github.com/GetStream/stream-video-js/commit/781e9081fd43f2a433f9c4c7b32a549d77fb26c1))
+
 ### [0.0.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.33...@stream-io/video-react-sdk-0.0.34) (2023-06-16)
 
 ### Dependency Updates
