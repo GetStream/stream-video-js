@@ -3,6 +3,7 @@ import { getIceCandidate } from './helpers/iceCandidate';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
+import { getLogger } from '../logger';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -10,6 +11,8 @@ export type SubscriberOpts = {
   connectionConfig?: RTCConfiguration;
   onTrack: (e: RTCTrackEvent) => void;
 };
+
+const logger = getLogger(['Subscriber']);
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -110,7 +113,7 @@ export class Subscriber {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      console.log('null ice candidate');
+      logger('warn', 'null ice candidate');
       return;
     }
 
@@ -121,7 +124,7 @@ export class Subscriber {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    console.log(`Received subscriberOffer`, subscriberOffer);
+    logger('info', `Received subscriberOffer`, subscriberOffer);
 
     await this.subscriber.setRemoteDescription({
       type: 'offer',
@@ -134,7 +137,7 @@ export class Subscriber {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.subscriber.addIceCandidate(iceCandidate);
         } catch (e) {
-          console.error(`Subscriber: ICE candidate error`, e, candidate);
+          logger('error', `Subscriber: ICE candidate error`, [e, candidate]);
         }
       },
     );
@@ -155,16 +158,18 @@ const attachDebugEventListeners = (subscriber: RTCPeerConnection) => {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    console.error(`Subscriber: ICE Candidate error`, errorMessage);
+    logger('error', `Subscriber: ICE Candidate error`, errorMessage);
   });
   subscriber.addEventListener('iceconnectionstatechange', () => {
-    console.log(
+    logger(
+      'info',
       `Subscriber: ICE Connection state changed`,
       subscriber.iceConnectionState,
     );
   });
   subscriber.addEventListener('icegatheringstatechange', () => {
-    console.log(
+    logger(
+      'info',
       `Subscriber: ICE Gathering State`,
       subscriber.iceGatheringState,
     );
