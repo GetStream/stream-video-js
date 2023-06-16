@@ -11,7 +11,6 @@ import {
   useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
-import RoomList from '../../pages/RoomList';
 import { ChatIcon, PersonIcon } from '../icons';
 import SpeakerElement from './SpeakerElement';
 import SpeakingRequestsList from './SpeakingRequestsList';
@@ -19,6 +18,7 @@ import { useSpeakingRequests } from '../../hooks/useSpeakingRequests';
 import { Listener } from './Listener';
 import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
+import { RoomListing } from '../RoomList';
 import { RoomNavControls } from './RoomNavControls';
 import { useLayoutController } from '../../contexts';
 import type { CustomCallData } from '../../types';
@@ -69,7 +69,11 @@ export const RoomUI = () => {
 
   return (
     <section className="active-room">
-      {showRoomList && <RoomList />}
+      <section className={`rooms-overview ${!showRoomList ? 'hidden' : ''}`}>
+        <RoomListing liveState="live" />
+        <RoomListing liveState="upcoming" />
+        <RoomListing liveState="ended" />
+      </section>
       <div className={`room-detail ${showRoomList ? 'with-room-list' : ''}`}>
         <div className="room-detail-header">
           <h2>{title}</h2>
