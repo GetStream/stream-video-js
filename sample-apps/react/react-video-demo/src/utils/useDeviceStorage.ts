@@ -6,6 +6,14 @@ import {
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
+const initialSettings: LocalDeviceSettings = {
+  isAudioMute: true,
+  isVideoMute: false,
+  selectedAudioOutputDeviceId: 'default',
+  selectedAudioInputDeviceId: 'default',
+  selectedVideoDeviceId: 'default',
+};
+
 export type LocalDeviceSettings = Pick<
   MediaDevicesContextAPI,
   | 'selectedVideoDeviceId'
@@ -27,6 +35,15 @@ export const getStoredDeviceSettings = () => {
     } catch (e) {
       console.log('Error parsing device settings', e);
     }
+  } else {
+    window.localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify({ ...initialSettings }),
+    );
+
+    return {
+      ...initialSettings,
+    };
   }
 };
 
