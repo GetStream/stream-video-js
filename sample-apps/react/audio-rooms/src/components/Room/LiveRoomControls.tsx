@@ -156,11 +156,12 @@ export const LiveRoomControls = ({
             className="icon-button"
             disabled={isAwaitingAudioApproval}
             title="Request to speak"
-            onClick={() =>
+            onClick={() => {
+              setIsAwaitingAudioApproval(true);
               call.requestPermissions({
                 permissions: [OwnCapability.SEND_AUDIO],
-              })
-            }
+              });
+            }}
           >
             <RaiseHandIcon />
           </button>
