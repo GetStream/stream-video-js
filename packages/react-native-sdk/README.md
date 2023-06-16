@@ -12,7 +12,7 @@
 
 ## **Quick Links**
 
-- [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
+- [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
 - [React Native Video Tutorial]() //TODO- add link
 - [Sample application](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/dogfood)
 
