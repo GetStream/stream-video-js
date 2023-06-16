@@ -59,8 +59,14 @@ This repo contains projects and samples developed by the team and Stream communi
 ## **Projects/Packages 🚀**
 
 - `packages`: contains all packages our customers can install and use in their apps.
-- `sample-apps/react`: contains a few sample apps that we have built to showcase our SDK and platform capabilities
-- `sample-apps/react-native`: a collection of React Native sample apps for showcasing our SDK and platform
+- `packages/client`: our low-level client. It manages the lifecycle of a call, connects to our platform, and maintains the call state. The core part of our SDKs.
+- `packages/react-bindings`: a set of React utilities and hooks that make it easy to work with the call state exposed by the `client` in React and React Native Apps.
+- `packages/react-sdk`: the place where our React SDK lives.
+- `packages/react-native-sdk`: the place where our React Native SDK lives.
+- `packages/styling`: our theme stylesheets live here.
+- `packages/i18n`: a utility package that takes care of internationalization support for our SDKs.
+- `sample-apps/react/*`: contains a few sample apps that we have built to showcase our SDK and platform capabilities
+- `sample-apps/react-native/*`: a collection of React Native sample apps for showcasing our SDK and platform
 
 ## Contributing
 
