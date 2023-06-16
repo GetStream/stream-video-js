@@ -7,12 +7,14 @@ import {
   stopForegroundService,
 } from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
+import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
 export const MeetingScreen = (props: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation, route } = props;
+  const appStoreSetState = useAppGlobalStoreSetState();
 
   const {
     params: { callId },
@@ -22,6 +24,7 @@ export const MeetingScreen = (props: Props) => {
 
   const onJoin = () => {
     setShow('active-call');
+    appStoreSetState({ chatLabelNoted: false });
   };
 
   const onLeave = () => {

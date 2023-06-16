@@ -7,6 +7,7 @@ type AppGlobalStore = {
   userImageUrl?: string;
   loopbackMyVideo: boolean;
   appMode: AppMode;
+  chatLabelNoted?: boolean;
 };
 
 export const {
@@ -19,6 +20,7 @@ export const {
     userImageUrl: '',
     loopbackMyVideo: false,
     appMode: 'None',
+    chatLabelNoted: false,
   },
   ['username', 'userImageUrl', 'appMode'],
 );

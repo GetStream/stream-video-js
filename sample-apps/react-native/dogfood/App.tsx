@@ -27,6 +27,7 @@ import { Call } from './src/navigators/Call';
 import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
 import { ChooseAppModeScreen } from './src/screens/ChooseAppModeScreen';
+import { ChatWrapper } from './src/components/ChatWrapper';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -95,7 +96,9 @@ const StackNavigator = () => {
 
   return (
     <VideoWrapper>
-      <Stack.Navigator>{mode}</Stack.Navigator>
+      <ChatWrapper>
+        <Stack.Navigator>{mode}</Stack.Navigator>
+      </ChatWrapper>
     </VideoWrapper>
   );
 };
