@@ -1,22 +1,22 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { CloseIcon } from './icons';
-import { CALL_TYPE, useLayoutController, useUserContext } from '../contexts';
-import { useNavigate } from 'react-router-dom';
+import { CALL_TYPE, useUserContext } from '../contexts';
 
 type CreateCallParams = {
   title: string;
   description: string;
 };
 
-type RoomFormProps = {
+type CreateRoomModalProps = {
   close: () => void;
 };
-const CreateRoomForm = ({ close }: RoomFormProps) => {
+
+export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
   const navigate = useNavigate();
   const { user } = useUserContext();
   const client = useStreamVideoClient();
-  const { toggleShowCreateRoomModal } = useLayoutController();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -48,10 +48,10 @@ const CreateRoomForm = ({ close }: RoomFormProps) => {
 
       setTitle('');
       setDescription('');
-      toggleShowCreateRoomModal();
+      close();
       navigate(`/rooms/join/${call.id}`);
     },
-    [createCall, navigate, toggleShowCreateRoomModal, title, description],
+    [createCall, navigate, close, title, description],
   );
 
   return (
@@ -91,5 +91,3 @@ const CreateRoomForm = ({ close }: RoomFormProps) => {
     </div>
   );
 };
-
-export default CreateRoomForm;

@@ -4,9 +4,9 @@ import {
   JoinedCallProvider,
   LayoutControllerProvider,
   useLayoutController,
+  VideoClientProvider,
 } from '../contexts';
-import CreateRoomForm from './CreateRoomForm';
-import { VideoClientProvider } from '../contexts/VideoClientProvider';
+import { CreateRoomModal } from './CreateRoomModal';
 
 export const AppShell = () => (
   <LayoutControllerProvider>
@@ -30,7 +30,7 @@ const AppLayout = () => {
       </div>
       {/* todo: close modal on click outside */}
       {showCreateRoomModal && (
-        <CreateRoomForm close={toggleShowCreateRoomModal} />
+        <CreateRoomModal close={toggleShowCreateRoomModal} />
       )}
     </div>
   );
