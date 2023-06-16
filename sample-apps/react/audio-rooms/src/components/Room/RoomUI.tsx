@@ -67,6 +67,8 @@ export const RoomUI = () => {
     !callMetadata?.ended_at &&
     ![CallingState.JOINED].includes(callingState);
 
+  const isRoomEnded = !!callMetadata?.ended_at;
+
   return (
     <section className="active-room">
       <section className={`rooms-overview ${!showRoomList ? 'hidden' : ''}`}>
@@ -116,7 +118,7 @@ export const RoomUI = () => {
             />
           </Restricted>
         )}
-        {!!callMetadata?.ended_at && <EndedRoomOverlay />}
+        {isRoomEnded && <EndedRoomOverlay />}
         {showLobby && <RoomLobby />}
       </div>
     </section>

@@ -3,6 +3,7 @@ import {
   useCall,
   useCallCallingState,
   useIsCallLive,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 import { useJoinedCall } from '../../contexts';
@@ -18,9 +19,12 @@ export const EndedRoomOverlay = () => {
 
 export const RoomLobby = () => {
   const { joinedCall, setJoinedCall } = useJoinedCall();
+  const { setInitialAudioEnabled } = useMediaDevices();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
+
+  if (!call) return null;
 
   return (
     <div className="room-overlay">
@@ -28,7 +32,7 @@ export const RoomLobby = () => {
       {!isLive && (
         <p>The room isn't live yet. Please wait until the host opens it.</p>
       )}
-      {joinedCall && (
+      {joinedCall && joinedCall.cid !== call.cid && (
         <>
           <div>
             You are already connected to another room:{' '}
@@ -42,23 +46,26 @@ export const RoomLobby = () => {
       {callingState === CallingState.JOINING && <p>Joining the room...</p>}
       {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
       {callingState === CallingState.OFFLINE && <p>You are offline</p>}
-      <button
-        disabled={!isLive}
-        className="leave-button"
-        onClick={async () => {
-          if (joinedCall) {
-            await joinedCall.leave().catch((err) => {
+      {joinedCall?.cid !== call.cid && (
+        <button
+          disabled={!isLive}
+          className="leave-button"
+          onClick={async () => {
+            if (joinedCall) {
+              await joinedCall.leave().catch((err) => {
+                console.log(err);
+              });
+              setInitialAudioEnabled(false);
+            }
+            await call.join().catch((err) => {
               console.log(err);
             });
-          }
-          await call?.join().catch((err) => {
-            console.log(err);
-          });
-          setJoinedCall(call);
-        }}
-      >
-        Join
-      </button>
+            setJoinedCall(call);
+          }}
+        >
+          Join
+        </button>
+      )}
     </div>
   );
 };
