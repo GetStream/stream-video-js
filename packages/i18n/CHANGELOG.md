@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.3...@stream-io/i18n-0.0.4) (2023-06-16)
+
+
+### Features
+
+* Logging ([#654](https://github.com/GetStream/stream-video-js/issues/654)) ([30fc8f2](https://github.com/GetStream/stream-video-js/commit/30fc8f28e2f5829247256f24b040ea4a10336186))
+
 ### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.2...@stream-io/i18n-0.0.3) (2023-06-12)
 
 

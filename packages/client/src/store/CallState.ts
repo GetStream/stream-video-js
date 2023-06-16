@@ -20,6 +20,8 @@ import {
 import { TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
 import * as SortingPreset from '../sorting/presets';
+import { getLogger } from '../logger';
+import { Logger } from '../coordinator/connection/types';
 
 /**
  * Represents the state of the current call.
@@ -272,6 +274,8 @@ export class CallState {
    */
   callingState$: Observable<CallingState>;
 
+  readonly logger: Logger;
+
   /**
    * A list of comparators that are used to sort the participants.
    *
@@ -285,6 +289,7 @@ export class CallState {
    *
    */
   constructor() {
+    this.logger = getLogger(['call-state']);
     this.participants$ = this.participantsSubject.pipe(
       map((ps) => ps.sort(this.sortParticipantsBy)),
     );
@@ -621,7 +626,7 @@ export class CallState {
   ) => {
     const participant = this.findParticipantBySessionId(sessionId);
     if (!participant) {
-      console.warn(`Participant with sessionId ${sessionId} not found`);
+      this.logger('warn', `Participant with sessionId ${sessionId} not found`);
       return;
     }
 

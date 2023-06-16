@@ -30,7 +30,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
   const { userToken, user, apiKey, gleapApiKey } = props;
-
   const tokenProvider = useCallback(async () => {
     const { token } = await fetch(
       '/api/auth/create-token?' +
@@ -50,6 +49,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         tokenProvider,
         options: {
           baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
+          logLevel: 'info',
         },
       }),
   );

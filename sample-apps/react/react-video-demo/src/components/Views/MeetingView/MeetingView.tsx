@@ -22,8 +22,6 @@ import MeetingLayout from '../../Layout/MeetingLayout';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
-import { DeviceSettingsCaptor } from '../../../utils/useDeviceStorage';
-
 import { useTourContext } from '../../../contexts/TourContext';
 import { usePanelContext } from '../../../contexts/PanelContext';
 import { tour } from '../../../../data/tour';
@@ -203,7 +201,6 @@ export const View: FC<Props & Meeting> = ({
         participantsAmount={participants?.length}
         participants={participants}
       />
-      <DeviceSettingsCaptor />
     </MeetingLayout>
   );
 };

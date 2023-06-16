@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   useCall,
-  useLocalParticipant,
   useParticipants,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
@@ -12,8 +11,8 @@ import {
 import clsx from 'clsx';
 
 import {
-  ParticipantView,
   DefaultParticipantViewUI,
+  ParticipantView,
   ParticipantViewProps,
 } from '../ParticipantView';
 import { Audio } from '../Audio';
@@ -85,7 +84,6 @@ export const PaginatedGridLayout = ({
   const [page, setPage] = useState(0);
 
   const call = useCall();
-  const localParticipant = useLocalParticipant();
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
@@ -120,7 +118,6 @@ export const PaginatedGridLayout = ({
           muted={false}
           key={participant.sessionId}
           audioStream={participant.audioStream}
-          sinkId={localParticipant?.audioOutputDeviceId}
         />
       ))}
       <div className="str-video__paginated-grid-layout__wrapper">

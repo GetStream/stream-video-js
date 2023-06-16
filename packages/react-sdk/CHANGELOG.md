@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.32...@stream-io/video-react-sdk-0.0.33) (2023-06-16)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.4`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.16`
+
+### Features
+
+* Logging ([#654](https://github.com/GetStream/stream-video-js/issues/654)) ([30fc8f2](https://github.com/GetStream/stream-video-js/commit/30fc8f28e2f5829247256f24b040ea4a10336186))
+* Remove unnecessary sinkId prop from ParticipantView ([#656](https://github.com/GetStream/stream-video-js/issues/656)) ([ba5ac37](https://github.com/GetStream/stream-video-js/commit/ba5ac3758afb316e9a77f677eeba6bbc46ed0094))
+
 ### [0.0.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.31...@stream-io/video-react-sdk-0.0.32) (2023-06-16)
 
 ### Dependency Updates

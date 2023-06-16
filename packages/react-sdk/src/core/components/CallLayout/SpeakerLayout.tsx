@@ -10,11 +10,7 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useLocalParticipant,
-  useParticipants,
-} from '@stream-io/video-react-bindings';
+import { useCall, useParticipants } from '@stream-io/video-react-bindings';
 
 import {
   DefaultParticipantViewUI,
@@ -56,7 +52,6 @@ export const SpeakerLayout = ({
     null,
   );
   const isOneOnOneCall = otherParticipants.length === 1;
-  const localParticipant = useLocalParticipant();
 
   useEffect(() => {
     if (!scrollWrapper || !call) return;
@@ -102,7 +97,6 @@ export const SpeakerLayout = ({
               participant={participantInSpotlight}
               muteAudio={isSpeakerScreenSharing}
               videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
-              sinkId={localParticipant?.audioOutputDeviceId}
               ParticipantViewUI={ParticipantViewUISpotlight}
               VideoPlaceholder={VideoPlaceholder}
             />
@@ -122,7 +116,6 @@ export const SpeakerLayout = ({
                   >
                     <ParticipantView
                       participant={participantInSpotlight}
-                      sinkId={localParticipant?.audioOutputDeviceId}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
                     />
@@ -135,7 +128,6 @@ export const SpeakerLayout = ({
                   >
                     <ParticipantView
                       participant={participant}
-                      sinkId={localParticipant?.audioOutputDeviceId}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
                     />

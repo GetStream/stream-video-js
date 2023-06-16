@@ -9,9 +9,9 @@ import {
 
 import {
   GetEdgesResponse,
+  StreamCall,
   StreamVideo,
   StreamVideoClient,
-  StreamCall,
   User,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
@@ -28,6 +28,7 @@ import { PanelProvider } from './contexts/PanelContext';
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
 import {
+  DeviceSettingsCaptor,
   getStoredDeviceSettings,
   LocalDeviceSettings,
 } from './utils/useDeviceStorage';
@@ -181,6 +182,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
               />
             )}
           </ModalProvider>
+          <DeviceSettingsCaptor />
         </StreamCall>
       </StreamVideo>
     );

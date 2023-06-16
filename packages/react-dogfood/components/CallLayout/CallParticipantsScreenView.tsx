@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
+  Call,
+  DefaultParticipantViewUI,
+  IconButton,
+  ParticipantView,
+  SfuModels,
   useLocalParticipant,
   useParticipants,
-  Call,
-  SfuModels,
-  ParticipantView,
-  DefaultParticipantViewUI,
-  Video,
-  IconButton,
   useVerticalScrollPosition,
+  Video,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
@@ -107,7 +107,6 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
               <ParticipantView
                 key={participant.sessionId}
                 participant={participant}
-                sinkId={localParticipant?.audioOutputDeviceId}
                 ParticipantViewUI={DefaultParticipantViewUI}
               />
             ))}

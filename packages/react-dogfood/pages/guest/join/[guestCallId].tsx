@@ -40,6 +40,9 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       apiKey,
       user: userToConnect,
       token: tokenToUse,
+      options: {
+        logLevel: 'info',
+      },
     });
   });
 

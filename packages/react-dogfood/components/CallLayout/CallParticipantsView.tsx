@@ -1,9 +1,9 @@
 import {
-  useLocalParticipant,
-  useParticipants,
+  Call,
   DefaultParticipantViewUI,
   ParticipantView,
-  Call,
+  useLocalParticipant,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsView = (props: { call: Call }) => {
@@ -16,7 +16,6 @@ export const CallParticipantsView = (props: { call: Call }) => {
         <ParticipantView
           key={participant.sessionId}
           participant={participant}
-          sinkId={localParticipant?.audioOutputDeviceId}
           ParticipantViewUI={DefaultParticipantViewUI}
         />
       ))}

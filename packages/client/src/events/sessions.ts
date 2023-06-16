@@ -36,8 +36,10 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
     const { user } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
-        console.warn(
+        state.logger(
+          'warn',
           `Received call.session_participant_joined event but the metadata structure is invalid.`,
+          event,
         );
         return metadata;
       }
@@ -76,8 +78,10 @@ export const watchCallSessionParticipantLeft = (state: CallState) => {
     const { user } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
-        console.warn(
+        state.logger(
+          'warn',
           `Received call.session_participant_left event but the metadata structure is invalid.`,
+          event,
         );
         return metadata;
       }

@@ -27,11 +27,8 @@ Please note that we suggest not to create a custom `ParticipantView` component a
 You can use the `ParticipantView` component to create your own call layout:
 
 ```tsx
-import '@stream-io/video-react-sdk/dist/css/styles.css';
 import {
-  CallControls,
   ParticipantView,
-  StreamCall,
   useParticipants,
 } from '@stream-io/video-react-sdk';
 
@@ -39,18 +36,10 @@ const CallUI = () => {
   const participants = useParticipants();
 
   return (
-    <StreamCall
-      callType="default"
-      callId="my-first-call"
-      data={{ create: true }}
-      autoJoin
-    >
-      {participants.map((p) => (
-        // highlight-next-line
-        <ParticipantView participant={p} key={p.sessionId} />
-      ))}
-      <CallControls />
-    </StreamCall>
+    {participants.map((p) => (
+      // highlight-next-line
+      <ParticipantView participant={p} key={p.sessionId} />
+    ))}
   );
 };
 ```
@@ -80,16 +69,6 @@ Override the default UI for rendering participant information/actions.
 | `ComponentType` \| `ReactElement` \| `null` |
 
 Override the default UI that's visible when a participant turned off their video.
-
-### `sinkId`
-
-| Type                    |
-| ----------------------- |
-| `string` \| `undefined` |
-
-In [supported browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId), this sets the default audio output.
-The value of this prop should be a valid audio output device ID.
-You can set this using `audioOutputDeviceId` field of the [local participant](../../../call-engine/hooks-and-contexts/#uselocalparticipant).
 
 ### `videoKind`
 

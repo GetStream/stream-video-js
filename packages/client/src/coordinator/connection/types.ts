@@ -24,7 +24,7 @@ export type { OwnUserResponse } from '../../gen/coordinator';
 
 export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
 
-export type LogLevel = 'info' | 'error' | 'warn';
+export type LogLevel = 'debug' | 'info' | 'error' | 'warn';
 
 type ErrorResponseDetails = {
   code: number;
@@ -81,7 +81,8 @@ export type CallEventTypes = StreamCallEvent['type'];
 export type Logger = (
   logLevel: LogLevel,
   message: string,
-  extraData?: Record<string, unknown>,
+  extraData?: any,
+  tags?: string[],
 ) => void;
 
 export type StreamClientOptions = Partial<AxiosRequestConfig> & {
@@ -101,6 +102,7 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   /** experimental feature, please contact support if you want this feature enabled for you */
   enableWSFallback?: boolean;
   logger?: Logger;
+  logLevel?: LogLevel;
   /**
    * When true, user will be persisted on client. Otherwise if `connectUser` call fails, then you need to
    * call `connectUser` again to retry.

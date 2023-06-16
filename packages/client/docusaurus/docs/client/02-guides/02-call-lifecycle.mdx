@@ -3,11 +3,10 @@ id: 02-call-lifecycle
 title: Call Lifecycle
 ---
 
-import CallAcceptedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-accepted.png'
-import CallRejectedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-rejected.png'
-import CallEndedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-ended.png'
 
-## Introduction
+import CallAcceptedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-accepted.png';
+import CallRejectedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-rejected.png';
+import CallEndedDiagram from '../assets/02-guides_02-call-lifecycle/ring-call-sequence-diagram_call-ended.png';
 
 In the following sections, we will describe the flow of the two basic call scenarios:
 
@@ -31,8 +30,8 @@ You can end a call by calling [`endCall()` method](../04-call-engine/Call.md#end
 The asynchronous nature of the call room makes it easy to create and join a call. There is no need to wait for other participants. The member initiating the call can create and join it in one single step by calling [`join()` method](../04-call-engine/Call.md#join) of a `Call` instance:
 
 ```ts
-const call = videoClient.call(callType, callId)
-await call.join({create: true});
+const call = videoClient.call(callType, callId);
+await call.join({ create: true });
 ```
 
 This takes care of the whole negotiation process and connection to the nearest SFU.
@@ -102,7 +101,11 @@ sequenceDiagram
     Client_B->>SFU: 12. Leave the call
 ```
 
-<img src={CallAcceptedDiagram} alt='Sequence diagram of accepted ring call' width='800' />
+<img
+  src={CallAcceptedDiagram}
+  alt="Sequence diagram of accepted ring call"
+  width="800"
+/>
 
 ##### **2. Client B rejects the call**
 
@@ -119,7 +122,11 @@ sequenceDiagram
     Back-end->>Client_A: 4. WS event 'call.rejected'
 ```
 
-<img src={CallRejectedDiagram} alt='Sequence diagram of rejected ring call' width='800' />
+<img
+  src={CallRejectedDiagram}
+  alt="Sequence diagram of rejected ring call"
+  width="800"
+/>
 
 ##### **3. Client A cancels the call**
 
@@ -136,7 +143,11 @@ sequenceDiagram
     Back-end->>Client_B: 4. WS event 'call.ended'
 ```
 
-<img src={CallEndedDiagram} alt='Sequence diagram of cancelled ring call' width='800' />
+<img
+  src={CallEndedDiagram}
+  alt="Sequence diagram of cancelled ring call"
+  width="800"
+/>
 
 #### Automatic call cancellation
 
@@ -151,9 +162,10 @@ TODO: do we want to allow multiple active calls? The store implementation will p
 
 1. **Pending calls array** - the UI shows the incoming / outgoing calls based on this array
 2. **Accepted call** - the app can start the process of joining the outgoing call
-2. **Active call** - the app shows the active call UI
+3. **Active call** - the app shows the active call UI
 
 ### Call calling state
+
 In an individual call lifespan various situations can occur that are then reflected in something we named **calling state**. Thus, a call can be in state of joining, reconnection, left etc.
 This is reflected within the [`Call` objects internal state](../../call-engine/Call#state).
 
@@ -162,5 +174,3 @@ This is reflected within the [`Call` objects internal state](../../call-engine/C
 ### Hybrid scenarios
 
 TODO: do we want to describe those? For example Slack call is a hybrid of the 2 above.
-
-

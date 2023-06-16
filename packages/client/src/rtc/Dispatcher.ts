@@ -1,5 +1,6 @@
-import { CallEventTypes } from '../coordinator/connection/types';
+import { CallEventTypes, Logger } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
+import { getLogger } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
 
@@ -34,18 +35,27 @@ export class Dispatcher {
   private subscribers: {
     [eventName: string]: SfuEventListener[] | undefined;
   } = {};
+  private logger?: Logger;
+
+  constructor() {
+    this.logger = getLogger(['sfu-client']);
+  }
 
   dispatch = (message: SfuEvent) => {
     const eventKind = message.eventPayload.oneofKind;
     if (eventKind) {
-      // @ts-ignore
-      console.log(`Dispatching`, eventKind, message.eventPayload[eventKind]);
+      this.logger?.('info', `Dispatching ${eventKind}`);
+      this.logger?.(
+        'debug',
+        `Event payload`,
+        (message.eventPayload as any)[eventKind],
+      );
       const listeners = this.subscribers[eventKind];
       listeners?.forEach((fn) => {
         try {
           fn(message);
         } catch (e) {
-          console.warn(`Listener failed with error`, e);
+          this.logger?.('warn', 'Listener failed with error', e);
         }
       });
     }
