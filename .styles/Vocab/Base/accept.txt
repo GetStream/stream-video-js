@@ -48,3 +48,9 @@ hasAudio
 hasVideo
 [Rr]econnections?
 _Note
+(?i)dynascale
+bitrate
+codecs
+(?i)geofencing
+
+
