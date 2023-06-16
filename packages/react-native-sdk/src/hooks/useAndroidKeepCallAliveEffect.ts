@@ -86,14 +86,14 @@ export const useAndroidKeepCallAliveEffect = () => {
         }
       };
       run();
-    } else {
-      if (!foregroundServiceStartedRef.current) {
-        return;
-      }
-      // stop foreground service when the call is not active
-      stopForegroundService();
-      foregroundServiceStartedRef.current = false;
-      return;
+      return () => {
+        if (!foregroundServiceStartedRef.current) {
+          return;
+        }
+        // stop foreground service when the call is not active
+        stopForegroundService();
+        foregroundServiceStartedRef.current = false;
+      };
     }
   }, [callingState]);
 };
