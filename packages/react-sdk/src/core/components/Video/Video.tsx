@@ -47,7 +47,7 @@ export const Video = ({
     screenShareStream,
     publishedTracks,
     viewportVisibilityState,
-    isLoggedInUser,
+    isLocalParticipant,
     userId,
   } = participant;
 
@@ -125,7 +125,7 @@ export const Video = ({
   useEffect(() => {
     viewportVisibilityRef.current = viewportVisibilityState;
 
-    if (!videoElement || !isPublishingTrack || isLoggedInUser) return;
+    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
 
     const isInvisibleVVS =
       viewportVisibilityState === VisibilityState.INVISIBLE;
@@ -144,12 +144,12 @@ export const Video = ({
     viewportVisibilityState,
     videoElement,
     isPublishingTrack,
-    isLoggedInUser,
+    isLocalParticipant,
   ]);
 
   // handle resize subscription updates
   useEffect(() => {
-    if (!videoElement || !isPublishingTrack || isLoggedInUser) return;
+    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
 
     const resizeObserver = new ResizeObserver(() => {
       const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
@@ -184,12 +184,12 @@ export const Video = ({
     videoElement,
     viewportVisibilityState,
     isPublishingTrack,
-    isLoggedInUser,
+    isLocalParticipant,
   ]);
 
   // handle generic subscription updates
   useEffect(() => {
-    if (!isPublishingTrack || !videoElement || isLoggedInUser) return;
+    if (!isPublishingTrack || !videoElement || isLocalParticipant) return;
 
     updateSubscription(
       {
@@ -202,7 +202,7 @@ export const Video = ({
     return () => {
       updateSubscription(undefined, DebounceType.FAST);
     };
-  }, [updateSubscription, videoElement, isPublishingTrack, isLoggedInUser]);
+  }, [updateSubscription, videoElement, isPublishingTrack, isLocalParticipant]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
@@ -233,7 +233,7 @@ export const Video = ({
         stream={stream}
         className={clsx(className, 'str-video__video', {
           'str-video__video--tall': !isWideMode,
-          'str-video__video--mirror': isLoggedInUser && kind === 'video',
+          'str-video__video--mirror': isLocalParticipant && kind === 'video',
           'str-video__video--screen-share': kind === 'screen',
         })}
         data-user-id={userId}

@@ -119,8 +119,8 @@ const getCustomSortingPreset = (
   // participant in the spotlight, and not show them in the participants bar.
   if (isOneToOneCall) {
     return (a: StreamVideoParticipant, b: StreamVideoParticipant) => {
-      if (a.isLoggedInUser) return 1;
-      if (b.isLoggedInUser) return -1;
+      if (a.isLocalParticipant) return 1;
+      if (b.isLocalParticipant) return -1;
       return 0;
     };
   }

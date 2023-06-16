@@ -289,7 +289,7 @@ export class CallState {
     );
 
     this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLoggedInUser)),
+      map((participants) => participants.filter((p) => !p.isLocalParticipant)),
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(

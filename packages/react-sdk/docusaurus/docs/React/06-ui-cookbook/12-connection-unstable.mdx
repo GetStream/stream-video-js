@@ -11,21 +11,20 @@ Our minimal custom unstable connection notification should look as follows:
 ```tsx
 import {
   SfuModels,
-  useParticipantViewContext
+  useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
-
 
 const PoorConnectionNotification = () => {
   const { participant } = useParticipantViewContext();
-  const { connectionQuality, isLoggedInUser } = participant;
+  const { connectionQuality, isLocalParticipant } = participant;
 
-  if (isLoggedInUser && connectionQuality === SfuModels.ConnectionQuality.POOR) {
-    return (
-      <div>Poor connection quality</div>
-    );
+  if (
+    isLocalParticipant &&
+    connectionQuality === SfuModels.ConnectionQuality.POOR
+  ) {
+    return <div>Poor connection quality</div>;
   }
   return null;
-
 };
 
 export const CustomParticipantViewUI = () => {
@@ -52,24 +51,24 @@ import { CustomParticipantViewUI } from '../ParticipantViewUI';
 import { CustomVideoPlaceholder } from '../VideoPlaceholder';
 
 export const CustomCallLayout = () => {
-    const otherParticipants = useParticipants();
-    const localParticipant = useLocalParticipant();
+  const otherParticipants = useParticipants();
+  const localParticipant = useLocalParticipant();
 
-    return (
-        <div>
-        {/* other UI components */}
-        {otherParticipants.map((participant) => (
-            <div key={participant.sessionId}>
-                <ParticipantView
-                  participant={participant}
-                  sinkId={localParticipant?.audioOutputDeviceId}
-                  // highlight-next-line
-                  ParticipantViewUI={CustomParticipantViewUI}
-                  VideoPlaceholder={CustomVideoPlaceholder}
-                />
-            </div>
-            ))}
+  return (
+    <div>
+      {/* other UI components */}
+      {otherParticipants.map((participant) => (
+        <div key={participant.sessionId}>
+          <ParticipantView
+            participant={participant}
+            sinkId={localParticipant?.audioOutputDeviceId}
+            // highlight-next-line
+            ParticipantViewUI={CustomParticipantViewUI}
+            VideoPlaceholder={CustomVideoPlaceholder}
+          />
+        </div>
+      ))}
     </div>
-    );
+  );
 };
 ```

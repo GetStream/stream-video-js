@@ -813,7 +813,7 @@ export class Call {
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
-          isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          isLocalParticipant: participant.sessionId === sfuClient.sessionId,
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
@@ -992,7 +992,7 @@ export class Call {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
       // we don't want to subscribe to our own tracks
-      if (p.isLoggedInUser) return;
+      if (p.isLocalParticipant) return;
 
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
