@@ -4,20 +4,27 @@ import {
   Restricted,
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useIsCallLive,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
-import { useLoadedCalls } from '../../contexts';
+import { useJoinedCall } from '../../contexts';
 
 export const RoomNavControls = () => {
   const { setInitialAudioEnabled } = useMediaDevices();
-  const { setJoinedCall, joinedCall, leaveCall } = useLoadedCalls();
+  const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
+  const metadata = useCallMetadata();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
-  if (!call || (callingState !== CallingState.JOINED && isLive)) return null;
+  if (
+    !call ||
+    (callingState !== CallingState.JOINED && isLive) ||
+    !!metadata?.ended_at
+  )
+    return null;
 
   return (
     <div className="room-nav-controls">
@@ -32,7 +39,7 @@ export const RoomNavControls = () => {
               className="leave-button"
               onClick={async () => {
                 if (joinedCall) {
-                  await leaveCall(joinedCall).catch((err) => {
+                  await joinedCall.leave().catch((err) => {
                     console.error('Error leaving call', err);
                   });
                   setInitialAudioEnabled(false);
@@ -66,7 +73,7 @@ export const RoomNavControls = () => {
           <button
             className="leave-button"
             onClick={async () => {
-              await leaveCall(call).catch((err) => {
+              await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
               setInitialAudioEnabled(false);

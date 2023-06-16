@@ -5,19 +5,19 @@ import {
   useIsCallLive,
 } from '@stream-io/video-react-sdk';
 import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
-import { useLoadedCalls } from '../../contexts';
+import { useJoinedCall } from '../../contexts';
 
 export const EndedRoomOverlay = () => {
   return (
     <div className="room-overlay">
       <p>This room has been terminated</p>
-      <CloseInactiveRoomButton>Close</CloseInactiveRoomButton>
+      <CloseInactiveRoomButton>Back to overview</CloseInactiveRoomButton>
     </div>
   );
 };
 
 export const RoomLobby = () => {
-  const { joinedCall, setJoinedCall, leaveCall } = useLoadedCalls();
+  const { joinedCall, setJoinedCall } = useJoinedCall();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
@@ -47,7 +47,7 @@ export const RoomLobby = () => {
         className="leave-button"
         onClick={async () => {
           if (joinedCall) {
-            await leaveCall(joinedCall).catch((err) => {
+            await joinedCall.leave().catch((err) => {
               console.log(err);
             });
           }
