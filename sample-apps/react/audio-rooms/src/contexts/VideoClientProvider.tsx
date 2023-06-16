@@ -5,56 +5,29 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
-import { ConnectionErrorPanel } from '../components/Error';
-import { LoadingPanel } from '../components/Loading';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const VideoClientProvider = ({ children }: ChildrenOnly) => {
   const { user, tokenProvider } = useUserContext();
-  const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(apiKey),
-  );
-  const [connectingUser, setConnectingUser] = useState(false);
-  const [connectionError, setConnectionError] = useState<Error | undefined>();
+  const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
     if (!user) return;
-    setConnectingUser(true);
-    client
-      .connectUser(
-        {
+    setClient(
+      new StreamVideoClient({
+        apiKey,
+        tokenProvider,
+        user: {
           id: user.id,
           image: user.imageUrl,
           name: user.name,
         },
-        tokenProvider,
-      )
-      .catch((err) => {
-        console.error(`Failed to establish connection`, err);
-        setConnectionError(err);
-      })
-      .finally(() => setConnectingUser(false));
+      }),
+    );
+  }, [tokenProvider, user]);
 
-    return () => {
-      client.disconnectUser().catch((err) => {
-        console.error('Failed to disconnect', err);
-        setConnectionError(err);
-      });
-    };
-  }, [client, tokenProvider, user]);
+  if (!client) return null;
 
-  if (connectingUser) {
-    return <LoadingPanel message="Authenticating the user..." />;
-  }
-
-  return (
-    <StreamVideo client={client}>
-      {connectionError ? (
-        <ConnectionErrorPanel error={connectionError} />
-      ) : (
-        children
-      )}
-    </StreamVideo>
-  );
+  return <StreamVideo client={client}>{children}</StreamVideo>;
 };

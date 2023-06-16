@@ -8,7 +8,7 @@ import {
 import {
   ChildrenOnly,
   StreamVideoClient,
-  TokenOrProvider,
+  TokenProvider,
 } from '@stream-io/video-react-sdk';
 import users from '../data/users';
 import { SESSION_STORAGE_UID_KEY } from '../utils/constants';
@@ -23,7 +23,7 @@ export interface UserState {
   user: User | undefined;
   selectUser: (user: User) => Promise<void>;
   logout: (client: StreamVideoClient) => void;
-  tokenProvider: TokenOrProvider;
+  tokenProvider: TokenProvider;
 }
 
 const UserContext = createContext<UserState>({
