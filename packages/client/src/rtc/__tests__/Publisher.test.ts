@@ -68,7 +68,7 @@ describe('Publisher', () => {
     state.setParticipants([
       // @ts-ignore
       {
-        isLoggedInUser: true,
+        isLocalParticipant: true,
         userId: 'test-user-id',
         sessionId: sessionId,
         publishedTracks: [],

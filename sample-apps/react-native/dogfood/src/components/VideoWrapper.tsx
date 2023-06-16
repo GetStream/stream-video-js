@@ -1,4 +1,10 @@
-import React, { PropsWithChildren, useCallback, useMemo, useRef } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
@@ -26,19 +32,30 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     return token;
   }, [username]);
 
-  const videoClientRef = useRef<StreamVideoClient>(
-    new StreamVideoClient({
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    const _videoClient = new StreamVideoClient({
       apiKey: STREAM_API_KEY,
       user,
       tokenProvider,
-    }),
-  );
+    });
+    setVideoClient(_videoClient);
+
+    return () => {
+      _videoClient.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, [tokenProvider, user]);
+
+  if (!videoClient) {
+    return null;
+  }
 
   return (
-    <StreamVideo
-      client={videoClientRef.current}
-      translationsOverrides={translations}
-    >
+    <StreamVideo client={videoClient} translationsOverrides={translations}>
       {children}
     </StreamVideo>
   );

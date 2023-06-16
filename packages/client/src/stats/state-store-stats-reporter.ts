@@ -120,7 +120,9 @@ export const createStatsReporter = ({
     if (sessionIds.size > 0) {
       for (let participant of state.participants) {
         if (!sessionIds.has(participant.sessionId)) continue;
-        const kind = participant.isLoggedInUser ? 'publisher' : 'subscriber';
+        const kind = participant.isLocalParticipant
+          ? 'publisher'
+          : 'subscriber';
         try {
           const mergedStream = new MediaStream([
             ...(participant.videoStream?.getVideoTracks() || []),
