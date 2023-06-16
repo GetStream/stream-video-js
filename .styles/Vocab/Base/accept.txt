@@ -48,3 +48,13 @@ hasAudio
 hasVideo
 [Rr]econnections?
 _Note
+(?i)dynascale
+bitrate
+codecs
+(?i)geofencing
+(?i)npm
+(?i)github
+(?i)deeplink
+(?i)Dogfooding
+(?i)webrtc
+
