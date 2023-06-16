@@ -6,6 +6,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
 import { ConnectionErrorPanel } from '../components/Error';
+import { LoadingPanel } from '../components/Loading';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
@@ -14,11 +15,12 @@ export const VideoClientProvider = ({ children }: ChildrenOnly) => {
   const [client] = useState<StreamVideoClient>(
     () => new StreamVideoClient(apiKey),
   );
+  const [connectingUser, setConnectingUser] = useState(false);
   const [connectionError, setConnectionError] = useState<Error | undefined>();
 
   useEffect(() => {
     if (!user) return;
-
+    setConnectingUser(true);
     client
       .connectUser(
         {
@@ -31,7 +33,8 @@ export const VideoClientProvider = ({ children }: ChildrenOnly) => {
       .catch((err) => {
         console.error(`Failed to establish connection`, err);
         setConnectionError(err);
-      });
+      })
+      .finally(() => setConnectingUser(false));
 
     return () => {
       client.disconnectUser().catch((err) => {
@@ -40,6 +43,10 @@ export const VideoClientProvider = ({ children }: ChildrenOnly) => {
       });
     };
   }, [client, tokenProvider, user]);
+
+  if (connectingUser) {
+    return <LoadingPanel message="Authenticating the user..." />;
+  }
 
   return (
     <StreamVideo client={client}>
