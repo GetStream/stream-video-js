@@ -24,6 +24,7 @@ import {
   setPreferredCodec,
   toggleDtx,
 } from '../helpers/sdp-munging';
+import { Logger } from '../coordinator/connection/types';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
@@ -63,6 +64,7 @@ export class Publisher {
   private isDtxEnabled: boolean;
   private isRedEnabled: boolean;
   private preferredVideoCodec?: string;
+  private logger?: Logger;
 
   constructor({
     connectionConfig,
@@ -124,7 +126,10 @@ export class Publisher {
      * Once the track has ended, it will notify the SFU and update the state.
      */
     const handleTrackEnded = async () => {
-      console.log(`Track ${TrackType[trackType]} has ended, notifying the SFU`);
+      this.logger?.(
+        'info',
+        `Track ${TrackType[trackType]} has ended, notifying the SFU`,
+      );
       await this.notifyTrackMuteStateChanged(
         mediaStream,
         track,
@@ -165,7 +170,8 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
-        console.log(
+        this.logger?.(
+          'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
         );
@@ -283,7 +289,11 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {
-    console.log('Update publish quality, requested rids by SFU:', enabledRids);
+    this.logger?.(
+      'info',
+      'Update publish quality, requested rids by SFU:',
+      enabledRids,
+    );
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
     if (!videoSender) return;
@@ -300,10 +310,11 @@ export class Publisher {
     });
     if (changed) {
       if (params.encodings.length === 0) {
-        console.warn('No suitable video encoding quality found');
+        this.logger?.('warn', 'No suitable video encoding quality found');
       }
       await videoSender.setParameters(params);
-      console.log(
+      this.logger?.(
+        'info',
         `Update publish quality, enabled rids: ${params.encodings
           .filter((e) => e.active)
           .map((e) => e.rid)
@@ -342,7 +353,7 @@ export class Publisher {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      console.log('null ice candidate');
+      this.logger?.('warn', 'null ice candidate');
       return;
     }
     await this.sfuClient.iceTrickle({
@@ -352,7 +363,7 @@ export class Publisher {
   };
 
   private onNegotiationNeeded = async () => {
-    console.log('AAA onNegotiationNeeded');
+    this.logger?.('info', 'AAA onNegotiationNeeded');
     const offer = await this.publisher.createOffer();
     let sdp = offer.sdp;
     if (sdp) {
@@ -430,7 +441,10 @@ export class Publisher {
         sdp: response.sdp,
       });
     } catch (e) {
-      console.error(`Publisher: setRemoteDescription error`, response.sdp, e);
+      this.logger?.('error', `Publisher: setRemoteDescription error`, {
+        sdp: response.sdp,
+        error: e,
+      });
     }
 
     this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
@@ -439,7 +453,10 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.publisher.addIceCandidate(iceCandidate);
         } catch (e) {
-          console.error(`Publisher: ICE candidate error`, e, candidate);
+          this.logger?.('error', `Publisher: ICE candidate error`, {
+            error: e,
+            candidate,
+          });
         }
       },
     );
@@ -449,18 +466,20 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    console.error(`Publisher: ICE Candidate error`, errorMessage);
+    this.logger?.('error', `Publisher: ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
-    console.log(
+    this.logger?.(
+      'error',
       `Publisher: ICE Connection state changed`,
       this.publisher.iceConnectionState,
     );
   };
 
   private onIceGatheringStateChange = () => {
-    console.log(
+    this.logger?.(
+      'error',
       `Publisher: ICE Gathering State`,
       this.publisher.iceGatheringState,
     );
