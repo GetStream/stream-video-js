@@ -61,35 +61,19 @@ Here are some of the features we support:
 
 ## **Repo Overview** 😎
 
-This repo contains projects and samples developed by the team and Stream community. Projects are broke up into directories containing the source code for each project.
+This repo contains projects and samples developed by the team and Stream community. 
+Projects are broken up into directories containing the source code for each project.
+
 
 ## Roadmap
 
-Video roadmap and changelog is available [here](https://github.com/GetStream/protocol/discussions/127). 
+Video roadmap and changelog are available [here](https://github.com/GetStream/protocol/discussions/127). 
+
+### 0.1 milestone
 
 ### 0.2 milestone
 
-- [ ] Livestream tutorial
-- [ ] Deeplink support for video call demo & dogfooding app (skip auth for the video demo, keep it for dogfooding)
-- [ ] Chat Integration
-- [ ] XML version of VideoRenderer
-- [ ] Call Analytics stateflow
-- [ ] Automatically handle pagination and sorting on > 6 participants 
-- [X] Reactions
-
 ### 0.3 milestone
-
-- [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
-- [ ] Test coverage
-- [ ] Testing on more devices
-- [ ] Audio & Video filters
-- [ ] Android SDK development.md cleanup
-- [X] SDK development guide for all teams
 
 ### 0.4 milestone
 
-- [ ] Analytics integration
-- [ ] Screensharing from mobile
-- [ ] Tap to focus
-- [ ] Camera controls
-- [ ] Picture of the video stream at highest resolution
