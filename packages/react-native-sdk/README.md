@@ -35,7 +35,7 @@ Here are some of the features we support:
 - Chat: Stored chat, reactions, threads, typing indicators, URL previews etc
 - Security & Privacy: Based in USA and EU, Soc2 certified, GDPR compliant
 - Dynascale: Automatically switch resolutions, fps, bitrate, codecs and paginate video on large calls
-- Screen sharing
+- Screen sharing (To be implemented)
 - Picture-in-picture support (To be implemented)
 - Active speaker
 - Custom events
@@ -79,7 +79,7 @@ Apps created with Expo are currently not officially supported.
 
 ## **Contributing** 🤝
 - How can I submit a sample app?
-    - Apps submissions are always welcomed! 🥳 Open a pr with a proper description and we'll review it as soon as possible
+    - Apps submissions are always welcomed 🥳 Open a pr with a proper description and we'll review it as soon as possible
 - Spot a bug 🕷 ?
     - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
 
@@ -114,7 +114,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 
 ### 0.4 milestone
 - [ ] Audio & Video filters
-- [ ] Screensharing from mobile
+- [ ] Screen sharing from mobile
 - [ ] Tap to focus
 - [ ] Analytics integration
 - [ ] Picture of the video stream at highest resolution
