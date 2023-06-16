@@ -72,12 +72,13 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     firebaseMessagingOnMessageHandler(msg, pushConfig),
   );
   // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
-  notifee.onBackgroundEvent((event) =>
-    onNotifeeBackgroundEvent(event, pushConfig),
-  );
-
+  notifee.onBackgroundEvent(async (event) => {
+    // NOTE: When app was opened from a quit state, we will never hit this when on accept event as app will open and the click event will go to foreground
+    await onNotifeeEvent(event, pushConfig);
+  });
   notifee.onForegroundEvent((event) => {
-    onNotifeeBackgroundEvent(event, pushConfig);
+    // NOTE: When app was opened from a quit state, we will never hit this when on accept event as app will open and go to foreground immediately
+    onNotifeeEvent(event, pushConfig);
   });
 }
 
@@ -161,10 +162,7 @@ const firebaseMessagingOnMessageHandler = async (
   // callkeep.displayIncomingCall(uuid, handle, localizedCallerName);
 };
 
-const onNotifeeBackgroundEvent = async (
-  event: Event,
-  pushConfig: PushConfig,
-) => {
+const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
   const { type, detail } = event;
   const { notification, pressAction } = detail;
   const notificationId = notification?.id;
@@ -186,19 +184,72 @@ const onNotifeeBackgroundEvent = async (
     type === EventType.ACTION_PRESS &&
     pressAction.id === DECLINE_CALL_ACTION_ID;
   const didDismiss = type === EventType.DISMISSED;
-  if (didPressDecline || didDismiss) {
-    pushRejectedIncomingCallCId$.next(call_cid);
-    // Remove the notification
-    await notifee.cancelNotification(notificationId);
-  }
-
+  const mustDecline = didPressDecline || didDismiss;
   // Check if we need to accept the call
-  const didPressAccept =
+  const mustAccept =
     type === EventType.ACTION_PRESS && pressAction.id === ACCEPT_CALL_ACTION_ID;
-  if (didPressAccept) {
-    console.log('didPressAccept', call_cid);
+  if (mustAccept) {
     pushAcceptedIncomingCallCId$.next(call_cid);
-    console.log('navigateAcceptCall');
     pushConfig.navigateAcceptCall();
+    // accept will be handled by the app with rxjs observers as the app will go to foreground always
+    return;
+  } else if (mustDecline) {
+    pushRejectedIncomingCallCId$.next(call_cid);
+    const hasObservers =
+      pushAcceptedIncomingCallCId$.observed &&
+      pushRejectedIncomingCallCId$.observed;
+    if (hasObservers) {
+      // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
+      return;
+    }
+    // call has been declined from the notification
+    // we need to create a new client and connect the user to decline the call
+    // this is because the app is in background state and we don't have a client to decline the call
+    let videoClient: StreamVideoClient | undefined;
+
+    try {
+      videoClient = await pushConfig.createStreamVideoClient();
+      if (!videoClient) {
+        return;
+      }
+      await videoClient.connectUser();
+      await processCallFromPush(videoClient, call_cid, 'decline');
+    } catch (e) {
+      console.log('failed to create video client and connect user', e);
+    }
+  }
+};
+
+/**
+ * This function is used process the call from push notifications due to incoming call
+ * It does the following steps:
+ * 1. Get the call from the client if present or create a new call
+ * 2. Fetch the latest state of the call from the server if its not already in ringing state
+ * 3. Join or leave the call based on the user's action.
+ */
+export const processCallFromPush = async (
+  client: StreamVideoClient,
+  call_cid: string,
+  action: 'accept' | 'decline',
+) => {
+  // if the we find the call and is already ringing, we don't need create a new call
+  // as client would have received the call.ring state because the app had WS alive when receiving push notifications
+  let callFromPush = client.readOnlyStateStore.calls.find(
+    (call) => call.cid === call_cid && call.ringing,
+  );
+  if (!callFromPush) {
+    // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+    const [callType, callId] = call_cid.split(':');
+    callFromPush = client.call(callType, callId, true);
+    await callFromPush.get();
+  }
+  try {
+    if (action === 'accept') {
+      await callFromPush.join();
+    } else {
+      await callFromPush.leave({ reject: true });
+    }
+  } catch (e) {
+    console.log('failed to process call from push notification', e, action);
   }
 };

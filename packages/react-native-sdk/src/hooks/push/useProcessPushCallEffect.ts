@@ -1,4 +1,3 @@
-// import { useCall } from '@stream-io/video-react-bindings';
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
@@ -9,12 +8,13 @@ import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
-import { StreamVideoClient } from '@stream-io/video-client';
 import { filter } from 'rxjs/operators';
+import { processCallFromPush } from '../../utils/push/utils';
 
 /**
- * This hook is used to process the incoming call data via push notifications.
+ * This hook is used to process the incoming call data via push notifications using the relevant rxjs subjects
  * It either joins or leaves the call based on the user's action.
+ * Note: this effect cannot work when push notifications are received when the app is in quit state this is only if app is in background state
  */
 export const useProcessPushCallEffect = () => {
   const client = useStreamVideoClient();
@@ -30,53 +30,21 @@ export const useProcessPushCallEffect = () => {
     const acceptedCallSubscription = pushAcceptedIncomingCallCId$
       .pipe(filter(cidIsNotUndefined))
       .subscribe(async (callCId) => {
-        try {
-          const activeCall = await getCall(client, callCId);
-          await activeCall.join();
-        } catch (e) {
-          console.log('failed to join call from push notification', e);
-        } finally {
-          pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
-        }
+        await processCallFromPush(client, callCId, 'accept');
+        pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
       });
     // if the user rejects the call from push notification we leave the call
     const declinedCallSubscription = pushRejectedIncomingCallCId$
       .pipe(filter(cidIsNotUndefined))
       .subscribe(async (callCId) => {
-        try {
-          const activeCall = await getCall(client, callCId);
-          await activeCall.leave({ reject: true });
-        } catch (e) {
-          console.log('failed to join call from push notification', e);
-        } finally {
-          pushRejectedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
-        }
+        await processCallFromPush(client, callCId, 'decline');
+        pushRejectedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
       });
     return () => {
       acceptedCallSubscription.unsubscribe();
       declinedCallSubscription.unsubscribe();
     };
   }, [client, connectedUserId]);
-};
-
-/**
- * This function is used to get the call from the client if present or create a new call
- * And then fetch the latest state of the call from the server if its not already in ringing state
- */
-const getCall = async (client: StreamVideoClient, call_cid: string) => {
-  const preExistingCall = client.readOnlyStateStore.calls.find(
-    (call) => call.cid === call_cid,
-  );
-  // if the we find the call and is already ringing, we don't need to do anything
-  // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-  if (preExistingCall?.ringing) {
-    return preExistingCall;
-  }
-  // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-  const [callType, callId] = call_cid.split(':');
-  const call = client.call(callType, callId, true);
-  await call.get();
-  return call;
 };
 
 /**

@@ -1,4 +1,4 @@
-import { StreamReaction } from '@stream-io/video-client';
+import { StreamReaction, StreamVideoClient } from '@stream-io/video-client';
 import { AndroidChannel } from '@notifee/react-native';
 
 type StreamReactionType = StreamReaction & {
@@ -65,6 +65,24 @@ export type StreamVideoConfig = {
        */
       pushProviderName: string;
     };
+    /**
+     * This function is used to create a custom video client.
+     * This is used create a video client for incoming calls in the background and inform call events to the server.
+     * If you are unable to create a video client, for example if you dont know the logged in user yet, return undefined.
+     * @example
+     * createStreamVideoClient: () => {
+     *  const userId = await AsyncStorage.getItem('@userId');
+     *  const userName = await AsyncStorage.getItem('@userName');
+     *  const token = await AsyncStorage.getItem('@userToken');
+     *  if (!username || !userToken) return undefined;
+     *  const user = { id: userId, name: userName, token };
+     *  return new StreamVideoClient({
+     *    apiKey: STREAM_API_KEY,
+     *    user,
+     *    token,
+     * })
+     */
+    createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
     /** The callback that is called when a call is accepted, used for navigation */
     navigateAcceptCall: () => void;
   };
