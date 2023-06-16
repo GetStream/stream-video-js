@@ -62,7 +62,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const call = useCall();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const { isSpeaking, isLoggedInUser, publishedTracks } = participant;
+  const { isSpeaking, isLocalParticipant, publishedTracks } = participant;
   const isPublishingVideoTrack = publishedTracks.includes(
     kind === 'video'
       ? SfuModels.TrackType.VIDEO
@@ -182,7 +182,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   );
   const isScreenSharing = kind === 'screen';
   const hasVideoTrack = isScreenSharing ? hasScreenShareTrack : !isVideoMuted;
-  const mirror = isLoggedInUser && isCameraOnFrontFacingMode;
+  const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
   const isAudioAvailable =
     kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
   const canShowVideo = !!videoStream && isVisible && hasVideoTrack;

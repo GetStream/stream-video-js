@@ -230,7 +230,7 @@ const hasScreenShare = (p?: StreamVideoParticipant) =>
   !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (a.isLoggedInUser) return 1;
-  if (b.isLoggedInUser) return -1;
+  if (a.isLocalParticipant) return 1;
+  if (b.isLocalParticipant) return -1;
   return 0;
 };
