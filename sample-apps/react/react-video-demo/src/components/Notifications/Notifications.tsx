@@ -5,6 +5,7 @@ import { useScreenShareNotification } from '../../hooks/useScreenShareNotificati
 import { useScreenRecordingNotification } from '../../hooks/useScreenRecordingNotification';
 import { useSpeakingWhileMutedNotification } from '../../hooks/useSpeakingWhileMutedNotification';
 import { useParticipantNotification } from '../../hooks/useParticipantNotification';
+import { useConnectionNotification } from '../../hooks/useConnectionNotification';
 
 import { useNotificationContext } from '../../contexts/NotificationsContext';
 
@@ -22,8 +23,7 @@ export const Notifications: FC<Props> = ({ className }) => {
   useScreenRecordingNotification();
   useSpeakingWhileMutedNotification();
   useParticipantNotification();
-
-  console.log(notifications);
+  useConnectionNotification();
 
   return (
     <ul className={rootClassNames}>
