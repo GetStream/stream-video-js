@@ -21,7 +21,7 @@ import { isComponentType, applyElementToRef } from '../../../utilities';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 export type ParticipantViewContextValue = Required<
-  Pick<ParticipantViewProps, 'participant' | 'videoKind'>
+  Pick<ParticipantViewProps, 'participant' | 'videoMode'>
 > & {
   participantViewElement: HTMLDivElement | null;
   videoElement: HTMLVideoElement | null;
@@ -49,12 +49,12 @@ export type ParticipantViewProps = {
   ParticipantViewUI?: ComponentType | ReactElement | null;
 
   /**
-   * The kind of video stream to play for the given participant.
+   * The kind of video stream to play for the given participant. The default value is `video`. You can use `none` if you're building an audio-only call.
    */
-  videoKind?: 'video' | 'screen';
+  videoMode?: 'video' | 'screen' | 'none';
 
   /**
-   * You can mute the audio of the given participant (this is a local action, it won't have any effect on the published audio of the participant). The `ParticipantView` will mute the audio of the local participant by default.
+   * This prop is only useful for advanced use-cases (for example building your own paginated layout). When set to `true` it will mute the give participant's audio stream on the client side. The local participant is always muted.
    */
   muteAudio?: boolean;
 
@@ -76,7 +76,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
   (
     {
       participant,
-      videoKind = 'video',
+      videoMode = 'video',
       muteAudio,
       refs: { setVideoElement, setVideoPlaceholderElement } = {},
       className,
@@ -119,14 +119,14 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         participantViewElement: trackedElement,
         videoElement: contextVideoElement,
         videoPlaceholderElement: contextVideoPlaceholderElement,
-        videoKind,
+        videoMode,
       }),
       [
         contextVideoElement,
         contextVideoPlaceholderElement,
         participant,
         trackedElement,
-        videoKind,
+        videoMode,
       ],
     );
 
@@ -168,7 +168,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           <Video
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
-            kind={videoKind}
+            kind={videoMode}
             refs={videoRefs}
             autoPlay
           />

@@ -96,7 +96,7 @@ export const SpeakerLayout = ({
             <ParticipantView
               participant={participantInSpotlight}
               muteAudio={isSpeakerScreenSharing}
-              videoKind={isSpeakerScreenSharing ? 'screen' : 'video'}
+              videoMode={isSpeakerScreenSharing ? 'screen' : 'video'}
               ParticipantViewUI={ParticipantViewUISpotlight}
               VideoPlaceholder={VideoPlaceholder}
             />
