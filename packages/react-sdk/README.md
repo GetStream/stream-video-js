@@ -49,6 +49,31 @@ Here are some of the features we support:
 - Call recording
 - Broadcasting to HLS
 
+## Roadmap
+
+### 0.1 milestone
+[] Call session migration
+[] Hardware-accelerated video encoding on supported platforms
+
+### 0.2 milestone
+[] Composite layout for streaming and recording
+[] Dynascale: turn off incoming video when the browser is in the background
+[] Performance and bundle-size optimizations
+[] Typescript generics enhancements
+[] Logging 2.0
+[] E2E testing platform
+[] Increase test coverage
+
+### 0.3 milestone
+[] Video and audio filters
+[] Transcriptions
+[] Closed captions
+
+### 0.4 milestone
+[] Enhanced UI components and theming
+[] Break-out rooms
+[] Waiting rooms
+
 ## Contributing
 
 - How can I submit a sample app?
