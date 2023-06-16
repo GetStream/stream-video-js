@@ -18,6 +18,7 @@ import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { isComponentType, applyElementToRef } from '../../../utilities';
+import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 export type ParticipantViewContextValue = Required<
   Pick<ParticipantViewProps, 'participant' | 'videoKind'>
@@ -48,13 +49,6 @@ export type ParticipantViewProps = {
   ParticipantViewUI?: ComponentType | ReactElement | null;
 
   /**
-   * In supported browsers, this sets the default audio output.
-   * The value of this prop should be a valid audio output device ID.
-   * You can set this using `audioOutputDeviceId` field of the local participant.
-   */
-  sinkId?: string;
-
-  /**
    * The kind of video stream to play for the given participant.
    */
   videoKind?: 'video' | 'screen';
@@ -82,7 +76,6 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
   (
     {
       participant,
-      sinkId,
       videoKind = 'video',
       muteAudio,
       refs: { setVideoElement, setVideoPlaceholderElement } = {},
@@ -99,6 +92,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       publishedTracks,
       sessionId,
     } = participant;
+    const localParticipant = useLocalParticipant();
 
     const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
     const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -168,7 +162,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           <Audio
             // mute the local participant, as we don't want to hear ourselves
             muted={isLocalParticipant || muteAudio}
-            sinkId={sinkId}
+            sinkId={localParticipant?.audioOutputDeviceId}
             audioStream={audioStream}
           />
           <Video
