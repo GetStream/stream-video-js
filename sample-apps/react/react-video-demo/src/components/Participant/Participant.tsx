@@ -1,16 +1,18 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect } from 'react';
 import classnames from 'classnames';
+import { v1 as uuid } from 'uuid';
 import {
   StreamVideoParticipant,
   Call,
   SfuModels,
-  VisibilityState,
   ParticipantView,
   StreamReaction,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
 import Reaction from '../Reaction';
+
+import { useNotificationContext } from '../../contexts/NotificationsContext';
 
 import styles from './Participant.module.css';
 
@@ -114,6 +116,8 @@ export const Participant: FC<Props> = ({
     reaction,
   } = participant;
 
+  const { addNotification } = useNotificationContext();
+
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
@@ -122,6 +126,17 @@ export const Participant: FC<Props> = ({
     String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
 
   const isPinned = !!participant.pinnedAt;
+
+  useEffect(() => {
+    if (connectionQuality === SfuModels.ConnectionQuality.POOR) {
+      addNotification({
+        id: uuid(),
+        message:
+          'Poor connection quality. Please check your internet connection.',
+        icon: <Signal />,
+      });
+    }
+  }, [connectionQuality, addNotification]);
 
   const rootClassNames = classnames(
     styles.root,
@@ -137,18 +152,6 @@ export const Participant: FC<Props> = ({
     },
     className,
   );
-
-  // if (!hasVideo) {
-  //   return (
-  //     <VideoPlaceholder
-  //       call={call}
-  //       className={rootClassNames}
-  //       participant={participant}
-  //       hasAudio={hasAudio}
-  //       sessionId={sessionId}
-  //     />
-  //   );
-  // }
 
   return (
     <ParticipantView

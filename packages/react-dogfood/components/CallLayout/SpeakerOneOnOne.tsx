@@ -14,6 +14,11 @@ const CustomParticipantViewUISpotlight = () => {
   const constraintsElementRef = useRef<HTMLDivElement | null>(null);
   const hasOngoingScreenShare = useHasOngoingScreenShare();
 
+  const participantToRender =
+    hasOngoingScreenShare && !participantInSpotlight.isLocalParticipant
+      ? participantInSpotlight
+      : otherParticipant;
+
   return (
     <>
       <motion.div
@@ -22,25 +27,15 @@ const CustomParticipantViewUISpotlight = () => {
       >
         <motion.div
           dragConstraints={constraintsElementRef}
-          className="custom-participant-view"
-          style={{
-            position: 'absolute',
-            width: '320px',
-            top: '0.875rem',
-            left: '0.875rem',
-          }}
+          className="rd__framer-participant-view-wrapper"
           drag
           dragMomentum
           dragTransition={{ timeConstant: 100, power: 0.1 }}
           dragElastic={0}
         >
           <ParticipantView
-            muteAudio
-            participant={
-              hasOngoingScreenShare && !participantInSpotlight.isLoggedInUser
-                ? participantInSpotlight
-                : otherParticipant
-            }
+            muteAudio={participantToRender.isLocalParticipant}
+            participant={participantToRender}
           />
         </motion.div>
       </motion.div>

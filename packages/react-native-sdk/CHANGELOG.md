@@ -2,6 +2,70 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.168](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.167...@stream-io/video-react-native-sdk-0.0.1-alpha.168) (2023-06-16)
+
+
+
+## [0.0.1-alpha.167](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.166...@stream-io/video-react-native-sdk-0.0.1-alpha.167) (2023-06-15)
+
+
+
+## [0.0.1-alpha.166](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.165...@stream-io/video-react-native-sdk-0.0.1-alpha.166) (2023-06-15)
+
+
+
+## [0.0.1-alpha.165](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.164...@stream-io/video-react-native-sdk-0.0.1-alpha.165) (2023-06-15)
+
+
+
+## [0.0.1-alpha.164](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.163...@stream-io/video-react-native-sdk-0.0.1-alpha.164) (2023-06-15)
+
+
+
+## [0.0.1-alpha.163](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.162...@stream-io/video-react-native-sdk-0.0.1-alpha.163) (2023-06-15)
+
+
+
+## [0.0.1-alpha.162](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.161...@stream-io/video-react-native-sdk-0.0.1-alpha.162) (2023-06-15)
+
+
+
+## [0.0.1-alpha.161](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.160...@stream-io/video-react-native-sdk-0.0.1-alpha.161) (2023-06-14)
+
+
+
+## [0.0.1-alpha.160](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.159...@stream-io/video-react-native-sdk-0.0.1-alpha.160) (2023-06-14)
+
+
+
+## [0.0.1-alpha.159](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.158...@stream-io/video-react-native-sdk-0.0.1-alpha.159) (2023-06-14)
+
+
+
+## [0.0.1-alpha.158](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.157...@stream-io/video-react-native-sdk-0.0.1-alpha.158) (2023-06-13)
+
+
+
+## [0.0.1-alpha.157](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.156...@stream-io/video-react-native-sdk-0.0.1-alpha.157) (2023-06-13)
+
+
+
+## [0.0.1-alpha.156](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.155...@stream-io/video-react-native-sdk-0.0.1-alpha.156) (2023-06-13)
+
+
+
+## [0.0.1-alpha.155](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.154...@stream-io/video-react-native-sdk-0.0.1-alpha.155) (2023-06-13)
+
+
+
+## [0.0.1-alpha.154](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.153...@stream-io/video-react-native-sdk-0.0.1-alpha.154) (2023-06-13)
+
+
+
+## [0.0.1-alpha.153](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.152...@stream-io/video-react-native-sdk-0.0.1-alpha.153) (2023-06-13)
+
+
+
 ## [0.0.1-alpha.152](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.151...@stream-io/video-react-native-sdk-0.0.1-alpha.152) (2023-06-12)
 
 

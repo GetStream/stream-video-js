@@ -24,11 +24,15 @@ import type {
   ConnectionChangedEvent,
   EventHandler,
   EventTypes,
+  LogLevel,
+  Logger,
   StreamClientOptions,
   TokenOrProvider,
+  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import { getLogger, logToConsole, setLogger } from './logger';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -38,23 +42,76 @@ export class StreamVideoClient {
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
+  readonly user?: User;
+  readonly token?: TokenOrProvider;
+  readonly logLevel: LogLevel = 'warn';
+  readonly logger: Logger;
+
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
   private eventHandlersToUnregister: Array<() => void> = [];
   private connectionPromise: Promise<void | ConnectedEvent> | undefined;
   private disconnectionPromise: Promise<void> | undefined;
+  private logLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
   /**
    * You should create only one instance of `StreamVideoClient`.
-   * @param apiKey your Stream API key
-   * @param opts the options for the client.
    */
-  constructor(apiKey: string, opts?: StreamClientOptions) {
-    this.streamClient = new StreamClient(apiKey, {
-      persistUserOnConnectionFailure: true,
-      ...opts,
-    });
+  constructor(apiKey: string, opts?: StreamClientOptions);
+  constructor(args: {
+    apiKey: string;
+    options?: StreamClientOptions;
+    user?: User;
+    token?: string;
+    tokenProvider?: TokenProvider;
+  });
+  constructor(
+    apiKeyOrArgs:
+      | string
+      | {
+          apiKey: string;
+          options?: StreamClientOptions;
+          user?: User;
+          token?: string;
+          tokenProvider?: TokenProvider;
+        },
+    opts?: StreamClientOptions,
+  ) {
+    let defaultLogger: Logger = logToConsole;
+    if (typeof apiKeyOrArgs === 'string') {
+      this.logLevel = opts?.logLevel || this.logLevel;
+      this.logger = opts?.logger || defaultLogger;
+    } else {
+      this.logLevel = apiKeyOrArgs.options?.logLevel || this.logLevel;
+      this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
+    }
+
+    setLogger(this.filterLogs(defaultLogger));
+
+    const clientLogger = getLogger(['client']);
+
+    if (typeof apiKeyOrArgs === 'string') {
+      this.streamClient = new StreamClient(apiKeyOrArgs, {
+        persistUserOnConnectionFailure: true,
+        ...opts,
+        logLevel: this.logLevel,
+        logger: clientLogger,
+      });
+    } else {
+      this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
+        persistUserOnConnectionFailure: true,
+        ...apiKeyOrArgs.options,
+        logLevel: this.logLevel,
+        logger: clientLogger,
+      });
+
+      this.user = apiKeyOrArgs.user;
+      this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
+      if (this.user) {
+        this.streamClient.startWaitingForConnection();
+      }
+    }
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -68,27 +125,32 @@ export class StreamVideoClient {
    * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
    *
    * @param user the user to connect.
-   * @param tokenOrProvider a token or a function that returns a token.
+   * @param token a token or a function that returns a token.
    */
   async connectUser(
-    user: User,
-    token: TokenOrProvider,
+    user?: User,
+    token?: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
-    if (user.type === 'anonymous') {
-      user.id = '!anon';
-      return this.connectAnonymousUser(user as UserWithId, token);
+    const userToConnect = user || this.user;
+    const tokenToUse = token || this.token;
+    if (!userToConnect) {
+      throw new Error('Connect user is called without user');
     }
-    if (user.type === 'guest') {
+    if (userToConnect.type === 'anonymous') {
+      userToConnect.id = '!anon';
+      return this.connectAnonymousUser(userToConnect as UserWithId, tokenToUse);
+    }
+    if (userToConnect.type === 'guest') {
       const response = await this.createGuestUser({
         user: {
-          ...user,
+          ...userToConnect,
           role: 'guest',
         },
       });
       return this.connectUser(response.user, response.access_token);
     }
     const connectUser = () => {
-      return this.streamClient.connectUser(user, token);
+      return this.streamClient.connectUser(userToConnect, tokenToUse);
     };
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
@@ -117,7 +179,7 @@ export class StreamVideoClient {
               },
               sort: [{ field: 'cid', direction: 1 }],
             }).catch((err) => {
-              console.warn('Failed to re-watch calls', err);
+              this.logger('error', 'Failed to re-watch calls', err);
             });
           }
         }
@@ -128,8 +190,11 @@ export class StreamVideoClient {
       this.on('call.created', (event) => {
         if (event.type !== 'call.created') return;
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
-          console.warn('Received `call.created` sent by the current user');
+        if (userToConnect.id === call.created_by.id) {
+          this.logger(
+            'warn',
+            'Received `call.created` sent by the current user',
+          );
           return;
         }
 
@@ -150,29 +215,27 @@ export class StreamVideoClient {
       this.on('call.ring', async (event) => {
         if (event.type !== 'call.ring') return;
         const { call, members } = event;
-        if (user.id === call.created_by.id) {
-          console.warn('Received `call.ring` sent by the current user');
+        if (userToConnect.id === call.created_by.id) {
+          this.logger('warn', 'Received `call.ring` sent by the current user');
           return;
         }
 
         // The call might already be tracked by the client,
         // if `call.created` was received before `call.ring`.
-        // In that case, we just reuse the already tracked call.
-        let theCall = this.writeableStateStore.findCall(call.type, call.id);
-        if (!theCall) {
-          // otherwise, we create a new call
-          theCall = new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            members,
-            clientStore: this.writeableStateStore,
-            ringing: true,
-          });
-        }
-
+        // In that case, we cleanup the already tracked call.
+        const prevCall = this.writeableStateStore.findCall(call.type, call.id);
+        await prevCall?.leave();
+        // we create a new call
+        const theCall = new Call({
+          streamClient: this.streamClient,
+          type: call.type,
+          id: call.id,
+          members,
+          clientStore: this.writeableStateStore,
+          ringing: true,
+        });
         // we fetch the latest metadata for the call from the server
-        await theCall.get({ ring: true });
+        await theCall.get();
         this.writeableStateStore.registerCall(theCall);
       }),
     );
@@ -189,6 +252,9 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
+    if (!this.streamClient.user) {
+      return;
+    }
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);
     this.disconnectionPromise = this.connectionPromise
       ? this.connectionPromise.then(() => disconnectUser())
@@ -427,5 +493,21 @@ export class StreamVideoClient {
       : connectAnonymousUser();
     this.connectionPromise.finally(() => (this.connectionPromise = undefined));
     return this.connectionPromise;
+  };
+
+  private filterLogs = (logMethod: Logger) => {
+    return (
+      logLevel: LogLevel,
+      messeage: string,
+      extraData?: Record<string, unknown>,
+      tags?: string[],
+    ) => {
+      if (
+        this.logLevels.indexOf(logLevel) >=
+        this.logLevels.indexOf(this.logLevel)
+      ) {
+        logMethod(logLevel, messeage, extraData, tags);
+      }
+    };
   };
 }

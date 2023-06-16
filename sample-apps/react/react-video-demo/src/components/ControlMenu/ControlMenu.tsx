@@ -12,7 +12,6 @@ import {
 import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
 import Portal from '../Portal';
-
 import { Mic, MicMuted, Speaker, Video, VideoOff } from '../Icons';
 
 import styles from './ControlMenu.module.css';

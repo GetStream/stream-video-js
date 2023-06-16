@@ -67,6 +67,8 @@ export class StreamClient {
   rejectConnectionId!: Function;
   connectionIdPromise: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
+  private waitForConnectPromise?: Promise<void>;
+  private resolveConnectPromise?: Function;
 
   /**
    * Initialize a client.
@@ -181,6 +183,15 @@ export class StreamClient {
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
   /**
+   * This will start a promise to hold API calls until `connectUser` is called, useful when user is set in `StreamVideoClient constructor`
+   */
+  startWaitingForConnection = () => {
+    this.waitForConnectPromise = new Promise((resolve) => {
+      this.resolveConnectPromise = resolve;
+    });
+  };
+
+  /**
    * connectUser - Set the current user and open a WebSocket connection
    *
    * @param user Data about this user. IE {name: "john"}
@@ -201,7 +212,8 @@ export class StreamClient {
      * If the user id remains the same we don't throw error
      */
     if (this.userID === user.id && this.setUserPromise) {
-      console.warn(
+      this.logger(
+        'warn',
         'Consecutive calls to connectUser is detected, ideally you should only call this function once in your app.',
       );
       return this.setUserPromise;
@@ -217,7 +229,8 @@ export class StreamClient {
       (this._isUsingServerAuth() || this.node) &&
       !this.options.allowServerSideConnect
     ) {
-      console.warn(
+      this.logger(
+        'warn',
         'Please do not use connectUser server side. connectUser impacts MAU and concurrent connection usage and thus your bill. If you have a valid use-case, add "allowServerSideConnect: true" to the client options to disable this warning.',
       );
     }
@@ -238,6 +251,12 @@ export class StreamClient {
     this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
       (result) => result[1], // We only return connection promise;
     );
+
+    if (this.resolveConnectPromise) {
+      this.resolveConnectPromise();
+      this.waitForConnectPromise = undefined;
+      this.resolveConnectPromise = undefined;
+    }
 
     try {
       return await this.setUserPromise;
@@ -314,9 +333,6 @@ export class StreamClient {
       this.logger(
         'info',
         'client:openConnection() - connection already in progress',
-        {
-          tags: ['connection', 'client'],
-        },
       );
       return this.wsPromise;
     }
@@ -328,9 +344,6 @@ export class StreamClient {
       this.logger(
         'info',
         'client:openConnection() - openConnection called twice, healthy connection already exists',
-        {
-          tags: ['connection', 'client'],
-        },
       );
 
       return Promise.resolve();
@@ -362,9 +375,7 @@ export class StreamClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    this.logger('info', 'client:disconnect() - Disconnecting the client', {
-      tags: ['connection', 'client'],
-    });
+    this.logger('info', 'client:disconnect() - Disconnecting the client');
 
     // remove the user specific fields
     delete this.user;
@@ -387,6 +398,12 @@ export class StreamClient {
   ) => {
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
+
+    if (this.resolveConnectPromise) {
+      this.resolveConnectPromise();
+      this.waitForConnectPromise = undefined;
+      this.resolveConnectPromise = undefined;
+    }
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
     // as anonymous users aren't allowed to open WS connections, we just
@@ -417,9 +434,7 @@ export class StreamClient {
     if (!(key in this.listeners)) {
       this.listeners[key] = [];
     }
-    this.logger('info', `Attaching listener for ${key} event`, {
-      tags: ['event', 'client'],
-    });
+    this.logger('info', `Attaching listener for ${key} event`);
     this.listeners[key].push(callback);
 
     return () => {
@@ -443,9 +458,7 @@ export class StreamClient {
       this.listeners[key] = [];
     }
 
-    this.logger('info', `Removing listener for ${key} event`, {
-      tags: ['event', 'client'],
-    });
+    this.logger('info', `Removing listener for ${key} event`);
     this.listeners[key] = this.listeners[key].filter(
       (value) => value !== callback,
     );
@@ -459,9 +472,8 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
   ) {
-    this.logger('info', `client: ${type} - Request - ${url}`, {
-      tags: ['api', 'api_request', 'client'],
-      url,
+    this.logger('info', `client: ${type} - Request - ${url}`);
+    this.logger('debug', `client: ${type} - Request payload`, {
       payload: data,
       config,
     });
@@ -472,16 +484,16 @@ export class StreamClient {
       'info',
       `client:${type} - Response - url: ${url} > status ${response.status}`,
       {
-        tags: ['api', 'api_response', 'client'],
-        url,
         response,
       },
     );
+    this.logger('debug', `client:${type} - Response payload`, {
+      response,
+    });
   }
 
   _logApiError(type: string, url: string, error: unknown) {
     this.logger('error', `client:${type} - Error - url: ${url}`, {
-      tags: ['api', 'api_response', 'client'],
       url,
       error,
     });
@@ -496,6 +508,9 @@ export class StreamClient {
     } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
     if (!options.publicEndpoint || this.user) {
+      if (this.waitForConnectPromise) {
+        await this.waitForConnectPromise;
+      }
       await this.tokenManager.tokenReady();
     }
     const requestConfig = this._enrichAxiosOptions(options);
@@ -603,7 +618,8 @@ export class StreamClient {
   dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
 
-    console.log(`Dispatching event: ${event.type}`, event);
+    this.logger('info', `Dispatching event: ${event.type}`);
+    this.logger('debug', 'Event payload:', event);
     this._callClientListeners(event);
   };
 
@@ -670,7 +686,7 @@ export class StreamClient {
       if (this.wsFallback) {
         return await this.wsFallback.connect();
       }
-      console.log('StreamClient.connect: this.wsConnection.connect()');
+      this.logger('info', 'StreamClient.connect: this.wsConnection.connect()');
       // if WSFallback is enabled, ws connect should timeout faster so fallback can try
       return await this.wsConnection.connect(
         this.options.enableWSFallback
@@ -680,12 +696,15 @@ export class StreamClient {
     } catch (err) {
       // run fallback only if it's WS/Network error and not a normal API error
       // make sure browser is online before even trying the longpoll
-      // @ts-ignore
-      if (this.options.enableWSFallback && isWSFailure(err) && isOnline()) {
+      if (
+        this.options.enableWSFallback &&
+        // @ts-ignore
+        isWSFailure(err) &&
+        isOnline(this.logger)
+      ) {
         this.logger(
-          'info',
+          'warn',
           'client:connect() - WS failed, fallback to longpoll',
-          { tags: ['connection', 'client'] },
         );
         this.dispatchEvent({ type: 'transport.changed', mode: 'longpoll' });
 

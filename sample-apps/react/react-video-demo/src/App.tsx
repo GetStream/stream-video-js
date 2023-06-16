@@ -9,10 +9,9 @@ import {
 
 import {
   GetEdgesResponse,
-  MediaDevicesProvider,
-  StreamCallProvider,
   StreamVideo,
   StreamVideoClient,
+  StreamCall,
   User,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
@@ -28,6 +27,12 @@ import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import { generateUser } from './utils/useGenerateUser';
+import {
+  getStoredDeviceSettings,
+  LocalDeviceSettings,
+  DeviceSettingsCaptor,
+} from './utils/useDeviceStorage';
+
 import { useCreateStreamChatClient } from './hooks/useChatClient';
 
 import { tour } from '../data/tour';
@@ -51,23 +56,19 @@ const config: Config = {
 const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
+  const [storedDeviceSettings, setStoredDeviceSettings] =
+    useState<LocalDeviceSettings>();
   const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
-  const [fastestEdge, setFastestEdge] = useState<{
+  const [fastestEdge] = useState<{
     id: string;
     latency: number;
   }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
-  const [client] = useState(() => new StreamVideoClient(apiKey));
+  const [client] = useState(
+    () => new StreamVideoClient({ apiKey, user, token }),
+  );
 
   const { setSteps } = useTourContext();
-
-  useEffect(() => {
-    client.connectUser(user, token).catch(console.error);
-
-    return () => {
-      client.disconnectUser();
-    };
-  }, [client, user, token]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -93,6 +94,15 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   }, []);
 
   useEffect(() => {
+    const getSettings = async () => {
+      const settings = await getStoredDeviceSettings();
+      setStoredDeviceSettings(settings);
+    };
+
+    getSettings();
+  }, []);
+
+  useEffect(() => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
@@ -109,7 +119,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     return () => {
       clearTimeout(markerTimer);
     };
-  }, [edges, isCallActive]);
+  }, [edges, isCallActive, client]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
@@ -127,10 +137,22 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     return <EndCallView />;
   }
 
-  return (
-    <StreamVideo client={client}>
-      <StreamCallProvider call={activeCall}>
-        <MediaDevicesProvider initialVideoEnabled={true}>
+  if (storedDeviceSettings) {
+    return (
+      <StreamVideo client={client}>
+        <StreamCall
+          call={activeCall}
+          mediaDevicesProviderProps={{
+            initialVideoEnabled: !storedDeviceSettings?.isVideoMute,
+            initialAudioEnabled: !storedDeviceSettings?.isAudioMute,
+            initialAudioInputDeviceId:
+              storedDeviceSettings?.selectedAudioInputDeviceId,
+            initialVideoInputDeviceId:
+              storedDeviceSettings?.selectedVideoDeviceId,
+            initialAudioOutputDeviceId:
+              storedDeviceSettings?.selectedAudioOutputDeviceId,
+          }}
+        >
           <ModalProvider>
             {isCallActive && callId && client ? (
               <NotificationProvider>
@@ -160,10 +182,13 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
               />
             )}
           </ModalProvider>
-        </MediaDevicesProvider>
-      </StreamCallProvider>
-    </StreamVideo>
-  );
+          <DeviceSettingsCaptor />
+        </StreamCall>
+      </StreamVideo>
+    );
+  }
+
+  return null;
 };
 
 const App: FC = () => {

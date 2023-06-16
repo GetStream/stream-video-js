@@ -13,6 +13,7 @@ import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
+import { Logger } from './coordinator/connection/types';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -66,7 +67,7 @@ export interface StreamVideoParticipant extends Participant {
   /**
    * True if the participant is the local participant.
    */
-  isLoggedInUser?: boolean;
+  isLocalParticipant?: boolean;
 
   /**
    * Timestamp of when the participant is pinned
@@ -109,7 +110,7 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
 export const isStreamVideoLocalParticipant = (
   p: StreamVideoParticipant | StreamVideoLocalParticipant,
 ): p is StreamVideoLocalParticipant => {
-  return !!p.isLoggedInUser;
+  return !!p.isLocalParticipant;
 };
 
 /**

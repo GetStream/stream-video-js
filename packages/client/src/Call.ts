@@ -100,11 +100,13 @@ import {
   CallEventHandler,
   CallEventTypes,
   EventHandler,
+  Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
 import { getSdkInfo } from './sdk-info';
 import { isReactNative } from './helpers/platforms';
+import { getLogger } from './logger';
 
 /**
  * An object representation of a `Call`.
@@ -160,6 +162,7 @@ export class Call {
    * The permissions context of this call.
    */
   readonly permissionsContext = new PermissionsContext();
+  readonly logger: Logger;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -220,6 +223,7 @@ export class Call {
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
+    this.logger = getLogger(['call']);
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -280,7 +284,7 @@ export class Call {
           );
           if (!hasPermission && this.publisher.isPublishing(trackType)) {
             this.stopPublish(trackType).catch((err) => {
-              console.error('Error stopping publish', trackType, err);
+              this.logger('error', `Error stopping publish ${trackType}`, err);
             });
           }
         }
@@ -647,7 +651,10 @@ export class Call {
      * A closure which hides away the re-connection logic.
      */
     const rejoin = async () => {
-      console.log(`Rejoining call ${this.cid} (${this.reconnectAttempts})...`);
+      this.logger(
+        'debug',
+        `Rejoining call ${this.cid} (${this.reconnectAttempts})...`,
+      );
       this.reconnectAttempts++;
       this.state.setCallingState(CallingState.RECONNECTING);
 
@@ -662,7 +669,7 @@ export class Call {
 
       await sleep(retryInterval(this.reconnectAttempts));
       await this.join(data);
-      console.log(`Rejoin: ${this.reconnectAttempts} successful!`);
+      this.logger('info', `Rejoin: ${this.reconnectAttempts} successful!`);
       if (localParticipant && !isReactNative()) {
         const {
           audioStream,
@@ -675,7 +682,7 @@ export class Call {
         if (videoStream) await this.publishVideoStream(videoStream);
         if (screenShare) await this.publishScreenShareStream(screenShare);
       }
-      console.log(`Rejoin: state restored ${this.reconnectAttempts}`);
+      this.logger('info', `Rejoin: state restored ${this.reconnectAttempts}`);
     };
 
     this.rejoinPromise = rejoin;
@@ -694,13 +701,14 @@ export class Call {
         if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch(() => {
-            console.log(
+            this.logger(
+              'error',
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         } else {
-          console.log('Reconnect attempts exceeded. Giving up...');
+          this.logger('error', 'Reconnect attempts exceeded. Giving up...');
           this.state.setCallingState(CallingState.RECONNECTING_FAILED);
         }
       });
@@ -711,16 +719,17 @@ export class Call {
     if (typeof window !== 'undefined' && window.addEventListener) {
       const handleOnOffline = () => {
         window.removeEventListener('offline', handleOnOffline);
-        console.log('Join: Going offline...');
+        this.logger('warn', 'Join: Going offline...');
         this.state.setCallingState(CallingState.OFFLINE);
       };
 
       const handleOnOnline = () => {
         window.removeEventListener('online', handleOnOnline);
         if (this.state.callingState === CallingState.OFFLINE) {
-          console.log('Join: Going online...');
+          this.logger('info', 'Join: Going online...');
           rejoin().catch(() => {
-            console.log(
+            this.logger(
+              'error',
               `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
@@ -789,7 +798,7 @@ export class Call {
       clientDetails.sdk = getSdkInfo();
       // 1. wait for the signal server to be ready before sending "joinRequest"
       sfuClient.signalReady
-        .catch((err) => console.warn('Signal ready failed', err))
+        .catch((err) => this.logger('error', 'Signal ready failed', err))
         // prepare a generic SDP and send it to the SFU.
         // this is a throw-away SDP that the SFU will use to determine
         // the capabilities of the client (codec support, etc.)
@@ -800,12 +809,15 @@ export class Call {
             this.streamClient.options.preferredVideoCodec,
           ),
         )
-        .then((sdp) =>
-          sfuClient.join({
+        .then((sdp) => {
+          const joinRequest = {
             subscriberSdp: sdp || '',
             clientDetails,
-          }),
-        );
+          };
+          this.logger('info', 'Sending join request to SFU');
+          this.logger('debug', 'Join request payload', joinRequest);
+          sfuClient.join(joinRequest);
+        });
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
@@ -819,7 +831,7 @@ export class Call {
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => ({
           ...participant,
-          isLoggedInUser: participant.sessionId === sfuClient.sessionId,
+          isLocalParticipant: participant.sessionId === sfuClient.sessionId,
           viewportVisibilityState: VisibilityState.UNKNOWN,
         })),
       );
@@ -829,14 +841,15 @@ export class Call {
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
-      console.log(`Joined call ${this.cid}`);
+      this.logger('info', `Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         await rejoin();
-        console.log(`Rejoin ${this.reconnectAttempts} successful!`);
+        this.logger('info', `Rejoin ${this.reconnectAttempts} successful!`);
       } else {
-        console.log(
+        this.logger(
+          'error',
           `Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
         );
         this.state.setCallingState(CallingState.RECONNECTING_FAILED);
@@ -868,7 +881,8 @@ export class Call {
 
     const [videoTrack] = videoStream.getVideoTracks();
     if (!videoTrack) {
-      return console.error(`There is no video track in the stream.`);
+      this.logger('error', `There is no video track to publish in the stream.`);
+      return;
     }
 
     await this.publisher.publishStream(
@@ -899,7 +913,8 @@ export class Call {
 
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack) {
-      return console.error(`There is no audio track in the stream`);
+      this.logger('error', `There is no audio track in the stream to publish`);
+      return;
     }
 
     await this.publisher.publishStream(
@@ -928,7 +943,11 @@ export class Call {
 
     const [screenShareTrack] = screenShareStream.getVideoTracks();
     if (!screenShareTrack) {
-      return console.error(`There is no video track in the stream`);
+      this.logger(
+        'error',
+        `There is no video track in the screen share stream to publish`,
+      );
+      return;
     }
 
     await this.publisher.publishStream(
@@ -948,7 +967,7 @@ export class Call {
    * @param trackType the track type to stop publishing.
    */
   stopPublish = async (trackType: TrackType) => {
-    console.log(`stopPublish`, TrackType[trackType]);
+    this.logger('info', `stopPublish ${TrackType[trackType]}`);
     await this.publisher?.unpublishStream(trackType);
   };
 
@@ -998,7 +1017,7 @@ export class Call {
     const subscriptions: TrackSubscriptionDetails[] = [];
     participants.forEach((p) => {
       // we don't want to subscribe to our own tracks
-      if (p.isLoggedInUser) return;
+      if (p.isLocalParticipant) return;
 
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
@@ -1122,39 +1141,38 @@ export class Call {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, trackType] = primaryStream.id.split(':');
-    console.log(`Got remote ${trackType} track:`, e.track);
+    this.logger('info', `Got remote ${trackType} track:`);
+    this.logger('debug', `Track: `, e.track);
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
     if (!participantToUpdate) {
-      console.error('Received track for unknown participant', trackId, e);
+      this.logger(
+        'error',
+        `'Received track for unknown participant: ${trackId}'`,
+        e,
+      );
       return;
     }
 
     e.track.addEventListener('mute', () => {
-      console.log(
-        `Track muted:`,
-        participantToUpdate.userId,
-        `${trackType}:${trackId}`,
-        e.track,
+      this.logger(
+        'info',
+        `Track muted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
       );
     });
 
     e.track.addEventListener('unmute', () => {
-      console.log(
-        `Track unmuted:`,
-        participantToUpdate.userId,
-        `${trackType}:${trackId}`,
-        e.track,
+      this.logger(
+        'info',
+        `Track unmuted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
       );
     });
 
     e.track.addEventListener('ended', () => {
-      console.log(
-        `Track ended:`,
-        participantToUpdate.userId,
-        `${trackType}:${trackId}`,
-        e.track,
+      this.logger(
+        'info',
+        `Track ended: ${participantToUpdate.userId} ${trackType}:${trackId}`,
       );
     });
 
@@ -1167,12 +1185,15 @@ export class Call {
     )[trackType];
 
     if (!streamKindProp) {
-      console.error('Unknown track type', trackType);
+      this.logger('error', `Unknown track type: ${trackType}`);
       return;
     }
     const previousStream = participantToUpdate[streamKindProp];
     if (previousStream) {
-      console.log(`Cleaning up previous remote tracks`, e.track.kind);
+      this.logger(
+        'info',
+        `Cleaning up previous remote tracks: ${e.track.kind}`,
+      );
       previousStream.getTracks().forEach((t) => {
         t.stop();
         previousStream.removeTrack(t);
