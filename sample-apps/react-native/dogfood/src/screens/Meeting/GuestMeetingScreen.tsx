@@ -3,9 +3,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   StreamCall,
   StreamVideo,
+  StreamVideoClient,
   User,
   useCall,
-  useCreateStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
 import {
@@ -21,6 +21,9 @@ type Props = NativeStackScreenProps<
 >;
 
 export const GuestMeetingScreen = (props: Props) => {
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+    undefined,
+  );
   const apiKey = process.env.STREAM_API_KEY as string;
   const {
     params: { guestUserId, callId, mode },
@@ -36,17 +39,15 @@ export const GuestMeetingScreen = (props: Props) => {
       mode === 'guest'
         ? {
             id: guestUserId,
-            name: guestUserId,
             type: 'guest',
           }
         : {
-            id: '!anon',
             type: 'anonymous',
           },
     [mode, guestUserId],
   );
 
-  const tokenOrProvider = useCallback(async () => {
+  const tokenProvider = useCallback(async () => {
     const token = await createToken({
       user_id: '!anon',
       call_cids: `${callType}:${callId}`,
@@ -54,11 +55,19 @@ export const GuestMeetingScreen = (props: Props) => {
     return token;
   }, [callId, callType]);
 
-  const client = useCreateStreamVideoClient({
-    apiKey,
-    tokenOrProvider: mode === 'guest' ? undefined : tokenOrProvider,
-    user: userToConnect,
-  });
+  useEffect(() => {
+    const _videoClient = new StreamVideoClient({
+      apiKey,
+      user: userToConnect,
+      tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
+    });
+    setVideoClient(_videoClient);
+
+    return () => {
+      _videoClient?.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, [tokenProvider, userToConnect, apiKey, mode]);
 
   useEffect(() => {
     if (!activeCall) {
@@ -79,8 +88,12 @@ export const GuestMeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
+  if (!videoClient) {
+    return null;
+  }
+
   return (
-    <StreamVideo client={client}>
+    <StreamVideo client={videoClient}>
       <StreamCall
         callId={callId}
         callType={callType}
