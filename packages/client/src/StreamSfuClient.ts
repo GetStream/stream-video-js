@@ -1,4 +1,11 @@
-import type { FinishedUnaryCall, UnaryCall } from '@protobuf-ts/runtime-rpc';
+import type {
+  FinishedUnaryCall,
+  MethodInfo,
+  NextUnaryFn,
+  RpcInterceptor,
+  RpcOptions,
+  UnaryCall,
+} from '@protobuf-ts/runtime-rpc';
 import { SignalServerClient } from './gen/video/sfu/signal_rpc/signal.client';
 import { createSignalClient, withHeaders } from './rpc';
 import {
@@ -23,6 +30,8 @@ import {
   retryInterval,
   sleep,
 } from './coordinator/connection/utils';
+import { Logger } from './coordinator/connection/types';
+import { getLogger } from './logger';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -84,6 +93,7 @@ export class StreamSfuClient {
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly unsubscribeIceTrickle: () => void;
+  private readonly logger: Logger;
 
   /**
    * Constructs a new SFU client.
@@ -103,12 +113,27 @@ export class StreamSfuClient {
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId || generateUUIDv4();
     this.token = token;
+    this.logger = getLogger(['sfu-client']);
+    const logger = this.logger;
+    const logInterceptor: RpcInterceptor = {
+      interceptUnary(
+        next: NextUnaryFn,
+        method: MethodInfo,
+        input: object,
+        options: RpcOptions,
+      ): UnaryCall {
+        logger('info', `Calling SFU RPC method ${method.name}`);
+        logger('debug', `Method call payload`, { input, options });
+        return next(method, input, options);
+      },
+    };
     this.rpc = createSignalClient({
       baseUrl: url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
         }),
+        logInterceptor,
       ],
     });
 
@@ -152,38 +177,46 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    return retryable(() =>
-      this.rpc.updateSubscriptions({
-        sessionId: this.sessionId,
-        tracks: subscriptions,
-      }),
+    return retryable(
+      () =>
+        this.rpc.updateSubscriptions({
+          sessionId: this.sessionId,
+          tracks: subscriptions,
+        }),
+      this.logger,
     );
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    return retryable(() =>
-      this.rpc.setPublisher({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () =>
+        this.rpc.setPublisher({
+          ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
     );
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return retryable(() =>
-      this.rpc.sendAnswer({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () =>
+        this.rpc.sendAnswer({
+          ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
     );
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return retryable(() =>
-      this.rpc.iceTrickle({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () =>
+        this.rpc.iceTrickle({
+          ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
     );
   };
 
@@ -201,11 +234,13 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    return retryable(() =>
-      this.rpc.updateMuteStates({
-        ...data,
-        sessionId: this.sessionId,
-      }),
+    return retryable(
+      () =>
+        this.rpc.updateMuteStates({
+          ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
     );
   };
 
@@ -236,7 +271,7 @@ export class StreamSfuClient {
       clearInterval(this.keepAliveInterval);
     }
     this.keepAliveInterval = setInterval(() => {
-      console.log('Sending healthCheckRequest to SFU');
+      this.logger('info', 'Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
@@ -258,7 +293,7 @@ export class StreamSfuClient {
           new Date().getTime() - this.lastMessageTimestamp.getTime();
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
-          console.log('SFU connection unhealthy, closing');
+          this.logger('error', 'SFU connection unhealthy, closing');
           this.close(
             4001,
             `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,
@@ -296,6 +331,7 @@ const MAX_RETRIES = 5;
  */
 const retryable = async <I extends object, O extends SfuResponseWithError>(
   rpc: () => UnaryCall<I, O>,
+  logger: Logger,
 ) => {
   let retryAttempt = 0;
   let rpcCallResult: FinishedUnaryCall<I, O>;
@@ -306,10 +342,15 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
     }
 
     rpcCallResult = await rpc();
+    logger(
+      'info',
+      `SFU RPC response received for ${rpcCallResult.method.name}`,
+    );
+    logger('debug', `Response payload`, rpcCallResult);
 
     // if the RPC call failed, log the error and retry
     if (rpcCallResult.response.error) {
-      console.error('SFU Error:', rpcCallResult.response.error);
+      logger('error', 'SFU RPC Error:', rpcCallResult.response.error);
     }
     retryAttempt++;
   } while (

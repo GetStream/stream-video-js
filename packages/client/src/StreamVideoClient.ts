@@ -24,12 +24,15 @@ import type {
   ConnectionChangedEvent,
   EventHandler,
   EventTypes,
+  LogLevel,
+  Logger,
   StreamClientOptions,
   TokenOrProvider,
   TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import { getLogger, logToConsole, setLogger } from './logger';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -41,12 +44,16 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   readonly user?: User;
   readonly token?: TokenOrProvider;
+  readonly logLevel: LogLevel = 'warn';
+  readonly logger: Logger;
+
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
   private eventHandlersToUnregister: Array<() => void> = [];
   private connectionPromise: Promise<void | ConnectedEvent> | undefined;
   private disconnectionPromise: Promise<void> | undefined;
+  private logLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -71,15 +78,32 @@ export class StreamVideoClient {
         },
     opts?: StreamClientOptions,
   ) {
+    let defaultLogger: Logger = logToConsole;
+    if (typeof apiKeyOrArgs === 'string') {
+      this.logLevel = opts?.logLevel || this.logLevel;
+      this.logger = opts?.logger || defaultLogger;
+    } else {
+      this.logLevel = apiKeyOrArgs.options?.logLevel || this.logLevel;
+      this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
+    }
+
+    setLogger(this.filterLogs(defaultLogger));
+
+    const clientLogger = getLogger(['client']);
+
     if (typeof apiKeyOrArgs === 'string') {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
         persistUserOnConnectionFailure: true,
         ...opts,
+        logLevel: this.logLevel,
+        logger: clientLogger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
+        logLevel: this.logLevel,
+        logger: clientLogger,
       });
 
       this.user = apiKeyOrArgs.user;
@@ -155,7 +179,7 @@ export class StreamVideoClient {
               },
               sort: [{ field: 'cid', direction: 1 }],
             }).catch((err) => {
-              console.warn('Failed to re-watch calls', err);
+              this.logger('error', 'Failed to re-watch calls', err);
             });
           }
         }
@@ -167,7 +191,10 @@ export class StreamVideoClient {
         if (event.type !== 'call.created') return;
         const { call, members } = event;
         if (userToConnect.id === call.created_by.id) {
-          console.warn('Received `call.created` sent by the current user');
+          this.logger(
+            'warn',
+            'Received `call.created` sent by the current user',
+          );
           return;
         }
 
@@ -189,7 +216,7 @@ export class StreamVideoClient {
         if (event.type !== 'call.ring') return;
         const { call, members } = event;
         if (userToConnect.id === call.created_by.id) {
-          console.warn('Received `call.ring` sent by the current user');
+          this.logger('warn', 'Received `call.ring` sent by the current user');
           return;
         }
 
@@ -464,5 +491,21 @@ export class StreamVideoClient {
       : connectAnonymousUser();
     this.connectionPromise.finally(() => (this.connectionPromise = undefined));
     return this.connectionPromise;
+  };
+
+  private filterLogs = (logMethod: Logger) => {
+    return (
+      logLevel: LogLevel,
+      messeage: string,
+      extraData?: Record<string, unknown>,
+      tags?: string[],
+    ) => {
+      if (
+        this.logLevels.indexOf(logLevel) >=
+        this.logLevels.indexOf(this.logLevel)
+      ) {
+        logMethod(logLevel, messeage, extraData, tags);
+      }
+    };
   };
 }

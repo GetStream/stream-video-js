@@ -39,7 +39,7 @@ const simulateOnViewableItemsChanged = async (
 describe('ActiveCall', () => {
   it('should render an active call with 1 partic. when the user is alone in the call', async () => {
     const call = mockCall(mockClientWithUser(), [
-      mockParticipant({ isLoggedInUser: true }),
+      mockParticipant({ isLocalParticipant: true }),
     ]);
     render(<ActiveCall />, {
       call,
@@ -57,7 +57,7 @@ describe('ActiveCall', () => {
   it('should render an active call with 3 partic. local partic., partic. 2 muted video, partic. 3 muted audio', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
-        isLoggedInUser: true,
+        isLocalParticipant: true,
         sessionId: P_IDS.LOCAL_1,
         userId: P_IDS.LOCAL_1,
       }),

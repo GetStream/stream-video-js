@@ -1,5 +1,6 @@
 import { CallState } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
 
 /**
  * Watch for call.session_started events and update the call metadata.
@@ -36,8 +37,10 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
     const { user } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
-        console.warn(
+        state.logger(
+          'warn',
           `Received call.session_participant_joined event but the metadata structure is invalid.`,
+          event,
         );
         return metadata;
       }
@@ -76,8 +79,10 @@ export const watchCallSessionParticipantLeft = (state: CallState) => {
     const { user } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
-        console.warn(
+        state.logger(
+          'warn',
           `Received call.session_participant_left event but the metadata structure is invalid.`,
+          event,
         );
         return metadata;
       }

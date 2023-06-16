@@ -69,7 +69,7 @@ export const DefaultParticipantViewUI = ({
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
   const call = useCall()!;
-  const { participant, participantViewElement, videoKind, videoElement } =
+  const { participant, participantViewElement, videoMode, videoElement } =
     useParticipantViewContext();
   const { reaction, sessionId, publishedTracks } = participant;
 
@@ -77,7 +77,11 @@ export const DefaultParticipantViewUI = ({
     SfuModels.TrackType.SCREEN_SHARE,
   );
 
-  if (participant.isLoggedInUser && hasScreenShare && videoKind === 'screen')
+  if (
+    participant.isLocalParticipant &&
+    hasScreenShare &&
+    videoMode === 'screen'
+  )
     return (
       <>
         <DefaultScreenShareOverlay />
@@ -114,7 +118,7 @@ export const ParticipantDetails = ({
   const { participant } = useParticipantViewContext();
   const {
     isDominantSpeaker,
-    isLoggedInUser,
+    isLocalParticipant,
     connectionQuality,
     publishedTracks,
     pinnedAt,
@@ -148,7 +152,7 @@ export const ParticipantDetails = ({
         {indicatorsVisible && (
           <Notification
             isVisible={
-              isLoggedInUser &&
+              isLocalParticipant &&
               connectionQuality === SfuModels.ConnectionQuality.POOR
             }
             message="Poor connection quality. Please check your internet connection."
