@@ -44,7 +44,6 @@ export class StreamVideoClient {
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
   readonly user?: User;
   readonly token?: TokenOrProvider;
-  readonly logLevel: LogLevel = 'warn';
   readonly logger: Logger;
 
   private readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -53,7 +52,6 @@ export class StreamVideoClient {
   private eventHandlersToUnregister: Array<() => void> = [];
   private connectionPromise: Promise<void | ConnectedEvent> | undefined;
   private disconnectionPromise: Promise<void> | undefined;
-  private logLevels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -79,15 +77,16 @@ export class StreamVideoClient {
     opts?: StreamClientOptions,
   ) {
     let defaultLogger: Logger = logToConsole;
+    let logLevel: LogLevel = 'warn';
     if (typeof apiKeyOrArgs === 'string') {
-      this.logLevel = opts?.logLevel || this.logLevel;
+      logLevel = opts?.logLevel || logLevel;
       this.logger = opts?.logger || defaultLogger;
     } else {
-      this.logLevel = apiKeyOrArgs.options?.logLevel || this.logLevel;
+      logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
       this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
     }
 
-    setLogger(this.filterLogs(defaultLogger));
+    setLogger(this.logger, logLevel);
 
     const clientLogger = getLogger(['client']);
 
@@ -95,14 +94,14 @@ export class StreamVideoClient {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
         persistUserOnConnectionFailure: true,
         ...opts,
-        logLevel: this.logLevel,
+        logLevel,
         logger: clientLogger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
-        logLevel: this.logLevel,
+        logLevel,
         logger: clientLogger,
       });
 
@@ -491,21 +490,5 @@ export class StreamVideoClient {
       : connectAnonymousUser();
     this.connectionPromise.finally(() => (this.connectionPromise = undefined));
     return this.connectionPromise;
-  };
-
-  private filterLogs = (logMethod: Logger) => {
-    return (
-      logLevel: LogLevel,
-      messeage: string,
-      extraData?: Record<string, unknown>,
-      tags?: string[],
-    ) => {
-      if (
-        this.logLevels.indexOf(logLevel) >=
-        this.logLevels.indexOf(this.logLevel)
-      ) {
-        logMethod(logLevel, messeage, extraData, tags);
-      }
-    };
   };
 }

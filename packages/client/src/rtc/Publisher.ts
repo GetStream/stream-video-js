@@ -25,6 +25,7 @@ import {
   toggleDtx,
 } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
@@ -63,7 +64,7 @@ export class Publisher {
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
   private readonly preferredVideoCodec?: string;
-  private logger?: Logger;
+  private logger: Logger = getLogger(['Publisher']);
 
   /**
    * An array of tracks that have been most-recently announced to the SFU.
@@ -136,7 +137,7 @@ export class Publisher {
      * Once the track has ended, it will notify the SFU and update the state.
      */
     const handleTrackEnded = async () => {
-      this.logger?.(
+      this.logger(
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
@@ -180,7 +181,7 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
-        this.logger?.(
+        this.logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
@@ -299,7 +300,7 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {
-    this.logger?.(
+    this.logger(
       'info',
       'Update publish quality, requested rids by SFU:',
       enabledRids,
@@ -320,10 +321,10 @@ export class Publisher {
     });
     if (changed) {
       if (params.encodings.length === 0) {
-        this.logger?.('warn', 'No suitable video encoding quality found');
+        this.logger('warn', 'No suitable video encoding quality found');
       }
       await videoSender.setParameters(params);
-      this.logger?.(
+      this.logger(
         'info',
         `Update publish quality, enabled rids: ${params.encodings
           .filter((e) => e.active)
@@ -363,7 +364,7 @@ export class Publisher {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      this.logger?.('warn', 'null ice candidate');
+      this.logger('warn', 'null ice candidate');
       return;
     }
     await this.sfuClient.iceTrickle({
@@ -420,7 +421,7 @@ export class Publisher {
         sdp: response.sdp,
       });
     } catch (e) {
-      this.logger?.('error', `Publisher: setRemoteDescription error`, {
+      this.logger('error', `Publisher: setRemoteDescription error`, {
         sdp: response.sdp,
         error: e,
       });
@@ -432,7 +433,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.publisher.addIceCandidate(iceCandidate);
         } catch (e) {
-          this.logger?.('error', `Publisher: ICE candidate error`, {
+          this.logger('error', `Publisher: ICE candidate error`, {
             error: e,
             candidate,
           });
@@ -511,11 +512,11 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    this.logger?.('error', `Publisher: ICE Candidate error`, errorMessage);
+    this.logger('error', `Publisher: ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
-    this.logger?.(
+    this.logger(
       'error',
       `Publisher: ICE Connection state changed`,
       this.publisher.iceConnectionState,
@@ -523,7 +524,7 @@ export class Publisher {
   };
 
   private onIceGatheringStateChange = () => {
-    this.logger?.(
+    this.logger(
       'error',
       `Publisher: ICE Gathering State`,
       this.publisher.iceGatheringState,
@@ -531,7 +532,8 @@ export class Publisher {
   };
 
   private onSignalingStateChange = () => {
-    console.log(
+    this.logger(
+      'debug',
       `Publisher: Signaling state changed`,
       this.publisher.signalingState,
     );

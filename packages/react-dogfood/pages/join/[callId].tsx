@@ -49,7 +49,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         tokenProvider,
         options: {
           baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
-          logLevel: 'info',
+          logLevel: 'debug',
         },
       }),
   );

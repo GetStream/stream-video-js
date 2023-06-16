@@ -141,8 +141,10 @@ export class StreamSfuClient {
         input: object,
         options: RpcOptions,
       ): UnaryCall {
-        logger('info', `Calling SFU RPC method ${method.name}`);
-        logger('debug', `Method call payload`, { input, options });
+        logger('trace', `Calling SFU RPC method ${method.name}`, {
+          input,
+          options,
+        });
         return next(method, input, options);
       },
     };
@@ -283,7 +285,8 @@ export class StreamSfuClient {
 
   send = (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
-      console.log(
+      this.logger(
+        'debug',
         `Sending message to: ${this.edgeName}`,
         SfuRequest.toJson(message),
       );
@@ -296,7 +299,7 @@ export class StreamSfuClient {
       clearInterval(this.keepAliveInterval);
     }
     this.keepAliveInterval = setInterval(() => {
-      this.logger('info', 'Sending healthCheckRequest to SFU');
+      this.logger('trace', 'Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
@@ -351,6 +354,7 @@ const MAX_RETRIES = 5;
  * request bursts towards the SFU.
  *
  * @param rpc the closure around the RPC call to execute.
+ * @param logger a logger instance to use.
  * @param <I> the type of the request object.
  * @param <O> the type of the response object.
  */
@@ -368,10 +372,10 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
 
     rpcCallResult = await rpc();
     logger(
-      'info',
+      'trace',
       `SFU RPC response received for ${rpcCallResult.method.name}`,
+      rpcCallResult,
     );
-    logger('debug', `Response payload`, rpcCallResult);
 
     // if the RPC call failed, log the error and retry
     if (rpcCallResult.response.error) {

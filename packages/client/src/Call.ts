@@ -221,7 +221,7 @@ export class Call {
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
-    this.logger = getLogger(['call']);
+    this.logger = getLogger(['Call']);
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -845,14 +845,11 @@ export class Call {
               }
             : undefined;
 
-          const joinRequest = {
+          return sfuClient.join({
             subscriberSdp: sdp || '',
             clientDetails: getClientDetails(),
             migration,
-          };
-          this.logger('info', 'Sending join request to SFU');
-          this.logger('debug', 'Join request payload', joinRequest);
-          return sfuClient.join(joinRequest);
+          });
         });
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
@@ -1216,7 +1213,7 @@ export class Call {
     if (!participantToUpdate) {
       this.logger(
         'error',
-        '[onTrack]: Received track for unknown participant: ${trackId}',
+        `[onTrack]: Received track for unknown participant: ${trackId}`,
         e,
       );
       return;
