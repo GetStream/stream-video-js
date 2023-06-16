@@ -74,7 +74,9 @@ jobs:
           command: |
             cd sample-apps/react-native/dogfood/ios;
             bundle exec pod install;
-          on_retry_command: pod update hermes-engine --no-repo-update  # Due this error https://github.com/facebook/react-native/issues/36945#issuecomment-1556230597
+          on_retry_command: |
+            cd sample-apps/react-native/dogfood/ios;
+            pod update hermes-engine --no-repo-update;  # Due this error https://github.com/facebook/react-native/issues/36945#issuecomment-1556230597
       - name: Build and optionally deploy
         run: |
           cd sample-apps/react-native/dogfood;
