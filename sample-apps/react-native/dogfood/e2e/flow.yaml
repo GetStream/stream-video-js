@@ -1,0 +1,38 @@
+appId: io.getstream.rnvideosample
+---
+- runScript: js/setup.js
+- launchApp
+#- Log in as a custom user
+- tapOn: ${output.pages.login.customUserInputField}
+- inputText: ${output.pages.login.userName}
+- tapOn: ${output.pages.login.loginButton}
+#- choose Meeting flow
+- tapOn: ${output.pages.chooseFlow.meeting}
+#- Create a new call
+- tapOn: ${output.pages.joinMeeting.callIdInputField}
+- inputText: ${output.call_id}
+- tapOn: ${output.pages.joinMeeting.startCallButton}
+#- Join the call
+- tapOn: ${output.pages.lobby.joinButton}
+#- Assert that user is alone in the call
+- tapOn: ${output.pages.activeCall.participantsInfoButton}
+- assertVisible: ${output.assertions.participantsInfo.participantsCountIs1}
+#- Add 5 participants to the call via Stream Video Buddy CLI
+- runScript:
+    file: js/videoBuddy.js
+    env:
+      call_id: ${output.call_id}
+      duration: 30
+      user_count: 5
+      camera: true
+#- Assert that there are 6 participants in the call
+- assertVisible: ${output.assertions.participantsInfo.participantsCountIs6}
+- tapOn: ${output.pages.participantsInfo.exitButton}
+#- Leave the call
+- tapOn: ${output.pages.activeCall.hangupButton}
+#- Log out
+- tapOn: ${output.pages.joinMeeting.logOutAvatar}
+- assertVisible: ${output.assertions.joinMeeting.signOutModalTitle}
+- tapOn: ${output.pages.joinMeeting.confirmSignOutButton}
+#- Assert that user is logged out
+- assertVisible: ${output.assertions.login.customUserInputField}

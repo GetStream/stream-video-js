@@ -35,7 +35,7 @@ yarn add @stream-io/video-react-sdk stream-chat-react stream-chat
 ```
 
 :::important
-When implementing a ring call scenario as we do in this demo, it is important to have a good understanding of our **ring call lifecycle**. You can learn more about the topic in the [doc page dedicated to call lifecycles](../../guides/call-lifecycle#ring-call).
+When implementing a ring call scenario as we do in this demo, it is important to have a good understanding of our **ring call lifecycle**. You can learn more about the topic in the [Joinging & Creating Calls guide](../../guides/joining-and-creating-calls/#ring-call).
 :::
 
 ## App boilerplate
@@ -58,7 +58,7 @@ import { Video } from './components/Video';
 import { useCreateChatClient } from './hooks';
 
 import type { StreamChatType } from './types/chat';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const Root = ({
   apiKey,
@@ -74,19 +74,14 @@ const Root = ({
     tokenOrProvider: userToken,
     userData: user,
   });
-  const [videoClient] = useState(() => new StreamVideoClient(apiKey));
-
-  useEffect(() => {
-    videoClient
-      .connectUser(user, userToken)
-      .catch((err) => console.error('Failed to establish connection', err));
-
-    return () => {
-      client
-        .disconnectUser()
-        .catch((err) => console.error('Failed to disconnect', err));
-    };
-  }, [videoClient, user, userToken]);
+  const [videoClient] = useState(
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user: userData,
+        token: userToken,
+      }),
+  );
 
   if (!chatClient) return null;
 
@@ -255,7 +250,7 @@ export const ChannelPreviewCallControls = () => {
 
 ### Observing the state of a specific call
 
-Each call can pass through different states as already described in the [Calling state section](../../guides/call-lifecycle#call-calling-state) of the call lifecycle documentation. The call calling state is made available through [`useCallCallingState` hook](../../call-engine/hooks-and-contexts#usecallcallingstate). Therefore, our [custom `CallPanel` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/Video/CallPanel.tsx) displays different UI (pending call, active call) based on the information provided by the hook:
+Each call can pass through different states. The call calling state is made available through [`useCallCallingState` hook](../../call-engine/hooks-and-contexts#usecallcallingstate). Therefore, our [custom `CallPanel` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/Video/CallPanel.tsx) displays different UI (pending call, active call) based on the information provided by the hook:
 
 ```tsx
 import {

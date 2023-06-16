@@ -9,6 +9,7 @@ One highly sought-after feature in many communication applications is call recor
 This documentation article serves as a guide for implementing a call recording feature in your application. We will explore the technical aspects and best practices involved in capturing and storing recording data during calls.
 
 ## Recording calls
+
 The [`Call`](../../call-engine/call) objects exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
 To determine, whether a call recording is in progress, we use [`useIsCallRecordingInProgress`](../../call-engine/hooks-and-contexts#useiscallrecordinginprogress) hook. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
 
@@ -49,23 +50,26 @@ export const CustomCallRecordButton = () => {
     }
   }, [call, isCallRecordingInProgress]);
 
-  return (
-    isAwaitingResponse
-      ? <LoadingIndicator />
-      : <button onClick={ toggleRecording } >{/* Button content */}</button>
+  return isAwaitingResponse ? (
+    <LoadingIndicator />
+  ) : (
+    <button onClick={toggleRecording}>{/* Button content */}</button>
   );
 };
 ```
 
 ### Permissions
-To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles component [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) that renders its children only if the user has sufficient permissions. The SDK's [`RecordCallButton`](../../ui-components/call-controls#recordcallbutton) makes use of the [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) component.
+
+To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles component [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) that renders its children only if the user has sufficient permissions. The SDK's [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton) makes use of the [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) component.
 
 To learn more about permissions, take a look at our [permissions guide](../../guides/permissions-and-moderation).
 
 ### Call recording SDK components
-The React SDK comes with [`RecordCallButton`](../../ui-components/call-controls#recordcallbutton), that takes care of initiating the call recording.
+
+The React SDK comes with [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton), that takes care of initiating the call recording.
 
 ## Acquiring call recordings data
+
 The call recording data can be retrieved by calling the [`Call`](../../call-engine/call) method `queryRecordings()`. By default, it retrieves all the call recordings for a given call (call CID). However, it accepts a single argument `callSessionId` that allows us to retrieve only recordings done during a single call session. The method returns `ListRecordingsResponse` that carries an array of `CallRecording` objects accessible through `recordings` key.
 
 :::note
@@ -153,7 +157,7 @@ export const CallRecordings = () => {
 
   return (
     <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
-     {/* Display recordings data in a list */}
+      {/* Display recordings data in a list */}
       <CallRecordingList
         callRecordings={callRecordings}
         loading={loadingCallRecordings}
@@ -176,4 +180,5 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 ```
 
 ## Call recording listing SDK components
-The React SDK provides [`CallRecordingList`](../../ui-components/call/call-recording-list) component to display call recordings.
+
+The React SDK provides [`CallRecordingList`](../../ui-components/call/call-recordings-list) component to display call recordings.
