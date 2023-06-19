@@ -419,7 +419,7 @@ PODS:
     - glog
   - react-native-cameraroll (5.6.0):
     - React-Core
-  - react-native-get-random-values (1.9.0):
+  - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-image-resizer (1.4.5):
     - React-Core
@@ -428,7 +428,7 @@ PODS:
     - React-Core
   - react-native-netinfo (9.3.10):
     - React-Core
-  - react-native-safe-area-context (4.5.3):
+  - react-native-safe-area-context (4.5.0):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -528,7 +528,7 @@ PODS:
     - React-perflogger (= 0.71.11)
   - ReactNativeIncallManager (4.0.1):
     - React-Core
-  - RNCallKeep (4.3.9):
+  - RNCallKeep (4.3.8):
     - React
   - RNCClipboard (1.11.2):
     - React-Core
@@ -556,10 +556,10 @@ PODS:
     - React-Core
     - React-RCTImage
     - TOCropViewController
-  - RNNotifee (7.7.1):
+  - RNNotifee (7.6.1):
     - React-Core
-    - RNNotifee/NotifeeCore (= 7.7.1)
-  - RNNotifee/NotifeeCore (7.7.1):
+    - RNNotifee/NotifeeCore (= 7.6.1)
+  - RNNotifee/NotifeeCore (7.6.1):
     - React-Core
   - RNReactNativeHapticFeedback (2.0.3):
     - React-Core
@@ -592,7 +592,7 @@ PODS:
     - React-RCTText
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.21.0):
+  - RNScreens (3.20.0):
     - React-Core
     - React-RCTImage
   - RNSentry (5.6.0):
@@ -910,11 +910,11 @@ SPEC CHECKSUMS:
   React-jsinspector: b6ed4cb3ffa27a041cd440300503dc512b761450
   React-logger: 186dd536128ae5924bc38ed70932c00aa740cd5b
   react-native-cameraroll: 755bcc628148a90a7c9cf3f817a252be3a601bc5
-  react-native-get-random-values: dee677497c6a740b71e5612e8dbd83e7539ed5bb
+  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-mmkv: 7da5e18e55c04a9af9a7e0ab9792a1e8d33765a1
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
-  react-native-safe-area-context: b8979f5eda6ed5903d4dbc885be3846ea3daa753
+  react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-webrtc: 2702afae1e59882b423e6077768ca0d1e6fc42ed
   React-perflogger: e706562ab7eb8eb590aa83a224d26fa13963d7f2
@@ -931,7 +931,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 4817d63dbc9d658f8dc0ec56bd9b83ce531129f0
   ReactCommon: 08723d2ed328c5cbcb0de168f231bc7bae7f8aa1
   ReactNativeIncallManager: 0d2cf9f4d50359728a30c08549762fe67a2efb81
-  RNCallKeep: 7c86d916fbc6b2184a5cf47967a240928994547e
+  RNCallKeep: bf4040e9e5785469cd581d95c386fd2ca7e0507f
   RNCClipboard: 3f0451a8100393908bea5c5c5b16f96d45f30bfc
   RNFBApp: 1ee535dcb7773ca612d3a2e53a1f78f8f2fb6abf
   RNFBMessaging: 04ecf12bae7543cd8df145f1b26d89d867594be7
@@ -939,10 +939,10 @@ SPEC CHECKSUMS:
   RNGestureHandler: dec4645026e7401a0899f2846d864403478ff6a5
   RNGoogleSignin: 81521697b2c8f97f9a586ac7257b1a1d9b51b115
   RNImageCropPicker: 486e2f7e2b0461ce24321f751410dce1b3b49e6d
-  RNNotifee: 05692d7bb42b6c718a3906aeb8431c48ff2e8097
+  RNNotifee: bdc064c29f4d558046f51f0c3ae02bab4fd3cd85
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 9976fbaaeb8a188c36026154c844bf374b3b7eeb
-  RNScreens: d037903436160a4b039d32606668350d2a808806
+  RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   RNSentry: 9f0447b3ce13806f544903748de423259ead8552
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 1617f5a07be24066830213ae9252cb790b53886f
@@ -955,4 +955,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 41e93cd2e8bce3f44104edb48b9b364a0e34bd71
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.11.3
