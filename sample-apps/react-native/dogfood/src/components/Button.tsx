@@ -26,6 +26,7 @@ export const Button = ({
 }: ButtonPropTypes) => {
   return (
     <Pressable
+      disabled={disabled}
       {...rest}
       style={[
         styles.button,
