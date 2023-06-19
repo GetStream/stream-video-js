@@ -1,10 +1,12 @@
 import createStoreContext from './createStoreContext';
 
+export type AppMode = 'Meeting' | 'Call' | 'None';
+
 type AppGlobalStore = {
   username: string;
   userImageUrl?: string;
   loopbackMyVideo: boolean;
-  appMode: 'Meeting' | 'Call' | 'None';
+  appMode: AppMode;
 };
 
 export const {

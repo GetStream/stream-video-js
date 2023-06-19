@@ -8,7 +8,6 @@ import {
   theme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
-import { VideoWrapper } from '../components/VideoWrapper';
 import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ActiveCallComponent } from '../components/ActiveCallComponent';
@@ -122,10 +121,10 @@ const Calls = () => {
 
 export const Call = () => {
   return (
-    <VideoWrapper>
+    <>
       <JoinCallScreen />
       <Calls />
-    </VideoWrapper>
+    </>
   );
 };
 

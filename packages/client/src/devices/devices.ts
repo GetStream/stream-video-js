@@ -10,6 +10,7 @@ import {
   pairwise,
   shareReplay,
 } from 'rxjs';
+import { getLogger } from '../logger';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
@@ -26,7 +27,10 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
         });
       })
       .catch((error) => {
-        console.error('Failed to get devices', error);
+        const logger = getLogger(['devices']);
+        if (logger) {
+          logger('error', 'Failed to get devices', error);
+        }
         subscriber.error(error);
       });
   });
@@ -134,7 +138,10 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
-    console.error(`Failed get user media`, constraints, e);
+    getLogger(['devices'])?.('error', `Failed get user media`, {
+      error: e,
+      constraints: constraints,
+    });
     throw e;
   }
 };
@@ -199,7 +206,7 @@ export const getScreenShareStream = async (
       ...options,
     });
   } catch (e) {
-    console.error('Failed to get screen share stream', e);
+    getLogger(['devices'])?.('error', 'Failed to get screen share stream', e);
     throw e;
   }
 };

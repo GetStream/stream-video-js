@@ -1,3 +1,5 @@
+import { Logger } from './types';
+
 export const sleep = (m: number): Promise<void> =>
   new Promise((r) => setTimeout(r, m));
 
@@ -111,7 +113,7 @@ export function convertErrorToJson(err: Error) {
  * isOnline safely return the navigator.online value for browser env
  * if navigator is not in global object, it always return true
  */
-export function isOnline() {
+export function isOnline(logger: Logger) {
   const nav =
     typeof navigator !== 'undefined'
       ? navigator
@@ -120,7 +122,8 @@ export function isOnline() {
       : undefined;
 
   if (!nav) {
-    console.warn(
+    logger(
+      'warn',
       'isOnline failed to access window.navigator and assume browser is online',
     );
     return true;

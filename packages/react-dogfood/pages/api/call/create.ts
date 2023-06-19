@@ -16,6 +16,7 @@ const createCallSlackHookAPI = async (
     browser: false,
     secret: secretKey,
     allowServerSideConnect: true,
+    logLevel: 'info',
   });
   await client.connectUser(
     {

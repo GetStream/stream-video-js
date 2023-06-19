@@ -107,7 +107,6 @@ export class StableWSConnection {
 
   _log(msg: string, extra: UR = {}, level: LogLevel = 'info') {
     this.client.logger(level, 'connection:' + msg, {
-      tags: ['connection'],
       ...extra,
     });
   }
@@ -496,13 +495,13 @@ export class StableWSConnection {
 
     const user = this.client.user;
     if (!user) {
-      console.error(`User not set, can't connect to WS`);
+      this.client.logger('error', `User not set, can't connect to WS`);
       return;
     }
 
     const token = this.client._getToken();
     if (!token) {
-      console.error(`Token not set, can't connect authenticate`);
+      this.client.logger('error', `Token not set, can't connect authenticate`);
       return;
     }
 

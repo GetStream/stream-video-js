@@ -14,7 +14,7 @@ describe('Call Permission Events', () => {
     // @ts-expect-error
     state.updateOrAddParticipant('session-id', {
       userId: 'test',
-      isLoggedInUser: true,
+      isLocalParticipant: true,
     });
     const handler = watchCallPermissionRequest(state);
     handler({
@@ -59,7 +59,7 @@ describe('Call Permission Events', () => {
         connectionQuality: ConnectionQuality.EXCELLENT,
         roles: [],
         trackLookupPrefix: '',
-        isLoggedInUser: true,
+        isLocalParticipant: true,
       },
     ]);
     const handler = watchCallPermissionsUpdated(state);

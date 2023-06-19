@@ -2,6 +2,57 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.35...@stream-io/video-react-sdk-0.0.36) (2023-06-19)
+
+
+### Bug Fixes
+
+* **react-sdk:** vale lint issue in README.md ([#665](https://github.com/GetStream/stream-video-js/issues/665)) ([f21fe8e](https://github.com/GetStream/stream-video-js/commit/f21fe8e74302f3f3b436f3f1bf0f64335d9c936a))
+
+### [0.0.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.34...@stream-io/video-react-sdk-0.0.35) (2023-06-16)
+
+
+### Features
+
+* Rename videoKind prop to videoMode ([#661](https://github.com/GetStream/stream-video-js/issues/661)) ([781e908](https://github.com/GetStream/stream-video-js/commit/781e9081fd43f2a433f9c4c7b32a549d77fb26c1))
+
+### [0.0.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.33...@stream-io/video-react-sdk-0.0.34) (2023-06-16)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.5`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.17`
+
+### Documentation
+
+* **react-sdk:** Runtime layout switching guide ([#642](https://github.com/GetStream/stream-video-js/issues/642)) ([1557168](https://github.com/GetStream/stream-video-js/commit/1557168da69660b71a0a420a94a0c354466681a7))
+
+### [0.0.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.32...@stream-io/video-react-sdk-0.0.33) (2023-06-16)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.4`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.16`
+
+### Features
+
+* Logging ([#654](https://github.com/GetStream/stream-video-js/issues/654)) ([30fc8f2](https://github.com/GetStream/stream-video-js/commit/30fc8f28e2f5829247256f24b040ea4a10336186))
+* Remove unnecessary sinkId prop from ParticipantView ([#656](https://github.com/GetStream/stream-video-js/issues/656)) ([ba5ac37](https://github.com/GetStream/stream-video-js/commit/ba5ac3758afb316e9a77f677eeba6bbc46ed0094))
+
+### [0.0.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.31...@stream-io/video-react-sdk-0.0.32) (2023-06-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.15`
+### [0.0.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.30...@stream-io/video-react-sdk-0.0.31) (2023-06-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.14`
 ### [0.0.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.29...@stream-io/video-react-sdk-0.0.30) (2023-06-14)
 
 

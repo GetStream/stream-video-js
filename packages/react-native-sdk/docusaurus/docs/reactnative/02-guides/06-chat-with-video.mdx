@@ -51,15 +51,18 @@ Firstly we need to authenticate the Video SDK’s Client.
 You will need a user and token to authenticate a client.
 You can use the `client` from the Chat SDK to create the user object.
 To do this, you can import the hook, `useChatContext`, and use the `client` from it to create the user, as in the example below.
-To create a client, we can use `useCreateStreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
-The `useCreateStreamVideoClient` is internally responsible to create a client, connect with the user and disconnect with the user when the component is unmounted.
+To create a client, we can use `StreamVideoClient` class that will be used to communicate to Stream's Video backend and create a new client.
+The `StreamVideoClient` is internally responsible to create a client, connect with the user and cleanup when the component is unmounted.
 
 ```tsx title="src/components/VideoWrapper.tsx"
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import { useCreateStreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 // Inside your component
+const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+  undefined,
+);
 const { client: chatClient } = useChatContext();
 const token = chatClient._getToken() ?? `Your Token`;
 const STREAM_API_KEY = 'YOUR API KEY';
@@ -74,15 +77,19 @@ const user = useMemo(
 );
 
 //fetch the token
+useEffect(() => {
+  const _videoClient = new StreamVideoClient({
+    apiKey: STREAM_API_KEY,
+    user,
+    tokenProvider,
+  });
+  setVideoClient(_videoClient);
 
-const videoClient = useCreateStreamVideoClient({
-  user,
-  tokenOrProvider: token,
-  apiKey: STREAM_API_KEY,
-  options: {
-    preferredVideoCodec: Platform.OS === 'android' ? 'VP8' : undefined,
-  },
-});
+  return () => {
+    _videoClient.disconnectUser();
+    setVideoClient(undefined);
+  };
+}, [tokenProvider, user]);
 ```
 
 #### Providing the client
