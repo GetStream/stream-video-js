@@ -69,7 +69,7 @@ export const DefaultParticipantViewUI = ({
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
   const call = useCall()!;
-  const { participant, participantViewElement, videoKind, videoElement } =
+  const { participant, participantViewElement, videoMode, videoElement } =
     useParticipantViewContext();
   const { reaction, sessionId, publishedTracks } = participant;
 
@@ -80,7 +80,7 @@ export const DefaultParticipantViewUI = ({
   if (
     participant.isLocalParticipant &&
     hasScreenShare &&
-    videoKind === 'screen'
+    videoMode === 'screen'
   )
     return (
       <>

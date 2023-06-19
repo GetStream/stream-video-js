@@ -57,7 +57,7 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoKind={
+            videoMode={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
             ParticipantViewUI={DefaultParticipantViewUI}

@@ -21,7 +21,7 @@ import { BaseVideo } from './BaseVideo';
 import { useCall } from '@stream-io/video-react-bindings';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
-  kind: 'video' | 'screen';
+  kind: 'video' | 'screen' | 'none';
   participant: StreamVideoParticipant;
   /**
    * Override the default UI that's visible when a participant turned off their video.
@@ -63,7 +63,12 @@ export const Video = ({
     viewportVisibilityState,
   );
 
-  const stream = kind === 'video' ? videoStream : screenShareStream;
+  const stream =
+    kind === 'none'
+      ? undefined
+      : kind === 'video'
+      ? videoStream
+      : screenShareStream;
 
   // TODO: handle track muting
   // useEffect(() => {
@@ -88,11 +93,14 @@ export const Video = ({
   //   };
   // }, [stream]);
 
-  const isPublishingTrack = publishedTracks.includes(
-    kind === 'video'
-      ? SfuModels.TrackType.VIDEO
-      : SfuModels.TrackType.SCREEN_SHARE,
-  );
+  const isPublishingTrack =
+    kind === 'none'
+      ? false
+      : publishedTracks.includes(
+          kind === 'video'
+            ? SfuModels.TrackType.VIDEO
+            : SfuModels.TrackType.SCREEN_SHARE,
+        );
 
   const displayPlaceholder =
     !isPublishingTrack ||
@@ -106,7 +114,7 @@ export const Video = ({
       dimension?: SfuModels.VideoDimension,
       type: DebounceType = DebounceType.SLOW,
     ) => {
-      if (!call) return;
+      if (!call || kind === 'none') return;
 
       call.updateSubscriptionsPartial(
         kind,

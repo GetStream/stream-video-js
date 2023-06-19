@@ -3,8 +3,6 @@ id: video-layout
 title: Video Layout
 ---
 
-## Introduction
-
 The purpose of this guide is to help developers understand how to build a custom call layout
 using Stream React Video SDK. The guide will cover the necessary steps:
 
@@ -82,7 +80,7 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoKind={
+            videoMode={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
           />
@@ -201,7 +199,7 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoKind={
+            videoMode={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
           />
@@ -267,7 +265,7 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoKind={
+            videoMode={
               hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
             }
           />
