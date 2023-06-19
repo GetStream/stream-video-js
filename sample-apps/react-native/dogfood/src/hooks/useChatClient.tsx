@@ -27,24 +27,23 @@ export const useChatClient = <
       return;
     }
 
-    let didUserConnectInterrupt = false;
-    let connectionPromise = client
-      .connectUser(userData, tokenProvider)
-      .then(() => {
-        if (!didUserConnectInterrupt) {
-          setChatClient(client);
-        }
-      });
+    const connectUser = async () => {
+      await client.connectUser(userData, tokenProvider);
+      if (!didUserConnectInterrupt) {
+        setChatClient(client);
+      }
+    };
 
-    return () => {
+    let didUserConnectInterrupt = false;
+    connectUser();
+
+    const cleanUp = () => {
       didUserConnectInterrupt = true;
       setChatClient(null);
-      connectionPromise
-        .then(() => client.disconnectUser())
-        .then(() => {
-          console.log('Connection closed');
-        });
+      client.disconnectUser();
     };
+
+    return cleanUp;
   }, [apiKey, userData, tokenProvider]);
 
   return chatClient;

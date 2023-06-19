@@ -26,9 +26,13 @@ const ChannelHeader = () => {
     (store) => store.chatLabelNoted,
   );
   const appStoreSetState = useAppGlobalStoreSetState();
-  const [noted, setNoted] = useState<boolean>(!!chatLabelNoted);
+  const [isNoted, setIsNoted] = useState<boolean>(!!chatLabelNoted);
 
-  return !noted ? (
+  if (isNoted) {
+    return null;
+  }
+
+  return (
     <View style={styles.header}>
       <Text style={styles.headerText}>
         ℹ️ Messages are currently visible to anyone with the link and valid
@@ -37,14 +41,14 @@ const ChannelHeader = () => {
       <Pressable
         style={styles.notedButton}
         onPress={() => {
-          setNoted(true);
+          setIsNoted(true);
           appStoreSetState({ chatLabelNoted: true });
         }}
       >
         <Text style={styles.notedButtonText}>Noted</Text>
       </Pressable>
     </View>
-  ) : null;
+  );
 };
 
 export const ChatScreen = ({ route }: ChatScreenProps) => {
@@ -71,13 +75,11 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {channel && (
-        <Channel channel={channel}>
-          <ChannelHeader />
-          <MessageList />
-          <MessageInput />
-        </Channel>
-      )}
+      <Channel channel={channel}>
+        <ChannelHeader />
+        <MessageList />
+        <MessageInput />
+      </Channel>
     </SafeAreaView>
   );
 };

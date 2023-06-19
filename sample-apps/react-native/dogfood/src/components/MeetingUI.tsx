@@ -33,7 +33,7 @@ export const MeetingUI = ({
   const [selectedMode, setSelectedMode] = React.useState<Mode>('grid');
   const call = useCall();
   const channelWatched = useChannelWatch();
-  const unreadCount = useUnreadCount({ channelWatched });
+  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');
@@ -74,7 +74,7 @@ export const MeetingUI = ({
             onPressHandler: () => {
               navigation.navigate('ChatScreen', { callId: callId });
             },
-            unreadBadgeCountIndicator: unreadCount,
+            unreadBadgeCountIndicator,
           }}
         />
       </SafeAreaView>
