@@ -68,8 +68,8 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     return;
   }
   const messaging = getFirebaseMessagingLib();
-  messaging().setBackgroundMessageHandler((msg) =>
-    firebaseMessagingOnMessageHandler(msg, pushConfig),
+  messaging().setBackgroundMessageHandler(
+    async (msg) => await firebaseMessagingOnMessageHandler(msg, pushConfig),
   );
   // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
   notifee.onBackgroundEvent(async (event) => {
