@@ -26,7 +26,7 @@ import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
 import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
-import { ChooseAppModeScreen } from './src/screens/ChooseAppModeScreen';
+import { AppMode } from './src/navigators/AppMode';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -72,7 +72,7 @@ const StackNavigator = () => {
       mode = (
         <Stack.Screen
           name="ChooseAppMode"
-          component={ChooseAppModeScreen}
+          component={AppMode}
           options={{ headerShown: false }}
         />
       );

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { theme, useCall } from '@stream-io/video-react-native-sdk';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
+import { appTheme } from '../../theme';
+import { Button } from '../../components/Button';
+import { TextInput } from '../../components/TextInput';
 
 type GuestModeScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -40,31 +43,29 @@ export const GuestModeScreen = ({
   };
 
   return (
-    <View style={[StyleSheet.absoluteFill, styles.container]}>
+    <View style={styles.container}>
       <Text style={styles.title}>Guest Mode</Text>
-      <View style={styles.inputs}>
+      <View>
         <TextInput
           placeholder="Meeting Id"
           value={callId}
           onChangeText={(value) => setCallId(value)}
-          style={styles.input}
           placeholderTextColor={'gray'}
         />
         <TextInput
           placeholder="Your name"
           value={username}
           onChangeText={(value) => setUsername(value)}
-          style={styles.input}
           placeholderTextColor={'gray'}
         />
       </View>
-      <View style={styles.buttons}>
-        <Pressable style={styles.joinButton} onPress={joinAsGuestHandler}>
-          <Text style={styles.joinButtonText}>Join As Guest</Text>
-        </Pressable>
-        <Pressable style={styles.anonymousButton} onPress={joinAnonymously}>
-          <Text style={styles.anonymousButtonText}>Continue Anonymously</Text>
-        </Pressable>
+      <View>
+        <Button onPress={joinAsGuestHandler} title="Join As Guest" />
+        <Button
+          onPress={joinAnonymously}
+          title="Continue Anonymously"
+          buttonStyle={styles.anonymousButton}
+        />
       </View>
     </View>
   );
@@ -72,50 +73,18 @@ export const GuestModeScreen = ({
 
 const styles = StyleSheet.create({
   container: {
+    padding: appTheme.spacing.lg,
     flex: 1,
-    backgroundColor: theme.light.static_grey,
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
+    backgroundColor: appTheme.colors.static_grey,
   },
   title: {
     ...theme.fonts.heading4,
-    color: theme.light.static_white,
-  },
-  inputs: {},
-  input: {
-    height: 50,
-    width: 300,
-    margin: 12,
-    backgroundColor: '#1C1E22',
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    borderRadius: 5,
-    color: theme.light.static_white,
-  },
-  buttons: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  joinButton: {
-    backgroundColor: theme.light.primary,
-    borderRadius: theme.rounded.sm,
-    marginTop: theme.margin.md,
-    justifyContent: 'center',
-    paddingVertical: theme.padding.sm,
-    width: 200,
-  },
-  joinButtonText: {
-    color: theme.light.static_white,
+    color: appTheme.colors.static_white,
     textAlign: 'center',
-    ...theme.fonts.subtitleBold,
   },
   anonymousButton: {
-    alignItems: 'center',
-    marginTop: theme.margin.md,
-  },
-  anonymousButtonText: {
-    ...theme.fonts.heading6,
-    color: theme.light.primary,
+    marginTop: appTheme.spacing.lg,
+    backgroundColor: appTheme.colors.light_blue,
   },
 });
