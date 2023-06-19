@@ -11,6 +11,7 @@ import { GuestModeScreen } from '../screens/Meeting/GuestModeScreen';
 import { GuestMeetingScreen } from '../screens/Meeting/GuestMeetingScreen';
 import { useNavigation } from '@react-navigation/native';
 import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
+import { ChatScreen } from '../screens/Meeting/ChatScreen';
 
 const MeetingStack = createNativeStackNavigator<MeetingStackParamList>();
 
@@ -50,6 +51,13 @@ export const Meeting = () => {
         name="GuestMeetingScreen"
         component={GuestMeetingScreen}
         options={{ headerShown: false }}
+      />
+      <MeetingStack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
+        options={{
+          headerTitle: 'Chat',
+        }}
       />
     </MeetingStack.Navigator>
   );

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
