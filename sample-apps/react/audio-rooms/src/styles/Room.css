@@ -96,7 +96,7 @@
   font-size: smaller;
 }
 
-.room-nav-controls {
+.room-access-controls {
   width: 100%;
   bottom: 0;
   display: flex;
@@ -104,7 +104,7 @@
   align-items: center;
 }
 
-.leave-button {
+.room-access-controls-button {
   padding: 0.6rem 1.2rem;
   background: var(--prominent-color-light);
   transition: all ease-in-out 200ms;
@@ -113,12 +113,12 @@
   gap: 0.5rem;
 }
 
-.leave-button svg {
+.room-access-controls-button svg {
   width: 1rem;
   height: 1rem;
 }
 
-.leave-button:hover {
+.room-access-controls-button:hover {
   background: var(--prominent-color);
   color: white;
 }

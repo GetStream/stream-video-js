@@ -5,8 +5,8 @@ import {
   useIsCallLive,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
 import { useJoinedCall } from '../../contexts';
+import { CloseInactiveRoomButton } from './RoomAccessControls';
 
 export const EndedRoomOverlay = () => {
   return (
@@ -49,7 +49,7 @@ export const RoomLobby = () => {
       {joinedCall?.cid !== call.cid && (
         <button
           disabled={!isLive}
-          className="leave-button"
+          className="room-access-controls-button"
           onClick={async () => {
             if (joinedCall) {
               await joinedCall.leave().catch((err) => {
