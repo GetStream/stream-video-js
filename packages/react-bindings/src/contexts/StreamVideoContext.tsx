@@ -16,7 +16,7 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
 );
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export type StreamVideoProps = StreamI18nProviderProps & {
