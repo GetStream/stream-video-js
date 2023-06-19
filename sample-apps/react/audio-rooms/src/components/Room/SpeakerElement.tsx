@@ -11,7 +11,7 @@ import {
 import { CloseIcon, MuteMicrophoneIcon, StarIcon } from '../icons';
 import type { CustomCallData } from '../../types';
 
-const SpeakerElement = ({
+export const SpeakerElement = ({
   speaker,
 }: {
   speaker: StreamVideoParticipant | StreamVideoLocalParticipant;

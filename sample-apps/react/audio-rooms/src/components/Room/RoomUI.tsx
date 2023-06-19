@@ -12,14 +12,14 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
 import { ChatIcon, PersonIcon } from '../icons';
-import SpeakerElement from './SpeakerElement';
-import SpeakingRequestsList from './SpeakingRequestsList';
+import { SpeakerElement } from './SpeakerElement';
+import { SpeakingRequestsList } from './SpeakingRequestsList';
 import { useSpeakingRequests } from '../../hooks/useSpeakingRequests';
 import { Listener } from './Listener';
 import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
 import { RoomListing } from '../RoomList';
-import { RoomNavControls } from './RoomNavControls';
+import { RoomAccessControls } from './RoomAccessControls';
 import { useLayoutController } from '../../contexts';
 import type { CustomCallData } from '../../types';
 
@@ -105,7 +105,7 @@ export const RoomUI = () => {
             ))}
           </div>
         </section>
-        <RoomNavControls />
+        <RoomAccessControls />
         {isOpenRequestList && (
           <Restricted
             requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}

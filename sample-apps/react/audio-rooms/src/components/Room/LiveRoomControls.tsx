@@ -14,7 +14,6 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  AddPersonIcon,
   BellIcon,
   LoadingIcon,
   MicrophoneIcon,
@@ -55,18 +54,18 @@ export const LiveRoomControls = ({
   const toggleAudio = useCallback(async () => {
     if (!call) return;
 
-    if (!canSendAudio) {
-      setIsAwaitingAudioApproval(true);
-      await call
-        .requestPermissions({
-          permissions: [OwnCapability.SEND_AUDIO],
-        })
-        .catch((reason) => {
-          console.log('RequestPermissions failed', reason);
-        });
-      return;
-    }
     if (isAudioMute) {
+      if (!canSendAudio) {
+        setIsAwaitingAudioApproval(true);
+        await call
+          .requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          })
+          .catch((reason) => {
+            console.log('RequestPermissions failed', reason);
+          });
+        return;
+      }
       // todo move to publishAudioStream()
       setInitialAudioEnabled(true);
       await publishAudioStream();
@@ -116,7 +115,7 @@ export const LiveRoomControls = ({
 
   if (!call || callingState !== CallingState.JOINED) return null;
 
-  const showMicButton =
+  const showMuteButton =
     canSendAudio || (canRequestSpeakingPermissions && isSpeaker);
 
   return (
@@ -130,11 +129,7 @@ export const LiveRoomControls = ({
           <BellIcon />
         </button>
       </Restricted>
-      {/* todo: missing click handler */}
-      <button className="icon-button" title="Invite more">
-        <AddPersonIcon />
-      </button>
-      {showMicButton && (
+      {showMuteButton && (
         <button
           className="icon-button"
           disabled={isAwaitingAudioApproval}
@@ -150,7 +145,7 @@ export const LiveRoomControls = ({
           )}
         </button>
       )}
-      {!showMicButton && (
+      {!showMuteButton && (
         <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
           <button
             className="icon-button"
