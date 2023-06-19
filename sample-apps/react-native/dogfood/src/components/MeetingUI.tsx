@@ -9,6 +9,8 @@ import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { ParticipantListButtons } from '../components/ParticipantListButtons';
 import { LobbyViewComponent } from './LobbyViewComponent';
+import { useUnreadCount } from '../hooks/useUnreadCount';
+import { useChannelWatch } from '../hooks/useChannelWatch';
 import { appTheme } from '../theme';
 
 type Props = NativeStackScreenProps<
@@ -30,6 +32,8 @@ export const MeetingUI = ({
 }: Props) => {
   const [selectedMode, setSelectedMode] = React.useState<Mode>('grid');
   const call = useCall();
+  const channelWatched = useChannelWatch();
+  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');
@@ -64,7 +68,15 @@ export const MeetingUI = ({
           selectedMode={selectedMode}
           setMode={setSelectedMode}
         />
-        <ActiveCall mode={selectedMode} />
+        <ActiveCall
+          mode={selectedMode}
+          chatButton={{
+            onPressHandler: () => {
+              navigation.navigate('ChatScreen', { callId: callId });
+            },
+            unreadBadgeCountIndicator,
+          }}
+        />
       </SafeAreaView>
     );
   }

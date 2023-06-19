@@ -26,6 +26,7 @@ import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
 import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
+import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 
 // @ts-expect-error
@@ -95,7 +96,9 @@ const StackNavigator = () => {
 
   return (
     <VideoWrapper>
-      <Stack.Navigator>{mode}</Stack.Navigator>
+      <ChatWrapper>
+        <Stack.Navigator>{mode}</Stack.Navigator>
+      </ChatWrapper>
     </VideoWrapper>
   );
 };

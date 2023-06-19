@@ -6,6 +6,7 @@ type AppGlobalStore = {
   username: string;
   userImageUrl?: string;
   appMode: AppMode;
+  chatLabelNoted?: boolean;
 };
 
 export const {
@@ -17,6 +18,7 @@ export const {
     username: '',
     userImageUrl: '',
     appMode: 'None',
+    chatLabelNoted: false,
   },
   ['username', 'userImageUrl', 'appMode'],
 );
