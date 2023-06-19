@@ -16,11 +16,13 @@ import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
 import { A11yButtons } from '../constants/A11yLabels';
 
+type ChatButtonType = {
+  onPressHandler: () => void;
+  unreadBadgeCountIndicator?: number;
+};
+
 export type CallControlsViewType = {
-  chatButton?: {
-    onPressHandler: () => void;
-    unreadBadgeCountIndicator?: number;
-  };
+  chatButton?: ChatButtonType;
 };
 
 /**
@@ -82,13 +84,9 @@ export const CallControlsView = ({ chatButton }: CallControlsViewType) => {
             svgContainerStyle={styles.svgContainerStyle}
             style={styles.button}
           >
-            {chatButton.unreadBadgeCountIndicator !== undefined ? (
-              <View style={styles.chatBadge}>
-                <Text style={styles.chatBadgeText}>
-                  {chatButton.unreadBadgeCountIndicator}
-                </Text>
-              </View>
-            ) : null}
+            <UnreadBadeCountIndicator
+              count={chatButton.unreadBadgeCountIndicator}
+            />
             <Chat color={theme.light.static_black} />
           </CallControlsButton>
         </View>
@@ -118,6 +116,23 @@ export const CallControlsView = ({ chatButton }: CallControlsViewType) => {
       >
         <PhoneDown color={theme.light.static_white} />
       </CallControlsButton>
+    </View>
+  );
+};
+
+const UnreadBadeCountIndicator = ({
+  count,
+}: {
+  count: ChatButtonType['unreadBadgeCountIndicator'];
+}) => {
+  // Don't show badge if count is 0 or undefined
+  if (!count) {
+    return null;
+  }
+
+  return (
+    <View style={styles.chatBadge}>
+      <Text style={styles.chatBadgeText}>{count}</Text>
     </View>
   );
 };

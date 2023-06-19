@@ -6168,6 +6168,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native/virtualized-lists@npm:^0.72.4":
+  version: 0.72.5
+  resolution: "@react-native/virtualized-lists@npm:0.72.5"
+  dependencies:
+    invariant: ^2.2.4
+    nullthrows: ^1.1.1
+  peerDependencies:
+    react-native: "*"
+    react-test-renderer: 18.2.0
+  checksum: 9ad28ddf23f6775de6950acfa4dbdc2c4a39fafd1d0001ae8062b6b4a5c79a15c9a83830d1bebc48fcfe05d286ecb811bf9f0ce6b18db06af43f11390f08d368
+  languageName: node
+  linkType: hard
+
 "@react-navigation/core@npm:^6.4.8":
   version: 6.4.8
   resolution: "@react-navigation/core@npm:6.4.8"
@@ -8602,6 +8615,7 @@ __metadata:
     "@types/react": ^18.0.24
     "@types/react-native-dotenv": ^0.2.0
     "@types/react-native-incall-manager": ^3.2.1
+    "@types/react-native-video": ^5
     "@types/react-test-renderer": ^18.0.0
     "@types/uuid": ^9.0.0
     babel-jest: ^29.2.1
@@ -8619,6 +8633,7 @@ __metadata:
     react-native-fs: ^2.20.0
     react-native-gesture-handler: ^2.12.0
     react-native-get-random-values: ^1.8.0
+    react-native-haptic-feedback: ^2.0.3
     react-native-image-crop-picker: ^0.40.0
     react-native-image-resizer: ^1.4.5
     react-native-incall-manager: ^4.0.0
@@ -8629,6 +8644,7 @@ __metadata:
     react-native-screens: ^3.18.1
     react-native-svg: ^13.9.0
     react-native-url-polyfill: ^1.3.0
+    react-native-video: ^5.2.1
     react-native-voip-push-notification: ~3.3.1
     react-native-webrtc: 111.0.1
     react-test-renderer: 18.2.0
@@ -9695,6 +9711,26 @@ __metadata:
   version: 3.2.1
   resolution: "@types/react-native-incall-manager@npm:3.2.1"
   checksum: 53cd1ae3a08a11337d27147e86337de0750bd6941fe21285247de62036f6db0aa3f72bb4275cfbdd0a57a8adc3e213546c19eea15af180d154cc66f9737fcf01
+  languageName: node
+  linkType: hard
+
+"@types/react-native-video@npm:^5":
+  version: 5.0.14
+  resolution: "@types/react-native-video@npm:5.0.14"
+  dependencies:
+    "@types/react": "*"
+    "@types/react-native": "*"
+  checksum: 9b58ab6651d541172dd8f91387165c16c2081b6c5eb4719eaf205aec4f38903dd3e1689aefb7dab34feefb9f5d9feee35ff8d190bc0538ed183a985aae2ee6eb
+  languageName: node
+  linkType: hard
+
+"@types/react-native@npm:*":
+  version: 0.72.2
+  resolution: "@types/react-native@npm:0.72.2"
+  dependencies:
+    "@react-native/virtualized-lists": ^0.72.4
+    "@types/react": "*"
+  checksum: b2915594381365ea379cb46b9a65219c6b6c7446d97d15f4da9615b8f180972bacba7cae584f4a8f83cce3a180f8a9a08a9c6b57081b37e2543f23f5717693d4
   languageName: node
   linkType: hard
 
@@ -15834,6 +15870,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"deprecated-react-native-prop-types@npm:^2.2.0":
+  version: 2.3.0
+  resolution: "deprecated-react-native-prop-types@npm:2.3.0"
+  dependencies:
+    "@react-native/normalize-color": "*"
+    invariant: "*"
+    prop-types: "*"
+  checksum: d14f4be1dfe780a7fa9197a31b4a9a2b409c8cf1bf677713fd92d06733dee1043578662d1a8858541cf06164ae91d295db6e595f29bf13e808d9fb37bc58c90b
+  languageName: node
+  linkType: hard
+
 "deprecated-react-native-prop-types@npm:^3.0.1":
   version: 3.0.1
   resolution: "deprecated-react-native-prop-types@npm:3.0.1"
@@ -16383,6 +16430,13 @@ __metadata:
     minimalistic-assert: ^1.0.1
     minimalistic-crypto-utils: ^1.0.1
   checksum: d56d21fd04e97869f7ffcc92e18903b9f67f2d4637a23c860492fbbff5a3155fd9ca0184ce0c865dd6eb2487d234ce9551335c021c376cd2d3b7cb749c7d10f4
+  languageName: node
+  linkType: hard
+
+"eme-encryption-scheme-polyfill@npm:^2.0.1":
+  version: 2.1.1
+  resolution: "eme-encryption-scheme-polyfill@npm:2.1.1"
+  checksum: 5d67fac0f95cc7e2066c68a15d8ecfb508d0c3774d3b8a37013da1a3a6a25ce86d6f8e185d885aa802c1fca48a3348f13dd310e54966fb96faba833a1e62000b
   languageName: node
   linkType: hard
 
@@ -23717,6 +23771,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"keymirror@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "keymirror@npm:0.1.1"
+  checksum: be8f0bc5ff7d561d729f935ef55b4dbbea7b56a4714f044a2212088730f4d52f73935c38c5a9604e0f1157611725ee493cb7d08d1f3eb34151c0aa999236206a
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^4.0.0":
   version: 4.5.2
   resolution: "keyv@npm:4.5.2"
@@ -30557,6 +30618,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-haptic-feedback@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "react-native-haptic-feedback@npm:2.0.3"
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: c0952135c54535439b3b307f4ecc11721eb208ef7210f56becd5471488d5ee130d78cdf0c8515aa80097ba284347925d2df3f402a09200e645522fe99fad3d64
+  languageName: node
+  linkType: hard
+
 "react-native-image-crop-picker@npm:^0.40.0":
   version: 0.40.0
   resolution: "react-native-image-crop-picker@npm:0.40.0"
@@ -30702,6 +30772,18 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 24ef81493a642b9359c1e8048de4da84fb554ffcf35677f9d8b11956d700faa4b9ac9d74f56aee67dd8d8b4ef6d9879e7431848785880ada657f8bec0211b00a
+  languageName: node
+  linkType: hard
+
+"react-native-video@npm:^5.2.1":
+  version: 5.2.1
+  resolution: "react-native-video@npm:5.2.1"
+  dependencies:
+    deprecated-react-native-prop-types: ^2.2.0
+    keymirror: ^0.1.1
+    prop-types: ^15.7.2
+    shaka-player: ^2.5.9
+  checksum: efbc09a47e3080dde2986a3a1ea3f32b815317f99013c015522fd2e6ed937ed02244761f4dd5c8f5bf0260bf8a1d518315025cae499c16a6c3b1cd0fa6935d2d
   languageName: node
   linkType: hard
 
@@ -32664,6 +32746,15 @@ __metadata:
   bin:
     sha.js: ./bin.js
   checksum: ebd3f59d4b799000699097dadb831c8e3da3eb579144fd7eb7a19484cbcbb7aca3c68ba2bb362242eb09e33217de3b4ea56e4678184c334323eca24a58e3ad07
+  languageName: node
+  linkType: hard
+
+"shaka-player@npm:^2.5.9":
+  version: 2.5.23
+  resolution: "shaka-player@npm:2.5.23"
+  dependencies:
+    eme-encryption-scheme-polyfill: ^2.0.1
+  checksum: 219c5ab073edd0f70582809df533d29f0369a5d8e31507ea76ddc71f3c8e11e9b63b61671ce19d7d3c464d7f3035581a4820903535ce24d4d5da7a94a98ca064
   languageName: node
   linkType: hard
 

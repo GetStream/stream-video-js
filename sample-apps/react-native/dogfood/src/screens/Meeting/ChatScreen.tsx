@@ -74,7 +74,7 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView>
       <Channel channel={channel}>
         <ChannelHeader />
         <MessageList />
@@ -85,17 +85,12 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {},
   header: {
     padding: 10,
-    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: theme.dark.static_black,
   },
-  headerText: {
-    flexWrap: 'wrap',
-    width: '80%',
-  },
+  headerText: { flex: 1, color: theme.dark.static_white },
   notedButton: {
     backgroundColor: theme.light.primary,
     justifyContent: 'center',
@@ -104,7 +99,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   notedButtonText: {
-    color: theme.light.static_white,
+    color: theme.dark.static_white,
     fontWeight: '500',
   },
 });
