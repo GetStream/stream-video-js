@@ -27,10 +27,10 @@ Before going into the code, let's make sure we have everything we need.
 - Add Stream's React Video SDK to your project:
   - `yarn add @stream-io/video-react-sdk` or
   - `npm install @stream-io/video-react-sdk`
-- Setup a Stream account at [GetStream's Dashboard](https://dashboard.getstream.io) or use your existing one
+  - Set up a Stream account at [GetStream's Dashboard](https://dashboard.getstream.io) or use your existing one
   - We will need an API key and secret to run the project
 
-## Step 2 - Setup the host mode
+## Step 2 - Set up the host mode
 
 Hosts will communicate with each other in real-time.
 For that purpose, we will use the SDK-provided `<StreamCall /`> component to establish a WebRTC-based call for the hosts.
@@ -221,7 +221,7 @@ Anonymous users can't establish a WebSocket connection to our backend, therefore
 This means that the viewer won't know when the call starts or stops broadcasting.
 
 To circumvent this limitation, the Viewer app should be able to be notified by the Host app or some other backend service when the call starts or stops broadcasting.
-Alternatively, you can keep polling the backend for the current state of the call. For more details on this, see [Querying Calls.](../02-guides/06-querying-calls.mdx)
+Alternatively, you can keep polling the backend for the current state of the call. For more details on this, see [Querying Calls.](../../guides/querying-calls)
 
 :::
 
