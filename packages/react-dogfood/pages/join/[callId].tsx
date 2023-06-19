@@ -42,7 +42,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     return token as string;
   }, [apiKey, user.id]);
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient({ apiKey, user, tokenProvider }),
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user,
+        tokenProvider,
+        options: { logLevel: 'info' },
+      }),
   );
   const [call] = useState<Call>(() => client.call(callType, callId));
 

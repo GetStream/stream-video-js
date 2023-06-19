@@ -38,7 +38,6 @@
 .str-chat__message-input {
   grid-area: input;
   background: #121416;
-  box-shadow: 0px -0.807453px 0px #272a30;
 }
 
 .str-chat__list {
@@ -118,4 +117,15 @@
     'options message-bubble'
     'reactions reactions';
   grid-template-columns: 1fr auto;
+  row-gap: 10px;
+}
+
+.str-chat__edit-message-form
+  .str-chat__edit-message-form-options
+  .str-chat__edit-message-cancel {
+  @apply mr-4;
+}
+
+.str-chat__modal .str-chat__modal__inner {
+  background: #121416;
 }

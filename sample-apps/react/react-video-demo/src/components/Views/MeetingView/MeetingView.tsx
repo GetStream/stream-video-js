@@ -109,8 +109,6 @@ export const View: FC<Props & Meeting> = ({
   useEffect(() => {
     if (!chatClient || !channelWatched) return;
 
-    console.log({ unread, isChatVisible });
-
     if (isChatVisible && unread !== 0) {
       setUnread(0);
     }

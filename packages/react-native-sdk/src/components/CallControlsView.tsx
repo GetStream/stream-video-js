@@ -13,6 +13,7 @@ import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
+import { A11yButtons } from '../constants/A11yLabels';
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -92,6 +93,7 @@ export const CallControlsView = () => {
         onPress={onCallHangup}
         color={theme.light.error}
         style={[styles.button, { shadowColor: theme.light.error }]}
+        accessibilityLabel={A11yButtons.HANG_UP_CALL}
       >
         <PhoneDown color={theme.light.static_white} />
       </CallControlsButton>

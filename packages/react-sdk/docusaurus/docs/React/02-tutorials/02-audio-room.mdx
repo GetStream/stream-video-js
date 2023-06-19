@@ -3,6 +3,8 @@ title: Audio Room Tutorial
 description: How to build an audio room using Stream's video SDKs
 ---
 
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
 In this guide, you'll build an audio room experience similar to Twitter Spaces / Clubhouse.
 
 The final result will look like this:
@@ -98,17 +100,11 @@ const tokenProvider = useCallback(async () => {
 Having this we can create a client object:
 
 ```tsx
-const client = useCreateStreamVideoClient({
+const client = new StreamVideoClient({
   apiKey,
-  tokenOrProvider: tokenProvider,
+  tokenProvider,
   user,
 });
-```
-
-Whenever a user hits the login button we can authenticate them using a call to `connectUser`:
-
-```tsx
-await client.connectUser(user, user.token);
 ```
 
 For this to work we need a `User` object which is a simple typescript file with the following properties:
@@ -117,12 +113,15 @@ For this to work we need a `User` object which is a simple typescript file with 
 export interface User {
   id: string;
   name: string;
-  imageUrl: string;
-  token?: string;
+  image: string;
 }
 ```
 
 With this, the user will be logged in and authenticated versus the Stream backend.
+
+Feel free to also use the data from this snippet, so that you can test everything without needing to setup anything on your own:
+
+<TokenSnippet sampleApp="audio-rooms" />
 
 ### Creating rooms via the API
 
@@ -393,7 +392,7 @@ The last thing we want to do is to list know when the call ends. We can use `cal
 In our case, we want to listen to the `call.ended` event.
 
 :::tip
-You can find all other event types on the [Socket Events](../../guides/04-socket-events) page.
+You can find all other event types on the [Socket Events](../../advanced/events) page.
 :::
 
 Here's how to subscribe to it in a `useEffect` (and unsubscribe when the component gets un-mounted):

@@ -8,7 +8,6 @@ import {
   useCall,
   useConnectedUser,
   useHasPermissions,
-  useParticipantCount,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -26,6 +25,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
+import { A11yButtons } from '../constants/A11yLabels';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -37,7 +37,8 @@ type CallParticipantInfoViewType = {
 const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const { participant, setSelectedParticipant } = props;
   const connectedUser = useConnectedUser();
-  const participantIsLoggedInUser = participant.userId === connectedUser?.id;
+  const participantIsLocalParticipant =
+    participant.userId === connectedUser?.id;
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
   );
@@ -48,10 +49,14 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
     OwnCapability.BLOCK_USERS,
   );
   const optionsOpenHandler = useCallback(() => {
-    if (!participantIsLoggedInUser) setSelectedParticipant(participant);
-  }, [participant, setSelectedParticipant, participantIsLoggedInUser]);
+    if (!participantIsLocalParticipant) {
+      setSelectedParticipant(participant);
+    }
+  }, [participant, setSelectedParticipant, participantIsLocalParticipant]);
 
-  if (!participant) return null;
+  if (!participant) {
+    return null;
+  }
   const { publishedTracks } = participant;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -73,7 +78,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 
       <Text style={styles.name}>
         {(participant.name || generateParticipantTitle(participant.userId)) +
-          (participantIsLoggedInUser ? ' (You)' : '')}
+          (participantIsLocalParticipant ? ' (You)' : '')}
       </Text>
       <View style={styles.icons}>
         {isScreenSharing && (
@@ -91,7 +96,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
             <VideoSlash color={theme.light.error} />
           </View>
         )}
-        {!participantIsLoggedInUser && (
+        {!participantIsLocalParticipant && (
           <Restricted
             requiredGrants={[
               OwnCapability.MUTE_USERS,
@@ -136,7 +141,6 @@ export const CallParticipantsInfoView = ({
   setIsCallParticipantsViewVisible,
 }: CallParticipantsInfoViewType) => {
   const participants = useParticipants();
-  const participantCount = useParticipantCount();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -180,11 +184,12 @@ export const CallParticipantsInfoView = ({
           <View style={styles.header}>
             <View style={styles.leftHeaderElement} />
             <Text style={styles.headerText}>
-              Participants ({participantCount})
+              Participants ({participants.length})
             </Text>
             <Pressable
               style={[styles.closeIcon, theme.icon.sm]}
               onPress={onCloseCallParticipantsViewVisible}
+              accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
             >
               <Cross color={theme.light.primary} />
             </Pressable>
