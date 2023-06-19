@@ -1,8 +1,4 @@
-import { RoomLiveState } from '../../utils/roomLiveState';
-import { CALL_TYPE } from '../../contexts';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LoadingPanel } from '../Loading';
-import { ErrorPanel } from '../Error';
 import { Link } from 'react-router-dom';
 import {
   Call,
@@ -13,9 +9,13 @@ import {
   StreamCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
+import { CALL_TYPE } from '../../contexts';
+import { LoadingPanel } from '../Loading';
+import { ErrorPanel } from '../Error';
 import { RoomCard } from './RoomCard';
+import { RoomLiveState } from '../../utils/roomLiveState';
 
-const queryCallsParams: QueryCallsRequest = {
+const QUERY_CALLS_PARAMS: QueryCallsRequest = {
   sort: [{ direction: -1, field: 'created_at' }],
   limit: 10,
   watch: true,
@@ -53,10 +53,8 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
   const loadCalls = useCallback(async () => {
     if (!client) return;
     const result = await client.queryCalls({
-      ...queryCallsParams,
-      filter_conditions: liveState
-        ? BY_ROOM_STATE_FILTER[liveState]
-        : CALL_TYPE_FILTER,
+      ...QUERY_CALLS_PARAMS,
+      filter_conditions: BY_ROOM_STATE_FILTER[liveState],
       next: nextPage.current,
     });
 
