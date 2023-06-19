@@ -26,9 +26,13 @@ const ChannelHeader = () => {
     (store) => store.chatLabelNoted,
   );
   const appStoreSetState = useAppGlobalStoreSetState();
-  const [noted, setNoted] = useState<boolean>(!!chatLabelNoted);
+  const [isNoted, setIsNoted] = useState<boolean>(!!chatLabelNoted);
 
-  return !noted ? (
+  if (isNoted) {
+    return null;
+  }
+
+  return (
     <View style={styles.header}>
       <Text style={styles.headerText}>
         ℹ️ Messages are currently visible to anyone with the link and valid
@@ -37,14 +41,14 @@ const ChannelHeader = () => {
       <Pressable
         style={styles.notedButton}
         onPress={() => {
-          setNoted(true);
+          setIsNoted(true);
           appStoreSetState({ chatLabelNoted: true });
         }}
       >
         <Text style={styles.notedButtonText}>Noted</Text>
       </Pressable>
     </View>
-  ) : null;
+  );
 };
 
 export const ChatScreen = ({ route }: ChatScreenProps) => {
@@ -70,30 +74,23 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {channel && (
-        <Channel channel={channel}>
-          <ChannelHeader />
-          <MessageList />
-          <MessageInput />
-        </Channel>
-      )}
+    <SafeAreaView>
+      <Channel channel={channel}>
+        <ChannelHeader />
+        <MessageList />
+        <MessageInput />
+      </Channel>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
   header: {
     padding: 10,
-    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: theme.dark.static_black,
   },
-  headerText: {
-    flexWrap: 'wrap',
-    width: '80%',
-  },
+  headerText: { flex: 1, color: theme.dark.static_white },
   notedButton: {
     backgroundColor: theme.light.primary,
     justifyContent: 'center',
@@ -102,7 +99,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   notedButtonText: {
-    color: theme.light.static_white,
+    color: theme.dark.static_white,
     fontWeight: '500',
   },
 });

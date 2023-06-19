@@ -8,6 +8,7 @@ import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
+import { useStreamChatTheme } from '../hooks/useTheme';
 
 const streami18n = new Streami18n({
   language: 'en',
@@ -27,8 +28,7 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
   );
 
   const tokenProvider = useCallback(async () => {
-    const token = await createToken({ user_id: username });
-    return token;
+    return await createToken({ user_id: username });
   }, [username]);
 
   const chatClient = useChatClient({
@@ -36,6 +36,7 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
     userData: user,
     tokenProvider: tokenProvider,
   });
+  const theme = useStreamChatTheme();
 
   if (!chatClient) {
     return <AuthenticationProgress />;
@@ -43,7 +44,10 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <OverlayProvider<StreamChatGenerics> i18nInstance={streami18n}>
+      <OverlayProvider<StreamChatGenerics>
+        i18nInstance={streami18n}
+        value={{ style: theme }}
+      >
         <Chat client={chatClient} i18nInstance={streami18n}>
           {children}
         </Chat>
