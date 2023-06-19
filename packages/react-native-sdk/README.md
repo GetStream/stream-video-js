@@ -62,8 +62,8 @@ The React Native SDK is a part of the Stream Video JS monorepo.
 The monorepo consists of multiple folders, the most important of which are `packages` and `sample-apps`.
 - The `packages` folder contains the packages each of which is a separate npm package. The React Native SDK is one of the packages alongside:
   - Our shared JS Call Engine (`client`).
-  - React Bindings (`react-bindings`).
-  - React SDK (`react-sdk`).
+  - [React Bindings](../react-bindings) (`react-bindings`).
+  - [React SDK](../react-sdk#official-react-sdk-for-stream-video) (`react-sdk`).
   
 - The `sample-apps` folder contains the sample apps that are built using the packages from the `packages` folder. 
 React Native's most relevant sample app is the `dogfooding` app which is a complete app that implements most of the features of the SDK.
