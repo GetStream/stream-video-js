@@ -76,6 +76,16 @@ export class Publisher {
    */
   sfuClient: StreamSfuClient;
 
+  /**
+   * Constructs a new `Publisher` instance.
+   *
+   * @param connectionConfig the connection configuration to use.
+   * @param sfuClient the SFU client to use.
+   * @param state the call state to use.
+   * @param isDtxEnabled whether DTX is enabled.
+   * @param isRedEnabled whether RED is enabled.
+   * @param preferredVideoCodec the preferred video codec.
+   */
   constructor({
     connectionConfig,
     sfuClient,
@@ -84,6 +94,15 @@ export class Publisher {
     isRedEnabled,
     preferredVideoCodec,
   }: PublisherOpts) {
+    this.publisher = this.createPeerConnection(connectionConfig);
+    this.sfuClient = sfuClient;
+    this.state = state;
+    this.isDtxEnabled = isDtxEnabled;
+    this.isRedEnabled = isRedEnabled;
+    this.preferredVideoCodec = preferredVideoCodec;
+  }
+
+  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -98,14 +117,16 @@ export class Publisher {
       this.onIceGatheringStateChange,
     );
     pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
+    return pc;
+  };
 
-    this.publisher = pc;
-    this.sfuClient = sfuClient;
-    this.state = state;
-    this.isDtxEnabled = isDtxEnabled;
-    this.isRedEnabled = isRedEnabled;
-    this.preferredVideoCodec = preferredVideoCodec;
-  }
+  /**
+   * Closes the publisher PeerConnection and cleans up the resources.
+   */
+  close = () => {
+    this.stopPublishing();
+    this.publisher.close();
+  };
 
   /**
    * Starts publishing the given track of the given media stream.
@@ -277,26 +298,12 @@ export class Publisher {
 
   /**
    * Stops publishing all tracks and stop all tracks.
-   *
-   * @param options - Options
-   * @param options.stopTracks - If `true` (default), all tracks will be stopped.
    */
-  stopPublishing = (
-    options: {
-      stopTracks?: boolean;
-    } = {},
-  ) => {
-    const { stopTracks = true } = options;
-    if (stopTracks) {
-      this.publisher.getSenders().forEach((s) => {
-        s.track?.stop();
-
-        if (this.publisher.signalingState !== 'closed') {
-          this.publisher.removeTrack(s);
-        }
-      });
-    }
-    this.publisher.close();
+  stopPublishing = () => {
+    this.publisher.getSenders().forEach((s) => {
+      s.track?.stop();
+      this.publisher.removeTrack(s);
+    });
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {

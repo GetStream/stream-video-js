@@ -407,7 +407,7 @@ export class Call {
     this.subscriber?.close();
     this.subscriber = undefined;
 
-    this.publisher?.stopPublishing();
+    this.publisher?.close();
     this.publisher = undefined;
 
     this.sfuClient?.close();
@@ -606,6 +606,7 @@ export class Call {
     // FIXME OL: remove once cascading is implemented
     let sfuUrl = sfuServer.url;
     let sfuWsUrl = sfuServer.ws_endpoint;
+    let sfuName = sfuServer.edge_name;
     if (
       typeof window !== 'undefined' &&
       window.location &&
@@ -616,6 +617,8 @@ export class Call {
       sfuUrl = sfuUrlParam || sfuServer.url;
       const sfuWsUrlParam = params.get('sfuWsUrl');
       sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
+
+      sfuName = sfuUrl;
     }
 
     const previousSfuClient = this.sfuClient;
@@ -625,7 +628,7 @@ export class Call {
       wsEndpoint: sfuWsUrl,
       token: sfuToken,
       sessionId: previousSfuClient?.sessionId,
-      edgeName: sfuServer.edge_name,
+      edgeName: sfuName,
     }));
 
     /**
@@ -657,7 +660,7 @@ export class Call {
         if (!migrate) {
           this.subscriber?.close();
           // this.subscriber = undefined;
-          this.publisher?.stopPublishing({ stopTracks: false });
+          this.publisher?.close();
           // this.publisher = undefined;
           this.statsReporter?.stop();
           // this.statsReporter = undefined;
