@@ -6,8 +6,8 @@
 ## **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
-- [React SDK](./packages/react-sdk)
-- [React Native SDK](./packages/react-native-sdk)
+- [React SDK](./packages/react-sdk#official-react-sdk-for-stream-video)
+- [React Native SDK](./packages/react-native-sdk#official-react-native-sdk-for-stream-video)
 
 ## What is Stream?
 
