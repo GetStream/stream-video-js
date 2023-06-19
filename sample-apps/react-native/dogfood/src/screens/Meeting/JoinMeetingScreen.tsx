@@ -1,19 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { meetingId } from '../../modules/helpers/meetingId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
-import { theme } from '@stream-io/video-react-native-sdk';
-import Copy from '../../assets/Copy';
+import { appTheme } from '../../theme';
+import { TextInput } from '../../components/TextInput';
+import { Button } from '../../components/Button';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -35,14 +28,6 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     navigation.navigate('MeetingScreen', { callId: call_id });
   };
 
-  const handleCopyInviteLink = useCallback(
-    () =>
-      Clipboard.setString(
-        `https://stream-calls-dogfood.vercel.app/join/${callId}/`,
-      ),
-    [callId],
-  );
-
   return (
     <View style={styles.container}>
       <Image source={{ uri: userImageUrl }} style={styles.logo} />
@@ -55,7 +40,6 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 
       <View style={styles.createCall}>
         <TextInput
-          style={styles.textInput}
           placeholder={'Type your Call ID'}
           placeholderTextColor={'#8C8C8CFF'}
           value={callId}
@@ -65,114 +49,65 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
             setCallId(text.trim().split(' ').join('-'));
           }}
         />
-
-        <Pressable
-          style={[styles.button, !callId ? styles.disabledButtonStyle : null]}
+        <Button
           onPress={joinCallHandler}
+          title="Join Call"
           disabled={!callId}
-        >
-          <Text style={styles.buttonText}>Join Call</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, styles.iconButton]}
-          onPress={handleCopyInviteLink}
-        >
-          <View style={styles.svgContainer}>
-            <Copy color={'white'} />
-          </View>
-        </Pressable>
+          buttonStyle={styles.joinCallButton}
+        />
       </View>
-      <Pressable
-        style={[styles.button, styles.longButton]}
+      <Button
         onPress={() => {
           const randomCallID = meetingId();
           startNewCallHandler(randomCallID);
         }}
-      >
-        <Text style={styles.buttonText}>Start a new Call</Text>
-      </Pressable>
+        title="Start a New Call"
+        buttonStyle={styles.startNewCallButton}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: theme.light.static_grey,
+    padding: appTheme.spacing.lg,
+    backgroundColor: appTheme.colors.static_grey,
     flex: 1,
     justifyContent: 'space-evenly',
-    alignItems: 'center',
   },
   logo: {
     height: 100,
     width: 100,
     borderRadius: 50,
+    alignSelf: 'center',
   },
   title: {
     fontSize: 30,
-    color: 'white',
+    color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
   },
   subTitle: {
-    color: '#979797',
+    color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 15,
-    marginHorizontal: 50,
+    marginTop: appTheme.spacing.lg,
+    marginHorizontal: appTheme.spacing.xl,
   },
-  button: {
-    backgroundColor: '#005FFF',
-    paddingVertical: 12,
-    width: 100,
-    marginLeft: 10,
-    justifyContent: 'center',
-    borderRadius: 8,
-    alignItems: 'center',
+  joinCallButton: {
+    marginLeft: appTheme.spacing.lg,
   },
-  longButton: {
-    width: 320,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '500',
-    textAlign: 'center',
-    fontSize: 17,
-  },
-  disabledButtonStyle: {
-    backgroundColor: '#4C525C',
-  },
-  svgContainer: {
-    height: 20,
-    width: 16,
+  startNewCallButton: {
+    width: '100%',
   },
   iconButton: {
     width: 40,
-  },
-  textInput: {
-    paddingLeft: 15,
-    height: 50,
-    backgroundColor: '#1C1E22',
-    borderRadius: 8,
-    borderColor: '#4C525C',
-    borderWidth: 1,
-    color: 'white',
-    width: 170,
-    fontSize: 17,
   },
   createCall: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  headerText: {
-    color: 'black',
-    fontSize: 20,
-    marginVertical: 8,
-  },
-  loopbackText: {
-    color: 'black',
   },
 });
 

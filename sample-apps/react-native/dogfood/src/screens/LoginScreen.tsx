@@ -1,20 +1,13 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import {
   GoogleSignin,
-  GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
-import { theme } from '@stream-io/video-react-native-sdk';
+import { appTheme } from '../theme';
+import { Button } from '../components/Button';
+import { TextInput } from '../components/TextInput';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -57,6 +50,7 @@ const LoginScreen = () => {
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
+        appMode: 'None',
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -68,7 +62,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Image source={require('../assets/Logo.png')} style={styles.logo} />
       <View>
         <Text style={styles.title}>Stream DogFood App</Text>
@@ -85,58 +79,54 @@ const LoginScreen = () => {
             onChangeText={(text) => {
               setLocalUserName(text);
             }}
-            style={styles.textInput}
             autoCapitalize="none"
             autoCorrect={false}
             placeholderTextColor="gray"
           />
-          <Pressable
-            style={[
-              styles.button,
-              !localUserName ? styles.disabledButtonStyle : null,
-            ]}
-            onPress={loginHandler}
+          <Button
+            title="Login"
             disabled={!localUserName}
-          >
-            <Text style={styles.buttonText}>Login</Text>
-          </Pressable>
+            onPress={loginHandler}
+            buttonStyle={styles.loginButton}
+          />
         </View>
         <Text style={styles.orText}>OR</Text>
-        <GoogleSigninButton
-          style={styles.googleSignin}
-          size={GoogleSigninButton.Size.Wide}
+        <Button
+          title="Google Sign In"
           onPress={signInViaGoogle}
           disabled={loader}
+          buttonStyle={styles.googleSignin}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    padding: appTheme.spacing.lg,
     flex: 1,
     justifyContent: 'space-evenly',
-    alignItems: 'center',
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
   logo: {
     height: 100,
     width: 100,
     borderRadius: 20,
+    alignSelf: 'center',
   },
   title: {
     fontSize: 30,
-    color: 'white',
+    color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
   },
   subTitle: {
-    color: '#979797',
+    color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 15,
-    marginHorizontal: 20,
+    marginTop: appTheme.spacing.lg,
+    marginHorizontal: appTheme.spacing.xl,
   },
   bottomView: {
     alignItems: 'center',
@@ -144,50 +134,20 @@ const styles = StyleSheet.create({
   customUser: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  textInput: {
-    paddingLeft: 15,
-    height: 50,
-    backgroundColor: '#1C1E22',
-    borderRadius: 8,
-    borderColor: '#4C525C',
-    borderWidth: 1,
-    color: 'white',
-    width: 200,
-    fontSize: 17,
-  },
-  button: {
-    backgroundColor: '#005FFF',
-    paddingVertical: 12,
-    width: 100,
-    marginLeft: 10,
-    justifyContent: 'center',
-    borderRadius: 8,
-  },
-  disabledButtonStyle: {
-    backgroundColor: '#4C525C',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '500',
-    textAlign: 'center',
-    fontSize: 17,
+  loginButton: {
+    marginLeft: appTheme.spacing.lg,
   },
   orText: {
     fontSize: 17,
-    color: 'white',
+    color: appTheme.colors.static_white,
     fontWeight: '500',
-    marginVertical: 20,
+    marginVertical: appTheme.spacing.lg,
   },
   googleSignin: {
-    width: 192,
-    height: 48,
-  },
-  headerText: {
-    color: 'black',
-    fontSize: 20,
-    marginVertical: 8,
+    width: '100%',
   },
 });
 
