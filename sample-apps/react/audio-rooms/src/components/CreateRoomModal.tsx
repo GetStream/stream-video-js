@@ -20,7 +20,7 @@ export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const createCall = useCallback(
+  const createRoom = useCallback(
     async (params: CreateCallParams) => {
       if (!(client && user)) return;
       const randomId = Math.random().toString(36).substring(2, 12);
@@ -43,15 +43,15 @@ export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
   const handleSubmit: MouseEventHandler = useCallback(
     async (event) => {
       event.preventDefault();
-      const call = await createCall({ description, title });
-      if (!call) return;
+      const room = await createRoom({ description, title });
+      if (!room) return;
 
       setTitle('');
       setDescription('');
       close();
-      navigate(`/rooms/join/${call.id}`);
+      navigate(`/rooms/join/${room.id}`);
     },
-    [createCall, navigate, close, title, description],
+    [createRoom, navigate, close, title, description],
   );
 
   return (
