@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.176](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.175...@stream-io/video-react-native-sdk-0.0.1-alpha.176) (2023-06-19)
+
+
+### Features
+
+* **react-native:** introduce chat in the RN Dogfood app ([#663](https://github.com/GetStream/stream-video-js/issues/663)) ([4043b22](https://github.com/GetStream/stream-video-js/commit/4043b22b62de6eedab425d8b63febc4a874a797c))
+
+
+
 ## [0.0.1-alpha.175](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.174...@stream-io/video-react-native-sdk-0.0.1-alpha.175) (2023-06-19)
 
 
