@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.35...@stream-io/video-react-sdk-0.0.36) (2023-06-19)
+
+
+### Bug Fixes
+
+* **react-sdk:** vale lint issue in README.md ([#665](https://github.com/GetStream/stream-video-js/issues/665)) ([f21fe8e](https://github.com/GetStream/stream-video-js/commit/f21fe8e74302f3f3b436f3f1bf0f64335d9c936a))
+
 ### [0.0.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.34...@stream-io/video-react-sdk-0.0.35) (2023-06-16)
 
 
