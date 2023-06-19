@@ -660,7 +660,7 @@ export class Call {
         if (!migrate) {
           this.subscriber?.close();
           // this.subscriber = undefined;
-          this.publisher?.close();
+          this.publisher?.stopPublishing();
           // this.publisher = undefined;
           this.statsReporter?.stop();
           // this.statsReporter = undefined;
