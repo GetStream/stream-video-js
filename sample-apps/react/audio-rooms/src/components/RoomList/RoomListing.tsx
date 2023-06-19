@@ -85,7 +85,7 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
         );
       }
     };
-    client.on('call.live_started', handleGoLive);
+    return client.on('call.live_started', handleGoLive);
   }, [client, liveState]);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
         setCalls((prevCalls) => prevCalls.filter((c) => c.cid === call_cid));
       }
     };
-    client.on('call.ended', handleCallEnded);
+    return client.on('call.ended', handleCallEnded);
   }, [client, liveState]);
 
   let content = <EmptyListing liveState={liveState} />;
