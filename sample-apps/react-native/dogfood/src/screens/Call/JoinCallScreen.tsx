@@ -117,6 +117,7 @@ const JoinCallScreen = () => {
           onChangeText={(value) => {
             setRingingUserIdsText(value);
           }}
+          textInputStyle={styles.textInputStyle}
         />
       </View>
       <Button
@@ -141,6 +142,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginVertical: appTheme.spacing.lg,
     textAlign: 'center',
+  },
+  textInputStyle: {
+    flex: 0,
   },
   headerText: {
     fontSize: 20,
