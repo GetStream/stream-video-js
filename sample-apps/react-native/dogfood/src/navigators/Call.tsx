@@ -5,12 +5,17 @@ import {
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
-  theme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ActiveCallComponent } from '../components/ActiveCallComponent';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CallStackParamList } from '../../types';
+import { NavigationHeader } from '../components/NavigationHeader';
+import { appTheme } from '../theme';
+
+const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'none';
 
@@ -110,7 +115,13 @@ const Calls = () => {
 export const Call = () => {
   return (
     <>
-      <JoinCallScreen />
+      <CallStack.Navigator>
+        <CallStack.Screen
+          name="JoinCallScreen"
+          component={JoinCallScreen}
+          options={{ header: NavigationHeader }}
+        />
+      </CallStack.Navigator>
       <Calls />
     </>
   );
@@ -119,6 +130,6 @@ export const Call = () => {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
 });

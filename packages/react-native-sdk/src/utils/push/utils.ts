@@ -153,6 +153,7 @@ const firebaseMessagingOnMessageHandler = async (
           },
         },
       ],
+      timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
     },
   });
   // const callkeep = getCallKeepLib();

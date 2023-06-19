@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
 import { ActiveCallProps } from '@stream-io/video-react-native-sdk';
+import { appTheme } from '../theme';
 
 type Mode = NonNullable<ActiveCallProps['mode']>;
 
@@ -90,10 +91,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    margin: 20,
-    backgroundColor: 'white',
+    margin: appTheme.spacing.xl,
+    backgroundColor: appTheme.colors.static_white,
     borderRadius: 20,
-    padding: 16,
+    padding: appTheme.spacing.lg,
     alignItems: 'flex-start',
     shadowColor: '#000',
     shadowOffset: {
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
     minWidth: 10,
   },
   modalButton: {
-    padding: 16,
+    padding: appTheme.spacing.lg,
     flexDirection: 'row',
   },
   modalText: {
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
+    paddingVertical: appTheme.spacing.xs,
+    paddingHorizontal: appTheme.spacing.lg,
   },
 });

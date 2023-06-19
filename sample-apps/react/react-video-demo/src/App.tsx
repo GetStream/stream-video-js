@@ -30,6 +30,7 @@ import { generateUser } from './utils/useGenerateUser';
 import {
   getStoredDeviceSettings,
   LocalDeviceSettings,
+  DeviceSettingsCaptor,
 } from './utils/useDeviceStorage';
 
 import { useCreateStreamChatClient } from './hooks/useChatClient';
@@ -181,6 +182,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
               />
             )}
           </ModalProvider>
+          <DeviceSettingsCaptor />
         </StreamCall>
       </StreamVideo>
     );

@@ -144,7 +144,7 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     setSelectedParticipant(undefined);
   }, [setSelectedParticipant]);
 
-  const showYouLabel = participant.isLoggedInUser;
+  const showYouLabel = participant.isLocalParticipant;
 
   return (
     <View style={styles.container}>

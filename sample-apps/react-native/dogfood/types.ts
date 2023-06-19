@@ -121,7 +121,6 @@ export type GuestMeetingScreenParams = {
 };
 
 export type LoginStackParamList = {
-  ChooseFlowScreen: undefined;
   LoginScreen: undefined;
 };
 
@@ -130,6 +129,15 @@ export type MeetingStackParamList = {
   MeetingScreen: { callId: string };
   GuestModeScreen: { callId: string };
   GuestMeetingScreen: GuestMeetingScreenParams;
+  ChatScreen: { callId: string };
+};
+
+export type CallStackParamList = {
+  JoinCallScreen: undefined;
+};
+
+export type AppModeParamList = {
+  ChooseAppModeScreen: undefined;
 };
 
 export type RootStackParamList = {
@@ -143,3 +151,21 @@ export type ScreenTypes =
   | 'error-join'
   | 'error-leave'
   | 'active-call';
+
+export type LocalAttachmentType = Record<string, unknown>;
+export type LocalChannelType = Record<string, unknown>;
+export type LocalCommandType = string;
+export type LocalEventType = Record<string, unknown>;
+export type LocalMessageType = Record<string, unknown>;
+export type LocalReactionType = Record<string, unknown>;
+export type LocalUserType = Record<string, unknown>;
+
+export type StreamChatGenerics = {
+  attachmentType: LocalAttachmentType;
+  channelType: LocalChannelType;
+  commandType: LocalCommandType;
+  eventType: LocalEventType;
+  messageType: LocalMessageType;
+  reactionType: LocalReactionType;
+  userType: LocalUserType;
+};

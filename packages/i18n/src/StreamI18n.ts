@@ -53,7 +53,6 @@ export class StreamI18n {
       lng: currentLanguage,
       nsSeparator: false,
       parseMissingKeyHandler: (key) => {
-        console.warn(`StreamI18n: Missing translation for key: ${key}`);
         return key;
       },
       resources: DEFAULT_TRANSLATIONS_REGISTRY,

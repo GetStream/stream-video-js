@@ -1,6 +1,7 @@
-import React from 'react';
-import { ActiveCall, theme, useCall } from '@stream-io/video-react-native-sdk';
+import React, { useEffect } from 'react';
+import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { appTheme } from '../theme';
 
 export const ActiveCallComponent = () => {
   const call = useCall();
@@ -18,6 +19,6 @@ export const ActiveCallComponent = () => {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
 });

@@ -4,7 +4,7 @@ import {
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { CallControlsView } from './CallControlsView';
+import { CallControlsView, CallControlsViewType } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
@@ -18,13 +18,13 @@ import { CallingState } from '@stream-io/video-client';
 /**
  * Props to be passed for the ActiveCall component.
  */
-export interface ActiveCallProps {
+export type ActiveCallProps = CallControlsViewType & {
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
   mode?: 'grid' | 'spotlight';
-}
+};
 /**
  * View for an active call, includes call controls and participant handling.
  *
@@ -57,7 +57,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const [height, setHeight] = useState(0);
-  const { mode = 'grid' } = props;
+  const { mode = 'grid', chatButton } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
@@ -94,7 +94,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         )}
       </View>
       <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView />
+        <CallControlsView chatButton={chatButton} />
       </View>
     </View>
   );

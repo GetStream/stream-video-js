@@ -21,7 +21,6 @@ export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
     const $el = audioRef.current;
     if (!($el && audioStream)) return;
 
-    console.log(`Attaching audio stream`, $el, audioStream);
     $el.srcObject = audioStream;
     return () => {
       $el.srcObject = null;
@@ -32,7 +31,6 @@ export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
     const $el = audioRef.current;
     if (!$el || !sinkId) return;
 
-    console.log(`Setting sinkId`, $el, sinkId);
     if (($el as any).setSinkId) {
       ($el as any).setSinkId(sinkId);
     }

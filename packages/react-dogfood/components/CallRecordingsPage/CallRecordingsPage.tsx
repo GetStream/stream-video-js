@@ -24,7 +24,13 @@ export const CallRecordingsPage = ({
   const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
   const [videoClient] = useState<StreamVideoClient>(
-    () => new StreamVideoClient({ apiKey, user, token: userToken }),
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        user,
+        token: userToken,
+        options: { logLevel: 'info' },
+      }),
   );
 
   return (

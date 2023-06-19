@@ -5,8 +5,8 @@ export type AppMode = 'Meeting' | 'Call' | 'None';
 type AppGlobalStore = {
   username: string;
   userImageUrl?: string;
-  loopbackMyVideo: boolean;
   appMode: AppMode;
+  chatLabelNoted?: boolean;
 };
 
 export const {
@@ -17,8 +17,8 @@ export const {
   {
     username: '',
     userImageUrl: '',
-    loopbackMyVideo: false,
     appMode: 'None',
+    chatLabelNoted: false,
   },
   ['username', 'userImageUrl', 'appMode'],
 );

@@ -2,6 +2,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { getIceCandidate } from './helpers/iceCandidate';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { Dispatcher } from './Dispatcher';
+import { getLogger } from '../logger';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -16,13 +17,14 @@ export const createSubscriber = ({
   connectionConfig,
   onTrack,
 }: SubscriberOpts) => {
+  const logger = getLogger(['sfu-client']);
   const subscriber = new RTCPeerConnection(connectionConfig);
   attachDebugEventListeners(subscriber);
 
   subscriber.addEventListener('icecandidate', async (e) => {
     const { candidate } = e;
     if (!candidate) {
-      console.log('null ice candidate');
+      logger?.('warn', 'null ice candidate');
       return;
     }
 
@@ -40,7 +42,7 @@ export const createSubscriber = ({
   const unsubscribe = dispatcher.on('subscriberOffer', async (message) => {
     if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
     const { subscriberOffer } = message.eventPayload;
-    console.log(`Received subscriberOffer`, subscriberOffer);
+    logger?.('info', 'Received subscriberOffer', subscriberOffer);
 
     await subscriber.setRemoteDescription({
       type: 'offer',
@@ -52,7 +54,10 @@ export const createSubscriber = ({
         const iceCandidate = JSON.parse(candidate.iceCandidate);
         await subscriber.addIceCandidate(iceCandidate);
       } catch (e) {
-        console.error(`Subscriber: ICE candidate error`, e, candidate);
+        logger?.('error', `Subscriber: ICE candidate error`, {
+          error: e,
+          candidate,
+        });
       }
     });
 
@@ -80,22 +85,23 @@ export const createSubscriber = ({
 };
 
 const attachDebugEventListeners = (subscriber: RTCPeerConnection) => {
+  const logger = getLogger(['sfu-client']);
   subscriber.addEventListener('icecandidateerror', (e) => {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    console.error(`Subscriber: ICE Candidate error`, errorMessage);
+    logger?.('error', `Subscriber: ICE Candidate error: ${errorMessage}`);
   });
   subscriber.addEventListener('iceconnectionstatechange', () => {
-    console.log(
-      `Subscriber: ICE Connection state changed`,
-      subscriber.iceConnectionState,
+    logger?.(
+      'info',
+      `Subscriber: ICE Connection state changed: ${subscriber.iceConnectionState}`,
     );
   });
   subscriber.addEventListener('icegatheringstatechange', () => {
-    console.log(
-      `Subscriber: ICE Gathering State`,
-      subscriber.iceGatheringState,
+    logger?.(
+      'info',
+      `Subscriber: ICE Gathering State: ${subscriber.iceGatheringState}`,
     );
   });
 };

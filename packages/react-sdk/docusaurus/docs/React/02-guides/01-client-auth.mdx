@@ -79,6 +79,30 @@ const client = new StreamVideoClient({
 
 To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`. If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
 
+### Logging
+
+You can configure the log level and the logger method used by the SDK.
+
+The default log level is `warn`, other options are: `debug`, `info`, and `error`.
+
+The default logger method will log to the browser `console`.
+
+```ts
+import { StreamVideoClient, Logger } from '@stream-io/video-react-sdk';
+
+const myLogger: Logger;
+
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+  options: {
+    logLevel: 'info',
+    logger: myLogger,
+  },
+});
+```
+
 ## StreamVideo context provider
 
 You can use the `StreamVideo` context provider to make the SDK client available to the rest of the application. We also use the `tokenProvider` to show how to perform auth server-side.

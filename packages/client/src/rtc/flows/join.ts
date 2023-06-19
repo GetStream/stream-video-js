@@ -5,6 +5,7 @@ import {
 } from '../../gen/coordinator';
 import { JoinCallData } from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
+import { getLogger } from '../../logger';
 
 /**
  * Collects all necessary information to join a call, talks to the coordinator
@@ -71,15 +72,17 @@ const getLocationHint = async () => {
   const hintURL = `https://hint.stream-io-video.com/`;
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), 1000);
+  const logger = getLogger(['call']);
   try {
     const response = await fetch(hintURL, {
       method: 'HEAD',
       signal: abortController.signal,
     });
     const awsPop = response.headers.get('x-amz-cf-pop') || 'ERR';
+    logger?.('info', `Location header: ${awsPop}`);
     return awsPop.substring(0, 3); // AMS1-P2 -> AMS
   } catch (e) {
-    console.error(`Failed to get location hint from ${hintURL}`, e);
+    logger?.('error', `Failed to get location hint from ${hintURL}`, e);
     return 'ERR';
   } finally {
     clearTimeout(timeoutId);

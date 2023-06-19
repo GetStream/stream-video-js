@@ -39,14 +39,6 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     isAudioOutputChangeSupported,
   } = useMediaDevices();
 
-  console.log({
-    selectedAudioInputDeviceId,
-    selectedVideoDeviceId,
-    selectedAudioOutputDeviceId,
-    initialVideoState,
-    initialAudioEnabled,
-  });
-
   const localParticipant = useLocalParticipant();
   const videoDevices = useVideoDevices();
   const audioInputDevices = useAudioInputDevices();
