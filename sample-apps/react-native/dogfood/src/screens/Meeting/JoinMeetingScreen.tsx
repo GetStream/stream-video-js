@@ -1,5 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { meetingId } from '../../modules/helpers/meetingId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -29,7 +36,10 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <Image source={{ uri: userImageUrl }} style={styles.logo} />
       <View>
         <Text style={styles.title}>Hello, {username}</Text>
@@ -64,7 +74,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         title="Start a New Call"
         buttonStyle={styles.startNewCallButton}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

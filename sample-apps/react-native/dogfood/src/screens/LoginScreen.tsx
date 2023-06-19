@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -62,7 +69,10 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <Image source={require('../assets/Logo.png')} style={styles.logo} />
       <View>
         <Text style={styles.title}>Stream DogFood App</Text>
@@ -98,7 +108,7 @@ const LoginScreen = () => {
           buttonStyle={styles.googleSignin}
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

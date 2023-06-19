@@ -1,7 +1,4 @@
 output.call_id = (Math.random() + 1).toString(36).substring(7);
-output.keyboard = {
-  return: 'return',
-};
 output.pages = {
   chooseFlow: {
     meeting: 'Meeting',
