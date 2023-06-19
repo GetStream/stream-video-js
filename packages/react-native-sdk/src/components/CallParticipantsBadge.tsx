@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
-import { useCallback, useState } from 'react';
 import { CallParticipantsInfoView } from './CallParticipantsInfoView';
 import { A11yButtons } from '../constants/A11yLabels';
 

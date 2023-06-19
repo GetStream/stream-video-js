@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCallControls } from '../hooks/useCallControls';
 import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
@@ -10,7 +10,6 @@ import {
   useCall,
   useCallCallingState,
 } from '@stream-io/video-react-bindings';
-import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
