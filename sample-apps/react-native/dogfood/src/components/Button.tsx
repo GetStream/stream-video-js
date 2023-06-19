@@ -46,9 +46,6 @@ const styles = StyleSheet.create({
     height: BUTTON_HEIGHT,
     paddingHorizontal: appTheme.spacing.lg,
   },
-  longButton: {
-    width: '100%',
-  },
   buttonText: {
     color: appTheme.colors.static_white,
     fontWeight: '500',
