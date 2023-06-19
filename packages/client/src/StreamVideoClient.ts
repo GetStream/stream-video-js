@@ -87,7 +87,7 @@ export class StreamVideoClient {
       this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
     }
 
-    setLogger(this.filterLogs(defaultLogger));
+    setLogger(this.filterLogs(this.logger));
 
     const clientLogger = getLogger(['client']);
 
