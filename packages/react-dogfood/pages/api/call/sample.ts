@@ -7,7 +7,11 @@ type AppConfig = {
   apiKey?: string;
   secret?: string;
   // a link to the app that can be opened in a browser:
-  // https://video-react-audio-rooms.vercel.app/rooms/join/{type}/{id}?user_id={userId}
+  // https://sample.app/rooms/join/{type}/{id}?user_id={userId}&user_name={user_name}&token={token}&api_key={api_key}
+  // supported replacements:
+  // - {type}, {id},
+  // - {userId}, {user_name}, {token},
+  // - {api_key}
   deepLink?: string;
   defaultCallType?: string;
 };
@@ -17,12 +21,15 @@ type SampleAppCallConfig = {
 };
 
 type CreateSampleAppCallResponse = {
+  apiKey: string;
   userId: string;
   userName: string;
+  token: string;
+  buddyUserId: string;
+  buddyUserName: string;
+  buddyToken: string;
   callId: string;
   callType?: string;
-  apiKey: string;
-  token: string;
   deepLink?: string;
 };
 
@@ -62,25 +69,47 @@ export default async function createSampleAppCall(
   }
 
   const userName = names.random();
-  const userId = userName.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const userId = toUserId(userName);
+  const token = createToken(userId, appConfig.secret);
+  const buddyUserName = getBuddyUserName(userName);
+  const buddyUserId = toUserId(buddyUserName);
+  const buddyToken = createToken(buddyUserId, appConfig.secret);
+
   const callId = meetingId();
   const callType = data.call_type || appConfig.defaultCallType || 'default';
-  const token = createToken(userId, appConfig.secret);
 
   const deepLink = appConfig.deepLink
-    ?.replace('{type}', callType)
-    .replace('{id}', callId)
-    .replace('{user_id}', userId);
+    ?.replace('{type}', encodeURIComponent(callType))
+    .replace('{id}', encodeURIComponent(callId))
+    .replace('{user_name}', encodeURIComponent(buddyUserName))
+    .replace('{user_id}', encodeURIComponent(buddyUserId))
+    .replace('{token}', encodeURIComponent(buddyToken))
+    .replace('{api_key}', encodeURIComponent(appConfig.apiKey));
 
   const response: CreateSampleAppCallResponse = {
-    userId,
-    userName,
+    apiKey: appConfig.apiKey,
     callId,
     callType,
-    apiKey: appConfig.apiKey,
+    userId,
+    userName,
     token,
+    buddyUserId,
+    buddyUserName,
+    buddyToken,
     deepLink,
   };
 
   return res.status(200).json(response);
 }
+
+const toUserId = (userName: string): string =>
+  userName.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+
+const getBuddyUserName = (userName: string): string => {
+  let buddy: string;
+  do {
+    buddy = names.random();
+  } while (buddy === userName);
+
+  return buddy;
+};
