@@ -302,7 +302,9 @@ export class Publisher {
   stopPublishing = () => {
     this.publisher.getSenders().forEach((s) => {
       s.track?.stop();
-      this.publisher.removeTrack(s);
+      if (this.publisher.signalingState !== 'closed') {
+        this.publisher.removeTrack(s);
+      }
     });
   };
 
