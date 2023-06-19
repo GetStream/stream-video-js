@@ -7,8 +7,11 @@ type AppConfig = {
   apiKey?: string;
   secret?: string;
   // a link to the app that can be opened in a browser:
-  // https://video-react-audio-rooms.vercel.app/rooms/join/{type}/{id}?user_id={userId}&user_name={user_name}&token={token}
-  // supported replacements: {type}, {id}, {userId}, {user_name}, {token}
+  // https://sample.app/rooms/join/{type}/{id}?user_id={userId}&user_name={user_name}&token={token}&api_key={api_key}
+  // supported replacements:
+  // - {type}, {id},
+  // - {userId}, {user_name}, {token},
+  // - {api_key}
   deepLink?: string;
   defaultCallType?: string;
 };
@@ -80,7 +83,8 @@ export default async function createSampleAppCall(
     .replace('{id}', encodeURIComponent(callId))
     .replace('{user_name}', encodeURIComponent(buddyUserName))
     .replace('{user_id}', encodeURIComponent(buddyUserId))
-    .replace('{token}', encodeURIComponent(buddyToken));
+    .replace('{token}', encodeURIComponent(buddyToken))
+    .replace('{api_key}', encodeURIComponent(appConfig.apiKey));
 
   const response: CreateSampleAppCallResponse = {
     apiKey: appConfig.apiKey,
