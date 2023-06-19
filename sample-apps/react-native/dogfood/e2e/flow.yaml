@@ -5,12 +5,14 @@ appId: io.getstream.rnvideosample
 #- Log in as a custom user
 - tapOn: ${output.pages.login.customUserInputField}
 - inputText: ${output.pages.login.userName}
+- tapOn: ${output.keyboard.return}
 - tapOn: ${output.pages.login.loginButton}
 #- choose Meeting flow
 - tapOn: ${output.pages.chooseFlow.meeting}
 #- Create a new call
 - tapOn: ${output.pages.joinMeeting.callIdInputField}
 - inputText: ${output.call_id}
+- tapOn: ${output.keyboard.return}
 - tapOn: ${output.pages.joinMeeting.startCallButton}
 #- Join the call
 - tapOn: ${output.pages.lobby.joinButton}
