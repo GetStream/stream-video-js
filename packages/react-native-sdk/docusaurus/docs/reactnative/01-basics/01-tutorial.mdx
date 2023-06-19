@@ -154,15 +154,18 @@ We will start by creating a simple video meeting with Stream's Video SDK.
 
 #### Create a video client
 
-To create a client, we can use `useCreateStreamVideoClient` that will be used to communicate to Stream's Video backend and create a new client.
-This expects an API key as the first argument, user token as the second and the user object with id, name, image and other details.
-The `useCreateStreamVideoClient` is internally responsible to create a client, connect with the user and disconnect with the user when the component is unmounted.
+To create a client, we can use `StreamVideoClient` class that will be used to communicate to Stream's Video backend and create a new client.
+This expects an API key as the first argument, the user object with id, name, image and other details as the second argument and user token as the second.
+The `StreamVideoClient` is internally responsible to create a client, connect with the user and cleanup when the component is unmounted.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
-import React from 'react';
-import { useCreateStreamVideoClient } from '@stream-io/video-client';
+import React, { useState, useEffect } from 'react';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 export const MeetingScreen = () => {
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+    undefined,
+  );
   const user = {
     id: 'micheal',
     name: 'Micheal',
@@ -170,11 +173,20 @@ export const MeetingScreen = () => {
   };
   const USER_TOKEN = 'YOUR_TOKEN';
   const API_KEY = 'YOUR_API_KEY';
-  const videoClient = useCreateStreamVideoClient({
-    API_KEY,
-    tokenOrProvider: USER_TOKEN,
-    user,
-  });
+
+  useEffect(() => {
+    const _videoClient = new StreamVideoClient({
+      apiKey: STREAM_API_KEY,
+      user,
+      tokenProvider,
+    });
+    setVideoClient(_videoClient);
+
+    return () => {
+      _videoClient.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, [tokenProvider, user]);
 
   ...
 };
@@ -186,27 +198,38 @@ Our `StreamVideo` component will provide our recently created video client to th
 The `client` created above can be used as follows and needs to be provided to the `client` prop of the `StreamVideo` component.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import {
   StreamVideo,
-  useCreateStreamVideoClient,
+  StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-...
 
 const MeetingScreen = () => {
+  const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
+    undefined,
+  );
   const user = {
     id: 'micheal',
     name: 'Micheal',
     imageUrl: 'https://randomuser.me/api/portraits/men/44.jpg',
   };
   const USER_TOKEN = 'YOUR_TOKEN';
-  const API_KEY = 'YOUR_TOKEN';
-  const videoClient = useCreateStreamVideoClient({
-    API_KEY,
-    tokenOrProvider: USER_TOKEN,
-    user,
-  });
+  const API_KEY = 'YOUR_API_KEY';
+
+  useEffect(() => {
+    const _videoClient = new StreamVideoClient({
+      apiKey: STREAM_API_KEY,
+      user,
+      tokenProvider,
+    });
+    setVideoClient(_videoClient);
+
+    return () => {
+      _videoClient.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, [tokenProvider, user]);
 
   if (!videoClient) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
