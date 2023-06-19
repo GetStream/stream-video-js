@@ -7,11 +7,11 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { theme } from '@stream-io/video-react-native-sdk/dist/src/theme';
 import { ParticipantListButtons } from '../components/ParticipantListButtons';
 import { LobbyViewComponent } from './LobbyViewComponent';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import { useChannelWatch } from '../hooks/useChannelWatch';
+import { appTheme } from '../theme';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -86,21 +86,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
   wrapper: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingVertical: 4,
-    paddingHorizontal: 16,
+    paddingVertical: appTheme.spacing.xs,
+    paddingHorizontal: appTheme.spacing.lg,
   },
   errorText: {
     fontSize: 30,
-    color: 'red',
+    color: appTheme.colors.error,
     textAlign: 'center',
   },
 });

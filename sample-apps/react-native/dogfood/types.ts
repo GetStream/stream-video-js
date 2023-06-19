@@ -121,7 +121,6 @@ export type GuestMeetingScreenParams = {
 };
 
 export type LoginStackParamList = {
-  ChooseFlowScreen: undefined;
   LoginScreen: undefined;
 };
 
@@ -131,6 +130,14 @@ export type MeetingStackParamList = {
   GuestModeScreen: { callId: string };
   GuestMeetingScreen: GuestMeetingScreenParams;
   ChatScreen: { callId: string };
+};
+
+export type CallStackParamList = {
+  JoinCallScreen: undefined;
+};
+
+export type AppModeParamList = {
+  ChooseAppModeScreen: undefined;
 };
 
 export type RootStackParamList = {
