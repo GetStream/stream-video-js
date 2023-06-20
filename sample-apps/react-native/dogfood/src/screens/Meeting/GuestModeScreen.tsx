@@ -51,12 +51,14 @@ export const GuestModeScreen = ({
           value={callId}
           onChangeText={(value) => setCallId(value)}
           placeholderTextColor={'gray'}
+          textInputStyle={styles.textInputStyle}
         />
         <TextInput
           placeholder="Your name"
           value={username}
           onChangeText={(value) => setUsername(value)}
           placeholderTextColor={'gray'}
+          textInputStyle={styles.textInputStyle}
         />
       </View>
       <View>
@@ -77,6 +79,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-evenly',
     backgroundColor: appTheme.colors.static_grey,
+  },
+  textInputStyle: {
+    flex: 0,
   },
   title: {
     ...theme.fonts.heading4,
