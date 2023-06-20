@@ -14,24 +14,24 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
-   openURL:(NSURL *)url
-   options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+            openURL:(NSURL *)url
+            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
   return [RCTLinkingManager application:application openURL:url options:options];
 }
 
 - (BOOL)application:(UIApplication *)application
- continueUserActivity:(nonnull NSUserActivity *)userActivity
-   restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+continueUserActivity:(nonnull NSUserActivity *)userActivity
+ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
   BOOL handledCK = [RNCallKeep application:application
-                    continueUserActivity:userActivity
-                      restorationHandler:restorationHandler];
-
-  BOOL handledLM = [RCTLinkingManager application:application
                       continueUserActivity:userActivity
                         restorationHandler:restorationHandler];
-
+  
+  BOOL handledLM = [RCTLinkingManager application:application
+                             continueUserActivity:userActivity
+                               restorationHandler:restorationHandler];
+  
   return handledCK || handledLM;
 }
 
@@ -44,22 +44,30 @@
 
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
-
-   // --- Process the received push // fire 'notification' event to JS
-   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-   NSString *callCid = stream[@"call_cid"];
-
-   NSUUID* uuid = [NSUUID alloc];
-   NSString* uuidString = [uuid UUIDString];
-   NSString *userIds = stream[@"user_ids"];
-
-  [RNCallKeep reportNewIncomingCall: uuidString
-                             handle: @"984213015"
+  
+  // --- Process the received push // fire 'notification' event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+  
+  UIApplicationState state = [[UIApplication sharedApplication] applicationState];
+  if (state == UIApplicationStateActive) {
+    // app in foreground, no need to display incoming call through callkeep
+    completion();
+    return;
+  }
+  
+  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+  NSLog( @"%@", stream );
+  NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
+  NSString* callId = cidArray[1];
+  NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSLog( @"callId:%@", callId );
+  NSLog( @"createdCallerName:%@", createdCallerName );
+  
+  [RNCallKeep reportNewIncomingCall: callId
+                             handle: createdCallerName
                          handleType: @"generic"
                            hasVideo: NO
-                localizedCallerName: userIds
+                localizedCallerName: createdCallerName
                     supportsHolding: YES
                        supportsDTMF: YES
                    supportsGrouping: YES
@@ -67,11 +75,11 @@
                         fromPushKit: YES
                             payload: stream
               withCompletionHandler: completion];
-
-//  // --- this is optional, only required if you want to call `completion()` on the js side
-//  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
-//
-//  // --- You don't need to call it if you stored `completion()` and will call it on the js side.
+  
+  //  // --- this is optional, only required if you want to call `completion()` on the js side
+  //  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+  //
+  // --- You don't need to call it if you stored `completion()` and will call it on the js side.
 //  completion();
 }
 
@@ -79,17 +87,17 @@
 {
   [FIRApp configure];
   [RNCallKeep setup:@{
-    @"appName": @"Awesome App",
+    @"appName": @"Stream React Native Video SDK Sample App",
     @"supportsVideo": @YES,
   }];
-
+  
   [RNVoipPushNotificationManager voipRegistration];
-
+  
   self.moduleName = @"StreamReactNativeVideoSDKSample";
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-
+  
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 

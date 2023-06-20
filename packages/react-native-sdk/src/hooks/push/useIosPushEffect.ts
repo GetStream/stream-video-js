@@ -4,6 +4,7 @@ import { getVoipPushNotificationLib } from '../../utils/push/libs';
 import { Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
+import { voipPushNotificationCallCId$ } from '../../utils/push/rxSubjects';
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -17,12 +18,25 @@ export const useIosPushEffect = () => {
       return;
     }
     const voipPushNotification = getVoipPushNotificationLib();
+
     const onTokenReceived = (token: string) => {
       // send token to stream
       const push_provider_name = pushConfig.ios.pushProviderName;
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
         console.warn('Failed to send voip token to APN', err);
       });
+    };
+    const onNotificationReceived = (notification: any) => {
+      console.log(JSON.stringify(notification, null, 2));
+      console.log('onNotificationReceived', { notification });
+      const sender = notification?.stream?.sender;
+      if (sender !== 'stream.video') {
+        return;
+      }
+      const call_cid = notification?.stream?.call_cid;
+      if (call_cid) {
+        voipPushNotificationCallCId$.next(call_cid);
+      }
     };
     voipPushNotification.addEventListener('register', (token) => {
       onTokenReceived(token);
@@ -32,7 +46,8 @@ export const useIosPushEffect = () => {
     // --- this.onvoipPushNotificationReceived
     voipPushNotification.addEventListener('notification', (notification) => {
       // --- when receive remote voip push, register your VoIP client, show local notification ... etc
-      console.log({ notification });
+      // console.log({ notification });
+      onNotificationReceived(notification);
 
       // --- optionally, if you `addCompletionHandler` from the native side, once you have done the js jobs to initiate a call, call `completion()`
       // voipPushNotification.onVoipNotificationCompleted(notification.uuid);
@@ -53,6 +68,7 @@ export const useIosPushEffect = () => {
           onTokenReceived(data);
         } else if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {
           console.log('RNVoipPushRemoteNotificationReceivedEvent', { data });
+          onNotificationReceived(data);
           // voipPushNotification.onVoipNotificationCompleted(data.uuid);
         }
       }

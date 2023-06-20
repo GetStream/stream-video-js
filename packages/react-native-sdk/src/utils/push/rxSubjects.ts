@@ -7,3 +7,7 @@ export const pushAcceptedIncomingCallCId$ = new BehaviorSubject<
 export const pushRejectedIncomingCallCId$ = new BehaviorSubject<
   string | undefined
 >(undefined);
+
+export const voipPushNotificationCallCId$ = new BehaviorSubject<
+  string | undefined
+>(undefined);

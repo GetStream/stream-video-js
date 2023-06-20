@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { getCallKeepLib } from '../../utils/push/libs';
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
+  voipPushNotificationCallCId$,
 } from '../../utils/push/rxSubjects';
 import { Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
@@ -11,11 +12,15 @@ import { StreamVideoRN } from '../../utils';
  * This hook is used to listen to callkeep events and do the necessary actions
  */
 export const useIosCallKeepEffect = () => {
+  const voipCallIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     if (Platform.OS !== 'ios' || !pushConfig) {
       return;
     }
+    const subscription = voipPushNotificationCallCId$.subscribe((callCId) => {
+      voipCallIdRef.current = callCId;
+    });
     const callkeep = getCallKeepLib();
     callkeep.addEventListener(
       'didReceiveStartCallAction',
@@ -25,17 +30,33 @@ export const useIosCallKeepEffect = () => {
     );
     callkeep.addEventListener('answerCall', ({ callUUID }) => {
       console.log('answerCall', { callUUID });
+      const call_cid = voipCallIdRef.current;
+      if (!call_cid || !callUUID) {
+        return;
+      }
+      const [_callType, callId] = call_cid.split(':');
+      if (callId !== callUUID) {
+        return;
+      }
       callkeep.backToForeground();
       // close the dialer screen so that the app can be seen (only android needs this)
       // callkeep.endCall(callUUID);
-      pushAcceptedIncomingCallCId$.next(callUUID);
+      pushAcceptedIncomingCallCId$.next(call_cid);
+      voipPushNotificationCallCId$.next(undefined);
       pushConfig.navigateAcceptCall();
     });
     callkeep.addEventListener('endCall', ({ callUUID }) => {
-      if (callUUID) {
-        callkeep.endCall(callUUID);
+      const call_cid = voipCallIdRef.current;
+      if (!call_cid || !callUUID) {
+        return;
       }
-      pushRejectedIncomingCallCId$.next(callUUID);
+      const [_callType, callId] = call_cid.split(':');
+      if (callId !== callUUID) {
+        return;
+      }
+      callkeep.endCall(callUUID);
+      pushRejectedIncomingCallCId$.next(call_cid);
+      voipPushNotificationCallCId$.next(undefined);
       console.log('endCall', { callUUID });
     });
     callkeep.addEventListener(
@@ -98,6 +119,7 @@ export const useIosCallKeepEffect = () => {
       callkeep.removeEventListener('didPerformDTMFAction');
       callkeep.removeEventListener('didActivateAudioSession');
       callkeep.removeEventListener('checkReachability');
+      subscription.unsubscribe();
     };
   }, []);
 };
