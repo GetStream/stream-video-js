@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.187](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.186...@stream-io/video-react-native-sdk-0.0.1-alpha.187) (2023-06-20)
+
+
+### Features
+
+* DF cosmetic tweaks and invite feat ([#681](https://github.com/GetStream/stream-video-js/issues/681)) ([77ec0af](https://github.com/GetStream/stream-video-js/commit/77ec0af5cc7d84d18ae01774c2549c5955b477cb))
+
+
+
 ## [0.0.1-alpha.186](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.185...@stream-io/video-react-native-sdk-0.0.1-alpha.186) (2023-06-20)
 
 
