@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.38](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.37...@stream-io/video-react-sdk-0.0.38) (2023-06-20)
+
+
+### Documentation
+
+* **react-sdk:** Remove generated docs ([#674](https://github.com/GetStream/stream-video-js/issues/674)) ([05f8ace](https://github.com/GetStream/stream-video-js/commit/05f8ace7bd6400ff4c4034e5e7bd633a1a050e23))
+
 ### [0.0.37](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.36...@stream-io/video-react-sdk-0.0.37) (2023-06-20)
 
 ### Dependency Updates
