@@ -212,14 +212,6 @@ export const CallParticipantsInfoView = ({
             </Pressable>
           </View>
           <FlatList data={participants} renderItem={renderItem} />
-          {selectedParticipant && (
-            <View style={[StyleSheet.absoluteFill, styles.modal]}>
-              <CallParticipantOptions
-                participant={selectedParticipant}
-                setSelectedParticipant={setSelectedParticipant}
-              />
-            </View>
-          )}
           <View style={styles.buttonGroup}>
             <Pressable style={styles.button} onPress={inviteHandler}>
               <Text style={styles.buttonText}>Invite</Text>
@@ -234,6 +226,22 @@ export const CallParticipantsInfoView = ({
             </Restricted>
           </View>
         </View>
+        <Modal
+          animationType="fade"
+          transparent
+          visible={!!selectedParticipant}
+          onRequestClose={() => setSelectedParticipant(undefined)}
+        >
+          <>
+            {/*independent background, needed due to desired opacity only
+         on background, exc. modal content*/}
+            <View style={styles.backDropBackground} />
+            <CallParticipantOptions
+              participant={selectedParticipant}
+              setSelectedParticipant={setSelectedParticipant}
+            />
+          </>
+        </Modal>
       </>
     </Modal>
   );
@@ -241,9 +249,9 @@ export const CallParticipantsInfoView = ({
 
 const styles = StyleSheet.create({
   backDropBackground: {
-    opacity: 0.5,
+    opacity: 0.75,
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.dark.bars,
+    backgroundColor: theme.dark.static_white,
     zIndex: Z_INDEX.IN_BACK,
   },
   content: {
