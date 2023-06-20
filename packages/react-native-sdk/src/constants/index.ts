@@ -26,3 +26,9 @@ export const defaultEmojiReactions = [
     icon: '🎉',
   },
 ];
+
+export const Z_INDEX = {
+  IN_BACK: 0,
+  IN_MIDDLE: 1,
+  IN_FRONT: 2,
+};

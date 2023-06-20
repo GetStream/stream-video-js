@@ -1,12 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ViewProps } from 'react-native';
 import { Participants } from '../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../theme';
 import { CallParticipantsInfoView } from './CallParticipantsInfoView';
 import { A11yButtons } from '../constants/A11yLabels';
+import { Z_INDEX } from '../constants';
 
-export const CallParticipantsBadge = () => {
+export interface ICallParticipantsBadge extends Pick<ViewProps, 'style'> {}
+export const CallParticipantsBadge = ({ style }: ICallParticipantsBadge) => {
   const participantCount = useParticipantCount();
   const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =
     useState<boolean>(false);
@@ -17,14 +19,14 @@ export const CallParticipantsBadge = () => {
 
   return (
     <Pressable
-      style={styles.participantIcon}
       onPress={onOpenCallParticipantsInfoView}
       accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
+      style={[styles.container, style]}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participantCount}</Text>
       </View>
-      <View style={[styles.svgContainerStyle, theme.icon.md]}>
+      <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />
       </View>
       <CallParticipantsInfoView
@@ -36,22 +38,19 @@ export const CallParticipantsBadge = () => {
 };
 
 const styles = StyleSheet.create({
-  participantIcon: {
-    zIndex: 2,
-  },
-  svgContainerStyle: {},
+  container: { padding: theme.padding.sm },
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
     borderRadius: theme.rounded.xl,
-    padding: theme.padding.xs,
-    position: 'relative',
-    left: theme.spacing.lg,
-    top: theme.spacing.lg,
-    zIndex: 2,
+    paddingVertical: theme.padding.xs,
+    paddingHorizontal: theme.padding.sm,
+    position: 'absolute',
+    right: 0,
+    top: -theme.spacing.sm,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   badgeText: {
     color: theme.light.static_white,
-    textAlign: 'center',
     ...theme.fonts.caption,
   },
 });
