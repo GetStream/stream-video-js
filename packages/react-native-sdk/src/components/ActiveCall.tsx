@@ -14,6 +14,7 @@ import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
+import { Z_INDEX } from '../constants';
 
 /**
  * Props to be passed for the ActiveCall component.
@@ -67,10 +68,7 @@ const InnerActiveCall = (props: ActiveCallProps) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconGroup}>
-        <CallParticipantsBadge />
-      </View>
-
+      <CallParticipantsBadge style={styles.iconGroup} />
       <View style={[styles.callParticipantsWrapper]}>
         {showSpotLightModeView ? (
           <CallParticipantsSpotlightView />
@@ -78,9 +76,10 @@ const InnerActiveCall = (props: ActiveCallProps) => {
           <CallParticipantsView />
         )}
       </View>
-      <View style={styles.callControlsWrapper}>
-        <CallControlsView chatButton={chatButton} />
-      </View>
+      <CallControlsView
+        style={styles.callControlsWrapper}
+        chatButton={chatButton}
+      />
     </View>
   );
 };
@@ -98,15 +97,10 @@ const styles = StyleSheet.create({
     right: 0,
     padding: theme.padding.md,
   },
-  svgContainerStyle: {
-    zIndex: 2,
-    marginRight: theme.margin.md,
-    marginTop: theme.margin.sm,
-  },
   iconGroup: {
     position: 'absolute',
     top: theme.padding.md,
     right: theme.padding.sm,
-    zIndex: 2,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

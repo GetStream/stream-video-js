@@ -217,7 +217,6 @@ const styles = StyleSheet.create({
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
-    zIndex: 10,
   },
   avatar: {
     height: theme.avatar.sm,

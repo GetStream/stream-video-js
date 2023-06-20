@@ -17,7 +17,7 @@ export const CallParticipantsView = () => {
 
   return (
     <View style={styles.container}>
-      <LocalVideoView layout={'floating'} zOrder={2} />
+      <LocalVideoView layout={'floating'} />
       <CallParticipantsList participants={remoteParticipants} />
     </View>
   );
