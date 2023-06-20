@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -14,6 +14,7 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
+import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -28,12 +29,23 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const username = useAppGlobalStoreValue((store) => store.username);
 
   const joinCallHandler = useCallback(() => {
-    navigation.navigate('MeetingScreen', { callId });
+    return navigation.navigate('MeetingScreen', { callId });
   }, [navigation, callId]);
 
   const startNewCallHandler = (call_id: string) => {
-    navigation.navigate('MeetingScreen', { callId: call_id });
+    return navigation.navigate('MeetingScreen', { callId: call_id });
   };
+
+  useEffect(() => {
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setCallId(prontoCallId);
+        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setCallId]);
 
   return (
     <KeyboardAvoidingView
