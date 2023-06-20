@@ -30,11 +30,11 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const username = useAppGlobalStoreValue((store) => store.username);
 
   const joinCallHandler = useCallback(() => {
-    return navigation.navigate('MeetingScreen', { callId });
+    navigation.navigate('MeetingScreen', { callId });
   }, [navigation, callId]);
 
   const startNewCallHandler = (call_id: string) => {
-    return navigation.navigate('MeetingScreen', { callId: call_id });
+    navigation.navigate('MeetingScreen', { callId: call_id });
   };
 
   useEffect(() => {
