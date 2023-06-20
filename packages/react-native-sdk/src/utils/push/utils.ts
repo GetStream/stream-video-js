@@ -40,7 +40,7 @@ const DECLINE_CALL_ACTION_ID = 'decline';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
-export async function setupCallkeep(pushConfig: PushConfig) {
+export function setupCallkeep(pushConfig: PushConfig) {
   const callkeep = getCallKeepLib();
   const options: Parameters<RNCallKeepType['setup']>[0] = {
     ios: {
@@ -55,7 +55,7 @@ export async function setupCallkeep(pushConfig: PushConfig) {
   if (Platform.OS !== 'ios') {
     return;
   }
-  return callkeep.setup(options).then((accepted) => {
+  callkeep.setup(options).then((accepted) => {
     if (accepted) {
       callkeep.setAvailable(true);
     }
