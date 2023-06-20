@@ -139,12 +139,7 @@ const UnreadBadeCountIndicator = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingVertical: theme.padding.lg,
-    paddingHorizontal: theme.padding.md,
-    borderTopLeftRadius: theme.rounded.lg,
-    borderTopRightRadius: theme.rounded.lg,
-    backgroundColor: theme.light.controls_bg,
+    justifyContent: 'space-between',
     zIndex: 2,
   },
   button: {

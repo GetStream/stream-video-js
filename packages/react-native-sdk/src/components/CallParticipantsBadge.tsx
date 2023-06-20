@@ -17,14 +17,14 @@ export const CallParticipantsBadge = () => {
 
   return (
     <Pressable
-      style={styles.participantIcon}
       onPress={onOpenCallParticipantsInfoView}
       accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
+      style={styles.container}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participantCount}</Text>
       </View>
-      <View style={[styles.svgContainerStyle, theme.icon.md]}>
+      <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />
       </View>
       <CallParticipantsInfoView
@@ -36,22 +36,19 @@ export const CallParticipantsBadge = () => {
 };
 
 const styles = StyleSheet.create({
-  participantIcon: {
-    zIndex: 2,
-  },
-  svgContainerStyle: {},
+  container: { padding: theme.padding.sm },
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
     borderRadius: theme.rounded.xl,
-    padding: theme.padding.xs,
-    position: 'relative',
-    left: theme.spacing.lg,
-    top: theme.spacing.lg,
+    paddingVertical: theme.padding.xs,
+    paddingHorizontal: theme.padding.sm,
+    position: 'absolute',
+    right: 0,
+    top: -theme.spacing.sm,
     zIndex: 2,
   },
   badgeText: {
     color: theme.light.static_white,
-    textAlign: 'center',
     ...theme.fonts.caption,
   },
 });

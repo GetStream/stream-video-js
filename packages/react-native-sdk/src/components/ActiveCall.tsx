@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   useCall,
   useHasOngoingScreenShare,
@@ -56,22 +56,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
-  const [height, setHeight] = useState(0);
   const { mode = 'grid', chatButton } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
   usePermissionRequest();
-
-  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    setHeight(
-      // we're saving the CallControlsView height and subtracting an amount of padding.
-      // this is done to get the CallParticipants(Screen)View neatly underneath the
-      // rounded corners of the CallControlsView.
-      Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
-    );
-  };
 
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
@@ -81,19 +71,14 @@ const InnerActiveCall = (props: ActiveCallProps) => {
         <CallParticipantsBadge />
       </View>
 
-      <View
-        style={[
-          styles.callParticipantsWrapper,
-          { paddingBottom: height + theme.padding.lg },
-        ]}
-      >
+      <View style={[styles.callParticipantsWrapper]}>
         {showSpotLightModeView ? (
           <CallParticipantsSpotlightView />
         ) : (
           <CallParticipantsView />
         )}
       </View>
-      <View onLayout={onLayout} style={styles.callControlsWrapper}>
+      <View style={styles.callControlsWrapper}>
         <CallControlsView chatButton={chatButton} />
       </View>
     </View>
@@ -106,17 +91,22 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   callParticipantsWrapper: { flex: 1 },
-  callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+  callControlsWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: theme.padding.md,
+  },
   svgContainerStyle: {
     zIndex: 2,
     marginRight: theme.margin.md,
     marginTop: theme.margin.sm,
   },
   iconGroup: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-    marginRight: theme.margin.md,
+    position: 'absolute',
+    top: theme.padding.md,
+    right: theme.padding.sm,
+    zIndex: 2,
   },
 });

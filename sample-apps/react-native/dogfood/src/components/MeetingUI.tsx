@@ -1,13 +1,8 @@
 import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  ActiveCall,
-  ActiveCallProps,
-  useCall,
-} from '@stream-io/video-react-native-sdk';
+import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { ParticipantListButtons } from '../components/ParticipantListButtons';
 import { LobbyViewComponent } from './LobbyViewComponent';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import { useChannelWatch } from '../hooks/useChannelWatch';
@@ -21,7 +16,6 @@ type Props = NativeStackScreenProps<
   show: ScreenTypes;
   setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
 };
-type Mode = NonNullable<ActiveCallProps['mode']>;
 
 export const MeetingUI = ({
   callId,
@@ -30,7 +24,6 @@ export const MeetingUI = ({
   show,
   setShow,
 }: Props) => {
-  const [selectedMode, setSelectedMode] = React.useState<Mode>('grid');
   const call = useCall();
   const channelWatched = useChannelWatch();
   const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
@@ -64,12 +57,7 @@ export const MeetingUI = ({
   } else {
     return (
       <SafeAreaView style={styles.wrapper}>
-        <ParticipantListButtons
-          selectedMode={selectedMode}
-          setMode={setSelectedMode}
-        />
         <ActiveCall
-          mode={selectedMode}
           chatButton={{
             onPressHandler: () => {
               navigation.navigate('ChatScreen', { callId: callId });
