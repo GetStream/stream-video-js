@@ -14,6 +14,6 @@ export const createToken = async (params: ParamsType) => {
   if (params.call_cids) {
     endpoint.searchParams.set('call_cids', params.call_cids);
   }
-  const response = await fetch(endpoint).then((res) => res.json());
+  const response = await fetch(endpoint.toString()).then((res) => res.json());
   return response.token;
 };

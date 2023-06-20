@@ -24,6 +24,7 @@ import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
+import { setPushConfig } from './src/utils/setPushConfig';
 
 // @ts-expect-error
 Logger.enable(false);
