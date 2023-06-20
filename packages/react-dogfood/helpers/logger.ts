@@ -1,5 +1,5 @@
 import { LogLevel, Logger, logToConsole } from '@stream-io/video-react-sdk';
-import * as Sentry from '@sentry/react';
+import * as Sentry from '@sentry/nextjs';
 
 const logLevelMapping = new Map<LogLevel, Sentry.SeverityLevel>();
 logLevelMapping.set('debug', 'debug');
