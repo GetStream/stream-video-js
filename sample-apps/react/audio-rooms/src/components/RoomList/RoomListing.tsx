@@ -15,12 +15,6 @@ import { ErrorPanel } from '../Error';
 import { RoomCard } from './RoomCard';
 import { RoomLiveState } from '../../utils/roomLiveState';
 
-const QUERY_CALLS_PARAMS: QueryCallsRequest = {
-  sort: [{ direction: -1, field: 'created_at' }],
-  limit: 10,
-  watch: true,
-};
-
 const CALL_TYPE_FILTER = { type: CALL_TYPE };
 
 const BY_ROOM_STATE_FILTER: Record<
@@ -53,7 +47,9 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
   const loadCalls = useCallback(async () => {
     if (!client) return;
     const result = await client.queryCalls({
-      ...QUERY_CALLS_PARAMS,
+      sort: [{ direction: -1, field: 'created_at' }],
+      limit: 10,
+      watch: true,
       filter_conditions: BY_ROOM_STATE_FILTER[liveState],
       next: nextPage.current,
     });
