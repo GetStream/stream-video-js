@@ -46,8 +46,7 @@
 }
 
 .hosts-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   width: 100%;
   margin-top: 0.25rem;
   padding-bottom: 1rem;
@@ -57,17 +56,13 @@
 .hosts-grid div {
   display: flex;
   align-items: center;
-}
-
-.hosts-grid img {
-  width: 2rem;
-  height: 2rem;
-  margin-right: 0.5rem;
+  gap: 0.5rem;
 }
 
 .hosts-grid span {
   font-size: 0.8rem;
   font-weight: bold;
+  text-transform: capitalize;
 }
 
 .room-listing__load-more-container {
