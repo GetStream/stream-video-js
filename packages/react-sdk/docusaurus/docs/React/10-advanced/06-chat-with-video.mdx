@@ -99,7 +99,7 @@ const Root = ({
 
 ## Initiating a ring call
 
-In the ring call scenario we recommend to first create a call without immediately joining it. Use the `Call` method [`getOrCreate()`](../../call-engine/Call#getorcreate) to accomplish this. An example can be found in [`CreateCallButton` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/CreateCallButton/CreateCallButton.ts) in the demo app:
+In the ring call scenario we recommend to first create a call without immediately joining it. Use the `Call` method `getOrCreate()` to accomplish this. An example can be found in [`CreateCallButton` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/CreateCallButton/CreateCallButton.ts) in the demo app:
 
 ```tsx
 import { useCallback } from 'react';
@@ -160,11 +160,11 @@ There is a flexibility in what channel members will be included in the call. And
 
 ## Handling the ring call states
 
-Once a ring call is initiated, call members start to receive ring call events (`call.created`, `call.accepted`, `call.rejected`, `call.ended`) over the WebSocket maintained by the video client. The video client updates the [**calls pool**](../../call-engine/hooks-and-contexts#usecalls) state and [**calling state**](../../call-engine/hooks-and-contexts#usecallcallingstate) of individual affected [`Call`](../../call-engine/Call) in response to these events.
+Once a ring call is initiated, call members start to receive ring call events (`call.created`, `call.accepted`, `call.rejected`, `call.ended`) over the WebSocket maintained by the video client. The video client updates the **calls pool** state and **calling state** of individual affected `Call` in response to these events.
 
 ### Observing the calls pool state
 
-The array of all [`Call`](../../call-engine/Call) objects representing created pending (not accepted, rejected, neither ended) calls is continuously updated in response to each new call creation. You can use this array of [`Call`](../../call-engine/Call) objects to display **incoming** or **outgoing calls** in your application's UI. In our app the top-level [`Video`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/Video/Video.tsx) component observes the changes using the [`useCalls`](../../call-engine/hooks-and-contexts#usecalls) hook and re-renders the UI to reflect the changes:
+The array of all `Call` objects representing created pending (not accepted, rejected, neither ended) calls is continuously updated in response to each new call creation. You can use this array of `Call` objects to display **incoming** or **outgoing calls** in your application's UI. In our app the top-level [`Video`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/components/Video/Video.tsx) component observes the changes using the `useCalls` hook and re-renders the UI to reflect the changes:
 
 ```tsx
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
@@ -187,7 +187,7 @@ export const Video = () => {
 ```
 
 :::note
-To identify an outgoing call, use the [`Call.isCreatedByMe`](../../call-engine/Call#iscreatedbyme) flag.
+To identify an outgoing call, use the `call.isCreatedByMe` flag.
 :::
 
 In our demo app, we reflect the incoming calls state in channel list. Channel preview shows buttons to accept or reject the incoming call. The outgoing call or incoming call in an active channel is represented by a [`CallPanel` component](../../ui-components/call/pending-call-panel) floating above the chat UI:
@@ -250,7 +250,7 @@ export const ChannelPreviewCallControls = () => {
 
 ### Observing the state of a specific call
 
-Each call can pass through different states. The call calling state is made available through [`useCallCallingState` hook](../../call-engine/hooks-and-contexts#usecallcallingstate). Therefore, our [custom `CallPanel` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/Video/CallPanel.tsx) displays different UI (pending call, active call) based on the information provided by the hook:
+Each call can pass through different states. The call calling state is made available through `useCallCallingState` hook. Therefore, our [custom `CallPanel` component](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/messenger-clone/src/Video/CallPanel.tsx) displays different UI (pending call, active call) based on the information provided by the hook:
 
 ```tsx
 import {

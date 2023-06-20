@@ -146,8 +146,8 @@ const PermissionRequests = () => {
 Let's unpack the above code snippet:
 
 - We only display the request button if the user is allowed to request the specific capability and doesn't already have that permission. For more information, check out the [permissions guide](../../guides/permissions-and-moderation).
-- To send the request we are using the [`requestPermissions` method](../../call-engine/Call/#requestpermissions) of the `Call` instance.
-- We use the [`useHasPermissions`](../../call-engine/hooks-and-contexts/#usehaspermissions) hook to be notified when the request was approved. Alternatively you can subscribe to the [`call.permissions_updated` event](../../advanced/events/).
+- To send the request we are using the `requestPermissions` method of the `Call` instance.
+- We use the `useHasPermissions` hook to be notified when the request was approved. Alternatively you can subscribe to the [`call.permissions_updated` event](../../advanced/events/).
 
 ## Receive permission requests
 
@@ -202,9 +202,9 @@ const PermissionRequestNotifications = () => {
 Let's unpack the above code snippet:
 
 - We only show the permission requests to users that have the necessary capability to accept/reject: `call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)`
-- We use the [`useCallPermissionRequest`](../../call-engine/hooks-and-contexts/#usecallpermissionrequest) hook to be notified about permission requests
-- A permission request can be accepted with the [`grantPermissions`](../../call-engine/Call/#grantpermissions) method of the `Call` instance
-- A permission request can be rejected with the [`revokePermissions`](../../call-engine/Call/#revokepermissions) method of the `Call` instance. This method can also be used to revoke permissions later in the call.
+- We use the `useCallPermissionRequest` hook to be notified about permission requests
+- A permission request can be accepted with the `grantPermissions` method of the `Call` instance
+- A permission request can be rejected with the `revokePermissions` method of the `Call` instance. This method can also be used to revoke permissions later in the call.
 
 ## Finished example
 

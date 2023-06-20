@@ -42,8 +42,8 @@ Now that we have successfully set up the React Video SDK and joined the call, we
 For that purpose, we are going to utilize some fundamental React Video SDK components and hooks.
 
 - [`<ParticipantView />`](../../ui-components/core/participant-view) - A component that renders a video stream of a participant.
-- [`useCall()`](../04-call-engine/hooks-and-contexts.md#usecall) - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
-- [`useParticipants()`](../04-call-engine/hooks-and-contexts.md#useparticipants) - A hook that returns the list of all participants in the call.
+- `useCall()` - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
+- `useParticipants()` - A hook that returns the list of all participants in the call.
 
 ```tsx
 // will load the default styling for the React Video SDK
@@ -165,7 +165,7 @@ const getCustomSortingPreset = (
 ### Apply sorting to the call
 
 Now that we have the sorting function, let's go ahead and apply it to the call.
-We can do that by calling the [`Call.setSortParticipantsBy()`](../04-call-engine/Call.md#setsortparticipantsby) method
+We can do that by calling the `call.setSortParticipantsBy()` method
 in a `useEffect` hook (see full code [here](https://github.com/GetStream/stream-video-js/blob/main/sample-apps/react/cookbook-participant-list/src/SpeakerView.tsx)):
 
 ```tsx
@@ -334,8 +334,7 @@ The tutorial does not include the styling of the component, but you can find the
 
 ## Further customization
 
-The React Video SDK is built on top of the data model that our [call engine](../../call-engine/01-call-engine-overview) exposes.
-As such, you can use the same data model to build your own custom layouts.
+You can use [our data model](../../guides/call-and-participant-state) to build your own custom layouts.
 You can go further and build your own custom components, but we advise you to use some of our core components (e.g. `ParticipantView`) and hooks to make sure that you wouldn't have to re-implement some baked-in functionality like:
 
 - Simulcast,

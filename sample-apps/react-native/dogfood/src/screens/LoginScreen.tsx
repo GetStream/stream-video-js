@@ -1,63 +1,20 @@
 import React, { useState } from 'react';
 import {
-  Button,
-  SafeAreaView,
+  Image,
   StyleSheet,
-  TextInput,
+  Text,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {
   GoogleSignin,
-  GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    backgroundColor: '#eaeaea',
-  },
-  innerView: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    marginTop: 16,
-    alignSelf: 'stretch',
-  },
-  textInput: {
-    paddingLeft: 15,
-    height: 35,
-    color: 'black',
-  },
-  buttonContainer: {
-    marginHorizontal: 100,
-    marginVertical: 20,
-  },
-  button: {
-    backgroundColor: '#2196F3',
-    padding: 10,
-    borderRadius: 16,
-    margin: 2,
-  },
-  disabledButtonStyle: {
-    backgroundColor: 'gray',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  googleSignin: {
-    width: 192,
-    height: 48,
-  },
-  headerText: {
-    color: 'black',
-    fontSize: 20,
-    marginVertical: 8,
-  },
-});
+import { appTheme } from '../theme';
+import { Button } from '../components/Button';
+import { TextInput } from '../components/TextInput';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -71,6 +28,12 @@ GoogleSignin.configure({
   // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
 });
 
+const generateValidUserName = (username: string) => {
+  return username
+    .replace(/[^_\-0-9a-zA-Z@]/g, '_')
+    .replace('@getstream_io', '');
+};
+
 const LoginScreen = () => {
   const [localUserName, setLocalUserName] = useState('');
   const [loader, setLoader] = useState(false);
@@ -79,7 +42,7 @@ const LoginScreen = () => {
 
   const loginHandler = async () => {
     try {
-      const _username = localUserName.replace(/\s/g, '-');
+      const _username = generateValidUserName(localUserName);
       const _userImageUrl = `https://getstream.io/random_png/?id=${_username}&name=${_username}`;
       setState({
         username: _username,
@@ -95,11 +58,14 @@ const LoginScreen = () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
+      const username = generateValidUserName(userInfo.user.id);
+
       setState({
-        username: userInfo.user.email,
+        username,
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
+        appMode: 'None',
       });
     } catch (error: any) {
       if (error.code === statusCodes.IN_PROGRESS) {
@@ -111,37 +77,95 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <Image source={require('../assets/Logo.png')} style={styles.logo} />
       <View>
-        <View style={styles.innerView}>
+        <Text style={styles.title}>Stream DogFood App</Text>
+        <Text style={styles.subTitle}>
+          Please sign in with your Google Stream account or a Custom user id.
+        </Text>
+      </View>
+
+      <View style={styles.bottomView}>
+        <View style={styles.customUser}>
           <TextInput
-            placeholder="Enter the custom user"
+            placeholder="Enter custom user"
             value={localUserName}
             onChangeText={(text) => {
               setLocalUserName(text);
             }}
-            style={styles.textInput}
             autoCapitalize="none"
             autoCorrect={false}
-            placeholderTextColor="gray"
           />
-        </View>
-        <View style={styles.buttonContainer}>
           <Button
             title="Login"
             disabled={!localUserName}
             onPress={loginHandler}
+            buttonStyle={styles.loginButton}
           />
         </View>
+        <Text style={styles.orText}>OR</Text>
+        <Button
+          title="Google Sign In"
+          onPress={signInViaGoogle}
+          disabled={loader}
+          buttonStyle={styles.googleSignin}
+        />
       </View>
-      <GoogleSigninButton
-        style={styles.googleSignin}
-        size={GoogleSigninButton.Size.Wide}
-        onPress={signInViaGoogle}
-        disabled={loader}
-      />
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: appTheme.spacing.lg,
+    flex: 1,
+    justifyContent: 'space-evenly',
+    backgroundColor: appTheme.colors.static_grey,
+  },
+  logo: {
+    height: 100,
+    width: 100,
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+  title: {
+    fontSize: 30,
+    color: appTheme.colors.static_white,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  subTitle: {
+    color: appTheme.colors.light_gray,
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: appTheme.spacing.lg,
+    marginHorizontal: appTheme.spacing.xl,
+  },
+  bottomView: {
+    alignItems: 'center',
+  },
+  customUser: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  loginButton: {
+    marginLeft: appTheme.spacing.lg,
+  },
+  orText: {
+    fontSize: 17,
+    color: appTheme.colors.static_white,
+    fontWeight: '500',
+    marginVertical: appTheme.spacing.lg,
+  },
+  googleSignin: {
+    width: '100%',
+  },
+});
 
 export default LoginScreen;

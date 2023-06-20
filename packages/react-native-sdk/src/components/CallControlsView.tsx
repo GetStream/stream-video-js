@@ -1,4 +1,5 @@
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { StyleSheet, Text, View, ViewProps } from 'react-native';
 import { useCallControls } from '../hooks/useCallControls';
 import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
@@ -9,11 +10,20 @@ import {
   useCall,
   useCallCallingState,
 } from '@stream-io/video-react-bindings';
-import { useCallback, useState } from 'react';
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
 import { A11yButtons } from '../constants/A11yLabels';
+import { Z_INDEX } from '../constants';
+
+type ChatButtonType = {
+  onPressHandler: () => void;
+  unreadBadgeCountIndicator?: number;
+};
+
+export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
+  chatButton?: ChatButtonType;
+}
 
 /**
  * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -23,7 +33,10 @@ import { A11yButtons } from '../constants/A11yLabels';
  * | :--- |
  * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
-export const CallControlsView = () => {
+export const CallControlsView = ({
+  chatButton,
+  style,
+}: CallControlsViewType) => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
 
@@ -34,7 +47,9 @@ export const CallControlsView = () => {
 
   const onCallHangup = async () => {
     try {
-      if (callingState === CallingState.LEFT) return;
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
       await call?.leave();
     } catch (err) {
       console.log('Error Leaving call:', err);
@@ -50,7 +65,7 @@ export const CallControlsView = () => {
   }, [setIsReactionModalActive]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           onPress={onOpenReactionsModalHandler}
@@ -64,14 +79,21 @@ export const CallControlsView = () => {
         isReactionModalActive={isReactionModalActive}
         setIsReactionModalActive={setIsReactionModalActive}
       />
-      <CallControlsButton
-        color={theme.light.static_white}
-        onPress={() => null}
-        svgContainerStyle={styles.svgContainerStyle}
-        style={styles.button}
-      >
-        <Chat color={theme.light.static_black} />
-      </CallControlsButton>
+      {chatButton && (
+        <View>
+          <CallControlsButton
+            color={theme.light.static_white}
+            onPress={chatButton.onPressHandler}
+            svgContainerStyle={styles.svgContainerStyle}
+            style={styles.button}
+          >
+            <UnreadBadeCountIndicator
+              count={chatButton.unreadBadgeCountIndicator}
+            />
+            <Chat color={theme.light.static_black} />
+          </CallControlsButton>
+        </View>
+      )}
       <ToggleVideoButton />
       <ToggleAudioButton />
       <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
@@ -101,16 +123,28 @@ export const CallControlsView = () => {
   );
 };
 
+const UnreadBadeCountIndicator = ({
+  count,
+}: {
+  count: ChatButtonType['unreadBadgeCountIndicator'];
+}) => {
+  // Don't show badge if count is 0 or undefined
+  if (!count) {
+    return null;
+  }
+
+  return (
+    <View style={styles.chatBadge}>
+      <Text style={styles.chatBadgeText}>{count}</Text>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingVertical: theme.padding.lg,
-    paddingHorizontal: theme.padding.md,
-    borderTopLeftRadius: theme.rounded.lg,
-    borderTopRightRadius: theme.rounded.lg,
-    backgroundColor: theme.light.controls_bg,
-    zIndex: 2,
+    justifyContent: 'space-between',
+    zIndex: Z_INDEX.IN_FRONT,
   },
   button: {
     // For iOS
@@ -126,5 +160,21 @@ const styles = StyleSheet.create({
   },
   svgContainerStyle: {
     paddingTop: theme.padding.xs,
+  },
+  chatBadge: {
+    backgroundColor: theme.light.error,
+    borderRadius: theme.rounded.xl,
+    position: 'absolute',
+    left: 15,
+    bottom: 20,
+    zIndex: Z_INDEX.IN_FRONT,
+    height: 30,
+    width: 30,
+    justifyContent: 'center',
+  },
+  chatBadgeText: {
+    color: theme.light.static_white,
+    textAlign: 'center',
+    ...theme.fonts.bodyBold,
   },
 });

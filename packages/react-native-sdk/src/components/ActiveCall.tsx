@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   useCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { CallControlsView } from './CallControlsView';
+import { CallControlsView, CallControlsViewType } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
 import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
@@ -14,17 +14,18 @@ import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
 import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
+import { Z_INDEX } from '../constants';
 
 /**
  * Props to be passed for the ActiveCall component.
  */
-export interface ActiveCallProps {
+export type ActiveCallProps = CallControlsViewType & {
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
    */
   mode?: 'grid' | 'spotlight';
-}
+};
 /**
  * View for an active call, includes call controls and participant handling.
  *
@@ -56,46 +57,29 @@ export const ActiveCall = (props: ActiveCallProps) => {
 };
 
 const InnerActiveCall = (props: ActiveCallProps) => {
-  const [height, setHeight] = useState(0);
-  const { mode = 'grid' } = props;
+  const { mode = 'grid', chatButton } = props;
   const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
   usePermissionRequest();
 
-  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    setHeight(
-      // we're saving the CallControlsView height and subtracting an amount of padding.
-      // this is done to get the CallParticipants(Screen)View neatly underneath the
-      // rounded corners of the CallControlsView.
-      Math.trunc(event.nativeEvent.layout.height - theme.spacing.lg * 2),
-    );
-  };
-
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconGroup}>
-        <CallParticipantsBadge />
-      </View>
-
-      <View
-        style={[
-          styles.callParticipantsWrapper,
-          { paddingBottom: height + theme.padding.lg },
-        ]}
-      >
+      <CallParticipantsBadge style={styles.iconGroup} />
+      <View style={[styles.callParticipantsWrapper]}>
         {showSpotLightModeView ? (
           <CallParticipantsSpotlightView />
         ) : (
           <CallParticipantsView />
         )}
       </View>
-      <View onLayout={onLayout} style={styles.callControlsWrapper}>
-        <CallControlsView />
-      </View>
+      <CallControlsView
+        style={styles.callControlsWrapper}
+        chatButton={chatButton}
+      />
     </View>
   );
 };
@@ -106,17 +90,17 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
   },
   callParticipantsWrapper: { flex: 1 },
-  callControlsWrapper: { position: 'absolute', bottom: 0, left: 0, right: 0 },
-  svgContainerStyle: {
-    zIndex: 2,
-    marginRight: theme.margin.md,
-    marginTop: theme.margin.sm,
+  callControlsWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: theme.padding.md,
   },
   iconGroup: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    alignItems: 'center',
-    marginRight: theme.margin.md,
+    position: 'absolute',
+    top: theme.padding.md,
+    right: theme.padding.sm,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

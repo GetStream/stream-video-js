@@ -37,11 +37,11 @@ In order we can start performing calls we need a `StreamVideoClient` instance co
 
 The component will rely on data accessed via our utility hooks:
 
-- [`useCall`](../../call-engine/hooks-and-contexts#usecall)
-- [`useCallCallingState`](../../call-engine/hooks-and-contexts#usecallcallingstate)
-- [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata)
-- [`useCallMembers`](../../call-engine/hooks-and-contexts#usecallmembers)
-- [`useMediaDevices`](../../call-engine/hooks-and-contexts#usemediadevices)
+- `useCall`
+- `useCallCallingState`
+- `useCallMetadata`
+- `useCallMembers`
+- `useMediaDevices`
 
 ### User preview
 
@@ -51,7 +51,7 @@ The panel will render [`VideoPreview`](../../ui-components/participants/video-pr
 - show the avatar of the person who initiated the call in case of an incoming call (who is calling me)
 
 :::note
-Note, how the initial video state is handled by [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider). We only consume the API through corresponding context consumer hook [`useMediaDevices`](../../call-engine/hooks-and-contexts#usemediadevices).
+Note, how the initial video state is handled by [`MediaDevicesProvider`](../../guides/camera-and-microphone). We only consume the API through corresponding context consumer hook `useMediaDevices`.
 :::
 
 ```tsx
@@ -165,7 +165,7 @@ const CallPanel = () => {
 };
 ```
 
-Or, if instead of using [`StreamCall`](../../ui-components/core/stream-call), we want to use the [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider) component directly, we pass `initialVideoEnabled` value to it as follows:
+Or, if instead of using [`StreamCall`](../../ui-components/core/stream-call), we want to use the `MediaDevicesProvider` component directly, we pass `initialVideoEnabled` value to it as follows:
 
 ```tsx
 import { MediaDevicesProvider } from "@stream-io/video-react-sdk";
@@ -213,10 +213,10 @@ const CallMembers = ({ members }: CallMembersProps) => {
 
 ### Call calling state label
 
-To show to our users the state of call connection, we implement `CallCallingStateLabel`. The calling state is provided by [`useCallCallingState`](../../call-engine/hooks-and-contexts#usecallcallingstate) hook:
+To show to our users the state of call connection, we implement `CallCallingStateLabel`. The calling state is provided by `useCallCallingState` hook:
 
 :::note
-In this component we are using translation service that comes bundled with the SDK. The service API is consumed with [`useI18n`](../../call-engine/hooks-and-contexts#usei18n) hook. Lean more about using the [i18n service in the dedicated documentation](../../advanced/i18n).
+In this component we are using translation service that comes bundled with the SDK. The service API is consumed with `useI18n` hook. Learn more about using the [i18n service in the dedicated documentation](../../advanced/i18n).
 :::
 
 ```tsx
@@ -252,7 +252,7 @@ const CallCallingStateLabel = () => {
 Finally, we build the call control buttons. We include buttons to toggle camera and microphone and buttons to accept and reject the call.
 
 :::note
-The toggle video and audio buttons are just wrappers around pre-built button components attaching click handlers provided by [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider).
+The toggle video and audio buttons are just wrappers around pre-built button components attaching click handlers provided by `MediaDevicesProvider`.
 :::
 
 ```tsx

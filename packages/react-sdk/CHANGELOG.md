@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.40](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.39...@stream-io/video-react-sdk-0.0.40) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.20`
+### [0.0.39](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.38...@stream-io/video-react-sdk-0.0.39) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.19`
+
+### Features
+
+* Custom logger example ([#669](https://github.com/GetStream/stream-video-js/issues/669)) ([208aed9](https://github.com/GetStream/stream-video-js/commit/208aed9f82dcbf5f9ffdf299c4672af855af344a))
+
+
+### Documentation
+
+* Update custom call controls ([#670](https://github.com/GetStream/stream-video-js/issues/670)) ([572bdcb](https://github.com/GetStream/stream-video-js/commit/572bdcb42ed19a9a790c615a521fd3826bb831a1))
+
+### [0.0.38](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.37...@stream-io/video-react-sdk-0.0.38) (2023-06-20)
+
+
+### Documentation
+
+* **react-sdk:** Remove generated docs ([#674](https://github.com/GetStream/stream-video-js/issues/674)) ([05f8ace](https://github.com/GetStream/stream-video-js/commit/05f8ace7bd6400ff4c4034e5e7bd633a1a050e23))
+
+### [0.0.37](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.36...@stream-io/video-react-sdk-0.0.37) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.18`
+
+### Documentation
+
+* Restructure device management guide ([#666](https://github.com/GetStream/stream-video-js/issues/666)) ([70013b2](https://github.com/GetStream/stream-video-js/commit/70013b203adbed13e6bbb070d749a6be2e7df794))
+
 ### [0.0.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.35...@stream-io/video-react-sdk-0.0.36) (2023-06-19)
 
 

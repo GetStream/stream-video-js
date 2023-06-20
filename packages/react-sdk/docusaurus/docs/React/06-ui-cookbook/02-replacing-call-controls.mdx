@@ -102,40 +102,21 @@ Toggling microphone in an active call turns around publishing audio input stream
 import { useCallback } from 'react';
 import {
   SfuModels,
-  useCall,
   useLocalParticipant,
-  useMediaDevices,
+  useToggleAudioMuteState,
 } from '@stream-io/video-react-sdk';
 
 export const CustomToggleAudioPublishingButton = () => {
-  const call = useCall();
-  // the API to control the audio enablement in an active call
-  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
-    useMediaDevices();
   const localParticipant = useLocalParticipant();
   // Check, whether the audio input stream is already being published to Stream's server
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
-
-  const handleClick = useCallback(async () => {
-    if (isAudioMute) {
-      // Make sure to enable the initial state
-      setInitialAudioEnabled(true);
-      await publishAudioStream();
-    } else {
-      stopPublishingAudio();
-    }
-  }, [
-    call,
-    isAudioMute,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
+  const { toggleAudioMuteState, isAwaitingApproval } =
+    useToggleAudioMuteState();
 
   return (
-    <button onClick={handleClick}>
+    <button disabled={isAwaitingApproval} onClick={toggleAudioMuteState}>
       {!isAudioMute ? (
         <span className="my-icon-enabled" />
       ) : (
@@ -145,6 +126,8 @@ export const CustomToggleAudioPublishingButton = () => {
   );
 };
 ```
+
+`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish audio, and a request has been sent to call admins.
 
 To toggle audio before joining a call (for example in a call lobby or on pending call panel), we simply invoke `toggleInitialAudioMuteState` provided by the `MediaDevicesProvider`. The initial audio state is then transferred to the active call. So if in the preview the audio was disabled, then the active call will start with disabled audio. The flag toggled is `initialAudioEnabled`. A most basic implementation could look as follows:
 
@@ -175,42 +158,21 @@ To toggle video input the approach is analogous to that of audio input.
 ```tsx
 import { useCallback } from 'react';
 import {
-  DEVICE_STATE,
   SfuModels,
-  useCall,
   useLocalParticipant,
-  useMediaDevices,
+  useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 
 export const CustomToggleVideoPublishingButton = () => {
-  const call = useCall();
-  // the API to control the video enablement in an active call
-  const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
-    useMediaDevices();
   const localParticipant = useLocalParticipant();
-  // Check, whether the video input stream is already sent to Stream's server
+  // Check, whether the video input stream is already being published to Stream's server
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
-
-  const handleClick = useCallback(async () => {
-    if (isVideoMute) {
-      // Make sure to enable the initial state
-      setInitialVideoState(DEVICE_STATE.playing);
-      await publishVideoStream();
-    } else {
-      stopPublishingVideo();
-    }
-  }, [
-    call,
-    isVideoMute,
-    publishVideoStream,
-    setInitialVideoState,
-    stopPublishingVideo,
-  ]);
-
+  const { toggleVideoMuteState, isAwaitingApproval } =
+    useToggleVideoMuteState();
   return (
-    <button onClick={handleClick}>
+    <button disabled={isAwaitingApproval} onClick={toggleVideoMuteState}>
       {!isVideoMute ? (
         <span className="my-icon-enabled" />
       ) : (
@@ -220,6 +182,8 @@ export const CustomToggleVideoPublishingButton = () => {
   );
 };
 ```
+
+`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish video, and a request has been sent to call admins.
 
 The video preview toggle button implementation is very simple:
 
@@ -244,7 +208,7 @@ export const CustomToggleVideoPreviewButton = () => {
 
 ### Enabling screensharing
 
-Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called [`useHasOngoingScreenShare`](../../call-engine/hooks-and-contexts#usehasongoingscreenshare) which informs us whether any call participant is already sharing their screen.
+Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called `useHasOngoingScreenShare` which informs us whether any call participant is already sharing their screen.
 
 ```tsx
 import { useCallback } from 'react';

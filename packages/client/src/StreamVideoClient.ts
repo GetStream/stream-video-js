@@ -78,32 +78,31 @@ export class StreamVideoClient {
         },
     opts?: StreamClientOptions,
   ) {
-    let defaultLogger: Logger = logToConsole;
+    let logger: Logger = logToConsole;
     if (typeof apiKeyOrArgs === 'string') {
       this.logLevel = opts?.logLevel || this.logLevel;
-      this.logger = opts?.logger || defaultLogger;
+      logger = opts?.logger || logger;
     } else {
       this.logLevel = apiKeyOrArgs.options?.logLevel || this.logLevel;
-      this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
+      logger = apiKeyOrArgs.options?.logger || logger;
     }
 
-    setLogger(this.filterLogs(defaultLogger));
-
-    const clientLogger = getLogger(['client']);
+    setLogger(this.filterLogs(logger));
+    this.logger = getLogger(['client']);
 
     if (typeof apiKeyOrArgs === 'string') {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
         persistUserOnConnectionFailure: true,
         ...opts,
         logLevel: this.logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
         logLevel: this.logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
 
       this.user = apiKeyOrArgs.user;
@@ -224,6 +223,7 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
+        const prevMetadata = prevCall?.state.metadata;
         await prevCall?.leave();
         // we create a new call
         const theCall = new Call({
@@ -233,6 +233,7 @@ export class StreamVideoClient {
           members,
           clientStore: this.writeableStateStore,
           ringing: true,
+          metadata: prevMetadata,
         });
         // we fetch the latest metadata for the call from the server
         await theCall.get();
@@ -296,13 +297,15 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call, if not provided a unique random value is used
+   * @param {boolean} [ringing] whether the call should be created in the ringing state.
    */
-  call = (type: string, id: string) => {
+  call = (type: string, id: string, ringing?: boolean) => {
     return new Call({
       streamClient: this.streamClient,
       id: id,
       type: type,
       clientStore: this.writeableStateStore,
+      ringing,
     });
   };
 

@@ -17,11 +17,11 @@ The SDK's default implementation of device settings components consists of audio
 
 There is also a composing component `DeviceSettings` putting these together.
 
-All the selector components make use of [`MediaDevicesContextAPI`](../../../call-engine/hooks-and-contexts/#mediadevicescontextapi) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
+All the selector components make use of [`MediaDevicesContextAPI`](../../../guides/camera-and-microphone) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
 
-- [`useVideoDevices`](../../../call-engine/hooks-and-contexts#usevideodevices)
-- [`useAudioInputDevices`](../../../call-engine/hooks-and-contexts#useaudioinputdevices)
-- [`useAudioOutputDevices`](../../../call-engine/hooks-and-contexts#useaudiooutputdevices)
+- `useVideoDevices`
+- `useAudioInputDevices`
+- `useAudioOutputDevices`
 
 <ImageShowcase
   items={[

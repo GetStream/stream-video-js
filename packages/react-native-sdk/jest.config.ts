@@ -8,6 +8,10 @@ const config: Config = {
     '<rootDir>/__tests__/utils/',
     '<rootDir>/dist/',
   ],
+  transformIgnorePatterns: [
+    // added as per the README in https://github.com/invertase/notifee/tree/main/packages/react-native
+    'node_modules/(?!(jest-)?react-native|@react-native|@notifee)',
+  ],
   testTimeout: 10000,
 };
 

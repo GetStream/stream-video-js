@@ -2,7 +2,7 @@ import { StreamReaction } from '@stream-io/video-client';
 import { Pressable, StyleSheet, View, Text, Modal } from 'react-native';
 
 import { theme } from '../theme';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils';
 import { Cross } from '../icons';
@@ -18,7 +18,7 @@ export const ReactionModal = (props: ReactionModalType) => {
     setIsReactionModalActive(false);
   }, [setIsReactionModalActive]);
   const call = useCall();
-  const { supportedReactions } = StreamVideoRN.config;
+  const { supportedReactions } = StreamVideoRN.getConfig();
 
   const sendReaction = async (reaction: StreamReaction) => {
     await call?.sendReaction(reaction);

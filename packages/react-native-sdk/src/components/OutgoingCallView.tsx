@@ -10,6 +10,7 @@ import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 import { theme } from '../theme';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
+import { Z_INDEX } from '../constants';
 
 export const OutgoingCallView = () => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -92,7 +93,7 @@ const Background = () => {
     <View style={styles.background}>
       <VideoRenderer
         mediaStream={localVideoStream}
-        zOrder={1}
+        zOrder={Z_INDEX.IN_BACK}
         style={StyleSheet.absoluteFill}
         mirror
       />
@@ -102,8 +103,7 @@ const Background = () => {
 
 const styles = StyleSheet.create({
   container: {
-    zIndex: 1,
-    display: 'flex',
+    zIndex: Z_INDEX.IN_MIDDLE,
     flexDirection: 'column',
     justifyContent: 'space-between',
     paddingVertical: 2 * theme.margin.xl,

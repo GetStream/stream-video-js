@@ -13,8 +13,9 @@ import { SfuModels } from '@stream-io/video-client';
 import { useStreamVideoStoreValue } from '../contexts';
 import { theme } from '../theme';
 import { VideoSlash } from '../icons';
-import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 import { A11yComponents } from '../constants/A11yLabels';
+import { Avatar } from './Avatar';
+import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../constants';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -52,7 +53,7 @@ export interface LocalVideoViewProps {
  * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
  */
 export const LocalVideoView = (props: LocalVideoViewProps) => {
-  const { layout = 'floating', zOrder = 1 } = props;
+  const { layout = 'floating', zOrder = Z_INDEX.IN_MIDDLE } = props;
   const containerStyle =
     layout === 'floating'
       ? styles.floatingContainer
@@ -75,13 +76,22 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     }),
   ).current;
 
-  if (!localParticipant) return null;
+  if (!localParticipant) {
+    return null;
+  }
 
   const isVideoMuted = !localParticipant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
 
   if (layout === 'fullscreen') {
+    if (isVideoMuted) {
+      return (
+        <View style={styles.avatarContainer}>
+          <Avatar participant={localParticipant} />
+        </View>
+      );
+    }
     return (
       <VideoRenderer
         mirror={isCameraOnFrontFacingMode}
@@ -96,7 +106,8 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
     <Animated.View
       accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT}
       style={{
-        zIndex: 5,
+        // Needed to make the view is on top and draggable
+        zIndex: Z_INDEX.IN_MIDDLE,
         transform: [{ translateX: pan.x }, { translateY: pan.y }],
       }}
       {...panResponder.panHandlers}
@@ -125,15 +136,20 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     right: theme.spacing.lg * 2,
-    top: theme.margin.md,
+    top: theme.margin.xl * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
-    zIndex: 1,
+    zIndex: Z_INDEX.IN_MIDDLE,
     overflow: 'hidden',
     backgroundColor: theme.light.disabled,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullScreenContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

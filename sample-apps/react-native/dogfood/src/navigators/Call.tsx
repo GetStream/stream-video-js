@@ -5,14 +5,19 @@ import {
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
-  theme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ActiveCallComponent } from '../components/ActiveCallComponent';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CallStackParamList } from '../../types';
+import { NavigationHeader } from '../components/NavigationHeader';
+import { appTheme } from '../theme';
 
-type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'joining' | 'none';
+const CallStack = createNativeStackNavigator<CallStackParamList>();
+
+type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'none';
 
 const CallPanel = ({ show }: { show: ScreenTypes }) => {
   switch (show) {
@@ -28,12 +33,6 @@ const CallPanel = ({ show }: { show: ScreenTypes }) => {
       return (
         <View style={styles.container}>
           <ActiveCallComponent />
-        </View>
-      );
-    case 'joining':
-      return (
-        <View style={styles.container}>
-          <AuthenticationProgress />
         </View>
       );
     default:
@@ -84,10 +83,6 @@ const Calls = () => {
     setShow('none');
   }, [setShow]);
 
-  const onCallJoining = React.useCallback(() => {
-    setShow('joining');
-  }, [setShow]);
-
   const callCycleHandlers = React.useMemo(() => {
     return {
       onCallJoined,
@@ -95,7 +90,6 @@ const Calls = () => {
       onCallOutgoing,
       onCallHungUp,
       onCallRejected,
-      onCallJoining,
     };
   }, [
     onCallJoined,
@@ -103,7 +97,6 @@ const Calls = () => {
     onCallOutgoing,
     onCallHungUp,
     onCallRejected,
-    onCallJoining,
   ]);
 
   const firstCall = calls[0];
@@ -122,7 +115,13 @@ const Calls = () => {
 export const Call = () => {
   return (
     <>
-      <JoinCallScreen />
+      <CallStack.Navigator>
+        <CallStack.Screen
+          name="JoinCallScreen"
+          component={JoinCallScreen}
+          options={{ header: NavigationHeader }}
+        />
+      </CallStack.Navigator>
       <Calls />
     </>
   );
@@ -131,6 +130,6 @@ export const Call = () => {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
 });
