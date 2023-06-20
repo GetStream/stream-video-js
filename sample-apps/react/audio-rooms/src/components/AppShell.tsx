@@ -6,7 +6,7 @@ import {
   useLayoutController,
   VideoClientProvider,
 } from '../contexts';
-import { CreateRoomModal } from './CreateRoomModal';
+import { CreateRoomModal } from './CreateRoom';
 
 export const AppShell = () => (
   <LayoutControllerProvider>

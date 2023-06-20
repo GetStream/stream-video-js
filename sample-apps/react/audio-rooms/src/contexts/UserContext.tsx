@@ -1,29 +1,28 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import {
   ChildrenOnly,
   StreamVideoClient,
   TokenProvider,
 } from '@stream-io/video-react-sdk';
-import users from '../data/users';
-import { SESSION_STORAGE_UID_KEY } from '../utils/constants';
+import { SESSION_STORAGE_USER_KEY } from '../utils/constants';
+import { getURLCredentials } from '../utils/getURLCredentials';
 import { noop } from '../utils/noop';
 import type { User } from '../types';
+import { getSelectedUser, storeUser } from '../utils/user';
 
-const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL;
+const envApiKey = import.meta.env.VITE_STREAM_API_KEY as string | undefined;
+const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL as
+  | string
+  | undefined;
 
 export interface UserState {
   authInProgress: boolean;
   user: User | undefined;
-  selectUser: (user: User) => Promise<void>;
+  selectUser: (user: User) => void;
   logout: (client: StreamVideoClient) => void;
   tokenProvider: TokenProvider;
+  apiKey?: string;
+  token?: string;
 }
 
 const UserContext = createContext<UserState>({
@@ -34,30 +33,31 @@ const UserContext = createContext<UserState>({
   user: undefined,
 });
 
-export const getSelectedUser = () =>
-  users.find(
-    (u) =>
-      u.id === sessionStorage.getItem(SESSION_STORAGE_UID_KEY) || undefined,
-  );
-
 export const UserContextProvider = ({ children }: ChildrenOnly) => {
-  const [user, setUser] = useState<User | undefined>();
+  const urlCredentials = getURLCredentials();
+  const apiKey = urlCredentials.api_key || envApiKey;
+  const token = urlCredentials.token;
+  const [user, setUser] = useState<User | undefined>(() => {
+    const selectedUser = getSelectedUser();
+    if (selectedUser) storeUser(selectedUser);
+    return selectedUser;
+  });
   const [authInProgress, setAuthInProgress] = useState(false);
 
-  const selectUser = useCallback(async (selectedUser: User) => {
-    sessionStorage.setItem(SESSION_STORAGE_UID_KEY, selectedUser.id);
+  const selectUser = useCallback((selectedUser: User) => {
+    storeUser(selectedUser);
     setUser(selectedUser);
   }, []);
 
   const logout = useCallback(async (client: StreamVideoClient) => {
     await client.disconnectUser();
-    sessionStorage.removeItem(SESSION_STORAGE_UID_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_USER_KEY);
     setUser(undefined);
   }, []);
 
   const tokenProvider = useCallback(async (): Promise<string> => {
     if (!apiKey) {
-      throw new Error('Missing VITE_STREAM_API_KEY');
+      throw new Error('Missing API key');
     }
     if (!tokenProviderURL) {
       throw new Error('Missing VITE_TOKEN_PROVIDER_URL');
@@ -73,25 +73,19 @@ export const UserContextProvider = ({ children }: ChildrenOnly) => {
 
     setAuthInProgress(true);
     const response = await fetch(url.toString());
-    const { token } = await response.json();
+    const data = await response.json();
     setAuthInProgress(false);
-    return token;
-  }, [user]);
-
-  useEffect(() => {
-    const sessionUser = getSelectedUser();
-
-    if (sessionUser) {
-      selectUser(sessionUser);
-    }
-  }, [selectUser]);
+    return data.token;
+  }, [apiKey, user]);
 
   return (
     <UserContext.Provider
       value={{
+        apiKey,
         authInProgress,
         logout,
         selectUser,
+        token,
         tokenProvider,
         user,
       }}

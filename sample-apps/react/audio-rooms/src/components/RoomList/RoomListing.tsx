@@ -9,11 +9,11 @@ import {
   StreamCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { CALL_TYPE } from '../../contexts';
 import { LoadingPanel } from '../Loading';
 import { ErrorPanel } from '../Error';
 import { RoomCard } from './RoomCard';
 import { RoomLiveState } from '../../utils/roomLiveState';
+import { CALL_TYPE } from '../../utils/constants';
 
 const QUERY_CALLS_PARAMS: QueryCallsRequest = {
   sort: [{ direction: -1, field: 'created_at' }],
