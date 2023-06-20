@@ -192,8 +192,7 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
   if (mustAccept) {
     pushAcceptedIncomingCallCId$.next(call_cid);
     pushConfig.navigateAcceptCall();
-    // accept will be handled by the app with rxjs observers as the app will go to foreground always
-    return;
+    // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always
   } else if (mustDecline) {
     pushRejectedIncomingCallCId$.next(call_cid);
     const hasObservers =
