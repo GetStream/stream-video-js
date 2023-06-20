@@ -11,7 +11,7 @@ import { UserInfoView } from './UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { useMutingState } from '../hooks/useMutingState';
-import { CallingState, UserResponse } from '@stream-io/video-client';
+import { CallingState } from '@stream-io/video-client';
 
 export const IncomingCallView = () => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
@@ -28,7 +28,9 @@ export const IncomingCallView = () => {
 
   const rejectCallHandler = async () => {
     try {
-      if (callingState === CallingState.LEFT) return;
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
       await call?.leave({ reject: true });
     } catch (error) {
       console.log('Error leaving Call', error);
@@ -83,19 +85,19 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 }) => {
   const connectedUser = useConnectedUser();
   const members = useCallMembers();
-  const includeSelf = false;
 
   // take the first N members to show their avatars
-  const membersToShow: UserResponse[] = (members || [])
-    .map(({ user }) => user)
-    .filter((user) => user.id !== connectedUser?.id || includeSelf);
+  const avatarsToShow = (members || [])
+    .filter(({ user }) => user.id !== connectedUser?.id)
+    .map(({ user }) => user.image)
+    .filter((image): image is string => !!image);
 
-  if (members.length) {
+  if (avatarsToShow.length) {
     return (
       <ImageBackground
         blurRadius={10}
         source={{
-          uri: membersToShow[0].image,
+          uri: avatarsToShow[0],
         }}
         style={[StyleSheet.absoluteFill, styles.background]}
       >

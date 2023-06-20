@@ -79,6 +79,9 @@ export const UserInfoView = ({
     <View style={styles.userInfo}>
       <View style={styles.avatarGroup}>
         {membersToShow.map((memberToShow) => {
+          if (!memberToShow.image) {
+            return null;
+          }
           return (
             <Image
               key={memberToShow.id}
