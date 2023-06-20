@@ -9,7 +9,7 @@ You can access call, participant and client state using hooks. These hooks are r
 
 To observe call state you need to provide a `Call` instance to the [`StreamCall` component](../../ui-components/core/stream-call).
 
-Let's see an example where we use the [`useCall`](../../call-engine/hooks-and-contexts/#usecall) and [`useCallCallingState`](../../call-engine/hooks-and-contexts/#usecallcallingstate) hooks to display some basic information about the call:
+Let's see an example where we use the `useCall` and `useCallCallingState` hooks to display some basic information about the call:
 
 ```tsx
 export default function App() {
@@ -37,18 +37,16 @@ const CallUI = () => {
 
 This approach makes it possible to access the call state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
 
-The list of call state hooks can be found on the [Hooks and Contexts page](../../call-engine/hooks-and-contexts#call-state).
-
-The `StreamCall` component uses the [`StreamCallProvider`](../../call-engine/hooks-and-contexts/#streamcallprovider) under the hood.
+The `StreamCall` component uses the `StreamCallProvider` under the hood.
 
 ## Participant state
 
 If you want to display information about the joined participants of the call you can use these hooks:
 
-- [`useLocalParticipant`](../../call-engine/hooks-and-contexts/#uselocalparticipant): the local participant is the logged-in user
-- [`useRemoteParticipants`](../../call-engine/hooks-and-contexts/#useremoteparticipants): all participants except the local participant
-- [`useParticipants`](../../call-engine/hooks-and-contexts/#useparticipants): all participants, including local and remote participants
-- [`useParticipantCount`](../../call-engine/hooks-and-contexts/#useparticipantcount): the approximate participant count of the active call. This includes the [anonymous users](../client-auth/#anonymous-users) as well, it is computed on the server-side.
+- `useLocalParticipant`: the local participant is the logged-in user
+- `useRemoteParticipants`: all participants except the local participant
+- `useParticipants`: all participants, including local and remote participants
+- `useParticipantCount`: the approximate participant count of the active call. This includes the [anonymous users](../client-auth/#anonymous-users) as well, it is computed on the server-side.
 
 ```tsx
 export default function App() {
@@ -76,13 +74,11 @@ const CallUI = () => {
 
 ## Client state
 
-To observe client state you need to provide a `StreamVideoClient` instance to the [`StreamVideo`](../../call-engine/hooks-and-contexts#streamvideo) context provider:
-
-Then you'll be able to use the [client state hooks](../../call-engine/hooks-and-contexts/#client-state) to easily access the client state anywhere in your application.
+To observe client state you need to provide a `StreamVideoClient` instance to the `StreamVideo` context provider:
 
 Let's see an example:
 
-If you want to observe the connected user you can use the [`useConnectedUser`](../../call-engine/hooks-and-contexts/#useconnecteduser) hook.
+If you want to observe the connected user you can use the `useConnectedUser` hook.
 
 ```tsx
 export default function App() {
@@ -102,5 +98,3 @@ const Header = () => {
 ```
 
 This approach makes it possible to access the client state and be notified about changes anywhere in your application without having to manually subscribe to WebSocket events.
-
-The full list of available client state hooks are available in the [Hooks and Contexts page](../../call-engine/hooks-and-contexts#client-state).

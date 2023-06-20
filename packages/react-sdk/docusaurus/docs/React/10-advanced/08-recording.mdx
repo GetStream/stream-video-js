@@ -10,8 +10,8 @@ This documentation article serves as a guide for implementing a call recording f
 
 ## Recording calls
 
-The [`Call`](../../call-engine/call) objects exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
-To determine, whether a call recording is in progress, we use [`useIsCallRecordingInProgress`](../../call-engine/hooks-and-contexts#useiscallrecordinginprogress) hook. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
+The `Call` objects exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
+To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
 
 ```tsx
 import { useCallback, useEffect, useState } from 'react';
@@ -70,7 +70,7 @@ The React SDK comes with [`RecordCallButton`](../../ui-components/call/call-cont
 
 ## Acquiring call recordings data
 
-The call recording data can be retrieved by calling the [`Call`](../../call-engine/call) method `queryRecordings()`. By default, it retrieves all the call recordings for a given call (call CID). However, it accepts a single argument `callSessionId` that allows us to retrieve only recordings done during a single call session. The method returns `ListRecordingsResponse` that carries an array of `CallRecording` objects accessible through `recordings` key.
+The call recording data can be retrieved by calling the `Call` method `queryRecordings()`. By default, it retrieves all the call recordings for a given call (call CID). However, it accepts a single argument `callSessionId` that allows us to retrieve only recordings done during a single call session. The method returns `ListRecordingsResponse` that carries an array of `CallRecording` objects accessible through `recordings` key.
 
 :::note
 Multiple calls can be recorded during a single call session, but a single call CID can be reused for multiple sessions, too.
