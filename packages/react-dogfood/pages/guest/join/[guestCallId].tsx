@@ -13,6 +13,7 @@ import { MeetingUI } from '../../../components';
 import { createToken } from '../../../helpers/jwt';
 import { useEffect, useMemo, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
+import { customSentryLogger } from '../../../helpers/logger';
 
 type GuestCallRoomProps = {
   user: UserResponse;
@@ -42,6 +43,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       token: tokenToUse,
       options: {
         logLevel: 'info',
+        logger: customSentryLogger,
       },
     });
   });

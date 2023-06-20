@@ -11,6 +11,7 @@ import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { LobbyHeader } from '../LobbyHeader';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
+import { customSentryLogger } from '../../helpers/logger';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -29,7 +30,7 @@ export const CallRecordingsPage = ({
         apiKey,
         user,
         token: userToken,
-        options: { logLevel: 'info' },
+        options: { logLevel: 'info', logger: customSentryLogger },
       }),
   );
 

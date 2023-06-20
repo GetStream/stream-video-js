@@ -21,6 +21,7 @@ import {
   getDeviceSettings,
 } from '../../components/DeviceSettingsCaptor';
 import { User } from '@stream-io/video-react-sdk';
+import { customSentryLogger } from '../../helpers/logger';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -47,7 +48,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         apiKey,
         user,
         tokenProvider,
-        options: { logLevel: 'info' },
+        options: { logLevel: 'info', logger: customSentryLogger },
       }),
   );
   const [call] = useState<Call>(() => client.call(callType, callId));
