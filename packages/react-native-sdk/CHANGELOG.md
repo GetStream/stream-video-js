@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.177...@stream-io/video-react-native-sdk-0.0.1-alpha.178) (2023-06-20)
+
+
+### Features
+
+* **react-native:** push notification for android ([#626](https://github.com/GetStream/stream-video-js/issues/626)) ([ec2e439](https://github.com/GetStream/stream-video-js/commit/ec2e4390cb724091352ba774c55ad2245ace2955))
+
+
+
 ## [0.0.1-alpha.177](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.176...@stream-io/video-react-native-sdk-0.0.1-alpha.177) (2023-06-20)
 
 
