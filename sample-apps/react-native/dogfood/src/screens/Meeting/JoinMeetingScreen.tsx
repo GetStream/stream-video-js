@@ -45,7 +45,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [setCallId]);
+  }, []);
 
   return (
     <KeyboardAvoidingView
