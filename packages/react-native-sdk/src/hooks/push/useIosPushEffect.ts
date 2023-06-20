@@ -23,7 +23,7 @@ export const useIosPushEffect = () => {
       // send token to stream
       const push_provider_name = pushConfig.ios.pushProviderName;
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
-        console.warn('Failed to send voip token to APN', err);
+        console.warn('Failed to send voip token to stream', err);
       });
     };
     const onNotificationReceived = (notification: any) => {
