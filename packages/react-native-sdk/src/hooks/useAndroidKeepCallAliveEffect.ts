@@ -9,8 +9,6 @@ async function setForegroundService() {
   if (Platform.OS !== 'android') {
     return;
   }
-  const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
-  await notifee.createChannel(foregroundServiceConfig.android.channel);
   notifee.registerForegroundService(() => {
     return new Promise(() => {
       console.log('Foreground service running for call in progress');
@@ -25,6 +23,7 @@ async function startForegroundService() {
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
   const channelId = foregroundServiceConfig.android.channel.id;
+  await notifee.createChannel(foregroundServiceConfig.android.channel);
   await notifee.displayNotification({
     title,
     body,
