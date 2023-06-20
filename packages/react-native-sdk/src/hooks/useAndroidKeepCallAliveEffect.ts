@@ -5,7 +5,7 @@ import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
 import { CallingState } from '@stream-io/video-client';
 
-async function setForegroundService() {
+function setForegroundService() {
   if (Platform.OS !== 'android') {
     return;
   }
@@ -58,9 +58,7 @@ let isSetForegroundServiceRan = false;
 export const useAndroidKeepCallAliveEffect = () => {
   if (!isSetForegroundServiceRan && Platform.OS === 'android') {
     isSetForegroundServiceRan = true;
-    setForegroundService().catch((err) =>
-      console.error('setForegroundService error:', err),
-    );
+    setForegroundService();
   }
   const foregroundServiceStartedRef = useRef(false);
 
