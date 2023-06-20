@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.37](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.36...@stream-io/video-react-sdk-0.0.37) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.18`
+
+### Documentation
+
+* Restructure device management guide ([#666](https://github.com/GetStream/stream-video-js/issues/666)) ([70013b2](https://github.com/GetStream/stream-video-js/commit/70013b203adbed13e6bbb070d749a6be2e7df794))
+
 ### [0.0.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.35...@stream-io/video-react-sdk-0.0.36) (2023-06-19)
 
 
