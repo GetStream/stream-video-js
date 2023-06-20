@@ -12,7 +12,13 @@ type TextInputPropsType = TextInputProps & {
 };
 
 export const TextInput = ({ textInputStyle, ...rest }: TextInputPropsType) => {
-  return <NativeTextInput {...rest} style={[styles.input, textInputStyle]} />;
+  return (
+    <NativeTextInput
+      {...rest}
+      placeholderTextColor={'#8C8C8CFF'}
+      style={[styles.input, textInputStyle]}
+    />
+  );
 };
 
 const styles = StyleSheet.create({

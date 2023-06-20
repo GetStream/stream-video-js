@@ -51,7 +51,6 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
       <View style={styles.createCall}>
         <TextInput
           placeholder={'Type your Call ID'}
-          placeholderTextColor={'#8C8C8CFF'}
           value={callId}
           autoCapitalize="none"
           autoCorrect={false}

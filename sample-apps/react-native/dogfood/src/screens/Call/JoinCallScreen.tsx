@@ -112,7 +112,6 @@ const JoinCallScreen = () => {
           autoCapitalize="none"
           autoCorrect={false}
           placeholder="Enter comma separated User ids"
-          placeholderTextColor={'#8C8C8CFF'}
           value={ringingUserIdsText}
           onChangeText={(value) => {
             setRingingUserIdsText(value);
