@@ -1,3 +1,4 @@
+import type { WebSocket } from 'ws';
 import type {
   FinishedUnaryCall,
   MethodInfo,
@@ -30,6 +31,7 @@ import {
   retryInterval,
   sleep,
 } from './coordinator/connection/utils';
+import { SFUResponse } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger } from './logger';
 
@@ -40,14 +42,9 @@ export type StreamSfuClientConstructor = {
   dispatcher: Dispatcher;
 
   /**
-   * The URL of the SFU to connect to.
+   * The SFU server to connect to.
    */
-  url: string;
-
-  /**
-   * The WebSocket endpoint of the SFU to connect to.
-   */
-  wsEndpoint: string;
+  sfuServer: SFUResponse;
 
   /**
    * The JWT token to use for authentication.
@@ -59,11 +56,6 @@ export type StreamSfuClientConstructor = {
    * If not provided, a random UUIDv4 will be generated.
    */
   sessionId?: string;
-
-  /**
-   * An optional `edgeName` representing the edge the client is connected to.
-   */
-  edgeName?: string;
 };
 
 /**
@@ -86,6 +78,16 @@ export class StreamSfuClient {
   readonly edgeName: string;
 
   /**
+   * The current token used for authenticating against the SFU.
+   */
+  readonly token: string;
+
+  /**
+   * The SFU server details the current client is connected to.
+   */
+  readonly sfuServer: SFUResponse;
+
+  /**
    * Holds the current WebSocket connection to the SFU.
    */
   signalWs: WebSocket;
@@ -101,8 +103,13 @@ export class StreamSfuClient {
    */
   isMigratingAway = false;
 
+  /**
+   * A flag indicating whether the client attempts to recover the connection
+   * to the SFU before attempting a full reconnection.
+   */
+  isRecoveringConnection = false;
+
   private readonly rpc: SignalServerClient;
-  private readonly token: string;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private pingIntervalInMs = 25 * 1000;
@@ -115,22 +122,19 @@ export class StreamSfuClient {
    * Constructs a new SFU client.
    *
    * @param dispatcher the event dispatcher to use.
-   * @param url the URL of the SFU.
-   * @param wsEndpoint the WebSocket endpoint of the SFU.
+   * @param sfuServer the SFU server to connect to.
    * @param token the JWT token to use for authentication.
    * @param sessionId the `sessionId` of the currently connected participant.
-   * @param edgeName the `edgeName` representing the edge the client is connected to.
    */
   constructor({
     dispatcher,
-    url,
-    wsEndpoint,
+    sfuServer,
     token,
     sessionId,
-    edgeName,
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId || generateUUIDv4();
-    this.edgeName = edgeName || 'N/A';
+    this.sfuServer = sfuServer;
+    this.edgeName = sfuServer.edge_name;
     this.token = token;
     this.logger = getLogger(['sfu-client']);
     const logger = this.logger;
@@ -149,7 +153,7 @@ export class StreamSfuClient {
       },
     };
     this.rpc = createSignalClient({
-      baseUrl: url,
+      baseUrl: sfuServer.url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
@@ -170,7 +174,7 @@ export class StreamSfuClient {
     });
 
     this.signalWs = createWebSocketSignalChannel({
-      endpoint: wsEndpoint,
+      endpoint: sfuServer.ws_endpoint,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();

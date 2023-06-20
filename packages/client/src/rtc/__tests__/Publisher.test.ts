@@ -38,8 +38,11 @@ describe('Publisher', () => {
     const dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
-      url: 'https://getstream.io/',
-      wsEndpoint: 'https://getstream.io/ws',
+      sfuServer: {
+        url: 'https://getstream.io/',
+        ws_endpoint: 'https://getstream.io/ws',
+        edge_name: 'sfu-1',
+      },
       token: 'token',
     });
 
@@ -147,8 +150,11 @@ describe('Publisher', () => {
     it('should update the sfuClient and peer connection configuration', async () => {
       const newSfuClient = new StreamSfuClient({
         dispatcher: new Dispatcher(),
-        url: 'https://getstream.io/',
-        wsEndpoint: 'https://getstream.io/ws',
+        sfuServer: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
         token: 'token',
       });
 

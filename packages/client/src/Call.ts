@@ -183,6 +183,7 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private attemptConnectionRecovery = true;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -585,13 +586,20 @@ export class Call {
     let sfuToken: string;
     let connectionConfig: RTCConfiguration | undefined;
     try {
-      const call = await join(this.streamClient, this.type, this.id, data);
-      this.state.setMetadata(call.metadata);
-      this.state.setMembers(call.members);
-      this.state.setOwnCapabilities(call.ownCapabilities);
-      connectionConfig = call.connectionConfig;
-      sfuServer = call.sfuServer;
-      sfuToken = call.token;
+      // use the fast path and try to recover a connection to the
+      // same SFU server
+      if (!this.sfuClient?.isRecoveringConnection) {
+        const call = await join(this.streamClient, this.type, this.id, data);
+        this.state.setMetadata(call.metadata);
+        this.state.setMembers(call.members);
+        this.state.setOwnCapabilities(call.ownCapabilities);
+        connectionConfig = call.connectionConfig;
+        sfuServer = call.sfuServer;
+        sfuToken = call.token;
+      } else {
+        sfuServer = this.sfuClient.sfuServer;
+        sfuToken = this.sfuClient.token;
+      }
 
       if (this.streamClient._hasConnectionID()) {
         this.watching = true;
@@ -604,37 +612,30 @@ export class Call {
     }
 
     // FIXME OL: remove once cascading is implemented
-    let sfuUrl = sfuServer.url;
-    let sfuWsUrl = sfuServer.ws_endpoint;
-    let sfuName = sfuServer.edge_name;
-    if (
-      typeof window !== 'undefined' &&
-      window.location &&
-      window.location.search
-    ) {
+    if (typeof window !== 'undefined' && window.location.search) {
       const params = new URLSearchParams(window.location.search);
-      const sfuUrlParam = params.get('sfuUrl');
-      sfuUrl = sfuUrlParam || sfuServer.url;
-      const sfuWsUrlParam = params.get('sfuWsUrl');
-      sfuWsUrl = sfuWsUrlParam || sfuServer.ws_endpoint;
-
-      sfuName = sfuUrl;
+      sfuServer.url = params.get('sfuUrl') || sfuServer.url;
+      sfuServer.ws_endpoint = params.get('sfuWsUrl') || sfuServer.ws_endpoint;
+      sfuServer.edge_name = params.get('sfuUrl') || sfuServer.edge_name;
     }
 
     const previousSfuClient = this.sfuClient;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,
-      url: sfuUrl,
-      wsEndpoint: sfuWsUrl,
+      sfuServer,
       token: sfuToken,
       sessionId: previousSfuClient?.sessionId,
-      edgeName: sfuName,
     }));
 
     /**
      * A closure which hides away the re-connection logic.
      */
-    const rejoin = async ({ migrate = false } = {}) => {
+    const rejoin = async ({ migrate = false, recover = false } = {}) => {
+      this.reconnectAttempts++;
+      this.state.setCallingState(
+        migrate ? CallingState.MIGRATING : CallingState.RECONNECTING,
+      );
+
       if (migrate) {
         this.logger(
           'debug',
@@ -647,10 +648,14 @@ export class Call {
           `[Rejoin]: Rejoining call ${this.cid} (${this.reconnectAttempts})...`,
         );
       }
-      this.reconnectAttempts++;
-      this.state.setCallingState(
-        migrate ? CallingState.MIGRATING : CallingState.RECONNECTING,
-      );
+
+      if (recover) {
+        this.logger(
+          'debug',
+          `[Rejoin]: Recovering connection. Attempt ${this.reconnectAttempts}`,
+        );
+        sfuClient.isRecoveringConnection = true;
+      }
 
       // take a snapshot of the current "local participant" state
       // we'll need it for restoring the previous publishing state later
@@ -668,17 +673,25 @@ export class Call {
         previousSfuClient?.close(); // clean up previous connection
       };
 
-      await sleep(retryInterval(this.reconnectAttempts));
+      if (!recover || !migrate) {
+        // in migration or recovery scenarios, we don't want to
+        // wait before attempting to reconnect to an SFU server
+        await sleep(retryInterval(this.reconnectAttempts));
+      }
       await this.join({
         ...data,
         ...(migrate && { migrating_from: sfuServer.edge_name }),
       });
 
+      // if `join` didn't throw, we can assume that the connection
+      // was successfully recovered
+      if (previousSfuClient) previousSfuClient.isRecoveringConnection = false;
+
       disconnectFromPreviousSfu();
 
       this.logger(
         'info',
-        `[Rejoin]: attempt ${this.reconnectAttempts} successful!`,
+        `[Rejoin]: Attempt ${this.reconnectAttempts} successful!`,
       );
       // we shouldn't be republishing the streams if we're migrating
       // as the underlying peer connection will take care of it as part
@@ -697,7 +710,7 @@ export class Call {
       }
       this.logger(
         'info',
-        `[Rejoin]: state restored. Attempt: ${this.reconnectAttempts}`,
+        `[Rejoin]: State restored. Attempt: ${this.reconnectAttempts}`,
       );
     };
 
@@ -733,19 +746,20 @@ export class Call {
         // to the old SFU closed abruptly. In this case, we don't want
         // to reconnect to the old SFU, but rather to the new one.
         if (
-          sfuClient.isMigratingAway &&
-          e.code === KnownCodes.WS_CLOSED_ABRUPTLY
+          e.code === KnownCodes.WS_CLOSED_ABRUPTLY &&
+          (sfuClient.isMigratingAway || sfuClient.isRecoveringConnection)
         )
           return;
         // do nothing for react-native as it is handled by SDK
         if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          rejoin().catch((err) => {
+          rejoin({ recover: this.attemptConnectionRecovery }).catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
+            this.attemptConnectionRecovery = false;
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         } else {
@@ -771,12 +785,13 @@ export class Call {
         window.removeEventListener('online', handleOnOnline);
         if (this.state.callingState === CallingState.OFFLINE) {
           this.logger('info', '[Rejoin]: Going online...');
-          rejoin().catch((err) => {
+          rejoin({ recover: this.attemptConnectionRecovery }).catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
+            this.attemptConnectionRecovery = false;
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         }
@@ -880,6 +895,7 @@ export class Call {
       this.state.setStartedAt(startedAt);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
+      this.attemptConnectionRecovery = true; // enable connection recovery
       this.state.setCallingState(CallingState.JOINED);
       this.logger('info', `Joined call ${this.cid}`);
     } catch (err) {
