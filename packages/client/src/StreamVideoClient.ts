@@ -78,32 +78,31 @@ export class StreamVideoClient {
         },
     opts?: StreamClientOptions,
   ) {
-    let defaultLogger: Logger = logToConsole;
+    let logger: Logger = logToConsole;
     if (typeof apiKeyOrArgs === 'string') {
       this.logLevel = opts?.logLevel || this.logLevel;
-      this.logger = opts?.logger || defaultLogger;
+      logger = opts?.logger || logger;
     } else {
       this.logLevel = apiKeyOrArgs.options?.logLevel || this.logLevel;
-      this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
+      logger = apiKeyOrArgs.options?.logger || logger;
     }
 
-    setLogger(this.filterLogs(defaultLogger));
-
-    const clientLogger = getLogger(['client']);
+    setLogger(this.filterLogs(logger));
+    this.logger = getLogger(['client']);
 
     if (typeof apiKeyOrArgs === 'string') {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
         persistUserOnConnectionFailure: true,
         ...opts,
         logLevel: this.logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
         logLevel: this.logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
 
       this.user = apiKeyOrArgs.user;

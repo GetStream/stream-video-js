@@ -57,9 +57,7 @@ export class StreamVideoRN {
     }
     this.config.push = pushConfig;
     // After getting the config we should setup callkeep and firebase handler asap to handle incoming calls from a dead state
-    setupCallkeep(pushConfig).catch((err) =>
-      console.error('initializeCallKeep error:', err),
-    );
+    setupCallkeep(pushConfig);
     setupFirebaseHandlerAndroid(pushConfig);
   }
 

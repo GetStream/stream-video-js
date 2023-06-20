@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -14,6 +14,7 @@ import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
+import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -22,6 +23,7 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
+  const [linking, setLinking] = useState<boolean>(false);
 
   const { navigation } = props;
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
@@ -34,6 +36,25 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const startNewCallHandler = (call_id: string) => {
     navigation.navigate('MeetingScreen', { callId: call_id });
   };
+
+  useEffect(() => {
+    const subscription = prontoCallId$.subscribe((prontoCallId) => {
+      if (prontoCallId) {
+        setCallId(prontoCallId);
+        setLinking(true);
+        prontoCallId$.next(undefined); // remove the current call id to avoid rejoining when coming back to this screen
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // This is done to intentionally cause a rerender when a call id is available through Pronto to move to lobby screen.
+  useEffect(() => {
+    if (linking) {
+      joinCallHandler();
+    }
+  }, [linking, joinCallHandler]);
 
   return (
     <KeyboardAvoidingView
