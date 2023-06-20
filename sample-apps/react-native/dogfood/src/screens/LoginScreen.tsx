@@ -91,7 +91,6 @@ const LoginScreen = () => {
             }}
             autoCapitalize="none"
             autoCorrect={false}
-            placeholderTextColor="gray"
           />
           <Button
             title="Login"
