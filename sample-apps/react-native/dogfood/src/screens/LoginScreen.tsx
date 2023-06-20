@@ -36,7 +36,9 @@ const LoginScreen = () => {
 
   const loginHandler = async () => {
     try {
-      const _username = localUserName.replace(/\s/g, '-');
+      const _username = localUserName
+        .replace(/[^_\-0-9a-zA-Z@]/g, '_')
+        .replace('@getstream_io', '');
       const _userImageUrl = `https://getstream.io/random_png/?id=${_username}&name=${_username}`;
       setState({
         username: _username,
@@ -52,8 +54,11 @@ const LoginScreen = () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
+      const username = userInfo.user.email
+        .replace(/[^_\-0-9a-zA-Z@]/g, '_')
+        .replace('@getstream_io', '');
       setState({
-        username: userInfo.user.email,
+        username,
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
