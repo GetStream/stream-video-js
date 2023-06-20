@@ -244,7 +244,7 @@ export const CustomToggleVideoPreviewButton = () => {
 
 ### Enabling screensharing
 
-Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called [`useHasOngoingScreenShare`](../../call-engine/hooks-and-contexts#usehasongoingscreenshare) which informs us whether any call participant is already sharing their screen.
+Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called `useHasOngoingScreenShare` which informs us whether any call participant is already sharing their screen.
 
 ```tsx
 import { useCallback } from 'react';

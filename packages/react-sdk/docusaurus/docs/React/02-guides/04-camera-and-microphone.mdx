@@ -205,9 +205,9 @@ export const App = () => {
 
 It may happen, that we would like to react to a situation, when there is no device of a given kind (audio, video) available. This can for example happen, when a laptop lid is closed. In that case we may want to disable the given device kind for the next time, when the lid is re-opened. That would for example lead to respecting user privacy with video being turned-off, even though before closing the lid it was turned on. The SDK provides the following hooks that will execute a callback when all the devices of a given kind are disconnected:
 
-- [`useOnUnavailableVideoDevices`](../../call-engine/hooks-and-contexts#useonunavailablevideodevices)
-- [`useOnUnavailableAudioInputDevices`](../../call-engine/hooks-and-contexts#useonunavailableaudioinputdevices)
-- [`useOnUnavailableAudioOutputDevices`](../../call-engine/hooks-and-contexts#useonunavailableaudiooutputdvices)
+- `useOnUnavailableVideoDevices`
+- `useOnUnavailableAudioInputDevices`
+- `useOnUnavailableAudioOutputDevices`
 
 :::info
 The `useOnUnavailableVideoDevices` hook is used in a pre-build component [`VideoPreview`](../../ui-components/participants/video-preview). Even after video device reconnection, the video preview is not restarted automatically and has to be enabled back manually by a user.

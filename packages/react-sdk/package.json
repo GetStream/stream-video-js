@@ -9,7 +9,6 @@
     "start": "tsc --project tsconfig.json --watch",
     "build": "tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
-    "generate-docs": "../../scripts/generate-docs-react.sh React @stream-io/video-react-sdk react-sdk",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
   "files": [
