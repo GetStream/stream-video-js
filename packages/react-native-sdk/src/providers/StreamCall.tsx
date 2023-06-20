@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
-import { useCallCycleEffect } from '../hooks';
+import { useAndroidKeepCallAliveEffect, useCallCycleEffect } from '../hooks';
 
 type InitWithCallCID = {
   /**
@@ -57,14 +57,20 @@ export const StreamCall = ({
 }: PropsWithChildren<StreamCallProps>) => {
   const videoClient = useStreamVideoClient();
   const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
-    if (call) return call;
-    if (!videoClient || !callId || !callType) return;
+    if (call) {
+      return call;
+    }
+    if (!videoClient || !callId || !callType) {
+      return;
+    }
     return videoClient?.call(callType, callId);
   });
 
   // Effect to create a new call with the given call id and type if the call doesn't exist
   useEffect(() => {
-    if (!videoClient) return;
+    if (!videoClient) {
+      return;
+    }
 
     if (callId && callType && !activeCall) {
       const newCall = videoClient.call(callType, callId);
@@ -72,7 +78,9 @@ export const StreamCall = ({
     }
 
     return () => {
-      if (activeCall?.state.callingState === CallingState.LEFT) return;
+      if (activeCall?.state.callingState === CallingState.LEFT) {
+        return;
+      }
       activeCall?.leave().catch((e) => console.log(e));
       setActiveCall(undefined);
     };
@@ -80,6 +88,7 @@ export const StreamCall = ({
 
   return (
     <StreamCallProvider call={activeCall}>
+      <KeepCallAliveAndroid />
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
         {children}
       </CallCycleLogicsWrapper>
@@ -88,7 +97,7 @@ export const StreamCall = ({
 };
 
 /**
- * Exclude types from documentaiton site, but we should still add doc comments
+ * Exclude types from documentation site, but we should still add doc comments
  * @internal
  */
 export type CallCycleHandlersType = {
@@ -133,4 +142,13 @@ export const CallCycleLogicsWrapper = ({
   useCallCycleEffect(callCycleHandlers);
 
   return <>{children}</>;
+};
+
+/**
+ * This is a renderless component is used to keep the call alive on Android device using useAndroidKeepCallAliveEffect.
+ * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
+ */
+const KeepCallAliveAndroid = () => {
+  useAndroidKeepCallAliveEffect();
+  return null;
 };

@@ -512,15 +512,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/code-frame@npm:~7.10.4":
-  version: 7.10.4
-  resolution: "@babel/code-frame@npm:7.10.4"
-  dependencies:
-    "@babel/highlight": ^7.10.4
-  checksum: feb4543c8a509fe30f0f6e8d7aa84f82b41148b963b826cd330e34986f649a85cb63b2f13dd4effdf434ac555d16f14940b8ea5f4433297c2f5ff85486ded019
-  languageName: node
-  linkType: hard
-
 "@babel/compat-data@npm:^7.17.7, @babel/compat-data@npm:^7.18.8, @babel/compat-data@npm:^7.20.5, @babel/compat-data@npm:^7.22.5":
   version: 7.22.5
   resolution: "@babel/compat-data@npm:7.22.5"
@@ -941,7 +932,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/highlight@npm:^7.10.4, @babel/highlight@npm:^7.22.5":
+"@babel/highlight@npm:^7.22.5":
   version: 7.22.5
   resolution: "@babel/highlight@npm:7.22.5"
   dependencies:
@@ -3827,65 +3818,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/config-plugins@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@expo/config-plugins@npm:5.0.4"
-  dependencies:
-    "@expo/config-types": ^47.0.0
-    "@expo/json-file": 8.2.36
-    "@expo/plist": 0.0.18
-    "@expo/sdk-runtime-versions": ^1.0.0
-    "@react-native/normalize-color": ^2.0.0
-    chalk: ^4.1.2
-    debug: ^4.3.1
-    find-up: ~5.0.0
-    getenv: ^1.0.0
-    glob: 7.1.6
-    resolve-from: ^5.0.0
-    semver: ^7.3.5
-    slash: ^3.0.0
-    xcode: ^3.0.1
-    xml2js: 0.4.23
-  checksum: 9fc5e19a92e105d200aeb7ed28607c2e4e8dcf2b7256c8bae32b2f30ccb5139fbe4854df8c6d6db0bb80e254ddb48a82665043582e7044b4ba1888448909c818
-  languageName: node
-  linkType: hard
-
-"@expo/config-types@npm:^47.0.0":
-  version: 47.0.0
-  resolution: "@expo/config-types@npm:47.0.0"
-  checksum: bb26456bed60bedb7a2482cb475ab539d34da177d9eb49384f599ea85ad0d0c8bb35f97c181e01454a925320021607472f83c8f456f239a6b329c8bf82044d9c
-  languageName: node
-  linkType: hard
-
-"@expo/json-file@npm:8.2.36":
-  version: 8.2.36
-  resolution: "@expo/json-file@npm:8.2.36"
-  dependencies:
-    "@babel/code-frame": ~7.10.4
-    json5: ^1.0.1
-    write-file-atomic: ^2.3.0
-  checksum: 37ce80b3472fef2a56136ebff5993d98ab4fbd45c4d7791ff47be80438dbeabd84bc699a401da0c314357ef65d8fff87a5a1241b3119db2d575878f9321bd1e7
-  languageName: node
-  linkType: hard
-
-"@expo/plist@npm:0.0.18":
-  version: 0.0.18
-  resolution: "@expo/plist@npm:0.0.18"
-  dependencies:
-    "@xmldom/xmldom": ~0.7.0
-    base64-js: ^1.2.3
-    xmlbuilder: ^14.0.0
-  checksum: 42f5743fcd2a07b55a9f048d27cf0f273510ab35dde1f7030b22dc8c30ab2cfb65c6e68f8aa58fbcfa00177fdc7c9696d0004083c9a47c36fd4ac7fea27d6ccc
-  languageName: node
-  linkType: hard
-
-"@expo/sdk-runtime-versions@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@expo/sdk-runtime-versions@npm:1.0.0"
-  checksum: 0942d5a356f590e8dc795761456cc48b3e2d6a38ad2a02d6774efcdc5a70424e05623b4e3e5d2fec0cdc30f40dde05c14391c781607eed3971bf8676518bfd9d
-  languageName: node
-  linkType: hard
-
 "@floating-ui/core@npm:^1.2.6":
   version: 1.2.6
   resolution: "@floating-ui/core@npm:1.2.6"
@@ -5364,12 +5296,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:^7.6.1":
-  version: 7.6.1
-  resolution: "@notifee/react-native@npm:7.6.1"
+"@notifee/react-native@npm:7.7.1":
+  version: 7.7.1
+  resolution: "@notifee/react-native@npm:7.7.1"
   peerDependencies:
     react-native: "*"
-  checksum: 9b3eb25ea41a48d02ff643f7f46f4d8c04d20e17ba960f412fc94a026402d57e07ed7d81f4b4e4427f11c5d3418ad584c1a15bf9ae28e549667706825d74db3c
+  checksum: 0dd6b5f3d90be80bdb03549e29e9d6b2cacfca599d8982594d4d3f945e54d609c36d5416aed0627e453fdd38c1c2884a55a6a5914b8aee679392c2a60e788aff
+  languageName: node
+  linkType: hard
+
+"@notifee/react-native@npm:^7.7.1":
+  version: 7.8.0
+  resolution: "@notifee/react-native@npm:7.8.0"
+  peerDependencies:
+    react-native: "*"
+  checksum: 800233c9505195046e918ee42a4b11d8e84cf1846ea4a0b52599e1a40181b2bbfcab09c64b445b5a7eed98c38556c97550bce32ed24a51ce05ccd8b65047548d
   languageName: node
   linkType: hard
 
@@ -6189,6 +6130,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-community/netinfo@npm:9.3.10":
+  version: 9.3.10
+  resolution: "@react-native-community/netinfo@npm:9.3.10"
+  peerDependencies:
+    react-native: ">=0.59"
+  checksum: b3d79a61de0b08d6174616facda21cdac35a07a8d63b7d1830212862eef208c204dec90d74b29e85a6e60adc89ea5b7adf19c612c39073cc8ad4050440b1085b
+  languageName: node
+  linkType: hard
+
 "@react-native-community/netinfo@npm:9.3.9":
   version: 9.3.9
   resolution: "@react-native-community/netinfo@npm:9.3.9"
@@ -6198,35 +6148,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/netinfo@npm:^9.3.10":
-  version: 9.3.10
-  resolution: "@react-native-community/netinfo@npm:9.3.10"
-  peerDependencies:
-    react-native: ">=0.59"
-  checksum: b3d79a61de0b08d6174616facda21cdac35a07a8d63b7d1830212862eef208c204dec90d74b29e85a6e60adc89ea5b7adf19c612c39073cc8ad4050440b1085b
-  languageName: node
-  linkType: hard
-
-"@react-native-firebase/app@npm:^16.5.0":
-  version: 16.7.0
-  resolution: "@react-native-firebase/app@npm:16.7.0"
+"@react-native-firebase/app@npm:17.5.0":
+  version: 17.5.0
+  resolution: "@react-native-firebase/app@npm:17.5.0"
   dependencies:
-    "@expo/config-plugins": ^5.0.4
     opencollective-postinstall: ^2.0.1
     superstruct: ^0.6.2
   peerDependencies:
+    expo: ">=47.0.0"
     react: "*"
     react-native: "*"
-  checksum: d3274ac0461e7524849c544bd00bd628b7a305f1798c33c28367dff4a8c3e55ae2d8428f8ae2d2cb3ed99760054a7cf6cceaca43052015497cd7ae162272b3e7
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 7d86f43a063561971edf328f7a2a1928660beb9617cbc3c5ba73ab65f359e0cadbc5e276e5654cfa0ef2d25c29f3f98587ebfd58f193be51f472facff3c3024f
   languageName: node
   linkType: hard
 
-"@react-native-firebase/messaging@npm:^16.5.0":
-  version: 16.7.0
-  resolution: "@react-native-firebase/messaging@npm:16.7.0"
+"@react-native-firebase/messaging@npm:17.5.0":
+  version: 17.5.0
+  resolution: "@react-native-firebase/messaging@npm:17.5.0"
   peerDependencies:
-    "@react-native-firebase/app": 16.7.0
-  checksum: 0b22fed0bee1aac9757954a9d418ba8ecdaa97007202fedd92af4654031643ed286dd778b51d599e018b19e5247ec7cc1b5bd51a05587f4edfa8ee7539a38481
+    "@react-native-firebase/app": 17.5.0
+  checksum: 296dad0335d18e262569c4edc6b62d009fc15887b3a9801f7d49a64eb091cd86548b940cbd1e993d649fb7e14282b1e910b221e701adb8213305580db578411a
   languageName: node
   linkType: hard
 
@@ -6251,7 +6195,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/normalize-color@npm:*, @react-native/normalize-color@npm:2.1.0, @react-native/normalize-color@npm:^2.0.0":
+"@react-native/normalize-color@npm:*, @react-native/normalize-color@npm:2.1.0":
   version: 2.1.0
   resolution: "@react-native/normalize-color@npm:2.1.0"
   checksum: 8ccbd40b3c7629f1dc97b3e9aadd95fd3507fcf2e37535a6299a70436ab891c34cbdc4240b07380553d6e85dd909e23d5773b5be1da2906b026312e0b0768838
@@ -8602,13 +8546,13 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
-    "@notifee/react-native": ^7.6.1
+    "@notifee/react-native": ^7.7.1
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.2.0
-    "@react-native-community/netinfo": ^9.3.10
-    "@react-native-firebase/app": ^16.5.0
-    "@react-native-firebase/messaging": ^16.5.0
+    "@react-native-community/netinfo": 9.3.10
+    "@react-native-firebase/app": 17.5.0
+    "@react-native-firebase/messaging": 17.5.0
     "@react-native-google-signin/google-signin": ^8.2.1
     "@react-navigation/native": ^6.0.13
     "@react-navigation/native-stack": ^6.9.1
@@ -8636,7 +8580,7 @@ __metadata:
     prettier: 2.8.4
     react: 18.2.0
     react-native: 0.71.11
-    react-native-callkeep: ^4.3.4
+    react-native-callkeep: 4.3.8
     react-native-dotenv: ^3.4.7
     react-native-fs: ^2.20.0
     react-native-gesture-handler: ^2.12.0
@@ -8669,8 +8613,11 @@ __metadata:
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
     "@babel/preset-typescript": ^7.21.5
+    "@notifee/react-native": 7.7.1
     "@react-native-community/eslint-config": ^3.2.0
     "@react-native-community/netinfo": 9.3.9
+    "@react-native-firebase/app": 17.5.0
+    "@react-native-firebase/messaging": 17.5.0
     "@stream-io/i18n": "workspace:^"
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
@@ -8683,10 +8630,11 @@ __metadata:
     "@types/react-test-renderer": ^18
     "@types/rimraf": ^3.0.2
     jest: ^29.5.0
-    react-native: ^0.71.8
-    react-native-callkeep: ^4.3.4
+    react-native: 0.71.8
+    react-native-callkeep: 4.3.8
     react-native-incall-manager: ^4.0.0
     react-native-svg: ^13.6.0
+    react-native-voip-push-notification: 3.3.1
     react-native-webrtc: ~106.0.4
     react-test-renderer: ^18.2.0
     replace-in-file: ^6.3.5
@@ -8697,15 +8645,25 @@ __metadata:
     typedoc-plugin-markdown: ^3.15.3
     typescript: ^4.9.5
   peerDependencies:
+    "@notifee/react-native": ">=7.7.0"
     "@react-native-community/netinfo": ">=9.0.0"
+    "@react-native-firebase/app": ">=17.5.0"
+    "@react-native-firebase/messaging": ">=17.5.0"
     react: ">=17.0.0"
     react-native: ">=0.67.0"
-    react-native-callkeep: ">=4.3.4"
-    react-native-incall-manager: ^4.0.0
+    react-native-callkeep: ">=4.3.8"
+    react-native-incall-manager: ">=4.0.0"
     react-native-svg: ">=13.6.0"
+    react-native-voip-push-notification: ">=3.3.1"
     react-native-webrtc: ">=111.0.1"
   peerDependenciesMeta:
+    "@react-native-firebase/app":
+      optional: true
+    "@react-native-firebase/messaging":
+      optional: true
     react-native-callkeep:
+      optional: true
+    react-native-voip-push-notification:
       optional: true
   languageName: unknown
   linkType: soft
@@ -11064,13 +11022,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:~0.7.0":
-  version: 0.7.10
-  resolution: "@xmldom/xmldom@npm:0.7.10"
-  checksum: faeb5efd208f25643e469b9807b4b1bfe4f9c19540f0a24b4bb1c748cee6ee44ec441048820f9100987d1ee075f2e2bfc28e535cae5024d4566bb62b0a42be13
-  languageName: node
-  linkType: hard
-
 "@xtuc/ieee754@npm:^1.2.0":
   version: 1.2.0
   resolution: "@xtuc/ieee754@npm:1.2.0"
@@ -12620,7 +12571,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:1.5.1, base64-js@npm:^1.0.2, base64-js@npm:^1.1.2, base64-js@npm:^1.2.0, base64-js@npm:^1.2.3, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
+"base64-js@npm:1.5.1, base64-js@npm:^1.0.2, base64-js@npm:^1.1.2, base64-js@npm:^1.2.0, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
@@ -12684,7 +12635,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"big-integer@npm:1.6.x, big-integer@npm:^1.6.7":
+"big-integer@npm:^1.6.7":
   version: 1.6.51
   resolution: "big-integer@npm:1.6.51"
   checksum: 3d444173d1b2e20747e2c175568bedeebd8315b0637ea95d75fd27830d3b8e8ba36c6af40374f36bdaea7b5de376dcada1b07587cb2a79a928fccdb6e6e3c518
@@ -12839,24 +12790,6 @@ __metadata:
     widest-line: ^3.1.0
     wrap-ansi: ^7.0.0
   checksum: 82d03e42a72576ff235123f17b7c505372fe05c83f75f61e7d4fa4bcb393897ec95ce766fecb8f26b915f0f7a7227d66e5ec7cef43f5b2bd9d3aeed47ec55877
-  languageName: node
-  linkType: hard
-
-"bplist-creator@npm:0.1.1":
-  version: 0.1.1
-  resolution: "bplist-creator@npm:0.1.1"
-  dependencies:
-    stream-buffers: 2.2.x
-  checksum: b0d40d1d1623f1afdbb575cfc8075d742d2c4f0eb458574be809e3857752d1042a39553b3943d2d7f505dde92bcd43e1d7bdac61c9cd44475d696deb79f897ce
-  languageName: node
-  linkType: hard
-
-"bplist-parser@npm:0.3.2":
-  version: 0.3.2
-  resolution: "bplist-parser@npm:0.3.2"
-  dependencies:
-    big-integer: 1.6.x
-  checksum: fad0f6eb155a9b636b4096a1725ce972a0386490d7d38df7be11a3a5645372446b7c44aacbc6626d24d2c17d8b837765361520ebf2960aeffcaf56765811620e
   languageName: node
   linkType: hard
 
@@ -15409,7 +15342,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:4.3.4, debug@npm:^4.0.0, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:~4.3.1, debug@npm:~4.3.2":
+"debug@npm:4, debug@npm:4.3.4, debug@npm:^4.0.0, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:~4.3.1, debug@npm:~4.3.2":
   version: 4.3.4
   resolution: "debug@npm:4.3.4"
   dependencies:
@@ -18868,7 +18801,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"find-up@npm:^5.0.0, find-up@npm:~5.0.0":
+"find-up@npm:^5.0.0":
   version: 5.0.0
   resolution: "find-up@npm:5.0.0"
   dependencies:
@@ -19515,13 +19448,6 @@ __metadata:
   version: 2.0.6
   resolution: "get-value@npm:2.0.6"
   checksum: 5c3b99cb5398ea8016bf46ff17afc5d1d286874d2ad38ca5edb6e87d75c0965b0094cb9a9dddef2c59c23d250702323539a7fbdd870620db38c7e7d7ec87c1eb
-  languageName: node
-  linkType: hard
-
-"getenv@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "getenv@npm:1.0.0"
-  checksum: 19ae5cad603a1cf1bcb8fa3bed48e00d062eb0572a4404c02334b67f3b3499f238383082b064bb42515e9e25c2b08aef1a3e3d2b6852347721aa8b174825bd56
   languageName: node
   linkType: hard
 
@@ -28663,16 +28589,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"plist@npm:^3.0.5":
-  version: 3.0.6
-  resolution: "plist@npm:3.0.6"
-  dependencies:
-    base64-js: ^1.5.1
-    xmlbuilder: ^15.1.1
-  checksum: e21390fab8a3c388f8f51b76c0aa187242a40537119ce865d8637630e7d7df79b21f841ec6a4668e7c68d409a6f584d696619099a6125d28011561639c0823b8
-  languageName: node
-  linkType: hard
-
 "pnp-webpack-plugin@npm:1.6.4":
   version: 1.6.4
   resolution: "pnp-webpack-plugin@npm:1.6.4"
@@ -30670,7 +30586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-callkeep@npm:^4.3.4":
+"react-native-callkeep@npm:4.3.8":
   version: 4.3.8
   resolution: "react-native-callkeep@npm:4.3.8"
   peerDependencies:
@@ -30928,7 +30844,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-voip-push-notification@npm:~3.3.1":
+"react-native-voip-push-notification@npm:3.3.1, react-native-voip-push-notification@npm:~3.3.1":
   version: 3.3.1
   resolution: "react-native-voip-push-notification@npm:3.3.1"
   peerDependencies:
@@ -31013,7 +30929,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:^0.71.8":
+"react-native@npm:0.71.8":
   version: 0.71.8
   resolution: "react-native@npm:0.71.8"
   dependencies:
@@ -32561,7 +32477,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sax@npm:>=0.6.0, sax@npm:^1.2.4, sax@npm:~1.2.4":
+"sax@npm:^1.2.4, sax@npm:~1.2.4":
   version: 1.2.4
   resolution: "sax@npm:1.2.4"
   checksum: d3df7d32b897a2c2f28e941f732c71ba90e27c24f62ee918bd4d9a8cfb3553f2f81e5493c7f0be94a11c1911b643a9108f231dd6f60df3fa9586b5d2e3e9e1fe
@@ -33015,17 +32931,6 @@ __metadata:
   dependencies:
     "@types/react": ">=16.0.0"
   checksum: 165941899fddfaa7c398410f8ce6941109bc86fbc9abb17f8b6be7a9ac8ae36c0af643a3e0adcba60053a9f1eaecdd4016d46d79eef39b8ae04982d2bd52bbc9
-  languageName: node
-  linkType: hard
-
-"simple-plist@npm:^1.1.0":
-  version: 1.4.0
-  resolution: "simple-plist@npm:1.4.0"
-  dependencies:
-    bplist-creator: 0.1.1
-    bplist-parser: 0.3.2
-    plist: ^3.0.5
-  checksum: fa8086f6b781c289f1abad21306481dda4af6373b32a5d998a70e53c2b7218a1d21ebb5ae3e736baae704c21d311d3d39d01d0e6a2387eda01b4020b9ebd909e
   languageName: node
   linkType: hard
 
@@ -33627,13 +33532,6 @@ __metadata:
     inherits: ~2.0.1
     readable-stream: ^2.0.2
   checksum: 8de7bcab5582e9a931ae1a4768be7efe8fa4b0b95fd368d16d8cf3e494b897d6b0a7238626de5d71686e53bddf417fd59d106cfa3af0ec055f61a8d1f8fc77b3
-  languageName: node
-  linkType: hard
-
-"stream-buffers@npm:2.2.x":
-  version: 2.2.0
-  resolution: "stream-buffers@npm:2.2.0"
-  checksum: 4587d9e8f050d689fb38b4295e73408401b16de8edecc12026c6f4ae92956705ecfd995ae3845d7fa3ebf19502d5754df9143d91447fd881d86e518f43882c1c
   languageName: node
   linkType: hard
 
@@ -36245,15 +36143,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^7.0.3":
-  version: 7.0.3
-  resolution: "uuid@npm:7.0.3"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: f5b7b5cc28accac68d5c083fd51cca64896639ebd4cca88c6cfb363801aaa83aa439c86dfc8446ea250a7a98d17afd2ad9e88d9d4958c79a412eccb93bae29de
-  languageName: node
-  linkType: hard
-
 "uuid@npm:^9.0.0":
   version: 9.0.0
   resolution: "uuid@npm:9.0.0"
@@ -37752,16 +37641,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xcode@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "xcode@npm:3.0.1"
-  dependencies:
-    simple-plist: ^1.1.0
-    uuid: ^7.0.3
-  checksum: 908ff85851f81aec6e36ca24427db092e1cc068f052716e14de5e762196858039efabbe053a1abe8920184622501049e74a93618e8692b982f7604a9847db108
-  languageName: node
-  linkType: hard
-
 "xdm@npm:^2.0.0":
   version: 2.1.0
   resolution: "xdm@npm:2.1.0"
@@ -37799,37 +37678,6 @@ __metadata:
   version: 3.0.0
   resolution: "xml-name-validator@npm:3.0.0"
   checksum: b3ac459afed783c285bb98e4960bd1f3ba12754fd4f2320efa0f9181ca28928c53cc75ca660d15d205e81f92304419afe94c531c7cfb3e0649aa6d140d53ecb0
-  languageName: node
-  linkType: hard
-
-"xml2js@npm:0.4.23":
-  version: 0.4.23
-  resolution: "xml2js@npm:0.4.23"
-  dependencies:
-    sax: ">=0.6.0"
-    xmlbuilder: ~11.0.0
-  checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
-  languageName: node
-  linkType: hard
-
-"xmlbuilder@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "xmlbuilder@npm:14.0.0"
-  checksum: 9e93d3c73957dbb21acde63afa5d241b19057bdbdca9d53534d8351e70f1d5c9db154e3ca19bd3e9ea84c082539ab6e7845591c8778a663e8b5d3470d5427a8b
-  languageName: node
-  linkType: hard
-
-"xmlbuilder@npm:^15.1.1":
-  version: 15.1.1
-  resolution: "xmlbuilder@npm:15.1.1"
-  checksum: 14f7302402e28d1f32823583d121594a9dca36408d40320b33f598bd589ca5163a352d076489c9c64d2dc1da19a790926a07bf4191275330d4de2b0d85bb1843
-  languageName: node
-  linkType: hard
-
-"xmlbuilder@npm:~11.0.0":
-  version: 11.0.1
-  resolution: "xmlbuilder@npm:11.0.1"
-  checksum: 7152695e16f1a9976658215abab27e55d08b1b97bca901d58b048d2b6e106b5af31efccbdecf9b07af37c8377d8e7e821b494af10b3a68b0ff4ae60331b415b0
   languageName: node
   linkType: hard
 

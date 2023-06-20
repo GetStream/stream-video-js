@@ -55,6 +55,8 @@ const JoinCallScreen = () => {
       await call?.getOrCreate({
         ring: true,
         data: {
+          // more timeout to cancel the call automatically so that it works when callee's app is in quit state
+          settings_override: { ring: { auto_cancel_timeout_ms: 60000 } },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
               user_id: ringingUserId,

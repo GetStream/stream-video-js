@@ -14,13 +14,9 @@ import {
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  setFirebaseHandler,
-  setForegroundService,
-} from './src/modules/push/android';
-import { useIosPushEffect } from './src/hooks/useIosPushEffect';
-import { Platform } from 'react-native';
-import { useCallKeepEffect } from './src/hooks/useCallkeepEffect';
-import { navigationRef } from './src/utils/staticNavigationUtils';
+  StaticNavigationService,
+  navigationRef,
+} from './src/utils/staticNavigationUtils';
 import Logger from 'react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
@@ -28,16 +24,16 @@ import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
+import { setPushConfig } from './src/utils/setPushConfig';
 
 // @ts-expect-error
 Logger.enable(false);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-if (Platform.OS === 'android') {
-  setFirebaseHandler();
-  setForegroundService();
-}
+// All the push notification related config must be done as soon the app starts
+// since the app can be opened from a dead state through a push notification
+setPushConfig();
 
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
@@ -46,8 +42,6 @@ const StackNavigator = () => {
   const setState = useAppGlobalStoreSetState();
 
   useProntoLinkEffect();
-  useIosPushEffect();
-  useCallKeepEffect();
 
   let mode;
   switch (appMode) {
@@ -89,6 +83,15 @@ const StackNavigator = () => {
 
     return () => subscription.unsubscribe();
   }, [setState]);
+
+  useEffect(() => {
+    if (username && userImageUrl) {
+      StaticNavigationService.authenticationInfo = {
+        username,
+        userImageUrl,
+      };
+    }
+  }, [username, userImageUrl]);
 
   if (!(username && userImageUrl)) {
     return <LoginScreen />;

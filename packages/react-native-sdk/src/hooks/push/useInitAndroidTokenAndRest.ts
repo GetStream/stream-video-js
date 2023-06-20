@@ -1,0 +1,23 @@
+import {
+  useConnectedUser,
+  useStreamVideoClient,
+} from '@stream-io/video-react-bindings';
+import { useEffect } from 'react';
+import { StreamVideoRN } from '../../utils';
+import { initAndroidPushTokenAndAskPermissions } from '../../utils/push/utils';
+
+/**
+ * This hook is used to initialize the push token for Android and ask notification permissions.
+ */
+export const useInitAndroidTokenAndRest = () => {
+  const client = useStreamVideoClient();
+  const connectedUserId = useConnectedUser()?.id;
+  useEffect(() => {
+    const pushConfig = StreamVideoRN.getConfig().push;
+    // NOTE: we need to wait for user to be connected before we can send the push token
+    if (!client || !connectedUserId || !pushConfig) {
+      return;
+    }
+    initAndroidPushTokenAndAskPermissions(client, pushConfig);
+  }, [client, connectedUserId]);
+};

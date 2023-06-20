@@ -5,13 +5,8 @@ import {
   StreamVideo,
   StreamVideoClient,
   User,
-  useCall,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
-import {
-  startForegroundService,
-  stopForegroundService,
-} from '../../modules/push/android';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 
@@ -32,7 +27,6 @@ export const GuestMeetingScreen = (props: Props) => {
 
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation } = props;
-  const activeCall = useCall();
 
   const userToConnect: User = useMemo(
     () =>
@@ -68,16 +62,6 @@ export const GuestMeetingScreen = (props: Props) => {
       setVideoClient(undefined);
     };
   }, [tokenProvider, userToConnect, apiKey, mode]);
-
-  useEffect(() => {
-    if (!activeCall) {
-      return;
-    }
-    startForegroundService();
-    return () => {
-      stopForegroundService();
-    };
-  }, [activeCall]);
 
   const onJoin = () => {
     setShow('active-call');
