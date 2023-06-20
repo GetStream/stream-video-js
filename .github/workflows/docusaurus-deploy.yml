@@ -48,8 +48,6 @@ jobs:
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
 
-      - name: Generate React SDK documentation
-        run: yarn generate-docs:react:sdk
       - name: Push React SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
