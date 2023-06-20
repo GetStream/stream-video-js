@@ -2,6 +2,35 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.184](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.183...@stream-io/video-react-native-sdk-0.0.1-alpha.184) (2023-06-20)
+
+
+
+## [0.0.1-alpha.183](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.182...@stream-io/video-react-native-sdk-0.0.1-alpha.183) (2023-06-20)
+
+
+
+## [0.0.1-alpha.182](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.181...@stream-io/video-react-native-sdk-0.0.1-alpha.182) (2023-06-20)
+
+
+
+## [0.0.1-alpha.181](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.180...@stream-io/video-react-native-sdk-0.0.1-alpha.181) (2023-06-20)
+
+
+
+## [0.0.1-alpha.180](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.179...@stream-io/video-react-native-sdk-0.0.1-alpha.180) (2023-06-20)
+
+
+### Bug Fixes
+
+* **react-native:** df app null image warnings and connect on undefined userid ([#673](https://github.com/GetStream/stream-video-js/issues/673)) ([2ec07e4](https://github.com/GetStream/stream-video-js/commit/2ec07e45048483d88f9895690b13f00cdea6c367))
+
+
+
+## [0.0.1-alpha.179](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.178...@stream-io/video-react-native-sdk-0.0.1-alpha.179) (2023-06-20)
+
+
+
 ## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.177...@stream-io/video-react-native-sdk-0.0.1-alpha.178) (2023-06-20)
 
 

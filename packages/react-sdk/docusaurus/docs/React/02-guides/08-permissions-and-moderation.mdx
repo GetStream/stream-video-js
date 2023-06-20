@@ -46,7 +46,7 @@ const canSendAudio = call.permissionsContext.hasPermission(
 
 <SDKSpecific name="react">
 
-In our React Video SDK, you can use the [`useHasPermissions`](../04-call-engine/hooks-and-contexts.md#useHasPermissions) hook to check for permissions.
+In our React Video SDK, you can use the `useHasPermissions` hook to check for permissions.
 
 ```tsx
 const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
@@ -173,7 +173,7 @@ const { own_capabilities } = call.state.metadata;
 
 <SDKSpecific name="react">
 
-In our React Video SDK, you can use the [`useOwnCapabilities`](../04-call-engine/hooks-and-contexts.md#useOwnCapabilities) hook.
+In our React Video SDK, you can use the `useOwnCapabilities` hook.
 
 ```tsx
 const ownCapabilities = useOwnCapabilities();

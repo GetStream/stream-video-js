@@ -17,6 +17,9 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   );
 
   useEffect(() => {
+    if (!username || !userImageUrl) {
+      return;
+    }
     const user = {
       id: username,
       name: username,

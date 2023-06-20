@@ -156,17 +156,17 @@ For simplicity, we are going to implement an additional button in the `Backstage
 
 The button should be able to toggle the live stream on and off. For that purpose, we are going to use two utility hooks from the SDK:
 
-- [`useCall`](../04-call-engine/hooks-and-contexts.md#usecall) and
-- [`useIsCallBroadcastingInProgress`](../04-call-engine/hooks-and-contexts.md#useiscallbroadcastinginprogress)
+- `useCall` and
+- `useIsCallBroadcastingInProgress`
 
 The `useCall` hook provides us with the current call object. This is useful when we want to access the call object from a component that is deep in the component tree with the `<StreamCall />` component as a predecessor.
 
 On the other hand, the `useIsCallBroadcastingInProgress` hook gives us the current broadcasting state of the call. This is helpful when we want to show the current state of the live stream or build custom UI components or flows based on this call state.
 
-The [`call`](../04-call-engine/Call.md) instance itself provides two methods for starting and stopping the live stream:
+The `call` instance itself provides two methods for starting and stopping the live stream:
 
-- [`call.startBroadcasting()`](../04-call-engine/Call.md#startbroadcasting) and
-- [`call.stopBroadcasting()`](../04-call-engine/Call.md#stopbroadcasting)
+- `call.startBroadcasting()` and
+- `call.stopBroadcasting()`
 
 Knowing all of this, let's write the code for the button:
 
@@ -304,7 +304,7 @@ You can read more about HLS.js [here.](https://github.com/video-dev/hls.js/)
 For the HLS-based live streaming, we are going to use a few components from the Stream Video SDK for React. However, instead using a pre-built layout,
 we are going to set up the HLS.js library and use it to play the live stream.
 
-In the example below, you will get familiar with the [`useCallMetadata`](../04-call-engine/Call.md#usecallmetadata) hook.
+In the example below, you will get familiar with the `useCallMetadata` hook.
 This hook returns the metadata of the current call.
 In our case, the metadata will contain the HLS playlist URL that we are going to use to play the live stream.
 

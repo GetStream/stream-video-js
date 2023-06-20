@@ -75,6 +75,9 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
+    if (!(username && userImageUrl)) {
+      return;
+    }
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
       if (prontoCallId) {
         setState({ appMode: 'Meeting' });
@@ -82,7 +85,7 @@ const StackNavigator = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [setState]);
+  }, [setState, username, userImageUrl]);
 
   useEffect(() => {
     if (username && userImageUrl) {

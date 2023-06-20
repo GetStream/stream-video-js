@@ -3,7 +3,7 @@ id: stream-call
 title: StreamCall
 ---
 
-The `<StreamCall />` component is a declarative component wrapper around [`Call`](../../../call-engine/Call) objects. It utilizes the [`StreamCallProvider`](../../../call-engine/hooks-and-contexts/#streamcallprovider) to make the [call and its state](../../../guides/call-and-participant-state) available to all child components.
+The `<StreamCall />` component is a declarative component wrapper around `Call` objects. It utilizes the `StreamCallProvider` to make the [call and its state](../../../guides/call-and-participant-state) available to all child components.
 
 Additionally, the `<StreamCall />` component sets up a [`MediaDevicesProvider`](../../../guides/camera-and-microphone) instance, making device management (microphone, camera) easier for integrators.
 
@@ -31,14 +31,14 @@ export const App = () => {
 
 ### `call`
 
-| Type                                |
-| ----------------------------------- |
-| [`Call`](../../../call-engine/Call) |
+| Type   |
+| ------ |
+| `Call` |
 
 ### `mediaDevicesProviderProps`
 
-| Type                                                                                                             |
-| ---------------------------------------------------------------------------------------------------------------- |
-| [`MediaDevicesProviderProps`](../../../call-engine/hooks-and-contexts/#mediadevicesproviderprops) \| `undefined` |
+| Type                                       |
+| ------------------------------------------ |
+| `MediaDevicesProviderProps` \| `undefined` |
 
 An optional props to pass to the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).
