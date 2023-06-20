@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.185](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.184...@stream-io/video-react-native-sdk-0.0.1-alpha.185) (2023-06-20)
+
+
+### Bug Fixes
+
+* **react-native:** android freezing due to awaits on mount  ([#680](https://github.com/GetStream/stream-video-js/issues/680)) ([1a965a6](https://github.com/GetStream/stream-video-js/commit/1a965a6131a15f75932e471c01fa852763a44310))
+
+
+
 ## [0.0.1-alpha.184](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.183...@stream-io/video-react-native-sdk-0.0.1-alpha.184) (2023-06-20)
 
 
