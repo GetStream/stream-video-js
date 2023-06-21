@@ -20,7 +20,7 @@ The Stream Video API allows assigning roles to users. Each user has a global rol
 
 ### Call types
 
-[Call types](../../guides/10-configuring-call-types/) also allow for a more granular control system:
+[Call types](../../guides/configuring-call-types/) also allow for a more granular control system:
 
 - you can enable/disable certain features on a call type level
 - you can configure how each call-level role works on a call type level
@@ -47,7 +47,7 @@ const canSendAudio = call.permissionsContext.hasPermission(
 
 <SDKSpecific name="react">
 
-In our React Video SDK, you can use the [`useHasPermissions`](../04-call-engine/hooks-and-contexts.md#useHasPermissions) hook to check for permissions.
+In our React Video SDK, you can use the `useHasPermissions` hook to check for permissions.
 
 ```tsx
 const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
@@ -174,7 +174,7 @@ const { own_capabilities } = call.state.metadata;
 
 <SDKSpecific name="react">
 
-In our React Video SDK, you can use the [`useOwnCapabilities`](../04-call-engine/hooks-and-contexts.md#useOwnCapabilities) hook.
+In our React Video SDK, you can use the `useOwnCapabilities` hook.
 
 ```tsx
 const ownCapabilities = useOwnCapabilities();

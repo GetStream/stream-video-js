@@ -21,6 +21,7 @@ import {
   DeviceSettingsCaptor,
   getDeviceSettings,
 } from '../../components/DeviceSettingsCaptor';
+import { customSentryLogger } from '../../helpers/logger';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -50,6 +51,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         options: {
           baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
           logLevel: 'debug',
+          logger: customSentryLogger,
         },
       }),
   );

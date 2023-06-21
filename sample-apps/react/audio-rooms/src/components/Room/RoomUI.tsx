@@ -11,17 +11,17 @@ import {
   useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
-import RoomList from '../../pages/RoomList';
 import { ChatIcon, PersonIcon } from '../icons';
-import SpeakerElement from './SpeakerElement';
-import { CustomCallData } from '../../data/audioRoom';
-import SpeakingRequestsList from './SpeakingRequestsList';
+import { SpeakerElement } from './SpeakerElement';
+import { SpeakingRequestsList } from './SpeakingRequestsList';
 import { useSpeakingRequests } from '../../hooks/useSpeakingRequests';
 import { Listener } from './Listener';
 import { LiveRoomControls } from './LiveRoomControls';
 import { EndedRoomOverlay, RoomLobby } from './Overlay';
-import { RoomNavControls } from './RoomNavControls';
+import { RoomListing } from '../RoomList';
+import { RoomAccessControls } from './RoomAccessControls';
 import { useLayoutController } from '../../contexts';
+import type { CustomCallData } from '../../types';
 
 export const RoomUI = () => {
   const { showRoomList } = useLayoutController();
@@ -67,9 +67,15 @@ export const RoomUI = () => {
     !callMetadata?.ended_at &&
     ![CallingState.JOINED].includes(callingState);
 
+  const isRoomEnded = !!callMetadata?.ended_at;
+
   return (
     <section className="active-room">
-      {showRoomList && <RoomList />}
+      <section className={`rooms-overview ${!showRoomList ? 'hidden' : ''}`}>
+        <RoomListing liveState="live" />
+        <RoomListing liveState="upcoming" />
+        <RoomListing liveState="ended" />
+      </section>
       <div className={`room-detail ${showRoomList ? 'with-room-list' : ''}`}>
         <div className="room-detail-header">
           <h2>{title}</h2>
@@ -87,7 +93,7 @@ export const RoomUI = () => {
           <h3>Speakers ({speakers.length})</h3>
           <div className="speakers-list">
             {speakers.map((speaker) => (
-              <SpeakerElement key={speaker.userId} speaker={speaker} />
+              <SpeakerElement key={speaker.sessionId} speaker={speaker} />
             ))}
           </div>
         </section>
@@ -95,11 +101,11 @@ export const RoomUI = () => {
           <h3>Listeners ({listeners.length})</h3>
           <div className="listeners-list">
             {listeners.map((listener) => (
-              <Listener key={listener.userId} participant={listener} />
+              <Listener key={listener.sessionId} participant={listener} />
             ))}
           </div>
         </section>
-        <RoomNavControls />
+        <RoomAccessControls />
         {isOpenRequestList && (
           <Restricted
             requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}
@@ -112,7 +118,7 @@ export const RoomUI = () => {
             />
           </Restricted>
         )}
-        {!!callMetadata?.ended_at && <EndedRoomOverlay />}
+        {isRoomEnded && <EndedRoomOverlay />}
         {showLobby && <RoomLobby />}
       </div>
     </section>

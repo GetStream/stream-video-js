@@ -15,6 +15,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -26,6 +27,8 @@ import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
 import { A11yButtons } from '../constants/A11yLabels';
+import { Z_INDEX } from '../constants';
+import { palette } from '../theme/constants';
 
 type CallParticipantInfoViewType = {
   participant: StreamVideoParticipant;
@@ -83,17 +86,17 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
       <View style={styles.icons}>
         {isScreenSharing && (
           <View style={[styles.svgContainerStyle, theme.icon.md]}>
-            <ScreenShare color={theme.light.info} />
+            <ScreenShare color={theme.dark.info} />
           </View>
         )}
         {isAudioMuted && (
           <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <MicOff color={theme.light.error} />
+            <MicOff color={theme.dark.error} />
           </View>
         )}
         {isVideoMuted && (
           <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <VideoSlash color={theme.light.error} />
+            <VideoSlash color={theme.dark.error} />
           </View>
         )}
         {!participantIsLocalParticipant && (
@@ -105,7 +108,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
             ]}
           >
             <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-              <ArrowRight color={theme.light.text_high_emphasis} />
+              <ArrowRight color={theme.dark.text_high_emphasis} />
             </View>
           </Restricted>
         )}
@@ -145,6 +148,17 @@ export const CallParticipantsInfoView = ({
     StreamVideoParticipant | undefined
   >(undefined);
   const call = useCall();
+  const inviteHandler = async () => {
+    try {
+      await Share.share({
+        url: `https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+        title: 'Stream Calls | Join Call',
+        message: `Join me on the call using this link https://stream-calls-dogfood.vercel.app/join/${call?.id}`,
+      });
+    } catch (error: any) {
+      console.log(error.message);
+    }
+  };
 
   const muteAllParticipantsHandler = async () => {
     try {
@@ -174,12 +188,15 @@ export const CallParticipantsInfoView = ({
 
   return (
     <Modal
-      animationType="slide"
-      transparent={true}
+      animationType="fade"
+      transparent
       visible={isCallParticipantsViewVisible}
       onRequestClose={onCloseCallParticipantsViewVisible}
     >
-      <View style={styles.container}>
+      <>
+        {/*independent background, needed due to desired opacity only
+         on background, exc. modal content*/}
+        <View style={styles.backDropBackground} />
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.leftHeaderElement} />
@@ -187,14 +204,18 @@ export const CallParticipantsInfoView = ({
               Participants ({participants.length})
             </Text>
             <Pressable
-              style={[styles.closeIcon, theme.icon.sm]}
               onPress={onCloseCallParticipantsViewVisible}
               accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
+              style={styles.closePressable}
             >
-              <Cross color={theme.light.primary} />
+              <Cross color={theme.dark.primary} style={theme.icon.xs} />
             </Pressable>
           </View>
+          <FlatList data={participants} renderItem={renderItem} />
           <View style={styles.buttonGroup}>
+            <Pressable style={styles.button} onPress={inviteHandler}>
+              <Text style={styles.buttonText}>Invite</Text>
+            </Pressable>
             <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
               <Pressable
                 style={styles.button}
@@ -204,61 +225,77 @@ export const CallParticipantsInfoView = ({
               </Pressable>
             </Restricted>
           </View>
-          <FlatList data={participants} renderItem={renderItem} />
-          {selectedParticipant && (
-            <View style={[StyleSheet.absoluteFill, styles.modal]}>
-              <CallParticipantOptions
-                participant={selectedParticipant}
-                setSelectedParticipant={setSelectedParticipant}
-              />
-            </View>
-          )}
         </View>
-      </View>
+        <Modal
+          animationType="fade"
+          transparent
+          visible={!!selectedParticipant}
+          onRequestClose={() => setSelectedParticipant(undefined)}
+        >
+          <>
+            {/*independent background, needed due to desired opacity only
+         on background, exc. modal content*/}
+            <View style={styles.backDropBackground} />
+            <CallParticipantOptions
+              participant={selectedParticipant}
+              setSelectedParticipant={setSelectedParticipant}
+            />
+          </>
+        </Modal>
+      </>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  backDropBackground: {
+    opacity: 0.75,
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.dark.static_white,
+    zIndex: Z_INDEX.IN_BACK,
   },
   content: {
-    flex: 1,
-    backgroundColor: theme.light.bars,
+    zIndex: Z_INDEX.IN_FRONT,
+    backgroundColor: theme.dark.bars,
     borderRadius: theme.rounded.md,
     marginVertical: theme.margin.lg,
     marginHorizontal: theme.margin.md,
   },
   header: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: theme.padding.md,
-    width: '100%',
   },
   leftHeaderElement: {
     marginLeft: theme.margin.md,
   },
   headerText: {
     ...theme.fonts.bodyBold,
-    color: theme.light.text_high_emphasis,
+    color: theme.dark.text_high_emphasis,
   },
-  closeIcon: {
+  closePressable: {
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
     marginRight: theme.margin.md,
+    backgroundColor: palette.grey800,
   },
-  buttonGroup: {},
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: theme.padding.md,
+    paddingHorizontal: theme.padding.xs,
+  },
   button: {
-    backgroundColor: theme.light.primary,
+    flex: 1,
+    backgroundColor: theme.dark.primary,
     borderRadius: theme.rounded.lg,
-    padding: theme.padding.md,
-    margin: theme.margin.lg,
+    padding: theme.padding.sm,
+    marginHorizontal: theme.margin.sm,
   },
   buttonText: {
     textAlign: 'center',
-    color: theme.light.static_white,
+    color: theme.dark.static_white,
     ...theme.fonts.subtitleBold,
   },
   participant: {
@@ -267,12 +304,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomColor: theme.light.borders,
+    borderBottomColor: theme.dark.borders,
     borderBottomWidth: 1,
   },
   name: {
     marginLeft: theme.margin.sm,
-    color: theme.light.text_high_emphasis,
+    color: theme.dark.text_high_emphasis,
     ...theme.fonts.subtitleBold,
   },
   icons: {
@@ -287,6 +324,6 @@ const styles = StyleSheet.create({
   modal: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.light.overlay,
+    backgroundColor: theme.dark.overlay,
   },
 });

@@ -17,7 +17,7 @@ The [`ReactionsButton`](../../ui-components/call/call-controls/#reactionsbutton)
 
 ### Sending reactions
 
-You can send a reaction using the [`sendReaction`](../../call-engine/Call/#sendreaction) method of a `Call` instance.
+You can send a reaction using the `sendReaction` method of a `Call` instance.
 
 ```typescript
 const call: Call;
@@ -59,7 +59,7 @@ You can also subscribe to the `call.reaction_new` WebSocket event to receive rea
 
 ### Clearing reactions
 
-If you're using the [participant state](../../guides/call-and-participant-state/#observe-participant-state) for receiving reactions, you can also clear the latest reaction using the [`resetReaction`](../../call-engine/Call/#resetreaction) method:
+If you're using the [participant state](../../guides/call-and-participant-state/#observe-participant-state) for receiving reactions, you can also clear the latest reaction using the `resetReaction` method:
 
 ```typescript
 const call: Call;
@@ -74,7 +74,7 @@ This is a local action, it won't send any WebSocket messages. It's helpful if yo
 
 ### Sending custom events
 
-You can use the [`sendEvent`](../../call-engine/Call/#sendevent) method of the `Call` instance to send custom events:
+You can use the `sendEvent` method of the `Call` instance to send custom events:
 
 ```typescript
 const call: Call;

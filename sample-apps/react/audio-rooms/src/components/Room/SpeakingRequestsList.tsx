@@ -1,10 +1,10 @@
+import { useCallback } from 'react';
 import {
   PermissionRequestEvent,
   useCall,
   useCallMetadata,
 } from '@stream-io/video-react-sdk';
 import { AcceptIcon, CloseIcon } from '../icons';
-import { useCallback } from 'react';
 
 type SpeakingRequestsListProps = {
   close: () => void;
@@ -12,7 +12,7 @@ type SpeakingRequestsListProps = {
   speakingRequests: PermissionRequestEvent[];
 };
 
-const SpeakingRequestsList = ({
+export const SpeakingRequestsList = ({
   close,
   dismissSpeakingRequest,
   speakingRequests,
@@ -43,10 +43,10 @@ interface SpeakingRequestProps {
   speakingRequest: PermissionRequestEvent;
 }
 
-function SpeakingRequest({
+const SpeakingRequest = ({
   dismiss,
   speakingRequest,
-}: SpeakingRequestProps): JSX.Element {
+}: SpeakingRequestProps) => {
   const call = useCall();
   const metadata = useCallMetadata();
 
@@ -93,5 +93,5 @@ function SpeakingRequest({
       </div>
     </div>
   );
-}
+};
 export default SpeakingRequestsList;

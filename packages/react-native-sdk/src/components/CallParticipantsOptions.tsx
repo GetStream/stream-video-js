@@ -3,13 +3,22 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { Cross, VideoDisabled } from '../icons';
+import {
+  Cross,
+  Mic,
+  MicOff,
+  ScreenShare,
+  Video,
+  VideoDisabled,
+  VideoSlash,
+} from '../icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { generateParticipantTitle } from '../utils';
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
 import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
+import { palette } from '../theme/constants';
 
 type CallParticipantOptionType = {
   title: string;
@@ -18,7 +27,7 @@ type CallParticipantOptionType = {
 };
 
 type CallParticipantOptionsType = {
-  participant: StreamVideoParticipant;
+  participant: StreamVideoParticipant | undefined;
   setSelectedParticipant: React.Dispatch<
     React.SetStateAction<StreamVideoParticipant | undefined>
   >;
@@ -27,6 +36,22 @@ type CallParticipantOptionsType = {
 export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
+  const userHasMuteUsersCapability = useHasPermissions(
+    OwnCapability.MUTE_USERS,
+  );
+  const userHasUpdateCallPermissionsCapability = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
+  const userHasBlockUserCapability = useHasPermissions(
+    OwnCapability.BLOCK_USERS,
+  );
+  const onCloseParticipantOptions = useCallback(() => {
+    setSelectedParticipant(undefined);
+  }, [setSelectedParticipant]);
+
+  if (!participant) {
+    return null;
+  }
 
   const grantPermission = async (permission: string) => {
     await call?.updateUserPermissions({
@@ -58,70 +83,68 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
     await call?.blockUser(participant.userId);
   };
 
-  const userHasMuteUsersCapability = useHasPermissions(
-    OwnCapability.MUTE_USERS,
-  );
-  const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
-  );
-  const userHasBlockUserCapability = useHasPermissions(
-    OwnCapability.BLOCK_USERS,
-  );
-  const participantCanPublishVideo = participant.publishedTracks.includes(
+  const participantPublishesVideo = participant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
-  const participantCanPublishAudio = participant.publishedTracks.includes(
+  const participantPublishesAudio = participant.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
 
-  const callMediaStreamMutePermissions: (CallParticipantOptionType | null)[] =
+  const muteUserVideoOption = participantPublishesVideo
+    ? {
+        icon: <VideoSlash color={theme.dark.text_high_emphasis} />,
+        title: 'Mute Video',
+        onPressHandler: muteUserVideo,
+      }
+    : null;
+
+  const muteUserAudioOption = participantPublishesAudio
+    ? {
+        icon: <MicOff color={theme.dark.text_high_emphasis} />,
+        title: 'Mute Audio',
+        onPressHandler: muteUserAudio,
+      }
+    : null;
+  const muteUserCapabilities: (CallParticipantOptionType | null)[] =
     userHasMuteUsersCapability
-      ? [
-          participantCanPublishVideo
-            ? {
-                title: 'Mute Video',
-                onPressHandler: muteUserVideo,
-              }
-            : null,
-          participantCanPublishAudio
-            ? {
-                title: 'Mute Audio',
-                onPressHandler: muteUserAudio,
-              }
-            : null,
-        ]
+      ? [muteUserVideoOption, muteUserAudioOption]
       : [];
 
-  const callMediaStreamPermissions: (CallParticipantOptionType | null)[] =
+  const updateCallPermissionsCapabilities: (CallParticipantOptionType | null)[] =
     userHasUpdateCallPermissionsCapability
       ? [
           {
-            icon: <VideoDisabled color={theme.light.text_high_emphasis} />,
+            icon: <VideoDisabled color={theme.dark.text_high_emphasis} />,
             title: 'Disable Video',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_VIDEO),
           },
           {
+            icon: <MicOff color={theme.dark.text_high_emphasis} />,
             title: 'Disable Audio',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SEND_AUDIO),
           },
           {
+            icon: <Mic color={theme.dark.text_high_emphasis} />,
             title: 'Allow Audio',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_AUDIO),
           },
           {
+            icon: <Video color={theme.dark.text_high_emphasis} />,
             title: 'Allow Video',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SEND_VIDEO),
           },
           {
+            icon: <ScreenShare color={theme.dark.text_high_emphasis} />,
             title: 'Allow Screen Sharing',
             onPressHandler: async () =>
               await grantPermission(OwnCapability.SCREENSHARE),
           },
           {
+            icon: <Cross color={theme.dark.text_high_emphasis} />,
             title: 'Disable Screen Sharing',
             onPressHandler: async () =>
               await revokePermission(OwnCapability.SCREENSHARE),
@@ -129,120 +152,114 @@ export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
         ]
       : [];
 
-  const options: (CallParticipantOptionType | null)[] = [
+  const blockCapabilities: (CallParticipantOptionType | null)[] =
     userHasBlockUserCapability
-      ? {
-          title: 'Block',
-          onPressHandler: blockUser,
-        }
-      : null,
-    ...callMediaStreamMutePermissions,
-    ...callMediaStreamPermissions,
-  ];
+      ? [
+          {
+            icon: <Cross color={theme.dark.text_high_emphasis} />,
+            title: 'Block',
+            onPressHandler: blockUser,
+          },
+        ]
+      : [];
 
-  const onCloseParticipantOptions = useCallback(() => {
-    setSelectedParticipant(undefined);
-  }, [setSelectedParticipant]);
+  const options: (CallParticipantOptionType | null)[] = [
+    ...blockCapabilities,
+    ...muteUserCapabilities,
+    ...updateCallPermissionsCapabilities,
+  ];
 
   const showYouLabel = participant.isLocalParticipant;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.menu}>
+    <View style={styles.outerContainer}>
+      <View style={styles.modalContainer}>
         <View style={styles.participantInfo}>
           <View style={styles.userInfo}>
             <Avatar radius={theme.avatar.xs} participant={participant} />
-
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
                 (showYouLabel ? ' (You)' : '')}
             </Text>
           </View>
-
           <Pressable
-            style={[styles.svgContainerStyle, theme.icon.sm]}
+            style={styles.closePressable}
             onPress={onCloseParticipantOptions}
           >
-            <Cross color={theme.light.primary} />
+            <Cross color={theme.dark.primary} style={theme.icon.xs} />
           </Pressable>
         </View>
-        <View style={styles.options}>
-          {options.map((option, index) => {
-            if (!option) {
-              return null;
-            }
-            const applyBottomPadding =
-              index < options.length - 1 ? styles.borderBottom : null;
+        {options.map((option, index) => {
+          if (!option) {
+            return null;
+          }
+          const applyBottomPadding =
+            index < options.length - 1 ? styles.borderBottom : null;
 
-            const onPressHandler = () => {
-              option?.onPressHandler();
-              onCloseParticipantOptions();
-            };
+          const onPressHandler = () => {
+            option?.onPressHandler();
+            onCloseParticipantOptions();
+          };
 
-            return (
-              <Pressable
-                style={[applyBottomPadding, styles.option]}
-                key={option.title}
-                onPress={onPressHandler}
-              >
-                <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-                  {option.icon}
-                </View>
-                <Text style={styles.title}>{option.title}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+          return (
+            <Pressable
+              style={[applyBottomPadding, styles.option]}
+              key={option.title}
+              onPress={onPressHandler}
+            >
+              <View style={theme.icon.sm}>{option.icon}</View>
+              <Text style={styles.title}>{option.title}</Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
+  outerContainer: {
     justifyContent: 'center',
-    paddingHorizontal: theme.padding.xl,
+    flex: 1,
   },
-  menu: {
-    backgroundColor: theme.light.bars,
+  modalContainer: {
+    backgroundColor: theme.dark.bars,
     borderRadius: theme.rounded.md,
+    marginHorizontal: theme.margin.xl,
   },
   participantInfo: {
-    display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     padding: theme.padding.md,
   },
   userInfo: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
   },
   name: {
     marginLeft: theme.margin.sm,
     ...theme.fonts.subtitleBold,
-    color: theme.light.text_high_emphasis,
+    color: theme.dark.text_high_emphasis,
   },
-  svgContainerStyle: {},
-  options: {},
   option: {
-    paddingHorizontal: theme.padding.md,
-    paddingVertical: theme.padding.sm,
-    display: 'flex',
+    paddingHorizontal: theme.padding.lg,
+    paddingVertical: theme.padding.md,
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
     marginLeft: theme.margin.md,
-    color: theme.light.text_high_emphasis,
+    color: theme.dark.text_high_emphasis,
     ...theme.fonts.subtitle,
   },
   borderBottom: {
-    borderBottomColor: theme.light.borders,
+    borderBottomColor: theme.dark.borders,
     borderBottomWidth: 1,
+  },
+  closePressable: {
+    padding: theme.padding.sm,
+    borderRadius: theme.rounded.xs,
+    backgroundColor: palette.grey800,
   },
 });

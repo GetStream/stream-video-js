@@ -4,13 +4,13 @@ output.pages = {
     meeting: 'Meeting',
   },
   login: {
-    customUserInputField: 'Enter the custom user',
+    customUserInputField: 'Enter custom user',
     userName: 'Gerri',
     loginButton: 'Login',
   },
   joinMeeting: {
-    callIdInputField: 'Type your call ID here...',
-    startCallButton: 'Create or Join call with callID:.*',
+    callIdInputField: 'Type your Call ID',
+    startCallButton: 'Join Call',
     logOutAvatar: 'log-out-avatar-button',
     confirmSignOutButton: 'OK',
   },
@@ -34,6 +34,6 @@ output.assertions = {
     signOutModalTitle: 'Sign out',
   },
   login: {
-    customUserInputField: 'Enter the custom user',
+    customUserInputField: 'Enter custom user',
   },
 };

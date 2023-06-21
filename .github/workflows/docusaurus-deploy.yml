@@ -5,16 +5,9 @@ env:
 
 on:
   push:
-    branches:
-      - main
-      - docs
-      - docs/*
-
     paths:
-      - 'packages/react-bindings/**'
-      - 'packages/client/**'
-      - 'packages/react-native-sdk/**'
-      - 'packages/react-sdk/**'
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
       - '.github/workflows/docusaurus-deploy.yml'
 
 jobs:
@@ -33,12 +26,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-      - name: Install Dependencies
-        run: yarn install --immutable
 
-      - name: Generate React Native SDK documentation
-        run: yarn generate-docs:react-native:sdk;
       - name: Push React Native SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
@@ -48,8 +36,6 @@ jobs:
         env:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
 
-      - name: Generate React SDK documentation
-        run: yarn generate-docs:react:sdk
       - name: Push React SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:

@@ -88,13 +88,15 @@ Apps created with Expo are currently not officially supported.
 Stream's video roadmap and changelog are available [here](https://github.com/GetStream/protocol/discussions/127). 
 
 ### Remaining 0.1 items
-- [ ] Push notifications
-- [ ] Reconnection
-- [ ] Simulcasting (works on Android, iOS is WIP)
+- [x] Push notification- Android
+- [x] Chat integration guide
+- [x] Simulcasting- Android
+- [ ] Push notification- VoIP iOS
+- [ ] Reconnection (awaiting BE)
+- [ ] Simulcasting- iOS
 - [ ] Components alignment and refactor
 - [ ] UI Component documentation
-- [ ] Chat integration guide
-- [ ] Pinning and spotlight participants
+- [ ] Pinning and spotlighting participants
 
 ### 0.2 milestone
 - [ ] Livestream tutorial

@@ -2,6 +2,48 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.22...@stream-io/video-react-bindings-0.0.23) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.6`
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Documentation
+
+* Add reference tables to state docs ([#676](https://github.com/GetStream/stream-video-js/issues/676)) ([39e7a05](https://github.com/GetStream/stream-video-js/commit/39e7a05a79ba1754be7f62412666ec1f9f85aba9))
+* cleanup ([#679](https://github.com/GetStream/stream-video-js/issues/679)) ([58c86bd](https://github.com/GetStream/stream-video-js/commit/58c86bd0354ebe444af361056dcc3fa82c4a926d))
+
+### [0.0.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.21...@stream-io/video-react-bindings-0.0.22) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Documentation
+
+* **react-sdk:** update audio rooms tutorial ([#659](https://github.com/GetStream/stream-video-js/issues/659)) ([11f2e80](https://github.com/GetStream/stream-video-js/commit/11f2e8090811fbd8478724b3d2c2c8af3b19a0c5))
+
+### [0.0.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.20...@stream-io/video-react-bindings-0.0.21) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+### [0.0.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.19...@stream-io/video-react-bindings-0.0.20) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+### [0.0.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.18...@stream-io/video-react-bindings-0.0.19) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+### [0.0.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.17...@stream-io/video-react-bindings-0.0.18) (2023-06-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
 ### [0.0.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.16...@stream-io/video-react-bindings-0.0.17) (2023-06-16)
 
 ### Dependency Updates

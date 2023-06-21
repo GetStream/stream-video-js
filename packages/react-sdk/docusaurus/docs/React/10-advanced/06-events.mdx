@@ -18,7 +18,7 @@ However, for some advanced use cases, you might need to subscribe to the underly
 
 ### Client events
 
-Client events are always delivered if a user is connected to the client using the [`connectUser` method](../../call-engine/StreamVideoClient/#connectuser).
+Client events are always delivered if a user is connected to the client using the `connectUser` method.
 
 ### Call events
 
@@ -61,7 +61,7 @@ client.call('default', 'test-call').get();
 
 ## Listening to client and call events
 
-You can use the [`on`](../../call-engine/StreamVideoClient/#on) method of the `StreamVideoClient` instance to subscribe to client and call WebSocket events.
+You can use the `on` method of the `StreamVideoClient` instance to subscribe to client and call WebSocket events.
 
 The `on` method takes the type of the event you want to subscribe to or the 'all' keyword indicating that you want to be notified about all events.
 
@@ -105,7 +105,7 @@ unsubscribe();
 
 ## Listening to call events
 
-You can use the [`on`](../../call-engine/Call/#on) method of the `Call` instance to subscribe to WebSocket events belonging to a specific call.
+You can use the `on` method of the `Call` instance to subscribe to WebSocket events belonging to a specific call.
 
 The `on` method takes the type of the event you want to subscribe to.
 

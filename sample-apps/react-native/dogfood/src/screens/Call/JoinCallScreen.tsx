@@ -1,78 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import {
-  Button,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
-import { NavigationHeader } from '../../components/NavigationHeader';
 import { v4 as uuidv4 } from 'uuid';
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 15,
-  },
-  headerText: {
-    color: 'black',
-    fontSize: 20,
-    marginVertical: 8,
-  },
-  textInputView: {
-    display: 'flex',
-    flexDirection: 'row',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'gray',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  confirmButton: {
-    alignSelf: 'center',
-    backgroundColor: 'gray',
-    padding: 10,
-    borderRadius: 20,
-    marginLeft: 10,
-  },
-  buttonText: {
-    color: 'white',
-  },
-  textInput: {
-    color: '#000000',
-    height: 40,
-    marginVertical: 8,
-  },
-  orText: {
-    marginVertical: 10,
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'black',
-  },
-  participantsContainer: {
-    marginVertical: 20,
-  },
-  text: {
-    color: 'black',
-  },
-  label: {
-    fontSize: 20,
-  },
-  participant: {
-    paddingVertical: 10,
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-  },
-  selectedParticipant: {
-    color: 'red',
-    fontWeight: 'bold',
-  },
-});
+import { appTheme } from '../../theme';
+import { Button } from '../../components/Button';
+import { TextInput } from '../../components/TextInput';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -81,11 +15,31 @@ const JoinCallScreen = () => {
   const videoClient = useStreamVideoClient();
 
   const users = [
-    { id: 'steve', name: 'Steve Galilli' },
-    { id: 'khushal', name: 'Khushal Agarwal' },
-    { id: 'santhosh', name: 'Santhosh Vaiyapuri' },
-    { id: 'oliver', name: 'Oliver Lazoroski' },
-    { id: 'zita', name: 'Zita Szupera' },
+    {
+      id: 'steve',
+      name: 'Steve Galilli',
+      image: 'https://ca.slack-edge.com/T02RM6X6B-U039J798FJ7-894cf1f07326-512',
+    },
+    {
+      id: 'khushal',
+      name: 'Khushal Agarwal',
+      image: 'https://ca.slack-edge.com/T02RM6X6B-U02DTREQ2KX-5d600c87d3bc-512',
+    },
+    {
+      id: 'santhosh',
+      name: 'Santhosh Vaiyapuri',
+      image: 'https://ca.slack-edge.com/T02RM6X6B-U0359AX2TUY-dc7dbec0bb88-512',
+    },
+    {
+      id: 'oliver',
+      name: 'Oliver Lazoroski',
+      image: 'https://ca.slack-edge.com/T02RM6X6B-U03HJKTMSQZ-cdf636547793-512',
+    },
+    {
+      id: 'zita',
+      name: 'Zita Szupera',
+      image: 'https://ca.slack-edge.com/T02RM6X6B-U02CA8MV9D1-8631020b96bf-512',
+    },
   ];
 
   const startCallHandler = useCallback(async () => {
@@ -101,6 +55,8 @@ const JoinCallScreen = () => {
       await call?.getOrCreate({
         ring: true,
         data: {
+          // more timeout to cancel the call automatically so that it works when callee's app is in quit state
+          settings_override: { ring: { auto_cancel_timeout_ms: 60000 } },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
               user_id: ringingUserId,
@@ -127,21 +83,9 @@ const JoinCallScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <NavigationHeader />
-      <View style={styles.textInputView}>
-        <TextInput
-          placeholder="Enter comma separated User Ids"
-          style={styles.textInput}
-          value={ringingUserIdsText}
-          onChangeText={(value) => {
-            setRingingUserIdsText(value);
-          }}
-        />
-      </View>
-      <Text style={styles.orText}>Or</Text>
-      <View style={styles.participantsContainer}>
-        <Text style={[styles.text, styles.label]}>Select Participants</Text>
+    <View style={styles.container}>
+      <View>
+        <Text style={styles.headerText}>Select Participants</Text>
         {users
           .filter((user) => user.id !== username)
           .map((user) => {
@@ -151,6 +95,7 @@ const JoinCallScreen = () => {
                 key={user.id}
                 onPress={() => ringingUsersSetHandler(user.id)}
               >
+                <Image source={{ uri: user.image }} style={styles.avatar} />
                 <Text
                   style={[
                     styles.text,
@@ -164,14 +109,73 @@ const JoinCallScreen = () => {
               </Pressable>
             );
           })}
+        <Text style={styles.orText}>Or</Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="Enter comma separated User ids"
+          value={ringingUserIdsText}
+          onChangeText={(value) => {
+            setRingingUserIdsText(value);
+          }}
+          textInputStyle={styles.textInputStyle}
+        />
       </View>
       <Button
+        title="Start a New Call"
         disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
-        title="Start a Call"
         onPress={startCallHandler}
       />
-    </SafeAreaView>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: appTheme.spacing.lg,
+    backgroundColor: appTheme.colors.static_grey,
+    flex: 1,
+    justifyContent: 'space-evenly',
+  },
+  orText: {
+    fontSize: 17,
+    color: appTheme.colors.static_white,
+    fontWeight: '500',
+    marginVertical: appTheme.spacing.lg,
+    textAlign: 'center',
+  },
+  textInputStyle: {
+    flex: 0,
+  },
+  headerText: {
+    fontSize: 20,
+    color: appTheme.colors.static_white,
+    fontWeight: 'bold',
+    marginBottom: appTheme.spacing.lg,
+  },
+  participant: {
+    paddingVertical: appTheme.spacing.sm,
+    borderBottomColor: 'gray',
+    borderBottomWidth: 1,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectedParticipant: {
+    color: appTheme.colors.primary,
+    fontWeight: 'bold',
+  },
+  avatar: {
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+  },
+  text: {
+    color: appTheme.colors.static_white,
+    marginLeft: appTheme.spacing.md,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
 
 export default JoinCallScreen;

@@ -27,7 +27,7 @@ export const {
   useStoreValue: useStreamVideoStoreValue,
   useStoreSetState: useStreamVideoStoreSetState,
 } = createStoreContext<SDKStreamVideoStore>({
-  isCameraOnFrontFacingMode: false,
+  isCameraOnFrontFacingMode: true,
   isVideoMuted: false,
   isAudioMuted: false,
   videoDevices: [],

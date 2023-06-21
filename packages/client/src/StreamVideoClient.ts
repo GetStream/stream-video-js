@@ -76,14 +76,14 @@ export class StreamVideoClient {
         },
     opts?: StreamClientOptions,
   ) {
-    let defaultLogger: Logger = logToConsole;
+    let logger: Logger = logToConsole;
     let logLevel: LogLevel = 'warn';
     if (typeof apiKeyOrArgs === 'string') {
       logLevel = opts?.logLevel || logLevel;
-      this.logger = opts?.logger || defaultLogger;
+      logger = opts?.logger || logger;
     } else {
       logLevel = apiKeyOrArgs.options?.logLevel || logLevel;
-      this.logger = apiKeyOrArgs.options?.logger || defaultLogger;
+      logger = apiKeyOrArgs.options?.logger || logger;
     }
 
     setLogger(this.logger, logLevel);
@@ -95,14 +95,14 @@ export class StreamVideoClient {
         persistUserOnConnectionFailure: true,
         ...opts,
         logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
     } else {
       this.streamClient = new StreamClient(apiKeyOrArgs.apiKey, {
         persistUserOnConnectionFailure: true,
         ...apiKeyOrArgs.options,
         logLevel,
-        logger: clientLogger,
+        logger: this.logger,
       });
 
       this.user = apiKeyOrArgs.user;
@@ -223,6 +223,7 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
+        const prevMetadata = prevCall?.state.metadata;
         await prevCall?.leave();
         // we create a new call
         const theCall = new Call({
@@ -232,6 +233,7 @@ export class StreamVideoClient {
           members,
           clientStore: this.writeableStateStore,
           ringing: true,
+          metadata: prevMetadata,
         });
         // we fetch the latest metadata for the call from the server
         await theCall.get();
@@ -295,13 +297,15 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call, if not provided a unique random value is used
+   * @param {boolean} [ringing] whether the call should be created in the ringing state.
    */
-  call = (type: string, id: string) => {
+  call = (type: string, id: string, ringing?: boolean) => {
     return new Call({
       streamClient: this.streamClient,
       id: id,
       type: type,
       clientStore: this.writeableStateStore,
+      ringing,
     });
   };
 
@@ -389,6 +393,7 @@ export class StreamVideoClient {
    * @param {string} push_provider the push provider name (eg. apn, firebase)
    * @param {string} push_provider_name user provided push provider name
    * @param {string} [userID] the user id (defaults to current user)
+   * @param {boolean} [voip_token] enables use of VoIP token for push notifications on iOS platform
    */
   addDevice = async (
     id: string,
@@ -456,10 +461,11 @@ export class StreamVideoClient {
 
   /**
    * createToken - Creates a token to authenticate this user. This function is used server side.
-   * The resulting token should be passed to the client side when the users registers or logs in.
+   * The resulting token should be passed to the client side when the users register or logs in.
    *
    * @param {string} userID The User ID
    * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
+   * @param {number} [iat] The timestamp when a token has been issued
    * @param call_cids for anonymous tokens you have to provide the call cids the use can join
    *
    * @return {string} Returns a token

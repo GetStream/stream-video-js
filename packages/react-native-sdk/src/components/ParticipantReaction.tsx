@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StreamReaction } from '@stream-io/video-client';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
@@ -12,7 +12,7 @@ export type ReactionProps = {
 };
 
 export const ParticipantReaction = (props: ReactionProps) => {
-  const { supportedReactions } = StreamVideoRN.config;
+  const { supportedReactions } = StreamVideoRN.getConfig();
   const { reaction, sessionId, hideAfterTimeoutInMs = 5500 } = props;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);
@@ -40,10 +40,11 @@ export const ParticipantReaction = (props: ReactionProps) => {
 
   let component;
   if (isShowing) {
-    if (typeof currentReaction?.icon !== 'string')
+    if (typeof currentReaction?.icon !== 'string') {
       component = currentReaction?.icon;
-    else
+    } else {
       component = <Text style={styles.reaction}>{currentReaction.icon}</Text>;
+    }
   }
 
   return (

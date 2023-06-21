@@ -142,13 +142,15 @@ export const useCallControls = () => {
   }, [call, isAudioPublished, publishAudioStream]);
 
   const toggleCameraFacingMode = useCallback(() => {
-    const videoDevice = videoDevices.find(
-      (device) =>
-        device.kind === 'videoinput' &&
-        (!isCameraOnFrontFacingMode
-          ? device.facing === 'front'
-          : device.facing === 'environment'),
-    );
+    const videoDevice = videoDevices.find((device) => {
+      // Check to only switch between video devices
+      if (device.kind !== 'videoinput') {
+        return;
+      }
+      return !isCameraOnFrontFacingMode
+        ? device.facing === 'front'
+        : device.facing === 'environment';
+    });
     setState((prevState) => ({
       currentVideoDevice: videoDevice,
       isCameraOnFrontFacingMode: !prevState.isCameraOnFrontFacingMode,

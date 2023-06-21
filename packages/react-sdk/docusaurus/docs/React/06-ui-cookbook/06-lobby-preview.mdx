@@ -34,8 +34,8 @@ We would like to show some basic information about the call, when users arrive t
 
 The initial call information can be retrieved by the `get` or `getOrCreate` method of a `Call` instance. Then we can use the following hooks:
 
-- [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata)
-- [`useCallMembers`](../../call-engine/hooks-and-contexts#usecallmembers)
+- `useCallMetadata`
+- `useCallMembers`
 
 These hooks make sure, that the information about call metadata or call members is updated in real time. The updates are made automatically in response to [Stream's WebSocket events](../../advanced/events) arriving from the backend.
 
@@ -119,7 +119,7 @@ We build our custom sound detector in the [dedicated tutorial about Audio Volume
 
 ### Device selection
 
-Switching devices is handled by `switchDevice()` function provided by [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi). We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
+Switching devices is handled by `switchDevice()` function provided by the `useMediaDevices` hook. We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
 
 **Device selector example**
 
@@ -215,7 +215,7 @@ export const VideoInputDeviceSelector = () => {
 
 ### Participants in a call
 
-We can retrieve the list of members, that already joined the call (participants), by inspecting the call metadata object (`callMetadata.session.participants`). The object is provided and maintained up-to-date by [`useCallMetadata`](../../call-engine/hooks-and-contexts#usecallmetadata) hook.
+We can retrieve the list of members, that already joined the call (participants), by inspecting the call metadata object (`callMetadata.session.participants`). The object is provided and maintained up-to-date by `useCallMetadata` hook.
 
 ```tsx
 import { Avatar, useCallMetadata } from '@stream-io/video-react-sdk';

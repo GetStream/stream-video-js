@@ -95,6 +95,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "0.0.1"
+        // Added for Chat SDK
+        vectorDrawables.useSupportLibrary = true
     }
 
     splits {

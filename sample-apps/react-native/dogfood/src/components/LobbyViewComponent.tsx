@@ -3,6 +3,7 @@ import { LobbyView, theme } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
+import { appTheme } from '../theme';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -49,14 +50,14 @@ export const LobbyViewComponent = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: appTheme.colors.static_grey,
   },
   anonymousButton: {
     alignItems: 'center',
-    marginBottom: theme.margin.md,
+    marginBottom: appTheme.spacing.lg,
   },
   anonymousButtonText: {
     ...theme.fonts.heading6,
-    color: theme.light.primary,
+    color: appTheme.colors.primary,
   },
 });

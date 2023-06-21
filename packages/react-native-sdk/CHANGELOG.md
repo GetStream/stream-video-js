@@ -2,6 +2,121 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.192](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.191...@stream-io/video-react-native-sdk-0.0.1-alpha.192) (2023-06-21)
+
+
+### Bug Fixes
+
+* **react-native:** toggle camera bug and simplify the logic ([#685](https://github.com/GetStream/stream-video-js/issues/685)) ([048c91e](https://github.com/GetStream/stream-video-js/commit/048c91e9e78c305014c737f45f78f2e5a688f161))
+
+
+
+## [0.0.1-alpha.191](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.190...@stream-io/video-react-native-sdk-0.0.1-alpha.191) (2023-06-21)
+
+
+
+## [0.0.1-alpha.190](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.189...@stream-io/video-react-native-sdk-0.0.1-alpha.190) (2023-06-21)
+
+
+
+## [0.0.1-alpha.189](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.188...@stream-io/video-react-native-sdk-0.0.1-alpha.189) (2023-06-21)
+
+
+### Bug Fixes
+
+* proper media stream disposal for rn webrtc ([#682](https://github.com/GetStream/stream-video-js/issues/682)) ([8879bac](https://github.com/GetStream/stream-video-js/commit/8879bac82080232928b78316fdb452bbc3c79fbc))
+
+
+
+## [0.0.1-alpha.188](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.187...@stream-io/video-react-native-sdk-0.0.1-alpha.188) (2023-06-20)
+
+
+
+## [0.0.1-alpha.187](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.186...@stream-io/video-react-native-sdk-0.0.1-alpha.187) (2023-06-20)
+
+
+### Features
+
+* DF cosmetic tweaks and invite feat ([#681](https://github.com/GetStream/stream-video-js/issues/681)) ([77ec0af](https://github.com/GetStream/stream-video-js/commit/77ec0af5cc7d84d18ae01774c2549c5955b477cb))
+
+
+
+## [0.0.1-alpha.186](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.185...@stream-io/video-react-native-sdk-0.0.1-alpha.186) (2023-06-20)
+
+
+
+## [0.0.1-alpha.185](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.184...@stream-io/video-react-native-sdk-0.0.1-alpha.185) (2023-06-20)
+
+
+### Bug Fixes
+
+* **react-native:** android freezing due to awaits on mount  ([#680](https://github.com/GetStream/stream-video-js/issues/680)) ([1a965a6](https://github.com/GetStream/stream-video-js/commit/1a965a6131a15f75932e471c01fa852763a44310))
+
+
+
+## [0.0.1-alpha.184](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.183...@stream-io/video-react-native-sdk-0.0.1-alpha.184) (2023-06-20)
+
+
+
+## [0.0.1-alpha.183](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.182...@stream-io/video-react-native-sdk-0.0.1-alpha.183) (2023-06-20)
+
+
+
+## [0.0.1-alpha.182](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.181...@stream-io/video-react-native-sdk-0.0.1-alpha.182) (2023-06-20)
+
+
+
+## [0.0.1-alpha.181](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.180...@stream-io/video-react-native-sdk-0.0.1-alpha.181) (2023-06-20)
+
+
+
+## [0.0.1-alpha.180](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.179...@stream-io/video-react-native-sdk-0.0.1-alpha.180) (2023-06-20)
+
+
+### Bug Fixes
+
+* **react-native:** df app null image warnings and connect on undefined userid ([#673](https://github.com/GetStream/stream-video-js/issues/673)) ([2ec07e4](https://github.com/GetStream/stream-video-js/commit/2ec07e45048483d88f9895690b13f00cdea6c367))
+
+
+
+## [0.0.1-alpha.179](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.178...@stream-io/video-react-native-sdk-0.0.1-alpha.179) (2023-06-20)
+
+
+
+## [0.0.1-alpha.178](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.177...@stream-io/video-react-native-sdk-0.0.1-alpha.178) (2023-06-20)
+
+
+### Features
+
+* **react-native:** push notification for android ([#626](https://github.com/GetStream/stream-video-js/issues/626)) ([ec2e439](https://github.com/GetStream/stream-video-js/commit/ec2e4390cb724091352ba774c55ad2245ace2955))
+
+
+
+## [0.0.1-alpha.177](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.176...@stream-io/video-react-native-sdk-0.0.1-alpha.177) (2023-06-20)
+
+
+
+## [0.0.1-alpha.176](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.175...@stream-io/video-react-native-sdk-0.0.1-alpha.176) (2023-06-19)
+
+
+### Features
+
+* **react-native:** introduce chat in the RN Dogfood app ([#663](https://github.com/GetStream/stream-video-js/issues/663)) ([4043b22](https://github.com/GetStream/stream-video-js/commit/4043b22b62de6eedab425d8b63febc4a874a797c))
+
+
+
+## [0.0.1-alpha.175](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.174...@stream-io/video-react-native-sdk-0.0.1-alpha.175) (2023-06-19)
+
+
+
+## [0.0.1-alpha.174](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.173...@stream-io/video-react-native-sdk-0.0.1-alpha.174) (2023-06-19)
+
+
+
+## [0.0.1-alpha.173](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.172...@stream-io/video-react-native-sdk-0.0.1-alpha.173) (2023-06-19)
+
+
+
 ## [0.0.1-alpha.172](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.171...@stream-io/video-react-native-sdk-0.0.1-alpha.172) (2023-06-19)
 
 

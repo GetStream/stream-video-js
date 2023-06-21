@@ -12,25 +12,38 @@ export const useLocalVideoStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
     undefined,
   );
-  const currentVideoDevice = useStreamVideoStoreValue(
+  const currentVideoDeviceId = useStreamVideoStoreValue(
     (store) => store.currentVideoDevice,
-  );
+  )?.deviceId;
 
   useEffect(() => {
+    let mediaStream: MediaStream | undefined;
+    let interrupted = false;
     const loadVideoStream = async () => {
       // If there is no video device, we don't need to load a video stream.
-      if (!currentVideoDevice?.deviceId) return null;
+      if (!currentVideoDeviceId) {
+        return null;
+      }
 
-      const stream = await getVideoStream({
-        deviceId: currentVideoDevice.deviceId,
+      const _mediaStream = await getVideoStream({
+        deviceId: currentVideoDeviceId,
       });
-      setVideoStream((previousStream) => {
-        if (previousStream) disposeOfMediaStream(previousStream);
-        return stream;
-      });
+      if (interrupted) {
+        // device changed while we were loading the video stream, so dispose of it
+        disposeOfMediaStream(_mediaStream);
+        return;
+      }
+      mediaStream = _mediaStream;
+      setVideoStream(_mediaStream);
     };
     loadVideoStream();
-  }, [currentVideoDevice?.deviceId]);
+    return () => {
+      interrupted = true;
+      if (mediaStream) {
+        disposeOfMediaStream(mediaStream);
+      }
+    };
+  }, [currentVideoDeviceId]);
 
   return videoStream;
 };

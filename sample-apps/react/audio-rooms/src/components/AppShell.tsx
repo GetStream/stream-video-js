@@ -1,30 +1,24 @@
 import { Outlet } from 'react-router-dom';
-import { ChildrenOnly } from '@stream-io/video-react-sdk';
 import Sidebar from './Sidebar';
-import { ErrorPanel } from './Error';
-import { LoadingPanel } from './Loading';
 import {
-  CallsProvider,
+  JoinedCallProvider,
   LayoutControllerProvider,
-  useLoadedCalls,
   useLayoutController,
+  VideoClientProvider,
 } from '../contexts';
-import CreateRoomForm from './CreateRoomForm';
+import { CreateRoomModal } from './CreateRoomModal';
 
 export const AppShell = () => (
-  <AppProviders>
-    <AppLayout />
-  </AppProviders>
-);
-
-const AppProviders = ({ children }: ChildrenOnly) => (
   <LayoutControllerProvider>
-    <CallsProvider>{children}</CallsProvider>
+    <VideoClientProvider>
+      <JoinedCallProvider>
+        <AppLayout />
+      </JoinedCallProvider>
+    </VideoClientProvider>
   </LayoutControllerProvider>
 );
 
 const AppLayout = () => {
-  const { loadingCalls, loadingError } = useLoadedCalls();
   const { showCreateRoomModal, toggleShowCreateRoomModal } =
     useLayoutController();
 
@@ -32,13 +26,11 @@ const AppLayout = () => {
     <div className="app-container">
       <Sidebar />
       <div className="main-panel">
-        {loadingError && <ErrorPanel error={loadingError} />}
-        {loadingCalls && <LoadingPanel />}
-        {!(loadingError && loadingCalls) && <Outlet />}
+        <Outlet />
       </div>
       {/* todo: close modal on click outside */}
       {showCreateRoomModal && (
-        <CreateRoomForm close={toggleShowCreateRoomModal} />
+        <CreateRoomModal close={toggleShowCreateRoomModal} />
       )}
     </div>
   );

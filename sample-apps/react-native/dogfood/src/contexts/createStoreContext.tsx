@@ -8,7 +8,7 @@ import React, {
 
 import { MMKV } from 'react-native-mmkv';
 
-const mmkvStorage = new MMKV();
+export const mmkvStorage = new MMKV();
 
 /**
  * Creates a Atomic store context with a provider and hooks to access the store
