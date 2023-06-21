@@ -246,7 +246,11 @@ We will create the call using the `client.call` method and pass it to the `Strea
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
-import { StreamVideo, StreamCall } from '@stream-io/video-react-native-sdk';
+import {
+  StreamVideo,
+  StreamCall,
+  Call,
+} from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NavigationStackParamsList } from '../types';
 
@@ -258,10 +262,13 @@ const MeetingScreen = (props: Props) => {
   const {
     params: { callId, callType },
   } = route;
-  const call = useMemo<Call | undefined>(
-    () => (videoClient ? videoClient.call(callType, callId) : undefined),
-    [callId, callType, videoClient],
-  );
+
+  const call = useMemo<Call | undefined>(() => {
+    if (!videoClient) {
+      return undefined;
+    }
+    return videoClient.call(callType, callId);
+  }, [callId, callType, videoClient]);
 
   if (!call) {
     return;

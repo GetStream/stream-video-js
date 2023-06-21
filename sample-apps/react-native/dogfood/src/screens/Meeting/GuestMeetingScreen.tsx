@@ -64,10 +64,12 @@ export const GuestMeetingScreen = (props: Props) => {
     };
   }, [tokenProvider, userToConnect, apiKey, mode]);
 
-  const call = useMemo<Call | undefined>(
-    () => (videoClient ? videoClient.call(callType, callId) : undefined),
-    [callId, callType, videoClient],
-  );
+  const call = useMemo<Call | undefined>(() => {
+    if (!videoClient) {
+      return undefined;
+    }
+    return videoClient.call(callType, callId);
+  }, [callId, callType, videoClient]);
 
   const onJoin = () => {
     setShow('active-call');

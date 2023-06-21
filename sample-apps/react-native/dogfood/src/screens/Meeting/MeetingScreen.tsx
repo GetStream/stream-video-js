@@ -20,10 +20,12 @@ export const MeetingScreen = (props: Props) => {
   const {
     params: { callId },
   } = route;
-  const call = useMemo<Call | undefined>(
-    () => (client ? client.call(callType, callId) : undefined),
-    [callId, callType, client],
-  );
+  const call = useMemo<Call | undefined>(() => {
+    if (!client) {
+      return undefined;
+    }
+    return client.call(callType, callId);
+  }, [callId, callType, client]);
 
   const onJoin = () => {
     setShow('active-call');
