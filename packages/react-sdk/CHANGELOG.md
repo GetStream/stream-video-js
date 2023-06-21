@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.42](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.41...@stream-io/video-react-sdk-0.0.42) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.22`
+
+### Documentation
+
+* **react-sdk:** update audio rooms tutorial ([#659](https://github.com/GetStream/stream-video-js/issues/659)) ([11f2e80](https://github.com/GetStream/stream-video-js/commit/11f2e8090811fbd8478724b3d2c2c8af3b19a0c5))
+
 ### [0.0.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.40...@stream-io/video-react-sdk-0.0.41) (2023-06-21)
 
 ### Dependency Updates
