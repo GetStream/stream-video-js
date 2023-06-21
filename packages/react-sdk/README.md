@@ -1,5 +1,7 @@
 # Official React SDK for [Stream Video](https://getstream.io/video/docs/)
 
+<img src="../../.readme-assets/Github-Graphic-React.jpg" alt="Stream Video for React Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
+
 ## **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
