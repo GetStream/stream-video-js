@@ -2,6 +2,7 @@ import { AndroidImportance } from '@notifee/react-native';
 import { defaultEmojiReactions } from '../../constants';
 import { setupCallkeep, setupFirebaseHandlerAndroid } from '../push/utils';
 import { StreamVideoConfig } from './types';
+import { isCameraPermissionGranted$ } from './rxSubjects';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   supportedReactions: defaultEmojiReactions,
@@ -59,6 +60,9 @@ export class StreamVideoRN {
     // After getting the config we should setup callkeep and firebase handler asap to handle incoming calls from a dead state
     setupCallkeep(pushConfig);
     setupFirebaseHandlerAndroid(pushConfig);
+  }
+  static setCameraPermissions(permission: boolean) {
+    isCameraPermissionGranted$.next(permission);
   }
 
   static getConfig() {

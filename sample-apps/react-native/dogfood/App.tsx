@@ -25,6 +25,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
+import { PermissionsAndroid } from 'react-native';
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -42,6 +44,28 @@ const StackNavigator = () => {
   const setState = useAppGlobalStoreSetState();
 
   useProntoLinkEffect();
+  useEffect(() => {
+    // taking care of all permissions at once before video related
+    // components are mounted
+    // TODO: ask with RN permissions
+    (async () => {
+      const results = await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+      ]);
+      console.log(
+        'results[PermissionsAndroid.PERMISSIONS.CAMERA]',
+        results[PermissionsAndroid.PERMISSIONS.CAMERA],
+      );
+
+      StreamVideoRN.setCameraPermissions(
+        results[PermissionsAndroid.PERMISSIONS.CAMERA] ===
+          PermissionsAndroid.RESULTS.GRANTED,
+      );
+    })();
+  }, []);
 
   let mode;
   switch (appMode) {

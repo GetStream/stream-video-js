@@ -76,11 +76,8 @@ export const useAndroidKeepCallAliveEffect = () => {
           return;
         }
         // request for notification permission and then start the foreground service
-        const settings = await notifee.requestPermission();
-        if (settings.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
-          await startForegroundService();
-          foregroundServiceStartedRef.current = true;
-        }
+        await startForegroundService();
+        foregroundServiceStartedRef.current = true;
       };
       run();
       return () => {
