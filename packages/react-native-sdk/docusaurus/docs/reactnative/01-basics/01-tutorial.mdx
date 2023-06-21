@@ -241,10 +241,10 @@ const MeetingScreen = () => {
 
 ### Providing and creating call
 
-Our `StreamCall` component internally serves the purpose of creating the call for the given call id and call type. We can use it and wrap it to the screen/component where the call should be available.
+We will create the call using the `client.call` method and pass it to the `StreamCall` component, that will provide the call to its children and all other SDK components.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { StreamVideo, StreamCall } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -258,12 +258,18 @@ const MeetingScreen = (props: Props) => {
   const {
     params: { callId, callType },
   } = route;
+  const call = useMemo<Call | undefined>(
+    () => (videoClient ? videoClient.call(callType, callId) : undefined),
+    [callId, callType, videoClient],
+  );
+
+  if (!call) {
+    return;
+  }
 
   return (
     <StreamVideo client={videoClient}>
-      <StreamCall callId={callId} callType={callType}>
-        {children}
-      </StreamCall>
+      <StreamCall call={call}>{children}</StreamCall>
     </StreamVideo>
   );
 };
@@ -271,7 +277,7 @@ const MeetingScreen = (props: Props) => {
 
 ### Adding call cycle handlers
 
-`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` and `onCallJoining` handlers (among other handlers) to deal with transitions between the call states.
+`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` handlers (among other handlers) to deal with transitions between the call states.
 These handlers can be used to perform preparation/teardown tasks or navigation between screens.
 
 An example can be seen below:
@@ -284,11 +290,11 @@ import { NavigationStackParamsList } from '../types';
 type Props = NativeStackScreenProps<NavigationStackParamsList, 'MeetingScreen'>;
 
 const MeetingScreen = (props: Props) => {
-  const [show, setShow] = useState<
-    'lobby' | 'loading' | 'active-call'
-  >('lobby');
-
+  const [show, setShow] = useState<'lobby' | 'loading' | 'active-call'>(
+    'lobby',
+  );
   ...
+
   const { navigation, route } = props;
   const {
     callParams: { callId, callType },
@@ -304,18 +310,12 @@ const MeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  const onJoining = () => {
-    setShow('loading');
-  };
-
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        callId={callId}
-        callType={callType}
+        call={call}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >
@@ -334,10 +334,7 @@ in the Screen/View.
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
 import { ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
-import {
-  LobbyView,
-  ActiveCall,
-} from '@stream-io/video-react-native-sdk';
+import { LobbyView, ActiveCall } from '@stream-io/video-react-native-sdk';
 
 export const MeetingScreen = () => {
   const [show, setShow] = useState<'lobby' | 'loading' | 'active-call'>(
@@ -348,12 +345,6 @@ export const MeetingScreen = () => {
 
   if (show === 'lobby') {
     ComponentToRender = <LobbyView />;
-  } else if (show === 'loading') {
-    ComponentToRender = (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-      </SafeAreaView>
-    );
   } else {
     ComponentToRender = <ActiveCall />;
   }
@@ -361,11 +352,9 @@ export const MeetingScreen = () => {
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        callId={callId}
-        callType={callType}
+        call={call}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >

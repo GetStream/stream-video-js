@@ -37,7 +37,6 @@ export const ChooseAppModeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    display: 'flex',
     justifyContent: 'space-evenly',
     backgroundColor: appTheme.colors.static_grey,
     padding: appTheme.spacing.lg,

@@ -1,44 +1,10 @@
-import {
-  StreamCallProvider,
-  useStreamVideoClient,
-} from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren, useEffect, useState } from 'react';
-import { Call, CallingState } from '@stream-io/video-client';
+import { StreamCallProvider } from '@stream-io/video-react-bindings';
+import React, { PropsWithChildren } from 'react';
+import { Call } from '@stream-io/video-client';
 import { useAndroidKeepCallAliveEffect, useCallCycleEffect } from '../hooks';
 
-type InitWithCallCID = {
-  /**
-   * The call type.
-   */
-  callType: string;
-  /**
-   * The call id.
-   */
-  callId: string;
-  /**
-   * The call instance to use.
-   */
-  call?: Call;
-};
-
-type InitWithCallInstance = {
-  /**
-   * The call instance to use.
-   */
-  call: Call | undefined;
-  /**
-   * The call type.
-   */
-  callType?: string;
-  /**
-   * The call id.
-   */
-  callId?: string;
-};
-
-type InitStreamCall = InitWithCallCID | InitWithCallInstance;
-
-export type StreamCallProps = InitStreamCall & {
+export type StreamCallProps = {
+  call: Call;
   callCycleHandlers: CallCycleHandlersType;
 };
 /**
@@ -49,45 +15,12 @@ export type StreamCallProps = InitStreamCall & {
  * @category Client State
  */
 export const StreamCall = ({
-  callId,
-  callType = 'default',
   call,
   callCycleHandlers = {},
   children,
 }: PropsWithChildren<StreamCallProps>) => {
-  const videoClient = useStreamVideoClient();
-  const [activeCall, setActiveCall] = useState<Call | undefined>(() => {
-    if (call) {
-      return call;
-    }
-    if (!videoClient || !callId || !callType) {
-      return;
-    }
-    return videoClient?.call(callType, callId);
-  });
-
-  // Effect to create a new call with the given call id and type if the call doesn't exist
-  useEffect(() => {
-    if (!videoClient) {
-      return;
-    }
-
-    if (callId && callType && !activeCall) {
-      const newCall = videoClient.call(callType, callId);
-      setActiveCall(newCall);
-    }
-
-    return () => {
-      if (activeCall?.state.callingState === CallingState.LEFT) {
-        return;
-      }
-      activeCall?.leave().catch((e) => console.log(e));
-      setActiveCall(undefined);
-    };
-  }, [activeCall, callId, callType, videoClient]);
-
   return (
-    <StreamCallProvider call={activeCall}>
+    <StreamCallProvider call={call}>
       <KeepCallAliveAndroid />
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
         {children}

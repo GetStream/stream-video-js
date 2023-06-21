@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { StreamCall } from '@stream-io/video-react-native-sdk';
+import {
+  Call,
+  StreamCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
@@ -11,10 +15,15 @@ export const MeetingScreen = (props: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const { navigation, route } = props;
   const appStoreSetState = useAppGlobalStoreSetState();
-
+  const client = useStreamVideoClient();
+  const callType = 'default';
   const {
     params: { callId },
   } = route;
+  const call = useMemo<Call | undefined>(
+    () => (client ? client.call(callType, callId) : undefined),
+    [callId, callType, client],
+  );
 
   const onJoin = () => {
     setShow('active-call');
@@ -26,10 +35,13 @@ export const MeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
+  if (!call) {
+    return;
+  }
+
   return (
     <StreamCall
-      callId={callId}
-      callType={'default'}
+      call={call}
       callCycleHandlers={{
         onCallJoined: onJoin,
         onCallHungUp: onLeave,

@@ -147,7 +147,6 @@ export const Calls = () => {
 These handlers can be used to perform preparation/teardown tasks or navigation between screens.
 
 - `onCallJoined` callback that is called after the user joins the call.
-- `onCallJoining` callback that is called when the call is in a joining state.
 - `onCallHungUp` callback that is called after the user hangs up the call.
 - `onCallIncoming` callback that is called when a callee receives an incoming call.
 - `onCallOutgoing` callback that is called after a caller creates an outgoing call.
@@ -177,10 +176,6 @@ export const Calls = () => {
     setShow('outgoing');
   }, [setShow]);
 
-  const onCallJoining = useCallback(() => {
-    setShow('joining');
-  }, [setShow]);
-
   const onCallHungUp = useCallback(() => {
     setShow('none');
   }, [setShow]);
@@ -196,7 +191,6 @@ export const Calls = () => {
       onCallOutgoing,
       onCallHungUp,
       onCallRejected,
-      onCallJoining,
     };
   }, [
     onCallJoined,
@@ -204,7 +198,6 @@ export const Calls = () => {
     onCallOutgoing,
     onCallHungUp,
     onCallRejected,
-    onCallJoining,
   ]);
 
   return (
