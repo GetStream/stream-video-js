@@ -2,7 +2,10 @@ import { AndroidImportance } from '@notifee/react-native';
 import { defaultEmojiReactions } from '../../constants';
 import { setupCallkeep, setupFirebaseHandlerAndroid } from '../push/utils';
 import { StreamVideoConfig } from './types';
-import { isCameraPermissionGranted$ } from './rxSubjects';
+import {
+  isCameraPermissionGranted$,
+  isMicPermissionGranted$,
+} from './rxSubjects';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   supportedReactions: defaultEmojiReactions,
@@ -61,9 +64,22 @@ export class StreamVideoRN {
     setupCallkeep(pushConfig);
     setupFirebaseHandlerAndroid(pushConfig);
   }
-  static setCameraPermissions(permission: boolean) {
-    console.log('setCameraPermissions$', permission);
-    isCameraPermissionGranted$.next(permission);
+
+  /**
+   * Set native permissions config for StreamVideoRN.
+   * Note: This function should be called after the user has declined/granted camera and mic permissions.
+   * @example
+   * See sample-apps/react-native/dogfood/src/App.tsx
+   */
+  static setPermissions({
+    isCameraPermissionGranted,
+    isMicPermissionGranted,
+  }: {
+    isCameraPermissionGranted: boolean;
+    isMicPermissionGranted: boolean;
+  }) {
+    isCameraPermissionGranted$.next(isCameraPermissionGranted);
+    isMicPermissionGranted$.next(isMicPermissionGranted);
   }
 
   static getConfig() {
