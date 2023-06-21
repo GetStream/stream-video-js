@@ -1,7 +1,14 @@
 import { useEffect } from 'react';
 import { useAppStateListener } from 'stream-chat-react-native';
-import { PermissionsAndroid, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+import {
+  checkMultiple,
+  PERMISSIONS,
+  PermissionStatus,
+  requestMultiple,
+  RESULTS,
+} from 'react-native-permissions';
 
 /**
  * This hook is used to sync the permissions of the app with the Stream Video SDK.
@@ -17,38 +24,61 @@ export const useSyncPermissions = () => {
 };
 
 const checkAndUpdatePermissions = async () => {
-  // TODO(SG): ask with RN permissions
   if (Platform.OS === 'ios') {
-    StreamVideoRN.setPermissions({
-      isCameraPermissionGranted: true,
-      isMicPermissionGranted: true,
-    });
+    const results = await requestMultiple([
+      PERMISSIONS.IOS.CAMERA,
+      PERMISSIONS.IOS.MICROPHONE,
+    ]);
+    iOSProcessResultsAndSetToConfig(results);
     return;
+  } else if (Platform.OS === 'android') {
+    const results = await requestMultiple([
+      PERMISSIONS.ANDROID.CAMERA,
+      PERMISSIONS.ANDROID.RECORD_AUDIO,
+      PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+      PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
+    ]);
+    androidProcessResultsAndSetToConfig(results);
   }
-  const results = await PermissionsAndroid.requestMultiple([
-    PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-    PermissionsAndroid.PERMISSIONS.CAMERA,
-    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
-  ]);
-  StreamVideoRN.setPermissions({
-    isCameraPermissionGranted:
-      results[PermissionsAndroid.PERMISSIONS.CAMERA] ===
-      PermissionsAndroid.RESULTS.GRANTED,
-    isMicPermissionGranted:
-      results[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO] ===
-      PermissionsAndroid.RESULTS.GRANTED,
-  });
 };
 const handleOnForeground = async () => {
-  const isCameraPermissionGranted = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.CAMERA,
-  );
-  const isMicPermissionGranted = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-  );
-  StreamVideoRN.setPermissions({
-    isCameraPermissionGranted,
-    isMicPermissionGranted,
-  });
+  if (Platform.OS === 'ios') {
+    const results = await checkMultiple([
+      PERMISSIONS.IOS.CAMERA,
+      PERMISSIONS.IOS.MICROPHONE,
+    ]);
+    iOSProcessResultsAndSetToConfig(results);
+  } else if (Platform.OS === 'android') {
+    const results = await checkMultiple([
+      PERMISSIONS.ANDROID.CAMERA,
+      PERMISSIONS.ANDROID.RECORD_AUDIO,
+    ]);
+    androidProcessResultsAndSetToConfig(results);
+  }
 };
+
+const androidProcessResultsAndSetToConfig = (
+  results: Record<
+    'android.permission.CAMERA' | 'android.permission.RECORD_AUDIO',
+    PermissionStatus
+  >,
+) =>
+  StreamVideoRN.setPermissions({
+    isCameraPermissionGranted:
+      results[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED,
+    isMicPermissionGranted:
+      results[PERMISSIONS.ANDROID.RECORD_AUDIO] === RESULTS.GRANTED,
+  });
+
+const iOSProcessResultsAndSetToConfig = (
+  results: Record<
+    'ios.permission.CAMERA' | 'ios.permission.MICROPHONE',
+    PermissionStatus
+  >,
+) =>
+  StreamVideoRN.setPermissions({
+    isCameraPermissionGranted:
+      results[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED,
+    isMicPermissionGranted:
+      results[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED,
+  });
