@@ -27,6 +27,7 @@ import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { PermissionsAndroid } from 'react-native';
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+import { useAppStateListener } from 'stream-chat-react-native';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -43,8 +44,21 @@ const StackNavigator = () => {
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const setState = useAppGlobalStoreSetState();
 
+  useAppStateListener(
+    () => {
+      console.log('foreground');
+      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
+        StreamVideoRN.setCameraPermissions,
+      );
+    },
+    () => {
+      console.log('background');
+    },
+  );
+
   useProntoLinkEffect();
   useEffect(() => {
+    console.log('useEffect');
     // taking care of all permissions at once before video related
     // components are mounted
     // TODO: ask with RN permissions

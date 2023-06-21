@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getAudioDevices, getVideoDevices } from '@stream-io/video-client';
 import { MediaDeviceInfo, useStreamVideoStoreSetState } from '../contexts';
 import { isCameraPermissionGranted$ } from '../utils/StreamVideoRN/rxSubjects';
-import { switchMap } from 'rxjs/operators';
-import { BehaviorSubject, EMPTY } from 'rxjs';
+import { switchMap, concatMap, mergeMap } from 'rxjs/operators';
+import { of, EMPTY } from 'rxjs';
 
 /**
  * A renderless component that provides the audio and video devices to the store
@@ -26,12 +26,9 @@ export const MediaDevices = (): React.ReactElement | null => {
   }, [setState]);
 
   useEffect(() => {
-    const setVideoDevices = (videoDevices: MediaDeviceInfo[] | boolean) => {
-      console.log('*****\nvideoDevices', videoDevices);
-      if (typeof videoDevices === 'boolean') {
-        return;
-      }
-
+    console.log('MediaDevices useEffect');
+    const setVideoDevices = (videoDevices: MediaDeviceInfo[]) => {
+      console.log('setVideoDevices', videoDevices);
       if (videoDevices.length > 0 && !initialVideoDeviceSet.current) {
         const frontFacingVideoDevice = videoDevices.find(
           (videoDevice) =>
@@ -49,20 +46,29 @@ export const MediaDevices = (): React.ReactElement | null => {
 
     const subscription = isCameraPermissionGranted$
       .pipe(
-        switchMap((isCameraPermissionsGranted) => {
+        concatMap((isCameraPermissionsGranted) => {
           // if we don't have camera permission, we don't need to get the video devices
           // because we won't be able to use them anyway and this will trigger a permission request
           // from RN WebRTC lib. This is not ideal because we want to control when the permission.
           if (!isCameraPermissionsGranted) {
             // otherwise return EMPTY, which is an Observable that does nothing and just completes immediately
             console.log('returning empty');
-            return new BehaviorSubject(false);
+            return EMPTY;
           }
           console.log('returning getVideoDevices()');
           return getVideoDevices();
         }),
       )
       .subscribe(setVideoDevices);
+
+    // const subscription = isCameraPermissionGranted$.subscribe(
+    //   (isCameraPermissionsGranted) => {
+    //     if (isCameraPermissionsGranted) {
+    //       console.log('isCameraPermissionsGranted');
+    //       getVideoDevices().subscribe(setVideoDevices);
+    //     }
+    //   },
+    // );
 
     return () => subscription.unsubscribe();
   }, [setState]);

@@ -62,6 +62,7 @@ export class StreamVideoRN {
     setupFirebaseHandlerAndroid(pushConfig);
   }
   static setCameraPermissions(permission: boolean) {
+    console.log('setCameraPermissions$', permission);
     isCameraPermissionGranted$.next(permission);
   }
 
