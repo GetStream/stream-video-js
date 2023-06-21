@@ -1,25 +1,57 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { CloseIcon } from './icons';
-import { useLayoutController, useLoadedCalls } from '../contexts';
+import { CALL_TYPE, useUserContext } from '../contexts';
 
-type RoomFormProps = {
+type CreateCallParams = {
+  title: string;
+  description: string;
+};
+
+type CreateRoomModalProps = {
   close: () => void;
 };
-const CreateRoomForm = ({ close }: RoomFormProps) => {
-  const { createCall } = useLoadedCalls();
-  const { toggleShowCreateRoomModal } = useLayoutController();
+
+export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
+  const navigate = useNavigate();
+  const { user } = useUserContext();
+  const client = useStreamVideoClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const createButtonClicked: MouseEventHandler = useCallback(
+  const createRoom = useCallback(
+    async (params: CreateCallParams) => {
+      if (!(client && user)) return;
+      const randomId = Math.random().toString(36).substring(2, 12);
+      const call = client.call(CALL_TYPE, randomId);
+      await call.getOrCreate({
+        data: {
+          members: [{ user_id: user.id, role: 'admin' }],
+          custom: {
+            title: params.title,
+            description: params.description,
+            hosts: [user],
+          },
+        },
+      });
+      return call;
+    },
+    [client, user],
+  );
+
+  const handleSubmit: MouseEventHandler = useCallback(
     async (event) => {
       event.preventDefault();
-      await createCall({ description, title });
+      const room = await createRoom({ description, title });
+      if (!room) return;
+
       setTitle('');
       setDescription('');
-      toggleShowCreateRoomModal();
+      close();
+      navigate(`/rooms/join/${room.id}`);
     },
-    [createCall, toggleShowCreateRoomModal, title, description],
+    [createRoom, navigate, close, title, description],
   );
 
   return (
@@ -50,7 +82,7 @@ const CreateRoomForm = ({ close }: RoomFormProps) => {
             type="submit"
             disabled={!(title && description)}
             className="create-button"
-            onClick={(event) => createButtonClicked(event)}
+            onClick={handleSubmit}
           >
             Create
           </button>
@@ -59,5 +91,3 @@ const CreateRoomForm = ({ close }: RoomFormProps) => {
     </div>
   );
 };
-
-export default CreateRoomForm;

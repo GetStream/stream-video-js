@@ -70,6 +70,13 @@
   font-weight: bold;
 }
 
+.room-listing__load-more-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-block: 2rem 3.5rem;
+}
+
 @media screen and (max-width: 800px) {
   .active-room .rooms-overview {
     width: 100%;

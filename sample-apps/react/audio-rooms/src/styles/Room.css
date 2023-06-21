@@ -41,6 +41,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  padding: 1rem;
+  text-align: center;
   border-radius: inherit;
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(2px);
@@ -94,7 +96,7 @@
   font-size: smaller;
 }
 
-.room-nav-controls {
+.room-access-controls {
   width: 100%;
   bottom: 0;
   display: flex;
@@ -102,7 +104,7 @@
   align-items: center;
 }
 
-.leave-button {
+.room-access-controls-button {
   padding: 0.6rem 1.2rem;
   background: var(--prominent-color-light);
   transition: all ease-in-out 200ms;
@@ -111,12 +113,12 @@
   gap: 0.5rem;
 }
 
-.leave-button svg {
+.room-access-controls-button svg {
   width: 1rem;
   height: 1rem;
 }
 
-.leave-button:hover {
+.room-access-controls-button:hover {
   background: var(--prominent-color);
   color: white;
 }
@@ -296,9 +298,24 @@
 }
 
 .live-room-controls {
+  position: relative;
   display: flex;
   gap: 0.5rem;
 }
+
+
+.live-room-controls__notificaton {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.25rem);
+  white-space: nowrap;
+  background: black;
+  color: white;
+  padding: 0.375rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
 
 .speaking-request-buttons {
   display: flex;

@@ -8,7 +8,7 @@ import {
 
 import { Login, Room, RoomList } from './pages';
 import { AppShell } from './components/AppShell';
-import { getSelectedUser, UserContextProvider } from './contexts/UserContext';
+import { getSelectedUser, UserContextProvider } from './contexts';
 
 const Root = () => <Outlet />;
 
@@ -33,6 +33,7 @@ const router = createBrowserRouter([
         Component: AppShell,
         children: [
           { index: true, Component: RoomList },
+          { path: ':roomState', Component: RoomList },
           {
             path: 'join/:roomId',
             Component: Room,

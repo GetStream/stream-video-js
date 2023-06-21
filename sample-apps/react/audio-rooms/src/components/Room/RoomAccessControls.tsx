@@ -1,24 +1,35 @@
 import {
   CallingState,
+  ChildrenOnly,
   OwnCapability,
   Restricted,
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useIsCallLive,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { CloseInactiveRoomButton } from './CloseInactiveRoomButton';
-import { useLoadedCalls } from '../../contexts';
+import { useNavigate } from 'react-router-dom';
+import { useJoinedCall } from '../../contexts';
 
-export const RoomNavControls = () => {
-  const { setJoinedCall, joinedCall } = useLoadedCalls();
+export const RoomAccessControls = () => {
+  const { setInitialAudioEnabled } = useMediaDevices();
+  const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
+  const metadata = useCallMetadata();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
-  if (!call || (callingState !== CallingState.JOINED && isLive)) return null;
+  if (
+    !call ||
+    // The controls will not be shown. Instead, a lobby overlay will be presented.
+    (callingState !== CallingState.JOINED && isLive) ||
+    !!metadata?.ended_at
+  )
+    return null;
 
   return (
-    <div className="room-nav-controls">
+    <div className="room-access-controls">
       {!isLive ? (
         <>
           <CloseInactiveRoomButton>Back to overview</CloseInactiveRoomButton>
@@ -27,12 +38,13 @@ export const RoomNavControls = () => {
             hasPermissionsOnly
           >
             <button
-              className="leave-button"
+              className="room-access-controls-button"
               onClick={async () => {
                 if (joinedCall) {
                   await joinedCall.leave().catch((err) => {
                     console.error('Error leaving call', err);
                   });
+                  setInitialAudioEnabled(false);
                 }
                 await call.goLive();
                 await call.join();
@@ -50,7 +62,7 @@ export const RoomNavControls = () => {
             hasPermissionsOnly
           >
             <button
-              className="leave-button"
+              className="room-access-controls-button"
               onClick={async () => {
                 await call.stopLive();
                 await call.endCall();
@@ -61,11 +73,12 @@ export const RoomNavControls = () => {
             </button>
           </Restricted>
           <button
-            className="leave-button"
+            className="room-access-controls-button"
             onClick={async () => {
               await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
+              setInitialAudioEnabled(false);
               setJoinedCall(undefined);
             }}
           >
@@ -74,5 +87,17 @@ export const RoomNavControls = () => {
         </>
       )}
     </div>
+  );
+};
+
+export const CloseInactiveRoomButton = ({ children }: ChildrenOnly) => {
+  const navigate = useNavigate();
+  return (
+    <button
+      className="room-access-controls-button"
+      onClick={async () => navigate('/rooms')}
+    >
+      {children}
+    </button>
   );
 };
