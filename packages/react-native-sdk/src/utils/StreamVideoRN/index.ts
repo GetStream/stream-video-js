@@ -5,7 +5,7 @@ import { StreamVideoConfig } from './types';
 import {
   isCameraPermissionGranted$,
   isMicPermissionGranted$,
-} from './rxSubjects';
+} from './permissions';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   supportedReactions: defaultEmojiReactions,
@@ -69,7 +69,7 @@ export class StreamVideoRN {
    * Set native permissions config for StreamVideoRN.
    * Note: This function should be called after the user has declined/granted camera and mic permissions.
    * @example
-   * See sample-apps/react-native/dogfood/src/App.tsx
+   * See sample-apps/react-native/dogfood/src/hooks/useSyncPermissions.ts
    */
   static setPermissions({
     isCameraPermissionGranted,
