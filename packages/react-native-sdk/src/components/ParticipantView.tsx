@@ -16,6 +16,7 @@ import { palette } from '../theme/constants';
 import { ParticipantReaction } from './ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
 import { NetworkQualityIndicator } from './NetworkQualityIndicator';
+import { Z_INDEX } from '../constants';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -78,7 +79,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
    * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
    */
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      return;
+    }
     if (isVisible) {
       if (participant.viewportVisibilityState !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(participant.sessionId, (p) => ({
@@ -114,7 +117,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   useEffect(() => {
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
     const updateIsNeeded = pendingVideoLayoutRef.current;
-    if (!updateIsNeeded || !call || !isPublishingVideoTrack) return;
+    if (!updateIsNeeded || !call || !isPublishingVideoTrack) {
+      return;
+    }
 
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
@@ -216,7 +221,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       </View>
       {canShowVideo ? (
         <VideoRenderer
-          zOrder={1}
+          zOrder={Z_INDEX.IN_BACK}
           mirror={mirror}
           mediaStream={videoStream as MediaStream}
           objectFit={isScreenSharing ? 'contain' : 'cover'}
@@ -270,7 +275,7 @@ const styles = StyleSheet.create({
   },
   topView: {
     alignSelf: 'flex-end',
-    zIndex: 10,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   videoRenderer: {
     ...StyleSheet.absoluteFillObject,

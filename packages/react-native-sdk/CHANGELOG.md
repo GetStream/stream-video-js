@@ -2,6 +2,53 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.193](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.192...@stream-io/video-react-native-sdk-0.0.1-alpha.193) (2023-06-21)
+
+
+
+## [0.0.1-alpha.192](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.191...@stream-io/video-react-native-sdk-0.0.1-alpha.192) (2023-06-21)
+
+
+### Bug Fixes
+
+* **react-native:** toggle camera bug and simplify the logic ([#685](https://github.com/GetStream/stream-video-js/issues/685)) ([048c91e](https://github.com/GetStream/stream-video-js/commit/048c91e9e78c305014c737f45f78f2e5a688f161))
+
+
+
+## [0.0.1-alpha.191](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.190...@stream-io/video-react-native-sdk-0.0.1-alpha.191) (2023-06-21)
+
+
+
+## [0.0.1-alpha.190](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.189...@stream-io/video-react-native-sdk-0.0.1-alpha.190) (2023-06-21)
+
+
+
+## [0.0.1-alpha.189](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.188...@stream-io/video-react-native-sdk-0.0.1-alpha.189) (2023-06-21)
+
+
+### Bug Fixes
+
+* proper media stream disposal for rn webrtc ([#682](https://github.com/GetStream/stream-video-js/issues/682)) ([8879bac](https://github.com/GetStream/stream-video-js/commit/8879bac82080232928b78316fdb452bbc3c79fbc))
+
+
+
+## [0.0.1-alpha.188](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.187...@stream-io/video-react-native-sdk-0.0.1-alpha.188) (2023-06-20)
+
+
+
+## [0.0.1-alpha.187](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.186...@stream-io/video-react-native-sdk-0.0.1-alpha.187) (2023-06-20)
+
+
+### Features
+
+* DF cosmetic tweaks and invite feat ([#681](https://github.com/GetStream/stream-video-js/issues/681)) ([77ec0af](https://github.com/GetStream/stream-video-js/commit/77ec0af5cc7d84d18ae01774c2549c5955b477cb))
+
+
+
+## [0.0.1-alpha.186](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.185...@stream-io/video-react-native-sdk-0.0.1-alpha.186) (2023-06-20)
+
+
+
 ## [0.0.1-alpha.185](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.184...@stream-io/video-react-native-sdk-0.0.1-alpha.185) (2023-06-20)
 
 
