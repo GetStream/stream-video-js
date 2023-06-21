@@ -1,4 +1,5 @@
-import { CSSProperties, useState } from 'react';
+import { ComponentProps, CSSProperties, useState } from 'react';
+import clsx from 'clsx';
 
 export type AvatarData = {
   imageSrc?: string;
@@ -6,23 +7,30 @@ export type AvatarData = {
   style?: CSSProperties & Record<string, string | number>;
 };
 
-export type AvatarProps = AvatarData;
+export type AvatarProps = AvatarData & ComponentProps<'img'>;
 
-export const Avatar = ({ imageSrc, name, style }: AvatarProps) => {
+export const Avatar = ({
+  imageSrc,
+  name,
+  style,
+  className,
+  ...rest
+}: AvatarProps) => {
   const [error, setError] = useState(false);
 
   return (
     <>
       {(!imageSrc || error) && name && (
-        <AvatarFallback style={style} names={[name]} />
+        <AvatarFallback className={className} style={style} names={[name]} />
       )}
       {imageSrc && !error && (
         <img
           onError={() => setError(true)}
           alt="avatar"
-          className="str-video__avatar"
+          className={clsx('str-video__avatar', className)}
           src={imageSrc}
           style={style}
+          {...rest}
         />
       )}
     </>
@@ -31,11 +39,19 @@ export const Avatar = ({ imageSrc, name, style }: AvatarProps) => {
 
 type AvatarFallbackProps = {
   names: string[];
+  className?: string;
   style?: CSSProperties & Record<string, string | number>;
 };
-export const AvatarFallback = ({ names, style }: AvatarFallbackProps) => {
+export const AvatarFallback = ({
+  className,
+  names,
+  style,
+}: AvatarFallbackProps) => {
   return (
-    <div className="str-video__avatar--initials-fallback" style={style}>
+    <div
+      className={clsx('str-video__avatar--initials-fallback', className)}
+      style={style}
+    >
       <div>
         {names[0][0]}
         {names[1]?.[0]}

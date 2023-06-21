@@ -8,7 +8,8 @@ import {
 
 import { Login, Room, RoomList } from './pages';
 import { AppShell } from './components/AppShell';
-import { getSelectedUser, UserContextProvider } from './contexts';
+import { UserContextProvider } from './contexts';
+import { getSelectedUser } from './utils/user';
 
 const Root = () => <Outlet />;
 

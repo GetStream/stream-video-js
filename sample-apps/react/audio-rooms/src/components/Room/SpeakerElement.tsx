@@ -1,5 +1,6 @@
 import {
   Audio,
+  Avatar,
   OwnCapability,
   SfuModels,
   StreamVideoLocalParticipant,
@@ -27,17 +28,18 @@ export const SpeakerElement = ({
     SfuModels.TrackType.AUDIO,
   );
   const isSpeakerHost = hosts.find((host) => host.id === speaker.userId);
-
+  const displayName = speaker.name || speaker.userId;
   return (
     <div className="speaker-container">
       <Audio muted={!isAudioEnabled} audioStream={speaker.audioStream}></Audio>
       <div className="speaker-image-container">
-        <img
+        <Avatar
           className={`speaker-image ${
             speaker.isSpeaking ? 'speaking-indicator' : ''
           }`}
+          name={displayName}
           src={speaker.image}
-          alt={`Profile of ${speaker.name}`}
+          alt={displayName}
         />
         <div className="speaker-container__controls">
           {!isSpeakerHost && canMuteUsers && (
@@ -69,7 +71,7 @@ export const SpeakerElement = ({
 
       <div className="speaker-name">
         <StarIcon />
-        <span>{speaker.name}</span>
+        <span>{displayName}</span>
       </div>
     </div>
   );
