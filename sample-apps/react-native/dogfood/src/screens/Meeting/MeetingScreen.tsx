@@ -38,7 +38,7 @@ export const MeetingScreen = (props: Props) => {
   };
 
   if (!call) {
-    return;
+    return null;
   }
 
   return (
