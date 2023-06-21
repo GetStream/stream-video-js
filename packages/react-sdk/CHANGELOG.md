@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.44...@stream-io/video-react-sdk-0.0.45) (2023-06-21)
+
+
+### Features
+
+* **react sdk:** prefer URL credentials in audio rooms demo app ([#678](https://github.com/GetStream/stream-video-js/issues/678)) ([f9ac52f](https://github.com/GetStream/stream-video-js/commit/f9ac52ff5afa10e6a10e97177dd2fb7e8a4c2e48))
+
 ### [0.0.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.43...@stream-io/video-react-sdk-0.0.44) (2023-06-21)
 
 
