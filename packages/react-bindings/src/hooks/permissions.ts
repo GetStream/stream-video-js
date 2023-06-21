@@ -3,7 +3,7 @@ import { useCallState } from './store';
 import { useObservableValue } from './helpers/useObservableValue';
 
 /**
- * Hook that returns true if the current user has all the given permissions.
+ * Hook that returns true if the local participant has all the given permissions.
  *
  * @param permissions the permissions to check.
  *
@@ -15,7 +15,7 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
 };
 
 /**
- * A hook which returns the current user's own capabilities.
+ * A hook which returns the local participant's own capabilities.
  *
  * @category Call State
  */

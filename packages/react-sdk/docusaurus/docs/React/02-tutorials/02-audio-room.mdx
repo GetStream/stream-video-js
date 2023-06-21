@@ -65,7 +65,7 @@ Routing in the app is done by using 3rd party library [react-router-dom](https:/
 
 ### User Authentication
 
-The first important step is to initialize the Stream client. Therefore, we need an API key and a token provider.
+The first important step is to initialize the Stream Video client. Therefore, we need an API key and a token provider.
 
 :::tip
 Want to learn why we need the token provider and how it works? See [the authentication guide](../../guides/client-auth/#streamvideo-context-provider) for more detail.
@@ -276,15 +276,6 @@ import { CALL_TYPE } from '../../contexts';
 // omitted imports
 import { RoomLiveState } from '../../utils/roomLiveState';
 
-const QUERY_CALLS_PARAMS: QueryCallsRequest = {
-  // sort in descending order by `created_at` field
-  sort: [{ direction: -1, field: 'created_at' }],
-  // max 10 items per query
-  limit: 10,
-  // subscribe to receive WS events for every call object queried
-  watch: true,
-};
-
 const CALL_TYPE_FILTER = { type: CALL_TYPE };
 
 const BY_ROOM_STATE_FILTER: Record<
@@ -316,7 +307,12 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
   const loadCalls = useCallback(async () => {
     if (!client) return;
     const result = await client.queryCalls({
-      ...QUERY_CALLS_PARAMS,
+      // sort in descending order by `created_at` field
+      sort: [{ direction: -1, field: 'created_at' }],
+      // max 10 items per query
+      limit: 10,
+      // subscribe to receive WS events for every call object queried
+      watch: true,
       // highlight-next-line
       filter_conditions: BY_ROOM_STATE_FILTER[liveState],
       // highlight-start
