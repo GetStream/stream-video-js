@@ -609,6 +609,18 @@ export class CallState {
   };
 
   /**
+   * Returns a new lookup table of participants indexed by their session ID.
+   */
+  getParticipantLookupBySessionId = () => {
+    return this.participants.reduce<{
+      [sessionId: string]: StreamVideoParticipant | StreamVideoLocalParticipant;
+    }>((lookupTable, participant) => {
+      lookupTable[participant.sessionId] = participant;
+      return lookupTable;
+    }, {});
+  };
+
+  /**
    * Updates a participant in the current call identified by the given `sessionId`.
    * If the participant can't be found, this operation is no-op.
    *

@@ -884,11 +884,36 @@ export class Call {
         ? Timestamp.toDate(callState.startedAt)
         : new Date();
       this.state.setParticipants(
-        currentParticipants.map<StreamVideoParticipant>((participant) => ({
-          ...participant,
-          isLocalParticipant: participant.sessionId === sfuClient.sessionId,
-          viewportVisibilityState: VisibilityState.UNKNOWN,
-        })),
+        currentParticipants.map<StreamVideoParticipant>((participant) => {
+          const baseParticipant: Partial<StreamVideoParticipant> = {};
+          if (isMigrating) {
+            // When migrating, we need to preserve some of the local state
+            // of the participant (e.g. videoDimension, pinnedAt, etc.)
+            // as it doesn't exist on the server.
+            // Note: MediaStream shouldn't be preserved as we are going to
+            // get a new one from the new SFU.
+            const participants = this.state.getParticipantLookupBySessionId();
+            const existingParticipant = participants[participant.sessionId];
+            if (existingParticipant) {
+              const {
+                videoDimension,
+                screenShareDimension,
+                pinnedAt,
+                reaction,
+              } = existingParticipant;
+              baseParticipant.videoDimension = videoDimension;
+              baseParticipant.screenShareDimension = screenShareDimension;
+              baseParticipant.pinnedAt = pinnedAt;
+              baseParticipant.reaction = reaction;
+            }
+          }
+          return {
+            ...baseParticipant,
+            ...participant,
+            isLocalParticipant: participant.sessionId === sfuClient.sessionId,
+            viewportVisibilityState: VisibilityState.UNKNOWN,
+          };
+        }),
       );
       this.state.setParticipantCount(participantCount?.total || 0);
       this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
