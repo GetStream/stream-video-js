@@ -13,6 +13,9 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
 
 jobs:
   test-and-build:
