@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.192](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.191...@stream-io/video-react-native-sdk-0.0.1-alpha.192) (2023-06-21)
+
+
+### Bug Fixes
+
+* **react-native:** toggle camera bug and simplify the logic ([#685](https://github.com/GetStream/stream-video-js/issues/685)) ([048c91e](https://github.com/GetStream/stream-video-js/commit/048c91e9e78c305014c737f45f78f2e5a688f161))
+
+
+
 ## [0.0.1-alpha.191](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.190...@stream-io/video-react-native-sdk-0.0.1-alpha.191) (2023-06-21)
 
 
