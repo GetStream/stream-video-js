@@ -19,21 +19,17 @@ export const Backstage = () => {
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call | undefined>(undefined);
   const connectedUser = useConnectedUser();
-  if (!callId) return <h3>No Call ID is provided</h3>;
-  if (!connectedUser) return <h3>Loading...</h3>;
 
   useEffect(() => {
-    if (!client) {
-      return;
-    }
+    if (!(client && callId)) return;
+
     // FIXME OL: change to 'livestream'
     setCall(client.call('default', callId));
   }, [callId, client]);
 
   useEffect(() => {
-    if (!call) {
-      return;
-    }
+    if (!(call && connectedUser)) return;
+
     call.join({
       create: true,
       data: {
@@ -45,7 +41,10 @@ export const Backstage = () => {
         ],
       },
     });
-  }, [call]);
+  }, [call, connectedUser]);
+
+  if (!callId) return <h3>No Call ID is provided</h3>;
+  if (!connectedUser) return <h3>Loading...</h3>;
 
   return (
     <>
