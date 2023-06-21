@@ -342,4 +342,9 @@ export const disposeOfMediaStream = (stream: MediaStream) => {
     track.stop();
     stream.removeTrack(track);
   });
+  // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
+  if (typeof stream.release === 'function') {
+    // @ts-expect-error
+    stream.release();
+  }
 };
