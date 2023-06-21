@@ -32,7 +32,7 @@ import type {
   User,
   UserWithId,
 } from './coordinator/connection/types';
-import { getLogger, logToConsole, setLogger } from './logger';
+import { logToConsole, setLogger } from './logger';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -86,9 +86,8 @@ export class StreamVideoClient {
       logger = apiKeyOrArgs.options?.logger || logger;
     }
 
+    this.logger = logger;
     setLogger(this.logger, logLevel);
-
-    const clientLogger = getLogger(['client']);
 
     if (typeof apiKeyOrArgs === 'string') {
       this.streamClient = new StreamClient(apiKeyOrArgs, {
