@@ -10,6 +10,7 @@ import {
 import { Button, Input, Stack, Typography } from '@mui/material';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
@@ -19,9 +20,7 @@ export const Viewers = () => {
   }, []);
 
   const tokenProvider = useCallback(async () => {
-    const endpoint = new URL(
-      'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
-    );
+    const endpoint = new URL(tokenProviderUrl);
     endpoint.searchParams.set('api_key', apiKey);
     endpoint.searchParams.set('user_id', randomCharacter);
     const response = await fetch(endpoint).then((res) => res.json());

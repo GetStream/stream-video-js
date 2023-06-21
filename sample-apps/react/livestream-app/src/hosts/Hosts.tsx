@@ -19,6 +19,7 @@ export const characters = [
 ];
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
 
 export const Hosts = () => {
   const randomCharacter = useMemo(() => {
@@ -33,9 +34,7 @@ export const Hosts = () => {
       role: 'host',
     };
     const tokenProvider = async () => {
-      const endpoint = new URL(
-        'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
-      );
+      const endpoint = new URL(tokenProviderUrl);
       endpoint.searchParams.set('api_key', apiKey);
       endpoint.searchParams.set('user_id', randomCharacter);
       const response = await fetch(endpoint).then((res) => res.json());
