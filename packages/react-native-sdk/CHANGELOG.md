@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.189](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.188...@stream-io/video-react-native-sdk-0.0.1-alpha.189) (2023-06-21)
+
+
+### Bug Fixes
+
+* proper media stream disposal for rn webrtc ([#682](https://github.com/GetStream/stream-video-js/issues/682)) ([8879bac](https://github.com/GetStream/stream-video-js/commit/8879bac82080232928b78316fdb452bbc3c79fbc))
+
+
+
 ## [0.0.1-alpha.188](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.187...@stream-io/video-react-native-sdk-0.0.1-alpha.188) (2023-06-20)
 
 
