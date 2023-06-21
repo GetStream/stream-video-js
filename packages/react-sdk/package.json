@@ -43,7 +43,6 @@
     "react-dom": "^18.2.0",
     "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
-    "typedoc": "^0.24.7",
     "typescript": "^4.9.5"
   },
   "version": "0.0.42"

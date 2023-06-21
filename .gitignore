@@ -24,15 +24,7 @@ dist
 .eslintcache
 coverage
 
-# Ignore generated documentation.. it can always be regenerated
-packages/react-native-sdk/docusaurus/docs/reactnative/07-i18n/**/*
-packages/react-sdk/docusaurus/docs/React/04-call-engine/**/*.md
-/**/generated-docs
-/**/temp-docs
-/**/docusaurus/shared
-*.gen.mdx
-
-packages/react-native-sdk/docusaurus/docs/reactnative/assets/02-guides_02-call-lifecycle/**
-
 video-buddy-session.json
 lefthook.yml
+
+/**/docusaurus/shared
