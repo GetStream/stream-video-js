@@ -1,9 +1,9 @@
 import { DominantSpeaker } from './DominantSpeaker';
 import { DominantSpeakerScreenShare } from './DominantSpeakerScreenShare';
-import { Layout } from '../index';
+import { type LayoutPair } from '../index';
 
-const DominantSpeakerLayout: Layout = {
-  ParticipantsView: DominantSpeaker,
+const DominantSpeakerLayout: LayoutPair = {
+  DefaultView: DominantSpeaker,
   ScreenShareView: DominantSpeakerScreenShare,
 };
 

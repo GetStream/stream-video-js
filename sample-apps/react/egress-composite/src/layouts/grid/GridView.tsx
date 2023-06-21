@@ -2,12 +2,15 @@ import {
   DefaultParticipantViewUI,
   PaginatedGridLayout,
 } from '@stream-io/video-react-sdk';
-import { useAppConfig } from '../../hooks/useAppConfig';
+import { useConfigurationContext } from '../../ConfigurationContext';
 
 import './GridView.scss';
 
 export const GridView = () => {
-  const { gridSize } = useAppConfig();
+  // const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts();
+  const {
+    layout: { gridSize },
+  } = useConfigurationContext();
   return (
     <div className="grid-view">
       <PaginatedGridLayout
@@ -18,7 +21,7 @@ export const GridView = () => {
           />
         }
         excludeLocalParticipant
-        groupSize={gridSize || 25}
+        groupSize={gridSize}
       />
     </div>
   );

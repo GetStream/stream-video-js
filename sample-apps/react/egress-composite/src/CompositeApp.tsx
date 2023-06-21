@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, PropsWithChildren, useEffect, useState } from 'react';
 import {
   Call,
   CallingState,
@@ -9,39 +9,48 @@ import {
   StreamVideoClient,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
-import { useAppConfig } from './hooks/useAppConfig';
+
+import { useConfigurationContext } from './ConfigurationContext';
+import layoutPairMap from './layouts';
 import { EgressReadyNotificationProvider } from './hooks/useNotifyEgress';
 import './CompositeApp.scss';
 
 export const CompositeApp = () => {
-  const config = useAppConfig();
+  const {
+    base_url: baseURL,
+    api_key: apiKey,
+    user_id: userId,
+    call_type: callType,
+    call_id: callId,
+    token,
+  } = useConfigurationContext();
+
   const options: StreamClientOptions = {};
-  if (config.baseURL) {
-    options.baseURL = config.baseURL;
+  if (baseURL) {
+    options.baseURL = baseURL;
   }
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(config.apiKey, options),
+    () => new StreamVideoClient(apiKey, options),
   );
 
   useEffect(() => {
     client.connectUser(
       {
-        id: config.userId,
+        id: userId,
       },
-      config.token,
+      token,
     );
 
     return () => {
       client.disconnectUser();
     };
-  }, [client, config.userId, config.token]);
+  }, [client, token, userId]);
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
     if (!client) return;
     let joinInterrupted = false;
-    const call = client.call(config.callType, config.callId);
+    const call = client.call(callType, callId);
     const currentCall = call.join().then(() => {
       if (!joinInterrupted) {
         setActiveCall(call);
@@ -57,7 +66,7 @@ export const CompositeApp = () => {
         setActiveCall(undefined);
       });
     };
-  }, [client, config.callId, config.callType]);
+  }, [client, callType, callId]);
 
   if (!client) {
     return <h2>Connecting...</h2>;
@@ -65,29 +74,91 @@ export const CompositeApp = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamTheme>
+      <StreamThemeWrapper>
         <EgressReadyNotificationProvider>
           {activeCall && (
             <StreamCallProvider call={activeCall}>
-              <UiDispatcher layout={config.layout} />
+              <UIDispatcher />
+              <LogoAndTitleOverlay />
             </StreamCallProvider>
           )}
         </EgressReadyNotificationProvider>
-      </StreamTheme>
+      </StreamThemeWrapper>
     </StreamVideo>
   );
 };
 
-const UiDispatcher = (props: { layout: LayoutId }) => {
-  const { layout } = props;
-  const { ParticipantsView, ScreenShareView } =
-    Layouts[layout || DEFAULT_LAYOUT_ID];
-
+const UIDispatcher = () => {
+  const { layout } = useConfigurationContext();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
-  if (hasScreenShare) {
-    return <ScreenShareView />;
-  }
+  const { DefaultView, ScreenShareView } = layoutPairMap[layout.type];
 
-  return <ParticipantsView />;
+  return hasScreenShare ? <ScreenShareView /> : <DefaultView />;
+};
+
+const DEFAULT_BACKGROUND_STYLE: CSSProperties = {
+  background:
+    'linear-gradient(0deg, rgba(17,17,18,1) 0%, rgba(32,32,36,1) 50%, rgba(52,52,52,1) 100%)',
+};
+
+const DEFAULT_LOGO_STYLE: CSSProperties = {
+  position: 'absolute',
+  bottom: 10,
+  right: 10,
+  width: 200,
+};
+
+const DEFAULT_TITLE_STYLE: CSSProperties = {
+  position: 'absolute',
+  top: 10,
+  left: 10,
+  fontSize: 30,
+  padding: 10,
+};
+
+const StreamThemeWrapper = ({ children }: PropsWithChildren) => {
+  const { background: { style } = {} } = useConfigurationContext();
+
+  return (
+    <StreamTheme style={{ ...DEFAULT_BACKGROUND_STYLE, ...style }}>
+      {children}
+    </StreamTheme>
+  );
+};
+
+const LogoAndTitleOverlay = () => {
+  const {
+    title: { text, style: titleStyle } = {},
+    logo: { url, style: logoStyle } = {},
+  } = useConfigurationContext();
+
+  return (
+    <div
+      style={{
+        top: 0,
+        left: 0,
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      {text?.length && (
+        <div
+          data-test-id="title"
+          style={{ ...DEFAULT_TITLE_STYLE, ...titleStyle }}
+        >
+          {text}
+        </div>
+      )}
+      {url && (
+        <img
+          data-test-id="logo"
+          src={url}
+          style={{ ...DEFAULT_LOGO_STYLE, ...logoStyle }}
+          alt="logo"
+        />
+      )}
+    </div>
+  );
 };

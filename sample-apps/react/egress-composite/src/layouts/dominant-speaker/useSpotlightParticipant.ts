@@ -4,14 +4,16 @@ import {
   StreamVideoParticipant,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useAppConfig } from '../../hooks/useAppConfig';
+import { useConfigurationContext } from '../../ConfigurationContext';
 
 export const useSpotlightParticipant = () => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
     useState<StreamVideoParticipant>();
 
-  const { spotlightMode } = useAppConfig();
   const { useDominantSpeaker, useRemoteParticipants } = useCallStateHooks();
+  const {
+    layout: { spotlightMode },
+  } = useConfigurationContext();
   const dominantSpeaker = useDominantSpeaker();
   const allParticipants = useRemoteParticipants();
   useEffect(() => {

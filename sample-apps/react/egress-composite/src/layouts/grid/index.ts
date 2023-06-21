@@ -1,9 +1,9 @@
 import { GridView } from './GridView';
 import { DominantSpeakerScreenShare } from '../dominant-speaker/DominantSpeakerScreenShare';
-import { Layout } from '../index';
+import { type LayoutPair } from '../index';
 
-const GridLayout: Layout = {
-  ParticipantsView: GridView,
+const GridLayout: LayoutPair = {
+  DefaultView: GridView,
   // reuses the screen share view from dominant speaker layout
   ScreenShareView: DominantSpeakerScreenShare,
 };
