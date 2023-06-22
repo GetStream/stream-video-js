@@ -1,6 +1,6 @@
 import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
-import notifee from '@notifee/react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
 import { CallingState } from '@stream-io/video-client';
@@ -23,6 +23,13 @@ async function startForegroundService() {
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
   const channelId = foregroundServiceConfig.android.channel.id;
+
+  // request for notification permission and then start the foreground service
+  const settings = await notifee.getNotificationSettings();
+  if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
+    console.warn('Notification permission not granted');
+    return;
+  }
   await notifee.createChannel(foregroundServiceConfig.android.channel);
   await notifee.displayNotification({
     title,

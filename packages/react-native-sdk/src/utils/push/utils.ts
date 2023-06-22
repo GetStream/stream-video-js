@@ -83,7 +83,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 }
 
 /** Send token to stream, create notification channel,  */
-export async function initAndroidPushTokenAndAskPermissions(
+export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
 ) {
@@ -94,7 +94,6 @@ export async function initAndroidPushTokenAndAskPermissions(
   const token = await messaging().getToken();
   const push_provider_name = pushConfig.android.pushProviderName;
   await client.addDevice(token, 'firebase', push_provider_name);
-  await notifee.requestPermission();
 }
 
 const firebaseMessagingOnMessageHandler = async (
