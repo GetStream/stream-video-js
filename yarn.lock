@@ -8660,8 +8660,6 @@ __metadata:
       optional: true
     react-native-callkeep:
       optional: true
-    react-native-device-info:
-      optional: true
     react-native-voip-push-notification:
       optional: true
   languageName: unknown

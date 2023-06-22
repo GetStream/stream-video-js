@@ -14,10 +14,6 @@ export const setClientDetails = () => {
 
   const deviceInfo = getDeviceInfoLib();
 
-  if (!deviceInfo) {
-    return;
-  }
-
   setOSInfo({
     name: Platform.OS,
     version: Platform.Version.toString(),
