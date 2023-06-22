@@ -99,4 +99,14 @@ export const useAndroidKeepCallAliveEffect = () => {
       };
     }
   }, [callingState]);
+
+  useEffect(() => {
+    return () => {
+      // stop foreground service when this effect is unmounted
+      if (foregroundServiceStartedRef.current) {
+        stopForegroundService();
+        foregroundServiceStartedRef.current = false;
+      }
+    };
+  }, []);
 };

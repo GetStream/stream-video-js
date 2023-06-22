@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
-import { initAndroidPushToken } from '../../utils/push/utils';
+import { initAndroidPushToken } from '../../utils/push/android';
 
 /**
  * This hook is used to initialize the push token for Android and ask notification permissions.

@@ -14,7 +14,8 @@ import { processCallFromPush } from '../../utils/push/utils';
 /**
  * This hook is used to process the incoming call data via push notifications using the relevant rxjs subjects
  * It either joins or leaves the call based on the user's action.
- * Note: this effect cannot work when push notifications are received when the app is in quit state this is only if app is in background state
+ * Note: this effect cannot work when push notifications are received when the app is in quit state or in other words when the client is not connected with a websocket.
+ * So we essentially run this effect only when the client is connected with a websocket.
  */
 export const useProcessPushCallEffect = () => {
   const client = useStreamVideoClient();

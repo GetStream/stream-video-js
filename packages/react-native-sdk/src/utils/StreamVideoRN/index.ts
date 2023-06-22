@@ -1,6 +1,6 @@
 import { AndroidImportance } from '@notifee/react-native';
 import { defaultEmojiReactions } from '../../constants';
-import { setupCallkeep, setupFirebaseHandlerAndroid } from '../push/utils';
+import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import {
   isCameraPermissionGranted$,
@@ -60,8 +60,7 @@ export class StreamVideoRN {
       return;
     }
     this.config.push = pushConfig;
-    // After getting the config we should setup callkeep and firebase handler asap to handle incoming calls from a dead state
-    setupCallkeep(pushConfig);
+    // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
     setupFirebaseHandlerAndroid(pushConfig);
   }
 

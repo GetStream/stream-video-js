@@ -945,7 +945,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 81521697b2c8f97f9a586ac7257b1a1d9b51b115
   RNImageCropPicker: 486e2f7e2b0461ce24321f751410dce1b3b49e6d
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
-  RNPermissions: 110231b9d304a4f5b2859ac5bd4db0f5c3ef82a4
+  RNPermissions: eff9b5e06eede1260a053963f760d3b1fdc51a3b
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 9976fbaaeb8a188c36026154c844bf374b3b7eeb
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
