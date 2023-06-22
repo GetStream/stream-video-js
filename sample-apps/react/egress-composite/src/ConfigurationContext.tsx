@@ -63,11 +63,10 @@ export const ConfigurationContextProvider = ({
       user_id = DEFAULT_USER_ID,
       call_type = DEFAULT_CALL_TYPE,
 
-      layout = {
-        type: DEFAULT_LAYOUT_ID,
-        spotlightMode: DEFAULT_LAYOUT_ID,
-        gridSize: 25,
-      },
+      // TODO: drop support for these later
+      grid_size,
+      spotlight_mode,
+
       ...rest
     } = queryString.parse(window.location.search, {
       allowDots: true,
@@ -80,25 +79,34 @@ export const ConfigurationContextProvider = ({
         "Missing either 'api_key' or 'token', check either your .env file or search parameters",
       );
 
+    // TODO: remove once we drop support for string based layout attribute
+    if (typeof rest.layout === 'string') {
+      // @ts-ignore
+      rest.layout = {
+        type: rest.layout,
+      };
+    }
+
+    if (!rest.layout) {
+      rest.layout = {};
+    }
+
     // @ts-expect-error
-    layout.type ??= DEFAULT_LAYOUT_ID;
+    rest.layout.type ??= DEFAULT_LAYOUT_ID;
     // @ts-expect-error
-    layout.spotlightMode ??= DEFAULT_LAYOUT_ID;
+    rest.layout.spotlightMode ??= spotlight_mode ?? DEFAULT_LAYOUT_ID;
     // @ts-expect-error
-    layout.gridSize ??= 25;
+    rest.layout.gridSize ??= grid_size ?? 25;
 
     return {
       api_key,
       token,
       user_id: extractPayloadFromToken(token as string).user_id || user_id,
       call_type,
-      layout,
 
       ...rest,
     } as unknown as ConfigurationValue;
   }, []);
-
-  console.log('<debug>', { value });
 
   return (
     <ConfigurationContext.Provider value={value}>
