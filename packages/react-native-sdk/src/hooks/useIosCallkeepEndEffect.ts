@@ -36,16 +36,17 @@ export const useIosCallkeepEndEffect = () => {
     };
   }, []);
 
+  const activeCallId = activeCall?.id;
   const pushConfig = StreamVideoRN.getConfig().push;
-  if (Platform.OS !== 'ios' || !pushConfig) {
+  if (Platform.OS !== 'ios' || !pushConfig || !activeCallId) {
     return;
   }
   if (!isNonActiveCallingState(callingState)) {
-    currentActiveCallIdRef.current = activeCall?.id;
+    currentActiveCallIdRef.current = activeCallId;
     return;
   }
   // the current call has ended, so report it to callkeep asap
-  if (activeCall?.id && activeCall?.id === currentActiveCallIdRef.current) {
+  if (activeCallId === currentActiveCallIdRef.current) {
     const callkeep = getCallKeepLib();
     callkeep.endCall(activeCall?.id);
     currentActiveCallIdRef.current = undefined;
