@@ -25,6 +25,7 @@ export const setClientDetails = () => {
   });
 
   setDeviceInfo({
+    // Apple iPhone SE Handset, Google sdk_gphone64_x86_64 Handset
     name: `${deviceInfo.getManufacturerSync()} ${deviceInfo.getModel()} ${deviceInfo.getDeviceType()}`,
     version: '',
   });
