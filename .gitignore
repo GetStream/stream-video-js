@@ -24,7 +24,12 @@ dist
 .eslintcache
 coverage
 
-video-buddy-session.json
+/**/docusaurus/shared
+
 lefthook.yml
 
-/**/docusaurus/shared
+# Test files
+video-buddy-session.json
+video-buddy-log.txt
+**/fastlane/*.log
+**/fastlane/*.mp4

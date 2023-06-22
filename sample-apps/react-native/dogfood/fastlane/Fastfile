@@ -1,126 +1,258 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-default_platform(:ios)
+skip_docs
+video_buddy_port = 7654
+metro_port = 8081
+build_dir = 'dist'
+android_app_id = '1:296557120037:android:b5d44592a3a4b44af60dcc'
 
 before_all do
   if is_ci
-    setup_ci()
+    setup_ci
+    ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] = '180'
   end
 end
 
-desc "Installs all Certs and Profiles necessary for appstore"
+desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
-    type: "appstore",
-    app_identifier: [
-        "io.getstream.rnvideosample",
-    ],
+    type: 'appstore',
+    app_identifier: ['io.getstream.rnvideosample'],
     readonly: is_ci
   )
 end
 
+lane :rubocop do
+  sh('bundle exec rubocop')
+end
 
-desc "iOS build"
-lane :build_ios do |options|
-    app_store_connect_api_key()
+lane :start_video_buddy do
+  sh('stream-video-buddy auth')
+  sh('node ../e2e/js/server.js > video-buddy-log.txt 2>&1 &')
+end
 
-    match_appstore
+lane :stop_video_buddy do
+  sh("lsof -t -i:#{video_buddy_port} | xargs kill -s INT || true")
+end
 
-    settings_to_override = {
-      :BUNDLE_IDENTIFIER => "io.getstream.rnvideosample",
-      :PROVISIONING_PROFILE_SPECIFIER => "match AppStore io.getstream.rnvideosample"
-    }
+lane :stop_metro do
+  sh("lsof -t -i:#{metro_port} | xargs kill -s INT || true")
+end
 
-    package = load_json(json_path: "./package.json")
-    increment_version_number(
-      version_number: package["version"],
-      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-    )
-    current_build_number = app_store_build_number(
-      live: false,
-      app_identifier: "io.getstream.rnvideosample",
-    )
-    increment_build_number(
-      build_number: current_build_number + 1,
-      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-    )
+lane :create_sentry_properties do
+  Dir.chdir('..') { sh('scripts/create-sentry-properties.sh') }
+end
 
-    gym(
-        workspace: "./ios/StreamReactNativeVideoSDKSample.xcworkspace",
-        scheme: "StreamReactNativeVideoSDKSample",
-        export_method: "app-store",
-        export_options: "./fastlane/testflight_gym_export_options.plist",
-        silent: true,
-        clean: true,
-        xcargs: settings_to_override,
-        include_symbols: true,
-        output_directory: "./dist",
-    )
-    if options[:deploy]
+lane :load_package do
+  load_json(json_path: 'package.json')
+end
+
+lane :pod_install do
+  Dir.chdir('../ios') do
+    sh('bundle exec pod install')
+  rescue StandardError # Due this error https://github.com/facebook/react-native/issues/36945#issuecomment-1556230597
+    retry_count = 0
+    success = false
+    until success
       begin
-        upload_to_testflight(
-            groups: ['Dev Testers', 'Stream Testers'],
-            changelog: "Lots of amazing new features to test out!",
-            reject_build_waiting_for_review: false,
-            skip_waiting_for_build_processing: false,
-        )
-        sentry_upload_dsym(
-          auth_token: ENV['SENTRY_RN_AUTH_TOKEN'],
-          org_slug: 'stream',
-          project_slug: 'video-dogfooding-react-native',
-          dsym_path: "./dist/StreamReactNativeVideoSDKSample.app.dSYM.zip",
-          info_plist: './ios/StreamReactNativeVideoSDKSample/Info.plist'
-        )
-      rescue Exception => e
-        if e.message.include? "Another build is in review"
-          UI.important("Another build is already in beta review. Skipping beta review submission")
-        else
-          raise
+        sh('bundle exec pod update hermes-engine --no-repo-update')
+        success = true
+      rescue StandardError => e
+        retry_count += 1
+        UI.user_error!(e) if retry_count > 2
+      end
+    end
+  end
+end
+
+lane :build_ios do
+  create_sentry_properties
+
+  app_store_connect_api_key
+
+  match_appstore
+
+  settings_to_override = {
+    BUNDLE_IDENTIFIER: 'io.getstream.rnvideosample',
+    PROVISIONING_PROFILE_SPECIFIER: 'match AppStore io.getstream.rnvideosample'
+  }
+
+  increment_version_number(
+    version_number: load_package['version'],
+    xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
+  )
+
+  current_build_number = app_store_build_number(
+    live: false,
+    app_identifier: 'io.getstream.rnvideosample'
+  )
+
+  increment_build_number(
+    build_number: current_build_number + 1,
+    xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
+  )
+
+  gym(
+    workspace: 'ios/StreamReactNativeVideoSDKSample.xcworkspace',
+    scheme: 'StreamReactNativeVideoSDKSample',
+    export_method: 'app-store',
+    export_options: './fastlane/testflight_gym_export_options.plist',
+    silent: true,
+    clean: true,
+    xcargs: settings_to_override,
+    include_symbols: true,
+    output_directory: build_dir
+  )
+
+  Dir.chdir('..') do
+    sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::IPA_OUTPUT_PATH]} #{build_dir}/app.ipa")
+  end
+end
+
+lane :test_ios do |options|
+  create_sentry_properties
+
+  start_video_buddy
+
+  udid = prepare_simulator(device: 'iPhone 14 Pro')
+
+  unless options[:skip_install]
+    app = build_app_for_ios_simulator(
+      scheme: 'StreamReactNativeVideoSDKSample',
+      workspace: 'ios/StreamReactNativeVideoSDKSample.xcworkspace',
+      configuration: 'Release',
+      output_directory: build_dir
+    )
+    sh("xcrun simctl install #{udid} #{app}")
+  end
+
+  Dir.chdir('..') do
+    sh("xcrun simctl io #{udid} recordVideo --codec h264 --force fastlane/video.mp4 > fastlane/recording.log 2>&1 &")
+    sh("xcrun simctl spawn #{udid} log stream --style compact > fastlane/device.log 2>&1 &")
+    sh('maestro test e2e/test.yaml')
+  ensure
+    `pgrep simctl`.strip.split("\n").each { |pid| sh("kill -s INT #{pid} || true") }
+    ['device.log', 'recording.log', 'video.mp4'].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
+    stop_video_buddy
+    stop_metro
+  end
+end
+
+lane :deploy_ios do
+  upload_to_testflight(
+    ipa: "#{build_dir}/app.ipa",
+    groups: ['Dev Testers', 'Stream Testers'],
+    changelog: 'Lots of amazing new features to test out!',
+    reject_build_waiting_for_review: false,
+    skip_waiting_for_build_processing: false
+  )
+  sentry_upload_dsym(
+    auth_token: ENV.fetch('SENTRY_RN_AUTH_TOKEN'),
+    org_slug: 'stream',
+    project_slug: 'video-dogfooding-react-native',
+    dsym_path: "#{build_dir}/StreamReactNativeVideoSDKSample.app.dSYM.zip",
+    info_plist: 'ios/StreamReactNativeVideoSDKSample/Info.plist'
+  )
+rescue StandardError => e
+  UI.user_error!(e) unless e.message.include?('Another build is in review')
+
+  UI.important('Another build is already in beta review. Skipping beta review submission')
+end
+
+lane :build_android do
+  create_sentry_properties
+
+  ENV['ENVFILE'] = '.env.production'
+
+  latest_app_distribution_version_code = firebase_app_distribution_get_latest_release(
+    app: android_app_id
+  )[:buildVersion].to_i
+
+  increment_version_code(
+    gradle_file_path: 'android/app/build.gradle',
+    version_code: latest_app_distribution_version_code + 1
+  )
+
+  increment_version_name(
+    gradle_file_path: 'android/app/build.gradle',
+    version_name: load_package['version']
+  )
+
+  gradle(
+    project_dir: 'android',
+    tasks: %w[clean assembleRelease]
+  )
+
+  Dir.chdir('..') do
+    sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} #{build_dir}/app.apk")
+  end
+end
+
+lane :test_android do |options|
+  start_video_buddy
+
+  wait_for_android_emulator_idle
+
+  emulator_status = -> { sh('adb devices').include?('emulator') }
+
+  Dir.chdir('..') do
+    sh('adb logcat -c || true') if emulator_status.call
+    sh("adb install #{build_dir}/app.apk") unless options[:skip_install]
+    video_group_pid = Process.spawn('adb shell "while true; do screenrecord --output-format=h264 -; done" | ' \
+                                    'ffmpeg -y -i - fastlane/video.mp4 > fastlane/recording.log 2>&1 &', pgroup: true)
+    video_pid = `pgrep -g #{Process.getpgid(video_group_pid)}`.split.map(&:to_i).first
+    sh('maestro test e2e/test.yaml')
+  ensure
+    sh("kill -s INT #{video_pid} || true")
+    sh('adb logcat -d > fastlane/device.log || true') if emulator_status.call
+    ['recording.log', 'device.log', 'video.mp4'].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
+    stop_video_buddy
+    stop_metro
+  end
+end
+
+lane :deploy_android do
+  firebase_app_distribution(
+    app: android_app_id,
+    android_artifact_type: 'APK',
+    android_artifact_path: "#{build_dir}/app.apk",
+    groups: 'react-native-dev, video-sdk-non-devs'
+  )
+end
+
+# Helps to wait until emulator is idle on CI. Applicable to API 30 and above
+lane :wait_for_android_emulator_idle do
+  next unless is_ci && ENV['ANDROID_API_LEVEL'].to_i > 29
+
+  start_time = Time.now
+  load_threshold = 1.0
+  UI.important("Start waiting until device is idle (#{Time.now})")
+  adb_command = 'adb shell uptime | cut -d , -f 3 | cut -f 2 -d :'
+  load = `#{adb_command}`.strip.to_f
+
+  end_time = start_time + 1800
+  while load > load_threshold && Time.now < end_time
+    if load < 4
+      `adb shell dumpsys window | grep -E "mCurrentFocus.*Application Not Responding" || echo`
+      anr_package = `adb shell dumpsys window | grep -E "mCurrentFocus.*Application Not Responding" | cut -f 2 -d : | sed -e "s/}//" -e "s/^ *//"`.strip
+      unless anr_package.empty?
+        UI.important("ANR on screen for: #{anr_package}. Restarting it.")
+        begin
+          `adb shell su 0 killall #{anr_package}`
+        rescue StandardError => e
+          UI.error(e)
+          # Fallback to click if kill didn't work. This location is for a 1080x1920 screen
+          `adb shell input tap 540 935 || echo`
+        end
+
+        if anr_package == 'com.android.systemui'
+          `adb shell am start-service -n com.android.systemui/.SystemUIService || echo`
         end
       end
     end
-end
 
+    sleep(10)
+    load = `#{adb_command}`.strip.to_f
+  end
 
-desc "Android build"
-lane :build_android do |options|
-    ENV["ENVFILE"] = ".env.production"
-    package = load_json(json_path: "./package.json")
-    increment_version_name(
-      gradle_file_path:"./android/app/build.gradle",
-      version_name: package["version"]
-    )
-    latest_app_distribution_release = firebase_app_distribution_get_latest_release(
-      app: "1:296557120037:android:b5d44592a3a4b44af60dcc"
-    )
-    latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
-    increment_version_code(
-      gradle_file_path:"./android/app/build.gradle",
-      version_code: latest_app_distribution_version_code + 1
-    )
-    gradle(
-      project_dir: "./android",
-      tasks: ["clean", "assembleRelease"]
-    )
-
-    if options[:deploy]
-      firebase_app_distribution(
-          app: "1:296557120037:android:b5d44592a3a4b44af60dcc",
-          android_artifact_type: "APK",
-          android_artifact_path: "./android/app/build/outputs/apk/release/app-release.apk",
-          groups: "react-native-dev, video-sdk-non-devs"
-      )
-    end
+  UI.important('Reached timeout before device is idle.') if load > load_threshold
+  UI.important("Waited until device is idle for #{(Time.now - start_time).to_i} seconds.")
 end
