@@ -152,7 +152,7 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
       return;
     }
     await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
-  } else if (!hasObservers && type === EventType.PRESS) {
+  } else if (type === EventType.PRESS) {
     pushTappedIncomingCallCId$.next(call_cid);
     // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
   }
