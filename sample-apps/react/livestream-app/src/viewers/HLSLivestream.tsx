@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import HLS from 'hls.js';
 import { ViewerHeader } from './ui/ViewerHeader';
 import { ViewerControls } from './ui/ViewerControls';
-import { Button, Checkbox, FormControlLabel, Typography } from '@mui/material';
+import { Lobby } from './ui/Lobby';
 
 export const HLSLivestreamUI = () => {
   const isBroadcasting = useIsCallBroadcastingInProgress();
@@ -54,38 +54,11 @@ export const HLSLivestreamUI = () => {
 
   if (!isBroadcasting || !autoJoin) {
     return (
-      <div>
-        <Typography variant="h4">
-          <LoadingIndicator
-            className="loading-indicator"
-            text={
-              isBroadcasting
-                ? 'Stream is ready!'
-                : 'Waiting for the livestream to start'
-            }
-          />
-        </Typography>
-        <div className="auto-join-container">
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={autoJoin}
-                onChange={(e) => setAutoJoin(e.target.checked)}
-              />
-            }
-            label="Auto Join"
-          />
-          <Button
-            variant="contained"
-            disabled={!isBroadcasting}
-            onClick={() => {
-              setAutoJoin(true);
-            }}
-          >
-            Join Stream
-          </Button>
-        </div>
-      </div>
+      <Lobby
+        autoJoin={autoJoin}
+        isStreaming={isBroadcasting}
+        setAutoJoin={setAutoJoin}
+      />
     );
   }
 

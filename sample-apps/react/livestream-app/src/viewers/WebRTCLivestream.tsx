@@ -1,57 +1,41 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Call,
   PaginatedGridLayout,
   StreamCall,
   StreamVideo,
-  StreamVideoClient,
+  useIsCallLive,
 } from '@stream-io/video-react-sdk';
-import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
 import { ViewerControls } from './ui/ViewerControls';
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+import { useInitVideoClient } from '../hooks/useInitVideoClient';
+import { useSetCall } from '../hooks/useSetCall';
+import { Lobby } from './ui/Lobby';
 
 export const WebRTCLivestream = () => {
-  const { callId } = useParams<{ callId: string }>();
-  const [call, setCall] = useState<Call | undefined>(undefined);
-  const tokenProvider = useCallback(async () => {
-    const endpoint = new URL(
-      'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
-    );
-    endpoint.searchParams.set('api_key', apiKey);
-    endpoint.searchParams.set('user_id', '!anon');
-    endpoint.searchParams.set('call_cids', `default:${callId}`);
-    const response = await fetch(endpoint).then((res) => res.json());
-    return response.token as string;
-  }, [callId]);
-
-  const [client] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        tokenProvider,
-        user: { type: 'anonymous' },
-      }),
-  );
+  const isLive = useIsCallLive();
+  const client = useInitVideoClient({
+    isAnon: true,
+  });
+  const call = useSetCall(client);
+  const [autoJoin, setAutoJoin] = useState(false);
 
   useEffect(() => {
-    if (!callId) {
-      return;
-    }
-    setCall(client.call('default', callId));
-  }, [client, callId]);
-
-  useEffect(() => {
-    if (!call) {
+    if (!(call && autoJoin)) {
       return;
     }
     call.join();
-  }, [call]);
+  }, [call, autoJoin]);
 
   return (
     <StreamVideo client={client}>
-      {call && (
+      {(!autoJoin || !isLive) && (
+        <Lobby
+          autoJoin={autoJoin}
+          isStreaming={isLive}
+          setAutoJoin={setAutoJoin}
+        />
+      )}
+      {call && isLive && autoJoin && (
         <StreamCall call={call}>
           <WebRTCLivestreamUI />
         </StreamCall>
