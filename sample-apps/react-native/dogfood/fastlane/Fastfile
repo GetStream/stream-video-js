@@ -1,126 +1,134 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-default_platform(:ios)
+video_buddy_port = 7654
 
 before_all do
-  if is_ci
-    setup_ci()
-  end
+  setup_ci if is_ci
 end
 
-desc "Installs all Certs and Profiles necessary for appstore"
+after_all do |lane|
+  stop_video_buddy if lane == :test_e2e
+end
+
+desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
-    type: "appstore",
+    type: 'appstore',
     app_identifier: [
-        "io.getstream.rnvideosample",
+      'io.getstream.rnvideosample'
     ],
     readonly: is_ci
   )
 end
 
-
-desc "iOS build"
-lane :build_ios do |options|
-    app_store_connect_api_key()
-
-    match_appstore
-
-    settings_to_override = {
-      :BUNDLE_IDENTIFIER => "io.getstream.rnvideosample",
-      :PROVISIONING_PROFILE_SPECIFIER => "match AppStore io.getstream.rnvideosample"
-    }
-
-    package = load_json(json_path: "./package.json")
-    increment_version_number(
-      version_number: package["version"],
-      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-    )
-    current_build_number = app_store_build_number(
-      live: false,
-      app_identifier: "io.getstream.rnvideosample",
-    )
-    increment_build_number(
-      build_number: current_build_number + 1,
-      xcodeproj: "./ios/StreamReactNativeVideoSDKSample.xcodeproj"
-    )
-
-    gym(
-        workspace: "./ios/StreamReactNativeVideoSDKSample.xcworkspace",
-        scheme: "StreamReactNativeVideoSDKSample",
-        export_method: "app-store",
-        export_options: "./fastlane/testflight_gym_export_options.plist",
-        silent: true,
-        clean: true,
-        xcargs: settings_to_override,
-        include_symbols: true,
-        output_directory: "./dist",
-    )
-    if options[:deploy]
-      begin
-        upload_to_testflight(
-            groups: ['Dev Testers', 'Stream Testers'],
-            changelog: "Lots of amazing new features to test out!",
-            reject_build_waiting_for_review: false,
-            skip_waiting_for_build_processing: false,
-        )
-        sentry_upload_dsym(
-          auth_token: ENV['SENTRY_RN_AUTH_TOKEN'],
-          org_slug: 'stream',
-          project_slug: 'video-dogfooding-react-native',
-          dsym_path: "./dist/StreamReactNativeVideoSDKSample.app.dSYM.zip",
-          info_plist: './ios/StreamReactNativeVideoSDKSample/Info.plist'
-        )
-      rescue Exception => e
-        if e.message.include? "Another build is in review"
-          UI.important("Another build is already in beta review. Skipping beta review submission")
-        else
-          raise
-        end
-      end
-    end
+lane :start_video_buddy do
+  Dir.chdir('..') do
+    sh('stream-video-buddy auth')
+    sh('nohup node e2e/js/server.js > fastlane/video-buddy-log.txt 2>&1 &')
+  end
 end
 
+lane :stop_video_buddy do
+  sh("lsof -t -i:#{video_buddy_port} | xargs kill -9")
+end
 
-desc "Android build"
-lane :build_android do |options|
-    ENV["ENVFILE"] = ".env.production"
-    package = load_json(json_path: "./package.json")
-    increment_version_name(
-      gradle_file_path:"./android/app/build.gradle",
-      version_name: package["version"]
-    )
-    latest_app_distribution_release = firebase_app_distribution_get_latest_release(
-      app: "1:296557120037:android:b5d44592a3a4b44af60dcc"
-    )
-    latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
-    increment_version_code(
-      gradle_file_path:"./android/app/build.gradle",
-      version_code: latest_app_distribution_version_code + 1
-    )
-    gradle(
-      project_dir: "./android",
-      tasks: ["clean", "assembleRelease"]
-    )
+lane :test_e2e do
+  start_video_buddy
+  Dir.chdir('..') do
+    sh('maestro test e2e/flow.yaml')
+  end
+end
 
-    if options[:deploy]
-      firebase_app_distribution(
-          app: "1:296557120037:android:b5d44592a3a4b44af60dcc",
-          android_artifact_type: "APK",
-          android_artifact_path: "./android/app/build/outputs/apk/release/app-release.apk",
-          groups: "react-native-dev, video-sdk-non-devs"
+desc 'iOS build'
+lane :build_ios do |options|
+  app_store_connect_api_key
+
+  match_appstore
+
+  settings_to_override = {
+    BUNDLE_IDENTIFIER: 'io.getstream.rnvideosample',
+    PROVISIONING_PROFILE_SPECIFIER: 'match AppStore io.getstream.rnvideosample'
+  }
+
+  package = load_json(json_path: './package.json')
+  increment_version_number(
+    version_number: package['version'],
+    xcodeproj: './ios/StreamReactNativeVideoSDKSample.xcodeproj'
+  )
+  current_build_number = app_store_build_number(
+    live: false,
+    app_identifier: 'io.getstream.rnvideosample'
+  )
+  increment_build_number(
+    build_number: current_build_number + 1,
+    xcodeproj: './ios/StreamReactNativeVideoSDKSample.xcodeproj'
+  )
+
+  gym(
+    workspace: './ios/StreamReactNativeVideoSDKSample.xcworkspace',
+    scheme: 'StreamReactNativeVideoSDKSample',
+    export_method: 'app-store',
+    export_options: './fastlane/testflight_gym_export_options.plist',
+    silent: true,
+    clean: true,
+    xcargs: settings_to_override,
+    include_symbols: true,
+    output_directory: './dist'
+  )
+
+  app = lane_context[SharedValues::IPA_OUTPUT_PATH]
+  simulator = prepare_simulator(device: 'iPhone 14 Pro Max')
+  sh("xcrun simctl install #{simulator} #{app}")
+  test_e2e
+
+  if options[:deploy]
+    begin
+      upload_to_testflight(
+        groups: ['Dev Testers', 'Stream Testers'],
+        changelog: 'Lots of amazing new features to test out!',
+        reject_build_waiting_for_review: false,
+        skip_waiting_for_build_processing: false
       )
+      sentry_upload_dsym(
+        auth_token: ENV['SENTRY_RN_AUTH_TOKEN'],
+        org_slug: 'stream',
+        project_slug: 'video-dogfooding-react-native',
+        dsym_path: './dist/StreamReactNativeVideoSDKSample.app.dSYM.zip',
+        info_plist: './ios/StreamReactNativeVideoSDKSample/Info.plist'
+      )
+    rescue StandardError => e
+      raise unless e.message.include? 'Another build is in review'
+
+      UI.important('Another build is already in beta review. Skipping beta review submission')
     end
+  end
+end
+
+desc 'Android build'
+lane :build_android do |options|
+  ENV['ENVFILE'] = '.env.production'
+  package = load_json(json_path: './package.json')
+  increment_version_name(
+    gradle_file_path: './android/app/build.gradle',
+    version_name: package['version']
+  )
+  latest_app_distribution_release = firebase_app_distribution_get_latest_release(
+    app: '1:296557120037:android:b5d44592a3a4b44af60dcc'
+  )
+  latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
+  increment_version_code(
+    gradle_file_path: './android/app/build.gradle',
+    version_code: latest_app_distribution_version_code + 1
+  )
+  gradle(
+    project_dir: './android',
+    tasks: %w[clean assembleRelease]
+  )
+
+  if options[:deploy]
+    firebase_app_distribution(
+      app: '1:296557120037:android:b5d44592a3a4b44af60dcc',
+      android_artifact_type: 'APK',
+      android_artifact_path: './android/app/build/outputs/apk/release/app-release.apk',
+      groups: 'react-native-dev, video-sdk-non-devs'
+    )
+  end
 end

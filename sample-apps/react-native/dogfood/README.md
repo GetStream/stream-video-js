@@ -27,5 +27,4 @@ The following are the steps to run the E2E tests:
 - Install [maestro](https://github.com/mobile-dev-inc/maestro) CLI tool
 - Install [stream-video-buddy](https://github.com/GetStream/stream-video-buddy) CLI tool
 - Launch the simulator and install the test app by following the instructions above
-- Start the test flow by running `yarn test-e2e` from the root of this project. This will run the tests either on a
-  device of choice
+- Start the test flow by running `yarn test-e2e` from the root of this project. This will run the tests either on a device of choice

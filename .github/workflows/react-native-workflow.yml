@@ -10,6 +10,10 @@ env:
   SENTRY_RN_AUTH_TOKEN: ${{ secrets.SENTRY_RN_AUTH_TOKEN }}
   STREAM_API_KEY: ${{ vars.STREAM_DOGFOOD_API_KEY }}
   STREAM_API_SECRET: ${{ secrets.STREAM_DOGFOOD_API_SECRET }}
+  STREAM_SDK_TEST_APP: ${{ secrets.STREAM_SDK_TEST_APP }}
+  STREAM_SDK_TEST_ACCOUNT_EMAIL: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_EMAIL }}
+  STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
+  STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
 
 on:
   push:
@@ -77,11 +81,22 @@ jobs:
           on_retry_command: |
             cd sample-apps/react-native/dogfood/ios;
             pod update hermes-engine --no-repo-update;  # Due this error https://github.com/facebook/react-native/issues/36945#issuecomment-1556230597
-      - name: Build and optionally deploy
+      - name: Install Video Buddy
+        run: npm install -g "https://github.com/GetStream/stream-video-buddy#${{ vars.STREAM_VIDEO_BUDDY_VERSION }}"
+      - name: Build, test and optionally deploy
         run: |
           cd sample-apps/react-native/dogfood;
           ./scripts/create-sentry-properties.sh;
           bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
+        timeout-minutes: 60
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: Test Data
+          path: |
+            fastlane/recordings
+            fastlane/video-buddy-log.txt
+
   deploy_android:
     name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
     timeout-minutes: 20
