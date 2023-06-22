@@ -98,7 +98,7 @@ jobs:
             fastlane/video-buddy-log.txt
 
   deploy_android:
-    name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
+    name: Build Android and Deploy-${{ github.ref == 'refs/heads/main' }}
     timeout-minutes: 20
     runs-on: ubuntu-latest
     strategy:
