@@ -1,57 +1,18 @@
 import { Link, Outlet, useParams } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { characters } from '../hosts/Hosts';
-import {
-  Call,
-  StreamCall,
-  StreamVideo,
-  StreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { useEffect, useState } from 'react';
+import { Call, StreamCall, StreamVideo } from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
+import { useInitVideoClient } from '../hooks/UseInitVideoClient';
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
-  const randomCharacter = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    return characters[randomIndex];
-  }, []);
-
-  const tokenProvider = useCallback(async () => {
-    const endpoint = new URL(tokenProviderUrl);
-    endpoint.searchParams.set('api_key', apiKey);
-    endpoint.searchParams.set('user_id', randomCharacter);
-    const response = await fetch(endpoint).then((res) => res.json());
-    return response.token as string;
-  }, [randomCharacter]);
-  const [client] = useState<StreamVideoClient>(() => {
-    const user = {
-      id: randomCharacter,
-      name: randomCharacter,
-      role: 'user',
-    };
-    return new StreamVideoClient({ apiKey, user, tokenProvider });
-  });
+  const client = useInitVideoClient({ role: 'user' });
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
     if (!callId) return;
-    client
-      .queryCalls({
-        watch: true,
-        filter_conditions: {
-          cid: { $in: [`default:${callId}`] },
-        },
-        sort: [{ field: 'cid', direction: 1 }],
-      })
-      .then(({ calls }) => {
-        const [call] = calls;
-        if (call) {
-          setActiveCall(call);
-        }
-      });
+    const call = client.call('default', callId);
+    call.get().then(() => setActiveCall(call));
   }, [client, callId]);
 
   return (
