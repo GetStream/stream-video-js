@@ -6,7 +6,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
-import { useInitVideoClient } from '../hooks/UseInitVideoClient';
+import { useInitVideoClient } from '../hooks/useInitVideoClient';
 import { useSetCall } from '../hooks/useSetCall';
 import { ErrorPanel, LoadingPanel } from '../LoadingState';
 
