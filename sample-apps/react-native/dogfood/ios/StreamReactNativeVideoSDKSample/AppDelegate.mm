@@ -45,15 +45,15 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   
-  // --- Process the received push // fire 'notification' event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
   UIApplicationState state = [[UIApplication sharedApplication] applicationState];
   if (state == UIApplicationStateActive) {
     // app in foreground, no need to display incoming call through callkeep
     completion();
     return;
   }
+  
+  // --- Process the received push // fire 'notification' event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSLog( @"%@", stream );
@@ -75,12 +75,6 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
                         fromPushKit: YES
                             payload: stream
               withCompletionHandler: completion];
-  
-  //  // --- this is optional, only required if you want to call `completion()` on the js side
-  //  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
-  //
-  // --- You don't need to call it if you stored `completion()` and will call it on the js side.
-//  completion();
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
