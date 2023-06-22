@@ -1,3 +1,4 @@
+skip_docs
 video_buddy_port = 7654
 
 before_all do

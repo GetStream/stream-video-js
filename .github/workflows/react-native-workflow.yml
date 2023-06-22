@@ -94,8 +94,9 @@ jobs:
         with:
           name: Test Data
           path: |
-            fastlane/recordings
-            fastlane/video-buddy-log.txt
+            sample-apps/react-native/dogfood/fastlane/recordings
+            sample-apps/react-native/dogfood/fastlane/video-buddy-log.txt
+            sample-apps/react-native/dogfood/dist/StreamReactNativeVideoSDKSample.ipa
 
   deploy_android:
     name: Build Android and Deploy-${{ github.ref == 'refs/heads/main' }}
