@@ -1,24 +1,29 @@
 import React from 'react';
+import { CallParticipantsGridView } from './CallParticipantsGridView';
+import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
+import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { LocalVideoView } from './LocalVideoView';
-import { useRemoteParticipants } from '@stream-io/video-react-bindings';
-import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
-import { CallParticipantsList } from './CallParticipantsList';
 
-export const CallParticipantsView = () => {
-  const _remoteParticipants = useRemoteParticipants();
-  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+type CallParticipantsViewProps = {
+  /**
+   * The mode of the call view. Defaults to 'grid'.
+   * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
+   */
+  mode?: 'grid' | 'spotlight';
+};
 
-  const isUserAloneInCall = remoteParticipants?.length === 0;
+export const CallParticipantsView = ({ mode }: CallParticipantsViewProps) => {
+  const hasScreenShare = useHasOngoingScreenShare();
 
-  if (isUserAloneInCall) {
-    return <LocalVideoView layout={'fullscreen'} />;
-  }
+  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
 
   return (
     <View style={styles.container}>
-      <LocalVideoView layout={'floating'} />
-      <CallParticipantsList participants={remoteParticipants} />
+      {showSpotLightModeView ? (
+        <CallParticipantsSpotlightView />
+      ) : (
+        <CallParticipantsGridView />
+      )}
     </View>
   );
 };

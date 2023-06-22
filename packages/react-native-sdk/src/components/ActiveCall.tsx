@@ -1,12 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  useCall,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView, CallControlsViewType } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
@@ -54,24 +50,15 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const { mode = 'grid', chatButton } = props;
-  const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
   usePermissionRequest();
 
-  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
-
   return (
     <View style={styles.container}>
       <CallParticipantsBadge style={styles.iconGroup} />
-      <View style={[styles.callParticipantsWrapper]}>
-        {showSpotLightModeView ? (
-          <CallParticipantsSpotlightView />
-        ) : (
-          <CallParticipantsView />
-        )}
-      </View>
+      <CallParticipantsView mode={mode} />
       <CallControlsView
         style={styles.callControlsWrapper}
         chatButton={chatButton}
@@ -85,7 +72,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.light.static_grey,
   },
-  callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: {
     position: 'absolute',
     bottom: 0,

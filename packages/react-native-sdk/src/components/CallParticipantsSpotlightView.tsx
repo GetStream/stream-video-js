@@ -1,3 +1,4 @@
+import React from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
