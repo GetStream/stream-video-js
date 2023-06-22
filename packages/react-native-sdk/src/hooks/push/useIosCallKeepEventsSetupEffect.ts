@@ -24,9 +24,9 @@ export const useIosCallKeepEventsSetupEffect = () => {
       const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
       iosCallkeepAcceptCall(call_cid, callUUID, pushConfig);
     });
-    callkeep.addEventListener('endCall', async ({ callUUID }) => {
+    callkeep.addEventListener('endCall', ({ callUUID }) => {
       const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
-      await iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
+      iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
     });
 
     return () => {

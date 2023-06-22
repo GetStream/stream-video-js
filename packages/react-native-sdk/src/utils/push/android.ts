@@ -149,6 +149,6 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
       // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
       return;
     }
-    declineCallFromPushInBackground(pushConfig, call_cid);
+    await declineCallFromPushInBackground(pushConfig, call_cid);
   }
 };
