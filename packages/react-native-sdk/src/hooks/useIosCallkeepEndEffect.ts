@@ -19,7 +19,7 @@ const isNonActiveCallingState = (callingState: CallingState) => {
 export const useIosCallkeepEndEffect = () => {
   const activeCall = useCall();
   const callingState = useCallCallingState();
-  const currentActiveCallIdRef = useRef<string>();
+  const currentRingingActiveCallIdRef = useRef<string>();
 
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
@@ -29,9 +29,9 @@ export const useIosCallkeepEndEffect = () => {
     const callkeep = getCallKeepLib();
     return () => {
       // if the component is unmounted and the callID was not reported to callkeep, then report it now
-      if (currentActiveCallIdRef.current) {
-        callkeep.endCall(currentActiveCallIdRef.current);
-        currentActiveCallIdRef.current = undefined;
+      if (currentRingingActiveCallIdRef.current) {
+        callkeep.endCall(currentRingingActiveCallIdRef.current);
+        currentRingingActiveCallIdRef.current = undefined;
       }
     };
   }, []);
@@ -41,14 +41,17 @@ export const useIosCallkeepEndEffect = () => {
   if (Platform.OS !== 'ios' || !pushConfig || !activeCallId) {
     return;
   }
-  if (!isNonActiveCallingState(callingState)) {
-    currentActiveCallIdRef.current = activeCallId;
+  if (activeCall.ringing) {
+    currentRingingActiveCallIdRef.current = activeCallId;
     return;
   }
   // the current call has ended, so report it to callkeep asap
-  if (activeCallId === currentActiveCallIdRef.current) {
+  if (
+    isNonActiveCallingState(callingState) &&
+    activeCallId === currentRingingActiveCallIdRef.current
+  ) {
     const callkeep = getCallKeepLib();
-    callkeep.endCall(activeCall?.id);
-    currentActiveCallIdRef.current = undefined;
+    callkeep.endCall(activeCallId);
+    currentRingingActiveCallIdRef.current = undefined;
   }
 };
