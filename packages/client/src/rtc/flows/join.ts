@@ -56,6 +56,10 @@ const doJoin = async (
   // FIXME OL: remove this once cascading is enabled by default
   const cascadingModeParams = getCascadingModeParams();
   if (cascadingModeParams) {
+    // FIXME OL: remove after SFU migration is done
+    if (data?.migrating_from && cascadingModeParams['next_sfu_id']) {
+      cascadingModeParams['sfu_id'] = cascadingModeParams['next_sfu_id'];
+    }
     return httpClient.doAxiosRequest<JoinCallResponse, JoinCallRequest>(
       'post',
       `/call/${type}/${id}/join`,
@@ -108,7 +112,7 @@ const toRtcConfiguration = (config?: ICEServer[]) => {
 
 const getCascadingModeParams = () => {
   if (typeof window === 'undefined') return null;
-  const params = new URLSearchParams(window.location?.search);
+  const params = new URLSearchParams(window.location.search);
   const cascadingEnabled = params.get('cascading') !== null;
   if (cascadingEnabled) {
     const rawParams: Record<string, string> = {};
