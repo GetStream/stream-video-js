@@ -108,11 +108,6 @@ const firebaseMessagingOnMessageHandler = async (
       timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
     },
   });
-  // const callkeep = getCallKeepLib();
-  // const uuid = message.data.call_cid;
-  // const localizedCallerName = message.data.created_by_display_name;
-  // const handle = 'handle'; // Phone number of the caller // TODO: unclear what this is used for?!
-  // callkeep.displayIncomingCall(uuid, handle, localizedCallerName);
 };
 
 const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {

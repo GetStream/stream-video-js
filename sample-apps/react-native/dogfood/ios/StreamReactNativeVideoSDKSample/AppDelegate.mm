@@ -56,12 +56,9 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSLog( @"%@", stream );
   NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
   NSString* callId = cidArray[1];
   NSString *createdCallerName = stream[@"created_by_display_name"];
-  NSLog( @"callId:%@", callId );
-  NSLog( @"createdCallerName:%@", createdCallerName );
   
   [RNCallKeep reportNewIncomingCall: callId
                              handle: createdCallerName
