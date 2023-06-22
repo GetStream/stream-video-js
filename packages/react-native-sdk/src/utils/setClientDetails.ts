@@ -1,5 +1,9 @@
-import { SfuModels } from '@stream-io/video-client';
-import { setSdkInfo, setDeviceInfo, setOSInfo } from '@stream-io/video-client';
+import {
+  setSdkInfo,
+  setDeviceInfo,
+  setOSInfo,
+  SfuModels,
+} from '@stream-io/video-client';
 import { getDeviceInfoLib } from './device-info/libs';
 import { Platform } from 'react-native';
 
