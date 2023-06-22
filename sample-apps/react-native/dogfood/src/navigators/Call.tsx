@@ -7,7 +7,6 @@ import {
   StreamCall,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
-import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ActiveCallComponent } from '../components/ActiveCallComponent';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

@@ -1,18 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  useCall,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { CallControlsView, CallControlsViewType } from './CallControlsView';
 import { CallParticipantsView } from './CallParticipantsView';
-import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { theme } from '../theme';
 import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
 import { Z_INDEX } from '../constants';
 
@@ -40,9 +35,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
-    // when the component mounts, we ask for necessary permissions.
-    verifyAndroidBluetoothPermissions();
-
     return () => {
       if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
         activeCallRef.current?.leave();
@@ -58,24 +50,15 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
 const InnerActiveCall = (props: ActiveCallProps) => {
   const { mode = 'grid', chatButton } = props;
-  const hasScreenShare = useHasOngoingScreenShare();
 
   useIncallManager({ media: 'video', auto: true });
   usePublishMediaStreams();
   usePermissionRequest();
 
-  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
-
   return (
     <View style={styles.container}>
       <CallParticipantsBadge style={styles.iconGroup} />
-      <View style={[styles.callParticipantsWrapper]}>
-        {showSpotLightModeView ? (
-          <CallParticipantsSpotlightView />
-        ) : (
-          <CallParticipantsView />
-        )}
-      </View>
+      <CallParticipantsView mode={mode} />
       <CallControlsView
         style={styles.callControlsWrapper}
         chatButton={chatButton}
@@ -89,7 +72,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.light.static_grey,
   },
-  callParticipantsWrapper: { flex: 1 },
   callControlsWrapper: {
     position: 'absolute',
     bottom: 0,

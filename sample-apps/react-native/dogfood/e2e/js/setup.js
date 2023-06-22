@@ -31,7 +31,7 @@ output.assertions = {
     participantsCountIs6: 'Participants (6)',
   },
   joinMeeting: {
-    signOutModalTitle: 'Sign out',
+    signOutModalTitle: 'Sign out as Gerri',
   },
   login: {
     customUserInputField: 'Enter custom user',

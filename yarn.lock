@@ -8584,6 +8584,7 @@ __metadata:
     react-native-image-resizer: ^1.4.5
     react-native-incall-manager: ^4.0.0
     react-native-mmkv: 2.8.0
+    react-native-permissions: ^3.8.0
     react-native-polyfill-globals: ^3.1.0
     react-native-reanimated: ^3.3.0
     react-native-safe-area-context: ^4.4.1
@@ -30740,6 +30741,23 @@ __metadata:
     react: "*"
     react-native: ">=0.71.0"
   checksum: 993b486533b00c0b8092ea0b7682428fe704726ec03daf244fbd046bd772e3cfc0aba67b8a9eece31adcb6492c76d838f167eeed877657349a0cae51c8844b8d
+  languageName: node
+  linkType: hard
+
+"react-native-permissions@npm:^3.8.0":
+  version: 3.8.0
+  resolution: "react-native-permissions@npm:3.8.0"
+  dependencies:
+    picocolors: ^1.0.0
+    pkg-dir: ^5.0.0
+  peerDependencies:
+    react: ">=16.13.1"
+    react-native: ">=0.63.3"
+    react-native-windows: ">=0.62.0"
+  peerDependenciesMeta:
+    react-native-windows:
+      optional: true
+  checksum: acbd8605adabfc48e19fbc468a3a143fb85bd34d3ed0fe6a4b52f16304591b8a4b3c561a507c11643fcc8ce1b4dc09e31f149387d1ea461098a2e40c43989f7c
   languageName: node
   linkType: hard
 
