@@ -36,7 +36,7 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 }
 
 /** Send token to stream, create notification channel,  */
-export async function initAndroidPushTokenAndAskPermissions(
+export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
 ) {

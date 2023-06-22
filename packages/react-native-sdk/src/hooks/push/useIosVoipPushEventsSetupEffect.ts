@@ -10,7 +10,7 @@ import { voipPushNotificationCallCId$ } from '../../utils/push/rxSubjects';
  * This hook is used to do the initial setup of listeners
  * for ios voip push notifications.
  */
-export const useIosPushEffect = () => {
+export const useIosVoipPushEventsSetupEffect = () => {
   const client = useStreamVideoClient();
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
@@ -68,7 +68,6 @@ export const useIosPushEffect = () => {
 };
 
 const onNotificationReceived = (notification: any) => {
-  console.log(JSON.stringify(notification));
   const sender = notification?.stream?.sender;
   // do not process any other notifications other than stream.video
   if (sender !== 'stream.video') {
@@ -76,6 +75,8 @@ const onNotificationReceived = (notification: any) => {
   }
   const call_cid = notification?.stream?.call_cid;
   if (call_cid) {
+    // send the info to this subject, it is listened by callkeep events
+    // callkeep events will then accept/reject the call
     voipPushNotificationCallCId$.next(call_cid);
   }
 };

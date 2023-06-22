@@ -1,5 +1,5 @@
-import { useIosCallKeepEffect } from './useIosCallKeepEffect';
-import { useIosPushEffect } from './useIosPushEffect';
+import { useIosCallKeepEventsSetupEffect } from './useIosCallKeepEventsSetupEffect';
+import { useIosVoipPushEventsSetupEffect } from './useIosVoipPushEventsSetupEffect';
 import { useProcessPushCallEffect } from './useProcessPushCallEffect';
 import { useInitAndroidTokenAndRest } from './useInitAndroidTokenAndRest';
 
@@ -8,8 +8,8 @@ import { useInitAndroidTokenAndRest } from './useInitAndroidTokenAndRest';
  * It must be used in a component which is a child of StreamVideo from bindings
  */
 export const usePushRegisterEffect = () => {
-  useIosCallKeepEffect();
-  useIosPushEffect();
+  useIosCallKeepEventsSetupEffect();
+  useIosVoipPushEventsSetupEffect();
   useProcessPushCallEffect();
   useInitAndroidTokenAndRest();
 };

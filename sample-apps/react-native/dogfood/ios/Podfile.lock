@@ -561,6 +561,8 @@ PODS:
     - RNNotifee/NotifeeCore (= 7.8.0)
   - RNNotifee/NotifeeCore (7.8.0):
     - React-Core
+  - RNPermissions (3.8.0):
+    - React-Core
   - RNReactNativeHapticFeedback (2.0.3):
     - React-Core
   - RNReanimated (3.3.0):
@@ -694,6 +696,7 @@ DEPENDENCIES:
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -843,6 +846,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-crop-picker"
   RNNotifee:
     :path: "../node_modules/@notifee/react-native"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReactNativeHapticFeedback:
     :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
@@ -940,6 +945,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 81521697b2c8f97f9a586ac7257b1a1d9b51b115
   RNImageCropPicker: 486e2f7e2b0461ce24321f751410dce1b3b49e6d
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
+  RNPermissions: eff9b5e06eede1260a053963f760d3b1fdc51a3b
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 9976fbaaeb8a188c36026154c844bf374b3b7eeb
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f

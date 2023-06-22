@@ -1,4 +1,4 @@
-import { useCallMetadata } from '@stream-io/video-react-sdk';
+import { Avatar, useCallMetadata } from '@stream-io/video-react-sdk';
 import type { CustomCallData, User } from '../../types';
 
 export const RoomCard = () => {
@@ -36,9 +36,12 @@ export const RoomCard = () => {
 type HostProps = {
   host: User;
 };
-const Host = ({ host }: HostProps) => (
-  <div>
-    <img src={host.imageUrl} alt={`Profile of ${host.name}`} />
-    <span>{host.name}</span>
-  </div>
-);
+const Host = ({ host }: HostProps) => {
+  const displayName = host.name || host.id;
+  return (
+    <div>
+      <Avatar name={displayName} imageSrc={host?.imageUrl} />
+      <span>{displayName}</span>
+    </div>
+  );
+};

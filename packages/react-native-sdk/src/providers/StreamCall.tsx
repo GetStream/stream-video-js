@@ -5,6 +5,7 @@ import {
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import { useAndroidKeepCallAliveEffect, useCallCycleEffect } from '../hooks';
+import { useIosCallkeepEndEffect } from '../hooks/useIosCallkeepEndEffect';
 
 type InitWithCallCID = {
   /**
@@ -88,7 +89,8 @@ export const StreamCall = ({
 
   return (
     <StreamCallProvider call={activeCall}>
-      <KeepCallAliveAndroid />
+      <AndroidKeepCallAlive />
+      <IosInformCallkeepCallEnd />
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
         {children}
       </CallCycleLogicsWrapper>
@@ -148,7 +150,16 @@ export const CallCycleLogicsWrapper = ({
  * This is a renderless component is used to keep the call alive on Android device using useAndroidKeepCallAliveEffect.
  * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
  */
-const KeepCallAliveAndroid = () => {
+const AndroidKeepCallAlive = () => {
   useAndroidKeepCallAliveEffect();
+  return null;
+};
+
+/**
+ * This is a renderless component to end the call in callkeep for ios.
+ * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
+ */
+const IosInformCallkeepCallEnd = () => {
+  useIosCallkeepEndEffect();
   return null;
 };

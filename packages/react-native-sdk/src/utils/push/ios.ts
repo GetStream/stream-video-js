@@ -30,14 +30,12 @@ export const iosCallkeepRejectCall = async (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
-  console.log('rejecting call from callkeep');
   pushRejectedIncomingCallCId$.next(call_cid);
   voipPushNotificationCallCId$.next(undefined);
   if (pushAcceptedIncomingCallCId$.observed) {
     // we have observed the rejected call cid, so nothing to do here
     return;
   }
-  console.log('declining call from push in background');
   await declineCallFromPushInBackground(pushConfig, call_cid);
 };
 
