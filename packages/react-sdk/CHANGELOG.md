@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.46...@stream-io/video-react-sdk-0.0.47) (2023-06-22)
+
+
+### Features
+
+* **livestream-app:** accept credentials from URL ([#691](https://github.com/GetStream/stream-video-js/issues/691)) ([62032c7](https://github.com/GetStream/stream-video-js/commit/62032c7abf9ed47444daee3a4c7d272c610d27a9))
+
+### [0.0.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.45...@stream-io/video-react-sdk-0.0.46) (2023-06-22)
+
+
+### Bug Fixes
+
+* prevent unmute after reconnect ([#694](https://github.com/GetStream/stream-video-js/issues/694)) ([367abaa](https://github.com/GetStream/stream-video-js/commit/367abaac49e16b1334caa41d7cfee598796ac066))
+
 ### [0.0.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.44...@stream-io/video-react-sdk-0.0.45) (2023-06-21)
 
 

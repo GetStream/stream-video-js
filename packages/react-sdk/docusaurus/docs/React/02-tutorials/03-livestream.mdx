@@ -8,7 +8,7 @@ description: How to build a live stream experience using Stream's React Video SD
 In this quickstart, we'll build a live-streaming experience that is similar to Twitch.
 
 - The live stream will run on Stream's Edge network of servers around the world
-- We can use ultra-low latency ([WebRTC](https://webrtc.org/)) based live streaming or [HLS](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) (slight delay, but better buffering)
+- We can use ultra-low latency ([WebRTC](https://webrtc.org/)) based livestreaming or [HLS](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) (slight delay, but better buffering)
 - We will go through the process of publishing the live stream from the browser
 - Stream enables us to automatically scale to millions of viewers (no actions required from your side)
 - We even show how to have multiple active participants in the live stream
@@ -24,11 +24,26 @@ Let's get started.
 
 Before going into the code, let's make sure we have everything we need.
 
-- Add Stream's React Video SDK to your project:
-  - `yarn add @stream-io/video-react-sdk` or
-  - `npm install @stream-io/video-react-sdk`
-  - Set up a Stream account at [GetStream's Dashboard](https://dashboard.getstream.io) or use your existing one
-  - We will need an API key and secret to run the project
+1. [Registered Stream account](https://getstream.io/try-for-free/)
+2. Have an app created in the [Stream's dashboard](https://dashboard.getstream.io/) to obtain app API key and secret.
+3. Initiate the project (you can follow our [introductory tutorial setup guide](../../tutorials/video-calling#set-up-for-success))
+4. Have installed the Stream video and chat SDKs in the project:
+
+```shell
+npm install @stream-io/video-react-sdk
+```
+
+```shell
+yarn add @stream-io/video-react-sdk
+```
+
+5. Have populated `.env` file in the project root
+
+```shell
+VITE_STREAM_API_KEY=<your_api_key>
+# URL from which the JWT is requested
+VITE_TOKEN_PROVIDER_URL=<your_token_provider_url>
+```
 
 ## Step 2 - Set up the host mode
 
@@ -146,7 +161,7 @@ With this done, we have a fully functional livestream experience for the host.
 The hosts can join the live stream, publish their audio and video, and invite other hosts to the live stream.
 
 :::note
-When the call is started, the live streaming isn't enabled for the viewers yet.
+When the call is started, the livestreaming isn't enabled for the viewers yet.
 We will see how to enable it in the next step.
 :::
 
@@ -202,16 +217,16 @@ There are two ways how we can do that:
 
 :::
 
-## Step 4 - Setup the viewer mode
+## Step 4 - Set up the viewer mode
 
 The viewer mode is very similar to the host mode. The only difference is that the viewer doesn't have to publish their audio and video to the live stream.
 
 A viewer can join a live stream in two ways:
 
-- WebRTC-based live streaming (ultra-low latency), by using Stream Edge servers
-- HLS-based live streaming (slight delay, but better buffering), by using Stream CDN
+- WebRTC-based livestreaming (ultra-low latency), by using Stream Edge servers
+- HLS-based livestreaming (slight delay, but better buffering), by using Stream CDN
 
-### WebRTC-based live streaming
+### WebRTC-based livestreaming
 
 For the WebRTC, we are going to use the same `<StreamCall />` component as in the host mode. The only difference is that we are going to use an anonymous user for the viewer.
 
@@ -245,21 +260,11 @@ export const ViewerApp = (props) => {
   // it is up to the developer to decide how to do that (prop, query param, etc.)
   const callId = props.callId;
   const [activeCall, setActiveCall] = useState<Call>();
+
   useEffect(() => {
     if (!callId) return;
-    client
-      .queryCalls({
-        filter_conditions: {
-          cid: { $in: [`livestream:${callId}`] },
-        },
-        sort: [{ field: 'cid', direction: 1 }],
-      })
-      .then(({ calls }) => {
-        const [call] = calls;
-        if (call) {
-          setActiveCall(call);
-        }
-      });
+    const call = client.call('livestream', callId);
+    call.get().then(() => setActiveCall(call));
   }, [client, callId]);
 
   useEffect(() => {
@@ -295,13 +300,13 @@ const WebRTCLivestreamUI = () => {
 };
 ```
 
-### HLS-based live streaming
+### HLS-based livestreaming
 
 For the HLS scenario, we are going to use one very popular library called `hls.js`.
-HLS.js is a JavaScript library that implements an HTTP Live Streaming client. It relies on HTML5 video and MediaSource Extensions for playback.
+HLS.js is a JavaScript library that implements an HTTP Livestreaming client. It relies on HTML5 video and MediaSource Extensions for playback.
 You can read more about HLS.js [here.](https://github.com/video-dev/hls.js/)
 
-For the HLS-based live streaming, we are going to use a few components from the Stream Video SDK for React. However, instead using a pre-built layout,
+For the HLS-based livestreaming, we are going to use a few components from the Stream Video SDK for React. However, instead using a pre-built layout,
 we are going to set up the HLS.js library and use it to play the live stream.
 
 In the example below, you will get familiar with the `useCallMetadata` hook.

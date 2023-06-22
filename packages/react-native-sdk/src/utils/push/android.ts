@@ -7,8 +7,9 @@ import { getFirebaseMessagingLib } from './libs';
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
+  pushTappedIncomingCallCId$,
 } from './rxSubjects';
-import { declineCallFromPushInBackground } from './utils';
+import { processCallFromPushInBackground } from './utils';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -127,6 +128,11 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
   // we can safely cast to string because the data is from "stream.video"
   const call_cid = data.call_cid as string;
 
+  // check if we have observers for the call cid (this means the app is in the foreground state)
+  const hasObservers =
+    pushAcceptedIncomingCallCId$.observed &&
+    pushRejectedIncomingCallCId$.observed;
+
   // Check if we need to decline the call
   const didPressDecline =
     type === EventType.ACTION_PRESS &&
@@ -138,17 +144,16 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
     type === EventType.ACTION_PRESS && pressAction.id === ACCEPT_CALL_ACTION_ID;
   if (mustAccept) {
     pushAcceptedIncomingCallCId$.next(call_cid);
-    pushConfig.navigateAcceptCall();
     // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always
   } else if (mustDecline) {
     pushRejectedIncomingCallCId$.next(call_cid);
-    const hasObservers =
-      pushAcceptedIncomingCallCId$.observed &&
-      pushRejectedIncomingCallCId$.observed;
     if (hasObservers) {
       // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
       return;
     }
-    await declineCallFromPushInBackground(pushConfig, call_cid);
+    await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+  } else if (type === EventType.PRESS) {
+    pushTappedIncomingCallCId$.next(call_cid);
+    // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
   }
 };
