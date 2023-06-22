@@ -25,9 +25,7 @@ export const setClientDetails = () => {
   });
 
   setDeviceInfo({
-    name: `${deviceInfo.getManufacturerSync()} ${deviceInfo.getModel()} ${
-      deviceInfo.getDeviceType() || ''
-    }`,
+    name: `${deviceInfo.getManufacturerSync()} ${deviceInfo.getModel()} ${deviceInfo.getDeviceType()}`,
     version: '',
   });
 };
