@@ -1,6 +1,7 @@
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
+  pushTappedIncomingCallCId$,
 } from '../../utils/push/rxSubjects';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -8,8 +9,11 @@ import {
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
+import { BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { processCallFromPush } from '../../utils/push/utils';
+import { StreamVideoClient } from '@stream-io/video-client';
+import type { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 
 /**
  * This hook is used to process the incoming call data via push notifications using the relevant rxjs subjects
@@ -28,22 +32,33 @@ export const useProcessPushCallEffect = () => {
     }
 
     // if the user accepts the call from push notification we join the call
-    const acceptedCallSubscription = pushAcceptedIncomingCallCId$
-      .pipe(filter(cidIsNotUndefined))
-      .subscribe(async (callCId) => {
-        await processCallFromPush(client, callCId, 'accept');
-        pushAcceptedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
-      });
+    const acceptedCallSubscription = createCallSubscription(
+      pushAcceptedIncomingCallCId$,
+      client,
+      pushConfig,
+      'accept',
+    );
+
     // if the user rejects the call from push notification we leave the call
-    const declinedCallSubscription = pushRejectedIncomingCallCId$
-      .pipe(filter(cidIsNotUndefined))
-      .subscribe(async (callCId) => {
-        await processCallFromPush(client, callCId, 'decline');
-        pushRejectedIncomingCallCId$.next(undefined); // remove the current call id to avoid processing again
-      });
+    const declinedCallSubscription = createCallSubscription(
+      pushRejectedIncomingCallCId$,
+      client,
+      pushConfig,
+      'decline',
+    );
+
+    // if the user taps the call from push notification we do nothing as the only thing is to get the call which adds it to the client
+    const pressedCallSubscription = createCallSubscription(
+      pushTappedIncomingCallCId$,
+      client,
+      pushConfig,
+      'pressed',
+    );
+
     return () => {
       acceptedCallSubscription.unsubscribe();
       declinedCallSubscription.unsubscribe();
+      pressedCallSubscription.unsubscribe();
     };
   }, [client, connectedUserId]);
 };
@@ -54,3 +69,25 @@ export const useProcessPushCallEffect = () => {
 function cidIsNotUndefined(cid: string | undefined): cid is string {
   return cid !== undefined;
 }
+
+/**
+ * The common logic to create a subscription for the given call cid and action
+ */
+const createCallSubscription = (
+  behaviourSubjectWithCallCid: BehaviorSubject<string | undefined>,
+  client: StreamVideoClient,
+  pushConfig: NonNullable<StreamVideoConfig['push']>,
+  action: 'accept' | 'decline' | 'pressed',
+) => {
+  return behaviourSubjectWithCallCid
+    .pipe(filter(cidIsNotUndefined))
+    .subscribe(async (callCId) => {
+      await processCallFromPush(client, callCId, action);
+      if (action === 'accept') {
+        pushConfig.navigateAcceptCall();
+      } else if (action === 'pressed') {
+        pushConfig.navigateToIncomingCall();
+      }
+      behaviourSubjectWithCallCid.next(undefined); // remove the current call id to avoid processing again
+    });
+};
