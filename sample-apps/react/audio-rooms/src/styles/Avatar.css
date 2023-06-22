@@ -1,0 +1,37 @@
+.str-video__avatar--initials-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+  color: var(--primary-text);
+  background-color: var(--prominent-color);
+  font-weight: 600;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.str-video__avatar {
+  width: 2rem;
+  height: 2rem;
+}
+
+.speaker-image-container .str-video__avatar--initials-fallback {
+  width: 5rem;
+  height: 5rem;
+  font-size: 2rem;
+}
+
+.listener .str-video__avatar--initials-fallback {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+}
+
+.sidebar .str-video__avatar--initials-fallback {
+  width: 6rem;
+  height: 6rem;
+  font-size: 3rem;
+}
+

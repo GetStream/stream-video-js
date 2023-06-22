@@ -1,4 +1,5 @@
 import {
+  Avatar,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
@@ -9,7 +10,7 @@ export const Listener = ({
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 }) => (
   <div className="listener">
-    <img src={image} alt={`Profile of ${name}`} />
+    <Avatar imageSrc={image} name={name} alt={name} />
     <div className="listener-name">{name}</div>
   </div>
 );

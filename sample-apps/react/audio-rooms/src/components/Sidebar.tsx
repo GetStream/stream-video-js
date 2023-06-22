@@ -1,4 +1,4 @@
-import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { Avatar, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { roomStates } from '../utils/roomLiveState';
 import { useLayoutController, useUserContext } from '../contexts';
@@ -16,8 +16,8 @@ export default function Sidebar() {
       <section className="sidebar">
         <div className="sidebar-top">
           <div>
-            <img src={user?.imageUrl} alt={`Profile of ${user?.name}`}></img>
-            <h3>@{user?.name}</h3>
+            <Avatar name={user?.name || user?.id} imageSrc={user?.imageUrl} />
+            <h3>@{user?.name ?? user?.id}</h3>
           </div>
           <button
             className="filled-button filled-button--blue"
