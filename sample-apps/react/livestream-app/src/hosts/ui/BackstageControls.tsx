@@ -39,12 +39,13 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
       className={`livestream-toggle-button ${
         isBroadcasting ? 'broadcasting' : ''
       }`}
-      onClick={() => {
+      onClick={async () => {
         if (isBroadcasting) {
           call.stopBroadcasting().catch((err) => {
             console.error('Error stopping livestream', err);
           });
         } else {
+          call.goLive();
           call.startBroadcasting().catch((err) => {
             console.error('Error starting livestream', err);
           });
