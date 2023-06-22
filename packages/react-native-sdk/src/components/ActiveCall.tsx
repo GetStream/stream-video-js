@@ -12,7 +12,6 @@ import { useIncallManager } from '../hooks/useIncallManager';
 import { usePublishMediaStreams } from '../hooks/usePublishMediaStreams';
 import { usePermissionRequest } from '../hooks/usePermissionRequest';
 import { CallParticipantsBadge } from './CallParticipantsBadge';
-import { verifyAndroidBluetoothPermissions } from '../utils/verifyAndroidBluetoothPermissions';
 import { CallingState } from '@stream-io/video-client';
 import { Z_INDEX } from '../constants';
 
@@ -40,9 +39,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   activeCallRef.current = activeCall;
 
   useEffect(() => {
-    // when the component mounts, we ask for necessary permissions.
-    verifyAndroidBluetoothPermissions();
-
     return () => {
       if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
         activeCallRef.current?.leave();

@@ -6,16 +6,16 @@ const argsWithValue = {
   duration: duration,
   'show-window': show_window,
 };
-const argsWithNoValue = {camera: camera, mic: mic};
+const argsWithNoValue = { camera: camera, mic: mic };
 
-Object.keys(argsWithValue).map(key => {
+Object.keys(argsWithValue).map((key) => {
   if (!argsWithValue[key]) {
     return;
   }
   params.push(`--${key} ${argsWithValue[key]}`);
 });
 
-Object.keys(argsWithNoValue).map(key => {
+Object.keys(argsWithNoValue).map((key) => {
   if (argsWithNoValue[key] !== 'true') {
     return;
   }
@@ -23,7 +23,7 @@ Object.keys(argsWithNoValue).map(key => {
 });
 
 http.post('http://localhost:7654/terminal', {
-  headers: {'Content-Type': 'application/json'},
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     command: `stream-video-buddy join ${params.join(' ')}`,
   }),

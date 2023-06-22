@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { getAudioDevices, getVideoDevices } from '@stream-io/video-client';
 import { MediaDeviceInfo, useStreamVideoStoreSetState } from '../contexts';
+import {
+  isCameraPermissionGranted$,
+  isMicPermissionGranted$,
+  subscribeToDevicesWhenPermissionGranted,
+} from '../utils/StreamVideoRN/permissions';
 
 /**
  * A renderless component that provides the audio and video devices to the store
@@ -17,7 +22,12 @@ export const MediaDevices = (): React.ReactElement | null => {
     const setAudioDevices = (audioDevices: MediaDeviceInfo[]) => {
       setState({ audioDevices, currentAudioDevice: audioDevices[0] });
     };
-    const subscription = getAudioDevices().subscribe(setAudioDevices);
+
+    const subscription = subscribeToDevicesWhenPermissionGranted(
+      isMicPermissionGranted$,
+      getAudioDevices,
+      setAudioDevices,
+    );
     return () => subscription.unsubscribe();
   }, [setState]);
 
@@ -37,7 +47,11 @@ export const MediaDevices = (): React.ReactElement | null => {
       }
       setState({ videoDevices });
     };
-    const subscription = getVideoDevices().subscribe(setVideoDevices);
+    const subscription = subscribeToDevicesWhenPermissionGranted(
+      isCameraPermissionGranted$,
+      getVideoDevices,
+      setVideoDevices,
+    );
     return () => subscription.unsubscribe();
   }, [setState]);
 

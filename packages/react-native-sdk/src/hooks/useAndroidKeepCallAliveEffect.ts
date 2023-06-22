@@ -1,5 +1,5 @@
 import { useCallCallingState } from '@stream-io/video-react-bindings';
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
 import { Platform } from 'react-native';
@@ -23,6 +23,15 @@ async function startForegroundService() {
   const foregroundServiceConfig = StreamVideoRN.getConfig().foregroundService;
   const { title, body } = foregroundServiceConfig.android.notificationTexts;
   const channelId = foregroundServiceConfig.android.channel.id;
+
+  // request for notification permission and then start the foreground service
+  const settings = await notifee.getNotificationSettings();
+  if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
+    console.warn(
+      'Notification permission not granted, can not start foreground service to keep the call alive',
+    );
+    return;
+  }
   await notifee.createChannel(foregroundServiceConfig.android.channel);
   await notifee.displayNotification({
     title,
@@ -76,11 +85,8 @@ export const useAndroidKeepCallAliveEffect = () => {
           return;
         }
         // request for notification permission and then start the foreground service
-        const settings = await notifee.requestPermission();
-        if (settings.authorizationStatus === AuthorizationStatus.AUTHORIZED) {
-          await startForegroundService();
-          foregroundServiceStartedRef.current = true;
-        }
+        await startForegroundService();
+        foregroundServiceStartedRef.current = true;
       };
       run();
       return () => {
