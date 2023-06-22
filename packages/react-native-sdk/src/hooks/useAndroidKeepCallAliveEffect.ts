@@ -27,7 +27,9 @@ async function startForegroundService() {
   // request for notification permission and then start the foreground service
   const settings = await notifee.getNotificationSettings();
   if (settings.authorizationStatus !== AuthorizationStatus.AUTHORIZED) {
-    console.warn('Notification permission not granted');
+    console.warn(
+      'Notification permission not granted, can not start foreground service to keep the call alive',
+    );
     return;
   }
   await notifee.createChannel(foregroundServiceConfig.android.channel);

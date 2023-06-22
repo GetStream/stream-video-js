@@ -24,14 +24,14 @@ export const useMutingState = () => {
   const isCameraPermissionGranted = isCameraPermissionGranted$.getValue();
   const toggleAudioState = () => {
     if (!isMicPermissionGranted) {
-      console.warn('Microphone permission not granted');
+      console.warn('Microphone permission not granted, can not toggle audio');
       return;
     }
     setState({ isAudioMuted: !isAudioMuted });
   };
   const toggleVideoState = () => {
     if (!isCameraPermissionGranted) {
-      console.warn('Camera permission not granted');
+      console.warn('Camera permission not granted, can not toggle video');
       return;
     }
     setState({ isVideoMuted: !isVideoMuted });
