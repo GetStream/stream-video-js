@@ -171,12 +171,12 @@ import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 export const useSyncPermissions = () => {
   useEffect(() => {
     // Check, update and sync permissions after parent component mounts
-    checkAndUpdatePermissions();
+    requestAndUpdatePermissions();
   }, []);
   // useAppStateListener(handleOnForeground, () => {});
 };
 
-const checkAndUpdatePermissions = async () => {
+const requestAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
     // Request camera and mic permissions on iOS
     const results = await requestMultiple([
@@ -247,7 +247,7 @@ export const useSyncPermissions = () => {
   // Check, update and sync permissions...
   useEffect(() => {
     // ...after parent component mounts
-    checkAndUpdatePermissions();
+    requestAndUpdatePermissions();
   }, []);
   // ...after user comes back to the app from background to foreground.
   // This is important because the user might have changed the permissions in the app's
@@ -260,7 +260,7 @@ export const useSyncPermissions = () => {
         prevAppState.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        await handleOnForeground();
+        await checkPermissionsAndUpdate();
       }
     };
     const subscription = AppState.addEventListener(
@@ -274,7 +274,7 @@ export const useSyncPermissions = () => {
   }, []);
 };
 
-const handleOnForeground = async () => {
+const checkPermissionsAndUpdate = async () => {
   if (Platform.OS === 'ios') {
     // Check, update and sync permissions on iOS
     const results = await checkMultiple([
@@ -294,7 +294,7 @@ const handleOnForeground = async () => {
   }
 };
 
-const checkAndUpdatePermissions = async () => {...};
+const requestAndUpdatePermissions = async () => {...};
 const androidProcessResultsAndSetToConfig = (results) => {...};
 const iOSProcessResultsAndSetToConfig = (results) => {...};
 ```

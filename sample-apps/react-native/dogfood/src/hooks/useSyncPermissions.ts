@@ -18,12 +18,12 @@ import {
  */
 export const useSyncPermissions = () => {
   useEffect(() => {
-    checkAndUpdatePermissions();
+    requestAndUpdatePermissions();
   }, []);
-  useAppStateListener(handleOnForeground, () => {});
+  useAppStateListener(checkAndUpdatePermissions, () => {});
 };
 
-const checkAndUpdatePermissions = async () => {
+const requestAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
     const results = await requestMultiple([
       PERMISSIONS.IOS.CAMERA,
@@ -41,7 +41,7 @@ const checkAndUpdatePermissions = async () => {
     androidProcessResultsAndSetToConfig(results);
   }
 };
-const handleOnForeground = async () => {
+const checkAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
     const results = await checkMultiple([
       PERMISSIONS.IOS.CAMERA,
