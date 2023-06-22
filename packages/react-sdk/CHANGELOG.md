@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.45...@stream-io/video-react-sdk-0.0.46) (2023-06-22)
+
+
+### Bug Fixes
+
+* prevent unmute after reconnect ([#694](https://github.com/GetStream/stream-video-js/issues/694)) ([367abaa](https://github.com/GetStream/stream-video-js/commit/367abaac49e16b1334caa41d7cfee598796ac066))
+
 ### [0.0.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.44...@stream-io/video-react-sdk-0.0.45) (2023-06-21)
 
 
