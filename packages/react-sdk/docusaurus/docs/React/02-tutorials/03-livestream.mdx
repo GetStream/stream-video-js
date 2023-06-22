@@ -260,21 +260,11 @@ export const ViewerApp = (props) => {
   // it is up to the developer to decide how to do that (prop, query param, etc.)
   const callId = props.callId;
   const [activeCall, setActiveCall] = useState<Call>();
+
   useEffect(() => {
     if (!callId) return;
-    client
-      .queryCalls({
-        filter_conditions: {
-          cid: { $in: [`livestream:${callId}`] },
-        },
-        sort: [{ field: 'cid', direction: 1 }],
-      })
-      .then(({ calls }) => {
-        const [call] = calls;
-        if (call) {
-          setActiveCall(call);
-        }
-      });
+    const call = client.call('livestream', callId);
+    call.get().then(() => setActiveCall(call));
   }, [client, callId]);
 
   useEffect(() => {
