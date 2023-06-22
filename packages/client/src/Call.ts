@@ -62,8 +62,10 @@ import {
   CallConstructor,
   CallLeaveOptions,
   DebounceType,
+  isStreamVideoLocalParticipant,
   JoinCallData,
   PublishOptions,
+  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -885,7 +887,10 @@ export class Call {
         : new Date();
       this.state.setParticipants(
         currentParticipants.map<StreamVideoParticipant>((participant) => {
-          const baseParticipant: Partial<StreamVideoParticipant> = {};
+          const baseParticipant: Partial<StreamVideoParticipant> = {
+            isLocalParticipant: participant.sessionId === sfuClient.sessionId,
+            viewportVisibilityState: VisibilityState.UNKNOWN,
+          };
           if (isMigrating) {
             // When migrating, we need to preserve some of the local state
             // of the participant (e.g. videoDimension, pinnedAt, etc.)
@@ -900,19 +905,25 @@ export class Call {
                 screenShareDimension,
                 pinnedAt,
                 reaction,
+                viewportVisibilityState,
               } = existingParticipant;
               baseParticipant.videoDimension = videoDimension;
               baseParticipant.screenShareDimension = screenShareDimension;
               baseParticipant.pinnedAt = pinnedAt;
               baseParticipant.reaction = reaction;
+              baseParticipant.viewportVisibilityState = viewportVisibilityState;
+              if (isStreamVideoLocalParticipant(existingParticipant)) {
+                const { audioDeviceId, videoDeviceId, audioOutputDeviceId } =
+                  existingParticipant;
+                const localBaseParticipant =
+                  baseParticipant as StreamVideoLocalParticipant;
+                localBaseParticipant.audioDeviceId = audioDeviceId;
+                localBaseParticipant.videoDeviceId = videoDeviceId;
+                localBaseParticipant.audioOutputDeviceId = audioOutputDeviceId;
+              }
             }
           }
-          return {
-            ...baseParticipant,
-            ...participant,
-            isLocalParticipant: participant.sessionId === sfuClient.sessionId,
-            viewportVisibilityState: VisibilityState.UNKNOWN,
-          };
+          return Object.assign(baseParticipant, participant);
         }),
       );
       this.state.setParticipantCount(participantCount?.total || 0);
