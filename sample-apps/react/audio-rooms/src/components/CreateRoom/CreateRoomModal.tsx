@@ -1,8 +1,13 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
-import { CloseIcon } from './icons';
-import { CALL_TYPE, useUserContext } from '../contexts';
+import { CloseIcon } from '../icons';
+import { useUserContext } from '../../contexts';
+import {
+  generateRoomId,
+  generateRoomPayload,
+} from '../../utils/generateRoomData';
+import { CALL_TYPE } from '../../utils/constants';
 
 type CreateCallParams = {
   title: string;
@@ -23,18 +28,8 @@ export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
   const createRoom = useCallback(
     async (params: CreateCallParams) => {
       if (!(client && user)) return;
-      const randomId = Math.random().toString(36).substring(2, 12);
-      const call = client.call(CALL_TYPE, randomId);
-      await call.getOrCreate({
-        data: {
-          members: [{ user_id: user.id, role: 'admin' }],
-          custom: {
-            title: params.title,
-            description: params.description,
-            hosts: [user],
-          },
-        },
-      });
+      const call = client.call(CALL_TYPE, generateRoomId());
+      await call.getOrCreate(generateRoomPayload({ user, ...params }));
       return call;
     },
     [client, user],

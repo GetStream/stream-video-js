@@ -1,31 +1,35 @@
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import {
   Call,
   StreamCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { Link, useParams } from 'react-router-dom';
 import { RoomUI } from '../components/Room';
-import { CALL_TYPE, useJoinedCall } from '../contexts';
-import { useCallback, useEffect, useState } from 'react';
+import { useJoinedCall, useUserContext } from '../contexts';
 import { LoadingPanel } from '../components/Loading';
 import { ErrorPanel } from '../components/Error';
+import { generateRoomPayload } from '../utils/generateRoomData';
+import { getURLCredentials } from '../utils/getURLCredentials';
+import { CALL_TYPE } from '../utils/constants';
 
 function Room() {
   const client = useStreamVideoClient();
   const { joinedCall } = useJoinedCall();
+  const { user } = useUserContext();
   const { roomId } = useParams<{ roomId: string }>();
   const [call, setCall] = useState<Call | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const loadCall = useCallback(
-    async (id: string, type: string = CALL_TYPE) => {
-      if (!client) return;
+  const loadRoom = useCallback(
+    async (id: string, type: string) => {
+      if (!(client && user)) return;
       const newCall = client.call(type, id);
-      await newCall.get();
+      await newCall.getOrCreate(generateRoomPayload({ user }));
       return newCall;
     },
-    [client],
+    [client, user],
   );
 
   useEffect(() => {
@@ -34,12 +38,13 @@ function Room() {
       setCall(joinedCall);
       return;
     }
+    const urlCredentials = getURLCredentials();
     setLoading(true);
-    loadCall(roomId)
+    loadRoom(roomId, urlCredentials.type ?? CALL_TYPE)
       .then(setCall)
       .catch(setError)
       .finally(() => setLoading(false));
-  }, [roomId, loadCall, joinedCall]);
+  }, [roomId, loadRoom, joinedCall]);
 
   if (loading) {
     return <LoadingPanel />;

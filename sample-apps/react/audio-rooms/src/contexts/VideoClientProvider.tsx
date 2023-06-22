@@ -6,18 +6,21 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
 
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-
 export const VideoClientProvider = ({ children }: ChildrenOnly) => {
-  const { user, tokenProvider } = useUserContext();
+  const { apiKey, user, tokenProvider, token } = useUserContext();
   const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
+    if (!apiKey) {
+      throw new Error('Missing API key');
+    }
+
     if (!user) return;
     setClient(
       new StreamVideoClient({
         apiKey,
         tokenProvider,
+        token,
         user: {
           id: user.id,
           image: user.imageUrl,
@@ -25,7 +28,7 @@ export const VideoClientProvider = ({ children }: ChildrenOnly) => {
         },
       }),
     );
-  }, [tokenProvider, user]);
+  }, [apiKey, token, tokenProvider, user]);
 
   if (!client) return null;
 
