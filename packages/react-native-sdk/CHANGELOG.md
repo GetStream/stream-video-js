@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.198](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.197...@stream-io/video-react-native-sdk-0.0.1-alpha.198) (2023-06-22)
+
+
+### Features
+
+* **react-native:** push support for iOS ([#693](https://github.com/GetStream/stream-video-js/issues/693)) ([137832e](https://github.com/GetStream/stream-video-js/commit/137832e5519fb5d9be099a60a65cdbb41252b4c7))
+
+
+
 ## [0.0.1-alpha.197](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.196...@stream-io/video-react-native-sdk-0.0.1-alpha.197) (2023-06-22)
 
 
