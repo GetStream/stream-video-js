@@ -1,31 +1,52 @@
 import { Link, Outlet, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { StreamCall, StreamVideo } from '@stream-io/video-react-sdk';
+import {
+  StreamCall,
+  StreamVideo,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
 import { useInitVideoClient } from '../hooks/UseInitVideoClient';
 import { useSetCall } from '../hooks/useSetCall';
+import { ErrorPanel, LoadingPanel } from '../LoadingState';
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
   const client = useInitVideoClient({ role: 'user' });
+  return (
+    <StreamVideo client={client}>
+      {!callId ? <SetupForm /> : <ViewerLivestream />}
+    </StreamVideo>
+  );
+};
+
+const ViewerLivestream = () => {
+  const client = useStreamVideoClient();
   const call = useSetCall(client);
+  const [error, setError] = useState<Error | undefined>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!call) {
       return;
     }
-    call.get();
+    call
+      .get()
+      .catch(setError)
+      .finally(() => setLoading(false));
   }, [call]);
 
+  if (error) return <ErrorPanel error={error} />;
+  if (loading) return <LoadingPanel message="Loading the call data" />;
+
   return (
-    <StreamVideo client={client}>
-      {!callId && <SetupForm />}
+    <>
       {call && (
         <StreamCall call={call}>
           <Outlet />
         </StreamCall>
       )}
-    </StreamVideo>
+    </>
   );
 };
 
