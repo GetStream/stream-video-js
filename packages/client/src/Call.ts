@@ -57,15 +57,13 @@ import {
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
-import { join } from './rtc/flows/join';
+import { join, reconcileParticipantLocalState } from './rtc/flows/join';
 import {
   CallConstructor,
   CallLeaveOptions,
   DebounceType,
-  isStreamVideoLocalParticipant,
   JoinCallData,
   PublishOptions,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -885,47 +883,23 @@ export class Call {
       const startedAt = callState?.startedAt
         ? Timestamp.toDate(callState.startedAt)
         : new Date();
-      this.state.setParticipants(
-        currentParticipants.map<StreamVideoParticipant>((participant) => {
-          const baseParticipant: Partial<StreamVideoParticipant> = {
-            isLocalParticipant: participant.sessionId === sfuClient.sessionId,
+      this.state.setParticipants(() => {
+        const participantLookup = this.state.getParticipantLookupBySessionId();
+        return currentParticipants.map((p) => {
+          const participant: StreamVideoParticipant = Object.assign(p, {
+            isLocalParticipant: p.sessionId === sfuClient.sessionId,
             viewportVisibilityState: VisibilityState.UNKNOWN,
-          };
-          if (isMigrating) {
-            // When migrating, we need to preserve some of the local state
-            // of the participant (e.g. videoDimension, pinnedAt, etc.)
-            // as it doesn't exist on the server.
-            // Note: MediaStream shouldn't be preserved as we are going to
-            // get a new one from the new SFU.
-            const participants = this.state.getParticipantLookupBySessionId();
-            const existingParticipant = participants[participant.sessionId];
-            if (existingParticipant) {
-              const {
-                videoDimension,
-                screenShareDimension,
-                pinnedAt,
-                reaction,
-                viewportVisibilityState,
-              } = existingParticipant;
-              baseParticipant.videoDimension = videoDimension;
-              baseParticipant.screenShareDimension = screenShareDimension;
-              baseParticipant.pinnedAt = pinnedAt;
-              baseParticipant.reaction = reaction;
-              baseParticipant.viewportVisibilityState = viewportVisibilityState;
-              if (isStreamVideoLocalParticipant(existingParticipant)) {
-                const { audioDeviceId, videoDeviceId, audioOutputDeviceId } =
-                  existingParticipant;
-                const localBaseParticipant =
-                  baseParticipant as StreamVideoLocalParticipant;
-                localBaseParticipant.audioDeviceId = audioDeviceId;
-                localBaseParticipant.videoDeviceId = videoDeviceId;
-                localBaseParticipant.audioOutputDeviceId = audioOutputDeviceId;
-              }
-            }
-          }
-          return Object.assign(baseParticipant, participant);
-        }),
-      );
+          });
+          // We need to preserve some of the local state of the participant
+          // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
+          // as it doesn't exist on the server.
+          const existingParticipant = participantLookup[p.sessionId];
+          return reconcileParticipantLocalState(
+            participant,
+            existingParticipant,
+          );
+        });
+      });
       this.state.setParticipantCount(participantCount?.total || 0);
       this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
       this.state.setStartedAt(startedAt);

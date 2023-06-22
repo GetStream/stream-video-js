@@ -3,7 +3,12 @@ import {
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import { JoinCallData } from '../../types';
+import {
+  isStreamVideoLocalParticipant,
+  JoinCallData,
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
 import { getLogger } from '../../logger';
 
@@ -113,4 +118,34 @@ const getCascadingModeParams = () => {
     return rawParams;
   }
   return null;
+};
+
+/**
+ * Reconciles the local state of the source participant into the target participant.
+ *
+ * @param target the participant to reconcile into.
+ * @param source the participant to reconcile from.
+ */
+export const reconcileParticipantLocalState = (
+  target: StreamVideoParticipant | StreamVideoLocalParticipant,
+  source?: StreamVideoParticipant | StreamVideoLocalParticipant,
+) => {
+  if (!source) return target;
+
+  // Note: MediaStream shouldn't be reconciled as we are going to
+  // get a new one from the new SFU in case of a migration or reconnection.
+  target.videoDimension = source.videoDimension;
+  target.screenShareDimension = source.screenShareDimension;
+  target.pinnedAt = source.pinnedAt;
+  target.reaction = source.reaction;
+  target.viewportVisibilityState = source.viewportVisibilityState;
+  if (
+    isStreamVideoLocalParticipant(source) &&
+    isStreamVideoLocalParticipant(target)
+  ) {
+    target.audioDeviceId = source.audioDeviceId;
+    target.videoDeviceId = source.videoDeviceId;
+    target.audioOutputDeviceId = source.audioOutputDeviceId;
+  }
+  return target;
 };

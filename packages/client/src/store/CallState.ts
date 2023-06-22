@@ -613,7 +613,10 @@ export class CallState {
    */
   getParticipantLookupBySessionId = () => {
     return this.participants.reduce<{
-      [sessionId: string]: StreamVideoParticipant | StreamVideoLocalParticipant;
+      [sessionId: string]:
+        | StreamVideoParticipant
+        | StreamVideoLocalParticipant
+        | undefined;
     }>((lookupTable, participant) => {
       lookupTable[participant.sessionId] = participant;
       return lookupTable;
