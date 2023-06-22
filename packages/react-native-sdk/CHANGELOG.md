@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.202](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.201...@stream-io/video-react-native-sdk-0.0.1-alpha.202) (2023-06-22)
+
+
+### Bug Fixes
+
+* navigate to incoming call screen when push notification is tapped ([#697](https://github.com/GetStream/stream-video-js/issues/697)) ([85488a2](https://github.com/GetStream/stream-video-js/commit/85488a213abb0482c7aedefb5c3aa999131c746a))
+
+
+
 ## [0.0.1-alpha.201](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.200...@stream-io/video-react-native-sdk-0.0.1-alpha.201) (2023-06-22)
 
 
