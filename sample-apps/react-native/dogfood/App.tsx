@@ -14,8 +14,8 @@ import {
 } from './src/contexts/AppContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  StaticNavigationService,
   navigationRef,
+  StaticNavigationService,
 } from './src/utils/staticNavigationUtils';
 import Logger from 'react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
@@ -25,9 +25,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
-import { PermissionsAndroid, Platform } from 'react-native';
-import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
-import { useAppStateListener } from 'stream-chat-react-native';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 
 // @ts-expect-error
