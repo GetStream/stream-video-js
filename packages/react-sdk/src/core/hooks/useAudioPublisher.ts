@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import {
   CallingState,
@@ -58,13 +58,23 @@ export const useAudioPublisher = ({
     }
   }, [audioDeviceId, call]);
 
+  const initialPublishRun = useRef(false);
   useEffect(() => {
-    if (callingState === CallingState.JOINED && !initialAudioMuted) {
-      publishAudioStream().catch((e) => {
-        console.error('Failed to publish audio stream', e);
-      });
+    if (callingState === CallingState.JOINED) {
+      if (
+        (!initialAudioMuted && !initialPublishRun.current) ||
+        (isPublishingAudio && initialPublishRun.current)
+      ) {
+        // automatic publishing should happen only when:
+        // - joining the call from the lobby, and the audio is not muted
+        // - reconnecting to the call with the audio already published
+        publishAudioStream().catch((e) => {
+          console.error('Failed to publish audio stream', e);
+        });
+        initialPublishRun.current = true;
+      }
     }
-  }, [callingState, initialAudioMuted, publishAudioStream]);
+  }, [callingState, initialAudioMuted, isPublishingAudio, publishAudioStream]);
 
   useEffect(() => {
     if (!localParticipant$ || !canObserveAudio) return;
