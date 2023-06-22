@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.201](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.200...@stream-io/video-react-native-sdk-0.0.1-alpha.201) (2023-06-22)
+
+
+### Bug Fixes
+
+* do not end call in callkeep if its not a ringing call ([90029e1](https://github.com/GetStream/stream-video-js/commit/90029e1bae07751e2f7f5366236c9e5e6d5afdd0))
+
+
+
 ## [0.0.1-alpha.200](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.199...@stream-io/video-react-native-sdk-0.0.1-alpha.200) (2023-06-22)
 
 
