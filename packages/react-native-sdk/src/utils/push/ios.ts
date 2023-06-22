@@ -4,7 +4,7 @@ import {
   voipPushNotificationCallCId$,
   pushRejectedIncomingCallCId$,
 } from './rxSubjects';
-import { declineCallFromPushInBackground } from './utils';
+import { processCallFromPushInBackground } from './utils';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -36,7 +36,7 @@ export const iosCallkeepRejectCall = async (
     // we have observed the rejected call cid, so nothing to do here
     return;
   }
-  await declineCallFromPushInBackground(pushConfig, call_cid);
+  await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
 };
 
 /**

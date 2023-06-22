@@ -30,6 +30,9 @@ export function setPushConfig() {
     navigateAcceptCall: () => {
       StaticNavigationService.navigate('Call');
     },
+    navigateToIncomingCall: () => {
+      StaticNavigationService.navigate('Call');
+    },
   });
 }
 
