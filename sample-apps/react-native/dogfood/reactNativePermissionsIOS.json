@@ -1,6 +1,4 @@
 [
-  "BluetoothPeripheral",
   "Camera",
-  "Microphone",
-  "Notifications"
+  "Microphone"
 ]
