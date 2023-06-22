@@ -1,25 +1,27 @@
 import { Link, Outlet, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Call, StreamCall, StreamVideo } from '@stream-io/video-react-sdk';
+import { StreamCall, StreamVideo } from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
 import { useInitVideoClient } from '../hooks/UseInitVideoClient';
+import { useSetCall } from '../hooks/useSetCall';
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
   const client = useInitVideoClient({ role: 'user' });
+  const call = useSetCall(client);
 
-  const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
-    if (!callId) return;
-    const call = client.call('default', callId);
-    call.get().then(() => setActiveCall(call));
-  }, [client, callId]);
+    if (!call) {
+      return;
+    }
+    call.get();
+  }, [call]);
 
   return (
     <StreamVideo client={client}>
       {!callId && <SetupForm />}
-      {activeCall && (
-        <StreamCall call={activeCall}>
+      {call && (
+        <StreamCall call={call}>
           <Outlet />
         </StreamCall>
       )}

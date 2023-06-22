@@ -1,29 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
-  Call,
   PaginatedGridLayout,
   StreamCall,
   StreamVideo,
 } from '@stream-io/video-react-sdk';
-import { useParams } from 'react-router-dom';
 import { ViewerHeader } from './ui/ViewerHeader';
 import { ViewerControls } from './ui/ViewerControls';
 import { useInitVideoClient } from '../hooks/useInitVideoClient';
+import { useSetCall } from '../hooks/useSetCall';
 
 export const WebRTCLivestream = () => {
-  const { callId } = useParams<{ callId: string }>();
   const client = useInitVideoClient({
-    call_cids: `default:${callId}`,
     isAnon: true,
   });
-  const [call, setCall] = useState<Call | undefined>(undefined);
-
-  useEffect(() => {
-    if (!callId) {
-      return;
-    }
-    setCall(client.call('default', callId));
-  }, [client, callId]);
+  const call = useSetCall(client);
 
   useEffect(() => {
     if (!call) {

@@ -2,22 +2,23 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 import { PropsWithChildren, useMemo, useState } from 'react';
 import { getUser } from '../utils/getUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
+import { useParams } from 'react-router-dom';
+import { DEFAULT_CALL_TYPE } from '../utils/constants';
 
 const envApiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
 
 type VideoClientProviderProps = {
-  call_cids?: string;
   isAnon?: boolean;
   role?: string;
 };
 
 export const useInitVideoClient = ({
-  call_cids,
   isAnon,
   role,
 }: PropsWithChildren<VideoClientProviderProps>) => {
-  const { api_key, token } = getURLCredentials();
+  const { callId } = useParams<{ callId: string }>();
+  const { api_key, token, type } = getURLCredentials();
   const user = useMemo(getUser, []);
   const apiKey = api_key ?? envApiKey;
 
@@ -27,8 +28,11 @@ export const useInitVideoClient = ({
       endpoint.searchParams.set('api_key', apiKey);
       endpoint.searchParams.set('user_id', isAnon ? '!anon' : user.id);
 
-      if (call_cids) {
-        endpoint.searchParams.set('call_cids', call_cids);
+      if (isAnon) {
+        endpoint.searchParams.set(
+          'call_cids',
+          `${type ?? DEFAULT_CALL_TYPE}:${callId}`,
+        );
       }
       const response = await fetch(endpoint).then((res) => res.json());
       return response.token as string;

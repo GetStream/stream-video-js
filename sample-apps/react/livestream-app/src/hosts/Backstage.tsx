@@ -1,6 +1,6 @@
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Call,
   CallingState,
   PaginatedGridLayout,
   StreamCall,
@@ -12,20 +12,13 @@ import {
 } from '@stream-io/video-react-sdk';
 import { BackstageHeader } from './ui/BackstageHeader';
 import { BackstageControls } from './ui/BackstageControls';
-import { useEffect, useState } from 'react';
+import { useSetCall } from '../hooks/useSetCall';
 
 export const Backstage = () => {
   const { callId } = useParams();
   const client = useStreamVideoClient();
-  const [call, setCall] = useState<Call | undefined>(undefined);
   const connectedUser = useConnectedUser();
-
-  useEffect(() => {
-    if (!(client && callId)) return;
-
-    // FIXME OL: change to 'livestream'
-    setCall(client.call('default', callId));
-  }, [callId, client]);
+  const call = useSetCall(client);
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
