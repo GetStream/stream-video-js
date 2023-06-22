@@ -260,7 +260,7 @@ export const useSyncPermissions = () => {
         prevAppState.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        await checkPermissionsAndUpdate();
+        await checkAndUpdatePermissions();
       }
     };
     const subscription = AppState.addEventListener(
@@ -274,7 +274,7 @@ export const useSyncPermissions = () => {
   }, []);
 };
 
-const checkPermissionsAndUpdate = async () => {
+const checkAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
     // Check, update and sync permissions on iOS
     const results = await checkMultiple([
