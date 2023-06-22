@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.200](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.199...@stream-io/video-react-native-sdk-0.0.1-alpha.200) (2023-06-22)
+
+
+### Bug Fixes
+
+* add null check to callkeep end call effect ([#695](https://github.com/GetStream/stream-video-js/issues/695)) ([8303679](https://github.com/GetStream/stream-video-js/commit/830367929b5db49af23ec5656dc44a07d363d4c5))
+
+
+
 ## [0.0.1-alpha.199](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.198...@stream-io/video-react-native-sdk-0.0.1-alpha.199) (2023-06-22)
 
 
