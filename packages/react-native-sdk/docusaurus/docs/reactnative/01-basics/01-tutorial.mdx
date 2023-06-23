@@ -421,13 +421,9 @@ const MeetingScreen = (props: Props) => {
     return videoClient.call(callType, callId);
   }, [callId, callType, videoClient]);
 
-  if (!call) {
-    return;
-  }
-
   return (
     <StreamVideo client={videoClient}>
-      <StreamCall call={call}>{children}</StreamCall>
+      {!!call && <StreamCall call={call}>{children}</StreamCall>}
     </StreamVideo>
   );
 };
