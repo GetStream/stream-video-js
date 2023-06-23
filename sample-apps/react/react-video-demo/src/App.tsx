@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { v1 as uuidv1 } from 'uuid';
 
 import {
@@ -9,10 +9,9 @@ import {
 
 import {
   GetEdgesResponse,
+  StreamCall,
   StreamVideo,
   StreamVideoClient,
-  StreamCall,
-  User,
 } from '@stream-io/video-react-sdk';
 import { FeatureCollection, Geometry } from 'geojson';
 
@@ -26,26 +25,22 @@ import { NotificationProvider } from './contexts/NotificationsContext';
 import { PanelProvider } from './contexts/PanelContext';
 
 import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
-import { generateUser } from './utils/useGenerateUser';
 import {
+  DeviceSettingsCaptor,
   getStoredDeviceSettings,
   LocalDeviceSettings,
-  DeviceSettingsCaptor,
 } from './utils/useDeviceStorage';
 
+import { UserContextProvider, useUserContext } from './contexts/UserContext';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
+import { getURLCredentials } from './utils/getURLCredentials';
 
 import { tour } from '../data/tour';
 
 import './App.css';
 
-export type Props = {
-  logo: string;
-  user: User;
-  token: string;
-  apiKey: string;
-  incomingCallId?: string | null;
-};
+// This could be exported. No need to prop-drill a constant.
+const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
 
 const config: Config = {
   dictionaries: [adjectives],
@@ -53,7 +48,9 @@ const config: Config = {
   style: 'lowerCase',
 };
 
-const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
+const Init = () => {
+  const { id: incomingCallId, type } = getURLCredentials();
+  const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [storedDeviceSettings, setStoredDeviceSettings] =
@@ -64,15 +61,15 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     latency: number;
   }>();
   const [isjoiningCall, setIsJoiningCall] = useState(false);
-  const [client] = useState(
-    () => new StreamVideoClient({ apiKey, user, token }),
-  );
-
   const { setSteps } = useTourContext();
+
+  const [client] = useState(
+    () => new StreamVideoClient({ apiKey, user, token, tokenProvider }),
+  );
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
-    tokenOrProvider: token,
+    tokenOrProvider: token ?? tokenProvider,
     userData: {
       id: user.id || '!anon',
       name: user.name,
@@ -80,7 +77,7 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
     },
   });
 
-  const callType: string = 'default';
+  const callType: string = type ?? 'default';
   const [callId] = useState(() => {
     if (incomingCallId) return incomingCallId;
     const id = `${uniqueNamesGenerator(config)}-${uuidv1().split('-')[0]}`;
@@ -191,39 +188,12 @@ const Init: FC<Props> = ({ incomingCallId, logo, user, token, apiKey }) => {
   return null;
 };
 
-const App: FC = () => {
-  const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
-  const [user, setUser] = useState<User>();
-  const [token, setToken] = useState<string>();
-
-  const location = window?.document?.location;
-  const callId = new URL(location.href).searchParams.get('id');
-
-  useEffect(() => {
-    async function fetchUser() {
-      const response = await generateUser(
-        callId ? 'user' : 'admin',
-        '@stream-io/video-demo',
-      );
-      setUser(response.user);
-      setToken(response.token);
-    }
-    fetchUser();
-  }, []);
-
-  if (user && token) {
-    return (
-      <Init
-        apiKey={import.meta.env.VITE_STREAM_KEY}
-        user={user}
-        token={token}
-        logo={logo}
-        incomingCallId={callId}
-      />
-    );
-  }
-
-  return null;
+const App = () => {
+  return (
+    <UserContextProvider>
+      <Init />
+    </UserContextProvider>
+  );
 };
 
 export default App;

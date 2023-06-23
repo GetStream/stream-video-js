@@ -1,8 +1,14 @@
 import { uniqueNamesGenerator, Config, starWars } from 'unique-names-generator';
 import { v1 as uuid } from 'uuid';
+import { getURLCredentials } from './getURLCredentials';
 
-const tokenEndpoint: string =
-  'https://stream-calls-dogfood.vercel.app/api/auth/create-token';
+export type User = {
+  id: string;
+  name: string;
+  role: string;
+  teams: string[];
+  image?: string;
+};
 
 const config: Config = {
   dictionaries: [starWars],
@@ -10,34 +16,17 @@ const config: Config = {
   style: 'capital',
 };
 
-export const generateUser = async (role: string, team: string) => {
+export const generateUser = (): User => {
+  const { user_id, user_name, id } = getURLCredentials();
   const characterName: string = uniqueNamesGenerator(config);
 
-  const userId: string = `demo-${uuid()}`;
-  const userName: string = `${characterName}`;
-  let token: string | undefined;
-
-  try {
-    const response = await fetch(
-      `${tokenEndpoint}?api_key=${
-        import.meta.env.VITE_STREAM_KEY
-      }&user_id=${userId}`,
-    );
-    const data = await response.json();
-    token = data.token;
-  } catch (error) {
-    console.error('Unable to fetch user token');
-  }
+  const userId: string = user_id ?? `demo-${uuid()}`;
+  const userName: string = user_name ?? `${characterName}`;
 
   return {
-    user: {
-      id: userId,
-      name: userName,
-      role: role,
-      teams: [team],
-      image: '',
-      customJson: new Uint8Array(),
-    },
-    token,
+    id: userId,
+    name: userName,
+    role: id ? 'user' : 'admin',
+    teams: ['@stream-io/video-demo'],
   };
 };
