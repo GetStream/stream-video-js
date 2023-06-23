@@ -169,7 +169,7 @@ jobs:
         env:
           ANDROID_BUILD_TOOLS_VERSION: '33.0.2'
         run: |
-          echo "$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
           bundle exec fastlane install_android_sdk
           bundle exec fastlane create_android_emulator
           bundle exec fastlane start_android_emulator
