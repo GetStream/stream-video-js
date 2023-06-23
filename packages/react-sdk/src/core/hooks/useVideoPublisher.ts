@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { map } from 'rxjs';
 import {
   CallingState,
@@ -75,13 +75,23 @@ export const useVideoPublisher = ({
     videoSettings?.camera_facing,
   ]);
 
+  const initialPublishRun = useRef(false);
   useEffect(() => {
-    if (callingState === CallingState.JOINED && !initialVideoMuted) {
-      publishVideoStream().catch((e) => {
-        console.error('Failed to publish video stream', e);
-      });
+    if (callingState === CallingState.JOINED) {
+      if (
+        (!initialVideoMuted && !initialPublishRun.current) ||
+        isPublishingVideo
+      ) {
+        // automatic publishing should happen only when:
+        // - joining the call from the lobby, and the video is not muted
+        // - reconnecting to the call with the video already published
+        publishVideoStream().catch((e) => {
+          console.error('Failed to publish video stream', e);
+        });
+        initialPublishRun.current = true;
+      }
     }
-  }, [callingState, initialVideoMuted, publishVideoStream]);
+  }, [callingState, initialVideoMuted, isPublishingVideo, publishVideoStream]);
 
   useEffect(() => {
     if (!localParticipant$ || !canObserveVideo) return;

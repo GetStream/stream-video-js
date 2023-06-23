@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
 import { appTheme } from '../theme';

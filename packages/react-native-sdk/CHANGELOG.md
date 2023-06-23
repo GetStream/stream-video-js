@@ -2,6 +2,88 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.202](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.201...@stream-io/video-react-native-sdk-0.0.1-alpha.202) (2023-06-22)
+
+
+### Bug Fixes
+
+* navigate to incoming call screen when push notification is tapped ([#697](https://github.com/GetStream/stream-video-js/issues/697)) ([85488a2](https://github.com/GetStream/stream-video-js/commit/85488a213abb0482c7aedefb5c3aa999131c746a))
+
+
+
+## [0.0.1-alpha.201](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.200...@stream-io/video-react-native-sdk-0.0.1-alpha.201) (2023-06-22)
+
+
+### Bug Fixes
+
+* do not end call in callkeep if its not a ringing call ([90029e1](https://github.com/GetStream/stream-video-js/commit/90029e1bae07751e2f7f5366236c9e5e6d5afdd0))
+
+
+
+## [0.0.1-alpha.200](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.199...@stream-io/video-react-native-sdk-0.0.1-alpha.200) (2023-06-22)
+
+
+### Bug Fixes
+
+* add null check to callkeep end call effect ([#695](https://github.com/GetStream/stream-video-js/issues/695)) ([8303679](https://github.com/GetStream/stream-video-js/commit/830367929b5db49af23ec5656dc44a07d363d4c5))
+
+
+
+## [0.0.1-alpha.199](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.198...@stream-io/video-react-native-sdk-0.0.1-alpha.199) (2023-06-22)
+
+
+
+## [0.0.1-alpha.198](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.197...@stream-io/video-react-native-sdk-0.0.1-alpha.198) (2023-06-22)
+
+
+### Features
+
+* **react-native:** push support for iOS ([#693](https://github.com/GetStream/stream-video-js/issues/693)) ([137832e](https://github.com/GetStream/stream-video-js/commit/137832e5519fb5d9be099a60a65cdbb41252b4c7))
+
+
+
+## [0.0.1-alpha.197](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.196...@stream-io/video-react-native-sdk-0.0.1-alpha.197) (2023-06-22)
+
+
+
+## [0.0.1-alpha.196](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.195...@stream-io/video-react-native-sdk-0.0.1-alpha.196) (2023-06-22)
+
+
+### Features
+
+* permissions arch changes ([#686](https://github.com/GetStream/stream-video-js/issues/686)) ([36d0633](https://github.com/GetStream/stream-video-js/commit/36d0633c72968b1f1b843dcad9d450c0bd8c865d))
+
+
+
+## [0.0.1-alpha.195](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.194...@stream-io/video-react-native-sdk-0.0.1-alpha.195) (2023-06-21)
+
+
+
+## [0.0.1-alpha.194](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.193...@stream-io/video-react-native-sdk-0.0.1-alpha.194) (2023-06-21)
+
+
+
+## [0.0.1-alpha.193](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.192...@stream-io/video-react-native-sdk-0.0.1-alpha.193) (2023-06-21)
+
+
+
+## [0.0.1-alpha.192](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.191...@stream-io/video-react-native-sdk-0.0.1-alpha.192) (2023-06-21)
+
+
+### Bug Fixes
+
+* **react-native:** toggle camera bug and simplify the logic ([#685](https://github.com/GetStream/stream-video-js/issues/685)) ([048c91e](https://github.com/GetStream/stream-video-js/commit/048c91e9e78c305014c737f45f78f2e5a688f161))
+
+
+
+## [0.0.1-alpha.191](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.190...@stream-io/video-react-native-sdk-0.0.1-alpha.191) (2023-06-21)
+
+
+
+## [0.0.1-alpha.190](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.189...@stream-io/video-react-native-sdk-0.0.1-alpha.190) (2023-06-21)
+
+
+
 ## [0.0.1-alpha.189](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.188...@stream-io/video-react-native-sdk-0.0.1-alpha.189) (2023-06-21)
 
 

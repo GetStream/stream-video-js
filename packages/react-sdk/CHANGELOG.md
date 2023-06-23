@@ -2,6 +2,69 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.48](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.47...@stream-io/video-react-sdk-0.0.48) (2023-06-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.24`
+
+### Bug Fixes
+
+* use correct condition ([984a43d](https://github.com/GetStream/stream-video-js/commit/984a43deca78aefa9609f29ea84d6d8d045163a2))
+
+### [0.0.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.46...@stream-io/video-react-sdk-0.0.47) (2023-06-22)
+
+
+### Features
+
+* **livestream-app:** accept credentials from URL ([#691](https://github.com/GetStream/stream-video-js/issues/691)) ([62032c7](https://github.com/GetStream/stream-video-js/commit/62032c7abf9ed47444daee3a4c7d272c610d27a9))
+
+### [0.0.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.45...@stream-io/video-react-sdk-0.0.46) (2023-06-22)
+
+
+### Bug Fixes
+
+* prevent unmute after reconnect ([#694](https://github.com/GetStream/stream-video-js/issues/694)) ([367abaa](https://github.com/GetStream/stream-video-js/commit/367abaac49e16b1334caa41d7cfee598796ac066))
+
+### [0.0.45](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.44...@stream-io/video-react-sdk-0.0.45) (2023-06-21)
+
+
+### Features
+
+* **react sdk:** prefer URL credentials in audio rooms demo app ([#678](https://github.com/GetStream/stream-video-js/issues/678)) ([f9ac52f](https://github.com/GetStream/stream-video-js/commit/f9ac52ff5afa10e6a10e97177dd2fb7e8a4c2e48))
+
+### [0.0.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.43...@stream-io/video-react-sdk-0.0.44) (2023-06-21)
+
+
+### Documentation
+
+* Add header image to React SDK ([#688](https://github.com/GetStream/stream-video-js/issues/688)) ([a4697da](https://github.com/GetStream/stream-video-js/commit/a4697da69f0f0976d84566d16df840efdaab6ebc))
+
+### [0.0.43](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.42...@stream-io/video-react-sdk-0.0.43) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.6`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.23`
+
+### Documentation
+
+* Add reference tables to state docs ([#676](https://github.com/GetStream/stream-video-js/issues/676)) ([39e7a05](https://github.com/GetStream/stream-video-js/commit/39e7a05a79ba1754be7f62412666ec1f9f85aba9))
+* cleanup ([#679](https://github.com/GetStream/stream-video-js/issues/679)) ([58c86bd](https://github.com/GetStream/stream-video-js/commit/58c86bd0354ebe444af361056dcc3fa82c4a926d))
+
+### [0.0.42](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.41...@stream-io/video-react-sdk-0.0.42) (2023-06-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.22`
+
+### Documentation
+
+* **react-sdk:** update audio rooms tutorial ([#659](https://github.com/GetStream/stream-video-js/issues/659)) ([11f2e80](https://github.com/GetStream/stream-video-js/commit/11f2e8090811fbd8478724b3d2c2c8af3b19a0c5))
+
 ### [0.0.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.40...@stream-io/video-react-sdk-0.0.41) (2023-06-21)
 
 ### Dependency Updates

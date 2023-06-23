@@ -1,7 +1,9 @@
 @import "variables.css";
 @import "App.css";
+@import "Avatar.css";
 @import "Button.css";
 @import "CreateRoomForm.css";
+@import "LoadingIndicator.css";
 @import "Login.css";
 @import "Room.css";
 @import "RoomList.css";

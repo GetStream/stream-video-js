@@ -1,11 +1,7 @@
-import { useStreamVideoClient } from '@stream-io/video-react-sdk';
+import { Avatar, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isRoomState, roomStates } from '../utils/roomLiveState';
-import {
-  useLoadedCalls,
-  useLayoutController,
-  useUserContext,
-} from '../contexts';
+import { roomStates } from '../utils/roomLiveState';
+import { useLayoutController, useUserContext } from '../contexts';
 import { AddIcon, CloseIcon, HomeIcon, LeaveIcon, ListIcon } from './icons';
 
 export default function Sidebar() {
@@ -13,7 +9,6 @@ export default function Sidebar() {
   const { user, logout } = useUserContext();
   const { showRoomList, toggleShowRoomList, toggleShowCreateRoomModal } =
     useLayoutController();
-  const { calls } = useLoadedCalls();
   const navigate = useNavigate();
   const location = useLocation();
   return (
@@ -21,8 +16,8 @@ export default function Sidebar() {
       <section className="sidebar">
         <div className="sidebar-top">
           <div>
-            <img src={user?.imageUrl} alt={`Profile of ${user?.name}`}></img>
-            <h3>@{user?.name}</h3>
+            <Avatar name={user?.name || user?.id} imageSrc={user?.imageUrl} />
+            <h3>@{user?.name ?? user?.id}</h3>
           </div>
           <button
             className="filled-button filled-button--blue"
@@ -36,7 +31,7 @@ export default function Sidebar() {
             <LeaveIcon />
             <span>Sign out</span>
           </button>
-          {showRoomList && (
+          {(showRoomList || !location.pathname.match('/join')) && (
             <div className="sidebar-navlinks">
               {roomStates.map((liveState) => (
                 <button
@@ -49,7 +44,7 @@ export default function Sidebar() {
                     if (heading) heading.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
-                  {liveState} ({calls.filter(isRoomState[liveState]).length})
+                  {liveState}
                 </button>
               ))}
             </div>

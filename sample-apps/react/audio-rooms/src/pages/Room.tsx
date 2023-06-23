@@ -1,12 +1,58 @@
-import { StreamCall } from '@stream-io/video-react-sdk';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import {
+  Call,
+  StreamCall,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
 import { RoomUI } from '../components/Room';
-import { useLoadedCalls } from '../contexts';
+import { useJoinedCall, useUserContext } from '../contexts';
+import { LoadingPanel } from '../components/Loading';
+import { ErrorPanel } from '../components/Error';
+import { generateRoomPayload } from '../utils/generateRoomData';
+import { getURLCredentials } from '../utils/getURLCredentials';
+import { CALL_TYPE } from '../utils/constants';
 
 function Room() {
-  const { calls } = useLoadedCalls();
+  const client = useStreamVideoClient();
+  const { joinedCall } = useJoinedCall();
+  const { user } = useUserContext();
   const { roomId } = useParams<{ roomId: string }>();
-  const call = calls.find((c) => c.id === roomId);
+  const [call, setCall] = useState<Call | undefined>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | undefined>();
+
+  const loadRoom = useCallback(
+    async (id: string, type: string) => {
+      if (!(client && user)) return;
+      const newCall = client.call(type, id);
+      await newCall.getOrCreate(generateRoomPayload({ user }));
+      return newCall;
+    },
+    [client, user],
+  );
+
+  useEffect(() => {
+    if (!roomId) return;
+    if (roomId === joinedCall?.id) {
+      setCall(joinedCall);
+      return;
+    }
+    const urlCredentials = getURLCredentials();
+    setLoading(true);
+    loadRoom(roomId, urlCredentials.type ?? CALL_TYPE)
+      .then(setCall)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [roomId, loadRoom, joinedCall]);
+
+  if (loading) {
+    return <LoadingPanel />;
+  }
+
+  if (error) {
+    return <ErrorPanel error={error} />;
+  }
 
   if (!call) {
     return (

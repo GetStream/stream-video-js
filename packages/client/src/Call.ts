@@ -1544,7 +1544,11 @@ export class Call {
                 prevMeta?.settings.ring.incoming_call_timeout_ms,
                 currentMeta.settings.ring.incoming_call_timeout_ms,
               ];
-          if (typeof timeoutMs === 'undefined' || timeoutMs === prevTimeoutMs)
+          if (
+            typeof timeoutMs === 'undefined' ||
+            timeoutMs === prevTimeoutMs ||
+            timeoutMs === 0
+          )
             return;
 
           if (this.dropTimeout) clearTimeout(this.dropTimeout);

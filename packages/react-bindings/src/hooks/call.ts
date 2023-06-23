@@ -2,7 +2,7 @@ import { useObservableValue } from './helpers/useObservableValue';
 import { useCallState, useStore } from './store';
 
 /**
- * Utility hook which provides information whether the current call is being recorded.
+ * Utility hook which provides information whether the current call is being recorded. It will return `true` if the call is being recorded.
  *
  * @category Call State
  */
@@ -112,7 +112,7 @@ export const useCallRecordings = () => {
 };
 
 /**
- * Utility hook providing the current calling state of the call.
+ * Utility hook providing the current calling state of the call. For example, `RINGING` or `JOINED`.
  *
  * @category Call State
  */
@@ -122,7 +122,7 @@ export const useCallCallingState = () => {
 };
 
 /**
- * Utility hook providing the actual start time of the call.
+ * Utility hook providing the actual start time of the current session.
  * Useful for calculating the call duration.
  *
  * @category Call State

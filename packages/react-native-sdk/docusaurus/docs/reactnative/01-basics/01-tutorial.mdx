@@ -146,7 +146,158 @@ export const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 };
 ```
 
-## Creating Meeting Screen
+## Creating Meeting a Permissions Management Hook
+
+In this step we will create a hook to manage the permissions required for the app to function properly.
+This hook will be used to sync the permissions of the app with the Stream Video SDK.
+We will ask for relevant permissions after the parent screen is mounted and when app state changes to foreground.
+This ensures the latest permissions are synced with the Stream Video SDK, that way the SDK will subscribe to
+audio/video devices as preparation for a call.
+
+```tsx title="src/hooks/useSyncPermissions.tsx"
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+// We will be using react-native-permissions lib. to manage our permissions
+import {
+  checkMultiple,
+  PERMISSIONS,
+  PermissionStatus,
+  requestMultiple,
+  RESULTS,
+} from 'react-native-permissions';
+
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+
+export const useSyncPermissions = () => {
+  useEffect(() => {
+    // Check, update and sync permissions after parent component mounts
+    requestAndUpdatePermissions();
+  }, []);
+  // useAppStateListener(handleOnForeground, () => {});
+};
+
+const requestAndUpdatePermissions = async () => {
+  if (Platform.OS === 'ios') {
+    // Request camera and mic permissions on iOS
+    const results = await requestMultiple([
+      PERMISSIONS.IOS.CAMERA,
+      PERMISSIONS.IOS.MICROPHONE,
+    ]);
+    // Sync the permissions with the Stream Video SDK
+    // This ensures that the SDK will subscribe to audio/video devices as preparation for a call.
+    iOSProcessResultsAndSetToConfig(results);
+    return;
+  } else if (Platform.OS === 'android') {
+    // Request camera, mic, bluetooth and notification permissions on Android
+    const results = await requestMultiple([
+      PERMISSIONS.ANDROID.CAMERA,
+      PERMISSIONS.ANDROID.RECORD_AUDIO,
+      PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+      PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
+    ]);
+    // Sync the camera and permissions with the Stream Video SDK
+    // This ensures that the SDK will subscribe to audio/video devices as preparation for a call.
+    androidProcessResultsAndSetToConfig(results);
+  }
+};
+
+const androidProcessResultsAndSetToConfig = (
+  results: Record<
+    'android.permission.CAMERA' | 'android.permission.RECORD_AUDIO',
+    PermissionStatus
+  >,
+) =>
+  // Sync the permissions with the Stream Video SDK
+  // by setting the permissions to the config.
+  StreamVideoRN.setPermissions({
+    isCameraPermissionGranted:
+      results[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED,
+    isMicPermissionGranted:
+      results[PERMISSIONS.ANDROID.RECORD_AUDIO] === RESULTS.GRANTED,
+  });
+
+const iOSProcessResultsAndSetToConfig = (
+  results: Record<
+    'ios.permission.CAMERA' | 'ios.permission.MICROPHONE',
+    PermissionStatus
+  >,
+) =>
+  // Sync the permissions with the Stream Video SDK
+  // by setting the permissions to the config.
+  StreamVideoRN.setPermissions({
+    isCameraPermissionGranted:
+      results[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED,
+    isMicPermissionGranted:
+      results[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED,
+  });
+```
+
+In order to sync the permissions when the app comes back to foreground, we will add a listener to the app state change event.
+This will ensure that the permissions are always in sync when the user comes back to the app from background after
+changing the permissions in the app's settings screen.
+
+```tsx title="src/hooks/useSyncPermissions.tsx"
+import {useEffect, useRef} from 'react';
+import {AppState, AppStateStatus, Platform} from 'react-native';
+
+// We will be using react-native-permissions lib. to manage our permissions
+import {checkMultiple, PERMISSIONS} from 'react-native-permissions';
+
+export const useSyncPermissions = () => {
+  // Check, update and sync permissions...
+  useEffect(() => {
+    // ...after parent component mounts
+    requestAndUpdatePermissions();
+  }, []);
+  // ...after user comes back to the app from background to foreground.
+  // This is important because the user might have changed the permissions in the app's
+  // settings screen while the app was in background.
+  const appStateRef = useRef(AppState.currentState);
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      const prevAppState = appStateRef.current;
+      if (
+        prevAppState.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        await checkAndUpdatePermissions();
+      }
+    };
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => {
+      AppState.removeEventListener('change', handleAppStateChange);
+    };
+  }, []);
+};
+
+const checkAndUpdatePermissions = async () => {
+  if (Platform.OS === 'ios') {
+    // Check, update and sync permissions on iOS
+    const results = await checkMultiple([
+      PERMISSIONS.IOS.CAMERA,
+      PERMISSIONS.IOS.MICROPHONE,
+    ]);
+    // Sync the permissions with the Stream Video SDK
+    iOSProcessResultsAndSetToConfig(results);
+  } else if (Platform.OS === 'android') {
+    // Check, update and sync permissions on Android
+    const results = await checkMultiple([
+      PERMISSIONS.ANDROID.CAMERA,
+      PERMISSIONS.ANDROID.RECORD_AUDIO,
+    ]);
+    // Sync the permissions with the Stream Video SDK
+    androidProcessResultsAndSetToConfig(results);
+  }
+};
+
+const requestAndUpdatePermissions = async () => {...};
+const androidProcessResultsAndSetToConfig = (results) => {...};
+const iOSProcessResultsAndSetToConfig = (results) => {...};
+```
 
 ### Creating and providing the Video Client
 
@@ -340,7 +491,7 @@ in the Screen/View.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import { ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { ScrollView, SafeAreaView } from 'react-native';
 import { LobbyView, ActiveCall } from '@stream-io/video-react-native-sdk';
 
 export const MeetingScreen = () => {

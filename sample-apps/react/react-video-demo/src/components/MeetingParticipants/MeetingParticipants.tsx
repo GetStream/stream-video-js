@@ -2,13 +2,11 @@ import { FC, useEffect, useState } from 'react';
 import classnames from 'classnames';
 import {
   Call,
-  useLocalParticipant,
-  useRemoteParticipants,
+  SfuModels,
   StreamVideoParticipant,
+  useLocalParticipant,
   useParticipants,
 } from '@stream-io/video-react-sdk';
-
-import { SfuModels } from '@stream-io/video-client';
 
 import ParticipantsSlider from '../ParticipantsSlider';
 import Participant from '../Participant';
@@ -29,13 +27,12 @@ export const MeetingParticipants: FC<Props> = ({
 }) => {
   const [maxParticipants, setMaxParticipants] = useState<number>();
   const localParticipant = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
 
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   const breakpoint = useBreakpoint();
 
-  const localParticpantHasVideo = localParticipant?.publishedTracks.includes(
+  const localParticipantHasVideo = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
 
@@ -49,17 +46,17 @@ export const MeetingParticipants: FC<Props> = ({
 
   if (maxParticipants) {
     const rootClassNames = classnames(styles.root, {
-      [styles.slider]: remoteParticipants?.length > maxParticipants,
+      [styles.slider]: otherParticipants?.length > maxParticipants,
     });
 
     const gridClassNames = classnames(styles.meetingGrid, {
-      [styles?.[`meetingGrid-${remoteParticipants.length + 1}`]]:
-        remoteParticipants?.length <= maxParticipants,
-      [styles.slider]: remoteParticipants?.length > maxParticipants,
+      [styles?.[`meetingGrid-${otherParticipants.length + 1}`]]:
+        otherParticipants?.length <= maxParticipants,
+      [styles.slider]: otherParticipants?.length > maxParticipants,
     });
 
     const localParticipantClassNames = classnames(styles.localParticipant, {
-      [styles.videoDisabled]: !localParticpantHasVideo,
+      [styles.videoDisabled]: !localParticipantHasVideo,
     });
 
     return (
@@ -73,15 +70,15 @@ export const MeetingParticipants: FC<Props> = ({
             />
           )}
 
-          {remoteParticipants?.length <= maxParticipants ? (
-            remoteParticipants?.map((participant: StreamVideoParticipant) => {
-              const remoteParticpantHasVideo =
+          {otherParticipants?.length <= maxParticipants ? (
+            otherParticipants?.map((participant: StreamVideoParticipant) => {
+              const remoteParticipantHasVideo =
                 participant.publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
               const remoteParticipantsClassNames = classnames(
                 styles.remoteParticipant,
                 {
-                  [styles.videoDisabled]: !remoteParticpantHasVideo,
+                  [styles.videoDisabled]: !remoteParticipantHasVideo,
                 },
               );
 

@@ -19,8 +19,6 @@ export type StreamVideoConfig = {
    */
   push?: {
     ios: {
-      /** The name of the app */
-      appName: string;
       /**
        * The name for the alias of push provider used for iOS
        * @example "production-apn-video" or "staging-apn-video" based on the environment
@@ -28,15 +26,6 @@ export type StreamVideoConfig = {
       pushProviderName: string;
     };
     android: {
-      /**
-       * The texts shown in the notification to keep call alive in the background for Android using a foreground service.
-       */
-      phoneCallingAccountPermissionTexts: {
-        alertTitle: string;
-        alertDescription: string;
-        cancelButton: string;
-        okButton: string;
-      };
       /**
        * The notification channel to be used for incoming calls for Android.
        * @example
@@ -85,6 +74,8 @@ export type StreamVideoConfig = {
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
     /** The callback that is called when a call is accepted, used for navigation */
     navigateAcceptCall: () => void;
+    /** The callback that is called when a push notification is tapped but user did not press accept or decline, used for navigation */
+    navigateToIncomingCall: () => void;
   };
   foregroundService: {
     android: {

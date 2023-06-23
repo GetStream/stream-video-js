@@ -13,14 +13,14 @@ import {
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
-import { CustomCallData } from '../../data/audioRoom';
 import {
-  AddPersonIcon,
   BellIcon,
+  LoadingIcon,
   MicrophoneIcon,
   MuteMicrophoneIcon,
   RaiseHandIcon,
 } from '../icons';
+import type { CustomCallData } from '../../types';
 
 type LiveRoomControlsProps = {
   hasNotifications: boolean;
@@ -54,18 +54,18 @@ export const LiveRoomControls = ({
   const toggleAudio = useCallback(async () => {
     if (!call) return;
 
-    if (!canSendAudio) {
-      setIsAwaitingAudioApproval(true);
-      await call
-        .requestPermissions({
-          permissions: [OwnCapability.SEND_AUDIO],
-        })
-        .catch((reason) => {
-          console.log('RequestPermissions failed', reason);
-        });
-      return;
-    }
     if (isAudioMute) {
+      if (!canSendAudio) {
+        setIsAwaitingAudioApproval(true);
+        await call
+          .requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          })
+          .catch((reason) => {
+            console.log('RequestPermissions failed', reason);
+          });
+        return;
+      }
       // todo move to publishAudioStream()
       setInitialAudioEnabled(true);
       await publishAudioStream();
@@ -107,9 +107,15 @@ export const LiveRoomControls = ({
     }
   }, [canSendAudio]);
 
+  useEffect(() => {
+    if (callingState !== CallingState.LEFT) {
+      setIsAwaitingAudioApproval(false);
+    }
+  }, [callingState]);
+
   if (!call || callingState !== CallingState.JOINED) return null;
 
-  const showMicButton =
+  const showMuteButton =
     canSendAudio || (canRequestSpeakingPermissions && isSpeaker);
 
   return (
@@ -123,35 +129,43 @@ export const LiveRoomControls = ({
           <BellIcon />
         </button>
       </Restricted>
-      {/* todo: missing click handler */}
-      <button className="icon-button" title="Invite more">
-        <AddPersonIcon />
-      </button>
-      {showMicButton && (
+      {showMuteButton && (
         <button
           className="icon-button"
           disabled={isAwaitingAudioApproval}
           onClick={toggleAudio}
           title={isAudioMute ? 'Unmute' : 'Mute'}
         >
-          {isAudioMute ? <MuteMicrophoneIcon /> : <MicrophoneIcon />}
+          {isAwaitingAudioApproval ? (
+            <LoadingIcon />
+          ) : isAudioMute ? (
+            <MuteMicrophoneIcon />
+          ) : (
+            <MicrophoneIcon />
+          )}
         </button>
       )}
-      {!showMicButton && (
+      {!showMuteButton && (
         <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
           <button
             className="icon-button"
             disabled={isAwaitingAudioApproval}
             title="Request to speak"
-            onClick={() =>
+            onClick={() => {
+              setIsAwaitingAudioApproval(true);
               call.requestPermissions({
                 permissions: [OwnCapability.SEND_AUDIO],
-              })
-            }
+              });
+            }}
           >
             <RaiseHandIcon />
           </button>
         </Restricted>
+      )}
+      {isAwaitingAudioApproval && (
+        <div className="live-room-controls__notificaton">
+          Waiting for permission to speak
+        </div>
       )}
     </div>
   );

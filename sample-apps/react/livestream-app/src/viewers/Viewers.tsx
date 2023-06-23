@@ -1,69 +1,52 @@
 import { Link, Outlet, useParams } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { characters } from '../hosts/Hosts';
+import { useEffect, useState } from 'react';
 import {
-  Call,
   StreamCall,
   StreamVideo,
-  StreamVideoClient,
+  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { Button, Input, Stack, Typography } from '@mui/material';
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
+import { useInitVideoClient } from '../hooks/useInitVideoClient';
+import { useSetCall } from '../hooks/useSetCall';
+import { ErrorPanel, LoadingPanel } from '../LoadingState';
 
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
-  const randomCharacter = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    return characters[randomIndex];
-  }, []);
-
-  const tokenProvider = useCallback(async () => {
-    const endpoint = new URL(
-      'https://stream-calls-dogfood.vercel.app/api/auth/create-token',
-    );
-    endpoint.searchParams.set('api_key', apiKey);
-    endpoint.searchParams.set('user_id', randomCharacter);
-    const response = await fetch(endpoint).then((res) => res.json());
-    return response.token as string;
-  }, [randomCharacter]);
-  const [client] = useState<StreamVideoClient>(() => {
-    const user = {
-      id: randomCharacter,
-      name: randomCharacter,
-      role: 'user',
-    };
-    return new StreamVideoClient({ apiKey, user, tokenProvider });
-  });
-
-  const [activeCall, setActiveCall] = useState<Call>();
-  useEffect(() => {
-    if (!callId) return;
-    client
-      .queryCalls({
-        watch: true,
-        filter_conditions: {
-          cid: { $in: [`default:${callId}`] },
-        },
-        sort: [{ field: 'cid', direction: 1 }],
-      })
-      .then(({ calls }) => {
-        const [call] = calls;
-        if (call) {
-          setActiveCall(call);
-        }
-      });
-  }, [client, callId]);
-
+  const client = useInitVideoClient({ role: 'user' });
   return (
     <StreamVideo client={client}>
-      {!callId && <SetupForm />}
-      {activeCall && (
-        <StreamCall call={activeCall}>
+      {!callId ? <SetupForm /> : <ViewerLivestream />}
+    </StreamVideo>
+  );
+};
+
+const ViewerLivestream = () => {
+  const client = useStreamVideoClient();
+  const call = useSetCall(client);
+  const [error, setError] = useState<Error | undefined>();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+    call
+      .get()
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, [call]);
+
+  if (error) return <ErrorPanel error={error} />;
+  if (loading) return <LoadingPanel message="Loading the call data" />;
+
+  return (
+    <>
+      {call && (
+        <StreamCall call={call}>
           <Outlet />
         </StreamCall>
       )}
-    </StreamVideo>
+    </>
   );
 };
 
