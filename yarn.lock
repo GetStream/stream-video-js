@@ -8380,6 +8380,7 @@ __metadata:
     nanoid: ^4.0.2
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-router-dom: ^6.13.0
     sass: ^1.62.1
     stream-chat: ^8.4.1
     stream-chat-react: ^10.7.2
@@ -31061,6 +31062,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-router-dom@npm:^6.13.0":
+  version: 6.13.0
+  resolution: "react-router-dom@npm:6.13.0"
+  dependencies:
+    "@remix-run/router": 1.6.3
+    react-router: 6.13.0
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: f51131063c2d5e127b6b3f3f813c6d4988d0f37694a06697dc9d4a4d9d3825e2a4487ec9b81a1d356eb269018814d884ffc2e3d9ff056a46ae59c99c9e7e1086
+  languageName: node
+  linkType: hard
+
 "react-router@npm:6.11.2":
   version: 6.11.2
   resolution: "react-router@npm:6.11.2"
@@ -31069,6 +31083,17 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: e47f875dca70033a3b42704cb5ec076b60f9629a5cdc3be613707f3d5a5706123fb80301037455c285c6d5a1011b443e1784e0103969ebfac7071648d360c413
+  languageName: node
+  linkType: hard
+
+"react-router@npm:6.13.0":
+  version: 6.13.0
+  resolution: "react-router@npm:6.13.0"
+  dependencies:
+    "@remix-run/router": 1.6.3
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 31a187005d05e063c59324564a283cd28052eaf848ad446c87658f4fc48fa9543329fe8a14d7be14d9bbf62410d383f8cf1cf13898a838bf9c1e3201fe93384c
   languageName: node
   linkType: hard
 
