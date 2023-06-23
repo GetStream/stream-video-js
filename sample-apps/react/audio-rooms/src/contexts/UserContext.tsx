@@ -28,7 +28,7 @@ export interface UserState {
 const UserContext = createContext<UserState>({
   authInProgress: false,
   logout: noop,
-  selectUser: () => Promise.resolve(),
+  selectUser: noop,
   tokenProvider: () => Promise.resolve(''),
   user: undefined,
 });
