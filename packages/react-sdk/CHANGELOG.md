@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.50](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.49...@stream-io/video-react-sdk-0.0.50) (2023-06-23)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.26`
+
+### Bug Fixes
+
+* **react-sdk:**  check browser permissions before watching disconnected device ([#700](https://github.com/GetStream/stream-video-js/issues/700)) ([50b8968](https://github.com/GetStream/stream-video-js/commit/50b8968aeaf73d70e2ed081353eb41063f484bdb))
+
 ### [0.0.49](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.48...@stream-io/video-react-sdk-0.0.49) (2023-06-23)
 
 ### Dependency Updates
