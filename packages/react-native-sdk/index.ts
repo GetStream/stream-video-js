@@ -1,4 +1,4 @@
-import { setSdkInfo, SfuModels } from '@stream-io/video-client';
+import { setClientDetails } from './src/utils/setClientDetails';
 
 export * from '@stream-io/i18n';
 export * from '@stream-io/video-client';
@@ -13,10 +13,4 @@ export * from './src/utils';
 // Explicitly re-exporting to resolve ambiguity.
 export { StreamVideo, StreamCall } from './src/providers';
 
-// TODO: set valid version
-setSdkInfo({
-  type: SfuModels.SdkType.REACT_NATIVE,
-  major: '0',
-  minor: '0',
-  patch: '0',
-});
+setClientDetails();

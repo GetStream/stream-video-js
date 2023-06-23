@@ -104,7 +104,7 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { UAParser } from 'ua-parser-js';
-import { getSdkInfo } from './sdk-info';
+import { getDeviceInfo, getOSInfo, getSdkInfo } from './client-details';
 import { isReactNative } from './helpers/platforms';
 import { getLogger } from './logger';
 
@@ -776,7 +776,9 @@ export class Call {
     try {
       const clientDetails: ClientDetails = {};
       if (isReactNative()) {
-        // TODO RN
+        // Since RN doesn't support web, sharing browser info is not required
+        clientDetails.os = getOSInfo();
+        clientDetails.device = getDeviceInfo();
       } else {
         const details = new UAParser(navigator.userAgent).getResult();
         clientDetails.browser = {
