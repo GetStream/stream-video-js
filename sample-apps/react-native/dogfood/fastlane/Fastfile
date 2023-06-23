@@ -39,14 +39,11 @@ lane :test_e2e do
     workspace: './ios/StreamReactNativeVideoSDKSample.xcworkspace',
     output_directory: './dist'
   )
-
   simulator = prepare_simulator(device: 'iPhone 14 Pro Max')
-
   sh("xcrun simctl install #{simulator} #{app}")
 
   start_video_buddy
-
-  Dir.chdir('..') { sh('maestro test e2e/flow.yaml') }
+  maestro_test
 end
 
 desc 'iOS build'
@@ -113,14 +110,17 @@ end
 
 desc 'Android build'
 lane :build_android do |options|
+  Dir.chdir('..') { sh('./scripts/create-sentry-properties.sh') }
+
   ENV['ENVFILE'] = '.env.production'
   package = load_json(json_path: './package.json')
+  app_id = '1:296557120037:android:b5d44592a3a4b44af60dcc'
   increment_version_name(
     gradle_file_path: './android/app/build.gradle',
     version_name: package['version']
   )
   latest_app_distribution_release = firebase_app_distribution_get_latest_release(
-    app: '1:296557120037:android:b5d44592a3a4b44af60dcc'
+    app: app_id
   )
   latest_app_distribution_version_code = latest_app_distribution_release[:buildVersion].to_i
   increment_version_code(
@@ -132,12 +132,70 @@ lane :build_android do |options|
     tasks: %w[clean assembleRelease]
   )
 
+  apk = lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+  adb(command: "install #{apk}")
+  maestro_test
+
   if options[:deploy]
     firebase_app_distribution(
-      app: '1:296557120037:android:b5d44592a3a4b44af60dcc',
+      app: app_id,
       android_artifact_type: 'APK',
-      android_artifact_path: './android/app/build/outputs/apk/release/app-release.apk',
+      android_artifact_path: apk,
       groups: 'react-native-dev, video-sdk-non-devs'
     )
   end
+end
+
+lane :install_android_sdk do
+  options = [
+    '"system-images;android-33;google_apis_playstore;x86_64"',
+    '"platforms;android-33"',
+    '"build-tools;33.0.2"',
+    '"platform-tools"',
+    '"emulator"'
+  ]
+  sh('echo "y" | sdkmanager --licenses')
+  sh("echo 'y' | sdkmanager --install #{options.join(' ')}")
+end
+
+lane :create_android_emulator do
+  options = [
+    '--verbose',
+    'create avd',
+    '--force',
+    '-n test',
+    '--device pixel',
+    '-k "system-images;android-33;google_apis_playstore;x86_64"'
+  ]
+  sh("echo 'no' | avdmanager #{options.join(' ')}")
+end
+
+lane :start_android_emulator do
+  options = [
+    '-avd test',
+    '-no-boot-anim',
+    '-noaudio',
+    '-netfast',
+    '-no-snapshot',
+    '-no-snapshot-load',
+    '-no-window',
+    '-memory 2048',
+    '-accel off',
+    '-debug-init',
+    '-logcat "*:v"'
+  ]
+  options << (RUBY_PLATFORM.include?('darwin') ? '-gpu swiftshader_indirect' : '-gpu off')
+  emulator_dir = RUBY_PLATFORM.include?('darwin') ? "#{ENV['ANDROID_HOME']}/emulator/" : "#{ENV['ANDROID_HOME']}/tools/"
+
+  Dir.chdir(emulator_dir) do
+    sh("nohup ./emulator #{options.join(' ')} &")
+    adb(command: "wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; done'")
+    adb(command: 'shell settings put global window_animation_scale 0.0')
+    adb(command: 'shell settings put global transition_animation_scale 0.0')
+    adb(command: 'shell settings put global animator_duration_scale 0.0')
+  end
+end
+
+lane :maestro_test do
+  Dir.chdir('..') { sh('maestro test e2e/flow.yaml') }
 end

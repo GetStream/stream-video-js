@@ -102,9 +102,8 @@ jobs:
         with:
           name: Test Data
           path: |
-            sample-apps/react-native/dogfood/fastlane/recordings
-            sample-apps/react-native/dogfood/fastlane/video-buddy-log.txt
-            sample-apps/react-native/dogfood/dist/StreamReactNativeVideoSDKSample.ipa
+            **/fastlane/recordings
+            **/fastlane/video-buddy-log.txt
       - name: Build and optionally deploy
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
@@ -136,6 +135,11 @@ jobs:
         run: yarn build:react-native:deps
       - name: Test RN SDK
         run: yarn test:react-native:sdk
+      - name: Install Python
+        uses: actions/setup-python@v4.3.0
+        with:
+          python-version: 3.8
+          cache: 'pip'
       - name: Install Ruby and Gems
         uses: ruby/setup-ruby@v1
         with:
@@ -156,8 +160,22 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('sample-apps/react-native/dogfood/*.gradle*', 'sample-apps/react-native/dogfood/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Build and optionally deploy
+      - name: Install Maestro
+        run: MAESTRO_VERSION=${{ vars.MAESTRO_VERSION }} curl -Ls 'https://get.maestro.mobile.dev' | bash
+      - name: Install Video Buddy
+        run: npm install -g "https://github.com/GetStream/stream-video-buddy#${{ vars.STREAM_VIDEO_BUDDY_VERSION }}"
+      - name: Build, test and optionally deploy
+        working-directory: sample-apps/react-native/dogfood
         run: |
-          cd sample-apps/react-native/dogfood;
-          ./scripts/create-sentry-properties.sh;
+          bundle exec fastlane install_android_sdk
+          bundle exec fastlane create_android_emulator
+          bundle exec fastlane start_android_emulator
           bundle exec fastlane build_android deploy:${{ github.ref == 'refs/heads/main' }};
+        timeout-minutes: 60
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: Test Data
+          path: |
+            **/fastlane/recordings
+            **/fastlane/video-buddy-log.txt
