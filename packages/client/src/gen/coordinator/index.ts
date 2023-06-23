@@ -1570,17 +1570,23 @@ export interface CallUserMuted {
    */
   created_at: string;
   /**
-   * The type of event: "call.user_muted" in this case
+   *
    * @type {string}
    * @memberof CallUserMuted
    */
-  type: string;
+  from_user_id: string;
   /**
    *
    * @type {Array<string>}
    * @memberof CallUserMuted
    */
-  user_ids: Array<string>;
+  muted_user_ids: Array<string>;
+  /**
+   * The type of event: "call.user_muted" in this case
+   * @type {string}
+   * @memberof CallUserMuted
+   */
+  type: string;
 }
 /**
  *
