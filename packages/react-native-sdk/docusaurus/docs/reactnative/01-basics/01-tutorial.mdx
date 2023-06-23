@@ -163,7 +163,7 @@ import {
   PERMISSIONS,
   PermissionStatus,
   requestMultiple,
-  RESULTS
+  RESULTS,
 } from 'react-native-permissions';
 
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
@@ -230,8 +230,8 @@ const iOSProcessResultsAndSetToConfig = (
     isMicPermissionGranted:
       results[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED,
   });
-
 ```
+
 In order to sync the permissions when the app comes back to foreground, we will add a listener to the app state change event.
 This will ensure that the permissions are always in sync when the user comes back to the app from background after
 changing the permissions in the app's settings screen.
@@ -392,11 +392,16 @@ const MeetingScreen = () => {
 
 ### Providing and creating call
 
-Our `StreamCall` component internally serves the purpose of creating the call for the given call id and call type. We can use it and wrap it to the screen/component where the call should be available.
+We will create the call using the `client.call` method and pass it to the `StreamCall` component, that will provide the call to its children and all other SDK components.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
-import React from 'react';
-import { StreamVideo, StreamCall } from '@stream-io/video-react-native-sdk';
+import React, { useMemo } from 'react';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  StreamVideo,
+  StreamCall,
+  Call,
+} from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { NavigationStackParamsList } from '../types';
 
@@ -409,11 +414,16 @@ const MeetingScreen = (props: Props) => {
     params: { callId, callType },
   } = route;
 
+  const call = useMemo<Call | undefined>(() => {
+    if (!videoClient) {
+      return undefined;
+    }
+    return videoClient.call(callType, callId);
+  }, [callId, callType, videoClient]);
+
   return (
     <StreamVideo client={videoClient}>
-      <StreamCall callId={callId} callType={callType}>
-        {children}
-      </StreamCall>
+      {!!call && <StreamCall call={call}>{children}</StreamCall>}
     </StreamVideo>
   );
 };
@@ -421,7 +431,7 @@ const MeetingScreen = (props: Props) => {
 
 ### Adding call cycle handlers
 
-`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` and `onCallJoining` handlers (among other handlers) to deal with transitions between the call states.
+`StreamCall` component has also a `callCycleHandlers` prop of type object that expects `onCallJoined`, `onCallHungUp` handlers (among other handlers) to deal with transitions between the call states.
 These handlers can be used to perform preparation/teardown tasks or navigation between screens.
 
 An example can be seen below:
@@ -434,11 +444,11 @@ import { NavigationStackParamsList } from '../types';
 type Props = NativeStackScreenProps<NavigationStackParamsList, 'MeetingScreen'>;
 
 const MeetingScreen = (props: Props) => {
-  const [show, setShow] = useState<
-    'lobby' | 'loading' | 'active-call'
-  >('lobby');
-
+  const [show, setShow] = useState<'lobby' | 'loading' | 'active-call'>(
+    'lobby',
+  );
   ...
+
   const { navigation, route } = props;
   const {
     callParams: { callId, callType },
@@ -454,18 +464,12 @@ const MeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  const onJoining = () => {
-    setShow('loading');
-  };
-
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        callId={callId}
-        callType={callType}
+        call={call}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >
@@ -483,11 +487,8 @@ in the Screen/View.
 
 ```tsx title="src/screens/MeetingScreen.tsx"
 import React from 'react';
-import { SafeAreaView, ActivityIndicator } from 'react-native';
-import {
-  LobbyView,
-  ActiveCall,
-} from '@stream-io/video-react-native-sdk';
+import { ScrollView, SafeAreaView } from 'react-native';
+import { LobbyView, ActiveCall } from '@stream-io/video-react-native-sdk';
 
 export const MeetingScreen = () => {
   const [show, setShow] = useState<'lobby' | 'loading' | 'active-call'>(
@@ -498,12 +499,6 @@ export const MeetingScreen = () => {
 
   if (show === 'lobby') {
     ComponentToRender = <LobbyView />;
-  } else if (show === 'loading') {
-    ComponentToRender = (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-      </SafeAreaView>
-    );
   } else {
     ComponentToRender = <ActiveCall />;
   }
@@ -511,11 +506,9 @@ export const MeetingScreen = () => {
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        callId={callId}
-        callType={callType}
+        call={call}
         callCycleHandlers={{
           onCallJoined: onJoin,
-          onCallJoining: onJoining,
           onCallHungUp: onLeave,
         }}
       >

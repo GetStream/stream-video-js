@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
+  Call,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -63,6 +64,13 @@ export const GuestMeetingScreen = (props: Props) => {
     };
   }, [tokenProvider, userToConnect, apiKey, mode]);
 
+  const call = useMemo<Call | undefined>(() => {
+    if (!videoClient) {
+      return undefined;
+    }
+    return videoClient.call(callType, callId);
+  }, [callId, callType, videoClient]);
+
   const onJoin = () => {
     setShow('active-call');
   };
@@ -72,15 +80,14 @@ export const GuestMeetingScreen = (props: Props) => {
     navigation.goBack();
   };
 
-  if (!videoClient) {
+  if (!videoClient || !call) {
     return null;
   }
 
   return (
     <StreamVideo client={videoClient}>
       <StreamCall
-        callId={callId}
-        callType={callType}
+        call={call}
         callCycleHandlers={{
           onCallJoined: onJoin,
           onCallHungUp: onLeave,
