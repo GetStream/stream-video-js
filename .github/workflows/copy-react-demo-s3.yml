@@ -26,6 +26,7 @@ jobs:
       VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
+      VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
     steps:
      - name: Checkout
        uses: actions/checkout@v3
@@ -70,4 +71,4 @@ jobs:
      - name: Copy main build artifacts to AWS S3 Bucket
        if: ${{ github.ref_name == 'main' }}
        run: |
-          aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete 
+          aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete

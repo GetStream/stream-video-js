@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, forwardRef, useEffect } from 'react';
 import classnames from 'classnames';
 import { v1 as uuid } from 'uuid';
 import {
@@ -7,6 +7,7 @@ import {
   SfuModels,
   ParticipantView,
   StreamReaction,
+  VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -24,35 +25,47 @@ export type Props = {
   slider?: 'horizontal' | 'vertical';
 };
 
-export const VideoPlaceholder: FC<{
-  participant: StreamVideoParticipant;
-  hasAudio: boolean;
-  sessionId: string;
-  call: Call;
-  className?: string;
-  slider?: 'horizontal' | 'vertical';
-}> = ({ participant, hasAudio, sessionId, call, className }) => {
-  const disabledPreviewClassNames = classnames(
-    className,
-    styles.disabledPreview,
-  );
+// export const VideoPlaceholder: FC<{
+//   participant: StreamVideoParticipant;
+//   hasAudio: boolean;
+//   sessionId: string;
+//   call: Call;
+//   className?: string;
+//   slider?: 'horizontal' | 'vertical';
+// }> = ({ participant, hasAudio, sessionId, call, className }) => {
+//   const disabledPreviewClassNames = classnames(
+//     className,
+//     styles.disabledPreview,
+//   );
+//
+//   return (
+//     <div className={disabledPreviewClassNames}>
+//       <div className={styles.fallAvatarContainer}>
+//         <div className={styles.fallbackInitial}>
+//           {participant.name?.split('')[0]}
+//         </div>
+//       </div>
+//       <Overlay
+//         name={participant.name}
+//         hasAudio={hasAudio}
+//         call={call}
+//         sessionId={sessionId}
+//       />
+//     </div>
+//   );
+// };
 
-  return (
-    <div className={disabledPreviewClassNames}>
+const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
+  ({ participant }, ref) => (
+    <div className={styles.placeholder} ref={ref}>
       <div className={styles.fallAvatarContainer}>
         <div className={styles.fallbackInitial}>
           {participant.name?.split('')[0]}
         </div>
       </div>
-      <Overlay
-        name={participant.name}
-        hasAudio={hasAudio}
-        call={call}
-        sessionId={sessionId}
-      />
     </div>
-  );
-};
+  ),
+);
 
 export const Overlay: FC<{
   name?: string;
@@ -157,15 +170,7 @@ export const Participant: FC<Props> = ({
     <ParticipantView
       participant={participant}
       className={rootClassNames}
-      VideoPlaceholder={() => (
-        <div className={styles.placeholder}>
-          <div className={styles.fallAvatarContainer}>
-            <div className={styles.fallbackInitial}>
-              {participant.name?.split('')[0]}
-            </div>
-          </div>
-        </div>
-      )}
+      VideoPlaceholder={VideoPlaceholder}
       ParticipantViewUI={
         <Overlay
           connectionQuality={connectionQualityAsString}
