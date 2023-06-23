@@ -14,12 +14,12 @@ import {
   useCallState,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
+import { useHasBrowserPermissions } from './useDevices';
 
 /**
  * @internal
  */
 export type AudioPublisherInit = {
-  canObserveAudio?: boolean;
   initialAudioMuted?: boolean;
   audioDeviceId?: string;
 };
@@ -29,7 +29,6 @@ export type AudioPublisherInit = {
  * @category Device Management
  */
 export const useAudioPublisher = ({
-  canObserveAudio,
   initialAudioMuted,
   audioDeviceId,
 }: AudioPublisherInit) => {
@@ -37,6 +36,9 @@ export const useAudioPublisher = ({
   const callState = useCallState();
   const callingState = useCallCallingState();
   const participant = useLocalParticipant();
+  const hasBrowserPermissionAudioInput = useHasBrowserPermissions(
+    'microphone' as PermissionName,
+  );
   const { localParticipant$ } = callState;
 
   const isPublishingAudio = participant?.publishedTracks.includes(
@@ -77,7 +79,7 @@ export const useAudioPublisher = ({
   }, [callingState, initialAudioMuted, isPublishingAudio, publishAudioStream]);
 
   useEffect(() => {
-    if (!localParticipant$ || !canObserveAudio) return;
+    if (!localParticipant$ || !hasBrowserPermissionAudioInput) return;
     const subscription = watchForDisconnectedAudioDevice(
       localParticipant$.pipe(map((p) => p?.audioDeviceId)),
     ).subscribe(async () => {
@@ -88,7 +90,7 @@ export const useAudioPublisher = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [canObserveAudio, localParticipant$, call]);
+  }, [hasBrowserPermissionAudioInput, localParticipant$, call]);
 
   useEffect(() => {
     if (!participant?.audioStream || !call || !isPublishingAudio) return;

@@ -244,8 +244,10 @@ export const MediaDevicesProvider = ({
   const callState = useCallState();
   const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
-  const canObserveVideo = useHasBrowserPermissions('camera' as PermissionName);
-  const canObserveAudio = useHasBrowserPermissions(
+  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
+    'camera' as PermissionName,
+  );
+  const hasBrowserPermissionAudioInput = useHasBrowserPermissions(
     'microphone' as PermissionName,
   );
   const [selectedAudioInputDeviceId, selectAudioInputDeviceId] = useState<
@@ -349,18 +351,18 @@ export const MediaDevicesProvider = ({
 
   useAudioInputDeviceFallback(
     () => switchDevice('audioinput', DEFAULT_DEVICE_ID),
-    canObserveAudio,
+    hasBrowserPermissionAudioInput,
     selectedAudioInputDeviceId,
   );
   useAudioOutputDeviceFallback(
     () => switchDevice('audiooutput', DEFAULT_DEVICE_ID),
     // audiooutput devices can be enumerated only with microphone permissions
-    canObserveAudio,
+    hasBrowserPermissionAudioInput,
     selectedAudioOutputDeviceId,
   );
   useVideoDeviceFallback(
     () => switchDevice('videoinput', DEFAULT_DEVICE_ID),
-    canObserveVideo,
+    hasBrowserPermissionVideoInput,
     selectedVideoDeviceId,
   );
 
@@ -371,7 +373,7 @@ export const MediaDevicesProvider = ({
 
   useEffect(() => {
     // audiooutput devices can be enumerated only with microphone permissions
-    if (!localParticipant$ || !canObserveAudio) return;
+    if (!localParticipant$ || !hasBrowserPermissionAudioInput) return;
 
     const subscription = watchForDisconnectedAudioOutputDevice(
       localParticipant$.pipe(map((p) => p?.audioOutputDeviceId)),
@@ -381,7 +383,7 @@ export const MediaDevicesProvider = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [canObserveAudio, localParticipant$]);
+  }, [hasBrowserPermissionAudioInput, localParticipant$]);
 
   const contextValue: MediaDevicesContextAPI = {
     disposeOfMediaStream,

@@ -23,7 +23,7 @@
 
 .sidebar img {
   width: 120px;
-  aspect-ratio: 1 / 1;
+  height: 120px;
 }
 
 .sidebar .sidebar-top > div {
