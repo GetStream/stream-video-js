@@ -166,7 +166,10 @@ jobs:
         run: npm install -g "https://github.com/GetStream/stream-video-buddy#${{ vars.STREAM_VIDEO_BUDDY_VERSION }}"
       - name: Build, test and optionally deploy
         working-directory: sample-apps/react-native/dogfood
+        env:
+          ANDROID_BUILD_TOOLS_VERSION: '33.0.2'
         run: |
+          echo "$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
           bundle exec fastlane install_android_sdk
           bundle exec fastlane create_android_emulator
           bundle exec fastlane start_android_emulator

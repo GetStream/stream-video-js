@@ -147,10 +147,12 @@ lane :build_android do |options|
 end
 
 lane :install_android_sdk do
+  build_tools_version = ENV['ANDROID_BUILD_TOOLS_VERSION'] || '33.0.2'
+  sdk_version = build_tools_version.split('.').first
   options = [
-    '"system-images;android-33;google_apis_playstore;x86_64"',
-    '"platforms;android-33"',
-    '"build-tools;33.0.2"',
+    "'system-images;android-#{sdk_version};google_apis_playstore;x86_64'",
+    "'platforms;android-#{sdk_version}'",
+    "'build-tools;#{build_tools_version}'",
     '"platform-tools"',
     '"emulator"'
   ]
@@ -159,13 +161,15 @@ lane :install_android_sdk do
 end
 
 lane :create_android_emulator do
+  build_tools_version = ENV['ANDROID_BUILD_TOOLS_VERSION'] || '33.0.2'
+  sdk_version = build_tools_version.split('.').first
   options = [
     '--verbose',
     'create avd',
     '--force',
     '-n test',
     '--device pixel',
-    '-k "system-images;android-33;google_apis_playstore;x86_64"'
+    "-k 'system-images;android-#{sdk_version};google_apis_playstore;x86_64'"
   ]
   sh("echo 'no' | avdmanager #{options.join(' ')}")
 end
@@ -185,15 +189,15 @@ lane :start_android_emulator do
     '-logcat "*:v"'
   ]
   options << (RUBY_PLATFORM.include?('darwin') ? '-gpu swiftshader_indirect' : '-gpu off')
-  emulator_dir = RUBY_PLATFORM.include?('darwin') ? "#{ENV['ANDROID_HOME']}/emulator/" : "#{ENV['ANDROID_HOME']}/tools/"
+  # emulator_dir = RUBY_PLATFORM.include?('darwin') ? "#{ENV['ANDROID_HOME']}/emulator/" : "#{ENV['ANDROID_HOME']}/tools/"
 
-  Dir.chdir(emulator_dir) do
-    sh("nohup ./emulator #{options.join(' ')} &")
-    adb(command: "wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; done'")
-    adb(command: 'shell settings put global window_animation_scale 0.0')
-    adb(command: 'shell settings put global transition_animation_scale 0.0')
-    adb(command: 'shell settings put global animator_duration_scale 0.0')
-  end
+  # Dir.chdir(emulator_dir) do
+  sh("nohup emulator #{options.join(' ')} &")
+  adb(command: "wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 2; done'")
+  adb(command: 'shell settings put global window_animation_scale 0.0')
+  adb(command: 'shell settings put global transition_animation_scale 0.0')
+  adb(command: 'shell settings put global animator_duration_scale 0.0')
+  # end
 end
 
 lane :maestro_test do
