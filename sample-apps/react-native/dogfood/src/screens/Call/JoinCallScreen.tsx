@@ -1,5 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
@@ -83,7 +91,10 @@ const JoinCallScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'position' : 'padding'}
+    >
       <View>
         <Text style={styles.headerText}>Select Participants</Text>
         {users
@@ -126,7 +137,7 @@ const JoinCallScreen = () => {
         disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
         onPress={startCallHandler}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
