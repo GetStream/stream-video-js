@@ -1552,6 +1552,37 @@ export interface CallUpdatedEvent {
   type: string;
 }
 /**
+ * This event is sent when a call member is muted
+ * @export
+ * @interface CallUserMuted
+ */
+export interface CallUserMuted {
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserMuted
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserMuted
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.user_muted" in this case
+   * @type {string}
+   * @memberof CallUserMuted
+   */
+  type: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallUserMuted
+   */
+  user_ids: Array<string>;
+}
+/**
  *
  * @export
  * @interface ConnectUserDetailsRequest
@@ -4091,6 +4122,7 @@ export type VideoEvent =
   | ({ type: 'call.session_started' } & CallSessionStartedEvent)
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
+  | ({ type: 'call.user_muted' } & CallUserMuted)
   | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent);
