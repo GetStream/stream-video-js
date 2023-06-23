@@ -32,21 +32,27 @@ lane :stop_video_buddy do
 end
 
 lane :test_e2e do
+  Dir.chdir('..') { sh('./scripts/create-sentry-properties.sh') }
+
   app = build_app_for_ios_simulator(
     scheme: 'StreamReactNativeVideoSDKSample',
     workspace: './ios/StreamReactNativeVideoSDKSample.xcworkspace',
     output_directory: './dist'
   )
+
   simulator = prepare_simulator(device: 'iPhone 14 Pro Max')
+
   sh("xcrun simctl install #{simulator} #{app}")
+
   start_video_buddy
-  Dir.chdir('..') do
-    sh('maestro test e2e/flow.yaml')
-  end
+
+  Dir.chdir('..') { sh('maestro test e2e/flow.yaml') }
 end
 
 desc 'iOS build'
 lane :build_ios do |options|
+  Dir.chdir('..') { sh('./scripts/create-sentry-properties.sh') }
+
   app_store_connect_api_key
 
   match_appstore

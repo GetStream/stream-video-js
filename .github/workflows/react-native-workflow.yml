@@ -94,6 +94,7 @@ jobs:
       - name: Install Video Buddy
         run: npm install -g "https://github.com/GetStream/stream-video-buddy#${{ vars.STREAM_VIDEO_BUDDY_VERSION }}"
       - name: Test
+        working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane test_e2e
         timeout-minutes: 60
       - uses: actions/upload-artifact@v3
@@ -105,10 +106,8 @@ jobs:
             sample-apps/react-native/dogfood/fastlane/video-buddy-log.txt
             sample-apps/react-native/dogfood/dist/StreamReactNativeVideoSDKSample.ipa
       - name: Build and optionally deploy
-        run: |
-          cd sample-apps/react-native/dogfood;
-          ./scripts/create-sentry-properties.sh;
-          bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
 
   deploy_android:
     name: Build Android and Deploy-${{ github.ref == 'refs/heads/main' }}
