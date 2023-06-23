@@ -20,7 +20,7 @@ export const setClientDetails = () => {
 
   setOSInfo({
     name: Platform.OS,
-    version: Platform.Version.toString(),
+    version: deviceInfo.getSystemVersion(),
     architecture: deviceInfo.supportedAbisSync().join(','),
   });
 
