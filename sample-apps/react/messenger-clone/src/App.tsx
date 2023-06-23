@@ -1,68 +1,47 @@
-import { useMemo, useState } from 'react';
-import type { UserResponse } from 'stream-chat';
-import { Chat } from 'stream-chat-react';
 import {
-  StreamTheme,
-  StreamVideo,
-  StreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { Channel } from './components/Channel';
-import { Sidebar } from './components/Sidebar';
-import { Video } from './components/Video';
+  createBrowserRouter,
+  Outlet,
+  redirect,
+  RouterProvider,
+} from 'react-router-dom';
 import { UserList } from './components/UserList';
-import { useCreateChatClient } from './hooks';
-import { userFromToken } from './utils/userFromToken';
+import { UserContextProvider } from './contexts/UserContext';
+import { getSelectedUser } from './utils/user';
 
 import './styles/index.scss';
+import { AppShell } from './components/AppShell';
 
-import type { StreamChatType } from './types/chat';
+const Root = () => <Outlet />;
+
+const router = createBrowserRouter([
+  {
+    path: '*',
+    Component: Root,
+    loader: ({ request }) => {
+      const user = getSelectedUser();
+
+      if (!request.url.includes('/login') && !user) return redirect('/login');
+      if (!request.url.includes('/chat') && user) return redirect('/chat');
+      return null;
+    },
+    children: [
+      {
+        path: 'chat',
+        Component: AppShell,
+      },
+      {
+        path: 'login',
+        Component: UserList,
+      },
+    ],
+  },
+]);
 
 const App = () => {
-  const params = new Proxy(new URLSearchParams(window.location.search), {
-    get: (searchParams, property) => searchParams.get(property as string),
-  }) as unknown as Record<string, string | null>;
-
-  const apiKey = import.meta.env.VITE_STREAM_KEY as string;
-
-  const userToken = params.ut ?? (import.meta.env.VITE_USER_TOKEN as string);
-
-  const user = useMemo(() => userFromToken(userToken), [userToken]);
-
-  if (!user?.id) return <UserList />;
-
-  return <Root apiKey={apiKey} user={user} userToken={userToken} />;
-};
-
-const Root = ({
-  apiKey,
-  user,
-  userToken,
-}: {
-  apiKey: string;
-  user: UserResponse<StreamChatType>;
-  userToken: string;
-}) => {
-  const chatClient = useCreateChatClient<StreamChatType>({
-    apiKey,
-    tokenOrProvider: userToken,
-    userData: user,
-  });
-  const [videoClient] = useState<StreamVideoClient>(
-    () => new StreamVideoClient({ apiKey, user, token: userToken }),
-  );
-
-  if (!chatClient) return null;
-
   return (
-    <StreamTheme as="main" className="main-container">
-      <Chat client={chatClient}>
-        <StreamVideo client={videoClient}>
-          <Sidebar user={user} />
-          <Channel />
-          <Video />
-        </StreamVideo>
-      </Chat>
-    </StreamTheme>
+    <UserContextProvider>
+      <RouterProvider router={router} />
+    </UserContextProvider>
   );
 };
 
