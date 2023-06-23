@@ -160,7 +160,7 @@ GEM
     fastlane-plugin-load_json (0.0.1)
     fastlane-plugin-sentry (1.13.1)
       os (~> 1.1, >= 1.1.4)
-    fastlane-plugin-stream_actions (0.3.9)
+    fastlane-plugin-stream_actions (0.3.10)
       xctest_list (= 1.2.1)
     ffi (1.15.5)
     fourflusher (2.3.1)
@@ -291,7 +291,7 @@ DEPENDENCIES
   fastlane-plugin-increment_version_name
   fastlane-plugin-load_json
   fastlane-plugin-sentry
-  fastlane-plugin-stream_actions (= 0.3.9)
+  fastlane-plugin-stream_actions (= 0.3.10)
 
 RUBY VERSION
    ruby 2.7.5p203

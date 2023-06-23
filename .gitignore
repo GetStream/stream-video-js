@@ -25,6 +25,7 @@ dist
 coverage
 
 video-buddy-session.json
+video-buddy-log.txt
 lefthook.yml
 
 /**/docusaurus/shared
