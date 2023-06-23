@@ -8,7 +8,7 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { Alert, StyleSheet, View } from 'react-native';
-import { ActiveCallComponent } from '../components/ActiveCallComponent';
+import { ActiveCall } from '../components/ActiveCall';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
@@ -31,7 +31,7 @@ const CallPanel = ({ show }: { show: ScreenTypes }) => {
     case 'active-call':
       return (
         <View style={styles.container}>
-          <ActiveCallComponent />
+          <ActiveCall />
         </View>
       );
     default:

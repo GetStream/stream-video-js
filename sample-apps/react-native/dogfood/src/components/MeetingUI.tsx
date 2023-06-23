@@ -1,12 +1,11 @@
 import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ActiveCall, useCall } from '@stream-io/video-react-native-sdk';
+import { useCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { LobbyViewComponent } from './LobbyViewComponent';
-import { useUnreadCount } from '../hooks/useUnreadCount';
-import { useChannelWatch } from '../hooks/useChannelWatch';
 import { appTheme } from '../theme';
+import { ActiveCall } from './ActiveCall';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -25,8 +24,6 @@ export const MeetingUI = ({
   setShow,
 }: Props) => {
   const call = useCall();
-  const channelWatched = useChannelWatch();
-  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');
@@ -60,9 +57,8 @@ export const MeetingUI = ({
         <ActiveCall
           chatButton={{
             onPressHandler: () => {
-              navigation.navigate('ChatScreen', { callId: callId });
+              navigation.navigate('ChatScreen', { callId });
             },
-            unreadBadgeCountIndicator,
           }}
         />
       </SafeAreaView>
