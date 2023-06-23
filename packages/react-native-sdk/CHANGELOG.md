@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.203](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.202...@stream-io/video-react-native-sdk-0.0.1-alpha.203) (2023-06-23)
+
+
+
 ## [0.0.1-alpha.202](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.201...@stream-io/video-react-native-sdk-0.0.1-alpha.202) (2023-06-22)
 
 
