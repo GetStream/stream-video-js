@@ -22,7 +22,7 @@ export const useIosCallKeepEventsSetupEffect = () => {
 
     callkeep.addEventListener('answerCall', ({ callUUID }) => {
       const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
-      iosCallkeepAcceptCall(call_cid, callUUID, pushConfig);
+      iosCallkeepAcceptCall(call_cid, callUUID);
     });
     callkeep.addEventListener('endCall', ({ callUUID }) => {
       const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
