@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.207](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.206...@stream-io/video-react-native-sdk-0.0.1-alpha.207) (2023-06-23)
+
+
+### Bug Fixes
+
+* **react-native:** null coalescing operator issue in UserInfoView ([#702](https://github.com/GetStream/stream-video-js/issues/702)) ([45f24f9](https://github.com/GetStream/stream-video-js/commit/45f24f99ed6a8843e2c8aa05527387fb862d4a91))
+
+
+
 ## [0.0.1-alpha.206](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.205...@stream-io/video-react-native-sdk-0.0.1-alpha.206) (2023-06-23)
 
 
