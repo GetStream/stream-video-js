@@ -8,7 +8,7 @@ require('dotenv').config();
   const secret = process.env.VITE_STREAM_SECRET;
 
   const users = JSON.parse(
-    await fs.readFile(path.resolve('data', 'users.json'), 'utf-8'),
+    await fs.readFile(path.resolve('src', 'data', 'users.json'), 'utf-8'),
   );
 
   for (const user of users) {
