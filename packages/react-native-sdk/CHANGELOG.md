@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.204](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.203...@stream-io/video-react-native-sdk-0.0.1-alpha.204) (2023-06-23)
+
+
+### Features
+
+* **react-native:** send device and os info from the SDK ([#690](https://github.com/GetStream/stream-video-js/issues/690)) ([deb1a28](https://github.com/GetStream/stream-video-js/commit/deb1a28a4a029d988d11970608f00da8b327a02d))
+
+
+
 ## [0.0.1-alpha.203](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.202...@stream-io/video-react-native-sdk-0.0.1-alpha.203) (2023-06-23)
 
 
