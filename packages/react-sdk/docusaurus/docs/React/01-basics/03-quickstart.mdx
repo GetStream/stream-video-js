@@ -3,32 +3,11 @@ title: Quickstart
 description: For when you're in a hurry and want to quickly get up and running
 ---
 
-The Stream Video React SDK is a highly customizable software development kit
-that enables audio and video calling features for new and existing applications.
-
-It consists of the client, a set of core components that form the foundation of the SDK,
-and numerous UI components that integrators can utilize as-is or with minor customization options. Integrators can also write their own UI components.
-
 This quickstart gives you a quick overview of how Stream's video SDKs work.
-
-## Install
-
-Install the SDK using your package manager of choice, such as `npm`, `yarn`, or `pnpm`.
-
-```bash
-# example with yarn
-yarn add @stream-io/video-react-sdk
-```
-
-If you want to follow the tutorial, you'll need the following parameters:
-
-- `apiKey`: The API key for your application, which you can find in the [Stream Dashboard](https://dashboard.getstream.io/dashboard).
-- `user_id`: The unique identifier for the user connecting to the Stream platform.
-- `token`: The authentication token for the user connecting to the Stream platform. You can generate this token using the following [Stream Token Tool](https://getstream.io/chat/docs/react/tokens_and_authentication/?language=javascript#manually-generating-tokens)
 
 ## Client setup & Calls
 
-Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create=true` to create the call if it doesn't exist.
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
 
 ```ts
 import {
