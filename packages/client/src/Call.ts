@@ -102,7 +102,7 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './sdk-info';
+import { getClientDetails } from './client-details';
 import { isReactNative } from './helpers/platforms';
 import { getLogger } from './logger';
 
