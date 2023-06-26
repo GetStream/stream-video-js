@@ -6,10 +6,9 @@ require('dotenv').config();
 
 (async () => {
   const secret = process.env.VITE_STREAM_SECRET;
+  const dataPath = path.resolve('src', 'data', 'users.json');
 
-  const users = JSON.parse(
-    await fs.readFile(path.resolve('src', 'data', 'users.json'), 'utf-8'),
-  );
+  const users = JSON.parse(await fs.readFile(dataPath, 'utf-8'));
 
   for (const user of users) {
     user.token = JWTUserToken(secret, user.id, {
@@ -20,6 +19,6 @@ require('dotenv').config();
   const usersWithTokens = JSON.stringify(users, null, 2);
 
   await fs
-    .writeFile(path.resolve('data', 'users.json'), usersWithTokens)
+    .writeFile(dataPath, usersWithTokens)
     .then(() => console.log('Generated tokens for "data/users.json"'));
 })();
