@@ -6,7 +6,7 @@ require('dotenv').config();
 
 (async () => {
   const secret = process.env.VITE_STREAM_SECRET;
-  const dataPath = path.resolve('src', 'data', 'users.json');
+  const dataPath = path.resolve('data', 'users.json');
 
   const users = JSON.parse(await fs.readFile(dataPath, 'utf-8'));
 

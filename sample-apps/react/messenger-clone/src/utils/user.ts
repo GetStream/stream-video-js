@@ -1,4 +1,4 @@
-import users from '../data/users.json';
+import users from '../../data/users.json';
 import { SESSION_STORAGE_USER_KEY } from './constants';
 import { getURLCredentials } from './getURLCredentials';
 import { User } from '../types/user';

@@ -16,14 +16,14 @@ const secret = process.env.VITE_STREAM_SECRET;
   }
 
   const users = JSON.parse(
-    await fs.readFile(path.resolve('src', 'data', 'users.json'), 'utf-8'),
+    await fs.readFile(path.resolve('data', 'users.json'), 'utf-8'),
   );
 
   const user = users.find((u) => u.id === targetUserId);
 
   if (!user) {
     throw new Error(
-      `Could not find the user with user id ${targetUserId} in src/data/users.json`,
+      `Could not find the user with user id ${targetUserId} in data/users.json`,
     );
   }
 
