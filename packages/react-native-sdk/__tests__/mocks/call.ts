@@ -22,5 +22,7 @@ export const mockCall = (
     call.permissionsContext.setPermissions([...ownCapabilities]);
     call.state.setOwnCapabilities(ownCapabilities);
   }
+  // To handle the hang up call we need to mock the `leave` function
+  call.leave = jest.fn();
   return call;
 };

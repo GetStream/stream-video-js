@@ -55,7 +55,7 @@ describe('CallParticipantsView', () => {
 
     expect(
       await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID_VIEW),
-    ).toBeDefined();
+    ).toBeVisible();
   });
   it('should render an call participants view with spotlight mode with 2 participants', async () => {
     const call = mockCall(mockClientWithUser(), [
@@ -86,7 +86,7 @@ describe('CallParticipantsView', () => {
       await screen.findByLabelText(
         A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
       ),
-    ).toBeDefined();
+    ).toBeVisible();
   });
 
   it('should render an active call with 3 partic. local partic., partic. 2 muted video, partic. 3 muted audio', async () => {

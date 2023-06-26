@@ -45,7 +45,7 @@ describe('CallParticipantsBadge', () => {
     fireEvent.press(badge);
     expect(
       await screen.findByLabelText(A11yComponents.PARTICIPANTS_INFO_VIEW),
-    ).toBeDefined();
+    ).toBeVisible();
   });
 
   it('should render an call participants badge component with 3 participants', async () => {

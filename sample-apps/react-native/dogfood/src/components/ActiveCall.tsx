@@ -34,6 +34,9 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
     };
   }, []);
 
+  /**
+   * This hook is used to handle IncallManager specs of the application.
+   */
   useIncallManager({ media: 'video', auto: true });
 
   if (!call) {

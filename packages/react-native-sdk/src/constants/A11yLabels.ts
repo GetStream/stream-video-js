@@ -22,7 +22,7 @@ export enum A11yButtons {
   PARTICIPANTS_INFO = 'participants-info-button',
   EXIT_PARTICIPANTS_INFO = 'exit-participants-info-button',
   HANG_UP_CALL = 'hang-up-call-button',
-  REACTION_BUTTON = 'call-controls-reaction-button',
+  REACTION = 'call-controls-reaction-button',
 }
 
 export enum A11yValues {

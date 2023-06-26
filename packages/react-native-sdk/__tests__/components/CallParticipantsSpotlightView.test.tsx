@@ -46,6 +46,6 @@ describe('CallParticipantsSpotlightView', () => {
       await screen.findByLabelText(
         A11yComponents.PARTICIPANT_VIEW_SCREEN_SHARING,
       ),
-    ).toBeDefined();
+    ).toBeVisible();
   });
 });

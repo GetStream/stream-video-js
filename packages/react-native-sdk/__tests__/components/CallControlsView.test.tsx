@@ -3,7 +3,7 @@ import { mockClientWithUser } from '../mocks/client';
 import mockParticipant from '../mocks/participant';
 import { A11yButtons, A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
-import { fireEvent, render, screen } from '../utils/RNTLTools';
+import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
 import { CallControlsView } from '../../src/components';
 import { OwnCapability } from '@stream-io/video-client';
 
@@ -12,8 +12,6 @@ jest.useFakeTimers();
 
 enum P_IDS {
   LOCAL_1 = 'local-1',
-  REMOTE_1 = 'remote-1',
-  REMOTE_2 = 'remote-2',
 }
 
 describe('CallControlsView', () => {
@@ -28,18 +26,16 @@ describe('CallControlsView', () => {
 
     render(
       <CallControlsView
-        chatButton={{ onPressHandler: () => {}, unreadBadgeCountIndicator: 1 }}
+        chatButton={{ onPressHandler: jest.fn(), unreadBadgeCountIndicator: 1 }}
       />,
       {
         call,
       },
     );
 
-    const indicator = await screen.findByLabelText(
-      A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR,
-    );
+    const indicator = await screen.findByText('1');
 
-    expect(indicator).toBeDefined();
+    expect(indicator).toBeVisible();
   });
 
   it('should not render an unread badge indicator when the value is 0 in the chatButton prop', async () => {
@@ -53,18 +49,20 @@ describe('CallControlsView', () => {
 
     render(
       <CallControlsView
-        chatButton={{ onPressHandler: () => {}, unreadBadgeCountIndicator: 0 }}
+        chatButton={{ onPressHandler: jest.fn(), unreadBadgeCountIndicator: 0 }}
       />,
       {
         call,
       },
     );
 
-    const indicator = screen.queryAllByLabelText(
-      A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR,
+    await waitFor(() =>
+      expect(() =>
+        screen.getByLabelText(A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR),
+      ).toThrow(
+        /Unable to find an element with accessibilityLabel: chat-unread-badge-count-indicator/i,
+      ),
     );
-
-    expect(indicator.length).toBe(0);
   });
 
   it('render reaction button in call controls view', async () => {
@@ -84,17 +82,11 @@ describe('CallControlsView', () => {
       call,
     });
 
-    const button = await screen.findByLabelText(A11yButtons.REACTION_BUTTON);
-
-    expect(button).toBeDefined();
+    const button = await screen.findByLabelText(A11yButtons.REACTION);
 
     fireEvent.press(button);
 
-    const reactionsModal = await screen.findAllByLabelText(
-      A11yComponents.REACTIONS_MODAL,
-    );
-
-    expect(reactionsModal).toBeDefined();
+    expect(screen.getByLabelText(A11yComponents.REACTIONS_MODAL)).toBeVisible();
   });
 
   it('terminate call when hangup call button is pressed in call controls view', async () => {
@@ -112,8 +104,8 @@ describe('CallControlsView', () => {
 
     const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
 
-    expect(button).toBeDefined();
-
     fireEvent.press(button);
+
+    expect(call.leave).toHaveBeenCalled();
   });
 });

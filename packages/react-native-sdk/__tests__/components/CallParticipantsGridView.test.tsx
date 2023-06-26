@@ -34,6 +34,6 @@ describe('CallParticipantsGridView', () => {
 
     expect(
       await screen.findByLabelText(A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN),
-    ).toBeDefined();
+    ).toBeVisible();
   });
 });
