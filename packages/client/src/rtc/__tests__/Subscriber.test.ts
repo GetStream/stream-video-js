@@ -55,9 +55,9 @@ describe('Subscriber', () => {
       });
       const newConnectionConfig = { iceServers: [] };
 
-      const oldPeerConnection = subscriber['subscriber'];
+      const oldPeerConnection = subscriber['pc'];
       await subscriber.migrateTo(newSfuClient, newConnectionConfig);
-      const newPeerConnection = subscriber['subscriber'];
+      const newPeerConnection = subscriber['pc'];
 
       expect(subscriber['sfuClient']).toBe(newSfuClient);
       expect(newPeerConnection).not.toBe(oldPeerConnection);
@@ -77,12 +77,12 @@ describe('Subscriber', () => {
         return pc;
       });
 
-      const oldPeerConnection = subscriber['subscriber'];
+      const oldPeerConnection = subscriber['pc'];
       vi.spyOn(oldPeerConnection, 'close');
 
       await subscriber.migrateTo(sfuClient, { iceServers: [] });
 
-      const newPeerConnection = subscriber['subscriber'];
+      const newPeerConnection = subscriber['pc'];
       // @ts-ignore
       newPeerConnection.connectionState = 'connected';
 

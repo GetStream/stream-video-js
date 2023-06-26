@@ -86,12 +86,8 @@ describe('Publisher', () => {
 
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-    vi.spyOn(publisher['publisher'], 'addTransceiver').mockReturnValue(
-      transceiver,
-    );
-    vi.spyOn(publisher['publisher'], 'getTransceivers').mockReturnValue([
-      transceiver,
-    ]);
+    vi.spyOn(publisher['pc'], 'addTransceiver').mockReturnValue(transceiver);
+    vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([transceiver]);
 
     sfuClient.updateMuteState = vi.fn();
 
@@ -162,14 +158,14 @@ describe('Publisher', () => {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       };
 
-      vi.spyOn(publisher['publisher'], 'setConfiguration');
+      vi.spyOn(publisher['pc'], 'setConfiguration');
       // @ts-ignore
       vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
 
       await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
 
       expect(publisher['sfuClient']).toEqual(newSfuClient);
-      expect(publisher['publisher'].setConfiguration).toHaveBeenCalledWith(
+      expect(publisher['pc'].setConfiguration).toHaveBeenCalledWith(
         newPeerConnectionConfig,
       );
       expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
@@ -179,7 +175,7 @@ describe('Publisher', () => {
       // @ts-expect-error
       publisher.announcedTracks.push({ trackType: TrackType.VIDEO });
 
-      vi.spyOn(publisher['publisher'], 'getTransceivers').mockReturnValue([]);
+      vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
       // @ts-ignore
       sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
       sfuClient.setPublisher = vi.fn().mockResolvedValue({
@@ -194,11 +190,11 @@ describe('Publisher', () => {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
 
-      expect(publisher['publisher'].createOffer).toHaveBeenCalledWith({
+      expect(publisher['pc'].createOffer).toHaveBeenCalledWith({
         iceRestart: true,
       });
-      expect(publisher['publisher'].setLocalDescription).toHaveBeenCalled();
-      expect(publisher['publisher'].setRemoteDescription).toHaveBeenCalledWith({
+      expect(publisher['pc'].setLocalDescription).toHaveBeenCalled();
+      expect(publisher['pc'].setRemoteDescription).toHaveBeenCalledWith({
         type: 'answer',
         sdp: 'new-sdp',
       });
