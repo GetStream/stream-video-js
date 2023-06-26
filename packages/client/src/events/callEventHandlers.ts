@@ -31,6 +31,7 @@ import {
   watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
+  watchSfuErrorReports,
   watchTrackPublished,
   watchTrackUnpublished,
   watchUnblockedUser,
@@ -91,6 +92,7 @@ export const registerEventHandlers = (
     'call.updated': watchCallUpdated(state),
   };
   const eventHandlers = [
+    watchSfuErrorReports(dispatcher),
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),
     watchParticipantCountChanged(dispatcher, state),
