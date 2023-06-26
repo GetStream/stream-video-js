@@ -91,7 +91,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Push notification- Android
 - [x] Chat integration guide
 - [x] Simulcasting- Android
-- [ ] Push notification- VoIP iOS
+- [x] Push notification- VoIP iOS
 - [ ] Reconnection (awaiting BE)
 - [ ] Simulcasting- iOS
 - [ ] Components alignment and refactor
