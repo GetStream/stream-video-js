@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.52...@stream-io/video-react-sdk-0.0.53) (2023-06-26)
+
+
+### Bug Fixes
+
+* Attempt to fix npm image ([cf90bd3](https://github.com/GetStream/stream-video-js/commit/cf90bd33048135053305278844bf2b50d8421b8b))
+
 ### [0.0.52](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.51...@stream-io/video-react-sdk-0.0.52) (2023-06-23)
 
 ### Dependency Updates
