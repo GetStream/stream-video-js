@@ -13,7 +13,7 @@ import {
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
-import { A11yButtons } from '../constants/A11yLabels';
+import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
 import { Z_INDEX } from '../constants';
 
 type ChatButtonType = {
@@ -68,6 +68,7 @@ export const CallControlsView = ({
     <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
+          accessibilityLabel={A11yComponents.CALL_CONTROLS_REACTION_BUTTON}
           onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
           style={styles.button}
@@ -134,7 +135,10 @@ const UnreadBadeCountIndicator = ({
   }
 
   return (
-    <View style={styles.chatBadge}>
+    <View
+      accessibilityLabel={A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR}
+      style={styles.chatBadge}
+    >
       <Text style={styles.chatBadgeText}>{count}</Text>
     </View>
   );
