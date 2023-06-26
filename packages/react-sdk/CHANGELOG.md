@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.53...@stream-io/video-react-sdk-0.0.54) (2023-06-26)
+
+
+### Bug Fixes
+
+* Sentry integration ([c7fe85f](https://github.com/GetStream/stream-video-js/commit/c7fe85fe7b6cc5341be7131b81c593fb82dd5b6b))
+
 ### [0.0.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.52...@stream-io/video-react-sdk-0.0.53) (2023-06-26)
 
 
