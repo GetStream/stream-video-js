@@ -1,3 +1,4 @@
+import React from 'react';
 import { AxiosError, OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,

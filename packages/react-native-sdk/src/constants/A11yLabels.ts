@@ -14,7 +14,6 @@ export enum A11yComponents {
   PARTICIPANT_MEDIA_STREAM = 'participant-media-stream',
   PARTICIPANTS_INFO_VIEW = 'participants-info-view',
   PARTICIPANT_VIEW_SCREEN_SHARING = 'participant-view-screen-sharing',
-  CALL_CONTROLS_REACTION_BUTTON = 'call-controls-reaction-button',
   REACTIONS_MODAL = 'reactions-modal',
   CHAT_UNREAD_BADGE_COUNT_INDICATOR = 'chat-unread-badge-count-indicator',
 }
@@ -23,6 +22,7 @@ export enum A11yButtons {
   PARTICIPANTS_INFO = 'participants-info-button',
   EXIT_PARTICIPANTS_INFO = 'exit-participants-info-button',
   HANG_UP_CALL = 'hang-up-call-button',
+  REACTION_BUTTON = 'call-controls-reaction-button',
 }
 
 export enum A11yValues {

@@ -68,7 +68,7 @@ export const CallControlsView = ({
     <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          accessibilityLabel={A11yComponents.CALL_CONTROLS_REACTION_BUTTON}
+          accessibilityLabel={A11yButtons.REACTION_BUTTON}
           onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
           style={styles.button}
