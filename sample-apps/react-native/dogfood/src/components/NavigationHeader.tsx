@@ -59,7 +59,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
     route.name === 'JoinMeetingScreen' || route.name === 'JoinCallScreen';
 
   return (
-    <SafeAreaView style={styles.header}>
+    <SafeAreaView style={styles.header} edges={['top']}>
       <Pressable
         onPress={!showChooseModeButton ? undefined : logoutHandler}
         accessibilityLabel={A11yButtons.LOG_OUT_AVATAR}

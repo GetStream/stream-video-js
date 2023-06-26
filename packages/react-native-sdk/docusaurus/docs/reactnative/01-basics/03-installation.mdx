@@ -8,12 +8,12 @@ title: Installation
 First things first, make sure you have set up the development environment for React Native.
 You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-
 ### Add Stream's Video SDK and its peer dependencies
 
 In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
+
 ```bash
-yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules @react-native-community/netinfo @notifee/react-native
+yarn add stream-video-react-native react-native-webrtc react-native-callkeep react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules @react-native-community/netinfo @notifee/react-native
 ```
 
 The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
@@ -27,6 +27,7 @@ So what did we install precisely?
 
 - `stream-video-react-native` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
 - `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
+- `react-native-device-info` is responsible to get the device info and sending it to the stream video client.
 - `react-native-incall-manager` handles media-routes/sensors/events during a audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `text-encoding-polyfill` is an implementation of the WHATWG URL Standard optimized for React Native
@@ -37,11 +38,14 @@ So what did we install precisely?
 - `@notifee/react-native` - is used to keep calls alive in the background in Android
 
 ### Optional peer dependencies
+
 Some of the optional features we provide require additional dependencies to be installed in order to work properly.
 
 #### Ringing flow
+
 The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
 To enable this feature you need to install the following dependencies:
+
 - `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
 - `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
 - `@react-native-voip-push-notification` to receive notifications on iOS.
@@ -73,6 +77,7 @@ if (Platform.OS !== 'web') {
 ```
 
 ### Push Notifications
+
 To enable push notifications, you need to follow the [guide](../../advanced/02-push-notifications/).
 
 ### Versioning

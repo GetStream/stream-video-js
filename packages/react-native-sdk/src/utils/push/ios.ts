@@ -11,15 +11,12 @@ type PushConfig = NonNullable<StreamVideoConfig['push']>;
 export const iosCallkeepAcceptCall = (
   call_cid: string | undefined,
   callUUIDFromCallkeep: string,
-  pushConfig: PushConfig,
 ) => {
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
   pushAcceptedIncomingCallCId$.next(call_cid);
   voipPushNotificationCallCId$.next(undefined);
-  // navigate to the call screen
-  pushConfig.navigateAcceptCall();
 };
 
 export const iosCallkeepRejectCall = async (

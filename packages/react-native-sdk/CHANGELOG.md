@@ -2,6 +2,77 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.215](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.214...@stream-io/video-react-native-sdk-0.0.1-alpha.215) (2023-06-26)
+
+
+
+## [0.0.1-alpha.214](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.213...@stream-io/video-react-native-sdk-0.0.1-alpha.214) (2023-06-26)
+
+
+
+## [0.0.1-alpha.213](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.212...@stream-io/video-react-native-sdk-0.0.1-alpha.213) (2023-06-26)
+
+
+
+## [0.0.1-alpha.212](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.211...@stream-io/video-react-native-sdk-0.0.1-alpha.212) (2023-06-26)
+
+
+
+## [0.0.1-alpha.211](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.210...@stream-io/video-react-native-sdk-0.0.1-alpha.211) (2023-06-26)
+
+
+
+## [0.0.1-alpha.210](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.209...@stream-io/video-react-native-sdk-0.0.1-alpha.210) (2023-06-23)
+
+
+
+## [0.0.1-alpha.209](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.208...@stream-io/video-react-native-sdk-0.0.1-alpha.209) (2023-06-23)
+
+
+
+## [0.0.1-alpha.208](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.207...@stream-io/video-react-native-sdk-0.0.1-alpha.208) (2023-06-23)
+
+
+
+## [0.0.1-alpha.207](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.206...@stream-io/video-react-native-sdk-0.0.1-alpha.207) (2023-06-23)
+
+
+### Bug Fixes
+
+* **react-native:** null coalescing operator issue in UserInfoView ([#702](https://github.com/GetStream/stream-video-js/issues/702)) ([45f24f9](https://github.com/GetStream/stream-video-js/commit/45f24f99ed6a8843e2c8aa05527387fb862d4a91))
+
+
+
+## [0.0.1-alpha.206](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.205...@stream-io/video-react-native-sdk-0.0.1-alpha.206) (2023-06-23)
+
+
+
+## [0.0.1-alpha.205](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.204...@stream-io/video-react-native-sdk-0.0.1-alpha.205) (2023-06-23)
+
+
+
+## [0.0.1-alpha.204](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.203...@stream-io/video-react-native-sdk-0.0.1-alpha.204) (2023-06-23)
+
+
+### Features
+
+* **react-native:** send device and os info from the SDK ([#690](https://github.com/GetStream/stream-video-js/issues/690)) ([deb1a28](https://github.com/GetStream/stream-video-js/commit/deb1a28a4a029d988d11970608f00da8b327a02d))
+
+
+
+## [0.0.1-alpha.203](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.202...@stream-io/video-react-native-sdk-0.0.1-alpha.203) (2023-06-23)
+
+
+
+## [0.0.1-alpha.202](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.201...@stream-io/video-react-native-sdk-0.0.1-alpha.202) (2023-06-22)
+
+
+### Bug Fixes
+
+* navigate to incoming call screen when push notification is tapped ([#697](https://github.com/GetStream/stream-video-js/issues/697)) ([85488a2](https://github.com/GetStream/stream-video-js/commit/85488a213abb0482c7aedefb5c3aa999131c746a))
+
+
+
 ## [0.0.1-alpha.201](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.200...@stream-io/video-react-native-sdk-0.0.1-alpha.201) (2023-06-22)
 
 

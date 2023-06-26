@@ -90,6 +90,7 @@ export const registerEventHandlers = (
     'call.session_participant_left': watchCallSessionParticipantLeft(state),
     'call.unblocked_user': watchUnblockedUser(state),
     'call.updated': watchCallUpdated(state),
+    'call.user_muted': () => console.log('call.user_muted received'),
   };
   const eventHandlers = [
     watchSfuErrorReports(dispatcher),

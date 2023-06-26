@@ -17,12 +17,12 @@ import {
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMode';
+import { useHasBrowserPermissions } from './useDevices';
 
 /**
  * @internal
  */
 export type VideoPublisherInit = {
-  canObserveVideo?: boolean;
   initialVideoMuted?: boolean;
   videoDeviceId?: string;
 };
@@ -32,7 +32,6 @@ export type VideoPublisherInit = {
  * @category Device Management
  */
 export const useVideoPublisher = ({
-  canObserveVideo,
   initialVideoMuted,
   videoDeviceId,
 }: VideoPublisherInit) => {
@@ -40,6 +39,9 @@ export const useVideoPublisher = ({
   const callState = useCallState();
   const callingState = useCallCallingState();
   const participant = useLocalParticipant();
+  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
+    'camera' as PermissionName,
+  );
   const { localParticipant$ } = callState;
 
   const preferredCodec = useDebugPreferredVideoCodec();
@@ -94,7 +96,7 @@ export const useVideoPublisher = ({
   }, [callingState, initialVideoMuted, isPublishingVideo, publishVideoStream]);
 
   useEffect(() => {
-    if (!localParticipant$ || !canObserveVideo) return;
+    if (!localParticipant$ || !hasBrowserPermissionVideoInput) return;
     const subscription = watchForDisconnectedVideoDevice(
       localParticipant$.pipe(map((p) => p?.videoDeviceId)),
     ).subscribe(async () => {
@@ -105,7 +107,7 @@ export const useVideoPublisher = ({
     return () => {
       subscription.unsubscribe();
     };
-  }, [canObserveVideo, localParticipant$, call]);
+  }, [hasBrowserPermissionVideoInput, localParticipant$, call]);
 
   useEffect(() => {
     if (!participant?.videoStream || !call || !isPublishingVideo) return;
