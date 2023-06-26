@@ -13,10 +13,12 @@ export const customSentryLogger: Logger = (
   extraData?: any,
   tags?: string[],
 ) => {
-  Sentry.captureMessage(message, {
-    level: logLevelMapping.get(logLevel),
-    extra: extraData,
-  });
+  if (logLevel === 'warn' || logLevel === 'error') {
+    Sentry.captureEvent({
+      level: logLevelMapping.get(logLevel),
+      extra: extraData,
+    });
+  }
 
   // Call the SDK's default log method
   logToConsole(logLevel, message, extraData, tags);
