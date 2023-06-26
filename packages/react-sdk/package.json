@@ -11,6 +11,11 @@
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/react-sdk"
+  },
   "files": [
     "dist",
     "src",
