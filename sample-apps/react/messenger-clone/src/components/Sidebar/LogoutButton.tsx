@@ -10,7 +10,7 @@ export const LogoutButton = () => {
   const { client: chatClient } = useChatContext();
   const { logout } = useUserContext();
 
-  if (!(videoClient && chatClient)) return;
+  if (!(videoClient && chatClient)) return null;
 
   return (
     <button
