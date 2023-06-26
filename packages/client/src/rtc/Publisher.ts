@@ -41,7 +41,7 @@ export type PublisherOpts = {
  * @internal
  */
 export class Publisher {
-  private readonly publisher: RTCPeerConnection;
+  private publisher: RTCPeerConnection;
   private readonly state: CallState;
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -144,6 +144,10 @@ export class Publisher {
     trackType: TrackType,
     opts: PublishOptions = {},
   ) => {
+    if (track.readyState === 'ended') {
+      throw new Error(`Can't publish a track that has ended already.`);
+    }
+
     let transceiver = this.publisher
       .getTransceivers()
       .find(
@@ -300,6 +304,7 @@ export class Publisher {
    * Stops publishing all tracks and stop all tracks.
    */
   stopPublishing = () => {
+    this.logger('debug', 'Stopping publishing all tracks');
     this.publisher.getSenders().forEach((s) => {
       s.track?.stop();
       if (this.publisher.signalingState !== 'closed') {
@@ -348,9 +353,9 @@ export class Publisher {
    * @param selector
    * @returns
    */
-  getStats(selector?: MediaStreamTrack | null | undefined) {
+  getStats = (selector?: MediaStreamTrack | null | undefined) => {
     return this.publisher.getStats(selector);
-  }
+  };
 
   private getCodecPreferences = (
     trackType: TrackType,
@@ -397,8 +402,27 @@ export class Publisher {
     this.sfuClient = sfuClient;
     this.publisher.setConfiguration(connectionConfig);
 
-    // negotiate only if there are tracks to publish
-    await this.negotiate({ iceRestart: true });
+    const shouldRestartIce = this.publisher.iceConnectionState === 'connected';
+    if (shouldRestartIce) {
+      const isPublishingAnyTrack = [
+        TrackType.AUDIO,
+        TrackType.VIDEO,
+        TrackType.SCREEN_SHARE,
+        TrackType.SCREEN_SHARE_AUDIO,
+      ].some((trackType) => this.isPublishing(trackType));
+
+      if (isPublishingAnyTrack) {
+        // negotiate only if there are tracks to publish
+        await this.negotiate({ iceRestart: true });
+      } else {
+        // If there aren't any tracks that are published, we dispose the
+        // current publisher and create a new one.
+        // This is because the SFU won't let us submit an offer without
+        // including any track information in the `setPublisher` RPC call.
+        this.close();
+        this.publisher = this.createPeerConnection(connectionConfig);
+      }
+    }
   };
 
   private onNegotiationNeeded = async () => {
@@ -411,11 +435,17 @@ export class Publisher {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions) => {
+    const trackInfos = this.getCurrentTrackInfos();
+    if (trackInfos.length === 0) {
+      throw new Error(
+        `Can't initiate negotiation without announcing any tracks`,
+      );
+    }
+
     const offer = await this.publisher.createOffer(options);
     offer.sdp = this.mungeCodecs(offer.sdp);
     await this.publisher.setLocalDescription(offer);
 
-    const trackInfos = this.getCurrentTrackInfos();
     const { response } = await this.sfuClient.setPublisher({
       sdp: offer.sdp || '',
       tracks: trackInfos,
