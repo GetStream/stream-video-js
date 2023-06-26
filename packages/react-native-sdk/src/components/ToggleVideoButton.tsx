@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AxiosError, OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
@@ -11,7 +11,6 @@ import { Alert, StyleSheet } from 'react-native';
 import { theme } from '../theme';
 import { Video, VideoSlash } from '../icons';
 import { useCallControls, usePermissionNotification } from '../hooks';
-import { useCallback, useEffect, useState } from 'react';
 
 export const ToggleVideoButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);

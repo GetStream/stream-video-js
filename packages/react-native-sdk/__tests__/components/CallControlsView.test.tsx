@@ -60,7 +60,7 @@ describe('CallControlsView', () => {
       },
     );
 
-    const indicator = await screen.queryAllByLabelText(
+    const indicator = screen.queryAllByLabelText(
       A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR,
     );
 
