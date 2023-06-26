@@ -1,27 +1,15 @@
 import { useEffect, useState } from 'react';
-import {
-  Call,
-  StreamCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { useParams } from 'react-router-dom';
+import { StreamCall } from '@stream-io/video-react-sdk';
 
 import { MeetingUI } from './MeetingUI';
 import { ChatSidebar } from './ChatSidebar';
+import { useSetCall } from '../hooks/useSetCall';
+import { useJoinedCall } from '../contexts/JoinedCallProvider';
 
 export const CallUI = () => {
-  const { callId } = useParams();
-  const client = useStreamVideoClient();
+  const call = useSetCall();
+  const { setJoinedCall } = useJoinedCall();
   const [chatOpen, setChatOpen] = useState(false);
-  const [call, setCall] = useState<Call | undefined>(undefined);
-
-  useEffect(() => {
-    if (!callId || !client) {
-      return;
-    }
-
-    setCall(client.call('default', callId));
-  }, [client, callId]);
 
   useEffect(() => {
     if (!call) {
@@ -29,7 +17,8 @@ export const CallUI = () => {
     }
 
     call.join({ create: true });
-  }, [call]);
+    setJoinedCall(call);
+  }, [call, setJoinedCall]);
 
   return (
     <div className="flex w-full h-full">
