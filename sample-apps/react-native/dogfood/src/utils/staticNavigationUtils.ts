@@ -11,9 +11,7 @@ export class StaticNavigationService {
 }
 
 /**
- * Run the navigation logic with StaticNavigationService
  * This is used to run the navigation logic from root level even before the navigation is ready
- * @param callback The navigation callback that calls the methods of StaticNavigationService
  */
 export const StaticNavigate = (
   ...navigationArgs: Parameters<typeof navigationRef.navigate>
