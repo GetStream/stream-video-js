@@ -41,7 +41,7 @@ export type PublisherOpts = {
  * @internal
  */
 export class Publisher {
-  private publisher: RTCPeerConnection;
+  private pc: RTCPeerConnection;
   private readonly state: CallState;
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -67,11 +67,6 @@ export class Publisher {
   private logger: Logger = getLogger(['Publisher']);
 
   /**
-   * An array of tracks that have been most-recently announced to the SFU.
-   */
-  announcedTracks: TrackInfo[] = [];
-
-  /**
    * The SFU client instance to use for publishing and signaling.
    */
   sfuClient: StreamSfuClient;
@@ -94,7 +89,7 @@ export class Publisher {
     isRedEnabled,
     preferredVideoCodec,
   }: PublisherOpts) {
-    this.publisher = this.createPeerConnection(connectionConfig);
+    this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
@@ -125,7 +120,7 @@ export class Publisher {
    */
   close = () => {
     this.stopPublishing();
-    this.publisher.close();
+    this.pc.close();
   };
 
   /**
@@ -148,7 +143,7 @@ export class Publisher {
       throw new Error(`Can't publish a track that has ended already.`);
     }
 
-    let transceiver = this.publisher
+    let transceiver = this.pc
       .getTransceivers()
       .find(
         (t) =>
@@ -194,7 +189,7 @@ export class Publisher {
       // keep in mind that `track.stop()` doesn't trigger this event.
       track.addEventListener('ended', handleTrackEnded);
 
-      transceiver = this.publisher.addTransceiver(track, {
+      transceiver = this.pc.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
@@ -238,7 +233,7 @@ export class Publisher {
    * @param trackType the track type to unpublish.
    */
   unpublishStream = async (trackType: TrackType) => {
-    const transceiver = this.publisher
+    const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
     if (
@@ -305,10 +300,10 @@ export class Publisher {
    */
   stopPublishing = () => {
     this.logger('debug', 'Stopping publishing all tracks');
-    this.publisher.getSenders().forEach((s) => {
+    this.pc.getSenders().forEach((s) => {
       s.track?.stop();
-      if (this.publisher.signalingState !== 'closed') {
-        this.publisher.removeTrack(s);
+      if (this.pc.signalingState !== 'closed') {
+        this.pc.removeTrack(s);
       }
     });
   };
@@ -354,7 +349,7 @@ export class Publisher {
    * @returns
    */
   getStats = (selector?: MediaStreamTrack | null | undefined) => {
-    return this.publisher.getStats(selector);
+    return this.pc.getStats(selector);
   };
 
   private getCodecPreferences = (
@@ -400,9 +395,9 @@ export class Publisher {
     connectionConfig?: RTCConfiguration,
   ) => {
     this.sfuClient = sfuClient;
-    this.publisher.setConfiguration(connectionConfig);
+    this.pc.setConfiguration(connectionConfig);
 
-    const shouldRestartIce = this.publisher.iceConnectionState === 'connected';
+    const shouldRestartIce = this.pc.iceConnectionState === 'connected';
     if (shouldRestartIce) {
       const isPublishingAnyTrack = [
         TrackType.AUDIO,
@@ -420,7 +415,7 @@ export class Publisher {
         // This is because the SFU won't let us submit an offer without
         // including any track information in the `setPublisher` RPC call.
         this.close();
-        this.publisher = this.createPeerConnection(connectionConfig);
+        this.pc = this.createPeerConnection(connectionConfig);
       }
     }
   };
@@ -442,25 +437,22 @@ export class Publisher {
       );
     }
 
-    const offer = await this.publisher.createOffer(options);
+    const offer = await this.pc.createOffer(options);
     offer.sdp = this.mungeCodecs(offer.sdp);
-    await this.publisher.setLocalDescription(offer);
+    await this.pc.setLocalDescription(offer);
 
     const { response } = await this.sfuClient.setPublisher({
       sdp: offer.sdp || '',
       tracks: trackInfos,
     });
 
-    // store the most-recently announced tracks
-    this.announcedTracks = trackInfos;
-
     try {
-      await this.publisher.setRemoteDescription({
+      await this.pc.setRemoteDescription({
         type: 'answer',
         sdp: response.sdp,
       });
     } catch (e) {
-      this.logger('error', `Publisher: setRemoteDescription error`, {
+      this.logger('error', `setRemoteDescription error`, {
         sdp: response.sdp,
         error: e,
       });
@@ -470,9 +462,9 @@ export class Publisher {
       async (candidate) => {
         try {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.publisher.addIceCandidate(iceCandidate);
+          await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          this.logger('error', `Publisher: ICE candidate error`, {
+          this.logger('error', `ICE candidate error`, {
             error: e,
             candidate,
           });
@@ -501,10 +493,10 @@ export class Publisher {
     return sdp;
   };
 
-  private getCurrentTrackInfos = () => {
+  getCurrentTrackInfos = () => {
     const metadata = this.state.metadata;
     const targetResolution = metadata?.settings.video.target_resolution;
-    return this.publisher
+    return this.pc
       .getTransceivers()
       .filter(
         (t) =>
@@ -556,31 +548,23 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    this.logger('error', `Publisher: ICE Candidate error`, errorMessage);
+    this.logger('error', `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
     this.logger(
       'error',
-      `Publisher: ICE Connection state changed`,
-      this.publisher.iceConnectionState,
+      `ICE Connection state changed`,
+      this.pc.iceConnectionState,
     );
   };
 
   private onIceGatheringStateChange = () => {
-    this.logger(
-      'error',
-      `Publisher: ICE Gathering State`,
-      this.publisher.iceGatheringState,
-    );
+    this.logger('error', `ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   private onSignalingStateChange = () => {
-    this.logger(
-      'debug',
-      `Publisher: Signaling state changed`,
-      this.publisher.signalingState,
-    );
+    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 
   private ridToVideoQuality = (rid: string): VideoQuality => {

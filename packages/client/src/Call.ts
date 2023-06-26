@@ -859,7 +859,7 @@ export class Call {
             ? {
                 fromSfuId: data?.migrating_from || '',
                 subscriptions: subscriptions.data || [],
-                announcedTracks: this.publisher?.announcedTracks || [],
+                announcedTracks: this.publisher?.getCurrentTrackInfos() || [],
               }
             : undefined;
 

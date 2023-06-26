@@ -19,7 +19,7 @@ const logger = getLogger(['Subscriber']);
  * media streams from the SFU.
  */
 export class Subscriber {
-  private subscriber: RTCPeerConnection;
+  private pc: RTCPeerConnection;
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly onTrack: (e: RTCTrackEvent) => void;
   private sfuClient: StreamSfuClient;
@@ -43,7 +43,7 @@ export class Subscriber {
     this.dispatcher = dispatcher;
     this.onTrack = onTrack;
 
-    this.subscriber = this.createPeerConnection(connectionConfig);
+    this.pc = this.createPeerConnection(connectionConfig);
 
     this.unregisterOnSubscriberOffer = dispatcher.on(
       'subscriberOffer',
@@ -64,7 +64,17 @@ export class Subscriber {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('track', this.onTrack);
-    attachDebugEventListeners(pc);
+
+    pc.addEventListener('icecandidateerror', this.onIceCandidateError);
+    pc.addEventListener(
+      'iceconnectionstatechange',
+      this.onIceConnectionStateChange,
+    );
+    pc.addEventListener(
+      'icegatheringstatechange',
+      this.onIceGatheringStateChange,
+    );
+
     return pc;
   };
 
@@ -73,7 +83,7 @@ export class Subscriber {
    */
   close = () => {
     this.unregisterOnSubscriberOffer();
-    this.subscriber.close();
+    this.pc.close();
   };
 
   /**
@@ -81,9 +91,9 @@ export class Subscriber {
    * @param selector
    * @returns
    */
-  getStats(selector?: MediaStreamTrack | null | undefined) {
-    return this.subscriber.getStats(selector);
-  }
+  getStats = (selector?: MediaStreamTrack | null | undefined) => {
+    return this.pc.getStats(selector);
+  };
 
   /**
    * Migrates the subscriber to a new SFU client.
@@ -99,15 +109,15 @@ export class Subscriber {
 
     // when migrating, we want to keep the previous subscriber open
     // until the new one is connected
-    const previousSubscriber = this.subscriber;
-    const subscriber = this.createPeerConnection(connectionConfig);
-    subscriber.addEventListener('connectionstatechange', () => {
-      if (subscriber.connectionState === 'connected') {
-        previousSubscriber.close();
+    const previousPC = this.pc;
+    const pc = this.createPeerConnection(connectionConfig);
+    pc.addEventListener('connectionstatechange', () => {
+      if (pc.connectionState === 'connected') {
+        previousPC.close();
       }
     });
 
-    this.subscriber = subscriber;
+    this.pc = pc;
   };
 
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
@@ -126,7 +136,7 @@ export class Subscriber {
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
     logger('info', `Received subscriberOffer`, subscriberOffer);
 
-    await this.subscriber.setRemoteDescription({
+    await this.pc.setRemoteDescription({
       type: 'offer',
       sdp: subscriberOffer.sdp,
     });
@@ -135,43 +145,35 @@ export class Subscriber {
       async (candidate) => {
         try {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.subscriber.addIceCandidate(iceCandidate);
+          await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('error', `Subscriber: ICE candidate error`, [e, candidate]);
+          logger('error', `ICE candidate error`, [e, candidate]);
         }
       },
     );
 
     // apply ice candidates
-    const answer = await this.subscriber.createAnswer();
-    await this.subscriber.setLocalDescription(answer);
+    const answer = await this.pc.createAnswer();
+    await this.pc.setLocalDescription(answer);
 
     await this.sfuClient.sendAnswer({
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
     });
   };
-}
 
-const attachDebugEventListeners = (subscriber: RTCPeerConnection) => {
-  subscriber.addEventListener('icecandidateerror', (e) => {
+  private onIceConnectionStateChange = () => {
+    logger('info', `ICE connection state changed`, this.pc.iceConnectionState);
+  };
+
+  private onIceGatheringStateChange = () => {
+    logger('info', `ICE gathering state changed`, this.pc.iceGatheringState);
+  };
+
+  private onIceCandidateError = (e: Event) => {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    logger('error', `Subscriber: ICE Candidate error`, errorMessage);
-  });
-  subscriber.addEventListener('iceconnectionstatechange', () => {
-    logger(
-      'info',
-      `Subscriber: ICE Connection state changed`,
-      subscriber.iceConnectionState,
-    );
-  });
-  subscriber.addEventListener('icegatheringstatechange', () => {
-    logger(
-      'info',
-      `Subscriber: ICE Gathering State`,
-      subscriber.iceGatheringState,
-    );
-  });
-};
+    logger('error', `ICE Candidate error`, errorMessage);
+  };
+}
