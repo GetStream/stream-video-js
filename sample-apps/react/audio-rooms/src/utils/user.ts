@@ -13,7 +13,7 @@ export const getSelectedUser = () => {
   if (urlCredentials.user_id) {
     return {
       id: urlCredentials.user_id,
-      name: urlCredentials.user_name,
+      name: urlCredentials.user_name || urlCredentials.user_id,
     };
   }
   const storedUser = JSON.parse(
