@@ -160,6 +160,8 @@ We need to configure the Firebase library, set up the callkeep library and regis
   [RNCallKeep setup:@{
     @"appName": @"My awesome app"
     @"supportsVideo": @YES,
+    // pass @YES here if you want the call to be shown in calls history in the built-in dialer app
+    @"includesCallsInRecents": @NO,
   }];
   // highlight-end
 
@@ -167,24 +169,6 @@ We need to configure the Firebase library, set up the callkeep library and regis
   [RNVoipPushNotificationManager voipRegistration];
 
   // the rest
-}
-```
-
-#### Add the method to handle calls from the native iOS dialer app
-
-In iOS, a user may start a new call from the calls history in the native iOS dialer app.
-Add the following method to enable this functionality.,
-
-```c
-- (BOOL)application:(UIApplication *)application
-continueUserActivity:(nonnull NSUserActivity *)userActivity
- restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
-{
-  // highlight-start
-  return [RNCallKeep application:application
-                    continueUserActivity:userActivity
-                      restorationHandler:restorationHandler];
-  // highlight-end
 }
 ```
 
