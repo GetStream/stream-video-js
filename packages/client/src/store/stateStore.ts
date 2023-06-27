@@ -3,6 +3,7 @@ import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
 import type { OwnUserResponse } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -22,6 +23,10 @@ export class StreamVideoWriteableStateStore {
       // leave all calls when the user disconnects.
       if (!user) {
         for (const call of this.calls) {
+          getLogger(['client-state'])(
+            'info',
+            `User disconnected, leaving call: ${call.cid}`,
+          );
           await call.leave();
         }
       }
