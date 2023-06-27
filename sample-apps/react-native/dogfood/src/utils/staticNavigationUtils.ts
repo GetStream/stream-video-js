@@ -13,7 +13,7 @@ export class StaticNavigationService {
 /**
  * This is used to run the navigation logic from root level even before the navigation is ready
  */
-export const StaticNavigate = (
+export const staticNavigate = (
   ...navigationArgs: Parameters<typeof navigationRef.navigate>
 ) => {
   const intervalId = setInterval(async () => {

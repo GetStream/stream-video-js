@@ -9,6 +9,7 @@ import ImageShowcase from '@site/src/components/ImageShowcase';
 import iosCallkitLibrariesLinkImage from '../assets/ios-callkit-libraries-link.png';
 import iosSearchPaths from '../assets/ios-search-paths.png'
 import iosInfoPlist from '../assets/ios-info-plist.png'
+import DashboardFirebaseConfig from '../../../shared/_dashboard-firebase-config.md';
 
 This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps
 
@@ -16,7 +17,9 @@ The normal user experience in a ringing app, when a user receives a call, is to 
 
 ## Add push provider credentials to Stream
 
-// TODO - refer the shared docs about adding Firebase credentials and APN certificates to Stream
+// TODO - below we refer to shared docs about adding Firebase credentials. But the docs still say chat and must be updated. Also, there are no shared docs yet about adding APN certificates to Stream. That must be added here once it is present.
+
+<DashboardFirebaseConfig />
 
 ## Install Dependencies
 
@@ -26,25 +29,23 @@ The first step is to install all necessary packages with your package manager of
   <TabItem value="Yarn" default>
 
 ```bash
-  yarn add @react-native-firebase/app
-  yarn add @react-native-firebase/messaging
-  yarn add react-native-callkeep
-  yarn add react-native-voip-push-notification
-  npx pod-install
+  yarn add @react-native-firebase/app @react-native-firebase/messaging react-native-callkeep react-native-voip-push-notification && npx pod-install
 ```
 
   </TabItem>
   <TabItem value="npm">
 
 ```bash
-  npm install @react-native-firebase/app
-  npm install @react-native-firebase/messaging
-  npm install react-native-voip-push-notification
-  npm install react-native-callkeep
-  npx pod-install
+  npm install @react-native-firebase/app @react-native-firebase/messaging react-native-voip-push-notification react-native-callkeep && npx pod-install
 ```
   </TabItem>
 </Tabs>
+
+So what did we install precisely?
+
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
+- `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
 
 ## Android-specific setup
 
@@ -154,9 +155,10 @@ We need to configure the Firebase library, setup the callkeep library and regist
   // highlight-next-line
   [FIRApp configure];
 
+  // add your app name here
   // highlight-start
   [RNCallKeep setup:@{
-    @"appName": @"My awesome app", // add your app name here
+    @"appName": @"My awesome app"
     @"supportsVideo": @YES,
   }];
   // highlight-end
@@ -170,7 +172,8 @@ We need to configure the Firebase library, setup the callkeep library and regist
 
 #### Add the method to handle calls from the native iOS dialer app
 
-In iOS, a user can use the calling logs from the native iOS dialer app and start a new call. Add the following method to enable this functionality,
+In iOS, a user may start a new call from the calls history in the native iOS dialer app.
+Add the following method to enable this functionality.,
 
 ```c
 - (BOOL)application:(UIApplication *)application
@@ -253,7 +256,7 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 /**
  * This is used to run the navigation logic from root level even before the navigation is ready
  */
-export const StaticNavigate = (
+export const staticNavigate = (
   ...navigationArgs: Parameters<typeof navigationRef.navigate>
 ) => {
   // note the use of setInterval, it is responsible for constantly checking if requirements are met and then navigating
@@ -290,7 +293,7 @@ import {
 import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STREAM_API_KEY } from '../../constants';
-import { StaticNavigate } from './staticNavigationUtils';
+import { staticNavigate } from './staticNavigationUtils';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -305,9 +308,12 @@ export function setPushConfig() {
       incomingCallChannel: {
         id: 'stream_incoming_call',
         name: 'Incoming call notifications',
+        // This is the advised importance of receiving incoming call notifications.
+        // This will ensure that the notification will appear on-top-of applications.
         importance: AndroidImportance.HIGH,
       },
-      // configure the functions to create the texts shown in the notification for incoming calls in Android.
+      // configure the functions to create the texts shown in the notification
+      // for incoming calls in Android.
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
@@ -316,15 +322,18 @@ export function setPushConfig() {
     },
     // add the callback to be executed a call is accepted, used for navigation
     navigateAcceptCall: () => {
-      StaticNavigate({ name: 'ActiveCallScreen', params: undefined });
+      staticNavigate({ name: 'ActiveCallScreen', params: undefined });
     },
-    // add the callback to be executed when a notification is tapped but user did not press accept or decline, used for navigation
+    // add the callback to be executed when a notification is tapped,
+    // but the user did not press accept or decline, used for navigation
     navigateToIncomingCall: () => {
-      StaticNavigate({ name: 'IncomingCallScreen', params: undefined });
+      staticNavigate({ name: 'IncomingCallScreen', params: undefined });
     },
-    // add the async callback to create a video client for incoming calls in the background on a push notification
+    // add the async callback to create a video client 
+    // for incoming calls in the background on a push notification
     createStreamVideoClient: async () => {
-      // note that since the method is async, you can call your server to get the user data or token or retrieve from offline storage.
+      // note that since the method is async, 
+      // you can call your server to get the user data or token or retrieve from offline storage.
       const userId = await AsyncStorage.getItem('@userId');
       const userName = await AsyncStorage.getItem('@userName');
       const token = await AsyncStorage.getItem('@userToken');
