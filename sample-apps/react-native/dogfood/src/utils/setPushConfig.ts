@@ -4,7 +4,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { AndroidImportance } from '@notifee/react-native';
 import { STREAM_API_KEY } from 'react-native-dotenv';
-import { StaticNavigate } from './staticNavigationUtils';
+import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 
@@ -28,10 +28,10 @@ export function setPushConfig() {
     },
     createStreamVideoClient,
     navigateAcceptCall: () => {
-      StaticNavigate({ name: 'Call', params: undefined });
+      staticNavigate({ name: 'Call', params: undefined });
     },
     navigateToIncomingCall: () => {
-      StaticNavigate({ name: 'Call', params: undefined });
+      staticNavigate({ name: 'Call', params: undefined });
     },
   });
 }

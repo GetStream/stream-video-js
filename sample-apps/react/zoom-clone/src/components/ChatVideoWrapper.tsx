@@ -1,48 +1,19 @@
-import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
-import { Chat } from 'stream-chat-react';
-
-import { useChatClient } from '../hooks';
-
-import type { User } from '../main';
-
-import { Preview } from './Preview';
-import { Outlet, useLoaderData } from 'react-router-dom';
-import { useState } from 'react';
-
-const apiKey = import.meta.env.VITE_STREAM_KEY as string;
+import { Outlet } from 'react-router-dom';
+import { ClientProviders } from '../contexts/ClientProviders';
+import { useUserContext } from '../contexts/UserContext';
+import { JoinedCallProvider } from '../contexts/JoinedCallProvider';
+import { Header } from './Header';
 
 export const ChatVideoWrapper = () => {
-  const { token, ...userData } = useLoaderData() as User;
-  const [videoClient] = useState(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        user: {
-          id: userData.id,
-          image: userData.image,
-          name: userData.name,
-          role: 'user',
-          teams: [],
-        },
-        token,
-      }),
-  );
-
-  const chatClient = useChatClient({
-    apiKey,
-    userData,
-    tokenOrProvider: token,
-  });
-
-  if (!chatClient || !videoClient) return null;
+  const { user } = useUserContext();
+  if (!user) return <div>Could not load the user</div>;
 
   return (
-    <Chat theme="str-chat__theme-dark" client={chatClient}>
-      <StreamVideo client={videoClient}>
-        <Preview.Provider>
-          <Outlet />
-        </Preview.Provider>
-      </StreamVideo>
-    </Chat>
+    <ClientProviders user={user}>
+      <JoinedCallProvider>
+        <Header />
+        <Outlet />
+      </JoinedCallProvider>
+    </ClientProviders>
   );
 };

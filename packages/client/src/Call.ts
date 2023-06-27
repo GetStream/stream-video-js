@@ -297,6 +297,7 @@ export class Call {
           currentUserId &&
           metadata.blocked_user_ids.includes(currentUserId)
         ) {
+          this.logger('info', 'Leaving call bacause of being blocked');
           await this.leave();
         }
       }),
@@ -561,6 +562,10 @@ export class Call {
   join = async (data?: JoinCallData) => {
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
+      this.logger(
+        'warn',
+        'Join method called twice, you should only call this once',
+      );
       throw new Error(`Illegal State: Already joined.`);
     }
 
@@ -572,6 +577,7 @@ export class Call {
 
     const isMigrating = callingState === CallingState.MIGRATING;
     this.state.setCallingState(CallingState.JOINING);
+    this.logger('debug', 'Starting join flow');
 
     if (data?.ring && !this.ringing) {
       this.ringingSubject.next(true);
@@ -966,6 +972,7 @@ export class Call {
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     if (!this.publisher) {
+      this.logger('error', 'Trying to publish video before join is completed');
       throw new Error(`Call not joined yet.`);
     }
 
@@ -998,6 +1005,7 @@ export class Call {
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     if (!this.publisher) {
+      this.logger('error', 'Trying to publish audio before join is completed');
       throw new Error(`Call not joined yet.`);
     }
 
@@ -1028,6 +1036,10 @@ export class Call {
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
     if (!this.publisher) {
+      this.logger(
+        'error',
+        'Trying to publish screen share before join is completed',
+      );
       throw new Error(`Call not joined yet.`);
     }
 

@@ -1,16 +1,12 @@
 import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
-import { ActiveCall } from '../../src/components';
 import { SfuModels } from '@stream-io/video-client';
 import mockParticipant from '../mocks/participant';
-import {
-  A11yButtons,
-  A11yComponents,
-  A11yIcons,
-} from '../../src/constants/A11yLabels';
-import { ViewToken } from 'react-native';
+import { A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
+import { CallParticipantsView } from '../../src/components';
+import { ViewToken } from 'react-native';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -20,6 +16,7 @@ enum P_IDS {
   REMOTE_1 = 'remote-1',
   REMOTE_2 = 'remote-2',
 }
+
 const simulateOnViewableItemsChanged = async (
   viewableItems: Array<ViewToken>,
 ) => {
@@ -36,22 +33,60 @@ const simulateOnViewableItemsChanged = async (
     jest.advanceTimersByTime(500);
   });
 };
-describe('ActiveCall', () => {
-  it('should render an active call with 1 partic. when the user is alone in the call', async () => {
+
+describe('CallParticipantsView', () => {
+  it('should render an call participants view with grid mode with 2 participants when no screen shared', async () => {
     const call = mockCall(mockClientWithUser(), [
-      mockParticipant({ isLocalParticipant: true }),
+      mockParticipant({
+        isLocalParticipant: true,
+        sessionId: P_IDS.LOCAL_1,
+        userId: P_IDS.LOCAL_1,
+      }),
+      mockParticipant({
+        publishedTracks: [SfuModels.TrackType.AUDIO, SfuModels.TrackType.VIDEO],
+        sessionId: P_IDS.REMOTE_1,
+        userId: P_IDS.REMOTE_1,
+      }),
     ]);
-    render(<ActiveCall />, {
+
+    render(<CallParticipantsView />, {
       call,
     });
 
     expect(
-      await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
-    ).toHaveTextContent('1');
+      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID_VIEW),
+    ).toBeVisible();
+  });
+  it('should render an call participants view with spotlight mode with 2 participants', async () => {
+    const call = mockCall(mockClientWithUser(), [
+      mockParticipant({
+        isLocalParticipant: true,
+        sessionId: P_IDS.LOCAL_1,
+        userId: P_IDS.LOCAL_1,
+      }),
+      mockParticipant({
+        publishedTracks: [
+          SfuModels.TrackType.AUDIO,
+          SfuModels.TrackType.VIDEO,
+          SfuModels.TrackType.SCREEN_SHARE,
+        ],
+        sessionId: P_IDS.REMOTE_1,
+        userId: P_IDS.REMOTE_1,
+        screenShareStream: {
+          toURL: () => 'screen-share-url',
+        },
+      }),
+    ]);
+
+    render(<CallParticipantsView />, {
+      call,
+    });
+
     expect(
-      screen.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
-    ).toBeOnTheScreen();
-    expect(screen.getByLabelText(A11yIcons.HANG_UP_CALL)).toBeOnTheScreen();
+      await screen.findByLabelText(
+        A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
+      ),
+    ).toBeVisible();
   });
 
   it('should render an active call with 3 partic. local partic., partic. 2 muted video, partic. 3 muted audio', async () => {
@@ -74,7 +109,8 @@ describe('ActiveCall', () => {
         userId: P_IDS.REMOTE_2,
       }),
     ]);
-    render(<ActiveCall />, {
+
+    render(<CallParticipantsView />, {
       call,
     });
 
@@ -86,10 +122,6 @@ describe('ActiveCall', () => {
     }));
 
     await simulateOnViewableItemsChanged(visibleParticipantsItems);
-
-    expect(
-      await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
-    ).toHaveTextContent('3');
 
     // Locating and verifying that all ParticipantViews are rendered
     const localParticipant = within(

@@ -4,6 +4,7 @@ import { LocalVideoView } from './LocalVideoView';
 import { useRemoteParticipants } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
 import { CallParticipantsList } from './CallParticipantsList';
+import { A11yComponents } from '../constants/A11yLabels';
 
 export const CallParticipantsGridView = () => {
   const _remoteParticipants = useRemoteParticipants();
@@ -16,7 +17,10 @@ export const CallParticipantsGridView = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_GRID_VIEW}
+    >
       <LocalVideoView layout={'floating'} />
       <CallParticipantsList participants={remoteParticipants} />
     </View>

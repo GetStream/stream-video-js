@@ -42,9 +42,13 @@ export const usePermissionRequest = () => {
   );
 
   useEffect(() => {
-    if (!call || !userHasUpdateCallPermissionsCapability) return;
+    if (!call || !userHasUpdateCallPermissionsCapability) {
+      return;
+    }
     return call.on('call.permission_request', (event) => {
-      if (event.type !== 'call.permission_request') return;
+      if (event.type !== 'call.permission_request') {
+        return;
+      }
       const { user, permissions } = event;
       permissions.forEach((permission) => {
         return Alert.alert(

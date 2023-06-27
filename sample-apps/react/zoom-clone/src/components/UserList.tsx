@@ -1,14 +1,14 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { useUserContext } from '../contexts/UserContext';
+
 import users from '../../data/users.json';
-
-import { selectedUserSubject } from '../main';
-
-import { SESSION_STORAGE_KEY } from '../utils';
+import { callId as getCallId } from '../utils';
 
 export const UserList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { selectUser } = useUserContext();
 
   const next = decodeURIComponent(searchParams.get('next') ?? '');
 
@@ -22,9 +22,9 @@ export const UserList = () => {
               <button
                 className="flex justify-between items-center"
                 onClick={() => {
-                  selectedUserSubject.next(u);
-                  sessionStorage.setItem(SESSION_STORAGE_KEY, u.id);
-                  navigate(next.length ? next : '/call/lobby');
+                  const callId = getCallId();
+                  selectUser(u);
+                  navigate(next.length ? next : `/call/lobby/${callId}`);
                 }}
               >
                 <div className="flex items-center gap-2">

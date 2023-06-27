@@ -4,12 +4,15 @@ import {
   SpeakerLayout,
   useCall,
 } from '@stream-io/video-react-sdk';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PropsWithChildren } from 'react';
+import { useJoinedCall } from '../contexts/JoinedCallProvider';
 
 export const MeetingUI = ({ children }: PropsWithChildren) => {
+  const location = useLocation();
   const activeCall = useCall();
   const navigate = useNavigate();
+  const { setJoinedCall } = useJoinedCall();
 
   if (!activeCall)
     return (
@@ -30,7 +33,16 @@ export const MeetingUI = ({ children }: PropsWithChildren) => {
       </div>
       <SpeakerLayout />
       <div className="relative flex justify-center items-center">
-        <CallControls onLeave={() => navigate('/call/lobby')} />
+        <CallControls
+          onLeave={() => {
+            setJoinedCall(undefined);
+            navigate(
+              `/call/lobby/${activeCall.id}${
+                location.search ? location.search : ''
+              }`,
+            );
+          }}
+        />
         {children}
       </div>
     </div>

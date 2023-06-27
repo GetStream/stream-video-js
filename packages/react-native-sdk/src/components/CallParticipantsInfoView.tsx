@@ -26,7 +26,7 @@ import { generateParticipantTitle } from '../utils';
 import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
-import { A11yButtons } from '../constants/A11yLabels';
+import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
 import { Z_INDEX } from '../constants';
 import { palette } from '../theme/constants';
 
@@ -188,6 +188,7 @@ export const CallParticipantsInfoView = ({
 
   return (
     <Modal
+      accessibilityLabel={A11yComponents.PARTICIPANTS_INFO_VIEW}
       animationType="fade"
       transparent
       visible={isCallParticipantsViewVisible}

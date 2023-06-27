@@ -22,6 +22,7 @@ $scope-name: 'str-video__participant-view';
   .str-video__call-controls__button {
     transition: opacity 200ms ease-out;
     opacity: 0.3;
+    color: var(--str-video__text-color1);
   }
 
   &:hover {

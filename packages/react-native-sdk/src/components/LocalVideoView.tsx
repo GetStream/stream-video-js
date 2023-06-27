@@ -87,7 +87,10 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
   if (layout === 'fullscreen') {
     if (isVideoMuted) {
       return (
-        <View style={styles.avatarContainer}>
+        <View
+          accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN}
+          style={styles.avatarContainer}
+        >
           <Avatar participant={localParticipant} />
         </View>
       );

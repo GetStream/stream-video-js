@@ -16,4 +16,9 @@ export const appTheme = {
     lg: 16,
     xl: 20,
   },
+  zIndex: {
+    IN_BACK: 0,
+    IN_MIDDLE: 1,
+    IN_FRONT: 2,
+  },
 };

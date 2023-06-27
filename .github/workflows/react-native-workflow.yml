@@ -66,6 +66,10 @@ jobs:
           key: ${{ runner.os }}-pods-${{ hashFiles('sample-apps/react-native/dogfood/ios/Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
+      - name: Setup and link permissions
+        run: |
+          cd sample-apps/react-native/dogfood;
+          npx react-native setup-ios-permissions;
       - name: iOS pods setup
         uses: nick-invision/retry@v2
         with:
