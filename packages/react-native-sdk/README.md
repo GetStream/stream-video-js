@@ -1,7 +1,8 @@
 # Official React Native SDK for [Stream Video](https://getstream.io/video/docs/)
 ## 🚧 WARNING This package is not yet stable, it is for internal use only. For more information check out our video product page. 🚧
 
-// TODO - image for the SDK
+<img src="/.readme-assets/Github-Graphic-React.jpg" alt="Stream Video for Javascript Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GetStream_stream-video-js&metric=alert_status&token=fdc1439303911957da9c7ff2ce505f94c3c14d36)](https://sonarcloud.io/summary/new_code?id=GetStream_stream-video-js)
 [![SDK Releases](https://img.shields.io/github/v/release/GetStream/stream-video-js)](https://github.com/GetStream/stream-video-js/releases)
 [![SDK Sample App CI](https://github.com/GetStream/stream-video-js/workflows/React%20Native%20Dogfood%20Release/badge.svg)](https://github.com/GetStream/stream-video-js/actions/workflows/react-native-workflow.yml)
