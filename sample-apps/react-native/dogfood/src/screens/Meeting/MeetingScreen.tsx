@@ -29,7 +29,7 @@ export const MeetingScreen = (props: Props) => {
   }
 
   return (
-    <StreamCall call={call} callCycleHandlers={{}}>
+    <StreamCall call={call}>
       <MeetingUI callId={callId} {...props} />
     </StreamCall>
   );

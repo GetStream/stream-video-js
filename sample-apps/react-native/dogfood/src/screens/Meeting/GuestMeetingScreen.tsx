@@ -74,7 +74,7 @@ export const GuestMeetingScreen = (props: Props) => {
 
   return (
     <StreamVideo client={videoClient}>
-      <StreamCall call={call} callCycleHandlers={{}}>
+      <StreamCall call={call}>
         <MeetingUI callId={callId} {...props} />
       </StreamCall>
     </StreamVideo>

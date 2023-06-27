@@ -11,7 +11,7 @@ import { useIosCallkeepEndEffect } from '../hooks/useIosCallkeepEndEffect';
 
 export type StreamCallProps = {
   call: Call;
-  callCycleHandlers: CallCycleHandlersType;
+  callCycleHandlers?: CallCycleHandlersType;
 };
 /**
  * StreamCall is a wrapper component that orchestrates the call life cycle logic and
