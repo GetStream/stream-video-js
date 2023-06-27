@@ -24,15 +24,9 @@
 continueUserActivity:(nonnull NSUserActivity *)userActivity
  restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
 {
-  BOOL handledCK = [RNCallKeep application:application
-                      continueUserActivity:userActivity
-                        restorationHandler:restorationHandler];
-  
-  BOOL handledLM = [RCTLinkingManager application:application
+  return [RCTLinkingManager application:application
                              continueUserActivity:userActivity
                                restorationHandler:restorationHandler];
-  
-  return handledCK || handledLM;
 }
 
 // --- Handle updated push credentials
@@ -80,6 +74,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   [RNCallKeep setup:@{
     @"appName": @"Stream React Native Video SDK Sample App",
     @"supportsVideo": @YES,
+    @"includesCallsInRecents": @NO,
   }];
   
   [RNVoipPushNotificationManager voipRegistration];
