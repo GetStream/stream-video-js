@@ -80,7 +80,6 @@ export const QuickDial = () => {
   if (!Object.values(users).length) return null;
 
   return (
-    // FIXME: add horizontall scrolling
     <div className="quick-dial">
       {Object.values(users).map((user) => (
         <QuickDialButton key={user.id} user={user} />

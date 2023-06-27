@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "scripts:init": "node scripts/init.js",
-    "scripts:populate-tokens": "node scripts/populateTokens.js"
+    "scripts:populate-tokens": "node scripts/populateTokens.js",
+    "scripts:generate-url-params": "node scripts/generateUrlParams.js"
   },
   "dependencies": {
     "@mui/icons-material": "^5.11.16",
@@ -20,6 +21,7 @@
     "nanoid": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.13.0",
     "sass": "^1.62.1",
     "stream-chat": "^8.4.1",
     "stream-chat-react": "^10.7.2"
