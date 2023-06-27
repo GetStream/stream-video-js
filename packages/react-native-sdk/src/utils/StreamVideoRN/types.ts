@@ -59,7 +59,7 @@ export type StreamVideoConfig = {
      * This is used create a video client for incoming calls in the background and inform call events to the server.
      * If you are unable to create a video client, for example if you dont know the logged in user yet, return undefined.
      * @example
-     * createStreamVideoClient: () => {
+     * createStreamVideoClient: async () => {
      *  const userId = await AsyncStorage.getItem('@userId');
      *  const userName = await AsyncStorage.getItem('@userName');
      *  const token = await AsyncStorage.getItem('@userToken');

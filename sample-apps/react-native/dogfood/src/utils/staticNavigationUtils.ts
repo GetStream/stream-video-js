@@ -11,11 +11,9 @@ export class StaticNavigationService {
 }
 
 /**
- * Run the navigation logic with StaticNavigationService
  * This is used to run the navigation logic from root level even before the navigation is ready
- * @param callback The navigation callback that calls the methods of StaticNavigationService
  */
-export const StaticNavigate = (
+export const staticNavigate = (
   ...navigationArgs: Parameters<typeof navigationRef.navigate>
 ) => {
   const intervalId = setInterval(async () => {

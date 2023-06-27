@@ -63,7 +63,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   [RNCallKeep reportNewIncomingCall: callId
                              handle: createdCallerName
                          handleType: @"generic"
-                           hasVideo: NO
+                           hasVideo: YES
                 localizedCallerName: createdCallerName
                     supportsHolding: YES
                        supportsDTMF: YES

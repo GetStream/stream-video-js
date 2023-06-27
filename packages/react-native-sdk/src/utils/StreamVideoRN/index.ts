@@ -43,13 +43,17 @@ export class StreamVideoRN {
 
   /**
    * Set the push config for StreamVideoRN.
-   * Note: This function can only be called once.
-   * It is necessary to call this function before AppRegistry.registerComponent since the app can be opened from a dead state through a push notification
+   * This method must be called **outside** of your application lifecycle, e.g. alongside your
+   * `AppRegistry.registerComponent()` method call at the entry point of your application code.
+   * Since the app can be opened from a dead state through a push notification
+   * Note: This function must be called only once. Further calls will be ignored.
    * @example // in index.js
    * import { AppRegistry } from 'react-native';
+   * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
    * import App from './App';
    * // Set push config
-   * StreamVideoRN.setPushConfig(pushConfig); // set push config
+   * const pushConfig = {}; // construct your config
+   * StreamVideoRN.setPushConfig(pushConfig);
    * AppRegistry.registerComponent('app', () => App);
    */
   static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
