@@ -1,6 +1,49 @@
 ---
+id: broadcasting
 title: Broadcasting
-description: Broadcasting to HLS & RTMP
+description: Approaches to broadcasting
 ---
 
-TODO
+Broadcasting serves as a means of transmitting live or pre-recorded content to a wide audience.
+
+We can choose from two approaches to broadcasting the media:
+
+1. [HLS](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) - slight delay, better buffering
+2. [WebRTC](https://webrtc.org/) - lower latency, less reliability
+
+It is up to the integrators to decide, what approach will be used in their apps for the audience to consume the streams.
+
+:::tip
+We have built a [livestream app tutorial](../../tutorials/livestream) that relies on the broadcasting feature. The demo expands on how to implement both, the HLS and the WebRTC approach to streaming.
+:::
+
+## Call type for broadcasting
+Stream infrastructure recognizes few pre-built call types. Among them, the type [`livestream` type](../../guides/configuring-call-types#livestream) is the best suited for broadcasting events. When a `livestream` call is created, it is set to `backstage` mode by default.
+
+## Starting and stopping the broadcasting
+We have the following `Call` methods at our disposal to start and stop the broadcasting:
+
+```ts
+call.startBroadcasting()
+call.stopBroadcasting()
+```
+Once started broadcasting, the data source URL is available through `playlist_url` property accessible through the `Call` state:
+
+```ts
+import { useCallMetadata } from '@stream-io/video-react-sdk';
+
+// omitted code ...
+
+const YourComponent = () => {
+  const metadata = useCallMetadata();
+  const { playlist_url } = metadata.egress.hls;
+
+  // omitted code ...
+}
+
+```
+
+To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
+
+
+
