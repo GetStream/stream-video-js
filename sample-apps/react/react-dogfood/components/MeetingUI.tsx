@@ -33,7 +33,11 @@ import {
   UnreadCountBadge,
 } from '.';
 import { ActiveCallHeader } from './ActiveCallHeader';
-import { useKeyboardShortcuts, useWatchChannel } from '../hooks';
+import {
+  useBeforeUnload,
+  useKeyboardShortcuts,
+  useWatchChannel,
+} from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
@@ -106,6 +110,11 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
       setShow('error-leave');
     }
   }, [router]);
+
+  useBeforeUnload(
+    callState === CallingState.JOINED,
+    'Call in progress, are you sure you want to leave?',
+  );
 
   useEffect(() => {
     if (callState === CallingState.LEFT) {
