@@ -46,6 +46,7 @@
     "sample:react:messenger": "yarn workspace @stream-io/messenger-clone-react run dev",
     "sample:react:audio-rooms": "yarn workspace @stream-io/audio-rooms run dev",
     "sample:react:livestream-app": "yarn workspace @stream-io/livestream-app run dev",
+    "sample:react:zoom-clone": "yarn workspace @stream-io/zoom-clone-react run dev",
     "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "release": "nx run-many --target version --parallel=1",

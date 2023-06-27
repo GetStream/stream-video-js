@@ -30,13 +30,13 @@ body,
 }
 
 .str-video__device-settings {
-  @apply drop-shadow-sm bg-zinc-600;
+  @apply drop-shadow-sm bg-zinc-800;
 }
 
 .str-video__device-settings__button,
 .str-video__device-settings__button:hover,
 .str-video__device-settings__button:focus {
-  @apply flex items-center justify-center bg-zinc-600 rounded-full p-1;
+  @apply flex items-center justify-center bg-zinc-800 rounded-full p-1;
 }
 
 .str-video__call-controls-section {
@@ -55,3 +55,9 @@ body,
 .str-chat__channel-header {
   @apply p-3;
 }
+
+.str-video__video-preview-container {
+  width: 100%;
+  border: none;
+}
+
