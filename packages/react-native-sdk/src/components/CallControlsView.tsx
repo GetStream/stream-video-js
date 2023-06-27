@@ -16,13 +16,44 @@ import { ToggleVideoButton } from './ToggleVideoButton';
 import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
 import { Z_INDEX } from '../constants';
 
+/**
+ * The props for the Chat Button in the Call Control View.
+ */
 type ChatButtonType = {
+  /**
+   * Handler to be called when the chat button is pressed.
+   * @returns void
+   */
   onPressHandler: () => void;
+  /**
+   * The unread message indicator to be displayed above on the Chat button.
+   */
   unreadBadgeCountIndicator?: number;
 };
 
+/**
+ * The props for the Hang up call button in the Call Control View.
+ */
+type HangUpCallButtonType = {
+  /**
+   * Handler to be called when the hang up button is pressed.
+   * @returns void
+   */
+  onPressHandler: () => void;
+};
+
+/**
+ * Props for the CallControlsView Component.
+ */
 export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
+  /**
+   * Chat Button Props to be passed as an object
+   */
   chatButton?: ChatButtonType;
+  /**
+   * Hang up call button props to be passed as an object
+   */
+  hangUpCallButton?: HangUpCallButtonType;
 }
 
 /**
@@ -35,6 +66,7 @@ export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
  */
 export const CallControlsView = ({
   chatButton,
+  hangUpCallButton,
   style,
 }: CallControlsViewType) => {
   const [isReactionModalActive, setIsReactionModalActive] =
@@ -51,6 +83,7 @@ export const CallControlsView = ({
         return;
       }
       await call?.leave();
+      hangUpCallButton?.onPressHandler();
     } catch (err) {
       console.log('Error Leaving call:', err);
     }

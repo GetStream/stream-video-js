@@ -10,16 +10,18 @@ type LobbyViewComponentType = NativeStackScreenProps<
   'MeetingScreen' | 'GuestMeetingScreen'
 > & {
   callId: string;
+  onCallJoinHandler: () => void;
 };
 
 export const LobbyViewComponent = ({
   callId,
   navigation,
   route,
+  onCallJoinHandler,
 }: LobbyViewComponentType) => {
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <LobbyView />
+      <LobbyView onCallJoinHandler={onCallJoinHandler} />
       {route.name === 'MeetingScreen' ? (
         <Pressable
           style={styles.anonymousButton}

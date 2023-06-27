@@ -1,28 +1,25 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { LobbyViewComponent } from './LobbyViewComponent';
-import { appTheme } from '../theme';
 import { ActiveCall } from './ActiveCall';
+import { useAppGlobalStoreSetState } from '../contexts/AppContext';
+import { AuthenticationProgress } from './AuthenticatingProgress';
+import { CallErrorComponent } from './CallErrorComponent';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
   'MeetingScreen' | 'GuestMeetingScreen'
 > & {
   callId: string;
-  show: ScreenTypes;
-  setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
 };
 
-export const MeetingUI = ({
-  callId,
-  navigation,
-  route,
-  show,
-  setShow,
-}: Props) => {
+export const MeetingUI = ({ callId, navigation, route }: Props) => {
+  const [show, setShow] = useState<ScreenTypes>('lobby');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const appStoreSetState = useAppGlobalStoreSetState();
+
   const call = useCall();
 
   const returnToHomeHandler = () => {
@@ -33,58 +30,77 @@ export const MeetingUI = ({
     setShow('lobby');
   };
 
+  const onCallJoinHandler = useCallback(async () => {
+    try {
+      setShow('loading');
+      await call?.join({ create: true });
+      appStoreSetState({ chatLabelNoted: false });
+      setShow('active-call');
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log('Error joining call:', error);
+        setErrorMessage(error.message);
+      }
+      setShow('error-join');
+    }
+  }, [call, appStoreSetState]);
+
+  const onCallHungUpHandler = async () => {
+    setShow('loading');
+    try {
+      setShow('lobby');
+      navigation.goBack();
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error leaving call:', error);
+        setErrorMessage(error.message);
+      }
+      setShow('error-leave');
+    }
+  };
+
   if (show === 'error-join' || show === 'error-leave') {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error Joining Call</Text>
-        <Button title="Return to Home" onPress={returnToHomeHandler} />
-        <Button title="Back to Lobby" onPress={backToLobbyHandler} />
-      </View>
+      <CallErrorComponent
+        title="Error Joining/Leaving Call"
+        message={errorMessage}
+        backToLobbyHandler={backToLobbyHandler}
+        returnToHomeHandler={returnToHomeHandler}
+      />
     );
+  } else if (show === 'loading') {
+    return <AuthenticationProgress />;
   } else if (show === 'lobby') {
-    return <LobbyViewComponent callId={callId} {...{ navigation, route }} />;
+    return (
+      <LobbyViewComponent
+        callId={callId}
+        onCallJoinHandler={onCallJoinHandler}
+        {...{ navigation, route }}
+      />
+    );
   } else if (!call) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Lost Active Call Connection</Text>
-        <Button title="Return to Home" onPress={returnToHomeHandler} />
-        <Button title="Back to Lobby" onPress={backToLobbyHandler} />
-      </View>
+      <CallErrorComponent
+        title="Lost Active Call Connection"
+        message={errorMessage}
+        backToLobbyHandler={backToLobbyHandler}
+        returnToHomeHandler={returnToHomeHandler}
+      />
     );
   } else {
     return (
-      <SafeAreaView style={styles.wrapper}>
-        <ActiveCall
-          chatButton={{
-            onPressHandler: () => {
-              navigation.navigate('ChatScreen', { callId });
-            },
-          }}
-        />
-      </SafeAreaView>
+      <ActiveCall
+        chatButton={{
+          onPressHandler: () => {
+            navigation.navigate('ChatScreen', { callId });
+          },
+        }}
+        hangUpCallButton={{
+          onPressHandler: () => {
+            onCallHungUpHandler();
+          },
+        }}
+      />
     );
   }
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  wrapper: {
-    flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingVertical: appTheme.spacing.xs,
-    paddingHorizontal: appTheme.spacing.lg,
-  },
-  errorText: {
-    fontSize: 30,
-    color: appTheme.colors.error,
-    textAlign: 'center',
-  },
-});

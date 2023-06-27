@@ -16,9 +16,15 @@ type ActiveCallProps = {
   chatButton?: {
     onPressHandler: () => void;
   };
+  hangUpCallButton?: {
+    onPressHandler: () => void;
+  };
 };
 
-export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
+export const ActiveCall = ({
+  chatButton,
+  hangUpCallButton,
+}: ActiveCallProps) => {
   const channelWatched = useChannelWatch();
   const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
@@ -53,6 +59,11 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
             chatButton?.onPressHandler();
           },
           unreadBadgeCountIndicator,
+        }}
+        hangUpCallButton={{
+          onPressHandler: () => {
+            hangUpCallButton?.onPressHandler();
+          },
         }}
         style={styles.callControlsWrapper}
       />

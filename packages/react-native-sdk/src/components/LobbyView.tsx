@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
   useCall,
@@ -13,32 +13,21 @@ import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
-const ParticipantStatus = () => {
-  const connectedUser = useConnectedUser();
-  const { isAudioMuted, isVideoMuted } = useMutingState();
-  return (
-    <View style={styles.status}>
-      <Text style={styles.userNameLabel} numberOfLines={1}>
-        {connectedUser?.id}
-      </Text>
-      {isAudioMuted && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <MicOff color={theme.light.error} />
-        </View>
-      )}
-      {isVideoMuted && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <VideoSlash color={theme.light.error} />
-        </View>
-      )}
-    </View>
-  );
+/**
+ * Props for the Lobby View Component
+ */
+type LobbyViewProps = {
+  /**
+   * Handler called when the join button is clicked in the Lobby View.
+   * @returns void
+   */
+  onCallJoinHandler: () => void;
 };
 
-export const LobbyView = () => {
+export const LobbyView = ({ onCallJoinHandler }: LobbyViewProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -60,17 +49,6 @@ export const LobbyView = () => {
   ) : (
     <Video color={theme.light.static_black} />
   );
-
-  const onJoinCallHandler = useCallback(async () => {
-    try {
-      await call?.join({ create: true });
-    } catch (error) {
-      console.log('Error joining call:', error);
-      if (error instanceof AxiosError) {
-        Alert.alert(error.response?.data.message);
-      }
-    }
-  }, [call]);
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -140,11 +118,33 @@ export const LobbyView = () => {
               ? `${count}  more people are in the call now.`
               : 'You are first to Join the call.'}
           </Text>
-          <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
+          <Pressable style={styles.joinButton} onPress={onCallJoinHandler}>
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>
       </View>
+    </View>
+  );
+};
+
+const ParticipantStatus = () => {
+  const connectedUser = useConnectedUser();
+  const { isAudioMuted, isVideoMuted } = useMutingState();
+  return (
+    <View style={styles.status}>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {connectedUser?.id}
+      </Text>
+      {isAudioMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <MicOff color={theme.light.error} />
+        </View>
+      )}
+      {isVideoMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <VideoSlash color={theme.light.error} />
+        </View>
+      )}
     </View>
   );
 };
