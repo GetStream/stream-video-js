@@ -159,6 +159,7 @@ describe('Publisher', () => {
       };
 
       vi.spyOn(publisher['pc'], 'setConfiguration');
+      // @ts-ignore
       publisher['pc'].iceConnectionState = 'connected';
       // @ts-ignore
       vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
@@ -185,6 +186,7 @@ describe('Publisher', () => {
         },
       });
 
+      // @ts-ignore
       publisher['pc'].iceConnectionState = 'connected';
       vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
       vi.spyOn(publisher, 'getCurrentTrackInfos').mockReturnValue([
