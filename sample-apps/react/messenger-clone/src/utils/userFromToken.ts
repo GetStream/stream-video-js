@@ -2,7 +2,7 @@ import { decodeBase64, UserResponse } from 'stream-chat';
 
 import type { StreamChatType } from '../types/chat';
 
-export const userFromToken = (
+export const getUserFromToken = (
   token?: string,
 ): UserResponse<StreamChatType> | null => {
   if (!token) return null;

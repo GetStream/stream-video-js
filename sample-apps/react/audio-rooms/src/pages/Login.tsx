@@ -29,7 +29,7 @@ const UserList = () => {
         <button
           key={user.id}
           onClick={async () => {
-            await selectUser(user);
+            selectUser(user);
             navigate('/rooms');
           }}
         >

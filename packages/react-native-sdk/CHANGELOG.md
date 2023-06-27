@@ -2,6 +2,51 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.216](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.215...@stream-io/video-react-native-sdk-0.0.1-alpha.216) (2023-06-27)
+
+
+
+## [0.0.1-alpha.215](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.214...@stream-io/video-react-native-sdk-0.0.1-alpha.215) (2023-06-26)
+
+
+
+## [0.0.1-alpha.214](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.213...@stream-io/video-react-native-sdk-0.0.1-alpha.214) (2023-06-26)
+
+
+
+## [0.0.1-alpha.213](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.212...@stream-io/video-react-native-sdk-0.0.1-alpha.213) (2023-06-26)
+
+
+
+## [0.0.1-alpha.212](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.211...@stream-io/video-react-native-sdk-0.0.1-alpha.212) (2023-06-26)
+
+
+
+## [0.0.1-alpha.211](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.210...@stream-io/video-react-native-sdk-0.0.1-alpha.211) (2023-06-26)
+
+
+
+## [0.0.1-alpha.210](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.209...@stream-io/video-react-native-sdk-0.0.1-alpha.210) (2023-06-23)
+
+
+
+## [0.0.1-alpha.209](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.208...@stream-io/video-react-native-sdk-0.0.1-alpha.209) (2023-06-23)
+
+
+
+## [0.0.1-alpha.208](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.207...@stream-io/video-react-native-sdk-0.0.1-alpha.208) (2023-06-23)
+
+
+
+## [0.0.1-alpha.207](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.206...@stream-io/video-react-native-sdk-0.0.1-alpha.207) (2023-06-23)
+
+
+### Bug Fixes
+
+* **react-native:** null coalescing operator issue in UserInfoView ([#702](https://github.com/GetStream/stream-video-js/issues/702)) ([45f24f9](https://github.com/GetStream/stream-video-js/commit/45f24f99ed6a8843e2c8aa05527387fb862d4a91))
+
+
+
 ## [0.0.1-alpha.206](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.205...@stream-io/video-react-native-sdk-0.0.1-alpha.206) (2023-06-23)
 
 

@@ -12,11 +12,11 @@ export const useChatClient = <
   SCG extends ExtendableGenerics = DefaultGenerics,
 >({
   apiKey,
-  userData,
+  user,
   tokenOrProvider,
 }: {
   apiKey: string;
-  userData: OwnUserResponse<SCG> | UserResponse<SCG>;
+  user: OwnUserResponse<SCG> | UserResponse<SCG>;
   tokenOrProvider: TokenOrProvider;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
@@ -26,7 +26,7 @@ export const useChatClient = <
 
     let didUserConnectInterrupt = false;
     const connectionPromise = client
-      .connectUser(userData, tokenOrProvider)
+      .connectUser(user, tokenOrProvider)
       .then(() => {
         if (!didUserConnectInterrupt) setChatClient(client);
       });
@@ -41,7 +41,7 @@ export const useChatClient = <
         });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, userData.id, tokenOrProvider]);
+  }, [apiKey, user.id, tokenOrProvider]);
 
   return chatClient;
 };

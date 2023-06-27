@@ -1,7 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { Avatar } from 'stream-chat-react';
+import { useUserContext } from '../../contexts/UserContext';
 import users from '../../../data/users.json';
 
 export const UserList = () => {
+  const navigate = useNavigate();
+  const { selectUser } = useUserContext();
   return (
     <div className="user-list-wrapper">
       <h1>Stream Messenger</h1>
@@ -12,17 +16,20 @@ export const UserList = () => {
       >
         {users.map((u) => (
           <li className="user-list-item" key={u.id}>
-            <a
+            <button
               className="user-list-item--link"
               // @ts-ignore
-              href={`${window.location.origin}?uid=${u.id}&ut=${u.token}`}
+              onClick={async () => {
+                selectUser(u);
+                navigate('/chat');
+              }}
             >
               <div className="user-list-item--avatar-name">
                 <Avatar user={u} image={u.image} name={u.name} />
                 {u.name}
               </div>
               <span>{'►'}</span>
-            </a>
+            </button>
           </li>
         ))}
       </ul>

@@ -1,10 +1,11 @@
+import { StreamTheme } from '@stream-io/video-react-sdk';
 import { Outlet } from 'react-router-dom';
 
-import { Header } from './components/Header';
-
 export const Root = () => (
-  <div className="h-full w-full flex flex-col bg-zinc-50 str-video__theme-variables">
-    <Header />
+  <StreamTheme
+    as="main"
+    className="main-container h-full w-full flex flex-col bg-zinc-50"
+  >
     <Outlet />
-  </div>
+  </StreamTheme>
 );

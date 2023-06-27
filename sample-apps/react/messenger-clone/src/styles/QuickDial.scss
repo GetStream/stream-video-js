@@ -1,14 +1,13 @@
 .quick-dial {
   display: flex;
   gap: 5px;
-  margin: 0px 5px 5px 5px;
+  margin: 0 5px 5px 5px;
+  padding-block: 0.5rem;
+   overflow-y: auto;
 
-  //   overflow-x: scroll;
-  //   overflow-y: hidden;
-
-  //   &::-webkit-scrollbar {
-  //     display: none;
-  //   }
+   &::-webkit-scrollbar {
+     display: none;
+   }
 
   &-avatar {
     width: 50px;

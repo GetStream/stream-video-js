@@ -1,10 +1,10 @@
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
-  RouterProvider,
+  Navigate,
   redirect,
+  RouterProvider,
 } from 'react-router-dom';
-import { BehaviorSubject } from 'rxjs';
 
 import { Root } from './Root';
 import { UserList } from './components/UserList';
@@ -12,29 +12,20 @@ import { CallUI } from './components/Call';
 import { ChatVideoWrapper } from './components/ChatVideoWrapper';
 import { CallLobby } from './components/CallLobby';
 
-import { SESSION_STORAGE_KEY } from './utils';
+import { getSelectedUser } from './utils';
 
 import 'stream-chat-react/dist/css/v2/index.css';
-import '@stream-io/video-styling/dist/css/styles.css';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './index.css';
 
-import users from '../data/users.json';
-
-export type User = (typeof users)[number] & { token?: string };
-
-// TODO: move to "store"
-export const selectedUserSubject = new BehaviorSubject<User | null>(
-  users.find(
-    (u) => u.id === sessionStorage.getItem(SESSION_STORAGE_KEY) ?? null,
-  ) as User | null,
-);
+import { UserContextProvider } from './contexts/UserContext';
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: '*',
     element: <Root />,
     loader: ({ request }) => {
-      const user = selectedUserSubject.getValue();
+      const user = getSelectedUser();
 
       if (
         request.url.includes('user-selection') ||
@@ -50,7 +41,7 @@ const router = createBrowserRouter([
         path: 'call',
         element: <ChatVideoWrapper />,
         loader: ({ params: { callId } }) => {
-          const user = selectedUserSubject.getValue();
+          const user = getSelectedUser();
 
           // TODO: add who the invitation came from to filter it out of the list (?next=/call-lobby/<id>&createdBy=mark)
 
@@ -63,21 +54,26 @@ const router = createBrowserRouter([
               }`,
             );
 
-          return user;
+          return null;
         },
         children: [
           {
-            path: 'room/:callId?',
+            path: 'room/:callId',
             element: <CallUI />,
             loader: ({ params: { callId } }) => {
-              if (!callId) return redirect('/call/lobby');
+              if (!callId) return redirect('/user-selection');
               return null;
             },
           },
           {
-            path: 'lobby/:callId?',
+            path: 'lobby/:callId',
             element: <CallLobby />,
+            loader: ({ params: { callId } }) => {
+              if (!callId) return redirect('/user-selection');
+              return null;
+            },
           },
+          { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
       {
@@ -89,5 +85,7 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <RouterProvider router={router} />,
+  <UserContextProvider>
+    <RouterProvider router={router} />
+  </UserContextProvider>,
 );

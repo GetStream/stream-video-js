@@ -31,14 +31,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    & > a {
+      width: 100%;
+      background: transparent;
       text-decoration: none;
       color: #1c1b1f;
+      cursor: pointer;
+      border: none;
       & > span {
         font-size: 10px;
       }
+
+    }
+
+    &:hover {
+      background-color: #f2ecec;
     }
 
     &:last-child {
