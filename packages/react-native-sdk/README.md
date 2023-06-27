@@ -102,6 +102,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 ### 0.2 milestone
 - [ ] Livestream tutorial
 - [ ] Audio Rooms tutorial
+- [ ] Regular Push Notifcation
 - [ ] Deeplink support for video call demo (Dogfooding already implemented)
 - [ ] Speaking while muted
 - [ ] Landscape support
