@@ -8433,6 +8433,7 @@ __metadata:
     "@rollup/plugin-typescript": ^11.1.0
     "@types/jsonwebtoken": ^9.0.1
     "@types/rimraf": ^3.0.2
+    "@types/sdp-transform": ^2.4.6
     "@types/ua-parser-js": ^0.7.36
     "@types/ws": ^8.5.4
     "@vitest/coverage-c8": ^0.31.0
@@ -8445,6 +8446,7 @@ __metadata:
     rimraf: ^3.0.2
     rollup: ^3.25.1
     rxjs: ~7.8.1
+    sdp-transform: ^2.14.1
     typescript: ^4.9.5
     ua-parser-js: ^1.0.35
     vite: ^4.3.9
@@ -9801,6 +9803,13 @@ __metadata:
   version: 0.16.3
   resolution: "@types/scheduler@npm:0.16.3"
   checksum: 2b0aec39c24268e3ce938c5db2f2e77f5c3dd280e05c262d9c2fe7d890929e4632a6b8e94334017b66b45e4f92a5aa42ba3356640c2a1175fa37bef2f5200767
+  languageName: node
+  linkType: hard
+
+"@types/sdp-transform@npm:^2.4.6":
+  version: 2.4.6
+  resolution: "@types/sdp-transform@npm:2.4.6"
+  checksum: ea7b7f77fc7262a3f55cf24c7fc9a9d779bdfff25a33ab932dc4acfaa00fbb698eb7480563ecdefd3361dca0b438e3f047f0cf535eec30d3b773a01951b7f1cd
   languageName: node
   linkType: hard
 
@@ -32585,6 +32594,15 @@ __metadata:
   version: 6.0.2
   resolution: "screenfull@npm:6.0.2"
   checksum: 56a541da09241ae7c97115cc31245623c09230bcbebb93636871e955b545f26c7dcdb2299795234a0a21bff5d5401b7329b22609becf4c381a9e22347acf87ba
+  languageName: node
+  linkType: hard
+
+"sdp-transform@npm:^2.14.1":
+  version: 2.14.1
+  resolution: "sdp-transform@npm:2.14.1"
+  bin:
+    sdp-verify: checker.js
+  checksum: 8b3179786db1a0f1ebfdacb1ac0dfe2833e63e8c64b638884cec212455061d53beaa8d9c8bf76fdbd5f844b7885f3892adec27e87734cfbc2b3e5c65e18a489b
   languageName: node
   linkType: hard
 

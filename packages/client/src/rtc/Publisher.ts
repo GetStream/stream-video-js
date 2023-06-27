@@ -1,3 +1,4 @@
+import * as SDP from 'sdp-transform';
 import { StreamSfuClient } from '../StreamSfuClient';
 import {
   PeerType,
@@ -118,8 +119,15 @@ export class Publisher {
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
    */
-  close = () => {
-    this.stopPublishing();
+  close = ({ stopTracks = true } = {}) => {
+    if (stopTracks) {
+      this.stopPublishing();
+      Object.keys(this.transceiverRegistry).forEach((trackType) => {
+        // @ts-ignore
+        this.transceiverRegistry[trackType] = undefined;
+      });
+    }
+
     this.pc.close();
   };
 
@@ -430,15 +438,16 @@ export class Publisher {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions) => {
-    const trackInfos = this.getCurrentTrackInfos();
+    const offer = await this.pc.createOffer(options);
+    offer.sdp = this.mungeCodecs(offer.sdp);
+
+    const trackInfos = this.getCurrentTrackInfos(offer.sdp);
     if (trackInfos.length === 0) {
       throw new Error(
         `Can't initiate negotiation without announcing any tracks`,
       );
     }
 
-    const offer = await this.pc.createOffer(options);
-    offer.sdp = this.mungeCodecs(offer.sdp);
     await this.pc.setLocalDescription(offer);
 
     const { response } = await this.sfuClient.setPublisher({
@@ -493,7 +502,29 @@ export class Publisher {
     return sdp;
   };
 
-  getCurrentTrackInfos = () => {
+  getCurrentTrackInfos = (sdp?: string) => {
+    sdp = sdp || this.pc.localDescription?.sdp;
+    const extractMid = (
+      defaultMid: string | null,
+      track: MediaStreamTrack,
+    ): string => {
+      if (defaultMid) return defaultMid;
+      if (!sdp) {
+        this.logger('warn', 'No SDP found. Returning empty mid');
+        return '';
+      }
+
+      this.logger('warn', 'No mid found for track. Trying to find it from SDP');
+
+      const parsedSdp = SDP.parse(sdp);
+      const media = parsedSdp.media.find((m) => m.type === track.kind);
+      if (typeof media?.mid === 'undefined') {
+        this.logger('warn', `No mid found in SDP for track type ${track.kind}`);
+        return '';
+      }
+      return String(media.mid);
+    };
+
     const metadata = this.state.metadata;
     const targetResolution = metadata?.settings.video.target_resolution;
     return this.pc
@@ -534,7 +565,7 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: transceiver.mid || '',
+          mid: extractMid(transceiver.mid, track),
 
           // FIXME OL: adjust these values
           stereo: false,
