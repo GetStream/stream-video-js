@@ -9,7 +9,6 @@ import {
   Restricted,
   useCall,
   useCallMetadata,
-  useOwnCapabilities,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -45,7 +44,7 @@ type CallParticipantListProps = {
   activeUsersSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
   /** Custom function to override the searching logic of blocked users */
   blockedUsersSearchFn?: UseSearchParams<string>['searchFn'];
-  /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */
+  /** Interval in ms, during which the participant search calls will be debounced. The default value is 200ms. */
   debounceSearchInterval?: number;
 };
 
@@ -114,7 +113,6 @@ const CallParticipantListContentHeader = ({
     React.SetStateAction<keyof typeof UserListTypes>
   >;
 }) => {
-  const ownCapabilities = useOwnCapabilities();
   const call = useCall();
 
   const muteAll = () => {
@@ -142,8 +140,8 @@ const CallParticipantListContentHeader = ({
         <span>{UserListTypes[userListType]}</span>
         {userListType === 'active' && (
           <Restricted
-            availableGrants={ownCapabilities} // TODO: remove this line once Oliver's PR lands
             requiredGrants={[OwnCapability.MUTE_USERS]}
+            hasPermissionsOnly
           >
             <TextButton onClick={muteAll}>Mute all</TextButton>
           </Restricted>

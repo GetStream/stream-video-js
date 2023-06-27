@@ -10,10 +10,6 @@ type RestrictedProps = PropsWithChildren<{
    */
   requiredGrants: OwnCapability[];
   /**
-   * OwnCapabilities of the participant - grants they have available
-   */
-  availableGrants?: OwnCapability[];
-  /**
    * Render children only if user can request capability, but does not have it
    */
   canRequestOnly?: boolean;
@@ -29,7 +25,6 @@ type RestrictedProps = PropsWithChildren<{
 }>;
 
 export const Restricted = ({
-  availableGrants: availableGrantsFromProps,
   canRequestOnly,
   hasPermissionsOnly,
   requiredGrants,
@@ -38,9 +33,8 @@ export const Restricted = ({
 }: RestrictedProps) => {
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
-  const availableGrants = availableGrantsFromProps ?? ownCapabilities;
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
-    (capability) => availableGrants.includes(capability),
+    (capability) => ownCapabilities.includes(capability),
   );
 
   if (hasPermissionsOnly) return hasPermissions ? <>{children}</> : null;
