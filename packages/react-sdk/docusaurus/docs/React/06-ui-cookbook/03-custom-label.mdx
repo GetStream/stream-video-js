@@ -59,10 +59,10 @@ const ParticipantDetails = () => {
 
 export const CustomParticipantViewUI = () => {
   return (
-    <div>
+    <>
       <ParticipantDetails />
-      {/* other UI components... */}
-    </div>
+      {/* your other custom UI elements */}
+    </>
   );
 };
 ```
@@ -78,12 +78,12 @@ import { CustomParticipantViewUI } from '../ParticipantViewUI';
 import { CustomVideoPlaceholder } from '../VideoPlaceholder';
 
 export const CustomCallLayout = () => {
-  const otherParticipants = useParticipants();
+  const participants = useParticipants();
 
   return (
     <div>
-      {/* other UI components */}
-      {otherParticipants.map((participant) => (
+      {/* your other custom UI elements */}
+      {participants.map((participant) => (
         <div key={participant.sessionId}>
           <ParticipantView
             participant={participant}

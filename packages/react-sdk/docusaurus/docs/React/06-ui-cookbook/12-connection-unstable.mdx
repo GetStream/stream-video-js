@@ -29,10 +29,10 @@ const PoorConnectionNotification = () => {
 
 export const CustomParticipantViewUI = () => {
   return (
-    <div>
+    <>
       <PoorConnectionNotification />
-      {/* other UI components... */}
-    </div>
+      {/* your other custom UI elements */}
+    </>
   );
 };
 ```
@@ -52,7 +52,7 @@ export const CustomCallLayout = () => {
 
   return (
     <div>
-      {/* other UI components */}
+      {/* your other custom UI elements */}
       {otherParticipants.map((participant) => (
         <div key={participant.sessionId}>
           <ParticipantView
