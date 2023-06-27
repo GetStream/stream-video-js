@@ -45,5 +45,8 @@ const YourComponent = () => {
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
 
+:::important
+In order the data to be broadcasted to the participants, the host side has to invoke `call.goLive()` alongisde `call.startBroadcasting()`.
+:::
 
 
