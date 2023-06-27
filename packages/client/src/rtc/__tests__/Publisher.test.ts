@@ -159,8 +159,10 @@ describe('Publisher', () => {
       };
 
       vi.spyOn(publisher['pc'], 'setConfiguration');
+      publisher['pc'].iceConnectionState = 'connected';
       // @ts-ignore
       vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
 
       await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
 
@@ -171,10 +173,7 @@ describe('Publisher', () => {
       expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
     });
 
-    it('should initiate ICE Restart when tracks there are published tracks', async () => {
-      // @ts-expect-error
-      publisher.announcedTracks.push({ trackType: TrackType.VIDEO });
-
+    it('should initiate ICE Restart when there are published tracks', async () => {
       vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
       // @ts-ignore
       sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
@@ -185,6 +184,13 @@ describe('Publisher', () => {
           iceRestart: false,
         },
       });
+
+      publisher['pc'].iceConnectionState = 'connected';
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+      vi.spyOn(publisher, 'getCurrentTrackInfos').mockReturnValue([
+        // @ts-expect-error
+        { layers: [], trackType: TrackType.AUDIO, mid: '0' },
+      ]);
 
       await publisher.migrateTo(sfuClient, {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
