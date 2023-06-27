@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.221](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.220...@stream-io/video-react-native-sdk-0.0.1-alpha.221) (2023-06-27)
+
+
+### Bug Fixes
+
+* **react-native:** clarify that there is no support for calling from ios dialer app ([#719](https://github.com/GetStream/stream-video-js/issues/719)) ([e88a90b](https://github.com/GetStream/stream-video-js/commit/e88a90b2e87d1a7521d2c9550a90ffdd160b64f7))
+
+
+
 ## [0.0.1-alpha.220](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.219...@stream-io/video-react-native-sdk-0.0.1-alpha.220) (2023-06-27)
 
 
