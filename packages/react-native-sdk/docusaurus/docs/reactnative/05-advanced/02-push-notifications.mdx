@@ -146,7 +146,7 @@ At the top of the file, right after '#import "AppDelegate.h"', add the following
 
 #### Initialize on app launch
 
-We need to configure the Firebase library, setup the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
+We need to configure the Firebase library, set up the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
 
 ```c
 
@@ -283,7 +283,7 @@ import { navigationRef } from './src/utils/staticNavigationUtils';
 
 ### Setup the push config
 
-Once we have setup the methods to navigate the app from a static method we are ready to call the `StreamVideoRN.setPushConfig` method. Below is an example of how this method can be called,
+Once we have set up the methods to navigate the app from a static method we are ready to call the `StreamVideoRN.setPushConfig` method. Below is an example of how this method can be called,
 
 ```ts title="src/utils/setPushConfig.ts"
 import {
@@ -349,7 +349,7 @@ export function setPushConfig() {
 };
 ```
 
-Now call the method outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+Now, call the method outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
 
 ```js title="index.js"
 import { AppRegistry } from 'react-native';
