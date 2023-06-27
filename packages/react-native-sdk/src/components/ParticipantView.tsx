@@ -17,6 +17,7 @@ import { ParticipantReaction } from './ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
 import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 import { Z_INDEX } from '../constants';
+import { A11yComponents } from '../constants/A11yLabels';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -252,7 +253,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           </View>
         )}
         {kind === 'screen' && (
-          <View style={styles.screenViewStatus}>
+          <View
+            style={styles.screenViewStatus}
+            accessibilityLabel={A11yComponents.PARTICIPANT_VIEW_SCREEN_SHARING}
+          >
             <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
               <ScreenShare color={theme.light.static_white} />
             </View>

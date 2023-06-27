@@ -1,7 +1,12 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useAndroidKeepCallAliveEffect, useCallCycleEffect } from '../hooks';
+import {
+  useAndroidKeepCallAliveEffect,
+  useCallCycleEffect,
+  usePermissionRequest,
+  usePublishMediaStreams,
+} from '../hooks';
 import { useIosCallkeepEndEffect } from '../hooks/useIosCallkeepEndEffect';
 
 export type StreamCallProps = {
@@ -22,6 +27,8 @@ export const StreamCall = ({
 }: PropsWithChildren<StreamCallProps>) => {
   return (
     <StreamCallProvider call={call}>
+      <PublishMediaStream />
+      <PermissionRequest />
       <AndroidKeepCallAlive />
       <IosInformCallkeepCallEnd />
       <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
@@ -77,6 +84,24 @@ export const CallCycleLogicsWrapper = ({
   useCallCycleEffect(callCycleHandlers);
 
   return <>{children}</>;
+};
+
+/**
+ * This is a renderless component that is used to publish media stream using the usePublishMediaStreams hook.
+ * usePublishMediaStreams needs to be called as a child of StreamCallProvider.
+ */
+const PublishMediaStream = () => {
+  usePublishMediaStreams();
+  return null;
+};
+
+/**
+ * This is a renderless component that is used to handler the permission requests using the usePermissionRequest hook.
+ * usePermissionRequest needs to be called as a child of StreamCallProvider.
+ */
+const PermissionRequest = () => {
+  usePermissionRequest();
+  return null;
 };
 
 /**

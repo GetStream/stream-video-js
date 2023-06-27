@@ -1,4 +1,3 @@
-export * from './ActiveCall';
 export * from './IncomingCallView';
 export * from './OutgoingCallView';
 export * from './Avatar';
@@ -10,3 +9,4 @@ export * from './CallControlsView';
 export * from './CallParticipantsInfoView';
 export * from './LobbyView';
 export * from './ReactionsModal';
+export * from './CallParticipantsBadge';

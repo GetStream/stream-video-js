@@ -1,3 +1,4 @@
+import React, { useCallback, useEffect, useState } from 'react';
 import { AxiosError, OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
@@ -10,7 +11,6 @@ import { theme } from '../theme';
 import { Mic, MicOff } from '../icons';
 import { Alert, StyleSheet } from 'react-native';
 import { muteStatusColor } from '../utils';
-import { useCallback, useEffect, useState } from 'react';
 
 export const ToggleAudioButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);

@@ -6,6 +6,7 @@ import React, { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils';
 import { Cross } from '../icons';
+import { A11yComponents } from '../constants/A11yLabels';
 
 type ReactionModalType = {
   isReactionModalActive: boolean;
@@ -27,6 +28,7 @@ export const ReactionModal = (props: ReactionModalType) => {
 
   return (
     <Modal
+      accessibilityLabel={A11yComponents.REACTIONS_MODAL}
       animationType="slide"
       transparent={true}
       visible={isReactionModalActive}

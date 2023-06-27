@@ -7,6 +7,7 @@ import { theme } from '../theme';
 import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
 import { CallParticipantsList } from './CallParticipantsList';
 import { speakerLayoutSortPreset } from '@stream-io/video-client';
+import { A11yComponents } from '../constants/A11yLabels';
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -20,7 +21,10 @@ export const CallParticipantsSpotlightView = () => {
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
 
   return (
-    <View style={styles.container}>
+    <View
+      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW}
+      style={styles.container}
+    >
       {participantInSpotlight && (
         <ParticipantView
           participant={participantInSpotlight}
