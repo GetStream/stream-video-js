@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Call, StreamReaction } from '@stream-io/video-client';
-import clsx from 'clsx';
+import { useEffect } from 'react';
+import { StreamVideoParticipant } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
 
 export type ReactionProps = {
-  reaction: StreamReaction;
-  sessionId: string;
-  call: Call;
+  participant: StreamVideoParticipant;
   hideAfterTimeoutInMs?: number;
 };
 
@@ -15,33 +13,32 @@ export const defaultEmojiReactions: Record<string, string> = {
   ':fireworks:': '🎉',
 };
 
-export const Reaction = (props: ReactionProps) => {
-  const { reaction, sessionId, call, hideAfterTimeoutInMs = 5500 } = props;
-  const [isShowing, setIsShowing] = useState(false);
+export const Reaction = ({
+  participant: { reaction, sessionId },
+  hideAfterTimeoutInMs = 5500,
+}: ReactionProps) => {
+  const call = useCall();
+
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    if (reaction) {
-      setIsShowing(true);
-      timeoutId = setTimeout(() => {
-        setIsShowing(false);
-        call.resetReaction(sessionId);
-      }, hideAfterTimeoutInMs);
-    }
+    if (!call || !reaction) return;
+
+    const timeoutId = setTimeout(() => {
+      call.resetReaction(sessionId);
+    }, hideAfterTimeoutInMs);
+
     return () => {
       clearTimeout(timeoutId);
     };
   }, [call, hideAfterTimeoutInMs, reaction, sessionId]);
 
-  const { emoji_code } = reaction;
+  if (!reaction) return null;
+
+  const { emoji_code: emojiCode } = reaction;
+
   return (
-    <div
-      className={clsx(
-        'str-video__reaction',
-        isShowing && 'str-video__reaction--visible',
-      )}
-    >
+    <div className="str-video__reaction">
       <span className="str-video__reaction__emoji">
-        {emoji_code && defaultEmojiReactions[emoji_code]}
+        {emojiCode && defaultEmojiReactions[emojiCode]}
       </span>
     </div>
   );
