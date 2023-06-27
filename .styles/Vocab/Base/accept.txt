@@ -46,6 +46,7 @@ logics
 notifee
 hasAudio
 hasVideo
+staticNavigate
 [Rr]econnections?
 _Note
 (?i)dynascale
