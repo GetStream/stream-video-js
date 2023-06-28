@@ -529,12 +529,7 @@ export class Publisher {
     const targetResolution = metadata?.settings.video.target_resolution;
     return this.pc
       .getTransceivers()
-      .filter(
-        (t) =>
-          t.direction === 'sendonly' &&
-          !!t.sender.track &&
-          t.sender.track.readyState === 'live',
-      )
+      .filter((t) => t.direction === 'sendonly' && t.sender.track)
       .map<TrackInfo>((transceiver) => {
         const trackType = Number(
           Object.keys(this.transceiverRegistry).find(
