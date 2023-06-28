@@ -7,10 +7,14 @@ import {
   useCall,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { appTheme } from '../theme';
 import { useChannelWatch } from '../hooks/useChannelWatch';
 import { useUnreadCount } from '../hooks/useUnreadCount';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 type ActiveCallProps = {
   chatButton?: {
@@ -39,12 +43,14 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
    */
   useIncallManager({ media: 'video', auto: true });
 
+  const { bottom } = useSafeAreaInsets();
+
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallParticipantsBadge style={styles.iconGroup} />
       <CallParticipantsView />
       <CallControlsView
@@ -54,7 +60,10 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
           },
           unreadBadgeCountIndicator,
         }}
-        style={styles.callControlsWrapper}
+        style={[
+          styles.callControlsWrapper,
+          { paddingBottom: Math.max(bottom, appTheme.spacing.lg) },
+        ]}
       />
     </SafeAreaView>
   );
@@ -65,17 +74,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: appTheme.colors.static_grey,
   },
-  callControlsWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: appTheme.spacing.lg,
-  },
   iconGroup: {
     position: 'absolute',
     top: appTheme.spacing.lg,
     right: appTheme.spacing.sm,
     zIndex: appTheme.zIndex.IN_FRONT,
+  },
+  callControlsWrapper: {
+    paddingTop: appTheme.spacing.lg,
+    paddingHorizontal: appTheme.spacing.sm,
   },
 });
