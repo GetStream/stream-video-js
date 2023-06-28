@@ -324,9 +324,20 @@ export class Publisher {
     );
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
-    if (!videoSender) return;
+    if (!videoSender) {
+      this.logger('warn', 'Update publish quality, no video sender found.');
+      return;
+    }
 
     const params = videoSender.getParameters();
+    if (params.encodings.length === 0) {
+      this.logger(
+        'warn',
+        'Update publish quality, No suitable video encoding quality found',
+      );
+      return;
+    }
+
     let changed = false;
     params.encodings.forEach((enc) => {
       // flip 'active' flag only when necessary
@@ -336,18 +347,19 @@ export class Publisher {
         changed = true;
       }
     });
+
+    const activeRids = params.encodings
+      .filter((e) => e.active)
+      .map((e) => e.rid)
+      .join(', ');
     if (changed) {
-      if (params.encodings.length === 0) {
-        this.logger('warn', 'No suitable video encoding quality found');
-      }
       await videoSender.setParameters(params);
       this.logger(
         'info',
-        `Update publish quality, enabled rids: ${params.encodings
-          .filter((e) => e.active)
-          .map((e) => e.rid)
-          .join(', ')}`,
+        `Update publish quality, enabled rids: ${activeRids}`,
       );
+    } else {
+      this.logger('info', `Update publish quality, no change: ${activeRids}`);
     }
   };
 
