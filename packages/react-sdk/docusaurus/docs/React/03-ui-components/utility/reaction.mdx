@@ -3,7 +3,15 @@ id: reaction
 title: Reaction
 ---
 
-Reaction component is used to display emojis in real-time for a specified amount of time. You can utilise this functionality to notify other participants that you want to speak by "raising hand". Our default sorting algorithm will push participants with raised hand to the top of the list for better visibility. Learn more about reaction events and their customization in the [Reactions & Custom Events guide](../../../guides/reactions-and-custom-events) and see how sorting works in the [Participant sorting guide](../../../guides/sorting-api).
+Reaction component is used to display emojis in real-time for a specified amount of time. You can utilise this functionality, for example, to notify other participants that you want to speak by "raising hand". Our default sorting algorithm will push participants with raised hand to the top of the list for better visibility. Learn more about reaction events and their customization in the [Reactions & Custom Events guide](../../../guides/reactions-and-custom-events) and see how sorting works in the [Participant sorting guide](../../../guides/sorting-api).
+
+The SDK comes with the `defaultEmojiReactionMap` which consists of three reactions:
+
+- `:like:` (renders 👍)
+- `:raise-hand:` (renders ✋)
+- `:fireworks:`: (renders 🎉)
+
+You can extend `Reaction` component with your custom map if you need to through `emojiReactionMap` property.
 
 ![Reaction component preview](../../assets/03-ui-components/reaction.png)
 
@@ -15,13 +23,24 @@ Our `DefaultParticipantViewUI` already comes with the `Reaction` component built
 import {
   Reaction,
   useParticipantViewContext,
+  defaultEmojiReactionMap,
 } from '@stream-io/video-react-sdk';
+
+const customEmojiReactionMap = {
+  ...defaultEmojiReactionMap,
+  ':lol:': '😂',
+};
 
 export const CustomParticipantViewUI = () => {
   const { participant } = useParticipantViewContext();
   return (
     <>
-      <Reaction participant={participant} hideAfterTimeoutInMs={5000} />
+      <Reaction
+        participant={participant}
+        hideAfterTimeoutInMs={5000}
+        emojiReactionMap={customEmojiReactionMap}
+      />
+      {/* your other custom UI elements */}
     </>
   );
 };
@@ -29,7 +48,7 @@ export const CustomParticipantViewUI = () => {
 
 ## Final steps
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [participant view customizations guide](../../../ui-cookbook/participant-view-customizations).
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [ParticipantView customizations guide](../../../ui-cookbook/participant-view-customizations).
 
 ## Props
 
