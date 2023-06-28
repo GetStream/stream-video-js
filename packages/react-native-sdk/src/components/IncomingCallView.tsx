@@ -2,8 +2,6 @@ import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
 import {
-  useCall,
-  useCallCallingState,
   useCallMembers,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
@@ -11,31 +9,25 @@ import { UserInfoView } from './UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { useMutingState } from '../hooks/useMutingState';
-import { CallingState } from '@stream-io/video-client';
 
-export const IncomingCallView = () => {
+type AcceptCallButton = {
+  onPressHandler: () => void;
+};
+
+type RejectCallButton = {
+  onPressHandler: () => void;
+};
+
+export type IncomingCallViewProps = {
+  acceptCallButton: AcceptCallButton;
+  rejectCallButton: RejectCallButton;
+};
+
+export const IncomingCallView = ({
+  acceptCallButton,
+  rejectCallButton,
+}: IncomingCallViewProps) => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
-  const call = useCall();
-  const callingState = useCallCallingState();
-
-  const answerCallHandler = async () => {
-    try {
-      await call?.join();
-    } catch (error) {
-      console.log('Error joining Call', error);
-    }
-  };
-
-  const rejectCallHandler = async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave({ reject: true });
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-  };
 
   return (
     <Background>
@@ -46,7 +38,7 @@ export const IncomingCallView = () => {
 
       <View style={styles.buttonGroup}>
         <CallControlsButton
-          onPress={rejectCallHandler}
+          onPress={rejectCallButton.onPressHandler}
           color={theme.light.error}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
@@ -68,7 +60,7 @@ export const IncomingCallView = () => {
           )}
         </CallControlsButton>
         <CallControlsButton
-          onPress={answerCallHandler}
+          onPress={acceptCallButton.onPressHandler}
           color={theme.light.info}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}

@@ -8,26 +8,22 @@ import { VideoRenderer } from './VideoRenderer';
 import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 import { theme } from '../theme';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
 import { Z_INDEX } from '../constants';
 
-export const OutgoingCallView = () => {
+type CancelCallButton = {
+  onPressHandler: () => void;
+};
+
+export type OutgoingCallViewProps = {
+  cancelCallHandler: CancelCallButton;
+};
+
+export const OutgoingCallView = ({
+  cancelCallHandler,
+}: OutgoingCallViewProps) => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
-  const call = useCall();
-  const callingState = useCallCallingState();
 
-  const hangupCallHandler = async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-  };
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -68,7 +64,7 @@ export const OutgoingCallView = () => {
           </View>
 
           <CallControlsButton
-            onPress={hangupCallHandler}
+            onPress={cancelCallHandler.onPressHandler}
             color={theme.light.error}
             style={[styles.button, styles.hangupButton, theme.button.lg]}
             svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}

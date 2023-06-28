@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, SafeAreaView, StyleSheet } from 'react-native';
+import { appTheme } from '../theme';
 
 export const AuthenticationProgress = () => (
   <SafeAreaView style={styles.container}>
@@ -10,6 +11,6 @@ export const AuthenticationProgress = () => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: appTheme.colors.static_grey,
   },
 });
