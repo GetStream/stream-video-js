@@ -2,9 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
+  CallingState,
   IncomingCallView,
   OutgoingCallView,
   StreamCall,
+  useCall,
+  useCallCallingState,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -18,7 +21,28 @@ const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'none';
 
-const CallPanel = ({ show }: { show: ScreenTypes }) => {
+const CallPanel = ({
+  show,
+  setShow,
+}: {
+  show: ScreenTypes;
+  setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
+}) => {
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  const onCallHungUpHandler = React.useCallback(async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave();
+      setShow('none');
+    } catch (error) {
+      console.log('Error leaving Call', error);
+    }
+  }, [call, callingState, setShow]);
+
   switch (show) {
     case 'incoming':
       return <IncomingCallView />;
@@ -31,7 +55,9 @@ const CallPanel = ({ show }: { show: ScreenTypes }) => {
     case 'active-call':
       return (
         <View style={styles.container}>
-          <ActiveCall />
+          <ActiveCall
+            hangUpCallButton={{ onPressHandler: onCallHungUpHandler }}
+          />
         </View>
       );
     default:
@@ -106,7 +132,7 @@ const Calls = () => {
 
   return (
     <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
-      <CallPanel show={show} />
+      <CallPanel show={show} setShow={setShow} />
     </StreamCall>
   );
 };

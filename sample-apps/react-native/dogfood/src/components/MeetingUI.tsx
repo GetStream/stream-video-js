@@ -11,6 +11,8 @@ import { ActiveCall } from './ActiveCall';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
+import { useChannelWatch } from '../hooks/useChannelWatch';
+import { useUnreadCount } from '../hooks/useUnreadCount';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -23,6 +25,9 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
+
+  const channelWatched = useChannelWatch();
+  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const call = useCall();
   const callingState = useCallCallingState();
@@ -103,11 +108,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           onPressHandler: () => {
             navigation.navigate('ChatScreen', { callId });
           },
+          unreadBadgeCountIndicator,
         }}
         hangUpCallButton={{
-          onPressHandler: () => {
-            onCallHungUpHandler();
-          },
+          onPressHandler: onCallHungUpHandler,
         }}
       />
     );

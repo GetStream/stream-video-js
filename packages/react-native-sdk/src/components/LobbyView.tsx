@@ -19,7 +19,7 @@ import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 /**
  * Props for the Lobby View Component
  */
-type LobbyViewProps = {
+type LobbyViewType = {
   /**
    * Handler called when the join button is clicked in the Lobby View.
    * @returns void
@@ -27,7 +27,7 @@ type LobbyViewProps = {
   onCallJoinHandler: () => void;
 };
 
-export const LobbyView = ({ onCallJoinHandler }: LobbyViewProps) => {
+export const LobbyView = ({ onCallJoinHandler }: LobbyViewType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
