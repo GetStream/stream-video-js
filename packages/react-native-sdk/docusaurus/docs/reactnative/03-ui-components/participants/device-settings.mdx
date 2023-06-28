@@ -1,0 +1,85 @@
+---
+id: device-settings
+title: Device settings
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import DeviceSettings from '../../assets/03-ui-components/device-settings.png';
+import DeviceSelectorVideo from '../../assets/03-ui-components/device-selector-video.png';
+import DeviceSelectorAudioInput from '../../assets/03-ui-components/device-selector-audio-input.png';
+import DeviceSelectorAudioOutput from '../../assets/03-ui-components/device-selector-audio-output.png';
+
+The SDK's default implementation of device settings components consists of audio and video device selectors. These are:
+
+- `DeviceSelectorVideo`
+- `DeviceSelectorAudioInput`
+- `DeviceSelectorAudioOutput`
+
+There is also a composing component `DeviceSettings` putting these together.
+
+All the selector components make use of [`MediaDevicesContextAPI`](../../../guides/camera-and-microphone) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
+
+- `useVideoDevices`
+- `useAudioInputDevices`
+- `useAudioOutputDevices`
+
+<ImageShowcase
+  items={[
+    {
+      image: DeviceSettings,
+      caption: 'Default device settings panel',
+      alt: 'Default device settings panel',
+    },
+    {
+      image: DeviceSelectorVideo,
+      caption: 'Default camera device selector',
+      alt: 'Default camera device selector',
+    },
+    {
+      image: DeviceSelectorAudioInput,
+      caption: 'Default audio input device selector',
+      alt: 'Default audio input device selector',
+    },
+    {
+      image: DeviceSelectorAudioOutput,
+      caption: 'Default audio output device selector',
+      alt: 'Default audio output device selector',
+    },
+  ]}
+/>
+
+## Props
+
+### DeviceSettings
+
+None
+
+### DeviceSelectorVideo
+
+### `title`
+
+| Type                    | Default             |
+| ----------------------- | ------------------- |
+| `string` \| `undefined` | `'Select a Camera'` |
+
+String displayed at the top of the selector component.
+
+### DeviceSelectorAudioInput
+
+### `title`
+
+| Type                    | Default          |
+| ----------------------- | ---------------- |
+| `string` \| `undefined` | `'Select a Mic'` |
+
+String displayed at the top of the selector component.
+
+### DeviceSelectorAudioOutput
+
+### `title`
+
+| Type                    | Default             |
+| ----------------------- | ------------------- |
+| `string` \| `undefined` | `'Select Speakers'` |
+
+String displayed at the top of the selector component.
