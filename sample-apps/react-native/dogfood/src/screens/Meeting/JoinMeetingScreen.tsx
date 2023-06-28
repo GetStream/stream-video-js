@@ -27,7 +27,8 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
 
   const { navigation } = props;
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
 
   const joinCallHandler = useCallback(() => {
     navigation.navigate('MeetingScreen', { callId });
@@ -63,7 +64,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     >
       <Image source={{ uri: userImageUrl }} style={styles.logo} />
       <View>
-        <Text style={styles.title}>Hello, {username}</Text>
+        <Text style={styles.title}>Hello, {userName || userId}</Text>
         <Text style={styles.subTitle}>
           Start or join a meeting by entering the call ID.
         </Text>

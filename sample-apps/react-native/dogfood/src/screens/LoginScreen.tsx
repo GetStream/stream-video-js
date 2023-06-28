@@ -35,17 +35,17 @@ const generateValidUserName = (username: string) => {
 };
 
 const LoginScreen = () => {
-  const [localUserName, setLocalUserName] = useState('');
+  const [localUserId, setLocalUserId] = useState('');
   const [loader, setLoader] = useState(false);
 
   const setState = useAppGlobalStoreSetState();
 
   const loginHandler = async () => {
     try {
-      const _username = generateValidUserName(localUserName);
-      const _userImageUrl = `https://getstream.io/random_png/?id=${_username}&name=${_username}`;
+      const _userId = generateValidUserName(localUserId);
+      const _userImageUrl = `https://getstream.io/random_png/?id=${_userId}&name=${_userId}`;
       setState({
-        username: _username,
+        userId: _userId,
         userImageUrl: _userImageUrl,
         appMode: 'None',
       });
@@ -58,10 +58,11 @@ const LoginScreen = () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      const username = generateValidUserName(userInfo.user.id);
-
+      const userId = generateValidUserName(userInfo.user.email);
+      const userName = userInfo.user.name as string;
       setState({
-        username,
+        userId,
+        userName,
         userImageUrl:
           userInfo.user.photo ??
           `https://getstream.io/random_png/?id=${userInfo.user.email}&name=${userInfo.user.email}`,
@@ -93,16 +94,16 @@ const LoginScreen = () => {
         <View style={styles.customUser}>
           <TextInput
             placeholder="Enter custom user"
-            value={localUserName}
+            value={localUserId}
             onChangeText={(text) => {
-              setLocalUserName(text);
+              setLocalUserId(text);
             }}
             autoCapitalize="none"
             autoCorrect={false}
           />
           <Button
             title="Login"
-            disabled={!localUserName}
+            disabled={!localUserId}
             onPress={loginHandler}
             buttonStyle={styles.loginButton}
           />

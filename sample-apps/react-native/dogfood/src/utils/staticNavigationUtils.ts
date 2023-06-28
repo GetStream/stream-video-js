@@ -6,7 +6,7 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 export class StaticNavigationService {
   static authenticationInfo:
-    | { username: string; userImageUrl: string }
+    | { userId: string; userImageUrl: string }
     | undefined = undefined;
 }
 

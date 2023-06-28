@@ -19,12 +19,13 @@ import { Button } from './Button';
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
   const appStoreSetState = useAppGlobalStoreSetState();
 
   const logoutHandler = () => {
     Alert.alert(
-      `Sign out as ${username}`,
+      `Sign out as ${userName || userId}`,
       'Are you sure you want to sign out?',
       [
         {
@@ -42,7 +43,8 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
               ]);
 
               appStoreSetState({
-                username: '',
+                userId: '',
+                userName: '',
                 userImageUrl: '',
                 appMode: 'None',
               });
@@ -64,7 +66,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
         onPress={!showChooseModeButton ? undefined : logoutHandler}
         accessibilityLabel={A11yButtons.LOG_OUT_AVATAR}
       >
-        <Text style={styles.headerText}>{username}</Text>
+        <Text style={styles.headerText}>{userName || userId}</Text>
       </Pressable>
       {!showChooseModeButton ? (
         <Button onPress={logoutHandler} title="Logout" />
