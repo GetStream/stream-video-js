@@ -1605,16 +1605,14 @@ export class Call {
   };
 
   /**
-   * Sends an event to all call participants.
+   * Sends a custom event to all call participants.
    *
    * @param event the event to send.
    */
-  sendEvent = async (
-    event: SendEventRequest & { type: StreamCallEvent['type'] },
-  ) => {
+  sendCustomEvent = async (payload: { [key: string]: any }) => {
     return this.streamClient.post<SendEventResponse, SendEventRequest>(
       `${this.streamClientBasePath}/event`,
-      event,
+      { custom: payload },
     );
   };
 }
