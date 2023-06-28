@@ -11,6 +11,7 @@ import { getIceCandidate } from './helpers/iceCandidate';
 import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
+  OptimalVideoLayer,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
 import {
@@ -44,6 +45,7 @@ export type PublisherOpts = {
 export class Publisher {
   private pc: RTCPeerConnection;
   private readonly state: CallState;
+
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
   } = {
@@ -53,7 +55,8 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
-  private readonly trackKindRegistry: {
+
+  private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
   } = {
     [TrackType.AUDIO]: 'audio',
@@ -62,6 +65,17 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+
+  private readonly trackLayersCache: {
+    [key in TrackType]: OptimalVideoLayer[] | undefined;
+  } = {
+    [TrackType.AUDIO]: undefined,
+    [TrackType.VIDEO]: undefined,
+    [TrackType.SCREEN_SHARE]: undefined,
+    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
+    [TrackType.UNSPECIFIED]: undefined,
+  };
+
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
   private readonly preferredVideoCodec?: string;
@@ -126,6 +140,10 @@ export class Publisher {
         // @ts-ignore
         this.transceiverRegistry[trackType] = undefined;
       });
+      Object.keys(this.trackLayersCache).forEach((trackType) => {
+        // @ts-ignore
+        this.trackLayersCache[trackType] = undefined;
+      });
     }
 
     this.pc.close();
@@ -157,7 +175,7 @@ export class Publisher {
         (t) =>
           t === this.transceiverRegistry[trackType] &&
           t.sender.track &&
-          t.sender.track?.kind === this.trackKindRegistry[trackType],
+          t.sender.track?.kind === this.trackKindMapping[trackType],
       );
 
     /**
@@ -419,24 +437,8 @@ export class Publisher {
 
     const shouldRestartIce = this.pc.iceConnectionState === 'connected';
     if (shouldRestartIce) {
-      const isPublishingAnyTrack = [
-        TrackType.AUDIO,
-        TrackType.VIDEO,
-        TrackType.SCREEN_SHARE,
-        TrackType.SCREEN_SHARE_AUDIO,
-      ].some((trackType) => this.isPublishing(trackType));
-
-      if (isPublishingAnyTrack) {
-        // negotiate only if there are tracks to publish
-        await this.negotiate({ iceRestart: true });
-      } else {
-        // If there aren't any tracks that are published, we dispose the
-        // current publisher and create a new one.
-        // This is because the SFU won't let us submit an offer without
-        // including any track information in the `setPublisher` RPC call.
-        this.close();
-        this.pc = this.createPeerConnection(connectionConfig);
-      }
+      // negotiate only if there are tracks to publish
+      await this.negotiate({ iceRestart: true });
     }
   };
 
@@ -543,19 +545,31 @@ export class Publisher {
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)
       .map<TrackInfo>((transceiver) => {
-        const trackType = Number(
+        const trackType: TrackType = Number(
           Object.keys(this.transceiverRegistry).find(
             (key) =>
               this.transceiverRegistry[key as any as TrackType] === transceiver,
           ),
         );
         const track = transceiver.sender.track!;
-        const optimalLayers =
-          trackType === TrackType.VIDEO
-            ? findOptimalVideoLayers(track, targetResolution)
-            : trackType === TrackType.SCREEN_SHARE
-            ? findOptimalScreenSharingLayers(track)
-            : [];
+        let optimalLayers: OptimalVideoLayer[];
+        if (track.readyState === 'live') {
+          optimalLayers =
+            trackType === TrackType.VIDEO
+              ? findOptimalVideoLayers(track, targetResolution)
+              : trackType === TrackType.SCREEN_SHARE
+              ? findOptimalScreenSharingLayers(track)
+              : [];
+          this.trackLayersCache[trackType] = optimalLayers;
+        } else {
+          // we report the last known optimal layers for ended tracks
+          optimalLayers = this.trackLayersCache[trackType] || [];
+          this.logger(
+            'debug',
+            `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
+            optimalLayers,
+          );
+        }
 
         const layers = optimalLayers.map<VideoLayer>((optimalLayer) => ({
           rid: optimalLayer.rid || '',
@@ -576,8 +590,8 @@ export class Publisher {
 
           // FIXME OL: adjust these values
           stereo: false,
-          dtx: this.isDtxEnabled,
-          red: this.isRedEnabled,
+          dtx: TrackType.AUDIO === trackType && this.isDtxEnabled,
+          red: TrackType.AUDIO === trackType && this.isRedEnabled,
         };
       });
   };
