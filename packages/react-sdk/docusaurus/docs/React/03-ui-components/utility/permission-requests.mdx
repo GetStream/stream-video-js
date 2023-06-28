@@ -3,8 +3,33 @@ id: permission-requests
 title: Permission requests
 ---
 
-:::warning
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import PermissionRequestBanner from '../../assets/03-ui-components/permission-requests/permission-requests-banner.png'
+import PermissionRequestList from '../../assets/03-ui-components/permission-requests/permission-requests-list.png'
 
-TODO: write about: https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/Permissions
+The default component to display a list of permission requests from other call participants is called `PermissionRequests`. The component takes care of:
 
+1. listing the permission requests if the user has permissions to grant permissions
+2. displaying the buttons to grant or ignore the permission requests
+
+
+<ImageShowcase
+    items={[
+        {
+            image: PermissionRequestBanner,
+            caption: 'Default UI of permission request notification',
+            alt: 'Default UI of permission request notification',
+        },
+        {
+            image: PermissionRequestList,
+            caption: 'Default UI of permission requests listing',
+            alt: 'Default UI of permission requests listing',
+        },
+    ]}
+/>
+
+The component is not customizable through props, only by applying CSS to elements it renders.
+
+:::note
+To learn more about creating custom permission requests listings, have a look at our [permission requests customization guide](../../../ui-cookbook/permission-requests).
 :::
