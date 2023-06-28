@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.225](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.224...@stream-io/video-react-native-sdk-0.0.1-alpha.225) (2023-06-28)
+
+
+
+## [0.0.1-alpha.224](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.223...@stream-io/video-react-native-sdk-0.0.1-alpha.224) (2023-06-28)
+
+
+
+## [0.0.1-alpha.223](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.222...@stream-io/video-react-native-sdk-0.0.1-alpha.223) (2023-06-28)
+
+
+### Bug Fixes
+
+* **react-native:** vale lint issues ([#723](https://github.com/GetStream/stream-video-js/issues/723)) ([b8cf6e3](https://github.com/GetStream/stream-video-js/commit/b8cf6e373a81322b2383e940c3297e349e26f357))
+
+
+
+## [0.0.1-alpha.222](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.221...@stream-io/video-react-native-sdk-0.0.1-alpha.222) (2023-06-27)
+
+
+
+## [0.0.1-alpha.221](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.220...@stream-io/video-react-native-sdk-0.0.1-alpha.221) (2023-06-27)
+
+
+### Bug Fixes
+
+* **react-native:** clarify that there is no support for calling from ios dialer app ([#719](https://github.com/GetStream/stream-video-js/issues/719)) ([e88a90b](https://github.com/GetStream/stream-video-js/commit/e88a90b2e87d1a7521d2c9550a90ffdd160b64f7))
+
+
+
+## [0.0.1-alpha.220](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.219...@stream-io/video-react-native-sdk-0.0.1-alpha.220) (2023-06-27)
+
+
+
 ## [0.0.1-alpha.219](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.218...@stream-io/video-react-native-sdk-0.0.1-alpha.219) (2023-06-27)
 
 

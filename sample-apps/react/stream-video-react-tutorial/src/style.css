@@ -1,14 +1,10 @@
-@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
+@import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 body, html {
   height: 100%;
   width: 100%;
   margin: 0;
-}
-
-* {
-  transition: background-color 0.2s ease-out;
-  font-family: var(--str-video__font-family);
+  font-family: sans-serif;
 }
 
 #root {
@@ -17,25 +13,17 @@ body, html {
   align-items: center;
   height: 100%;
   width: 100%;
+  background-color: black;
 
 }
 
-.str-video {
+.video__call {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 15px;
   height: 100%;
   width: 100%;
 }
 
-
-.str-video__call__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-}
-
-h4 {
-  margin: 0;
-}

@@ -170,6 +170,12 @@ export class StreamVideoClient {
             .filter((call) => call.watching)
             .map((call) => call.cid);
 
+          this.logger(
+            'info',
+            `Rewatching calls after connection changed ${callsToReWatch.join(
+              ', ',
+            )}`,
+          );
           if (callsToReWatch.length > 0) {
             this.queryCalls({
               watch: true,
@@ -197,6 +203,7 @@ export class StreamVideoClient {
           return;
         }
 
+        this.logger('info', `New call created and registered: ${call.cid}`);
         this.writeableStateStore.registerCall(
           new Call({
             streamClient: this.streamClient,

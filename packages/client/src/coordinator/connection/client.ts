@@ -434,7 +434,6 @@ export class StreamClient {
     if (!(key in this.listeners)) {
       this.listeners[key] = [];
     }
-    this.logger('info', `Attaching listener for ${key} event`);
     this.listeners[key].push(callback);
 
     return () => {

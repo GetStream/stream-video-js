@@ -178,7 +178,7 @@ The `useCall` hook provides us with the current call object. This is useful when
 
 On the other hand, the `useIsCallBroadcastingInProgress` hook gives us the current broadcasting state of the call. This is helpful when we want to show the current state of the live stream or build custom UI components or flows based on this call state.
 
-The `call` instance itself provides two methods for starting and stopping the live stream:
+The `call` instance itself provides two methods for starting and stopping the livestream:
 
 - `call.startBroadcasting()` and
 - `call.stopBroadcasting()`
@@ -195,6 +195,7 @@ const ToggleLivestreamButton = () => {
         if (isBroadcasting) {
           call.stopBroadcasting();
         } else {
+          call.goLive();
           call.startBroadcasting();
         }
       }}
@@ -204,6 +205,8 @@ const ToggleLivestreamButton = () => {
   );
 };
 ```
+
+Remember to invoke `call.goLive()` to make the call active for all participants.
 
 :::info
 
