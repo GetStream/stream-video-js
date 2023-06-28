@@ -13,9 +13,6 @@ export type MediaDeviceInfo = {
  * @internal
  */
 export interface SDKStreamVideoStore {
-  isCameraOnFrontFacingMode: boolean;
-  isVideoMuted: boolean;
-  isAudioMuted: boolean;
   currentAudioDevice?: MediaDeviceInfo;
   currentVideoDevice?: MediaDeviceInfo;
   audioDevices: MediaDeviceInfo[];
@@ -27,9 +24,6 @@ export const {
   useStoreValue: useStreamVideoStoreValue,
   useStoreSetState: useStreamVideoStoreSetState,
 } = createStoreContext<SDKStreamVideoStore>({
-  isCameraOnFrontFacingMode: true,
-  isVideoMuted: false,
-  isAudioMuted: false,
   videoDevices: [],
   audioDevices: [],
   currentVideoDevice: undefined,
