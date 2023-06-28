@@ -66,17 +66,22 @@ export const useAudioPublisher = ({
    * 3. when the video device is changed (this is handled by the dependency to publishVideoStream function)
    */
   useEffect(() => {
-    if (callingState === CallingState.JOINED) {
-      if (
-        (!initialAudioMuted && !initialPublishRun.current) ||
-        isPublishingAudio
-      ) {
-        publishAudioStream().catch((e) => {
-          console.error('Failed to publish video stream', e);
-        });
-        initialPublishRun.current = true;
-      }
+    if (callingState !== CallingState.JOINED) {
+      return;
     }
+    const shouldJoinInitially =
+      !initialAudioMuted && !initialPublishRun.current;
+    const shouldRejoin = isPublishingAudio;
+    // if we are not joining the call from the lobby or equivalent view,
+    // and we are not reconnecting to the call,
+    // then do not publish the audio stream
+    if (!shouldJoinInitially && !shouldRejoin) {
+      return;
+    }
+    publishAudioStream().catch((e) => {
+      console.error('Failed to publish audio stream', e);
+    });
+    initialPublishRun.current = true;
   }, [callingState, initialAudioMuted, isPublishingAudio, publishAudioStream]);
 
   /*
