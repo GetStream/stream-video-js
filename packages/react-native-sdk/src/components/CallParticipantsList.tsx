@@ -52,7 +52,12 @@ interface CallParticipantsListProps {
  */
 export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const { numColumns = 2, horizontal, participants } = props;
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [containerLayout, setContainerLayout] = useState({
+    width: 0,
+    height: 0,
+  });
+  const { width: containerWidth } = containerLayout;
+  const { height: containerHeight } = containerLayout;
 
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
@@ -108,20 +113,40 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   ).current;
 
   const onLayout = useRef<FlatListProps['onLayout']>((event) => {
-    const { width } = event.nativeEvent.layout;
-    setContainerWidth(width);
+    const { height, width } = event.nativeEvent.layout;
+    setContainerLayout((prev) => {
+      if (prev.height === height && prev.width === width) {
+        return prev;
+      }
+      return { height, width };
+    });
   }).current;
 
   const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
+    // we calculate the height of the participant view based on the containerHeight (aka the phone's screen height non horizontal mode),
+    // in horizontal mode we always in 1/3 of the screen height
+    let itemHeight = containerHeight;
+    if (!horizontal) {
+      if (participants.length <= 4) {
+        // special case: if there are 4 or less participants, we display them in 2 rows
+        itemHeight = containerHeight / 2;
+      } else {
+        // the max rows we can have is 3
+        itemHeight = containerHeight / 3;
+      }
+    }
+
     // we calculate the size of the participant view based on the containerWidth (the phone's screen width),
-    // number of columns and the margin between the views
-    const size = containerWidth / numColumns - theme.margin.sm * 2;
-    const style = { width: size, height: size };
+    let itemWidth = containerWidth / numColumns;
+    if (horizontal) {
+      itemWidth = itemWidth - theme.margin.sm * 2;
+    }
+    const style = { width: itemWidth, height: itemHeight };
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
-    return [styles.participantWrapperVertical, style];
-  }, [horizontal, numColumns, containerWidth]);
+    return style;
+  }, [containerWidth, numColumns, horizontal, containerHeight, participants]);
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
@@ -140,6 +165,25 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     [itemContainerStyle],
   );
 
+  // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid
+  // else we display them both in a stretched row on the screen
+  const shouldWrapByColumns = horizontal || participants.length > 2;
+
+  if (!shouldWrapByColumns) {
+    return (
+      <>
+        {participants.map((participant) => (
+          <ParticipantView
+            participant={participant}
+            containerStyle={[styles.flexed]}
+            kind="video"
+            isVisible={true}
+          />
+        ))}
+      </>
+    );
+  }
+
   return (
     <FlatList
       onLayout={onLayout}
@@ -152,17 +196,15 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
       numColumns={!horizontal ? numColumns : undefined}
       horizontal={horizontal}
       showsHorizontalScrollIndicator={false}
-      extraData={`${forceUpdateValue}${containerWidth}`} // this is important to force re-render when visibility changes
+      extraData={`${forceUpdateValue}`} // this is important to force re-render when visibility changes
       accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_LIST}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  participantWrapperVertical: {
-    margin: theme.margin.sm,
-    overflow: 'hidden',
-    borderRadius: theme.rounded.sm,
+  flexed: {
+    flex: 1,
   },
   participantWrapperHorizontal: {
     marginHorizontal: theme.margin.sm,
