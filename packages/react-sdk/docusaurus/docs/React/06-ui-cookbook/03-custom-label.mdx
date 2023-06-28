@@ -59,17 +59,17 @@ const ParticipantDetails = () => {
 
 export const CustomParticipantViewUI = () => {
   return (
-    <div>
+    <>
       <ParticipantDetails />
-      {/* other UI components... */}
-    </div>
+      {/* your other custom UI elements */}
+    </>
   );
 };
 ```
 
 ## Final steps
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../participant-view-customizations).
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [ParticipantView customizations guide](../participant-view-customizations).
 
 ```tsx
 import { useParticipants } from '@stream-io/video-react-sdk';
@@ -78,12 +78,12 @@ import { CustomParticipantViewUI } from '../ParticipantViewUI';
 import { CustomVideoPlaceholder } from '../VideoPlaceholder';
 
 export const CustomCallLayout = () => {
-  const otherParticipants = useParticipants();
+  const participants = useParticipants();
 
   return (
     <div>
-      {/* other UI components */}
-      {otherParticipants.map((participant) => (
+      {/* your other custom UI elements */}
+      {participants.map((participant) => (
         <div key={participant.sessionId}>
           <ParticipantView
             participant={participant}

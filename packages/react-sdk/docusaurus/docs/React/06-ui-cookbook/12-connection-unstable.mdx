@@ -29,17 +29,17 @@ const PoorConnectionNotification = () => {
 
 export const CustomParticipantViewUI = () => {
   return (
-    <div>
+    <>
       <PoorConnectionNotification />
-      {/* other UI components... */}
-    </div>
+      {/* your other custom UI elements */}
+    </>
   );
 };
 ```
 
 ## Final steps
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [participant view customizations guide](../participant-view-customizations).
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [ParticipantView customizations guide](../participant-view-customizations).
 
 ```tsx
 import { useParticipants } from '@stream-io/video-react-sdk';
@@ -52,7 +52,7 @@ export const CustomCallLayout = () => {
 
   return (
     <div>
-      {/* other UI components */}
+      {/* your other custom UI elements */}
       {otherParticipants.map((participant) => (
         <div key={participant.sessionId}>
           <ParticipantView

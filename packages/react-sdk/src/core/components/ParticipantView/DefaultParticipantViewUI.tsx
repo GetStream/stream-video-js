@@ -68,10 +68,9 @@ export const DefaultParticipantViewUI = ({
   menuPlacement = 'bottom-end',
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
-  const call = useCall()!;
   const { participant, participantViewElement, videoMode, videoElement } =
     useParticipantViewContext();
-  const { reaction, sessionId, publishedTracks } = participant;
+  const { publishedTracks } = participant;
 
   const hasScreenShare = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
@@ -104,9 +103,7 @@ export const DefaultParticipantViewUI = ({
           />
         </MenuToggle>
       )}
-      {reaction && (
-        <Reaction reaction={reaction} sessionId={sessionId} call={call} />
-      )}
+      <Reaction participant={participant} />
       <ParticipantDetails indicatorsVisible={indicatorsVisible} />
     </>
   );
