@@ -21,7 +21,7 @@ export const LobbyViewComponent = ({
 }: LobbyViewComponentType) => {
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <LobbyView onCallJoinHandler={onCallJoinHandler} />
+      <LobbyView joinButton={{ onPressHandler: onCallJoinHandler }} />
       {route.name === 'MeetingScreen' ? (
         <Pressable
           style={styles.anonymousButton}
