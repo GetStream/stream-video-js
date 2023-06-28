@@ -4,12 +4,13 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
+import { CallState } from '../store';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
   dispatcher: Dispatcher;
+  state: CallState;
   connectionConfig?: RTCConfiguration;
-  onTrack: (e: RTCTrackEvent) => void;
 };
 
 const logger = getLogger(['Subscriber']);
@@ -21,27 +22,27 @@ const logger = getLogger(['Subscriber']);
 export class Subscriber {
   private pc: RTCPeerConnection;
   private readonly unregisterOnSubscriberOffer: () => void;
-  private readonly onTrack: (e: RTCTrackEvent) => void;
   private sfuClient: StreamSfuClient;
   private dispatcher: Dispatcher;
+  private state: CallState;
 
   /**
    * Constructs a new `Subscriber` instance.
    *
    * @param sfuClient the SFU client to use.
    * @param dispatcher the dispatcher to use.
+   * @param state the state of the call.
    * @param connectionConfig the connection configuration to use.
-   * @param onTrack the callback to call when a new track is received.
    */
   constructor({
     sfuClient,
     dispatcher,
+    state,
     connectionConfig,
-    onTrack,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.dispatcher = dispatcher;
-    this.onTrack = onTrack;
+    this.state = state;
 
     this.pc = this.createPeerConnection(connectionConfig);
 
@@ -63,7 +64,7 @@ export class Subscriber {
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
-    pc.addEventListener('track', this.onTrack);
+    pc.addEventListener('track', this.handleOnTrack);
 
     pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     pc.addEventListener(
@@ -118,6 +119,77 @@ export class Subscriber {
     });
 
     this.pc = pc;
+  };
+
+  private handleOnTrack = (e: RTCTrackEvent) => {
+    const [primaryStream] = e.streams;
+    // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
+    const [trackId, trackType] = primaryStream.id.split(':');
+    const participantToUpdate = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
+    logger(
+      'debug',
+      `[onTrack]: Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
+      e.track.id,
+      e.track,
+    );
+    if (!participantToUpdate) {
+      logger(
+        'error',
+        `[onTrack]: Received track for unknown participant: ${trackId}`,
+        e,
+      );
+      return;
+    }
+
+    e.track.addEventListener('mute', () => {
+      logger(
+        'info',
+        `[onTrack]: Track muted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
+      );
+    });
+
+    e.track.addEventListener('unmute', () => {
+      logger(
+        'info',
+        `[onTrack]: Track unmuted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
+      );
+    });
+
+    e.track.addEventListener('ended', () => {
+      logger(
+        'info',
+        `[onTrack]: Track ended: ${participantToUpdate.userId} ${trackType}:${trackId}`,
+      );
+    });
+
+    const streamKindProp = (
+      {
+        TRACK_TYPE_AUDIO: 'audioStream',
+        TRACK_TYPE_VIDEO: 'videoStream',
+        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
+      } as const
+    )[trackType];
+
+    if (!streamKindProp) {
+      logger('error', `Unknown track type: ${trackType}`);
+      return;
+    }
+    const previousStream = participantToUpdate[streamKindProp];
+    if (previousStream) {
+      logger(
+        'info',
+        `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
+      );
+      previousStream.getTracks().forEach((t) => {
+        t.stop();
+        previousStream.removeTrack(t);
+      });
+    }
+    this.state.updateParticipant(participantToUpdate.sessionId, {
+      [streamKindProp]: primaryStream,
+    });
   };
 
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {

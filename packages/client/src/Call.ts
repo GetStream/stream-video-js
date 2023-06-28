@@ -817,8 +817,8 @@ export class Call {
       this.subscriber = new Subscriber({
         sfuClient,
         dispatcher: this.dispatcher,
+        state: this.state,
         connectionConfig,
-        onTrack: this.handleOnTrack,
       });
     }
 
@@ -951,6 +951,14 @@ export class Call {
         unsubscribe();
         reject(new Error('Waiting for "joinResponse" has timed out'));
       }, timeout);
+    });
+  };
+
+  private assertCallJoined = () => {
+    return new Promise<void>((resolve) => {
+      this.state.callingState$
+        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
+        .subscribe(() => resolve());
     });
   };
 
@@ -1237,84 +1245,6 @@ export class Call {
    */
   updatePublishQuality = async (enabledRids: string[]) => {
     return this.publisher?.updateVideoPublishQuality(enabledRids);
-  };
-
-  private handleOnTrack = (e: RTCTrackEvent) => {
-    const [primaryStream] = e.streams;
-    // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
-    const [trackId, trackType] = primaryStream.id.split(':');
-    const participantToUpdate = this.state.participants.find(
-      (p) => p.trackLookupPrefix === trackId,
-    );
-    this.logger(
-      'debug',
-      `[onTrack]: Got remote ${trackType} track for userId: ${participantToUpdate?.userId}`,
-      e.track,
-    );
-    if (!participantToUpdate) {
-      this.logger(
-        'error',
-        `[onTrack]: Received track for unknown participant: ${trackId}`,
-        e,
-      );
-      return;
-    }
-
-    e.track.addEventListener('mute', () => {
-      this.logger(
-        'info',
-        `[onTrack]: Track muted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
-    });
-
-    e.track.addEventListener('unmute', () => {
-      this.logger(
-        'info',
-        `[onTrack]: Track unmuted: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
-    });
-
-    e.track.addEventListener('ended', () => {
-      this.logger(
-        'info',
-        `[onTrack]: Track ended: ${participantToUpdate.userId} ${trackType}:${trackId}`,
-      );
-    });
-
-    const streamKindProp = (
-      {
-        TRACK_TYPE_AUDIO: 'audioStream',
-        TRACK_TYPE_VIDEO: 'videoStream',
-        TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
-      } as const
-    )[trackType];
-
-    if (!streamKindProp) {
-      this.logger('error', `Unknown track type: ${trackType}`);
-      return;
-    }
-    const previousStream = participantToUpdate[streamKindProp];
-    if (previousStream) {
-      this.logger(
-        'info',
-        `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
-      );
-      previousStream.getTracks().forEach((t) => {
-        t.stop();
-        previousStream.removeTrack(t);
-      });
-    }
-    this.state.updateParticipant(participantToUpdate.sessionId, {
-      [streamKindProp]: primaryStream,
-    });
-  };
-
-  private assertCallJoined = () => {
-    return new Promise<void>((resolve) => {
-      this.state.callingState$
-        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-        .subscribe(() => resolve());
-    });
   };
 
   /**
