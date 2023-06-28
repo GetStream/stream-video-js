@@ -1,6 +1,7 @@
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import {
+  CallingState,
   OwnCapability,
   getAudioStream,
   getVideoStream,
@@ -14,6 +15,8 @@ import { useEffect } from 'react';
  */
 export const usePublishMediaStreams = () => {
   const activeCall = useCall();
+  const callingState = useCallCallingState();
+  const isCallJoined = callingState === CallingState.JOINED;
   const currentAudioDevice = useStreamVideoStoreValue(
     (store) => store.currentAudioDevice,
   );
@@ -27,36 +30,46 @@ export const usePublishMediaStreams = () => {
   const videoDeviceId = currentVideoDevice?.deviceId;
 
   useEffect(() => {
-    if (
-      !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)
-    ) {
-      console.log('No permission to publish audio');
-      return;
-    }
-    if (audioDeviceId && !isAudioMuted) {
-      getAudioStream({ deviceId: audioDeviceId })
-        .then((stream) => activeCall?.publishAudioStream(stream))
-        .catch((error) => {
+    if (isCallJoined && audioDeviceId && !isAudioMuted) {
+      if (
+        !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_AUDIO)
+      ) {
+        console.log(
+          "No permission from the call's admin to publish audio stream",
+        );
+        return;
+      }
+      const publishAudio = async () => {
+        try {
+          const stream = await getAudioStream({ deviceId: audioDeviceId });
+          activeCall?.publishAudioStream(stream);
+        } catch (error) {
           console.log(error);
-        });
+        }
+      };
+      publishAudio();
     }
-  }, [activeCall, audioDeviceId, isAudioMuted]);
+  }, [activeCall, audioDeviceId, isAudioMuted, isCallJoined]);
 
   useEffect(() => {
-    if (
-      !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
-    ) {
-      console.log('No permission to publish video');
-      return;
-    }
-    if (videoDeviceId && !isVideoMuted) {
-      getVideoStream({ deviceId: videoDeviceId })
-        .then((stream) => {
+    if (isCallJoined && videoDeviceId && !isVideoMuted) {
+      if (
+        !activeCall?.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
+      ) {
+        console.log(
+          "No permission from the call's admin to publish video stream",
+        );
+        return;
+      }
+      const publishVideo = async () => {
+        try {
+          const stream = await getVideoStream({ deviceId: videoDeviceId });
           activeCall?.publishVideoStream(stream);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.log(error);
-        });
+        }
+      };
+      publishVideo();
     }
-  }, [activeCall, videoDeviceId, isVideoMuted]);
+  }, [activeCall, videoDeviceId, isVideoMuted, isCallJoined]);
 };
