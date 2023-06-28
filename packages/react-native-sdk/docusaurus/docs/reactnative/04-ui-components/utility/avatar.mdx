@@ -3,50 +3,88 @@ id: avatar
 title: Avatar
 ---
 
-![Preview of the Avatar component.](../../assets/03-ui-components/avatar.png)
+:::warning
+Write React Native Specifics
 
-The `Avatar` element is generally used to show the image and/or name of participants of a video call. If no image is provided/an error occurs loading the image, it will display a fallback image.
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
+:::
 
-Of course, it can also be used in any other circumstances that you like, for example, in user lists, profiles, and much more.
+[//]: # ()
+[//]: # (![Preview of the Avatar component.]&#40;../../assets/03-ui-components/avatar.png&#41;)
 
-## General usage
+[//]: # ()
+[//]: # (The `Avatar` element is generally used to show the image and/or name of participants of a video call. If no image is provided/an error occurs loading the image, it will display a fallback image.)
 
-The way you can use the `Avatar` element in a react component is like this:
+[//]: # ()
+[//]: # (Of course, it can also be used in any other circumstances that you like, for example, in user lists, profiles, and much more.)
 
-```tsx
-import { Avatar } from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (## General usage)
 
-export function AvatarExample(): JSX.Element {
-  return (
-    // highlight-start
-    <Avatar imageSrc="https://getstream.io/random_png/?id=stefan&name=stefan" />
-    // highlight-end
-  );
-}
-```
+[//]: # ()
+[//]: # (The way you can use the `Avatar` element in a react component is like this:)
 
-## Props
+[//]: # ()
+[//]: # (```tsx)
 
-### `imageSrc`
+[//]: # (import { Avatar } from '@stream-io/video-react-sdk';)
 
-| Type                    |
-| ----------------------- |
-| `string` \| `undefined` |
+[//]: # ()
+[//]: # (export function AvatarExample&#40;&#41;: JSX.Element {)
 
-The URL of the user's profile image.
+[//]: # (  return &#40;)
 
-### `name`
+[//]: # (    // highlight-start)
 
-| Type                    |
-| ----------------------- |
-| `string` \| `undefined` |
+[//]: # (    <Avatar imageSrc="https://getstream.io/random_png/?id=stefan&name=stefan" />)
 
-The name of the user.
+[//]: # (    // highlight-end)
 
-### `styles`
+[//]: # (  &#41;;)
 
-| Type                                               |
-| -------------------------------------------------- |
-| `CSSProperties & Record<string, string \| number>` |
+[//]: # (})
 
-Custom CSS to attach to the avatar image/fallback.
+[//]: # (```)
+
+[//]: # ()
+[//]: # (## Props)
+
+[//]: # ()
+[//]: # (### `imageSrc`)
+
+[//]: # ()
+[//]: # (| Type                    |)
+
+[//]: # (| ----------------------- |)
+
+[//]: # (| `string` \| `undefined` |)
+
+[//]: # ()
+[//]: # (The URL of the user's profile image.)
+
+[//]: # ()
+[//]: # (### `name`)
+
+[//]: # ()
+[//]: # (| Type                    |)
+
+[//]: # (| ----------------------- |)
+
+[//]: # (| `string` \| `undefined` |)
+
+[//]: # ()
+[//]: # (The name of the user.)
+
+[//]: # ()
+[//]: # (### `styles`)
+
+[//]: # ()
+[//]: # (| Type                                               |)
+
+[//]: # (| -------------------------------------------------- |)
+
+[//]: # (| `CSSProperties & Record<string, string \| number>` |)
+
+[//]: # ()
+[//]: # (Custom CSS to attach to the avatar image/fallback.)
