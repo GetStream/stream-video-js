@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.56](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.55...@stream-io/video-react-sdk-0.0.56) (2023-06-28)
+
+
+### Documentation
+
+* **react-sdk:** add broadcasting documentation article ([#717](https://github.com/GetStream/stream-video-js/issues/717)) ([73ca081](https://github.com/GetStream/stream-video-js/commit/73ca081e2ed68d8ef149210c9a205bfe62382785))
+
 ### [0.0.55](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.54...@stream-io/video-react-sdk-0.0.55) (2023-06-27)
 
 ### Dependency Updates
