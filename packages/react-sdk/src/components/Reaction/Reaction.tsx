@@ -5,9 +5,10 @@ import { useCall } from '@stream-io/video-react-bindings';
 export type ReactionProps = {
   participant: StreamVideoParticipant;
   hideAfterTimeoutInMs?: number;
+  emojiReactionMap?: Record<string, string>;
 };
 
-export const defaultEmojiReactions: Record<string, string> = {
+export const defaultEmojiReactionMap: Record<string, string> = {
   ':like:': '👍',
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
@@ -16,6 +17,7 @@ export const defaultEmojiReactions: Record<string, string> = {
 export const Reaction = ({
   participant: { reaction, sessionId },
   hideAfterTimeoutInMs = 5500,
+  emojiReactionMap = defaultEmojiReactionMap,
 }: ReactionProps) => {
   const call = useCall();
 
@@ -38,7 +40,7 @@ export const Reaction = ({
   return (
     <div className="str-video__reaction">
       <span className="str-video__reaction__emoji">
-        {emojiCode && defaultEmojiReactions[emojiCode]}
+        {emojiCode && emojiReactionMap[emojiCode]}
       </span>
     </div>
   );

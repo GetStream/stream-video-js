@@ -2,7 +2,7 @@ import { OwnCapability, StreamReaction } from '@stream-io/video-client';
 import { Restricted, useCall } from '@stream-io/video-react-bindings';
 
 import { CompositeButton, IconButton } from '../Button';
-import { defaultEmojiReactions } from '../Reaction';
+import { defaultEmojiReactionMap } from '../Reaction';
 
 export const defaultReactions: StreamReaction[] = [
   {
@@ -66,7 +66,7 @@ export const DefaultReactionsMenu = ({
             call?.sendReaction(reaction);
           }}
         >
-          {reaction.emoji_code && defaultEmojiReactions[reaction.emoji_code]}
+          {reaction.emoji_code && defaultEmojiReactionMap[reaction.emoji_code]}
         </button>
       ))}
     </div>
