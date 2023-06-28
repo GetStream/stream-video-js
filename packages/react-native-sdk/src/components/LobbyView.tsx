@@ -18,11 +18,12 @@ import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
+  const participantLabel = connectedUser?.name ?? connectedUser?.id;
   const { isAudioMuted, isVideoMuted } = useMutingState();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
-        {connectedUser?.id}
+        {participantLabel}
       </Text>
       {isAudioMuted && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>

@@ -199,7 +199,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     borderWidth: 2,
   };
 
-  const participantLabel = participant.userId;
+  const participantLabel = participant.name || participant.userId;
 
   return (
     <View
@@ -261,7 +261,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
               <ScreenShare color={theme.light.static_white} />
             </View>
             <Text style={styles.userNameLabel} numberOfLines={1}>
-              {participant.userId} is sharing their screen.
+              {participantLabel} is sharing their screen.
             </Text>
           </View>
         )}
