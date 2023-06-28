@@ -17,17 +17,27 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 
 /**
- * Props for the Lobby View Component
+ * The props for the Join Button in the LobbyView.
  */
-type LobbyViewProps = {
+type JoinButton = {
   /**
-   * Handler called when the join button is clicked in the Lobby View.
+   * Handler called when the join button is clicked in the LobbyView.
    * @returns void
    */
-  onCallJoinHandler: () => void;
+  onPressHandler: () => void;
 };
 
-export const LobbyView = ({ onCallJoinHandler }: LobbyViewProps) => {
+/**
+ * Props for the Lobby View Component
+ */
+type LobbyViewType = {
+  /**
+   * Join button props to be passed as an object
+   */
+  joinButton: JoinButton;
+};
+
+export const LobbyView = ({ joinButton }: LobbyViewType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
@@ -118,7 +128,10 @@ export const LobbyView = ({ onCallJoinHandler }: LobbyViewProps) => {
               ? `${count}  more people are in the call now.`
               : 'You are first to Join the call.'}
           </Text>
-          <Pressable style={styles.joinButton} onPress={onCallJoinHandler}>
+          <Pressable
+            style={styles.joinButton}
+            onPress={joinButton.onPressHandler}
+          >
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>

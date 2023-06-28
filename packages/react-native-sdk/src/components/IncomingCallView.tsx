@@ -10,23 +10,46 @@ import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { useMutingState } from '../hooks/useMutingState';
 
+/**
+ * The props for the Accept Call button in the IncomingCallView component.
+ */
 type AcceptCallButton = {
+  /**
+   * Handler to be called when the accept call button is pressed.
+   * @returns void
+   */
   onPressHandler: () => void;
 };
 
+/**
+ * The props for the Reject Call button in the IncomingCallView component.
+ */
 type RejectCallButton = {
+  /**
+   * Handler to be called when the reject call button is pressed.
+   * @returns void
+   */
   onPressHandler: () => void;
 };
 
-export type IncomingCallViewProps = {
+/**
+ * Props for the IncomingCallView Component.
+ */
+export type IncomingCallViewType = {
+  /**
+   * Accept Call Button Props to be passed as an object
+   */
   acceptCallButton: AcceptCallButton;
+  /**
+   * Reject Call Button Props to be passed as an object
+   */
   rejectCallButton: RejectCallButton;
 };
 
 export const IncomingCallView = ({
   acceptCallButton,
   rejectCallButton,
-}: IncomingCallViewProps) => {
+}: IncomingCallViewType) => {
   const { isVideoMuted, toggleVideoState } = useMutingState();
 
   return (

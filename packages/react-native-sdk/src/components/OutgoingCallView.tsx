@@ -10,17 +10,30 @@ import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 import { theme } from '../theme';
 import { Z_INDEX } from '../constants';
 
+/**
+ * The props for the Cancel Call button in the OutgoingCallView component.
+ */
 type CancelCallButton = {
+  /**
+   * Handler to be called when the cancel/hungup call button is pressed.
+   * @returns void
+   */
   onPressHandler: () => void;
 };
 
-export type OutgoingCallViewProps = {
+/**
+ * Props for the OutgoingCallView Component.
+ */
+export type OutgoingCallViewType = {
+  /**
+   * Cancel/Reject Call Button Props to be passed as an object
+   */
   cancelCallHandler: CancelCallButton;
 };
 
 export const OutgoingCallView = ({
   cancelCallHandler,
-}: OutgoingCallViewProps) => {
+}: OutgoingCallViewType) => {
   const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
     useMutingState();
 

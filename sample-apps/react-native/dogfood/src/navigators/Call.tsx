@@ -41,7 +41,7 @@ const CallPanel = () => {
       }
       await call?.leave({ reject: true });
     } catch (error) {
-      console.log('Error leaving Call', error);
+      console.log('Error rejecting Call', error);
     }
   }, [call, callingState]);
 

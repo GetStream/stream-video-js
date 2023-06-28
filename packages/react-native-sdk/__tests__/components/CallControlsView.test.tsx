@@ -98,14 +98,19 @@ describe('CallControlsView', () => {
       }),
     ]);
 
-    render(<CallControlsView />, {
-      call,
-    });
+    const mockCallLeave = jest.fn();
+
+    render(
+      <CallControlsView hangUpCallButton={{ onPressHandler: mockCallLeave }} />,
+      {
+        call,
+      },
+    );
 
     const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
 
     fireEvent.press(button);
 
-    expect(call.leave).toHaveBeenCalled();
+    expect(mockCallLeave).toHaveBeenCalled();
   });
 });
