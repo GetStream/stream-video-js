@@ -3,49 +3,19 @@ title: Quickstart
 description: For when you're in a hurry and want to quickly get up and running
 ---
 
-The Stream Video React SDK is a highly customizable software development kit
-that enables audio and video calling features for new and existing applications.
+This quickstart gives you a quick overview of how Stream's video SDKs work.
 
-It consists of the Call Engine, a set of core components that form the foundation of the SDK,
-and numerous UI components that integrators can utilize as-is or with minor customization options.
+## Client setup & Calls
 
-This chapter provides a guide on how to add the Stream Video React SDK to a new or existing project,
-establish a connection to the Stream platform and build a simple video calling interface with the built-in UI components.
-
-## Install and Connect
-
-To get started with the Stream Video React SDK, a few steps are required. These steps include:
-
-Install the SDK using your package manager of choice, such as `npm`, `yarn`, or `pnpm`.
-
-```bash
-# example with yarn
-yarn add @stream-io/video-react-sdk
-```
-
-Collect the necessary configuration parameters, as:
-
-- `apiKey`: The API key for your application, which you can find in the [Stream Dashboard](https://dashboard.getstream.io/dashboard).
-- `user_id`: The unique identifier for the user connecting to the Stream platform.
-- `token`: The authentication token for the user connecting to the Stream platform. You can generate this token using the following [Stream Token Tool](https://getstream.io/chat/docs/react/tokens_and_authentication/?language=javascript#manually-generating-tokens)
-
-These parameters are essential for authentication and authorization to access the Stream platform.
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
 
 ```ts
-const apiKey = 'your-api-key';
-const userId = 'user-id';
-const token = 'authentication-token';
-```
-
-:::note
-You can read more about user authentication and authorization
-in the [Authenticating Your Users](../../guides/client-auth) chapter.
-:::
-
-Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user.
-
-```ts
-import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import {
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
 import { useEffect, useState } from 'react';
 
 const apiKey = 'your-api-key';
@@ -53,119 +23,100 @@ const userId = 'user-id';
 const token = 'authentication-token';
 const user: User = { id: userId };
 
-export const MyApp = () => {
-  const [client] = useState<StreamVideoClient>(
+export default function App() {
+  const [client] = useState(
     () => new StreamVideoClient({ apiKey, user, token }),
   );
-
-  // Further logic and rendering
-};
-```
-
-## Bridge it together
-
-Now, as you have a working instance of the `StreamVideoClient`,
-you can integrate it into your application and start using the SDK's features and functionalities.
-
-:::tip
-In this example, we are going to use the fundamental (core) components provided by the SDK to build a simple video calling interface.
-:::
-
-Within your application, add the `<StreamVideo client={client} />` provider component.
-This component makes the `StreamVideoClient` instance available to all child components via the React Context API.
-Many of the SDK's components rely on this context to function correctly.
-
-```tsx
-import { StreamVideo } from '@stream-io/video-react-sdk';
-
-export const MyApp = () => {
-  // Assuming you have the 'client' instance created
-  return (
-    // highlight-start
-    <StreamVideo client={client}>
-      {/* Your application's components and UI */}
-    </StreamVideo>
-    // highlight-end
-  );
-};
-```
-
-[Enable the default theme](../../ui-components/video-theme/) by importing the `@stream-io/video-react-sdk/dist/css/styles.css` stylesheet
-and wrap your UI code with the `<StreamTheme />` component.
-This ensures a consistent and visually appealing look for your video calling interface.
-
-```tsx
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-import { StreamTheme, StreamVideo } from '@stream-io/video-react-sdk';
-
-export const MyApp = () => {
-  // Assuming you have the 'client' instance created
-  return (
-    <StreamVideo client={client}>
-      // highlight-next-line
-      <StreamTheme>{/* Your application's components and UI */}</StreamTheme>
-    </StreamVideo>
-  );
-};
-```
-
-Choose a UI layout from the SDK-provided ones, such as `<SpeakerLayout>`, which provides a layout suitable for speaker-focused video calls.
-Additionally, hook in the default `<CallControls />` component to enable call control functionalities (such as mute, hang up, etc.).
-
-```tsx
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-import {
-  CallControls,
-  SpeakerLayout,
-  StreamVideo,
-  StreamTheme,
-} from '@stream-io/video-react-sdk';
-
-export const MyApp = () => {
-  // Assuming you have the 'client' instance created
-  return (
-    <StreamVideo client={client}>
-      <StreamTheme>
-        // highlight-start
-        <SpeakerLayout />
-        <CallControls />
-        // highlight-end
-      </StreamTheme>
-    </StreamVideo>
-  );
-};
-```
-
-Next, we need to create and join a `Call` instance, and provide that to the `<StreamCall>` component.
-
-```tsx
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-import {
-  CallControls,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-  SpeakerLayout,
-} from '@stream-io/video-react-sdk';
-import { useEffect, useState } from 'react';
-
-const MyApp = () => {
   const [call] = useState(() => client.call('default', 'my-first-call'));
 
   useEffect(() => {
     call.join({ create: true });
   }, [call]);
 
-  // Assuming you have the 'client' instance created
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>/* Video UI */</StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+`default` is a call type. There are 4 built-in call types and you can also create your own. The call type controls the permissions and which features are enabled.
+
+The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+
+## Rendering video
+
+The call's state can be accessed using hooks, you'll often work with `useParticipants`. Have a look below for a basic example of how to render the video of all participants:
+
+```tsx
+function VideoUI() {
+  const participants = useParticipants();
+
+  return (
+    <>
+      {participants.map((p) => (
+        <ParticipantView participant={p} key={p.sessionId} />
+      ))}
+    </>
+  );
+}
+```
+
+The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+
+More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
+
+## Camera & Microphone
+
+Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera:
+
+```typescript
+function VideoButton() {
+  const localParticipant = useLocalParticipant();
+  const isVideoMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+  const { toggleVideoMuteState } = useToggleVideoMuteState();
+
+  return (
+    <button onClick={toggleVideoMuteState}>
+      {isVideoMute ? 'Turn on camera' : 'Turn off camera'}
+    </button>
+  );
+}
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## UI Components
+
+The goal of this library is to make it easy to build any type of video/calling experience. You have a few options for the UI:
+
+- Build your own UI components using the state as shown above.
+- Use our library of built-in components.
+- Mix & Match between your own and built-in components.
+
+The built-in components you can customize using [theming](../../ui-components/video-theme) and props. If you decide to build your own components we have a [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
+
+Let's see an example where we set up the UI using built-in components:
+
+- Set up theming using the `StreamTheme` provider
+- Choose a [UI layout](../../ui-components/core/call-layout) from the SDK-provided ones, such as `<SpeakerLayout>`, which provides a layout suitable for speaker-focused video calls.
+- Additionally, hook in the default `<CallControls />` component to enable call control functionalities (such as mute, hang up, etc.).
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+
+const MyApp = () => {
+  // Assuming you have the 'client' and 'call' created
   return (
     <StreamVideo client={client}>
       <StreamTheme>
-        // highlight-start
         <StreamCall call={call}>
           <SpeakerLayout />
           <CallControls />
         </StreamCall>
-        // highlight-end
       </StreamTheme>
     </StreamVideo>
   );

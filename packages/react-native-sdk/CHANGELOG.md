@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.222](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.221...@stream-io/video-react-native-sdk-0.0.1-alpha.222) (2023-06-27)
+
+
+
+## [0.0.1-alpha.221](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.220...@stream-io/video-react-native-sdk-0.0.1-alpha.221) (2023-06-27)
+
+
+### Bug Fixes
+
+* **react-native:** clarify that there is no support for calling from ios dialer app ([#719](https://github.com/GetStream/stream-video-js/issues/719)) ([e88a90b](https://github.com/GetStream/stream-video-js/commit/e88a90b2e87d1a7521d2c9550a90ffdd160b64f7))
+
+
+
+## [0.0.1-alpha.220](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.219...@stream-io/video-react-native-sdk-0.0.1-alpha.220) (2023-06-27)
+
+
+
+## [0.0.1-alpha.219](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.218...@stream-io/video-react-native-sdk-0.0.1-alpha.219) (2023-06-27)
+
+
+### Features
+
+* **react-native:** add push notification documentation according to the new SDK changes ([#712](https://github.com/GetStream/stream-video-js/issues/712)) ([7a721ac](https://github.com/GetStream/stream-video-js/commit/7a721ac30f035f5a24901c44cf56afbfb868da10))
+
+
+
+## [0.0.1-alpha.218](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.217...@stream-io/video-react-native-sdk-0.0.1-alpha.218) (2023-06-27)
+
+
+
+## [0.0.1-alpha.217](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.216...@stream-io/video-react-native-sdk-0.0.1-alpha.217) (2023-06-27)
+
+
+
 ## [0.0.1-alpha.216](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.215...@stream-io/video-react-native-sdk-0.0.1-alpha.216) (2023-06-27)
 
 
