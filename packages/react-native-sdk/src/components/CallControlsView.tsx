@@ -4,12 +4,8 @@ import { useCallControls } from '../hooks/useCallControls';
 import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { CallingState, OwnCapability } from '@stream-io/video-client';
-import {
-  Restricted,
-  useCall,
-  useCallCallingState,
-} from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { Restricted } from '@stream-io/video-react-bindings';
 import { ReactionModal } from './ReactionsModal';
 import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
@@ -74,20 +70,6 @@ export const CallControlsView = ({
 
   const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useCallControls();
-  const call = useCall();
-  const callingState = useCallCallingState();
-
-  const onCallHangup = async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-      hangUpCallButton?.onPressHandler();
-    } catch (err) {
-      console.log('Error Leaving call:', err);
-    }
-  };
 
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
@@ -146,7 +128,7 @@ export const CallControlsView = ({
         </CallControlsButton>
       </Restricted>
       <CallControlsButton
-        onPress={onCallHangup}
+        onPress={hangUpCallButton?.onPressHandler}
         color={theme.light.error}
         style={[styles.button, { shadowColor: theme.light.error }]}
         accessibilityLabel={A11yButtons.HANG_UP_CALL}
