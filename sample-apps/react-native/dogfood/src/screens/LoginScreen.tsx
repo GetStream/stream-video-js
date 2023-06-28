@@ -28,10 +28,8 @@ GoogleSignin.configure({
   // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
 });
 
-const generateValidUserName = (username: string) => {
-  return username
-    .replace(/[^_\-0-9a-zA-Z@]/g, '_')
-    .replace('@getstream_io', '');
+const generateValidUserId = (userId: string) => {
+  return userId.replace(/[^_\-0-9a-zA-Z@]/g, '_').replace('@getstream_io', '');
 };
 
 const LoginScreen = () => {
@@ -42,7 +40,7 @@ const LoginScreen = () => {
 
   const loginHandler = async () => {
     try {
-      const _userId = generateValidUserName(localUserId);
+      const _userId = generateValidUserId(localUserId);
       const _userImageUrl = `https://getstream.io/random_png/?id=${_userId}&name=${_userId}`;
       setState({
         userId: _userId,
@@ -58,7 +56,7 @@ const LoginScreen = () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
-      const userId = generateValidUserName(userInfo.user.email);
+      const userId = generateValidUserId(userInfo.user.email);
       const userName = userInfo.user.name as string;
       setState({
         userId,
