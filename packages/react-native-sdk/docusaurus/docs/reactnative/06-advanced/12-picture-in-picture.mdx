@@ -1,0 +1,75 @@
+---
+id: picture-in-picture-mode
+title: Picture-in-Picture
+---
+
+In this guide, you'll learn how to display floating video element of the `ParticipantView` component which is visible even if you minimise your browser window utilising the [Picture-in-Picture API](https://developer.mozilla.org/en-US/docs/Web/API/Picture-in-Picture_API). You might want to use this customization in combination with `SpeakerLayout` (`ParticipantViewUISpotlight` property) where spotlighted `ParticipantView` switches between dominant speakers automatically.
+
+### Define custom `ParticipantViewUI`
+
+The `ParticipantViewUI` template is incredibly versatile and can render anything you want it to. In this case, we'll be rendering a single button which we'll use to open the video element in the floating picture-in-picture window.
+
+```tsx
+import { useParticipantViewContext } from '@stream-io/video-react-sdk';
+
+const CustomParticipantViewUI = () => {
+  const { videoElement } = useParticipantViewContext();
+  const [pictureInPictureElement, setPictureInPictureElement] = useState(
+    document.pictureInPictureElement,
+  );
+
+  useEffect(() => {
+    if (!videoElement) return;
+
+    // sync local state
+    const handlePictureInPicture = () => {
+      setPictureInPictureElement(document.pictureInPictureElement);
+    };
+
+    videoElement.addEventListener(
+      'enterpictureinpicture',
+      handlePictureInPicture,
+    );
+    videoElement.addEventListener(
+      'leavepictureinpicture',
+      handlePictureInPicture,
+    );
+
+    return () => {
+      videoElement.removeEventListener(
+        'enterpictureinpicture',
+        handlePictureInPicture,
+      );
+      videoElement.removeEventListener(
+        'leavepictureinpicture',
+        handlePictureInPicture,
+      );
+    };
+  }, [videoElement]);
+
+  const togglePictureInPicture = () => {
+    if (videoElement && pictureInPictureElement !== videoElement)
+      return videoElement.requestPictureInPicture().catch(console.error);
+
+    document.exitPictureInPicture().catch(console.error);
+  };
+
+  return (
+    <>
+      <button
+        disabled={!document.pictureInPictureEnabled}
+        style={{ position: 'absolute', top: 10, right: 10 }}
+        onClick={toggleFullscreen}
+      >
+        {pictureInPictureElement === videoElement ? 'Leave' : 'Enter'}{' '}
+        picture-in-picture
+      </button>
+      {/* your other custom UI elements */}
+    </>
+  );
+};
+```
+
+## Final steps
+
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [participant view customizations guide](../../ui-cookbook/participant-view-customizations).

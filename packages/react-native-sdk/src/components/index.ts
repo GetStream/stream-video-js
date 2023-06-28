@@ -1,6 +1,7 @@
 export * from './IncomingCallView';
 export * from './OutgoingCallView';
 export * from './Avatar';
+// todo: remove from import, integrators should use ParticipantView instead
 export * from './VideoRenderer';
 export * from './LocalVideoView';
 export * from './ParticipantView';
