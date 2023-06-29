@@ -2,7 +2,7 @@ import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
-import { Button, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, View } from 'react-native';
 import { LobbyViewComponent } from './LobbyViewComponent';
 import { appTheme } from '../theme';
 import { ActiveCall } from './ActiveCall';
@@ -53,15 +53,13 @@ export const MeetingUI = ({
     );
   } else {
     return (
-      <SafeAreaView style={styles.wrapper}>
-        <ActiveCall
-          chatButton={{
-            onPressHandler: () => {
-              navigation.navigate('ChatScreen', { callId });
-            },
-          }}
-        />
-      </SafeAreaView>
+      <ActiveCall
+        chatButton={{
+          onPressHandler: () => {
+            navigation.navigate('ChatScreen', { callId });
+          },
+        }}
+      />
     );
   }
 };
@@ -70,10 +68,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: appTheme.colors.static_grey,
-  },
-  wrapper: {
-    flex: 1,
     backgroundColor: appTheme.colors.static_grey,
   },
   buttonsContainer: {
