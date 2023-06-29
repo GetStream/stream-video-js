@@ -3,6 +3,70 @@ id: call-participants-list
 title: Participants list
 ---
 
-:::warning
-TODO: write about: Call participants + blocked users list https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallParticipantsList
-:::
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CallParticipantsList  from '../../assets/03-ui-components/call-participant-list/call-participant-list.png';
+import CallParticipantsListWithAdminActions  from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-admin-actions-menu.png';
+import CallParticipantsListWithUserActions  from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-user-actions-menu.png';
+
+The SDK provides a default implementation for listing call participants in `CallParticipantsList` component.
+<ImageShowcase
+    items={[
+        {
+            image: CallParticipantsList,
+            caption: 'Default UI of call participant list',
+            alt: 'Default UI of call participant list',
+        },
+        {
+            image: CallParticipantsListWithAdminActions,
+            caption: 'Default UI of call participant list with admin actions menu',
+            alt: 'Default UI of call participant list with admin actions menu',
+        },
+        {
+            image: CallParticipantsListWithUserActions,
+            caption: 'Default UI of call participant list with user actions menu',
+            alt: 'Default UI of call participant list with user actions menu',
+        },
+    ]}
+/>
+
+The component supports the following features:
+
+- list active with their device mute statuses
+- list blocked participants
+- searching among the active or blocked participants
+- mute all users by call owners
+- per user actions like pin, block etc. (depends on each participant's permissions)
+
+## Props
+
+### `activeUsersSearchFn`
+
+| Type                    |
+| ----------------------- |
+| `(searchQuery: string) => Promise<StreamVideoParticipant[]>` \| `undefined` |
+
+Custom function to override the searching logic of active participants.
+
+### `blockedUsersSearchFn`
+
+| Type                    |
+| ----------------------- |
+| `(searchQuery: string) => Promise<string[]>` \| `undefined` |
+
+Custom function to override the searching logic of blocked users.
+
+### `debounceSearchInterval`
+
+| Type                    | Default             |
+| ----------------------- | ------------------- |
+| `number` \| `undefined` |        `200`        |
+
+Interval in ms, during which the participant search calls will be debounced.
+
+### `onClose`
+
+| Type         |
+|--------------|
+| `() => void` |
+
+Click event listener function to be invoked in order to dismiss/hide the CallParticipantsList from the UI.
