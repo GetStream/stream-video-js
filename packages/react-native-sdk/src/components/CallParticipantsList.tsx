@@ -155,7 +155,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid
   // else we display them both in a stretched row on the screen
-  const shouldWrapByColumns = horizontal || participants.length > 2;
+  const shouldWrapByColumns = !!horizontal || participants.length > 2;
 
   if (!shouldWrapByColumns) {
     return (
