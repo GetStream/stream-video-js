@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.57...@stream-io/video-react-sdk-0.0.58) (2023-06-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.29`
+* `@stream-io/video-styling` updated to version `0.1.4`
+
+### Features
+
+* Change sendEvent signature ([#734](https://github.com/GetStream/stream-video-js/issues/734)) ([284c8c2](https://github.com/GetStream/stream-video-js/commit/284c8c2165129852ccf9fd7d8baad37f43d22a17))
+
+
+### Documentation
+
+* **react-sdk:** add documentation for CallParticipantList component ([#728](https://github.com/GetStream/stream-video-js/issues/728)) ([bfce6fa](https://github.com/GetStream/stream-video-js/commit/bfce6fa69d1c90095bde5b75055d6b304ad7a4d4))
+* **react-sdk:** add documentation for VideoPreview component ([#729](https://github.com/GetStream/stream-video-js/issues/729)) ([d1096b4](https://github.com/GetStream/stream-video-js/commit/d1096b42976ac797e4bb104bbdff8ca9ed5ed88c))
+* **react-sdk:** Reaction component ([#721](https://github.com/GetStream/stream-video-js/issues/721)) ([0a80c5e](https://github.com/GetStream/stream-video-js/commit/0a80c5e1944f9dff6d330d83f9009070d8c8a8d7))
+
 ### [0.0.57](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.56...@stream-io/video-react-sdk-0.0.57) (2023-06-28)
 
 
