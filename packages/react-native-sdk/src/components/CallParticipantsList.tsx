@@ -56,8 +56,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     width: 0,
     height: 0,
   });
-  const { width: containerWidth } = containerLayout;
-  const { height: containerHeight } = containerLayout;
 
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
@@ -122,31 +120,21 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     });
   }).current;
 
-  const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-    // we calculate the height of the participant view based on the containerHeight (aka the phone's screen height non horizontal mode),
-    // in horizontal mode we always in 1/3 of the screen height
-    let itemHeight = containerHeight;
-    if (!horizontal) {
-      if (participants.length <= 4) {
-        // special case: if there are 4 or less participants, we display them in 2 rows
-        itemHeight = containerHeight / 2;
-      } else {
-        // the max rows we can have is 3
-        itemHeight = containerHeight / 3;
-      }
-    }
+  const { itemHeight, itemWidth } = calculateParticipantViewSize({
+    containerHeight: containerLayout.height,
+    containerWidth: containerLayout.width,
+    participantsLength: participants.length,
+    numColumns,
+    horizontal,
+  });
 
-    // we calculate the size of the participant view based on the containerWidth (the phone's screen width),
-    let itemWidth = containerWidth / numColumns;
-    if (horizontal) {
-      itemWidth = itemWidth - theme.margin.sm * 2;
-    }
+  const itemContainerStyle = useMemo<StyleProp<ViewStyle>>(() => {
     const style = { width: itemWidth, height: itemHeight };
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
     return style;
-  }, [containerWidth, numColumns, horizontal, containerHeight, participants]);
+  }, [itemWidth, itemHeight, horizontal]);
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
@@ -175,7 +163,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
         {participants.map((participant) => (
           <ParticipantView
             participant={participant}
-            containerStyle={[styles.flexed]}
+            containerStyle={styles.flexed}
             kind="video"
             isVisible={true}
           />
@@ -207,8 +195,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantWrapperHorizontal: {
+    // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: theme.margin.sm,
     overflow: 'hidden',
     borderRadius: theme.rounded.sm,
   },
 });
+
+/**
+ * This function calculates the size of the participant view based on the size of the container (the phone's screen size) and the number of participants.
+ * @param {number} containerHeight - height of the container (the phone's screen height) in pixels
+ * @param {number} containerWidth - width of the container (the phone's screen width) in pixels
+ * @param {number} participantsLength - number of participants
+ * @param {number} numColumns - number of columns
+ * @param {boolean} horizontal - whether the participant view is in horizontal mode
+ * @returns {object} - an object containing the height and width of the participant view
+ */
+function calculateParticipantViewSize({
+  containerHeight,
+  containerWidth,
+  participantsLength,
+  numColumns,
+  horizontal,
+}: {
+  containerHeight: number;
+  containerWidth: number;
+  participantsLength: number;
+  numColumns: number;
+  horizontal: boolean | undefined;
+}) {
+  let itemHeight = containerHeight;
+  // in vertical mode, we calculate the height of the participant view based on the containerHeight (aka the phone's screen height)
+  if (!horizontal) {
+    if (participantsLength <= 4) {
+      // special case: if there are 4 or less participants, we display them in 2 rows
+      itemHeight = containerHeight / 2;
+    } else {
+      // generally, we display the participants in 3 rows
+      itemHeight = containerHeight / 3;
+    }
+  }
+
+  let itemWidth = containerWidth / numColumns;
+  if (horizontal) {
+    // in horizontal mode we apply margin to the participant view and that should be subtracted from the width
+    itemWidth = itemWidth - theme.margin.sm * 2;
+  }
+
+  return { itemHeight, itemWidth };
+}
