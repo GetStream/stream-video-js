@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.228](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.227...@stream-io/video-react-native-sdk-0.0.1-alpha.228) (2023-06-29)
+
+
+### Features
+
+* **react-native:** align call participants list with figma ([#737](https://github.com/GetStream/stream-video-js/issues/737)) ([b9e1f04](https://github.com/GetStream/stream-video-js/commit/b9e1f040c5ab14d5d655124d3abd31efa5722163))
+
+
+
 ## [0.0.1-alpha.227](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.226...@stream-io/video-react-native-sdk-0.0.1-alpha.227) (2023-06-29)
 
 
