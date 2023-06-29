@@ -136,8 +136,10 @@ export const reconcileParticipantLocalState = (
 ) => {
   if (!source) return target;
 
-  // Note: MediaStream shouldn't be reconciled as we are going to
-  // get a new one from the new SFU in case of a migration or reconnection.
+  target.audioStream = source.audioStream;
+  target.videoStream = source.videoStream;
+  target.screenShareStream = source.screenShareStream;
+
   target.videoDimension = source.videoDimension;
   target.screenShareDimension = source.screenShareDimension;
   target.pinnedAt = source.pinnedAt;

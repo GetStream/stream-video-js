@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
+import { CallState } from '../../store';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -15,7 +16,7 @@ vi.mock('../../StreamSfuClient', () => {
 describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
-  const onTrack = vi.fn();
+  let state = new CallState();
 
   beforeEach(() => {
     const dispatcher = new Dispatcher();
@@ -32,8 +33,8 @@ describe('Subscriber', () => {
     subscriber = new Subscriber({
       sfuClient,
       dispatcher,
+      state,
       connectionConfig: { iceServers: [] },
-      onTrack,
     });
   });
 
@@ -56,6 +57,8 @@ describe('Subscriber', () => {
       const newConnectionConfig = { iceServers: [] };
 
       const oldPeerConnection = subscriber['pc'];
+      vi.spyOn(oldPeerConnection, 'getReceivers').mockReturnValue([]);
+
       await subscriber.migrateTo(newSfuClient, newConnectionConfig);
       const newPeerConnection = subscriber['pc'];
 
@@ -65,6 +68,7 @@ describe('Subscriber', () => {
 
     it('should close the old peer connection once the new one connects', async () => {
       let onConnectionStateChange: () => void = () => {};
+      let onTrack: (e: RTCTrackEvent) => void = () => {};
       // @ts-ignore
       vi.spyOn(subscriber, 'createPeerConnection').mockImplementation(() => {
         const pc = new RTCPeerConnection();
@@ -72,23 +76,45 @@ describe('Subscriber', () => {
           if (event === 'connectionstatechange') {
             // @ts-ignore
             onConnectionStateChange = cb;
+          } else if (event === 'track') {
+            // @ts-ignore
+            onTrack = cb;
           }
         });
         return pc;
       });
 
       const oldPeerConnection = subscriber['pc'];
+      vi.spyOn(oldPeerConnection, 'getReceivers').mockReturnValue([]);
       vi.spyOn(oldPeerConnection, 'close');
 
       await subscriber.migrateTo(sfuClient, { iceServers: [] });
 
       const newPeerConnection = subscriber['pc'];
+      vi.spyOn(newPeerConnection, 'removeEventListener');
       // @ts-ignore
       newPeerConnection.connectionState = 'connected';
 
       expect(onConnectionStateChange).toBeDefined();
       expect(oldPeerConnection.close).not.toHaveBeenCalled();
       onConnectionStateChange();
+
+      // @ts-ignore
+      onTrack(
+        // @ts-ignore
+        new RTCTrackEvent('video', {
+          track: new MediaStreamTrack(),
+        }),
+      );
+
+      expect(newPeerConnection.removeEventListener).toHaveBeenCalledWith(
+        'connectionstatechange',
+        onConnectionStateChange,
+      );
+      expect(newPeerConnection.removeEventListener).toHaveBeenCalledWith(
+        'track',
+        onTrack,
+      );
       expect(oldPeerConnection.close).toHaveBeenCalled();
     });
   });

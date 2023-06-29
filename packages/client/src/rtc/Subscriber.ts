@@ -111,13 +111,66 @@ export class Subscriber {
     // when migrating, we want to keep the previous subscriber open
     // until the new one is connected
     const previousPC = this.pc;
-    const pc = this.createPeerConnection(connectionConfig);
-    pc.addEventListener('connectionstatechange', () => {
-      if (pc.connectionState === 'connected') {
-        previousPC.close();
+
+    // we keep a record of previously available video tracks
+    // so that we can monitor when they become available on the new
+    // subscriber and close the previous one.
+    const trackIdsToMigrate = new Set<string>();
+    previousPC.getReceivers().forEach((r) => {
+      if (r.track.kind === 'video') {
+        trackIdsToMigrate.add(r.track.id);
       }
     });
 
+    // set up a new subscriber peer connection, configured to connect
+    // to the new SFU node
+    const pc = this.createPeerConnection(connectionConfig);
+
+    let migrationTimeoutId: NodeJS.Timeout;
+    const cleanupMigration = () => {
+      previousPC.close();
+      clearTimeout(migrationTimeoutId);
+    };
+
+    // When migrating, we want to keep track of the video tracks
+    // that are migrating to the new subscriber.
+    // Once all of them are available, we can close the previous subscriber.
+    const handleTrackMigration = (e: RTCTrackEvent) => {
+      logger(
+        'debug',
+        `[Migration]: Migrated track: ${e.track.id}, ${e.track.kind}`,
+      );
+      trackIdsToMigrate.delete(e.track.id);
+      if (trackIdsToMigrate.size === 0) {
+        logger('debug', `[Migration]: Migration complete`);
+        pc.removeEventListener('track', handleTrackMigration);
+        cleanupMigration();
+      }
+    };
+
+    // When migrating, we want to keep track of the connection state
+    // of the new subscriber.
+    // Once it is connected, we give it a 2-second grace period to receive
+    // all the video tracks that are migrating from the previous subscriber.
+    // After this threshold, we abruptly close the previous subscriber.
+    const handleConnectionStateChange = () => {
+      if (pc.connectionState === 'connected') {
+        migrationTimeoutId = setTimeout(() => {
+          pc.removeEventListener('track', handleTrackMigration);
+          cleanupMigration();
+        }, 2000);
+
+        pc.removeEventListener(
+          'connectionstatechange',
+          handleConnectionStateChange,
+        );
+      }
+    };
+
+    pc.addEventListener('track', handleTrackMigration);
+    pc.addEventListener('connectionstatechange', handleConnectionStateChange);
+
+    // replace the PeerConnection instance
     this.pc = pc;
   };
 
