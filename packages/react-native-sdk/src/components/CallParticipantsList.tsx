@@ -106,11 +106,11 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   }).current;
 
   // NOTE: key must be sessionId always as it is used to track viewable participants
-  const keyExtractor = useRef<FlatListProps['keyExtractor']>(
+  const keyExtractor = useRef<NonNullable<FlatListProps['keyExtractor']>>(
     (item) => item.sessionId,
   ).current;
 
-  const onLayout = useRef<FlatListProps['onLayout']>((event) => {
+  const onLayout = useRef<NonNullable<FlatListProps['onLayout']>>((event) => {
     const { height, width } = event.nativeEvent.layout;
     setContainerLayout((prev) => {
       if (prev.height === height && prev.width === width) {
@@ -160,12 +160,13 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   if (!shouldWrapByColumns) {
     return (
       <>
-        {participants.map((participant) => (
+        {participants.map((participant, index) => (
           <ParticipantView
             participant={participant}
             containerStyle={styles.flexed}
             kind="video"
             isVisible={true}
+            key={keyExtractor(participant, index)}
           />
         ))}
       </>
