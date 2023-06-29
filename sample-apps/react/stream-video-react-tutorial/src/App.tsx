@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Call,
   StreamCall,
@@ -25,21 +25,27 @@ export default function App() {
     });
   });
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+  const [call, setCall] = useState<Call | undefined>();
 
-  useEffect(() => {
+  const joinCall = () => {
+    const call = client.call('default', import.meta.env.VITE_STREAM_CALL_ID);
     call.join({ create: true });
-  }, [call]);
+    setCall(call);
+  };
+
+  const leaveCall = () => {
+    setCall(undefined);
+  };
 
   return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
-      </StreamCall>
+    <StreamVideo client={client} onConnect={joinCall} onDisconnect={leaveCall}>
+      {call && (
+        <StreamCall call={call}>
+          <StreamTheme className="video__call">
+            <UI />
+          </StreamTheme>
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 }

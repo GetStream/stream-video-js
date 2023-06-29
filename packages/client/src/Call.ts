@@ -72,6 +72,7 @@ import {
 import {
   BehaviorSubject,
   debounce,
+  filter,
   map,
   of,
   pairwise,
@@ -384,12 +385,15 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
-    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
     this.rejoinPromise = undefined;
+
+    if (callingState === CallingState.JOINING) {
+      await this.assertCallJoined();
+    }
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -1221,7 +1225,10 @@ export class Call {
   private assertCallJoined = () => {
     return new Promise<void>((resolve) => {
       this.state.callingState$
-        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
+        .pipe(
+          takeWhile((state) => state !== CallingState.JOINED, true),
+          filter((s) => s === CallingState.JOINED),
+        )
         .subscribe(() => resolve());
     });
   };
