@@ -103,12 +103,6 @@ export class StreamSfuClient {
    */
   isMigratingAway = false;
 
-  /**
-   * A flag indicating whether the client attempts to recover the connection
-   * to the SFU before attempting a full reconnection.
-   */
-  isRecoveringConnection = false;
-
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;

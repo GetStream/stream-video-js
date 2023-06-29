@@ -183,7 +183,6 @@ export class Call {
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
-  private attemptConnectionRecovery = true;
 
   /**
    * A list hooks/functions to invoke when the call is left.
@@ -592,20 +591,13 @@ export class Call {
     let sfuToken: string;
     let connectionConfig: RTCConfiguration | undefined;
     try {
-      // use the fast path and try to recover a connection to the
-      // same SFU server
-      if (!this.sfuClient?.isRecoveringConnection) {
-        const call = await join(this.streamClient, this.type, this.id, data);
-        this.state.setMetadata(call.metadata);
-        this.state.setMembers(call.members);
-        this.state.setOwnCapabilities(call.ownCapabilities);
-        connectionConfig = call.connectionConfig;
-        sfuServer = call.sfuServer;
-        sfuToken = call.token;
-      } else {
-        sfuServer = this.sfuClient.sfuServer;
-        sfuToken = this.sfuClient.token;
-      }
+      const call = await join(this.streamClient, this.type, this.id, data);
+      this.state.setMetadata(call.metadata);
+      this.state.setMembers(call.members);
+      this.state.setOwnCapabilities(call.ownCapabilities);
+      connectionConfig = call.connectionConfig;
+      sfuServer = call.sfuServer;
+      sfuToken = call.token;
 
       if (this.streamClient._hasConnectionID()) {
         this.watching = true;
@@ -636,7 +628,7 @@ export class Call {
     /**
      * A closure which hides away the re-connection logic.
      */
-    const rejoin = async ({ migrate = false, recover = false } = {}) => {
+    const rejoin = async ({ migrate = false } = {}) => {
       this.reconnectAttempts++;
       this.state.setCallingState(
         migrate ? CallingState.MIGRATING : CallingState.RECONNECTING,
@@ -655,14 +647,6 @@ export class Call {
         );
       }
 
-      if (recover) {
-        this.logger(
-          'debug',
-          `[Rejoin]: Recovering connection. Attempt ${this.reconnectAttempts}`,
-        );
-        sfuClient.isRecoveringConnection = true;
-      }
-
       // take a snapshot of the current "local participant" state
       // we'll need it for restoring the previous publishing state later
       const localParticipant = this.state.localParticipant;
@@ -670,30 +654,29 @@ export class Call {
       const disconnectFromPreviousSfu = () => {
         if (!migrate) {
           this.subscriber?.close();
-          // this.subscriber = undefined;
-          this.publisher?.stopPublishing();
-          // this.publisher = undefined;
+          this.subscriber = undefined;
+          this.publisher?.close({ stopTracks: false });
+          this.publisher = undefined;
           this.statsReporter?.stop();
-          // this.statsReporter = undefined;
+          this.statsReporter = undefined;
         }
         previousSfuClient?.close(); // clean up previous connection
       };
 
-      if (!recover || !migrate) {
+      if (!migrate) {
         // in migration or recovery scenarios, we don't want to
         // wait before attempting to reconnect to an SFU server
         await sleep(retryInterval(this.reconnectAttempts));
+        disconnectFromPreviousSfu();
       }
       await this.join({
         ...data,
         ...(migrate && { migrating_from: sfuServer.edge_name }),
       });
 
-      // if `join` didn't throw, we can assume that the connection
-      // was successfully recovered
-      if (previousSfuClient) previousSfuClient.isRecoveringConnection = false;
-
-      disconnectFromPreviousSfu();
+      if (migrate) {
+        disconnectFromPreviousSfu();
+      }
 
       this.logger(
         'info',
@@ -758,19 +741,18 @@ export class Call {
         // to reconnect to the old SFU, but rather to the new one.
         if (
           e.code === KnownCodes.WS_CLOSED_ABRUPTLY &&
-          (sfuClient.isMigratingAway || sfuClient.isRecoveringConnection)
+          sfuClient.isMigratingAway
         )
           return;
         // do nothing for react-native as it is handled by SDK
         if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          rejoin({ recover: this.attemptConnectionRecovery }).catch((err) => {
+          rejoin().catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
-            this.attemptConnectionRecovery = false;
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         } else {
@@ -796,13 +778,12 @@ export class Call {
         window.removeEventListener('online', handleOnOnline);
         if (this.state.callingState === CallingState.OFFLINE) {
           this.logger('info', '[Rejoin]: Going online...');
-          rejoin({ recover: this.attemptConnectionRecovery }).catch((err) => {
+          rejoin().catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
-            this.attemptConnectionRecovery = false;
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         }
@@ -916,7 +897,6 @@ export class Call {
       this.state.setStartedAt(startedAt);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
-      this.attemptConnectionRecovery = true; // enable connection recovery
       this.state.setCallingState(CallingState.JOINED);
       this.logger('info', `Joined call ${this.cid}`);
     } catch (err) {
