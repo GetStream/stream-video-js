@@ -43,7 +43,7 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const { bottom } = useSafeAreaInsets();
+  const { bottom, top } = useSafeAreaInsets();
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -51,7 +51,7 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <CallParticipantsBadge style={styles.iconGroup} />
+      <CallParticipantsBadge style={[styles.iconGroup, { top }]} />
       <CallParticipantsView />
       <CallControlsView
         chatButton={{
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   iconGroup: {
     position: 'absolute',
-    top: appTheme.spacing.lg,
+    marginTop: appTheme.spacing.lg,
     right: appTheme.spacing.sm,
     zIndex: appTheme.zIndex.IN_FRONT,
   },
