@@ -730,11 +730,16 @@ export class Call {
       const unregisterGoAway = this.dispatcher.on('goAway', (event) => {
         if (event.eventPayload.oneofKind !== 'goAway') return;
         const { reason } = event.eventPayload.goAway;
-        console.log(
+        this.logger(
+          'info',
           `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
         );
         rejoin({ migrate: true }).catch((err) => {
-          console.warn(`[Migration]: Failed to migrate to another SFU.`, err);
+          this.logger(
+            'warn',
+            `[Migration]: Failed to migrate to another SFU.`,
+            err,
+          );
         });
       });
 
