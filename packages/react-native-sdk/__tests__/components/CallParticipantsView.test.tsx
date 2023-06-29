@@ -73,6 +73,11 @@ describe('CallParticipantsView', () => {
     expect(
       participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'audio-test-url');
+
+    // flat list should not be rendered for 2 participants as we should not wrap them in a grid
+    expect(
+      screen.queryByLabelText(A11yComponents.CALL_PARTICIPANTS_LIST),
+    ).toBeNull();
   });
   it('should render an call participants view with spotlight mode with 2 participants', async () => {
     const call = mockCall(mockClientWithUser(), [
@@ -103,6 +108,11 @@ describe('CallParticipantsView', () => {
       await screen.findByLabelText(
         A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
       ),
+    ).toBeVisible();
+
+    // Since it has a screen share and thereby spotlight, we should render the flatlist even with 2 participants
+    expect(
+      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_LIST),
     ).toBeVisible();
   });
 
