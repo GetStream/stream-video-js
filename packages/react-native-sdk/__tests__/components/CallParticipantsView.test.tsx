@@ -15,6 +15,7 @@ enum P_IDS {
   LOCAL_1 = 'local-1',
   REMOTE_1 = 'remote-1',
   REMOTE_2 = 'remote-2',
+  REMOTE_3 = 'remote-3',
 }
 
 const simulateOnViewableItemsChanged = async (
@@ -43,7 +44,7 @@ describe('CallParticipantsView', () => {
         userId: P_IDS.LOCAL_1,
       }),
       mockParticipant({
-        publishedTracks: [SfuModels.TrackType.AUDIO, SfuModels.TrackType.VIDEO],
+        publishedTracks: [SfuModels.TrackType.AUDIO],
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
       }),
@@ -56,6 +57,22 @@ describe('CallParticipantsView', () => {
     expect(
       await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID_VIEW),
     ).toBeVisible();
+
+    // Locating and verifying that all ParticipantViews are rendered
+    const localParticipant = within(
+      screen.getByLabelText(A11yComponents.LOCAL_PARTICIPANT),
+    );
+    const participant1 = within(
+      screen.getByLabelText(`participant-${P_IDS.REMOTE_1}`),
+    );
+
+    expect(
+      localParticipant.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+    ).toHaveProp('streamURL', 'video-test-url');
+
+    expect(
+      participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+    ).toHaveProp('streamURL', 'audio-test-url');
   });
   it('should render an call participants view with spotlight mode with 2 participants', async () => {
     const call = mockCall(mockClientWithUser(), [
@@ -89,7 +106,7 @@ describe('CallParticipantsView', () => {
     ).toBeVisible();
   });
 
-  it('should render an active call with 3 partic. local partic., partic. 2 muted video, partic. 3 muted audio', async () => {
+  it('should render an active call with 4 participants. partic. 1 local partic., partic. 2 muted video, partic. 3 muted audio, partic. 4 muted audio', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -107,6 +124,12 @@ describe('CallParticipantsView', () => {
         audioStream: null,
         sessionId: P_IDS.REMOTE_2,
         userId: P_IDS.REMOTE_2,
+      }),
+      mockParticipant({
+        publishedTracks: [SfuModels.TrackType.VIDEO],
+        audioStream: null,
+        sessionId: P_IDS.REMOTE_3,
+        userId: P_IDS.REMOTE_3,
       }),
     ]);
 
@@ -134,6 +157,10 @@ describe('CallParticipantsView', () => {
       screen.getByLabelText(`participant-${P_IDS.REMOTE_2}`),
     );
 
+    const participant3 = within(
+      screen.getByLabelText(`participant-${P_IDS.REMOTE_3}`),
+    );
+
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
     expect(
       localParticipant.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
@@ -144,9 +171,12 @@ describe('CallParticipantsView', () => {
     expect(
       participant2.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
+    expect(
+      participant3.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+    ).toHaveProp('streamURL', 'video-test-url');
     // Verifying no extra/unknown RTCViews are rendered
     expect(
       screen.getAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
   });
 });
