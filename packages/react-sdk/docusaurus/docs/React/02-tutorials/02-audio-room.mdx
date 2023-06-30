@@ -3,6 +3,8 @@ title: Audio Room Tutorial
 description: How to build an audio room using Stream's video SDKs
 ---
 
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
 In this guide, you'll build an audio room experience similar to Twitter Spaces / Clubhouse.
 
 The code for the final result can also be found on GitHub, so if you're only interested in seeing the resulting code, go [here](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms).
@@ -14,12 +16,16 @@ For the sake of simplicity, the code provided in this guide may be simplified in
 Alright, let's get started. Creating this app will require the following steps:
 
 1. Set up the project
-2. Describe the login flow
-3. Creating rooms via the API
-4. Querying calls (with real-time updates)
-5. Going live
-6. Joining, leaving and ending a room
-7. Managing speaking requests
+2. Creating rooms via the API
+3. Querying calls (with real-time updates)
+4. Going live
+5. Joining, leaving and ending a room
+6. Managing speaking requests
+
+### App preview
+You can preview the Audio Rooms demo application by joining an audio room:
+
+<TokenSnippet sampleApp='audio-rooms' displayStyle="join"/>
 
 ## Project setup and prerequisites
 
@@ -38,21 +44,13 @@ npm install @stream-io/video-react-sdk
 yarn add @stream-io/video-react-sdk
 ```
 
-5. Have populated `.env` file in the project root
-
-```shell
-VITE_STREAM_API_KEY=<your_api_key>
-# URL from which the JWT is requested
-VITE_TOKEN_PROVIDER_URL=<your_token_provider_url>
-```
-
 With the basic setup of the project and the Stream SDK ready we can dive into the code.
 
 ### The Audio Rooms app structure
 
 The application has basically 4 types of views:
 
-1. **Login page** - here we select and authenticate a user
+1. **Login page (omitted)** - here we select and authenticate a user
 2. **Rooms overview page** - lists all the rooms based on given filter conditions
 3. **Room detail page** - allows to load, join, leave a room and ask for permissions to speak
 4. **Create room view as a modal** - allows to create a room and redirects to the room detail page
@@ -60,22 +58,76 @@ The application has basically 4 types of views:
 In the following sections we will explain how to achieve the actions described above.
 
 :::note
-Routing in the app is done by using 3rd party library [react-router-dom](https://reactrouter.com/en/main)
+Routing in the demo app is done by using 3rd party library [react-router-dom](https://reactrouter.com/en/main).
 :::
 
-### User Authentication
+### User authentication
 
 The first important step is to initialize the Stream Video client. Therefore, we need an API key and a token provider.
+
+<TokenSnippet sampleApp='audio-rooms' displayStyle="credentials"/>
+
+You can store these values in your project's `.env` file. Make sure, your app retrieves these values from the `.env` file:
+
+```bash
+VITE_STREAM_API_KEY=<api_key>
+VITE_STREAM_USER_TOKEN=<token>
+VITE_STREAM_USER_ID=<user_id>
+VITE_STREAM_CALL_ID=<call_id>
+```
+
+The credentials can then be passed to the `StreamVideoClient` constructor:
+
+```tsx
+import { useEffect, useState } from 'react';
+import {
+  ChildrenOnly,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
+export const VideoClientProvider = ({ children }: ChildrenOnly) => {
+  // retrieve the API key, user and token...
+
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
+    if (!user) return;
+    setClient(
+      new StreamVideoClient({
+        apiKey,
+        token,
+        user: {
+          id: user.id,
+          name: user.name ?? user.id,
+          // more user data ...
+        },
+      }),
+    );
+  }, [token, user]);
+
+  if (!client) return null;
+
+  return <StreamVideo client={client}>{children}</StreamVideo>;
+};
+```
+
+
+### Dynamic token retrieval
 
 :::tip
 Want to learn why we need the token provider and how it works? See [the authentication guide](../../guides/client-auth/#streamvideo-context-provider) for more detail.
 :::
 
-The token is retrieved using `tokenProvider` function that needs to be aware of the selected user, the API key. It then builds an URL for generating the token. The URL is custom to this project:
+The token can be retrieved using `tokenProvider` function that needs to be aware of the **selected user** and the **API key**. It then builds URL for generating the token. The URL building logic is custom to a project. Note that in the example below, we are adding a new environment variable `VITE_TOKEN_PROVIDER_URL`:
+
+```bash
+# ... already listed variables go here
+VITE_TOKEN_PROVIDER_URL=<your_token_provider_URL>
+```
 
 ```tsx
 import {
-  ReactNode,
   useCallback,
   useState,
 } from 'react';
@@ -131,35 +183,28 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { useUserContext } from './UserContext';
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
 
 export const VideoClientProvider = ({ children }: ChildrenOnly) => {
-  const { user, tokenProvider } = useUserContext();
-  const [client, setClient] = useState<StreamVideoClient>();
+  // retrieve the API key, user, token, tokenProvider,
+  // initiate the state to hold the client instance ...
 
   useEffect(() => {
     if (!user) return;
     setClient(
       new StreamVideoClient({
-        apiKey,
+        // omitted constructor params ...
         // highlight-next-line
         tokenProvider,
-        user: {
-          id: user.id,
-          image: user.imageUrl,
-          name: user.name,
-        },
+        // omitted constructor params ...
       }),
     );
-  }, [tokenProvider, user]);
+    // highlight-next-line
+  }, [token, tokenProvider, user]);
 
   if (!client) return null;
 
   return <StreamVideo client={client}>{children}</StreamVideo>;
 };
-
 ```
 
 ### Creating rooms
