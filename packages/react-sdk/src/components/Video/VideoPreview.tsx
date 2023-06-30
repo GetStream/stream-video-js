@@ -38,13 +38,13 @@ const DefaultVideoErrorPreview = ({ message }: VideoErrorPreviewProps) => {
 
 export type VideoPreviewProps = {
   /**
-   * Enforces mirroring of the video on the X axis. Defaults to true.
-   */
-  mirror?: boolean;
-  /**
    * Component rendered when user turns off the video.
    */
   DisabledVideoPreview?: ComponentType;
+  /**
+   * Enforces mirroring of the video on the X axis. Defaults to true.
+   */
+  mirror?: boolean;
   /**
    * Component rendered when no camera devices are available.
    */

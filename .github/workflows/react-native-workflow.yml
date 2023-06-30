@@ -19,6 +19,7 @@ on:
       - 'packages/client/**'
       - 'packages/react-bindings/**'
       - 'packages/react-native-sdk/**'
+      - '!**/docusaurus/**'
 
 concurrency:
   group: react-native-workflow-${{ github.ref }}
