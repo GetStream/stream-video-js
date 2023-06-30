@@ -28,6 +28,23 @@ The default component to display a list of permission requests from other call p
     ]}
 />
 
+## General usage
+The default component is just rendered without passing any props:
+
+```tsx
+const YourComponent = (someProps: SomeProps) => {
+    // omitted code ...
+
+    return (
+      {/* omitted code ... */}
+        <PermissionRequests />
+      {/* omitted code ... */}
+    );
+}
+```
+
+## Customization
+
 The component is not customizable through props, only by applying CSS to elements it renders.
 
 :::note
