@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.231](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.230...@stream-io/video-react-native-sdk-0.0.1-alpha.231) (2023-06-30)
+
+
+### Bug Fixes
+
+* **react-native:** google signin user id and refactor app context to store login info ([#727](https://github.com/GetStream/stream-video-js/issues/727)) ([90435e0](https://github.com/GetStream/stream-video-js/commit/90435e04494ca9ed954512de5b658a38e10dc1f4))
+
+
+
 ## [0.0.1-alpha.230](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.229...@stream-io/video-react-native-sdk-0.0.1-alpha.230) (2023-06-30)
 
 
