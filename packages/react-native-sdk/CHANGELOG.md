@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.229](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.228...@stream-io/video-react-native-sdk-0.0.1-alpha.229) (2023-06-30)
+
+
+### Bug Fixes
+
+* **react-native:** fix blank video/audio streams and muting state ([#733](https://github.com/GetStream/stream-video-js/issues/733)) ([82b0014](https://github.com/GetStream/stream-video-js/commit/82b0014918b9e3e224cfe3cf06afc42c87003d83))
+
+
+
 ## [0.0.1-alpha.228](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.227...@stream-io/video-react-native-sdk-0.0.1-alpha.228) (2023-06-29)
 
 

@@ -10,11 +10,12 @@ import {
 import { UserInfoView } from './UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
-import { useMutingState } from '../hooks/useMutingState';
 import { CallingState } from '@stream-io/video-client';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 export const IncomingCallView = () => {
-  const { isVideoMuted, toggleVideoState } = useMutingState();
+  const { toggleInitialVideoMuteState, initialVideoEnabled } =
+    useMediaStreamManagement();
   const call = useCall();
   const callingState = useCallCallingState();
 
@@ -54,14 +55,16 @@ export const IncomingCallView = () => {
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
-          onPress={toggleVideoState}
+          onPress={toggleInitialVideoMuteState}
           color={
-            !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
+            initialVideoEnabled
+              ? theme.light.static_white
+              : theme.light.overlay_dark
           }
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
-          {isVideoMuted ? (
+          {!initialVideoEnabled ? (
             <VideoSlash color={theme.light.static_white} />
           ) : (
             <Video color={theme.light.static_black} />

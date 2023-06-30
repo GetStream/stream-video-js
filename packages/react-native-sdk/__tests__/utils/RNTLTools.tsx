@@ -13,6 +13,7 @@ import {
 import { RenderResult } from '@testing-library/react-native/build/render';
 import { mockClientWithUser } from '../mocks/client';
 import { mockCall } from '../mocks/call';
+import { MediaStreamManagement } from '../../src/providers/MediaStreamManagement';
 
 export interface RenderProps {
   component: React.ReactElement<any, string | React.JSXElementConstructor<any>>;
@@ -48,9 +49,11 @@ const Wrapper = ({
 }: PropsWithChildren<WrapperProps>) => (
   <StreamVideo client={client} language={'en'}>
     <StreamCallProvider call={call}>
-      <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
-        {children}
-      </CallCycleLogicsWrapper>
+      <MediaStreamManagement>
+        <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
+          {children}
+        </CallCycleLogicsWrapper>
+      </MediaStreamManagement>
     </StreamCallProvider>
   </StreamVideo>
 );
