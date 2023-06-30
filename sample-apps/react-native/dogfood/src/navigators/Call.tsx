@@ -31,7 +31,7 @@ const CallPanel = ({
   const call = useCall();
   const callingState = useCallCallingState();
 
-  const onCallHungUpHandler = React.useCallback(async () => {
+  const onHangUpCallButtonHandler = React.useCallback(async () => {
     try {
       if (callingState === CallingState.LEFT) {
         return;
@@ -56,7 +56,7 @@ const CallPanel = ({
       return (
         <View style={styles.container}>
           <ActiveCall
-            hangUpCallButton={{ onPressHandler: onCallHungUpHandler }}
+            hangUpCallButton={{ onPressHandler: onHangUpCallButtonHandler }}
           />
         </View>
       );
