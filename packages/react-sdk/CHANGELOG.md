@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.58...@stream-io/video-react-sdk-0.0.59) (2023-06-30)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.7`
+* `@stream-io/video-react-bindings` updated to version `0.0.30`
+
+### Documentation
+
+* **react-sdk:** add CallStats docs ([#735](https://github.com/GetStream/stream-video-js/issues/735)) ([8fb2c15](https://github.com/GetStream/stream-video-js/commit/8fb2c1501a53121dd5dd30a3bbfeee74af0ad63c))
+* **react-sdk:** add SpeakingWhileMutedNotification docs ([#732](https://github.com/GetStream/stream-video-js/issues/732)) ([bdb9daa](https://github.com/GetStream/stream-video-js/commit/bdb9daaf921b0a790fa8013dded2ff1559d95fc9))
+
 ### [0.0.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.57...@stream-io/video-react-sdk-0.0.58) (2023-06-29)
 
 ### Dependency Updates
