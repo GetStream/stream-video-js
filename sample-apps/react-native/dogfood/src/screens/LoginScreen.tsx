@@ -44,6 +44,7 @@ const LoginScreen = () => {
       const _userImageUrl = `https://getstream.io/random_png/?id=${_userId}&name=${_userId}`;
       setState({
         userId: _userId,
+        userName: _userId,
         userImageUrl: _userImageUrl,
         appMode: 'None',
       });

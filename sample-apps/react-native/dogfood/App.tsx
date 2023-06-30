@@ -40,6 +40,7 @@ const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
 
   useProntoLinkEffect();
@@ -93,12 +94,13 @@ const StackNavigator = () => {
     if (userId && userImageUrl) {
       StaticNavigationService.authenticationInfo = {
         userId,
+        userName,
         userImageUrl,
       };
     }
-  }, [userId, userImageUrl]);
+  }, [userId, userName, userImageUrl]);
 
-  if (!(userId && userImageUrl)) {
+  if (!(userId && userImageUrl && userName)) {
     return <LoginScreen />;
   }
 
