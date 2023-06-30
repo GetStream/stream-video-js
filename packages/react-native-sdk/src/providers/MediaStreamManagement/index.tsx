@@ -3,6 +3,7 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useMemo,
   useState,
 } from 'react';
 import { CallingState, SfuModels } from '@stream-io/video-client';
@@ -175,9 +176,22 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     });
   }, [isCameraOnFrontFacingMode, videoDevices, setState]);
 
-  const contextValue: MediaStreamManagementContextAPI = {
-    initialAudioEnabled: initAudioEnabled,
-    initialVideoEnabled: initVideoEnabled,
+  const contextValue = useMemo(() => {
+    return {
+      initialAudioEnabled: initAudioEnabled,
+      initialVideoEnabled: initVideoEnabled,
+      isCameraOnFrontFacingMode,
+      toggleInitialAudioMuteState,
+      toggleInitialVideoMuteState,
+      toggleCameraFacingMode,
+      publishAudioStream,
+      publishVideoStream,
+      stopPublishingAudio,
+      stopPublishingVideo,
+    };
+  }, [
+    initAudioEnabled,
+    initVideoEnabled,
     isCameraOnFrontFacingMode,
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
@@ -186,7 +200,7 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     publishVideoStream,
     stopPublishingAudio,
     stopPublishingVideo,
-  };
+  ]);
 
   return (
     <MediaStreamContext.Provider value={contextValue}>
