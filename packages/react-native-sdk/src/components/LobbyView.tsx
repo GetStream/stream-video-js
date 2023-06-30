@@ -17,12 +17,13 @@ import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
+  const participantLabel = connectedUser?.name ?? connectedUser?.id;
   const { initialAudioEnabled, initialVideoEnabled } =
     useMediaStreamManagement();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
-        {connectedUser?.id}
+        {participantLabel}
       </Text>
       {!initialAudioEnabled && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
