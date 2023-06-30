@@ -3,8 +3,73 @@ id: video-preview
 title: Video preview
 ---
 
-:::warning
+import DisabledVideoPreview from '../../assets/03-ui-components/video-preview/disabled-video-preview.png';
+import ErrorVideoPreview from '../../assets/03-ui-components/video-preview/error-video-preview.png';
+import NoCameraPreview from '../../assets/03-ui-components/video-preview/no-camera-found-video-preview.png';
+import StartingCameraPreview from '../../assets/03-ui-components/video-preview/starting-camera-video-preview.png';
 
-TODO: write about https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/Video
 
-:::
+The aim of the `VideoPreview` component is to offer a glimpse into how we appear to others before joining a call. This component is suitable for call lobby scenario. The component allows for UI customisation and at the same time handles the starting, playing and error handling logic for us. It is important to note that, the component relies on the state and API provided by the [`MediaDevicesProvider`](../../../guides/camera-and-microphone). That means that the video will be playing only if:
+
+- the `VideoPreview` component is a child of `MediaDevicesProvider`
+- the `initialVideoState.enabled` (from `MediaDevicesContextAPI` value provided by `MediaDevicesProvider`) is `true` (the default is however `false`).
+
+You can customize what is displayed, when:
+
+1. the video is starting to play
+2. the video is disabled
+3. camera device could not be found
+4. error when retrieving the video stream is thrown
+
+The custom components should be passed to `VideoPreview` props. See the [Props](./#props) section for more details.
+
+## Props
+
+### `DisabledVideoPreview`
+
+| Type                           |
+| ------------------------------ |
+| `ComponentType` \| `undefined` |
+
+Component rendered when user turns off the video.
+
+<img src={DisabledVideoPreview} alt="Default component for DisabledVideoPreview" width={300}/>
+
+### `mirror`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `boolean` \| `undefined` | `true` |
+
+Enforces mirroring of the video on the X axis.
+
+
+### `NoCameraPreview`
+
+| Type                           |
+| ------------------------------ |
+| `ComponentType` \| `undefined` |
+
+Component rendered when no camera devices are available.
+
+<img src={NoCameraPreview} alt="Default component for NoCameraPreview" width={300}/>
+
+### `StartingCameraPreview`
+
+| Type                           |
+| ------------------------------ |
+| `ComponentType` \| `undefined` |
+
+Component rendered above the BaseVideo until the video is ready (meaning until the play event is emitted).
+
+<img src={StartingCameraPreview} alt="Default component for StartingCameraPreview" width={300}/>
+
+### `VideoErrorPreview`
+
+| Type                           |
+| ------------------------------ |
+| `ComponentType<VideoErrorPreviewProps>` \| `undefined` |
+
+Component rendered when the video stream could not be retrieved.
+
+<img src={ErrorVideoPreview} alt="Default component for VideoErrorPreview" width={300}/>

@@ -74,18 +74,15 @@ This is a local action, it won't send any WebSocket messages. It's helpful if yo
 
 ### Sending custom events
 
-You can use the `sendEvent` method of the `Call` instance to send custom events:
+You can use the `sendCustomEvent` method of the `Call` instance to send custom events:
 
 ```typescript
 const call: Call;
 
-call.sendEvent({
-  type: 'custom',
-  custom: {
-    type: 'draw',
-    x: 10,
-    y: 30,
-  },
+call.sendCustomEvent({
+  type: 'draw',
+  x: 10,
+  y: 30,
 });
 ```
 

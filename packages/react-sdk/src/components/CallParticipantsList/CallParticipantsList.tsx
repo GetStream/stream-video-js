@@ -9,7 +9,6 @@ import {
   Restricted,
   useCall,
   useCallMetadata,
-  useOwnCapabilities,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -45,7 +44,7 @@ type CallParticipantListProps = {
   activeUsersSearchFn?: UseSearchParams<StreamVideoParticipant>['searchFn'];
   /** Custom function to override the searching logic of blocked users */
   blockedUsersSearchFn?: UseSearchParams<string>['searchFn'];
-  /** Interval in ms, during which the participant search calls will be throttled. The default value is 200ms. */
+  /** Interval in ms, during which the participant search calls will be debounced. The default value is 200ms. */
   debounceSearchInterval?: number;
 };
 
@@ -53,6 +52,8 @@ const UserListTypes = {
   active: 'Active users',
   blocked: 'Blocked users',
 } as const;
+
+const DEFAULT_DEBOUNCE_SEARCH_INTERVAL = 200 as const;
 
 export const CallParticipantsList = ({
   onClose,
@@ -114,7 +115,6 @@ const CallParticipantListContentHeader = ({
     React.SetStateAction<keyof typeof UserListTypes>
   >;
 }) => {
-  const ownCapabilities = useOwnCapabilities();
   const call = useCall();
 
   const muteAll = () => {
@@ -123,6 +123,17 @@ const CallParticipantListContentHeader = ({
 
   return (
     <div className="str-video__participant-list__content-header">
+      <div className="str-video__participant-list__content-header-title">
+        <span>{UserListTypes[userListType]}</span>
+        {userListType === 'active' && (
+          <Restricted
+            requiredGrants={[OwnCapability.MUTE_USERS]}
+            hasPermissionsOnly
+          >
+            <TextButton onClick={muteAll}>Mute all</TextButton>
+          </Restricted>
+        )}
+      </div>
       <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
         <GenericMenu>
           {(
@@ -138,17 +149,6 @@ const CallParticipantListContentHeader = ({
           ))}
         </GenericMenu>
       </MenuToggle>
-      <div className="str-video__participant-list__content-header-title">
-        <span>{UserListTypes[userListType]}</span>
-        {userListType === 'active' && (
-          <Restricted
-            availableGrants={ownCapabilities} // TODO: remove this line once Oliver's PR lands
-            requiredGrants={[OwnCapability.MUTE_USERS]}
-          >
-            <TextButton onClick={muteAll}>Mute all</TextButton>
-          </Restricted>
-        )}
-      </div>
     </div>
   );
 };
@@ -156,7 +156,7 @@ const CallParticipantListContentHeader = ({
 const ActiveUsersSearchResults = ({
   searchQuery,
   activeUsersSearchFn: activeUsersSearchFnFromProps,
-  debounceSearchInterval = 200,
+  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
 }: Pick<
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
@@ -195,7 +195,7 @@ const ActiveUsersSearchResults = ({
 
 const BlockedUsersSearchResults = ({
   blockedUsersSearchFn: blockedUsersSearchFnFromProps,
-  debounceSearchInterval = 200,
+  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
   searchQuery,
 }: Pick<
   CallParticipantListProps,
@@ -234,7 +234,7 @@ const BlockedUsersSearchResults = ({
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
-    return <IconButton enabled={props.menuShown} icon="caret-down" ref={ref} />;
+    return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
   },
 );
 

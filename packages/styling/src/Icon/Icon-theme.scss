@@ -54,7 +54,7 @@
     mask-image: var(--str-video__icon--caret);
     -webkit-mask-image: var(--str-video__icon--caret);
   }
-  
+
   &--close {
     mask-image: var(--str-video__icon--close);
     -webkit-mask-image: var(--str-video__icon--close);
@@ -159,6 +159,13 @@
     mask-image: var(--str-video__icon--settings);
     -webkit-mask-image: var(--str-video__icon--settings);
   }
+
+  &--filter {
+    mask-image: var(--str-video__icon--filter);
+    -webkit-mask-image: var(--str-video__icon--filter);
+  }
+
+
 
   &--refresh {
     mask-image: var(--str-video__icon--refresh);
