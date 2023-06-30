@@ -25,6 +25,25 @@ The SDK's default component to display statistics about a call is called `CallSt
 - **Publish bitrate** - the rate at which data is transmitted from the app to the SFU
 - **Receiving bitrate** - the rate at which data is transmitted from the SFU to the app
 
+## General usage
+The default component is just rendered without passing any props:
+
+```tsx
+const YourComponent = (someProps: SomeProps) => {
+    // omitted code ...
+
+    return (
+      {/* omitted code ... */}
+        <CallStats />
+      {/* omitted code ... */}
+    );
+}
+```
+
+## Customization
+
+The component is not customizable through props, only by applying CSS to elements it renders.
+
 ## Props
 
 None
