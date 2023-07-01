@@ -20,7 +20,7 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
  * @internal
  */
 export type StreamVideoProps = StreamI18nProviderProps & {
-  client: StreamVideoClient;
+  client?: StreamVideoClient;
   onConnect?: Function;
   onDisconnect?: Function;
 };
@@ -37,33 +37,10 @@ export const StreamVideo = ({
   i18nInstance,
   language,
   translationsOverrides,
-  onConnect,
-  onDisconnect,
 }: PropsWithChildren<StreamVideoProps>) => {
-  const prevClient = useRef<StreamVideoClient | undefined>(undefined);
-
-  useEffect(() => {
-    if (client.user) {
-      client
-        .connectUser()
-        .then(() => {
-          onConnect?.();
-        })
-        .catch((error) =>
-          console.error('Failed to establish connection', error),
-        );
-    }
-
-    prevClient.current = client;
-
-    return () => {
-      prevClient.current
-        ?.disconnectUser()
-        .then(() => onDisconnect?.())
-        .catch((error) => console.error(`Failed to disconnect`, error));
-    };
-  }, [client]);
-
+  if (!client) {
+    return null;
+  }
   return (
     <StreamVideoContext.Provider value={client}>
       <StreamI18nProvider

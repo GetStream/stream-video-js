@@ -12,40 +12,53 @@ import {
 import './style.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
     });
-  });
+    setClient(client);
 
-  const [call, setCall] = useState<Call | undefined>();
+    return () => {
+      client?.disconnectUser();
+    };
+  }, []);
 
-  const joinCall = () => {
-    const call = client.call('default', import.meta.env.VITE_STREAM_CALL_ID);
-    call.join({ create: true });
-    setCall(call);
-  };
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    setCall(client.call('default', import.meta.env.VITE_STREAM_CALL_ID));
 
-  const leaveCall = () => {
-    setCall(undefined);
-  };
+    return () => {
+      setCall(undefined);
+    };
+  }, [client]);
+
+  useEffect(() => {
+    call?.join({ create: true });
+
+    return () => {
+      call?.leave();
+    };
+  }, [call]);
 
   return (
-    <StreamVideo client={client} onConnect={joinCall} onDisconnect={leaveCall}>
-      {call && (
-        <StreamCall call={call}>
-          <StreamTheme className="video__call">
-            <UI />
-          </StreamTheme>
-        </StreamCall>
-      )}
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <StreamTheme className="video__call">
+          <UI />
+        </StreamTheme>
+      </StreamCall>
     </StreamVideo>
   );
 }
