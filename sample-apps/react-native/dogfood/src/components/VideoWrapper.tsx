@@ -9,7 +9,8 @@ import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
@@ -17,12 +18,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   );
 
   useEffect(() => {
-    if (!username || !userImageUrl) {
+    if (!userId || !userImageUrl) {
       return;
     }
     const user = {
-      id: username,
-      name: username,
+      id: userId,
+      name: userName,
       imageUrl: userImageUrl,
     };
     const _videoClient = new StreamVideoClient({
@@ -36,7 +37,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [username, userImageUrl]);
+  }, [userName, userId, userImageUrl]);
 
   if (!videoClient) {
     return null;

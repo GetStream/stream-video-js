@@ -47,12 +47,13 @@ export const CallParticipantsSpotlightView = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   participantView: {
-    flex: 1,
+    flex: 2,
     overflow: 'hidden',
     borderRadius: theme.rounded.sm,
     marginHorizontal: theme.padding.sm,
   },
   participantVideoContainer: {
+    flex: 1,
     paddingVertical: theme.padding.sm,
   },
 });

@@ -10,12 +10,12 @@ import {
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
-import { useStreamVideoStoreValue } from '../contexts';
 import { theme } from '../theme';
 import { VideoSlash } from '../icons';
 import { A11yComponents } from '../constants/A11yLabels';
 import { Avatar } from './Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../constants';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -60,9 +60,7 @@ export const LocalVideoView = (props: LocalVideoViewProps) => {
       : styles.fullScreenContainer;
   const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
-  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
-    (store) => store.isCameraOnFrontFacingMode,
-  );
+  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
     PanResponder.create({

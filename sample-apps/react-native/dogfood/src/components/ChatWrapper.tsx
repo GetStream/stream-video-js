@@ -15,21 +15,22 @@ const streami18n = new Streami18n({
 });
 
 export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
 
   const user = useMemo(
     () => ({
-      id: username,
-      name: username,
+      id: userId,
+      name: userName,
       imageUrl: userImageUrl,
     }),
-    [username, userImageUrl],
+    [userId, userName, userImageUrl],
   );
 
   const tokenProvider = useCallback(async () => {
-    return await createToken({ user_id: username });
-  }, [username]);
+    return await createToken({ user_id: userId });
+  }, [userId]);
 
   const chatClient = useChatClient({
     apiKey: STREAM_API_KEY,

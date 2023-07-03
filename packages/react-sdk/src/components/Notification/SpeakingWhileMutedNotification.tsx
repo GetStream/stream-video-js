@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { createSoundDetector, SfuModels } from '@stream-io/video-client';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useI18n, useLocalParticipant } from '@stream-io/video-react-bindings';
 
 import { useMediaDevices } from '../../core';
 import { Notification } from './Notification';
-import { ChildrenOnly } from '../../types';
 
-export const SpeakingWhileMutedNotification = ({ children }: ChildrenOnly) => {
+export type SpeakingWhileMutedNotificationProps = {
+  /*
+  Text message displayed by the notification.
+   */
+  text?: string;
+};
+
+export const SpeakingWhileMutedNotification = ({
+  children,
+  text,
+}: PropsWithChildren<SpeakingWhileMutedNotificationProps>) => {
   const localParticipant = useLocalParticipant();
   const { getAudioStream } = useMediaDevices();
+  const { t } = useI18n();
 
+  const message = text ?? t('You are muted. Unmute to speak.');
   const isAudioMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -51,10 +62,7 @@ export const SpeakingWhileMutedNotification = ({ children }: ChildrenOnly) => {
     };
   }, [isSpeakingWhileMuted]);
   return (
-    <Notification
-      message="You are muted. Unmute to speak."
-      isVisible={isSpeakingWhileMuted}
-    >
+    <Notification message={message} isVisible={isSpeakingWhileMuted}>
       {children}
     </Notification>
   );

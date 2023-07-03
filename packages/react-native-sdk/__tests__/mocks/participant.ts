@@ -1,6 +1,12 @@
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { SfuModels } from '@stream-io/video-client';
 
+const trackMock = {
+  getSettings: jest.fn(() => ({ deviceId: '123' })),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+};
+
 const mockParticipant = (
   customFields?: Partial<StreamVideoParticipant>,
 ): StreamVideoParticipant => ({
@@ -11,9 +17,11 @@ const mockParticipant = (
   publishedTracks: [SfuModels.TrackType.VIDEO],
   videoStream: {
     toURL: () => 'video-test-url',
+    getVideoTracks: jest.fn(() => [trackMock]),
   },
   audioStream: {
     toURL: () => 'audio-test-url',
+    getAudioTracks: jest.fn(() => [trackMock]),
   },
   roles: [],
   sessionId: '789-012',
