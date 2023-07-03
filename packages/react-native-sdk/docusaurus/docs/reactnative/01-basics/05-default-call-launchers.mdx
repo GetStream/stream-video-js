@@ -1,0 +1,24 @@
+---
+id: 05-default-call-launchers
+title: Using Default Call Launchers
+---
+
+When receiving push notifications and socket events, our [Call Engine](../02-guides/03-call-engine.mdx) processes the data and prepares different states for you to consume.
+
+Most commonly, this state can be used to show Incoming and Outgoing call UI. But you can also show persistent notification banners and similar features to your users, to notify them of the call state.
+
+Let's see how to implement them.
+
+[//]: # (TODO: write guide)
+
+This is all you need to fully implement our default behavior, which allows for a quick and easy integration of Video calling in your apps. There are several things that are automatically integrated now:
+
+* When you **receive ringing calls**, you'll show incoming call UI and its actions.
+* When you **create a ringing call**, you'll show outgoing call UI and its actions.
+* Whenever there's a started call state (Incoming, Outgoing, Active), you'll show a persistent notification that allows the call to **work in the background**.
+* If you trigger the notification action, you'll leave/cancel the call.
+
+Feel free to continue exploring our guides for further integration. If you're using our default input from this guide, check out the following:
+
+* [Push notification guide](../05-advanced/02-push-notifications.mdx) - It pairs well with default inputs, because it further automates the notification handling.
+* [Deep linking guide](../05-advanced/01-deeplinking.mdx) - Similar to push notifications, deep linking is another way to immediately start a call from an event, like clicking on a call link.
