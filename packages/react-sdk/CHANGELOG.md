@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.59...@stream-io/video-react-sdk-0.0.60) (2023-07-03)
+
+
+### Documentation
+
+* **react-sdk:** add PermissionNotification and PermissionRequests docs ([#731](https://github.com/GetStream/stream-video-js/issues/731)) ([7542e70](https://github.com/GetStream/stream-video-js/commit/7542e70eaca436164830d717ea90bdfa99ad5f15))
+
 ### [0.0.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.58...@stream-io/video-react-sdk-0.0.59) (2023-06-30)
 
 ### Dependency Updates
