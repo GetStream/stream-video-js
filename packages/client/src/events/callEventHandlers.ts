@@ -98,11 +98,11 @@ export const registerEventHandlers = (
     watchConnectionQualityChanged(dispatcher, state),
     watchParticipantCountChanged(dispatcher, state),
 
-    watchParticipantJoined(dispatcher, state),
-    watchParticipantLeft(dispatcher, state),
+    call.on('participantJoined', watchParticipantJoined(state)),
+    call.on('participantLeft', watchParticipantLeft(state)),
 
-    watchTrackPublished(dispatcher, state),
-    watchTrackUnpublished(dispatcher, state),
+    call.on('trackPublished', watchTrackPublished(state)),
+    call.on('trackUnpublished', watchTrackUnpublished(state)),
 
     watchAudioLevelChanged(dispatcher, state),
     watchDominantSpeakerChanged(dispatcher, state),

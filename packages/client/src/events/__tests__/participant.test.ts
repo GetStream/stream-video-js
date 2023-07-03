@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Dispatcher } from '../../rtc';
 import { CallState } from '../../store';
-import { VisibilityState } from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import {
   watchParticipantJoined,
@@ -13,15 +11,12 @@ import {
 describe('Participant events', () => {
   describe('participantJoined / participantLeft', () => {
     it('adds and removes the participant to the list of participants', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
 
-      const offParticipantJoined = watchParticipantJoined(dispatcher, state);
-      const offParticipantLeft = watchParticipantLeft(dispatcher, state);
-      expect(offParticipantJoined).toBeDefined();
-      expect(offParticipantLeft).toBeDefined();
+      const onParticipantJoined = watchParticipantJoined(state);
+      const onParticipantLeft = watchParticipantLeft(state);
 
-      dispatcher.dispatch({
+      onParticipantJoined({
         eventPayload: {
           oneofKind: 'participantJoined',
           participantJoined: {
@@ -38,11 +33,10 @@ describe('Participant events', () => {
         {
           userId: 'user-id',
           sessionId: 'session-id',
-          viewportVisibilityState: VisibilityState.UNKNOWN,
         },
       ]);
 
-      dispatcher.dispatch({
+      onParticipantLeft({
         eventPayload: {
           oneofKind: 'participantLeft',
           participantLeft: {
@@ -61,15 +55,13 @@ describe('Participant events', () => {
 
   describe('trackPublished', () => {
     it('updates the participant track list', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackPublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackPublished(state);
 
       // @ts-ignore setup one participant
       state.setParticipants([{ sessionId: 'session-id', publishedTracks: [] }]);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackPublished',
           // @ts-ignore
@@ -87,12 +79,10 @@ describe('Participant events', () => {
     });
 
     it('adds the participant to the list of participants if provided', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackPublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackPublished(state);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackPublished',
           // @ts-ignore
@@ -117,10 +107,8 @@ describe('Participant events', () => {
     });
 
     it('updates the participant info if the provided participant already exists', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackPublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackPublished(state);
 
       state.setParticipants([
         // @ts-ignore setup one participant
@@ -131,7 +119,7 @@ describe('Participant events', () => {
         },
       ]);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackPublished',
           // @ts-ignore
@@ -159,17 +147,15 @@ describe('Participant events', () => {
 
   describe('trackUnpublished', () => {
     it('updates the participant track list', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackUnpublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackUnpublished(state);
 
       state.setParticipants([
         // @ts-ignore setup one participant
         { sessionId: 'session-id', publishedTracks: [TrackType.VIDEO] },
       ]);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackUnpublished',
           // @ts-ignore
@@ -187,12 +173,10 @@ describe('Participant events', () => {
     });
 
     it('adds the participant to the list of participants if provided', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackUnpublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackUnpublished(state);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackUnpublished',
           // @ts-ignore
@@ -217,10 +201,8 @@ describe('Participant events', () => {
     });
 
     it('updates the participant info if the provided participant already exists', () => {
-      const dispatcher = new Dispatcher();
       const state = new CallState();
-      const handler = watchTrackUnpublished(dispatcher, state);
-      expect(handler).toBeDefined();
+      const handler = watchTrackUnpublished(state);
 
       state.setParticipants([
         // @ts-ignore setup one participant
@@ -232,7 +214,7 @@ describe('Participant events', () => {
         },
       ]);
 
-      dispatcher.dispatch({
+      handler({
         eventPayload: {
           oneofKind: 'trackUnpublished',
           // @ts-ignore
