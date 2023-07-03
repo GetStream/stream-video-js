@@ -12,6 +12,7 @@ import { PendingCallControls } from './PendingCallControls';
 const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
   [CallingState.JOINING]: 'Joining',
   [CallingState.RINGING]: 'Ringing',
+  [CallingState.MIGRATING]: 'Migrating',
   [CallingState.RECONNECTING]: 'Re-connecting',
   [CallingState.RECONNECTING_FAILED]: 'Failed',
   [CallingState.OFFLINE]: 'No internet connection',

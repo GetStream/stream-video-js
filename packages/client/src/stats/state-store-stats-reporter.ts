@@ -5,15 +5,14 @@ import type {
   StatsReport,
 } from './types';
 import { CallState } from '../store';
-import { Publisher } from '../rtc';
+import { Publisher, Subscriber } from '../rtc';
 import { getLogger } from '../logger';
 
 export type StatsReporterOpts = {
-  subscriber: RTCPeerConnection;
+  subscriber: Subscriber;
   publisher: Publisher;
   state: CallState;
   pollingIntervalInMs?: number;
-  edgeName?: string;
 };
 
 export type StatsReporter = {
@@ -67,7 +66,6 @@ export const createStatsReporter = ({
   subscriber,
   publisher,
   state,
-  edgeName,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
   const logger = getLogger(['stats']);
@@ -176,7 +174,7 @@ export const createStatsReporter = ({
     ]);
 
     state.setCallStatsReport({
-      datacenter: edgeName || 'N/A',
+      datacenter: publisher.sfuClient.edgeName,
       publisherStats,
       subscriberStats,
       subscriberRawStats,

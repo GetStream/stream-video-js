@@ -25,10 +25,7 @@ export const findOptimalVideoLayers = (
 ) => {
   const optimalVideoLayers: OptimalVideoLayer[] = [];
   const settings = videoTrack.getSettings();
-  const {
-    width: w = targetResolution.width,
-    height: h = targetResolution.height,
-  } = settings;
+  const { width: w = 0, height: h = 0 } = settings;
 
   const maxBitrate = getComputedMaxBitrate(targetResolution, w, h);
   let downscaleFactor = 1;

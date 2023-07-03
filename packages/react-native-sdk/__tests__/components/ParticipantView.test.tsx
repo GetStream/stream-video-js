@@ -34,7 +34,7 @@ describe('ParticipantView', () => {
       await screen.findByLabelText(A11yComponents.PARTICIPANT_AVATAR),
     ).toBeOnTheScreen();
     expect(screen.getByLabelText(A11yIcons.MUTED_VIDEO)).toBeOnTheScreen();
-    expect(screen.getByText(testParticipant.userId)).toBeOnTheScreen();
+    expect(screen.getByText(testParticipant.name)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
     expect(screen.getByText('🎉')).toBeOnTheScreen();
     await act(() => jest.advanceTimersByTime(5500));
@@ -57,7 +57,7 @@ describe('ParticipantView', () => {
       await screen.findByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(/123-456 is sharing their screen/i),
+      screen.getByText(/Testy van der Test is sharing their screen/i),
     ).toBeOnTheScreen();
     expect(
       await screen.findByLabelText(A11yIcons.SCREEN_SHARE),
