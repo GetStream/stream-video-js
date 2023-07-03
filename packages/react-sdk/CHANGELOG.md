@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.60...@stream-io/video-react-sdk-0.0.61) (2023-07-03)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.8`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.31`
+
+### Features
+
+* SFU Session Migration and Graceful Shutdown ([#603](https://github.com/GetStream/stream-video-js/issues/603)) ([943169b](https://github.com/GetStream/stream-video-js/commit/943169bd2b7b9e138bcaf387cf72eb3fa0f23533))
+
 ### [0.0.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.59...@stream-io/video-react-sdk-0.0.60) (2023-07-03)
 
 
