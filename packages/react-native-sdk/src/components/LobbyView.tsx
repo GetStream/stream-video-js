@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
   useCall,
@@ -11,35 +11,32 @@ import { theme } from '../theme';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
 import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
-const ParticipantStatus = () => {
-  const connectedUser = useConnectedUser();
-  const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled, initialVideoEnabled } =
-    useMediaStreamManagement();
-  return (
-    <View style={styles.status}>
-      <Text style={styles.userNameLabel} numberOfLines={1}>
-        {participantLabel}
-      </Text>
-      {!initialAudioEnabled && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <MicOff color={theme.light.error} />
-        </View>
-      )}
-      {!initialVideoEnabled && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <VideoSlash color={theme.light.error} />
-        </View>
-      )}
-    </View>
-  );
+/**
+ * The props for the Join Button in the LobbyView.
+ */
+type JoinButton = {
+  /**
+   * Handler called when the join button is clicked in the LobbyView.
+   * @returns void
+   */
+  onPressHandler: () => void;
 };
 
-export const LobbyView = () => {
+/**
+ * Props for the Lobby View Component
+ */
+type LobbyViewType = {
+  /**
+   * Join button props to be passed as an object
+   */
+  joinButton: JoinButton;
+};
+
+export const LobbyView = ({ joinButton }: LobbyViewType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const {
@@ -63,17 +60,6 @@ export const LobbyView = () => {
   ) : (
     <Video color={theme.light.static_black} />
   );
-
-  const onJoinCallHandler = useCallback(async () => {
-    try {
-      await call?.join({ create: true });
-    } catch (error) {
-      console.log('Error joining call:', error);
-      if (error instanceof AxiosError) {
-        Alert.alert(error.response?.data.message);
-      }
-    }
-  }, [call]);
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -143,11 +129,38 @@ export const LobbyView = () => {
               ? `${count}  more people are in the call now.`
               : 'You are first to Join the call.'}
           </Text>
-          <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
+          <Pressable
+            style={styles.joinButton}
+            onPress={joinButton.onPressHandler}
+          >
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>
       </View>
+    </View>
+  );
+};
+
+const ParticipantStatus = () => {
+  const connectedUser = useConnectedUser();
+  const participantLabel = connectedUser?.name ?? connectedUser?.id;
+  const { initialAudioEnabled, initialVideoEnabled } =
+    useMediaStreamManagement();
+  return (
+    <View style={styles.status}>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {participantLabel}
+      </Text>
+      {!initialAudioEnabled && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <MicOff color={theme.light.error} />
+        </View>
+      )}
+      {!initialVideoEnabled && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <VideoSlash color={theme.light.error} />
+        </View>
+      )}
     </View>
   );
 };
