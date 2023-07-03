@@ -45,7 +45,7 @@ const CallPanel = () => {
     }
   }, [call, callingState]);
 
-  const onCallHungUpHandler = React.useCallback(async () => {
+  const onHangUpCallButtonHandler = React.useCallback(async () => {
     try {
       if (callingState === CallingState.LEFT) {
         return;
@@ -61,7 +61,7 @@ const CallPanel = () => {
       return isCallCreatedByMe ? (
         <View style={styles.container}>
           <OutgoingCallView
-            cancelCallHandler={{ onPressHandler: onCallHungUpHandler }}
+            cancelCallHandler={{ onPressHandler: onHangUpCallButtonHandler }}
           />
         </View>
       ) : (
@@ -74,7 +74,7 @@ const CallPanel = () => {
       return (
         <View style={styles.container}>
           <ActiveCall
-            hangUpCallButton={{ onPressHandler: onCallHungUpHandler }}
+            hangUpCallButton={{ onPressHandler: onHangUpCallButtonHandler }}
           />
         </View>
       );

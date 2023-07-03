@@ -8,7 +8,7 @@ import {
 import { UserInfoView } from './UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
 import { theme } from '../theme';
-import { useMutingState } from '../hooks/useMutingState';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * The props for the Accept Call button in the IncomingCallView component.
@@ -50,7 +50,8 @@ export const IncomingCallView = ({
   acceptCallButton,
   rejectCallButton,
 }: IncomingCallViewType) => {
-  const { isVideoMuted, toggleVideoState } = useMutingState();
+  const { initialVideoEnabled, toggleInitialVideoMuteState } =
+    useMediaStreamManagement();
 
   return (
     <Background>
@@ -69,14 +70,16 @@ export const IncomingCallView = ({
           <PhoneDown color={theme.light.static_white} />
         </CallControlsButton>
         <CallControlsButton
-          onPress={toggleVideoState}
+          onPress={toggleInitialVideoMuteState}
           color={
-            !isVideoMuted ? theme.light.static_white : theme.light.overlay_dark
+            initialVideoEnabled
+              ? theme.light.static_white
+              : theme.light.overlay_dark
           }
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
         >
-          {isVideoMuted ? (
+          {!initialVideoEnabled ? (
             <VideoSlash color={theme.light.static_white} />
           ) : (
             <Video color={theme.light.static_black} />

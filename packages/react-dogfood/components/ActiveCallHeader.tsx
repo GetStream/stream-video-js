@@ -16,6 +16,7 @@ import { USAGE_GUIDE_LINK } from './index';
 import { IconInviteLinkButton } from './InviteLinkButton';
 import { LayoutSelector, LayoutSelectorProps } from './LayoutSelector';
 import { useSettings } from '../context/SettingsContext';
+import { SwapSfuButton } from './SwapSfuButton';
 
 export const ActiveCallHeader = ({
   selectedLayout,
@@ -25,11 +26,10 @@ export const ActiveCallHeader = ({
   const activeCall = useCall();
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
+  const isMigrating = callingState === CallingState.MIGRATING;
+  const isJoining = callingState === CallingState.JOINING;
+  const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
-  const isRecoveringConnection = [
-    CallingState.JOINING,
-    CallingState.RECONNECTING,
-  ].includes(callingState);
 
   useEffect(() => {
     activeCall?.queryRecordings().catch((e) => {
@@ -42,6 +42,7 @@ export const ActiveCallHeader = ({
       <div className="str-video__call-header">
         <CallHeaderTitle />
         <div className="str-video__call-header__controls-group">
+          <SwapSfuButton />
           <LayoutSelector
             selectedLayout={selectedLayout}
             onMenuItemClick={setLayout}
@@ -97,10 +98,20 @@ export const ActiveCallHeader = ({
 
           return (
             <Notification
-              isVisible={isRecoveringConnection}
+              isVisible={isJoining || isReconnecting || isMigrating}
               iconClassName={null}
               placement="bottom"
-              message={<LoadingIndicator text="Reconnecting..." />}
+              message={
+                <LoadingIndicator
+                  text={
+                    isMigrating
+                      ? 'Migrating...'
+                      : isJoining
+                      ? 'Joining...'
+                      : 'Reconnecting...'
+                  }
+                />
+              }
             >
               <span />
             </Notification>

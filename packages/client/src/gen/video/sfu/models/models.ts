@@ -540,6 +540,22 @@ export enum ErrorCode {
    */
   PARTICIPANT_NOT_FOUND = 200,
   /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATING_OUT = 201;
+   */
+  PARTICIPANT_MIGRATING_OUT = 201,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATION_FAILED = 202;
+   */
+  PARTICIPANT_MIGRATION_FAILED = 202,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATING = 203;
+   */
+  PARTICIPANT_MIGRATING = 203,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_RECONNECT_FAILED = 204;
+   */
+  PARTICIPANT_RECONNECT_FAILED = 204,
+  /**
    * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
    */
   CALL_NOT_FOUND = 300,
@@ -563,6 +579,10 @@ export enum ErrorCode {
    * @generated from protobuf enum value: ERROR_CODE_INTERNAL_SERVER_ERROR = 500;
    */
   INTERNAL_SERVER_ERROR = 500,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_SFU_SHUTTING_DOWN = 600;
+   */
+  SFU_SHUTTING_DOWN = 600,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.SdkType
@@ -631,6 +651,23 @@ export enum TrackUnpublishReason {
    * @generated from protobuf enum value: TRACK_UNPUBLISH_REASON_MODERATION = 3;
    */
   MODERATION = 3,
+}
+/**
+ * @generated from protobuf enum stream.video.sfu.models.GoAwayReason
+ */
+export enum GoAwayReason {
+  /**
+   * @generated from protobuf enum value: GO_AWAY_REASON_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: GO_AWAY_REASON_SHUTTING_DOWN = 1;
+   */
+  SHUTTING_DOWN = 1,
+  /**
+   * @generated from protobuf enum value: GO_AWAY_REASON_REBALANCE = 2;
+   */
+  REBALANCE = 2,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {

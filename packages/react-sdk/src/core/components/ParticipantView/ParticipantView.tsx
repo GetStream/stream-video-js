@@ -1,10 +1,11 @@
-import { useContext, useMemo } from 'react';
 import {
-  forwardRef,
   ComponentType,
-  useState,
-  ReactElement,
   createContext,
+  forwardRef,
+  ReactElement,
+  useContext,
+  useMemo,
+  useState,
 } from 'react';
 import clsx from 'clsx';
 import {
@@ -17,7 +18,7 @@ import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
-import { isComponentType, applyElementToRef } from '../../../utilities';
+import { applyElementToRef, isComponentType } from '../../../utilities';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 export type ParticipantViewContextValue = Required<

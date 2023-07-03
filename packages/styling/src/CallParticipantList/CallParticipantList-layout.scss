@@ -11,12 +11,15 @@ $scope-name: 'str-video__participant-list';
   .str-video__participant-list-header {
     display: flex;
     align-items: center;
+
     .str-video__participant-list-header__title {
       flex: 1;
     }
+
     .str-video__participant-list-header__close-button {
       width: 1.75rem;
       height: 1.75rem;
+
       .str-video__participant-list-header__close-button--icon {
         display: block;
         height: 1rem;
@@ -45,15 +48,15 @@ $scope-name: 'str-video__participant-list';
       align-items: center;
       justify-content: center;
 
-      .str-video__icon--caret-down {
+      .str-video__icon--filter {
         width: 1rem;
-        height: 0.8rem;
+        height: 1rem;
       }
     }
   }
 
   .str-video__participant-list__content {
-    height: 0px;
+    height: 0;
     flex-grow: 1;
     overflow-y: auto;
   }

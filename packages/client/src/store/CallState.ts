@@ -63,6 +63,11 @@ export enum CallingState {
   RECONNECTING = 'reconnecting',
 
   /**
+   * The call is in the process of migrating from one node to another.
+   */
+  MIGRATING = 'migrating',
+
+  /**
    * The call has failed to reconnect.
    */
   RECONNECTING_FAILED = 'reconnecting-failed',
@@ -601,6 +606,21 @@ export class CallState {
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
     return this.participants.find((p) => p.sessionId === sessionId);
+  };
+
+  /**
+   * Returns a new lookup table of participants indexed by their session ID.
+   */
+  getParticipantLookupBySessionId = () => {
+    return this.participants.reduce<{
+      [sessionId: string]:
+        | StreamVideoParticipant
+        | StreamVideoLocalParticipant
+        | undefined;
+    }>((lookupTable, participant) => {
+      lookupTable[participant.sessionId] = participant;
+      return lookupTable;
+    }, {});
   };
 
   /**

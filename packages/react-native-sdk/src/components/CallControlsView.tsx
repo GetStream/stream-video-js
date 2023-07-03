@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, ViewProps } from 'react-native';
-import { useCallControls } from '../hooks/useCallControls';
 import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
@@ -11,6 +10,7 @@ import { ToggleAudioButton } from './ToggleAudioButton';
 import { ToggleVideoButton } from './ToggleVideoButton';
 import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
 import { Z_INDEX } from '../constants';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * The props for the Chat Button in the Call Control View.
@@ -69,7 +69,7 @@ export const CallControlsView = ({
     useState<boolean>(false);
 
   const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
-    useCallControls();
+    useMediaStreamManagement();
 
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;

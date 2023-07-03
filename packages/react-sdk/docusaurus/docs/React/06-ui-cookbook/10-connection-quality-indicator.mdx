@@ -3,6 +3,7 @@ id: connection-quality-indicator
 title: Connection Quality Indicator
 ---
 
+
 import QualityIndicators from '../assets/06-ui-cookbook/10-connection-quality-indicator/quality-indicators.png';
 
 Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
@@ -56,7 +57,7 @@ const CustomParticipantViewUI = () => {
   return (
     <>
       <ConnectionQualityIndicator />
-      {/* other UI components... */}
+      {/* your other custom UI elements */}
     </>
   );
 };
@@ -64,4 +65,4 @@ const CustomParticipantViewUI = () => {
 
 ## Final steps
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../../ui-cookbook/participant-view-customizations).
+Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [ParticipantView customizations guide](../../ui-cookbook/participant-view-customizations).

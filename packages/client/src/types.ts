@@ -13,7 +13,6 @@ import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
-import { Logger } from './coordinator/connection/types';
 
 export type StreamReaction = Pick<
   ReactionResponse,

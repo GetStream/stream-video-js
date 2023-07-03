@@ -2,12 +2,6 @@
   position: absolute;
   right: 0.875rem;
   bottom: 0.875rem;
-  opacity: 0;
-  transition: opacity 0.2s ease-out;
-
-  &.str-video__reaction--visible {
-    opacity: 1;
-  }
 
   .str-video__reaction__emoji {
     display: flex;

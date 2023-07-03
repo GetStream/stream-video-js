@@ -6,11 +6,10 @@ import {
 } from '@stream-io/video-react-bindings';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 
-import { DEVICE_STATE, useMediaDevices } from '../core';
+import { useMediaDevices } from '../core';
 
 export const useToggleVideoMuteState = () => {
-  const { publishVideoStream, stopPublishingVideo, setInitialVideoState } =
-    useMediaDevices();
+  const { publishVideoStream, stopPublishingVideo } = useMediaDevices();
   const localParticipant = useLocalParticipant();
   const call = useCall();
   const hasPermission = useHasPermissions(OwnCapability.SEND_VIDEO);
@@ -44,7 +43,6 @@ export const useToggleVideoMuteState = () => {
     }
     if (isVideoMute) {
       if (hasPermission) {
-        setInitialVideoState(DEVICE_STATE.playing);
         await publishVideoStream();
       } else {
         console.log('Cannot publish video. Insufficient permissions.');
@@ -57,7 +55,6 @@ export const useToggleVideoMuteState = () => {
     hasPermission,
     isVideoMute,
     publishVideoStream,
-    setInitialVideoState,
     stopPublishingVideo,
   ]);
 

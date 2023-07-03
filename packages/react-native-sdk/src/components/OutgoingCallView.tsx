@@ -3,12 +3,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from './UserInfoView';
 import { CallControlsButton } from './CallControlsButton';
 import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
-import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { VideoRenderer } from './VideoRenderer';
-import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 import { theme } from '../theme';
 import { Z_INDEX } from '../constants';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * The props for the Cancel Call button in the OutgoingCallView component.
@@ -34,8 +33,12 @@ export type OutgoingCallViewType = {
 export const OutgoingCallView = ({
   cancelCallHandler,
 }: OutgoingCallViewType) => {
-  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
-    useMutingState();
+  const {
+    initialAudioEnabled,
+    initialVideoEnabled,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
+  } = useMediaStreamManagement();
 
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
@@ -51,24 +54,24 @@ export const OutgoingCallView = ({
         <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>
             <CallControlsButton
-              onPress={toggleAudioState}
-              color={muteStatusColor(isAudioMuted)}
+              onPress={toggleInitialAudioMuteState}
+              color={muteStatusColor(!initialAudioEnabled)}
               style={[styles.button, theme.button.lg]}
               svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
-              {isAudioMuted ? (
+              {!initialAudioEnabled ? (
                 <MicOff color={theme.light.static_white} />
               ) : (
                 <Mic color={theme.light.static_black} />
               )}
             </CallControlsButton>
             <CallControlsButton
-              onPress={toggleVideoState}
-              color={muteStatusColor(isVideoMuted)}
+              onPress={toggleInitialVideoMuteState}
+              color={muteStatusColor(!initialVideoEnabled)}
               style={[styles.button, theme.button.lg]}
               svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
             >
-              {isVideoMuted ? (
+              {!initialVideoEnabled ? (
                 <VideoSlash color={theme.light.static_white} />
               ) : (
                 <Video color={theme.light.static_black} />
@@ -93,9 +96,9 @@ export const OutgoingCallView = ({
 
 const Background = () => {
   const localVideoStream = useLocalVideoStream();
-  const isVideoMuted = useStreamVideoStoreValue((store) => store.isVideoMuted);
+  const { initialVideoEnabled } = useMediaStreamManagement();
 
-  if (isVideoMuted || !localVideoStream) {
+  if (!initialVideoEnabled || !localVideoStream) {
     return <View style={styles.background} />;
   }
   return (

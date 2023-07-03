@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "0.0.27",
+  "version": "0.0.29",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -36,6 +36,7 @@
     "isomorphic-ws": "^5.0.0",
     "jsonwebtoken": "^9.0.0",
     "rxjs": "~7.8.1",
+    "sdp-transform": "^2.14.1",
     "ua-parser-js": "^1.0.35",
     "webrtc-adapter": "^8.2.2",
     "ws": "^8.13.0"
@@ -46,6 +47,7 @@
     "@rollup/plugin-typescript": "^11.1.0",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/rimraf": "^3.0.2",
+    "@types/sdp-transform": "^2.4.6",
     "@types/ua-parser-js": "^0.7.36",
     "@types/ws": "^8.5.4",
     "@vitest/coverage-c8": "^0.31.0",

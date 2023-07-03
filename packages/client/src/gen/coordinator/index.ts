@@ -2458,6 +2458,12 @@ export interface JoinCallRequest {
    */
   members_limit?: number;
   /**
+   * If the participant is migrating from another SFU, then this is the ID of the previous SFU
+   * @type {string}
+   * @memberof JoinCallRequest
+   */
+  migrating_from?: string;
+  /**
    *
    * @type {boolean}
    * @memberof JoinCallRequest

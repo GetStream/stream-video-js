@@ -9,8 +9,7 @@ import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { useMediaDevices } from '../core';
 
 export const useToggleAudioMuteState = () => {
-  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
-    useMediaDevices();
+  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
   const localParticipant = useLocalParticipant();
   const call = useCall();
   const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
@@ -44,7 +43,6 @@ export const useToggleAudioMuteState = () => {
     }
     if (isAudioMute) {
       if (hasPermission) {
-        setInitialAudioEnabled(true);
         await publishAudioStream();
       } else {
         console.log('Cannot publish audio stream. Insufficient permissions.');
@@ -57,7 +55,6 @@ export const useToggleAudioMuteState = () => {
     hasPermission,
     isAudioMute,
     publishAudioStream,
-    setInitialAudioEnabled,
     stopPublishingAudio,
   ]);
 
