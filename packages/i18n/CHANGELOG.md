@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.7...@stream-io/i18n-0.0.8) (2023-07-03)
+
+
+### Features
+
+* SFU Session Migration and Graceful Shutdown ([#603](https://github.com/GetStream/stream-video-js/issues/603)) ([943169b](https://github.com/GetStream/stream-video-js/commit/943169bd2b7b9e138bcaf387cf72eb3fa0f23533))
+
 ### [0.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.6...@stream-io/i18n-0.0.7) (2023-06-30)
 
 
