@@ -53,6 +53,8 @@ const UserListTypes = {
   blocked: 'Blocked users',
 } as const;
 
+const DEFAULT_DEBOUNCE_SEARCH_INTERVAL = 200 as const;
+
 export const CallParticipantsList = ({
   onClose,
   activeUsersSearchFn,
@@ -121,6 +123,17 @@ const CallParticipantListContentHeader = ({
 
   return (
     <div className="str-video__participant-list__content-header">
+      <div className="str-video__participant-list__content-header-title">
+        <span>{UserListTypes[userListType]}</span>
+        {userListType === 'active' && (
+          <Restricted
+            requiredGrants={[OwnCapability.MUTE_USERS]}
+            hasPermissionsOnly
+          >
+            <TextButton onClick={muteAll}>Mute all</TextButton>
+          </Restricted>
+        )}
+      </div>
       <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
         <GenericMenu>
           {(
@@ -136,17 +149,6 @@ const CallParticipantListContentHeader = ({
           ))}
         </GenericMenu>
       </MenuToggle>
-      <div className="str-video__participant-list__content-header-title">
-        <span>{UserListTypes[userListType]}</span>
-        {userListType === 'active' && (
-          <Restricted
-            requiredGrants={[OwnCapability.MUTE_USERS]}
-            hasPermissionsOnly
-          >
-            <TextButton onClick={muteAll}>Mute all</TextButton>
-          </Restricted>
-        )}
-      </div>
     </div>
   );
 };
@@ -154,7 +156,7 @@ const CallParticipantListContentHeader = ({
 const ActiveUsersSearchResults = ({
   searchQuery,
   activeUsersSearchFn: activeUsersSearchFnFromProps,
-  debounceSearchInterval = 200,
+  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
 }: Pick<
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
@@ -193,7 +195,7 @@ const ActiveUsersSearchResults = ({
 
 const BlockedUsersSearchResults = ({
   blockedUsersSearchFn: blockedUsersSearchFnFromProps,
-  debounceSearchInterval = 200,
+  debounceSearchInterval = DEFAULT_DEBOUNCE_SEARCH_INTERVAL,
   searchQuery,
 }: Pick<
   CallParticipantListProps,
@@ -232,7 +234,7 @@ const BlockedUsersSearchResults = ({
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   (props, ref) => {
-    return <IconButton enabled={props.menuShown} icon="caret-down" ref={ref} />;
+    return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
   },
 );
 

@@ -3,8 +3,9 @@ import createStoreContext from './createStoreContext';
 export type AppMode = 'Meeting' | 'Call' | 'None';
 
 type AppGlobalStore = {
-  username: string;
+  userId: string;
   userImageUrl?: string;
+  userName: string;
   appMode: AppMode;
   chatLabelNoted?: boolean;
 };
@@ -15,10 +16,11 @@ export const {
   useStoreSetState: useAppGlobalStoreSetState,
 } = createStoreContext<AppGlobalStore>(
   {
-    username: '',
+    userId: '',
     userImageUrl: '',
+    userName: '',
     appMode: 'None',
     chatLabelNoted: false,
   },
-  ['username', 'userImageUrl', 'appMode'],
+  ['userId', 'userName', 'userImageUrl', 'appMode'],
 );

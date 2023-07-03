@@ -3,8 +3,47 @@ id: call-statistics
 title: Call statistics
 ---
 
-:::warning
+import CallStats from '../../assets/03-ui-components/call-stats.png';
 
-TODO: write about: https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallStats
+The SDK's default component to display statistics about a call is called `CallStats`. It displays:
 
-:::
+- **Call Latency** graph that outlines average round trip time (in ms).
+- **Call Performance** section that displays the below listed call statistics
+
+<img src={CallStats} alt="Panel displaying call statistics" width={300}/>
+
+### The call statistics displayed:
+
+- **Region** - the server we are connected to
+- **Latency** - the time it takes to deliver the data between the server and the app
+- **Receive jitter** - the variation in the delay of receiving packets of data over a network
+- **Publish jitter** - the variation in the delay of sending packets of data over a network
+- **Publish resolution** - video resolution we are publishing
+- **Publish quality drop reason** - optional explanation of the reason, why the video image quality we are sending has diminished
+- **Receiving resolution** - video resolution we are receiving
+- **Receive quality drop reason** - optional explanation of the reason, why the video image quality we are receiving has diminished
+- **Publish bitrate** - the rate at which data is transmitted from the app to the server
+- **Receiving bitrate** - the rate at which data is transmitted from the server to the app
+
+## General usage
+The default component is just rendered without passing any props:
+
+```tsx
+const YourComponent = (someProps: SomeProps) => {
+    // omitted code ...
+
+    return (
+      {/* omitted code ... */}
+        <CallStats />
+      {/* omitted code ... */}
+    );
+}
+```
+
+## Customization
+
+The component is not customizable through props, only by applying CSS to elements it renders.
+
+## Props
+
+None

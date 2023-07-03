@@ -6,30 +6,31 @@ import {
   useConnectedUser,
   useParticipantCount,
 } from '@stream-io/video-react-bindings';
-import { useStreamVideoStoreValue } from '../contexts/StreamVideoContext';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
-import { useMutingState } from '../hooks/useMutingState';
 import { useLocalVideoStream } from '../hooks';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
 import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
-  const { isAudioMuted, isVideoMuted } = useMutingState();
+  const participantLabel = connectedUser?.name ?? connectedUser?.id;
+  const { initialAudioEnabled, initialVideoEnabled } =
+    useMediaStreamManagement();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
-        {connectedUser?.id}
+        {participantLabel}
       </Text>
-      {isAudioMuted && (
+      {!initialAudioEnabled && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
         </View>
       )}
-      {isVideoMuted && (
+      {!initialVideoEnabled && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <VideoSlash color={theme.light.error} />
         </View>
@@ -41,21 +42,23 @@ const ParticipantStatus = () => {
 export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const { isAudioMuted, isVideoMuted, toggleAudioState, toggleVideoState } =
-    useMutingState();
-  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
-    (store) => store.isCameraOnFrontFacingMode,
-  );
-  const isVideoAvailable = !!localVideoStream && !isVideoMuted;
+  const {
+    initialAudioEnabled,
+    initialVideoEnabled,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
+    isCameraOnFrontFacingMode,
+  } = useMediaStreamManagement();
+  const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
   const count = useParticipantCount();
   const call = useCall();
 
-  const MicIcon = isAudioMuted ? (
+  const MicIcon = !initialAudioEnabled ? (
     <MicOff color={theme.light.static_white} />
   ) : (
     <Mic color={theme.light.static_black} />
   );
-  const VideoIcon = isVideoMuted ? (
+  const VideoIcon = !initialVideoEnabled ? (
     <VideoSlash color={theme.light.static_white} />
   ) : (
     <Video color={theme.light.static_black} />
@@ -78,8 +81,8 @@ export const LobbyView = () => {
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
-  const muteStatusColor = (status: boolean) => {
-    return !status ? theme.light.static_white : theme.light.static_black;
+  const muteStatusColor = (muted: boolean) => {
+    return muted ? theme.light.static_black : theme.light.static_white;
   };
 
   return (
@@ -105,26 +108,26 @@ export const LobbyView = () => {
             </View>
             <View style={styles.buttonGroup}>
               <CallControlsButton
-                onPress={toggleAudioState}
-                color={muteStatusColor(isAudioMuted)}
+                onPress={toggleInitialAudioMuteState}
+                color={muteStatusColor(!initialAudioEnabled)}
                 style={[
                   styles.button,
                   theme.button.md,
                   {
-                    shadowColor: muteStatusColor(isAudioMuted),
+                    shadowColor: muteStatusColor(!initialAudioEnabled),
                   },
                 ]}
               >
                 {MicIcon}
               </CallControlsButton>
               <CallControlsButton
-                onPress={toggleVideoState}
-                color={muteStatusColor(isVideoMuted)}
+                onPress={toggleInitialVideoMuteState}
+                color={muteStatusColor(!initialVideoEnabled)}
                 style={[
                   styles.button,
                   theme.button.md,
                   {
-                    shadowColor: muteStatusColor(isVideoMuted),
+                    shadowColor: muteStatusColor(!initialVideoEnabled),
                   },
                 ]}
               >

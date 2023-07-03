@@ -38,8 +38,9 @@ setPushConfig();
 
 const StackNavigator = () => {
   const appMode = useAppGlobalStoreValue((store) => store.appMode);
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
+  const userName = useAppGlobalStoreValue((store) => store.userName);
   const setState = useAppGlobalStoreSetState();
 
   useProntoLinkEffect();
@@ -77,7 +78,7 @@ const StackNavigator = () => {
   }
 
   useEffect(() => {
-    if (!(username && userImageUrl)) {
+    if (!(userId && userImageUrl)) {
       return;
     }
     const subscription = prontoCallId$.subscribe((prontoCallId) => {
@@ -87,18 +88,19 @@ const StackNavigator = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [setState, username, userImageUrl]);
+  }, [setState, userId, userImageUrl]);
 
   useEffect(() => {
-    if (username && userImageUrl) {
+    if (userId && userImageUrl) {
       StaticNavigationService.authenticationInfo = {
-        username,
+        userId,
+        userName,
         userImageUrl,
       };
     }
-  }, [username, userImageUrl]);
+  }, [userId, userName, userImageUrl]);
 
-  if (!(username && userImageUrl)) {
+  if (!(userId && userImageUrl && userName)) {
     return <LoginScreen />;
   }
 

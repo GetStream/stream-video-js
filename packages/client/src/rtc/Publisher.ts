@@ -1,3 +1,4 @@
+import * as SDP from 'sdp-transform';
 import { StreamSfuClient } from '../StreamSfuClient';
 import {
   PeerType,
@@ -10,6 +11,7 @@ import { getIceCandidate } from './helpers/iceCandidate';
 import {
   findOptimalScreenSharingLayers,
   findOptimalVideoLayers,
+  OptimalVideoLayer,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
 import {
@@ -25,6 +27,7 @@ import {
   toggleDtx,
 } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
@@ -40,9 +43,9 @@ export type PublisherOpts = {
  * @internal
  */
 export class Publisher {
-  private readonly publisher: RTCPeerConnection;
-  private readonly sfuClient: StreamSfuClient;
+  private pc: RTCPeerConnection;
   private readonly state: CallState;
+
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
   } = {
@@ -52,7 +55,8 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
-  private readonly trackKindRegistry: {
+
+  private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
   } = {
     [TrackType.AUDIO]: 'audio',
@@ -61,11 +65,37 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
-  private isDtxEnabled: boolean;
-  private isRedEnabled: boolean;
-  private preferredVideoCodec?: string;
-  private logger?: Logger;
 
+  private readonly trackLayersCache: {
+    [key in TrackType]: OptimalVideoLayer[] | undefined;
+  } = {
+    [TrackType.AUDIO]: undefined,
+    [TrackType.VIDEO]: undefined,
+    [TrackType.SCREEN_SHARE]: undefined,
+    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
+    [TrackType.UNSPECIFIED]: undefined,
+  };
+
+  private readonly isDtxEnabled: boolean;
+  private readonly isRedEnabled: boolean;
+  private readonly preferredVideoCodec?: string;
+  private logger: Logger = getLogger(['Publisher']);
+
+  /**
+   * The SFU client instance to use for publishing and signaling.
+   */
+  sfuClient: StreamSfuClient;
+
+  /**
+   * Constructs a new `Publisher` instance.
+   *
+   * @param connectionConfig the connection configuration to use.
+   * @param sfuClient the SFU client to use.
+   * @param state the call state to use.
+   * @param isDtxEnabled whether DTX is enabled.
+   * @param isRedEnabled whether RED is enabled.
+   * @param preferredVideoCodec the preferred video codec.
+   */
   constructor({
     connectionConfig,
     sfuClient,
@@ -74,6 +104,15 @@ export class Publisher {
     isRedEnabled,
     preferredVideoCodec,
   }: PublisherOpts) {
+    this.pc = this.createPeerConnection(connectionConfig);
+    this.sfuClient = sfuClient;
+    this.state = state;
+    this.isDtxEnabled = isDtxEnabled;
+    this.isRedEnabled = isRedEnabled;
+    this.preferredVideoCodec = preferredVideoCodec;
+  }
+
+  private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
@@ -87,14 +126,28 @@ export class Publisher {
       'icegatheringstatechange',
       this.onIceGatheringStateChange,
     );
+    pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
+    return pc;
+  };
 
-    this.publisher = pc;
-    this.sfuClient = sfuClient;
-    this.state = state;
-    this.isDtxEnabled = isDtxEnabled;
-    this.isRedEnabled = isRedEnabled;
-    this.preferredVideoCodec = preferredVideoCodec;
-  }
+  /**
+   * Closes the publisher PeerConnection and cleans up the resources.
+   */
+  close = ({ stopTracks = true } = {}) => {
+    if (stopTracks) {
+      this.stopPublishing();
+      Object.keys(this.transceiverRegistry).forEach((trackType) => {
+        // @ts-ignore
+        this.transceiverRegistry[trackType] = undefined;
+      });
+      Object.keys(this.trackLayersCache).forEach((trackType) => {
+        // @ts-ignore
+        this.trackLayersCache[trackType] = undefined;
+      });
+    }
+
+    this.pc.close();
+  };
 
   /**
    * Starts publishing the given track of the given media stream.
@@ -112,13 +165,17 @@ export class Publisher {
     trackType: TrackType,
     opts: PublishOptions = {},
   ) => {
-    let transceiver = this.publisher
+    if (track.readyState === 'ended') {
+      throw new Error(`Can't publish a track that has ended already.`);
+    }
+
+    let transceiver = this.pc
       .getTransceivers()
       .find(
         (t) =>
           t === this.transceiverRegistry[trackType] &&
           t.sender.track &&
-          t.sender.track?.kind === this.trackKindRegistry[trackType],
+          t.sender.track?.kind === this.trackKindMapping[trackType],
       );
 
     /**
@@ -126,7 +183,7 @@ export class Publisher {
      * Once the track has ended, it will notify the SFU and update the state.
      */
     const handleTrackEnded = async () => {
-      this.logger?.(
+      this.logger(
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
@@ -158,7 +215,7 @@ export class Publisher {
       // keep in mind that `track.stop()` doesn't trigger this event.
       track.addEventListener('ended', handleTrackEnded);
 
-      transceiver = this.publisher.addTransceiver(track, {
+      transceiver = this.pc.addTransceiver(track, {
         direction: 'sendonly',
         streams:
           trackType === TrackType.VIDEO || trackType === TrackType.SCREEN_SHARE
@@ -170,7 +227,7 @@ export class Publisher {
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
-        this.logger?.(
+        this.logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
@@ -202,7 +259,7 @@ export class Publisher {
    * @param trackType the track type to unpublish.
    */
   unpublishStream = async (trackType: TrackType) => {
-    const transceiver = this.publisher
+    const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
     if (
@@ -266,39 +323,39 @@ export class Publisher {
 
   /**
    * Stops publishing all tracks and stop all tracks.
-   *
-   * @param options - Options
-   * @param options.stopTracks - If `true` (default), all tracks will be stopped.
    */
-  stopPublishing = (
-    options: {
-      stopTracks?: boolean;
-    } = {},
-  ) => {
-    const { stopTracks = true } = options;
-    if (stopTracks) {
-      this.publisher.getSenders().forEach((s) => {
-        s.track?.stop();
-
-        if (this.publisher.signalingState !== 'closed') {
-          this.publisher.removeTrack(s);
-        }
-      });
-    }
-    this.publisher.close();
+  stopPublishing = () => {
+    this.logger('debug', 'Stopping publishing all tracks');
+    this.pc.getSenders().forEach((s) => {
+      s.track?.stop();
+      if (this.pc.signalingState !== 'closed') {
+        this.pc.removeTrack(s);
+      }
+    });
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {
-    this.logger?.(
+    this.logger(
       'info',
       'Update publish quality, requested rids by SFU:',
       enabledRids,
     );
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
-    if (!videoSender) return;
+    if (!videoSender) {
+      this.logger('warn', 'Update publish quality, no video sender found.');
+      return;
+    }
 
     const params = videoSender.getParameters();
+    if (params.encodings.length === 0) {
+      this.logger(
+        'warn',
+        'Update publish quality, No suitable video encoding quality found',
+      );
+      return;
+    }
+
     let changed = false;
     params.encodings.forEach((enc) => {
       // flip 'active' flag only when necessary
@@ -308,18 +365,19 @@ export class Publisher {
         changed = true;
       }
     });
+
+    const activeRids = params.encodings
+      .filter((e) => e.active)
+      .map((e) => e.rid)
+      .join(', ');
     if (changed) {
-      if (params.encodings.length === 0) {
-        this.logger?.('warn', 'No suitable video encoding quality found');
-      }
       await videoSender.setParameters(params);
-      this.logger?.(
+      this.logger(
         'info',
-        `Update publish quality, enabled rids: ${params.encodings
-          .filter((e) => e.active)
-          .map((e) => e.rid)
-          .join(', ')}`,
+        `Update publish quality, enabled rids: ${activeRids}`,
       );
+    } else {
+      this.logger('info', `Update publish quality, no change: ${activeRids}`);
     }
   };
 
@@ -328,9 +386,9 @@ export class Publisher {
    * @param selector
    * @returns
    */
-  getStats(selector?: MediaStreamTrack | null | undefined) {
-    return this.publisher.getStats(selector);
-  }
+  getStats = (selector?: MediaStreamTrack | null | undefined) => {
+    return this.pc.getStats(selector);
+  };
 
   private getCodecPreferences = (
     trackType: TrackType,
@@ -353,7 +411,7 @@ export class Publisher {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      this.logger?.('warn', 'null ice candidate');
+      this.logger('warn', 'null ice candidate');
       return;
     }
     await this.sfuClient.iceTrickle({
@@ -362,10 +420,83 @@ export class Publisher {
     });
   };
 
+  /**
+   * Performs a migration of this publisher instance to a new SFU.
+   *
+   * Initiates a new `iceRestart` offer/answer exchange with the new SFU.
+   *
+   * @param sfuClient the new SFU client to migrate to.
+   * @param connectionConfig the new connection configuration to use.
+   */
+  migrateTo = async (
+    sfuClient: StreamSfuClient,
+    connectionConfig?: RTCConfiguration,
+  ) => {
+    this.sfuClient = sfuClient;
+    this.pc.setConfiguration(connectionConfig);
+
+    const shouldRestartIce = this.pc.iceConnectionState === 'connected';
+    if (shouldRestartIce) {
+      // negotiate only if there are tracks to publish
+      await this.negotiate({ iceRestart: true });
+    }
+  };
+
   private onNegotiationNeeded = async () => {
-    this.logger?.('info', 'AAA onNegotiationNeeded');
-    const offer = await this.publisher.createOffer();
-    let sdp = offer.sdp;
+    await this.negotiate();
+  };
+
+  /**
+   * Initiates a new offer/answer exchange with the currently connected SFU.
+   *
+   * @param options the optional offer options to use.
+   */
+  private negotiate = async (options?: RTCOfferOptions) => {
+    const offer = await this.pc.createOffer(options);
+    offer.sdp = this.mungeCodecs(offer.sdp);
+
+    const trackInfos = this.getCurrentTrackInfos(offer.sdp);
+    if (trackInfos.length === 0) {
+      throw new Error(
+        `Can't initiate negotiation without announcing any tracks`,
+      );
+    }
+
+    await this.pc.setLocalDescription(offer);
+
+    const { response } = await this.sfuClient.setPublisher({
+      sdp: offer.sdp || '',
+      tracks: trackInfos,
+    });
+
+    try {
+      await this.pc.setRemoteDescription({
+        type: 'answer',
+        sdp: response.sdp,
+      });
+    } catch (e) {
+      this.logger('error', `setRemoteDescription error`, {
+        sdp: response.sdp,
+        error: e,
+      });
+    }
+
+    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
+      async (candidate) => {
+        try {
+          const iceCandidate = JSON.parse(candidate.iceCandidate);
+          await this.pc.addIceCandidate(iceCandidate);
+        } catch (e) {
+          this.logger('error', `ICE candidate error`, {
+            error: e,
+            candidate,
+          });
+        }
+      },
+    );
+  };
+
+  private mungeCodecs = (sdp?: string) => {
     if (sdp) {
       sdp = toggleDtx(sdp, this.isDtxEnabled);
       if (isReactNative()) {
@@ -382,28 +513,63 @@ export class Publisher {
         }
       }
     }
-    offer.sdp = sdp;
-    await this.publisher.setLocalDescription(offer);
+    return sdp;
+  };
+
+  getCurrentTrackInfos = (sdp?: string) => {
+    sdp = sdp || this.pc.localDescription?.sdp;
+    const extractMid = (
+      defaultMid: string | null,
+      track: MediaStreamTrack,
+    ): string => {
+      if (defaultMid) return defaultMid;
+      if (!sdp) {
+        this.logger('warn', 'No SDP found. Returning empty mid');
+        return '';
+      }
+
+      this.logger('warn', 'No mid found for track. Trying to find it from SDP');
+
+      const parsedSdp = SDP.parse(sdp);
+      const media = parsedSdp.media.find((m) => m.type === track.kind);
+      if (typeof media?.mid === 'undefined') {
+        this.logger('warn', `No mid found in SDP for track type ${track.kind}`);
+        return '';
+      }
+      return String(media.mid);
+    };
 
     const metadata = this.state.metadata;
     const targetResolution = metadata?.settings.video.target_resolution;
-    const trackInfos = this.publisher
+    return this.pc
       .getTransceivers()
-      .filter((t) => t.direction === 'sendonly' && !!t.sender.track)
+      .filter((t) => t.direction === 'sendonly' && t.sender.track)
       .map<TrackInfo>((transceiver) => {
-        const trackType = Number(
+        const trackType: TrackType = Number(
           Object.keys(this.transceiverRegistry).find(
             (key) =>
               this.transceiverRegistry[key as any as TrackType] === transceiver,
           ),
         );
         const track = transceiver.sender.track!;
-        const optimalLayers =
-          trackType === TrackType.VIDEO
-            ? findOptimalVideoLayers(track, targetResolution)
-            : trackType === TrackType.SCREEN_SHARE
-            ? findOptimalScreenSharingLayers(track)
-            : [];
+        let optimalLayers: OptimalVideoLayer[];
+        if (track.readyState === 'live') {
+          optimalLayers =
+            trackType === TrackType.VIDEO
+              ? findOptimalVideoLayers(track, targetResolution)
+              : trackType === TrackType.SCREEN_SHARE
+              ? findOptimalScreenSharingLayers(track)
+              : [];
+          this.trackLayersCache[trackType] = optimalLayers;
+        } else {
+          // we report the last known optimal layers for ended tracks
+          optimalLayers = this.trackLayersCache[trackType] || [];
+          this.logger(
+            'debug',
+            `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
+            optimalLayers,
+          );
+        }
 
         const layers = optimalLayers.map<VideoLayer>((optimalLayer) => ({
           rid: optimalLayer.rid || '',
@@ -420,69 +586,37 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: transceiver.mid || '',
+          mid: extractMid(transceiver.mid, track),
 
           // FIXME OL: adjust these values
           stereo: false,
-          dtx: this.isDtxEnabled,
-          red: this.isRedEnabled,
+          dtx: TrackType.AUDIO === trackType && this.isDtxEnabled,
+          red: TrackType.AUDIO === trackType && this.isRedEnabled,
         };
       });
-
-    // TODO debounce for 250ms
-    const { response } = await this.sfuClient.setPublisher({
-      sdp: offer.sdp || '',
-      tracks: trackInfos,
-    });
-
-    try {
-      await this.publisher.setRemoteDescription({
-        type: 'answer',
-        sdp: response.sdp,
-      });
-    } catch (e) {
-      this.logger?.('error', `Publisher: setRemoteDescription error`, {
-        sdp: response.sdp,
-        error: e,
-      });
-    }
-
-    this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
-      async (candidate) => {
-        try {
-          const iceCandidate = JSON.parse(candidate.iceCandidate);
-          await this.publisher.addIceCandidate(iceCandidate);
-        } catch (e) {
-          this.logger?.('error', `Publisher: ICE candidate error`, {
-            error: e,
-            candidate,
-          });
-        }
-      },
-    );
   };
 
   private onIceCandidateError = (e: Event) => {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    this.logger?.('error', `Publisher: ICE Candidate error`, errorMessage);
+    this.logger('error', `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
-    this.logger?.(
+    this.logger(
       'error',
-      `Publisher: ICE Connection state changed`,
-      this.publisher.iceConnectionState,
+      `ICE Connection state changed`,
+      this.pc.iceConnectionState,
     );
   };
 
   private onIceGatheringStateChange = () => {
-    this.logger?.(
-      'error',
-      `Publisher: ICE Gathering State`,
-      this.publisher.iceGatheringState,
-    );
+    this.logger('error', `ICE Gathering State`, this.pc.iceGatheringState);
+  };
+
+  private onSignalingStateChange = () => {
+    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 
   private ridToVideoQuality = (rid: string): VideoQuality => {

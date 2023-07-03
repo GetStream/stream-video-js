@@ -1,6 +1,5 @@
 import { CallState } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
-import { getLogger } from '../logger';
 
 /**
  * Watch for call.session_started events and update the call metadata.

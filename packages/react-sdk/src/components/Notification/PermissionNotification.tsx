@@ -11,11 +11,6 @@ import { useHasPermissions } from '@stream-io/video-react-bindings';
 
 export type PermissionNotificationProps = PropsWithChildren<{
   /**
-   * The permission to check for.
-   */
-  permission: OwnCapability;
-
-  /**
    * Set this to true if there is ongoing request for the permission.
    */
   isAwaitingApproval: boolean;
@@ -37,6 +32,11 @@ export type PermissionNotificationProps = PropsWithChildren<{
    * the requested permission is awaiting approval.
    */
   messageAwaitingApproval: string;
+
+  /**
+   * The permission to check for.
+   */
+  permission: OwnCapability;
 
   /**
    * The time in milliseconds to display the notification.
