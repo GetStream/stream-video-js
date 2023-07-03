@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
+  CallingState,
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -13,7 +14,7 @@ import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
 import { ParticipantReaction } from './ParticipantReaction';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 import { Z_INDEX } from '../constants';
 import { A11yComponents } from '../constants/A11yLabels';
@@ -62,6 +63,8 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
 
   const call = useCall();
+  const callingState = useCallCallingState();
+  const hasJoinedCall = callingState === CallingState.JOINED;
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const { isSpeaking, isLocalParticipant, publishedTracks } = participant;
@@ -108,6 +111,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     call,
   ]);
 
+  useEffect(() => {
+    if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
+      // when call is joined again, we want to use the last subscribed dimension to resubscribe
+      pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
+      subscribedVideoLayoutRef.current = undefined;
+    }
+  }, [hasJoinedCall]);
+
   /**
    * This effect updates the subscription either
    * 1. when video tracks are published and was unpublished before
@@ -116,7 +127,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   useEffect(() => {
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
     const updateIsNeeded = pendingVideoLayoutRef.current;
-    if (!updateIsNeeded || !call || !isPublishingVideoTrack) {
+    if (!updateIsNeeded || !call || !isPublishingVideoTrack || !hasJoinedCall) {
       return;
     }
 
@@ -132,7 +143,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
       pendingVideoLayoutRef.current = undefined;
     }
-  }, [call, isPublishingVideoTrack, kind, participant.sessionId, isVisible]);
+  }, [
+    call,
+    isPublishingVideoTrack,
+    kind,
+    participant.sessionId,
+    isVisible,
+    hasJoinedCall,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -150,7 +168,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !isVisible) {
+    if (!call || !isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }
@@ -189,7 +207,8 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
   const isAudioAvailable =
     kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
-  const canShowVideo = !!videoStream && isVisible && hasVideoTrack;
+  const canShowVideo =
+    !!videoStream && isVisible && hasVideoTrack && hasJoinedCall;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = {

@@ -26,9 +26,12 @@ import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
+import { LogBox } from 'react-native';
 
 // @ts-expect-error
 Logger.enable(false);
+
+LogBox.ignoreAllLogs();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

@@ -23,9 +23,14 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
    * Effect to inform the coordinator about the online status of the app
    */
   useEffect(() => {
+    let prevIsOnline = true;
     const unsubscribe = NetInfo.addEventListener((state) => {
       const { isConnected, isInternetReachable } = state;
-      const isOnline = isConnected !== false && isInternetReachable !== false;
+      const isOnline = isConnected === true && isInternetReachable === true;
+      if (isOnline === prevIsOnline) {
+        return;
+      }
+      prevIsOnline = isOnline;
       // @ts-expect-error - due to being incompatible with DOM event type
       client.streamClient.wsConnection?.onlineStatusChanged({
         type: isOnline ? 'online' : 'offline',

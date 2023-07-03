@@ -106,7 +106,7 @@ export class StreamSfuClient {
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
-  private pingIntervalInMs = 25 * 1000;
+  private pingIntervalInMs = 10 * 1000;
   private unhealthyTimeoutInMs = this.pingIntervalInMs + 5 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly unsubscribeIceTrickle: () => void;
