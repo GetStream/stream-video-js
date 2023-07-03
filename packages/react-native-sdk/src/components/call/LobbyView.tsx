@@ -15,12 +15,10 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
-
 /**
  * Use this view prior to joining a call.
  * This view allows the user to toggle their audio and video state before joining a call.
  */
-export const LobbyView = () => {
 /**
  * The props for the Join Button in the LobbyView.
  */

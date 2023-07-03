@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   CallContentView,
   CallControlsView,
+  CallControlsViewType,
   CallingState,
   ParticipantsInfoBadge,
   useCall,
