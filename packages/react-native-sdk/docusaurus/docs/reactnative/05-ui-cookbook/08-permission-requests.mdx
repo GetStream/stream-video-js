@@ -3,341 +3,626 @@ title: Permission Requests
 description: Permission Requests
 ---
 
-Permission requests allow call participants to request permission to publish audio/video/screen-share. Participants with elevated permissions can accept or reject these requests. This guide shows you how you can build a UI for sending and receiving these requests.
+:::warning
+Write React Native Specifics
 
-:::note
-
-The [`ToggleVideoPublishingButton`](../../ui-components/call/call-controls/#togglevideopublishingbutton), [`ToggleAudioPublishingButton`](../../ui-components/call/call-controls/#toggleaudiopublishingbutton) and [`ScreenShareButton`](../../ui-components/call/call-controls/#screensharebutton) components can send permission requests, you only need to follow this guide if you want to build your own UI for this.
-
-The [`PermissionRequests`](../../ui-components/utility/permission-requests) component can receive permission requests, you only need to follow this guide if you want to build your own UI for this.
-
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
 :::
 
-## Prerequisites
+[//]: # ()
+[//]: # (Permission requests allow call participants to request permission to publish audio/video/screen-share. Participants with elevated permissions can accept or reject these requests. This guide shows you how you can build a UI for sending and receiving these requests.)
 
-Before we can join a call, we need to connect to Stream's edge infrastructure.
-To do that, we follow these steps:
+[//]: # ()
+[//]: # (:::note)
 
-- [Register for a Stream account](https://getstream.io/try-for-free/) and obtain our API key and secret.
-- Install the Stream React Video SDK:
-  - `npm install @stream-io/video-react-sdk`
-  - `yarn add @stream-io/video-react-sdk`
-- [Initialize the SDK](../../guides/client-auth) by passing in your API key, token and user information
-- [Create and join a call](../../guides/joining-and-creating-calls)
+[//]: # ()
+[//]: # (The [`ToggleVideoPublishingButton`]&#40;../../ui-components/call/call-controls/#togglevideopublishingbutton&#41;, [`ToggleAudioPublishingButton`]&#40;../../ui-components/call/call-controls/#toggleaudiopublishingbutton&#41; and [`ScreenShareButton`]&#40;../../ui-components/call/call-controls/#screensharebutton&#41; components can send permission requests, you only need to follow this guide if you want to build your own UI for this.)
 
-## Start point
+[//]: # ()
+[//]: # (The [`PermissionRequests`]&#40;../../ui-components/utility/permission-requests&#41; component can receive permission requests, you only need to follow this guide if you want to build your own UI for this.)
 
-Let's start with a simple call UI where we create an `audio_room` call.
+[//]: # ()
+[//]: # (:::)
 
-```tsx
-import {
-  StreamVideo,
-  StreamCall,
-  CallParticipantsView,
-  CallControls,
-  useCall,
-  StreamTheme,
-} from '@stream-io/video-react-sdk';
-import '@stream-io/video-react-sdk/dist/css/styles.css';
+[//]: # ()
+[//]: # (## Prerequisites)
 
-export default function App() {
-  // create client and call
+[//]: # ()
+[//]: # (Before we can join a call, we need to connect to Stream's edge infrastructure.)
 
-  return (
-    <StreamTheme>
-      <StreamVideo client={client}>
-        <StreamCall call={call}>
-          <CallUI />
-        </StreamCall>
-      </StreamVideo>
-    </StreamTheme>
-  );
-}
+[//]: # (To do that, we follow these steps:)
 
-const CallUI = () => {
-  const call = useCall();
+[//]: # ()
+[//]: # (- [Register for a Stream account]&#40;https://getstream.io/try-for-free/&#41; and obtain our API key and secret.)
 
-  return (
-    <div>
-      <PermissionRequestNotifications />
-      <CallParticipantsView call={call} />
-      <CallControls />
-      <PermissionRequests />
-    </div>
-  );
-};
+[//]: # (- Install the Stream React Video SDK:)
 
-const PermissionRequests = () => {};
+[//]: # (  - `npm install @stream-io/video-react-sdk`)
 
-const PermissionRequestNotifications = () => {};
-```
+[//]: # (  - `yarn add @stream-io/video-react-sdk`)
 
-:::note
+[//]: # (- [Initialize the SDK]&#40;../../guides/client-auth&#41; by passing in your API key, token and user information)
 
-Permission requests are only relevant for [call types](../../guides/configuring-call-types/) that have roles where a participant can't publish their audio/video/screen-share by default.
+[//]: # (- [Create and join a call]&#40;../../guides/joining-and-creating-calls&#41;)
 
-:::
+[//]: # ()
+[//]: # (## Start point)
 
-In this guide, we will implement the `PermissionRequests` component to send permission requests and the `PermissionRequestNotifications` to receive them.
+[//]: # ()
+[//]: # (Let's start with a simple call UI where we create an `audio_room` call.)
 
-To follow along with the guide, don't forget to turn off backstage mode so others can join:
+[//]: # ()
+[//]: # (```tsx)
 
-```typescript
-let call: Call;
+[//]: # (import {)
 
-call.goLive();
-```
+[//]: # (  StreamVideo,)
 
-## Request permission
+[//]: # (  StreamCall,)
 
-In this step we will implement the `PermissionRequests` component to send permission requests.
+[//]: # (  CallParticipantsView,)
 
-For readability the code snippet only contains the `PermissionRequests` implementation, the [full example](#finished-example) is available at the end of the guide.
+[//]: # (  CallControls,)
 
-```tsx
-const PermissionRequests = () => {
-  const call = useCall();
-  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
-  const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
-  const canShareScreen = useHasPermissions(OwnCapability.SCREENSHARE);
+[//]: # (  useCall,)
 
-  if (!call) {
-    return null;
-  }
+[//]: # (  StreamTheme,)
 
-  const shouldDisplayButton = (capability) => {
-    return (
-      call.permissionsContext.canRequest(capability) &&
-      !call.permissionsContext.hasPermission(capability)
-    );
-  };
+[//]: # (} from '@stream-io/video-react-sdk';)
 
-  const requestPermission = (capability) => {
-    call.requestPermissions({ permissions: [capability] });
-  };
+[//]: # (import '@stream-io/video-react-sdk/dist/css/styles.css';)
 
-  return (
-    <div>
-      {shouldDisplayButton(OwnCapability.SEND_AUDIO) && (
-        <button onClick={() => requestPermission(OwnCapability.SEND_AUDIO)}>
-          Request audio permission
-        </button>
-      )}
-      {shouldDisplayButton(OwnCapability.SEND_VIDEO) && (
-        <button onClick={() => requestPermission(OwnCapability.SEND_VIDEO)}>
-          Request video permission
-        </button>
-      )}
-      {shouldDisplayButton(OwnCapability.SCREENSHARE) && (
-        <button onClick={() => requestPermission(OwnCapability.SCREENSHARE)}>
-          Request screen share permission
-        </button>
-      )}
-      {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'}
-      {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'}
-      {canShareScreen
-        ? 'Allowed to share screen'
-        : 'Not allowed to share screen'}
-    </div>
-  );
-};
-```
+[//]: # ()
+[//]: # (export default function App&#40;&#41; {)
 
-Let's unpack the above code snippet:
+[//]: # (  // create client and call)
 
-- We only display the request button if the user is allowed to request the specific capability and doesn't already have that permission. For more information, check out the [permissions guide](../../guides/permissions-and-moderation).
-- To send the request we are using the `requestPermissions` method of the `Call` instance.
-- We use the `useHasPermissions` hook to be notified when the request was approved. Alternatively you can subscribe to the [`call.permissions_updated` event](../../advanced/events/).
+[//]: # ()
+[//]: # (  return &#40;)
 
-## Receive permission requests
+[//]: # (    <StreamTheme>)
 
-In this step we will implement the `PermissionRequestNotifications` component to receive permission requests.
+[//]: # (      <StreamVideo client={client}>)
 
-For readability, the code snippet only contains the `PermissionRequestNotifications` implementation, the [full example](#finished-example) is available at the end of the guide.
+[//]: # (        <StreamCall call={call}>)
 
-```tsx
-const PermissionRequestNotifications = () => {
-  const call = useCall();
-  const permissionRequest = useCallPermissionRequest();
-  const [permissionRequests, setPermissionRequests] = useState([]);
+[//]: # (          <CallUI />)
 
-  useEffect(() => {
-    if (!permissionRequest) {
-      return;
-    }
-    setPermissionRequests((requests) => [...requests, permissionRequest]);
-  }, [permissionRequest]);
+[//]: # (        </StreamCall>)
 
-  if (
-    !call ||
-    permissionRequests.length === 0 ||
-    !call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)
-  ) {
-    return null;
-  }
+[//]: # (      </StreamVideo>)
 
-  const answerRequest = async (answer, request) => {
-    if (answer === 'accept') {
-      await call.grantPermissions(request.user.id, request.permissions);
-    } else {
-      await call.revokePermissions(request.user.id, request.permissions);
-    }
-    setPermissionRequests((requests) => requests.filter((r) => r !== request));
-  };
+[//]: # (    </StreamTheme>)
 
-  return (
-    <div>
-      {permissionRequests.map((request) => (
-        <div>
-          New request from {request.user.id} to publish {request.permissions}
-          <button onClick={() => answerRequest('accept')}>Accept</button>
-          <button onClick={() => answerRequest('reject')}>Reject</button>
-        </div>
-      ))}
-    </div>
-  );
-};
-```
+[//]: # (  &#41;;)
 
-Let's unpack the above code snippet:
+[//]: # (})
 
-- We only show the permission requests to users that have the necessary capability to accept/reject: `call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)`
-- We use the `useCallPermissionRequest` hook to be notified about permission requests
-- A permission request can be accepted with the `grantPermissions` method of the `Call` instance
-- A permission request can be rejected with the `revokePermissions` method of the `Call` instance. This method can also be used to revoke permissions later in the call.
+[//]: # ()
+[//]: # (const CallUI = &#40;&#41; => {)
 
-## Finished example
+[//]: # (  const call = useCall&#40;&#41;;)
 
-Here is the full example:
+[//]: # ()
+[//]: # (  return &#40;)
 
-```tsx
-import {
-  StreamVideo,
-  StreamCall,
-  CallParticipantsView,
-  useCall,
-  StreamTheme,
-  OwnCapability,
-  useCallPermissionRequest,
-  CallControls,
-  useHasPermissions,
-} from '@stream-io/video-react-sdk';
-import '@stream-io/video-react-sdk/dist/css/styles.css';
-import { useEffect, useState } from 'react';
+[//]: # (    <div>)
 
-export default function App() {
-  // create client and call
+[//]: # (      <PermissionRequestNotifications />)
 
-  return (
-    <StreamTheme>
-      <StreamVideo client={client}>
-        <StreamCall call={call}>
-          <CallUI />
-        </StreamCall>
-      </StreamVideo>
-    </StreamTheme>
-  );
-}
+[//]: # (      <CallParticipantsView call={call} />)
 
-const CallUI = () => {
-  const call = useCall();
+[//]: # (      <CallControls />)
 
-  return (
-    <div>
-      <PermissionRequestNotifications />
-      <CallParticipantsView call={call} />
-      <CallControls />
-      <PermissionRequests />
-    </div>
-  );
-};
+[//]: # (      <PermissionRequests />)
 
-const PermissionRequests = () => {
-  const call = useCall();
-  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
-  const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
-  const canShareScreen = useHasPermissions(OwnCapability.SCREENSHARE);
+[//]: # (    </div>)
 
-  if (!call) {
-    return null;
-  }
+[//]: # (  &#41;;)
 
-  const shouldDisplayButton = (capability) => {
-    return (
-      call.permissionsContext.canRequest(capability) &&
-      !call.permissionsContext.hasPermission(capability)
-    );
-  };
+[//]: # (};)
 
-  const requestPermission = (capability) => {
-    call.requestPermissions({ permissions: [capability] });
-  };
+[//]: # ()
+[//]: # (const PermissionRequests = &#40;&#41; => {};)
 
-  return (
-    <div>
-      {shouldDisplayButton(OwnCapability.SEND_AUDIO) && (
-        <button onClick={() => requestPermission(OwnCapability.SEND_AUDIO)}>
-          Request audio permission
-        </button>
-      )}
-      {shouldDisplayButton(OwnCapability.SEND_VIDEO) && (
-        <button onClick={() => requestPermission(OwnCapability.SEND_VIDEO)}>
-          Request video permission
-        </button>
-      )}
-      {shouldDisplayButton(OwnCapability.SCREENSHARE) && (
-        <button onClick={() => requestPermission(OwnCapability.SCREENSHARE)}>
-          Request screen share permission
-        </button>
-      )}
-      {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'}
-      {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'}
-      {canShareScreen
-        ? 'Allowed to share screen'
-        : 'Not allowed to share screen'}
-    </div>
-  );
-};
+[//]: # ()
+[//]: # (const PermissionRequestNotifications = &#40;&#41; => {};)
 
-const PermissionRequestNotifications = () => {
-  const call = useCall();
-  const permissionRequest = useCallPermissionRequest();
-  const [permissionRequests, setPermissionRequests] = useState([]);
+[//]: # (```)
 
-  useEffect(() => {
-    if (!permissionRequest) {
-      return;
-    }
-    setPermissionRequests((requests) => [...requests, permissionRequest]);
-  }, [permissionRequest]);
+[//]: # ()
+[//]: # (:::note)
 
-  if (
-    !call ||
-    permissionRequests.length === 0 ||
-    !call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)
-  ) {
-    return null;
-  }
+[//]: # ()
+[//]: # (Permission requests are only relevant for [call types]&#40;../../guides/configuring-call-types/&#41; that have roles where a participant can't publish their audio/video/screen-share by default.)
 
-  const answerRequest = async (answer, request) => {
-    if (answer === 'accept') {
-      await call.grantPermissions(request.user.id, request.permissions);
-    } else {
-      await call.revokePermissions(request.user.id, request.permissions);
-    }
-    setPermissionRequests((requests) => requests.filter((r) => r !== request));
-  };
+[//]: # ()
+[//]: # (:::)
 
-  return (
-    <div>
-      {permissionRequests.map((request) => (
-        <div>
-          New request from {request.user.id} to publish {request.permissions}
-          <button onClick={() => answerRequest('accept')}>Accept</button>
-          <button onClick={() => answerRequest('reject')}>Reject</button>
-        </div>
-      ))}
-    </div>
-  );
-};
-```
+[//]: # ()
+[//]: # (In this guide, we will implement the `PermissionRequests` component to send permission requests and the `PermissionRequestNotifications` to receive them.)
+
+[//]: # ()
+[//]: # (To follow along with the guide, don't forget to turn off backstage mode so others can join:)
+
+[//]: # ()
+[//]: # (```typescript)
+
+[//]: # (let call: Call;)
+
+[//]: # ()
+[//]: # (call.goLive&#40;&#41;;)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (## Request permission)
+
+[//]: # ()
+[//]: # (In this step we will implement the `PermissionRequests` component to send permission requests.)
+
+[//]: # ()
+[//]: # (For readability the code snippet only contains the `PermissionRequests` implementation, the [full example]&#40;#finished-example&#41; is available at the end of the guide.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (const PermissionRequests = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const canSendAudio = useHasPermissions&#40;OwnCapability.SEND_AUDIO&#41;;)
+
+[//]: # (  const canSendVideo = useHasPermissions&#40;OwnCapability.SEND_VIDEO&#41;;)
+
+[//]: # (  const canShareScreen = useHasPermissions&#40;OwnCapability.SCREENSHARE&#41;;)
+
+[//]: # ()
+[//]: # (  if &#40;!call&#41; {)
+
+[//]: # (    return null;)
+
+[//]: # (  })
+
+[//]: # ()
+[//]: # (  const shouldDisplayButton = &#40;capability&#41; => {)
+
+[//]: # (    return &#40;)
+
+[//]: # (      call.permissionsContext.canRequest&#40;capability&#41; &&)
+
+[//]: # (      !call.permissionsContext.hasPermission&#40;capability&#41;)
+
+[//]: # (    &#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  const requestPermission = &#40;capability&#41; => {)
+
+[//]: # (    call.requestPermissions&#40;{ permissions: [capability] }&#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div>)
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SEND_AUDIO&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SEND_AUDIO&#41;}>)
+
+[//]: # (          Request audio permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SEND_VIDEO&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SEND_VIDEO&#41;}>)
+
+[//]: # (          Request video permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SCREENSHARE&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SCREENSHARE&#41;}>)
+
+[//]: # (          Request screen share permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'})
+
+[//]: # (      {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'})
+
+[//]: # (      {canShareScreen)
+
+[//]: # (        ? 'Allowed to share screen')
+
+[//]: # (        : 'Not allowed to share screen'})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Let's unpack the above code snippet:)
+
+[//]: # ()
+[//]: # (- We only display the request button if the user is allowed to request the specific capability and doesn't already have that permission. For more information, check out the [permissions guide]&#40;../../guides/permissions-and-moderation&#41;.)
+
+[//]: # (- To send the request we are using the `requestPermissions` method of the `Call` instance.)
+
+[//]: # (- We use the `useHasPermissions` hook to be notified when the request was approved. Alternatively you can subscribe to the [`call.permissions_updated` event]&#40;../../advanced/events/&#41;.)
+
+[//]: # ()
+[//]: # (## Receive permission requests)
+
+[//]: # ()
+[//]: # (In this step we will implement the `PermissionRequestNotifications` component to receive permission requests.)
+
+[//]: # ()
+[//]: # (For readability, the code snippet only contains the `PermissionRequestNotifications` implementation, the [full example]&#40;#finished-example&#41; is available at the end of the guide.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (const PermissionRequestNotifications = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const permissionRequest = useCallPermissionRequest&#40;&#41;;)
+
+[//]: # (  const [permissionRequests, setPermissionRequests] = useState&#40;[]&#41;;)
+
+[//]: # ()
+[//]: # (  useEffect&#40;&#40;&#41; => {)
+
+[//]: # (    if &#40;!permissionRequest&#41; {)
+
+[//]: # (      return;)
+
+[//]: # (    })
+
+[//]: # (    setPermissionRequests&#40;&#40;requests&#41; => [...requests, permissionRequest]&#41;;)
+
+[//]: # (  }, [permissionRequest]&#41;;)
+
+[//]: # ()
+[//]: # (  if &#40;)
+
+[//]: # (    !call ||)
+
+[//]: # (    permissionRequests.length === 0 ||)
+
+[//]: # (    !call.hasPermission&#40;OwnCapability.UPDATE_CALL_PERMISSIONS&#41;)
+
+[//]: # (  &#41; {)
+
+[//]: # (    return null;)
+
+[//]: # (  })
+
+[//]: # ()
+[//]: # (  const answerRequest = async &#40;answer, request&#41; => {)
+
+[//]: # (    if &#40;answer === 'accept'&#41; {)
+
+[//]: # (      await call.grantPermissions&#40;request.user.id, request.permissions&#41;;)
+
+[//]: # (    } else {)
+
+[//]: # (      await call.revokePermissions&#40;request.user.id, request.permissions&#41;;)
+
+[//]: # (    })
+
+[//]: # (    setPermissionRequests&#40;&#40;requests&#41; => requests.filter&#40;&#40;r&#41; => r !== request&#41;&#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div>)
+
+[//]: # (      {permissionRequests.map&#40;&#40;request&#41; => &#40;)
+
+[//]: # (        <div>)
+
+[//]: # (          New request from {request.user.id} to publish {request.permissions})
+
+[//]: # (          <button onClick={&#40;&#41; => answerRequest&#40;'accept'&#41;}>Accept</button>)
+
+[//]: # (          <button onClick={&#40;&#41; => answerRequest&#40;'reject'&#41;}>Reject</button>)
+
+[//]: # (        </div>)
+
+[//]: # (      &#41;&#41;})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Let's unpack the above code snippet:)
+
+[//]: # ()
+[//]: # (- We only show the permission requests to users that have the necessary capability to accept/reject: `call.hasPermission&#40;OwnCapability.UPDATE_CALL_PERMISSIONS&#41;`)
+
+[//]: # (- We use the `useCallPermissionRequest` hook to be notified about permission requests)
+
+[//]: # (- A permission request can be accepted with the `grantPermissions` method of the `Call` instance)
+
+[//]: # (- A permission request can be rejected with the `revokePermissions` method of the `Call` instance. This method can also be used to revoke permissions later in the call.)
+
+[//]: # ()
+[//]: # (## Finished example)
+
+[//]: # ()
+[//]: # (Here is the full example:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import {)
+
+[//]: # (  StreamVideo,)
+
+[//]: # (  StreamCall,)
+
+[//]: # (  CallParticipantsView,)
+
+[//]: # (  useCall,)
+
+[//]: # (  StreamTheme,)
+
+[//]: # (  OwnCapability,)
+
+[//]: # (  useCallPermissionRequest,)
+
+[//]: # (  CallControls,)
+
+[//]: # (  useHasPermissions,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # (import '@stream-io/video-react-sdk/dist/css/styles.css';)
+
+[//]: # (import { useEffect, useState } from 'react';)
+
+[//]: # ()
+[//]: # (export default function App&#40;&#41; {)
+
+[//]: # (  // create client and call)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <StreamTheme>)
+
+[//]: # (      <StreamVideo client={client}>)
+
+[//]: # (        <StreamCall call={call}>)
+
+[//]: # (          <CallUI />)
+
+[//]: # (        </StreamCall>)
+
+[//]: # (      </StreamVideo>)
+
+[//]: # (    </StreamTheme>)
+
+[//]: # (  &#41;;)
+
+[//]: # (})
+
+[//]: # ()
+[//]: # (const CallUI = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div>)
+
+[//]: # (      <PermissionRequestNotifications />)
+
+[//]: # (      <CallParticipantsView call={call} />)
+
+[//]: # (      <CallControls />)
+
+[//]: # (      <PermissionRequests />)
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const PermissionRequests = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const canSendAudio = useHasPermissions&#40;OwnCapability.SEND_AUDIO&#41;;)
+
+[//]: # (  const canSendVideo = useHasPermissions&#40;OwnCapability.SEND_VIDEO&#41;;)
+
+[//]: # (  const canShareScreen = useHasPermissions&#40;OwnCapability.SCREENSHARE&#41;;)
+
+[//]: # ()
+[//]: # (  if &#40;!call&#41; {)
+
+[//]: # (    return null;)
+
+[//]: # (  })
+
+[//]: # ()
+[//]: # (  const shouldDisplayButton = &#40;capability&#41; => {)
+
+[//]: # (    return &#40;)
+
+[//]: # (      call.permissionsContext.canRequest&#40;capability&#41; &&)
+
+[//]: # (      !call.permissionsContext.hasPermission&#40;capability&#41;)
+
+[//]: # (    &#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  const requestPermission = &#40;capability&#41; => {)
+
+[//]: # (    call.requestPermissions&#40;{ permissions: [capability] }&#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div>)
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SEND_AUDIO&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SEND_AUDIO&#41;}>)
+
+[//]: # (          Request audio permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SEND_VIDEO&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SEND_VIDEO&#41;}>)
+
+[//]: # (          Request video permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {shouldDisplayButton&#40;OwnCapability.SCREENSHARE&#41; && &#40;)
+
+[//]: # (        <button onClick={&#40;&#41; => requestPermission&#40;OwnCapability.SCREENSHARE&#41;}>)
+
+[//]: # (          Request screen share permission)
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (      {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'})
+
+[//]: # (      {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'})
+
+[//]: # (      {canShareScreen)
+
+[//]: # (        ? 'Allowed to share screen')
+
+[//]: # (        : 'Not allowed to share screen'})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const PermissionRequestNotifications = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const permissionRequest = useCallPermissionRequest&#40;&#41;;)
+
+[//]: # (  const [permissionRequests, setPermissionRequests] = useState&#40;[]&#41;;)
+
+[//]: # ()
+[//]: # (  useEffect&#40;&#40;&#41; => {)
+
+[//]: # (    if &#40;!permissionRequest&#41; {)
+
+[//]: # (      return;)
+
+[//]: # (    })
+
+[//]: # (    setPermissionRequests&#40;&#40;requests&#41; => [...requests, permissionRequest]&#41;;)
+
+[//]: # (  }, [permissionRequest]&#41;;)
+
+[//]: # ()
+[//]: # (  if &#40;)
+
+[//]: # (    !call ||)
+
+[//]: # (    permissionRequests.length === 0 ||)
+
+[//]: # (    !call.hasPermission&#40;OwnCapability.UPDATE_CALL_PERMISSIONS&#41;)
+
+[//]: # (  &#41; {)
+
+[//]: # (    return null;)
+
+[//]: # (  })
+
+[//]: # ()
+[//]: # (  const answerRequest = async &#40;answer, request&#41; => {)
+
+[//]: # (    if &#40;answer === 'accept'&#41; {)
+
+[//]: # (      await call.grantPermissions&#40;request.user.id, request.permissions&#41;;)
+
+[//]: # (    } else {)
+
+[//]: # (      await call.revokePermissions&#40;request.user.id, request.permissions&#41;;)
+
+[//]: # (    })
+
+[//]: # (    setPermissionRequests&#40;&#40;requests&#41; => requests.filter&#40;&#40;r&#41; => r !== request&#41;&#41;;)
+
+[//]: # (  };)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div>)
+
+[//]: # (      {permissionRequests.map&#40;&#40;request&#41; => &#40;)
+
+[//]: # (        <div>)
+
+[//]: # (          New request from {request.user.id} to publish {request.permissions})
+
+[//]: # (          <button onClick={&#40;&#41; => answerRequest&#40;'accept'&#41;}>Accept</button>)
+
+[//]: # (          <button onClick={&#40;&#41; => answerRequest&#40;'reject'&#41;}>Reject</button>)
+
+[//]: # (        </div>)
+
+[//]: # (      &#41;&#41;})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)

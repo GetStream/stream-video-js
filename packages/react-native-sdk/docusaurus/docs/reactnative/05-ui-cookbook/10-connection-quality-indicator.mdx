@@ -3,65 +3,116 @@ id: connection-quality-indicator
 title: Connection Quality Indicator
 ---
 
-import QualityIndicators from '../assets/06-ui-cookbook/10-connection-quality-indicator/quality-indicators.png';
+:::warning
+Write React Native Specifics
 
-Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
+:::
 
-- unspecified
-- poor
-- good
-- excellent
+[//]: # ()
+[//]: # (import QualityIndicators from '../assets/06-ui-cookbook/10-connection-quality-indicator/quality-indicators.png';)
 
-<img src={QualityIndicators} alt="Image of connection quality indicators" />
+[//]: # ()
+[//]: # (Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:)
 
-In this guide we'll learn how to build and implement our own primitive connection quality indicator.
+[//]: # ()
+[//]: # (- unspecified)
 
-### How to reach the state
+[//]: # (- poor)
 
-Each (`StreamVideoParticipant`)[https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts] has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
+[//]: # (- good)
 
-```tsx
-import { SfuModels } from '@stream-io/video-react-sdk';
+[//]: # (- excellent)
 
-const readableConnectionQuality =
-  SfuModels.ConnectionQuality[participant.connectionQuality];
+[//]: # ()
+[//]: # (<img src={QualityIndicators} alt="Image of connection quality indicators" />)
 
-console.log(readableConnectionQuality); // -> EXCELLENT
-```
+[//]: # ()
+[//]: # (In this guide we'll learn how to build and implement our own primitive connection quality indicator.)
 
-### Connection quality indicator component
+[//]: # ()
+[//]: # (### How to reach the state)
 
-You'll most likely be displaying this indicator component inside each participant box ((ParticipantView)[../../ui-components/core/participant-view]) within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](../participant-view-customizations).
+[//]: # ()
+[//]: # (Each &#40;`StreamVideoParticipant`&#41;[https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts] has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:)
 
-```tsx
-import {
-  SfuModels,
-  useParticipantViewContext,
-} from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (```tsx)
 
-const ConnectionQualityIndicator = () => {
-  const { participant } = useParticipantViewContext();
+[//]: # (import { SfuModels } from '@stream-io/video-react-sdk';)
 
-  const readableConnectionQuality =
-    SfuModels.ConnectionQuality[participant.connectionQuality];
+[//]: # ()
+[//]: # (const readableConnectionQuality =)
 
-  return (
-    <span title={readableConnectionQuality}>
-      {'⭐️'.repeat(participant.connectionQuality)}
-    </span>
-  );
-};
+[//]: # (  SfuModels.ConnectionQuality[participant.connectionQuality];)
 
-const CustomParticipantViewUI = () => {
-  return (
-    <>
-      <ConnectionQualityIndicator />
-      {/* other UI components... */}
-    </>
-  );
-};
-```
+[//]: # ()
+[//]: # (console.log&#40;readableConnectionQuality&#41;; // -> EXCELLENT)
 
-## Final steps
+[//]: # (```)
 
-Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide](../../ui-cookbook/participant-view-customizations).
+[//]: # ()
+[//]: # (### Connection quality indicator component)
+
+[//]: # ()
+[//]: # (You'll most likely be displaying this indicator component inside each participant box &#40;&#40;ParticipantView&#41;[../../ui-components/core/participant-view]&#41; within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide]&#40;../participant-view-customizations&#41;.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import {)
+
+[//]: # (  SfuModels,)
+
+[//]: # (  useParticipantViewContext,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const ConnectionQualityIndicator = &#40;&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  const readableConnectionQuality =)
+
+[//]: # (    SfuModels.ConnectionQuality[participant.connectionQuality];)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <span title={readableConnectionQuality}>)
+
+[//]: # (      {'⭐️'.repeat&#40;participant.connectionQuality&#41;})
+
+[//]: # (    </span>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomParticipantViewUI = &#40;&#41; => {)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <>)
+
+[//]: # (      <ConnectionQualityIndicator />)
+
+[//]: # (      {/* other UI components... */})
+
+[//]: # (    </>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (## Final steps)
+
+[//]: # ()
+[//]: # (Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [participant view customizations guide]&#40;../../ui-cookbook/participant-view-customizations&#41;.)

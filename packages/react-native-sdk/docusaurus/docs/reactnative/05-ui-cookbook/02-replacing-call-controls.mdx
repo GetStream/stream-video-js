@@ -3,321 +3,594 @@ title: Call Controls
 description: A guide on how to add/remove or replace call controls
 ---
 
-Developers building apps in browsers have to face the dilemma of adapting their layouts to high and small resolutions. In the desktop environment there is a more generous amount of space than on mobile devices. Many times, there may not be one component that would fit all the constraints. Therefore, the React SDK provides the flexibility in assembling the call controls layout. We can pick any combination of buttons bundled with the SDK. Each button controls its own area of responsibility. Our task, as integrators is to create a component that puts these buttons together as we wish. In this example we intend to show, how to do just that.
+:::warning
+Write React Native Specifics
 
-:::note
-The React SDK exports a pre-built component [`CallControls`](../../ui-components/call/call-controls). If it does not meet all the requirements, we encourage everybody to assemble their own `CallControls` component.
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
 :::
+[//]: # ()
+[//]: # (Developers building apps in browsers have to face the dilemma of adapting their layouts to high and small resolutions. In the desktop environment there is a more generous amount of space than on mobile devices. Many times, there may not be one component that would fit all the constraints. Therefore, the React SDK provides the flexibility in assembling the call controls layout. We can pick any combination of buttons bundled with the SDK. Each button controls its own area of responsibility. Our task, as integrators is to create a component that puts these buttons together as we wish. In this example we intend to show, how to do just that.)
 
-## Assembling own CallControls component
+[//]: # ()
+[//]: # (:::note)
 
-Currently, the SDK exports the following call controls components:
+[//]: # (The React SDK exports a pre-built component [`CallControls`]&#40;../../ui-components/call/call-controls&#41;. If it does not meet all the requirements, we encourage everybody to assemble their own `CallControls` component.)
 
-- [`AcceptCallButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/AcceptCallButton.tsx)
-- [`CancelCallButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/CancelCallButton.tsx)
-- [`ToggleAudioPreviewButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioButton.tsx)
-- [`ToggleAudioPublishingButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioButton.tsx)
-- [`ToggleAudioOutputButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioOutputButton.tsx)
-- [`ToggleVideoPreviewButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleVideoButton.tsx)
-- [`ToggleVideoPublishingButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleVideoButton.tsx)
-- [`ScreenShareButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ScreenShareButton.tsx)
-- [`RecordCallButton`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/RecordCallButton.tsx)
+[//]: # (:::)
 
-The [default `CallControls` implementation](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/CallControls.tsx) makes use of some of these buttons only. All the buttons access the call related data with hooks instead of props. Therefore, the custom `CallControls` component just renders selected button components and orders them in any order that meets the customisation requirements. An example follows:
+[//]: # ()
+[//]: # (## Assembling own CallControls component)
 
-```tsx
-import {
-  CancelCallButton,
-  SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
-} from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (Currently, the SDK exports the following call controls components:)
 
-import type { CallControlsProps } from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (- [`AcceptCallButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/AcceptCallButton.tsx&#41;)
 
-export const CallControls = ({ onLeave }: CallControlsProps) => (
-  <div className="str-video__call-controls">
-    <SpeakingWhileMutedNotification>
-      <ToggleAudioPublishingButton />
-    </SpeakingWhileMutedNotification>
-    <ToggleVideoPublishingButton />
-    <CancelCallButton onLeave={onLeave} />
-  </div>
-);
-```
+[//]: # (- [`CancelCallButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/CancelCallButton.tsx&#41;)
 
-## Building custom control buttons
+[//]: # (- [`ToggleAudioPreviewButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioButton.tsx&#41;)
 
-It may as well be the case, that the default call controls buttons look does not meet our design requirements. It is very easy to build custom buttons making use of the hooks provided by the SDK. In the next few sections, we will demonstrate how custom call controls buttons can be built.
+[//]: # (- [`ToggleAudioPublishingButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioButton.tsx&#41;)
 
-:::note
-Implementing call controls buttons will often be in reality associated with handling permissions to perform the given action. To learn about permission handling, take a look at our [permissions and moderation guide](../../guides/permissions-and-moderation).
-:::
+[//]: # (- [`ToggleAudioOutputButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleAudioOutputButton.tsx&#41;)
 
-### Button to accept a call
+[//]: # (- [`ToggleVideoPreviewButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleVideoButton.tsx&#41;)
 
-We will need a call accept button when building app that makes use of [ring call workflow](../../guides/joining-and-creating-calls/#ring-call). To accept a call we just invoke `call.join()`. So the minimal call accept button could look like this:
+[//]: # (- [`ToggleVideoPublishingButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ToggleVideoButton.tsx&#41;)
 
-```tsx
-import { useCall } from '@stream-io/video-react-sdk';
+[//]: # (- [`ScreenShareButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/ScreenShareButton.tsx&#41;)
 
-export const CustomAcceptCallButton = () => {
-  const call = useCall();
-  return (
-    <button onClick={() => call?.join()}>
-      <span className="my-icon" />
-    </button>
-  );
-};
-```
+[//]: # (- [`RecordCallButton`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/RecordCallButton.tsx&#41;)
 
-### Button to cancel a call
+[//]: # ()
+[//]: # (The [default `CallControls` implementation]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallControls/CallControls.tsx&#41; makes use of some of these buttons only. All the buttons access the call related data with hooks instead of props. Therefore, the custom `CallControls` component just renders selected button components and orders them in any order that meets the customisation requirements. An example follows:)
 
-To cancel an outgoing call in ring call scenario or to leave an already joined call, we just invoke `call.leave()`. To reject a call in ring call scenario, invoke `call.leave({reject: true})`.
+[//]: # ()
+[//]: # (```tsx)
 
-```tsx
-import { useCall } from '@stream-io/video-react-sdk';
+[//]: # (import {)
 
-type CustomCancelCallButtonProps = {
-  reject?: boolean;
-};
+[//]: # (  CancelCallButton,)
 
-export const CustomCancelCallButton = ({
-  reject,
-}: CustomCancelCallButtonProps) => {
-  const call = useCall();
-  return (
-    <button onClick={() => call?.leave({ reject })}>
-      <span className="my-icon" />
-    </button>
-  );
-};
-```
+[//]: # (  SpeakingWhileMutedNotification,)
 
-### Toggling audio
+[//]: # (  ToggleAudioPublishingButton,)
 
-Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
+[//]: # (  ToggleVideoPublishingButton,)
 
-```tsx
-import { useCallback } from 'react';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useToggleAudioMuteState,
-} from '@stream-io/video-react-sdk';
+[//]: # (} from '@stream-io/video-react-sdk';)
 
-export const CustomToggleAudioPublishingButton = () => {
-  const localParticipant = useLocalParticipant();
-  // Check, whether the audio input stream is already being published to Stream's server
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const { toggleAudioMuteState, isAwaitingApproval } =
-    useToggleAudioMuteState();
+[//]: # ()
+[//]: # (import type { CallControlsProps } from '@stream-io/video-react-sdk';)
 
-  return (
-    <button disabled={isAwaitingApproval} onClick={toggleAudioMuteState}>
-      {!isAudioMute ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+[//]: # ()
+[//]: # (export const CallControls = &#40;{ onLeave }: CallControlsProps&#41; => &#40;)
 
-`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish audio, and a request has been sent to call admins.
+[//]: # (  <div className="str-video__call-controls">)
 
-To toggle audio before joining a call (for example in a call lobby or on pending call panel), we simply invoke `toggleInitialAudioMuteState` provided by the `MediaDevicesProvider`. The initial audio state is then transferred to the active call. So if in the preview the audio was disabled, then the active call will start with disabled audio. The flag toggled is `initialAudioEnabled`. A most basic implementation could look as follows:
+[//]: # (    <SpeakingWhileMutedNotification>)
 
-```tsx
-import { useMediaDevices } from '@stream-io/video-react-sdk';
+[//]: # (      <ToggleAudioPublishingButton />)
 
-export const CustomToggleAudioPreviewButton = () => {
-  // the API to control the audio enablement in a view before joining a call
-  const { initialAudioEnabled, toggleInitialAudioMuteState } =
-    useMediaDevices();
+[//]: # (    </SpeakingWhileMutedNotification>)
 
-  return (
-    <button onClick={toggleInitialAudioMuteState}>
-      {initialAudioEnabled ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+[//]: # (    <ToggleVideoPublishingButton />)
 
-### Toggling video
+[//]: # (    <CancelCallButton onLeave={onLeave} />)
 
-To toggle video input the approach is analogous to that of audio input.
+[//]: # (  </div>)
 
-```tsx
-import { useCallback } from 'react';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
+[//]: # (&#41;;)
 
-export const CustomToggleVideoPublishingButton = () => {
-  const localParticipant = useLocalParticipant();
-  // Check, whether the video input stream is already being published to Stream's server
-  const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-  const { toggleVideoMuteState, isAwaitingApproval } =
-    useToggleVideoMuteState();
-  return (
-    <button disabled={isAwaitingApproval} onClick={toggleVideoMuteState}>
-      {!isVideoMute ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+[//]: # (```)
 
-`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish video, and a request has been sent to call admins.
+[//]: # ()
+[//]: # (## Building custom control buttons)
 
-The video preview toggle button implementation is very simple:
+[//]: # ()
+[//]: # (It may as well be the case, that the default call controls buttons look does not meet our design requirements. It is very easy to build custom buttons making use of the hooks provided by the SDK. In the next few sections, we will demonstrate how custom call controls buttons can be built.)
 
-```tsx
-import { useMediaDevices } from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (:::note)
 
-export const CustomToggleVideoPreviewButton = () => {
-  // the API to control the video enablement in a view before joining a call
-  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
+[//]: # (Implementing call controls buttons will often be in reality associated with handling permissions to perform the given action. To learn about permission handling, take a look at our [permissions and moderation guide]&#40;../../guides/permissions-and-moderation&#41;.)
 
-  return (
-    <button onClick={toggleInitialVideoMuteState}>
-      {initialVideoState ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+[//]: # (:::)
 
-### Enabling screensharing
+[//]: # ()
+[//]: # (### Button to accept a call)
 
-Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called `useHasOngoingScreenShare` which informs us whether any call participant is already sharing their screen.
+[//]: # ()
+[//]: # (We will need a call accept button when building app that makes use of [ring call workflow]&#40;../../guides/joining-and-creating-calls/#ring-call&#41;. To accept a call we just invoke `call.join&#40;&#41;`. So the minimal call accept button could look like this:)
 
-```tsx
-import { useCallback } from 'react';
-import {
-  getScreenShareStream,
-  SfuModels,
-  useCall,
-  useLocalParticipant,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-sdk';
+[//]: # ()
+[//]: # (```tsx)
 
-export const CustomScreenShareButton = () => {
-  const call = useCall();
-  const localParticipant = useLocalParticipant();
-  // determine, whether somebody else is sharing their screen
-  const isSomeoneScreenSharing = useHasOngoingScreenShare();
-  // determine, whether we are sharing the screen
-  const isScreenSharing = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-  const handleClick = useCallback(async () => {
-    if (!isScreenSharing) {
-      // Retrieve the screenshare stream to be published
-      const stream = await getScreenShareStream().catch((e) => {
-        console.log(`Can't share screen: ${e}`);
-      });
-      if (stream) {
-        await call?.publishScreenShareStream(stream);
-      }
-    } else {
-      await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-    }
-  }, [call, isScreenSharing]);
+[//]: # (import { useCall } from '@stream-io/video-react-sdk';)
 
-  return (
-    <button
-      onClick={handleClick}
-      disabled={(!isScreenSharing && isSomeoneScreenSharing) || !call}
-    >
-      {isScreenSharing ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+[//]: # ()
+[//]: # (export const CustomAcceptCallButton = &#40;&#41; => {)
 
-### Recording calls
+[//]: # (  const call = useCall&#40;&#41;;)
 
-To start recording a call, we invoke `call.startRecording()` and to stop it `call.stopRecording()`. To determine, whether the recording already began, use the hook `useIsCallRecordingInProgress()`.
+[//]: # (  return &#40;)
 
-```tsx
-import { useCallback, useEffect, useState } from 'react';
-import {
-  LoadingIndicator,
-  useCall,
-  useIsCallRecordingInProgress,
-} from '@stream-io/video-react-sdk';
+[//]: # (    <button onClick={&#40;&#41; => call?.join&#40;&#41;}>)
 
-export const CustomRecordCallButton = () => {
-  const call = useCall();
-  const isCallRecordingInProgress = useIsCallRecordingInProgress();
-  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+[//]: # (      <span className="my-icon" />)
 
-  useEffect(() => {
-    // we wait until call.recording_started/stopped event to flips the
-    // `isCallRecordingInProgress` state variable.
-    // Once the flip happens, we remove the loading indicator
-    setIsAwaitingResponse((isAwaiting) => {
-      if (isAwaiting) return false;
-      return isAwaiting;
-    });
-  }, [isCallRecordingInProgress]);
+[//]: # (    </button>)
 
-  const toggleRecording = useCallback(async () => {
-    try {
-      setIsAwaitingResponse(true);
-      if (isCallRecordingInProgress) {
-        await call?.stopRecording();
-      } else {
-        await call?.startRecording();
-      }
-    } catch (e) {
-      console.error(`Failed start recording`, e);
-    }
-  }, [call, isCallRecordingInProgress]);
+[//]: # (  &#41;;)
 
-  return (
-    <>
-      {isAwaitingResponse ? (
-        <LoadingIndicator
-          tooltip={
-            isCallRecordingInProgress
-              ? 'Waiting for recording to stop... '
-              : 'Waiting for recording to start...'
-          }
-        />
-      ) : (
-        <button disabled={!call} title="Record call" onClick={toggleRecording}>
-          {isCallRecordingInProgress ? (
-            <span className="my-icon-enabled" />
-          ) : (
-            <span className="my-icon-disabled" />
-          )}
-        </button>
-      )}
-    </>
-  );
-};
-```
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Button to cancel a call)
+
+[//]: # ()
+[//]: # (To cancel an outgoing call in ring call scenario or to leave an already joined call, we just invoke `call.leave&#40;&#41;`. To reject a call in ring call scenario, invoke `call.leave&#40;{reject: true}&#41;`.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useCall } from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (type CustomCancelCallButtonProps = {)
+
+[//]: # (  reject?: boolean;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (export const CustomCancelCallButton = &#40;{)
+
+[//]: # (  reject,)
+
+[//]: # (}: CustomCancelCallButtonProps&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <button onClick={&#40;&#41; => call?.leave&#40;{ reject }&#41;}>)
+
+[//]: # (      <span className="my-icon" />)
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Toggling audio)
+
+[//]: # ()
+[//]: # (Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useCallback } from 'react';)
+
+[//]: # (import {)
+
+[//]: # (  SfuModels,)
+
+[//]: # (  useLocalParticipant,)
+
+[//]: # (  useToggleAudioMuteState,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomToggleAudioPublishingButton = &#40;&#41; => {)
+
+[//]: # (  const localParticipant = useLocalParticipant&#40;&#41;;)
+
+[//]: # (  // Check, whether the audio input stream is already being published to Stream's server)
+
+[//]: # (  const isAudioMute = !localParticipant?.publishedTracks.includes&#40;)
+
+[//]: # (    SfuModels.TrackType.AUDIO,)
+
+[//]: # (  &#41;;)
+
+[//]: # (  const { toggleAudioMuteState, isAwaitingApproval } =)
+
+[//]: # (    useToggleAudioMuteState&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <button disabled={isAwaitingApproval} onClick={toggleAudioMuteState}>)
+
+[//]: # (      {!isAudioMute ? &#40;)
+
+[//]: # (        <span className="my-icon-enabled" />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <span className="my-icon-disabled" />)
+
+[//]: # (      &#41;})
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish audio, and a request has been sent to call admins.)
+
+[//]: # ()
+[//]: # (To toggle audio before joining a call &#40;for example in a call lobby or on pending call panel&#41;, we simply invoke `toggleInitialAudioMuteState` provided by the `MediaDevicesProvider`. The initial audio state is then transferred to the active call. So if in the preview the audio was disabled, then the active call will start with disabled audio. The flag toggled is `initialAudioEnabled`. A most basic implementation could look as follows:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useMediaDevices } from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomToggleAudioPreviewButton = &#40;&#41; => {)
+
+[//]: # (  // the API to control the audio enablement in a view before joining a call)
+
+[//]: # (  const { initialAudioEnabled, toggleInitialAudioMuteState } =)
+
+[//]: # (    useMediaDevices&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <button onClick={toggleInitialAudioMuteState}>)
+
+[//]: # (      {initialAudioEnabled ? &#40;)
+
+[//]: # (        <span className="my-icon-enabled" />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <span className="my-icon-disabled" />)
+
+[//]: # (      &#41;})
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Toggling video)
+
+[//]: # ()
+[//]: # (To toggle video input the approach is analogous to that of audio input.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useCallback } from 'react';)
+
+[//]: # (import {)
+
+[//]: # (  SfuModels,)
+
+[//]: # (  useLocalParticipant,)
+
+[//]: # (  useToggleVideoMuteState,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomToggleVideoPublishingButton = &#40;&#41; => {)
+
+[//]: # (  const localParticipant = useLocalParticipant&#40;&#41;;)
+
+[//]: # (  // Check, whether the video input stream is already being published to Stream's server)
+
+[//]: # (  const isVideoMute = !localParticipant?.publishedTracks.includes&#40;)
+
+[//]: # (    SfuModels.TrackType.VIDEO,)
+
+[//]: # (  &#41;;)
+
+[//]: # (  const { toggleVideoMuteState, isAwaitingApproval } =)
+
+[//]: # (    useToggleVideoMuteState&#40;&#41;;)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <button disabled={isAwaitingApproval} onClick={toggleVideoMuteState}>)
+
+[//]: # (      {!isVideoMute ? &#40;)
+
+[//]: # (        <span className="my-icon-enabled" />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <span className="my-icon-disabled" />)
+
+[//]: # (      &#41;})
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish video, and a request has been sent to call admins.)
+
+[//]: # ()
+[//]: # (The video preview toggle button implementation is very simple:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useMediaDevices } from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomToggleVideoPreviewButton = &#40;&#41; => {)
+
+[//]: # (  // the API to control the video enablement in a view before joining a call)
+
+[//]: # (  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <button onClick={toggleInitialVideoMuteState}>)
+
+[//]: # (      {initialVideoState ? &#40;)
+
+[//]: # (        <span className="my-icon-enabled" />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <span className="my-icon-disabled" />)
+
+[//]: # (      &#41;})
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Enabling screensharing)
+
+[//]: # ()
+[//]: # (Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia&#40;&#41;`]&#40;https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia&#41; call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`]&#40;https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts&#41;, that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called `useHasOngoingScreenShare` which informs us whether any call participant is already sharing their screen.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useCallback } from 'react';)
+
+[//]: # (import {)
+
+[//]: # (  getScreenShareStream,)
+
+[//]: # (  SfuModels,)
+
+[//]: # (  useCall,)
+
+[//]: # (  useLocalParticipant,)
+
+[//]: # (  useHasOngoingScreenShare,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomScreenShareButton = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const localParticipant = useLocalParticipant&#40;&#41;;)
+
+[//]: # (  // determine, whether somebody else is sharing their screen)
+
+[//]: # (  const isSomeoneScreenSharing = useHasOngoingScreenShare&#40;&#41;;)
+
+[//]: # (  // determine, whether we are sharing the screen)
+
+[//]: # (  const isScreenSharing = localParticipant?.publishedTracks.includes&#40;)
+
+[//]: # (    SfuModels.TrackType.SCREEN_SHARE,)
+
+[//]: # (  &#41;;)
+
+[//]: # (  const handleClick = useCallback&#40;async &#40;&#41; => {)
+
+[//]: # (    if &#40;!isScreenSharing&#41; {)
+
+[//]: # (      // Retrieve the screenshare stream to be published)
+
+[//]: # (      const stream = await getScreenShareStream&#40;&#41;.catch&#40;&#40;e&#41; => {)
+
+[//]: # (        console.log&#40;`Can't share screen: ${e}`&#41;;)
+
+[//]: # (      }&#41;;)
+
+[//]: # (      if &#40;stream&#41; {)
+
+[//]: # (        await call?.publishScreenShareStream&#40;stream&#41;;)
+
+[//]: # (      })
+
+[//]: # (    } else {)
+
+[//]: # (      await call?.stopPublish&#40;SfuModels.TrackType.SCREEN_SHARE&#41;;)
+
+[//]: # (    })
+
+[//]: # (  }, [call, isScreenSharing]&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <button)
+
+[//]: # (      onClick={handleClick})
+
+[//]: # (      disabled={&#40;!isScreenSharing && isSomeoneScreenSharing&#41; || !call})
+
+[//]: # (    >)
+
+[//]: # (      {isScreenSharing ? &#40;)
+
+[//]: # (        <span className="my-icon-enabled" />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <span className="my-icon-disabled" />)
+
+[//]: # (      &#41;})
+
+[//]: # (    </button>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Recording calls)
+
+[//]: # ()
+[//]: # (To start recording a call, we invoke `call.startRecording&#40;&#41;` and to stop it `call.stopRecording&#40;&#41;`. To determine, whether the recording already began, use the hook `useIsCallRecordingInProgress&#40;&#41;`.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useCallback, useEffect, useState } from 'react';)
+
+[//]: # (import {)
+
+[//]: # (  LoadingIndicator,)
+
+[//]: # (  useCall,)
+
+[//]: # (  useIsCallRecordingInProgress,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (export const CustomRecordCallButton = &#40;&#41; => {)
+
+[//]: # (  const call = useCall&#40;&#41;;)
+
+[//]: # (  const isCallRecordingInProgress = useIsCallRecordingInProgress&#40;&#41;;)
+
+[//]: # (  const [isAwaitingResponse, setIsAwaitingResponse] = useState&#40;false&#41;;)
+
+[//]: # ()
+[//]: # (  useEffect&#40;&#40;&#41; => {)
+
+[//]: # (    // we wait until call.recording_started/stopped event to flips the)
+
+[//]: # (    // `isCallRecordingInProgress` state variable.)
+
+[//]: # (    // Once the flip happens, we remove the loading indicator)
+
+[//]: # (    setIsAwaitingResponse&#40;&#40;isAwaiting&#41; => {)
+
+[//]: # (      if &#40;isAwaiting&#41; return false;)
+
+[//]: # (      return isAwaiting;)
+
+[//]: # (    }&#41;;)
+
+[//]: # (  }, [isCallRecordingInProgress]&#41;;)
+
+[//]: # ()
+[//]: # (  const toggleRecording = useCallback&#40;async &#40;&#41; => {)
+
+[//]: # (    try {)
+
+[//]: # (      setIsAwaitingResponse&#40;true&#41;;)
+
+[//]: # (      if &#40;isCallRecordingInProgress&#41; {)
+
+[//]: # (        await call?.stopRecording&#40;&#41;;)
+
+[//]: # (      } else {)
+
+[//]: # (        await call?.startRecording&#40;&#41;;)
+
+[//]: # (      })
+
+[//]: # (    } catch &#40;e&#41; {)
+
+[//]: # (      console.error&#40;`Failed start recording`, e&#41;;)
+
+[//]: # (    })
+
+[//]: # (  }, [call, isCallRecordingInProgress]&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <>)
+
+[//]: # (      {isAwaitingResponse ? &#40;)
+
+[//]: # (        <LoadingIndicator)
+
+[//]: # (          tooltip={)
+
+[//]: # (            isCallRecordingInProgress)
+
+[//]: # (              ? 'Waiting for recording to stop... ')
+
+[//]: # (              : 'Waiting for recording to start...')
+
+[//]: # (          })
+
+[//]: # (        />)
+
+[//]: # (      &#41; : &#40;)
+
+[//]: # (        <button disabled={!call} title="Record call" onClick={toggleRecording}>)
+
+[//]: # (          {isCallRecordingInProgress ? &#40;)
+
+[//]: # (            <span className="my-icon-enabled" />)
+
+[//]: # (          &#41; : &#40;)
+
+[//]: # (            <span className="my-icon-disabled" />)
+
+[//]: # (          &#41;})
+
+[//]: # (        </button>)
+
+[//]: # (      &#41;})
+
+[//]: # (    </>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
