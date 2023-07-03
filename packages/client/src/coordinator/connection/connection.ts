@@ -475,7 +475,8 @@ export class StableWSConnection {
     if (event.type === 'offline') {
       // mark the connection as down
       this._log('onlineStatusChanged() - Status changing to offline');
-      this._setHealth(false);
+      // we know that the app is offline so dispatch the unhealthy connection event immediately
+      this._setHealth(false, true);
     } else if (event.type === 'online') {
       // retry right now...
       // We check this.isHealthy, not sure if it's always
@@ -628,14 +629,15 @@ export class StableWSConnection {
    * Broadcasts an event in case the connection status changed.
    *
    * @param {boolean} healthy boolean indicating if the connection is healthy or not
+   * @param {boolean} dispatchImmediately boolean indicating to dispatch event immediately even if the connection is unhealthy
    *
    */
-  _setHealth = (healthy: boolean) => {
+  _setHealth = (healthy: boolean, dispatchImmediately = false) => {
     if (healthy === this.isHealthy) return;
 
     this.isHealthy = healthy;
 
-    if (this.isHealthy) {
+    if (this.isHealthy || dispatchImmediately) {
       this.client.dispatchEvent({
         type: 'connection.changed',
         online: this.isHealthy,
