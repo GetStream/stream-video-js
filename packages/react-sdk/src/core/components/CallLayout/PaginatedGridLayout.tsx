@@ -11,8 +11,8 @@ import {
 import clsx from 'clsx';
 
 import {
-  ParticipantView,
   DefaultParticipantViewUI,
+  ParticipantView,
   ParticipantViewProps,
 } from '../ParticipantView';
 import { Audio } from '../Audio';

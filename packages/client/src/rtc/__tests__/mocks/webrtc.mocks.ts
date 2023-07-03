@@ -3,8 +3,18 @@ import { vi } from 'vitest';
 const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
   return {
     addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
     getTransceivers: vi.fn(),
     addTransceiver: vi.fn(),
+    getConfiguration: vi.fn(),
+    setConfiguration: vi.fn(),
+    createOffer: vi.fn().mockResolvedValue({}),
+    createAnswer: vi.fn().mockResolvedValue({}),
+    setLocalDescription: vi.fn().mockResolvedValue({}),
+    setRemoteDescription: vi.fn().mockResolvedValue({}),
+    close: vi.fn(),
+    connectionState: 'connected',
+    getReceivers: vi.fn(),
   };
 });
 vi.stubGlobal('RTCPeerConnection', RTCPeerConnectionMock);
@@ -40,3 +50,13 @@ const RTCRtpTransceiverMock = vi.fn((): Partial<RTCRtpTransceiver> => {
   };
 });
 vi.stubGlobal('RTCRtpTransceiver', RTCRtpTransceiverMock);
+
+const RTCTrackEvent = vi.fn(
+  (type: string, eventInitDict: RTCTrackEventInit): Partial<RTCTrackEvent> => {
+    return {
+      type,
+      ...eventInitDict,
+    };
+  },
+);
+vi.stubGlobal('RTCTrackEvent', RTCTrackEvent);

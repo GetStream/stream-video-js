@@ -5,6 +5,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useCreateStreamChatClient } from '../../hooks';
@@ -20,7 +21,6 @@ import {
   DeviceSettingsCaptor,
   getDeviceSettings,
 } from '../../components/DeviceSettingsCaptor';
-import { User } from '@stream-io/video-react-sdk';
 import { customSentryLogger } from '../../helpers/logger';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
@@ -48,7 +48,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         apiKey,
         user,
         tokenProvider,
-        options: { logLevel: 'info', logger: customSentryLogger },
+        options: {
+          baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
+          logLevel: 'debug',
+          logger: customSentryLogger,
+        },
       }),
   );
   const [call] = useState<Call>(() => client.call(callType, callId));

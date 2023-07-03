@@ -18,6 +18,7 @@ export function isFunction<T>(value: Function | T): value is Function {
 export const KnownCodes = {
   TOKEN_EXPIRED: 40,
   WS_CLOSED_SUCCESS: 1000,
+  WS_CLOSED_ABRUPTLY: 1006,
   WS_POLICY_VIOLATION: 1008,
 };
 

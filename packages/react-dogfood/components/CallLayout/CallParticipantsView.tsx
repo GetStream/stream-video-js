@@ -1,13 +1,11 @@
 import {
-  useLocalParticipant,
-  useParticipants,
+  Call,
   DefaultParticipantViewUI,
   ParticipantView,
-  Call,
+  useParticipants,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsView = (props: { call: Call }) => {
-  const localParticipant = useLocalParticipant();
   const participants = useParticipants();
   const grid = `str-video__grid-${participants.length || 1}`;
   return (

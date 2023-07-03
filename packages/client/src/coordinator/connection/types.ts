@@ -24,7 +24,7 @@ export type { OwnUserResponse } from '../../gen/coordinator';
 
 export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
 
-export type LogLevel = 'debug' | 'info' | 'error' | 'warn';
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 type ErrorResponseDetails = {
   code: number;
@@ -81,8 +81,7 @@ export type CallEventTypes = StreamCallEvent['type'];
 export type Logger = (
   logLevel: LogLevel,
   message: string,
-  extraData?: any,
-  tags?: string[],
+  ...args: unknown[]
 ) => void;
 
 export type StreamClientOptions = Partial<AxiosRequestConfig> & {

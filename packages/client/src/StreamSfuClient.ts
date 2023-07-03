@@ -1,3 +1,4 @@
+import type { WebSocket } from 'ws';
 import type {
   FinishedUnaryCall,
   MethodInfo,
@@ -30,6 +31,7 @@ import {
   retryInterval,
   sleep,
 } from './coordinator/connection/utils';
+import { SFUResponse } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger } from './logger';
 
@@ -40,14 +42,9 @@ export type StreamSfuClientConstructor = {
   dispatcher: Dispatcher;
 
   /**
-   * The URL of the SFU to connect to.
+   * The SFU server to connect to.
    */
-  url: string;
-
-  /**
-   * The WebSocket endpoint of the SFU to connect to.
-   */
-  wsEndpoint: string;
+  sfuServer: SFUResponse;
 
   /**
    * The JWT token to use for authentication.
@@ -76,6 +73,21 @@ export class StreamSfuClient {
   readonly sessionId: string;
 
   /**
+   * The `edgeName` representing the edge the client is connected to.
+   */
+  readonly edgeName: string;
+
+  /**
+   * The current token used for authenticating against the SFU.
+   */
+  readonly token: string;
+
+  /**
+   * The SFU server details the current client is connected to.
+   */
+  readonly sfuServer: SFUResponse;
+
+  /**
    * Holds the current WebSocket connection to the SFU.
    */
   signalWs: WebSocket;
@@ -85,8 +97,13 @@ export class StreamSfuClient {
    */
   signalReady: Promise<WebSocket>;
 
+  /**
+   * A flag indicating whether the client is currently migrating away
+   * from this SFU.
+   */
+  isMigratingAway = false;
+
   private readonly rpc: SignalServerClient;
-  private readonly token: string;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private pingIntervalInMs = 25 * 1000;
@@ -99,19 +116,19 @@ export class StreamSfuClient {
    * Constructs a new SFU client.
    *
    * @param dispatcher the event dispatcher to use.
-   * @param url the URL of the SFU.
-   * @param wsEndpoint the WebSocket endpoint of the SFU.
+   * @param sfuServer the SFU server to connect to.
    * @param token the JWT token to use for authentication.
    * @param sessionId the `sessionId` of the currently connected participant.
    */
   constructor({
     dispatcher,
-    url,
-    wsEndpoint,
+    sfuServer,
     token,
     sessionId,
   }: StreamSfuClientConstructor) {
     this.sessionId = sessionId || generateUUIDv4();
+    this.sfuServer = sfuServer;
+    this.edgeName = sfuServer.edge_name;
     this.token = token;
     this.logger = getLogger(['sfu-client']);
     const logger = this.logger;
@@ -122,13 +139,15 @@ export class StreamSfuClient {
         input: object,
         options: RpcOptions,
       ): UnaryCall {
-        logger('info', `Calling SFU RPC method ${method.name}`);
-        logger('debug', `Method call payload`, { input, options });
+        logger('trace', `Calling SFU RPC method ${method.name}`, {
+          input,
+          options,
+        });
         return next(method, input, options);
       },
     };
     this.rpc = createSignalClient({
-      baseUrl: url,
+      baseUrl: sfuServer.url,
       interceptors: [
         withHeaders({
           Authorization: `Bearer ${token}`,
@@ -149,7 +168,7 @@ export class StreamSfuClient {
     });
 
     this.signalWs = createWebSocketSignalChannel({
-      endpoint: wsEndpoint,
+      endpoint: sfuServer.ws_endpoint,
       onMessage: (message) => {
         this.lastMessageTimestamp = new Date();
         this.scheduleConnectionCheck();
@@ -158,10 +177,12 @@ export class StreamSfuClient {
     });
 
     this.signalReady = new Promise((resolve) => {
-      this.signalWs.addEventListener('open', () => {
+      const onOpen = () => {
+        this.signalWs.removeEventListener('open', onOpen);
         this.keepAlive();
         resolve(this.signalWs);
-      });
+      };
+      this.signalWs.addEventListener('open', onOpen);
     });
   }
 
@@ -262,6 +283,11 @@ export class StreamSfuClient {
 
   send = (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
+      this.logger(
+        'debug',
+        `Sending message to: ${this.edgeName}`,
+        SfuRequest.toJson(message),
+      );
       signal.send(SfuRequest.toBinary(message));
     });
   };
@@ -271,7 +297,7 @@ export class StreamSfuClient {
       clearInterval(this.keepAliveInterval);
     }
     this.keepAliveInterval = setInterval(() => {
-      this.logger('info', 'Sending healthCheckRequest to SFU');
+      this.logger('trace', 'Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
         requestPayload: {
           oneofKind: 'healthCheckRequest',
@@ -326,6 +352,7 @@ const MAX_RETRIES = 5;
  * request bursts towards the SFU.
  *
  * @param rpc the closure around the RPC call to execute.
+ * @param logger a logger instance to use.
  * @param <I> the type of the request object.
  * @param <O> the type of the response object.
  */
@@ -343,10 +370,10 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
 
     rpcCallResult = await rpc();
     logger(
-      'info',
+      'trace',
       `SFU RPC response received for ${rpcCallResult.method.name}`,
+      rpcCallResult,
     );
-    logger('debug', `Response payload`, rpcCallResult);
 
     // if the RPC call failed, log the error and retry
     if (rpcCallResult.response.error) {
