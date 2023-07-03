@@ -610,7 +610,7 @@ export class Call {
     }
 
     // FIXME OL: remove once cascading is implemented
-    if (typeof window !== 'undefined' && window.location.search) {
+    if (typeof window !== 'undefined' && window.location?.search) {
       const params = new URLSearchParams(window.location.search);
       sfuServer.url = params.get('sfuUrl') || sfuServer.url;
       sfuServer.ws_endpoint = params.get('sfuWsUrl') || sfuServer.ws_endpoint;
