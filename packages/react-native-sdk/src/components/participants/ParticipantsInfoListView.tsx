@@ -29,99 +29,12 @@ import {
 } from '../../icons';
 import React, { useCallback, useState } from 'react';
 import { generateParticipantTitle } from '../../utils';
-import { CallParticipantOptions } from '../participants/internal/CallParticipantsOptions';
+import { ParticipantActions } from './internal/ParticipantActions';
 import { Avatar } from '../utility/Avatar';
 import { theme } from '../../theme';
 import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
 import { Z_INDEX } from '../../constants';
 import { palette } from '../../theme/constants';
-
-type ParticipantInfoItemType = {
-  participant: StreamVideoParticipant;
-  setSelectedParticipant: React.Dispatch<
-    React.SetStateAction<StreamVideoParticipant | undefined>
-  >;
-};
-
-const ParticipantInfoItem = (props: ParticipantInfoItemType) => {
-  const { participant, setSelectedParticipant } = props;
-  const connectedUser = useConnectedUser();
-  const participantIsLocalParticipant =
-    participant.userId === connectedUser?.id;
-  const userHasMuteUsersCapability = useHasPermissions(
-    OwnCapability.MUTE_USERS,
-  );
-  const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
-  );
-  const userHasBlockUserCapability = useHasPermissions(
-    OwnCapability.BLOCK_USERS,
-  );
-  const optionsOpenHandler = useCallback(() => {
-    if (!participantIsLocalParticipant) {
-      setSelectedParticipant(participant);
-    }
-  }, [participant, setSelectedParticipant, participantIsLocalParticipant]);
-
-  if (!participant) {
-    return null;
-  }
-  const { publishedTracks } = participant;
-  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const isScreenSharing = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-  const isParticipantItemPressable =
-    userHasBlockUserCapability ||
-    userHasMuteUsersCapability ||
-    userHasUpdateCallPermissionsCapability;
-
-  return (
-    <Pressable
-      style={styles.participant}
-      onPress={optionsOpenHandler}
-      disabled={!isParticipantItemPressable}
-    >
-      <Avatar radius={theme.avatar.xs} participant={participant} />
-
-      <Text style={styles.name}>
-        {(participant.name || generateParticipantTitle(participant.userId)) +
-          (participantIsLocalParticipant ? ' (You)' : '')}
-      </Text>
-      <View style={styles.icons}>
-        {isScreenSharing && (
-          <View style={[styles.svgContainerStyle, theme.icon.md]}>
-            <ScreenShare color={theme.dark.info} />
-          </View>
-        )}
-        {isAudioMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <MicOff color={theme.dark.error} />
-          </View>
-        )}
-        {isVideoMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <VideoSlash color={theme.dark.error} />
-          </View>
-        )}
-        {!participantIsLocalParticipant && (
-          <Restricted
-            requiredGrants={[
-              OwnCapability.MUTE_USERS,
-              OwnCapability.UPDATE_CALL_PERMISSIONS,
-              OwnCapability.BLOCK_USERS,
-            ]}
-          >
-            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-              <ArrowRight color={theme.dark.text_high_emphasis} />
-            </View>
-          </Restricted>
-        )}
-      </View>
-    </Pressable>
-  );
-};
 
 export interface ParticipantsInfoListViewProps {
   /**
@@ -137,13 +50,9 @@ export interface ParticipantsInfoListViewProps {
 }
 
 /**
- * Shows information about the call, it's participants in the call and
- * their mute states, handler to trigger options (TBD, permissions not impl)
- * and options to invite more people to the call.
- *
- * | Participants List | Options Modal is Open |
- * | :--- | :----: |
- * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
+ * A component that shows a list of participants in the call and their information.
+ * their mute states, video states, screen share states, etc.
+ * Mute all participants, invite participants, etc.
  **/
 export const ParticipantsInfoListView = ({
   isCallParticipantsViewVisible,
@@ -243,7 +152,7 @@ export const ParticipantsInfoListView = ({
             {/*independent background, needed due to desired opacity only
          on background, exc. modal content*/}
             <View style={styles.backDropBackground} />
-            <CallParticipantOptions
+            <ParticipantActions
               participant={selectedParticipant}
               setSelectedParticipant={setSelectedParticipant}
             />
@@ -251,6 +160,93 @@ export const ParticipantsInfoListView = ({
         </Modal>
       </>
     </Modal>
+  );
+};
+
+type ParticipantInfoItemType = {
+  participant: StreamVideoParticipant;
+  setSelectedParticipant: React.Dispatch<
+    React.SetStateAction<StreamVideoParticipant | undefined>
+  >;
+};
+
+const ParticipantInfoItem = (props: ParticipantInfoItemType) => {
+  const { participant, setSelectedParticipant } = props;
+  const connectedUser = useConnectedUser();
+  const participantIsLocalParticipant =
+    participant.userId === connectedUser?.id;
+  const userHasMuteUsersCapability = useHasPermissions(
+    OwnCapability.MUTE_USERS,
+  );
+  const userHasUpdateCallPermissionsCapability = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
+  const userHasBlockUserCapability = useHasPermissions(
+    OwnCapability.BLOCK_USERS,
+  );
+  const optionsOpenHandler = useCallback(() => {
+    if (!participantIsLocalParticipant) {
+      setSelectedParticipant(participant);
+    }
+  }, [participant, setSelectedParticipant, participantIsLocalParticipant]);
+
+  if (!participant) {
+    return null;
+  }
+  const { publishedTracks } = participant;
+  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isScreenSharing = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+  const isParticipantItemPressable =
+    userHasBlockUserCapability ||
+    userHasMuteUsersCapability ||
+    userHasUpdateCallPermissionsCapability;
+
+  return (
+    <Pressable
+      style={styles.participant}
+      onPress={optionsOpenHandler}
+      disabled={!isParticipantItemPressable}
+    >
+      <Avatar radius={theme.avatar.xs} participant={participant} />
+
+      <Text style={styles.name}>
+        {(participant.name || generateParticipantTitle(participant.userId)) +
+          (participantIsLocalParticipant ? ' (You)' : '')}
+      </Text>
+      <View style={styles.icons}>
+        {isScreenSharing && (
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
+            <ScreenShare color={theme.dark.info} />
+          </View>
+        )}
+        {isAudioMuted && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <MicOff color={theme.dark.error} />
+          </View>
+        )}
+        {isVideoMuted && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <VideoSlash color={theme.dark.error} />
+          </View>
+        )}
+        {!participantIsLocalParticipant && (
+          <Restricted
+            requiredGrants={[
+              OwnCapability.MUTE_USERS,
+              OwnCapability.UPDATE_CALL_PERMISSIONS,
+              OwnCapability.BLOCK_USERS,
+            ]}
+          >
+            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+              <ArrowRight color={theme.dark.text_high_emphasis} />
+            </View>
+          </Restricted>
+        )}
+      </View>
+    </Pressable>
   );
 };
 

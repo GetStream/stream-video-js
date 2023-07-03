@@ -26,14 +26,14 @@ type CallParticipantOptionType = {
   onPressHandler: () => void;
 };
 
-type CallParticipantOptionsType = {
+type ParticipantActionsType = {
   participant: StreamVideoParticipant | undefined;
   setSelectedParticipant: React.Dispatch<
     React.SetStateAction<StreamVideoParticipant | undefined>
   >;
 };
 
-export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
+export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
   const userHasMuteUsersCapability = useHasPermissions(

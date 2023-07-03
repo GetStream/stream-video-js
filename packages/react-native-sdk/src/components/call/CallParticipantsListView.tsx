@@ -27,9 +27,6 @@ const VIEWABILITY_CONFIG: FlatListProps['viewabilityConfig'] = {
   itemVisiblePercentThreshold: 60,
 };
 
-/**
- * The props for the CallParticipantsList component
- */
 interface CallParticipantsListProps {
   /**
    * The list of participants to display in the list
@@ -47,8 +44,10 @@ interface CallParticipantsListProps {
 }
 
 /**
- * The CallParticipantsList component displays a list of participants in a FlatList
- * NOTE: this component depends on a flex container to calculate the width and height of the participant view, hence it should be used only in a flex parent container
+ * This component displays a list of participants in a FlatList.
+ * You can use this component to display participants either in a vertical or horizontal scrolling mode.
+ * NOTE: this component depends on a flex container to calculate the width and height of the participant view,
+ * hence it should be used only in a flex parent container
  */
 export const CallParticipantsListView = (props: CallParticipantsListProps) => {
   const { numColumns = 2, horizontal, participants } = props;

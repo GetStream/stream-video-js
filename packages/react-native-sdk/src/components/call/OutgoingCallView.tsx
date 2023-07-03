@@ -11,6 +11,10 @@ import { CallingState } from '@stream-io/video-client';
 import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
+/**
+ * An outgoing call view with the callee's avatar, name, caller's camera in background, reject and mute buttons.
+ * Used after the user has initiated a call.
+ */
 export const OutgoingCallView = () => {
   const {
     initialAudioEnabled,

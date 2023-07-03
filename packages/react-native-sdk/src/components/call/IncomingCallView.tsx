@@ -13,6 +13,10 @@ import { theme } from '../../theme';
 import { CallingState } from '@stream-io/video-client';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
+/**
+ * An incoming call view with the caller's avatar, name and accept/reject buttons.
+ * Used when the user is receiving a call.
+ */
 export const IncomingCallView = () => {
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();

@@ -8,6 +8,12 @@ import { Z_INDEX } from '../../constants';
 import { ParticipantsInfoListView } from './ParticipantsInfoListView';
 
 export interface IParticipantsInfoBadge extends Pick<ViewProps, 'style'> {}
+
+/**
+ * Badge that shows the number of participants in the call.
+ * When pressed, it opens the ParticipantsInfoListView.
+ * @param style
+ */
 export const ParticipantsInfoBadge = ({ style }: IParticipantsInfoBadge) => {
   const participantCount = useParticipantCount();
   const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =

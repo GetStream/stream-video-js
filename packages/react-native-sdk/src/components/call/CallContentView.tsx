@@ -12,6 +12,11 @@ type CallContentViewProps = {
   mode?: 'grid' | 'spotlight';
 };
 
+/**
+ * The main view of an active call.
+ * This view renders the participants in either grid or spotlight mode.
+ * @param mode The mode of the call view. Defaults to 'grid'.
+ */
 export const CallContentView = ({ mode }: CallContentViewProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
 

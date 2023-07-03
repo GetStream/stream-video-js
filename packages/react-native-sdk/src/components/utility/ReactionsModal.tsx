@@ -12,6 +12,9 @@ type ReactionModalType = {
   setIsReactionModalActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+/**
+ * A component that shows a list of reactions that can be sent in a call.
+ */
 export const ReactionModal = (props: ReactionModalType) => {
   const { isReactionModalActive, setIsReactionModalActive } = props;
   const onCloseReactionsModal = useCallback(() => {

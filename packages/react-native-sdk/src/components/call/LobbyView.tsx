@@ -15,30 +15,10 @@ import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
-const ParticipantStatus = () => {
-  const connectedUser = useConnectedUser();
-  const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled, initialVideoEnabled } =
-    useMediaStreamManagement();
-  return (
-    <View style={styles.status}>
-      <Text style={styles.userNameLabel} numberOfLines={1}>
-        {participantLabel}
-      </Text>
-      {!initialAudioEnabled && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <MicOff color={theme.light.error} />
-        </View>
-      )}
-      {!initialVideoEnabled && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <VideoSlash color={theme.light.error} />
-        </View>
-      )}
-    </View>
-  );
-};
-
+/**
+ * Use this view prior to joining a call.
+ * This view allows the user to toggle their audio and video state before joining a call.
+ */
 export const LobbyView = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
@@ -152,6 +132,29 @@ export const LobbyView = () => {
   );
 };
 
+const ParticipantStatus = () => {
+  const connectedUser = useConnectedUser();
+  const participantLabel = connectedUser?.name ?? connectedUser?.id;
+  const { initialAudioEnabled, initialVideoEnabled } =
+    useMediaStreamManagement();
+  return (
+    <View style={styles.status}>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {participantLabel}
+      </Text>
+      {!initialAudioEnabled && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <MicOff color={theme.light.error} />
+        </View>
+      )}
+      {!initialVideoEnabled && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <VideoSlash color={theme.light.error} />
+        </View>
+      )}
+    </View>
+  );
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -26,12 +26,8 @@ export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
 }
 
 /**
- * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
+ * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
- *
- * | Call Controls |
- * | :--- |
- * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
 export const CallControlsView = ({
   chatButton,

@@ -50,13 +50,9 @@ interface ParticipantViewProps {
 }
 
 /**
- * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track or when disableVideo is truthy,
+ * A component that renders the participants' video track or screenShare track
+ * and additional info. By an absence of a video track or when disableVideo is truthy,
  * only an avatar and audio track will be rendered.
- *
- * | When Video is Enabled | When Video is Disabled |
- * | :--- | :----: |
- * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
