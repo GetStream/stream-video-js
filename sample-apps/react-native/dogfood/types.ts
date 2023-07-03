@@ -150,7 +150,8 @@ export type ScreenTypes =
   | 'lobby'
   | 'error-join'
   | 'error-leave'
-  | 'active-call';
+  | 'active-call'
+  | 'loading';
 
 export type LocalAttachmentType = Record<string, unknown>;
 export type LocalChannelType = Record<string, unknown>;
