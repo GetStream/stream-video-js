@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CallState } from '../../store';
+import { VisibilityState } from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import {
   watchParticipantJoined,
@@ -33,6 +34,7 @@ describe('Participant events', () => {
         {
           userId: 'user-id',
           sessionId: 'session-id',
+          viewportVisibilityState: VisibilityState.UNKNOWN,
         },
       ]);
 

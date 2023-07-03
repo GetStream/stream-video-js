@@ -1,4 +1,5 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
+import { StreamVideoParticipant, VisibilityState } from '../types';
 import { CallState } from '../store';
 
 /**
@@ -17,7 +18,15 @@ export const watchParticipantJoined = (state: CallState) => {
     // the SFU would send participant info as part of the `join`
     // response and then follow up with a `participantJoined` event for
     // already announced participants.
-    state.updateOrAddParticipant(participant.sessionId, participant);
+    state.updateOrAddParticipant(
+      participant.sessionId,
+      Object.assign<StreamVideoParticipant, Partial<StreamVideoParticipant>>(
+        participant,
+        {
+          viewportVisibilityState: VisibilityState.UNKNOWN,
+        },
+      ),
+    );
   };
 };
 
