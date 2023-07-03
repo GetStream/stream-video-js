@@ -1,6 +1,5 @@
 import React from 'react';
 import mockParticipant from '../mocks/participant';
-import { ParticipantView } from '../../src/components/ParticipantView';
 import { SfuModels } from '@stream-io/video-client';
 import {
   A11yComponents,
@@ -8,6 +7,7 @@ import {
   A11yValues,
 } from '../../src/constants/A11yLabels';
 import { act, render, screen } from '../utils/RNTLTools';
+import { ParticipantView } from '../../src/components/participants/ParticipantView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();

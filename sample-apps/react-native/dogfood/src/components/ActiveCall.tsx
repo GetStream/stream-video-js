@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import {
   CallControlsView,
-  CallParticipantsBadge,
-  CallParticipantsView,
+  ParticipantsInfoBadge,
+  CallContentView,
   CallingState,
   useCall,
   useIncallManager,
@@ -51,8 +51,8 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <CallParticipantsBadge style={[styles.iconGroup, { top }]} />
-      <CallParticipantsView />
+      <ParticipantsInfoBadge style={[styles.iconGroup, { top }]} />
+      <CallContentView />
       <CallControlsView
         chatButton={{
           onPressHandler: () => {
