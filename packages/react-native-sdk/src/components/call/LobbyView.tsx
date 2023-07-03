@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import {
   useCall,
@@ -11,15 +11,38 @@ import { theme } from '../../theme';
 import { useLocalVideoStream } from '../../hooks';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { Avatar } from '../utility/Avatar';
-import { AxiosError, StreamVideoParticipant } from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+
 
 /**
  * Use this view prior to joining a call.
  * This view allows the user to toggle their audio and video state before joining a call.
  */
 export const LobbyView = () => {
+/**
+ * The props for the Join Button in the LobbyView.
+ */
+type JoinButton = {
+  /**
+   * Handler called when the join button is clicked in the LobbyView.
+   * @returns void
+   */
+  onPressHandler: () => void;
+};
+
+/**
+ * Props for the Lobby View Component
+ */
+type LobbyViewType = {
+  /**
+   * Join button props to be passed as an object
+   */
+  joinButton: JoinButton;
+};
+
+export const LobbyView = ({ joinButton }: LobbyViewType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const {
@@ -43,17 +66,6 @@ export const LobbyView = () => {
   ) : (
     <Video color={theme.light.static_black} />
   );
-
-  const onJoinCallHandler = useCallback(async () => {
-    try {
-      await call?.join({ create: true });
-    } catch (error) {
-      console.log('Error joining call:', error);
-      if (error instanceof AxiosError) {
-        Alert.alert(error.response?.data.message);
-      }
-    }
-  }, [call]);
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -123,7 +135,10 @@ export const LobbyView = () => {
               ? `${count}  more people are in the call now.`
               : 'You are first to Join the call.'}
           </Text>
-          <Pressable style={styles.joinButton} onPress={onJoinCallHandler}>
+          <Pressable
+            style={styles.joinButton}
+            onPress={joinButton.onPressHandler}
+          >
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>
         </View>
@@ -155,6 +170,7 @@ const ParticipantStatus = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

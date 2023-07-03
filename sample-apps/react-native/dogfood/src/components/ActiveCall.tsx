@@ -1,31 +1,25 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  CallControlsView,
-  ParticipantsInfoBadge,
   CallContentView,
+  CallControlsView,
   CallingState,
+  ParticipantsInfoBadge,
   useCall,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { appTheme } from '../theme';
-import { useChannelWatch } from '../hooks/useChannelWatch';
-import { useUnreadCount } from '../hooks/useUnreadCount';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-type ActiveCallProps = {
-  chatButton?: {
-    onPressHandler: () => void;
-  };
-};
+type ActiveCallProps = CallControlsViewType;
 
-export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
-  const channelWatched = useChannelWatch();
-  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
-
+export const ActiveCall = ({
+  chatButton,
+  hangUpCallButton,
+}: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
@@ -54,12 +48,8 @@ export const ActiveCall = ({ chatButton }: ActiveCallProps) => {
       <ParticipantsInfoBadge style={[styles.iconGroup, { top }]} />
       <CallContentView />
       <CallControlsView
-        chatButton={{
-          onPressHandler: () => {
-            chatButton?.onPressHandler();
-          },
-          unreadBadgeCountIndicator,
-        }}
+        chatButton={chatButton}
+        hangUpCallButton={hangUpCallButton}
         style={[
           styles.callControlsWrapper,
           { paddingBottom: Math.max(bottom, appTheme.spacing.lg) },

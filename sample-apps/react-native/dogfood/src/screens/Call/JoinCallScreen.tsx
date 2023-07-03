@@ -81,7 +81,7 @@ const JoinCallScreen = () => {
     ringingUsers.find((ringingUser) => ringingUser === userid);
 
   const ringingUsersSetHandler = (userid: string) => {
-    if (!isRingingUserSelected(userId)) {
+    if (!isRingingUserSelected(userid)) {
       setRingingUsers((prevState) => [...prevState, userid]);
     } else {
       setRingingUsers(

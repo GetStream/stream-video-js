@@ -7,7 +7,7 @@ import {
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-native-sdk';
-import { MeetingStackParamList, ScreenTypes } from '../../../types';
+import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
 
@@ -25,9 +25,6 @@ export const GuestMeetingScreen = (props: Props) => {
     params: { guestUserId, callId, mode },
   } = props.route;
   const callType = 'default';
-
-  const [show, setShow] = useState<ScreenTypes>('lobby');
-  const { navigation } = props;
 
   const userToConnect: User = useMemo(
     () =>
@@ -71,29 +68,14 @@ export const GuestMeetingScreen = (props: Props) => {
     return videoClient.call(callType, callId);
   }, [callId, callType, videoClient]);
 
-  const onJoin = () => {
-    setShow('active-call');
-  };
-
-  const onLeave = () => {
-    setShow('lobby');
-    navigation.goBack();
-  };
-
   if (!videoClient || !call) {
     return null;
   }
 
   return (
     <StreamVideo client={videoClient}>
-      <StreamCall
-        call={call}
-        callCycleHandlers={{
-          onCallJoined: onJoin,
-          onCallHungUp: onLeave,
-        }}
-      >
-        <MeetingUI show={show} setShow={setShow} callId={callId} {...props} />
+      <StreamCall call={call}>
+        <MeetingUI callId={callId} {...props} />
       </StreamCall>
     </StreamVideo>
   );
