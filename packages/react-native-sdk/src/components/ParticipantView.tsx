@@ -207,8 +207,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
   const isAudioAvailable =
     kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
-  const canShowVideo =
-    !!videoStream && isVisible && hasVideoTrack && hasJoinedCall;
+  const canShowVideo = !!videoStream && isVisible && hasVideoTrack;
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
   const videoOnlyStyle = {
