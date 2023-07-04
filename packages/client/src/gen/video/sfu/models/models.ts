@@ -459,7 +459,7 @@ export enum PeerType {
   /**
    * @generated from protobuf enum value: PEER_TYPE_SUBSCRIBER = 1;
    */
-  SUBSCRIBER = 1
+  SUBSCRIBER = 1,
 }
 
 /**
@@ -481,7 +481,7 @@ export enum ConnectionQuality {
   /**
    * @generated from protobuf enum value: CONNECTION_QUALITY_EXCELLENT = 3;
    */
-  EXCELLENT = 3
+  EXCELLENT = 3,
 }
 
 /**
@@ -503,7 +503,7 @@ export enum VideoQuality {
   /**
    * @generated from protobuf enum value: VIDEO_QUALITY_OFF = 3;
    */
-  OFF = 3
+  OFF = 3,
 }
 
 /**
@@ -529,7 +529,7 @@ export enum TrackType {
   /**
    * @generated from protobuf enum value: TRACK_TYPE_SCREEN_SHARE_AUDIO = 4;
    */
-  SCREEN_SHARE_AUDIO = 4
+  SCREEN_SHARE_AUDIO = 4,
 }
 
 /**
@@ -599,7 +599,7 @@ export enum ErrorCode {
   /**
    * @generated from protobuf enum value: ERROR_CODE_SFU_SHUTTING_DOWN = 600;
    */
-  SFU_SHUTTING_DOWN = 600
+  SFU_SHUTTING_DOWN = 600,
 }
 
 /**
@@ -633,7 +633,7 @@ export enum SdkType {
   /**
    * @generated from protobuf enum value: SDK_TYPE_REACT_NATIVE = 6;
    */
-  REACT_NATIVE = 6
+  REACT_NATIVE = 6,
 }
 
 /**
@@ -669,7 +669,7 @@ export enum TrackUnpublishReason {
    *
    * @generated from protobuf enum value: TRACK_UNPUBLISH_REASON_MODERATION = 3;
    */
-  MODERATION = 3
+  MODERATION = 3,
 }
 
 /**
@@ -687,7 +687,7 @@ export enum GoAwayReason {
   /**
    * @generated from protobuf enum value: GO_AWAY_REASON_REBALANCE = 2;
    */
-  REBALANCE = 2
+  REBALANCE = 2,
 }
 
 // @generated message type with reflection information, may provide speed optimized methods
@@ -722,48 +722,94 @@ class CallState$Type extends MessageType<CallState> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallState): CallState {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: CallState,
+  ): CallState {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* repeated stream.video.sfu.models.Participant participants */
         1:
-          message.participants.push(Participant.internalBinaryRead(reader, reader.uint32(), options));
+          message.participants.push(
+            Participant.internalBinaryRead(reader, reader.uint32(), options),
+          );
           break;
         case /* google.protobuf.Timestamp started_at */
         2:
-          message.startedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.startedAt);
+          message.startedAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.startedAt,
+          );
           break;
         case /* stream.video.sfu.models.ParticipantCount participant_count */
         3:
-          message.participantCount = ParticipantCount.internalBinaryRead(reader, reader.uint32(), options, message.participantCount);
+          message.participantCount = ParticipantCount.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.participantCount,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: CallState, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: CallState,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* repeated stream.video.sfu.models.Participant participants = 1; */
     for (let i = 0; i < message.participants.length; i++)
-      Participant.internalBinaryWrite(message.participants[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+      Participant.internalBinaryWrite(
+        message.participants[i],
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* google.protobuf.Timestamp started_at = 2; */
     if (message.startedAt)
-      Timestamp.internalBinaryWrite(message.startedAt, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+      Timestamp.internalBinaryWrite(
+        message.startedAt,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* stream.video.sfu.models.ParticipantCount participant_count = 3; */
     if (message.participantCount)
-      ParticipantCount.internalBinaryWrite(message.participantCount, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+      ParticipantCount.internalBinaryWrite(
+        message.participantCount,
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -793,8 +839,14 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ParticipantCount): ParticipantCount {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ParticipantCount,
+  ): ParticipantCount {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -809,16 +861,28 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: ParticipantCount, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: ParticipantCount,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* uint32 total = 1; */
     if (message.total !== 0)
       writer.tag(1, WireType.Varint).uint32(message.total);
@@ -827,7 +891,11 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
       writer.tag(2, WireType.Varint).uint32(message.anonymous);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -848,27 +916,35 @@ class Participant$Type extends MessageType<Participant> {
         name: 'published_tracks',
         kind: 'enum',
         repeat: 1 /*RepeatType.PACKED*/,
-        T: () => ['stream.video.sfu.models.TrackType', TrackType, 'TRACK_TYPE_'],
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
       },
       { no: 4, name: 'joined_at', kind: 'message', T: () => Timestamp },
       {
         no: 5,
         name: 'track_lookup_prefix',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
       {
         no: 6,
         name: 'connection_quality',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.ConnectionQuality', ConnectionQuality, 'CONNECTION_QUALITY_'],
+        T: () => [
+          'stream.video.sfu.models.ConnectionQuality',
+          ConnectionQuality,
+          'CONNECTION_QUALITY_',
+        ],
       },
       { no: 7, name: 'is_speaking', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       {
         no: 8,
         name: 'is_dominant_speaker',
         kind: 'scalar',
-        T: 8, /*ScalarType.BOOL*/
+        T: 8 /*ScalarType.BOOL*/,
       },
       { no: 9, name: 'audio_level', kind: 'scalar', T: 2 /*ScalarType.FLOAT*/ },
       { no: 10, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
@@ -879,7 +955,7 @@ class Participant$Type extends MessageType<Participant> {
         name: 'roles',
         kind: 'scalar',
         repeat: 2 /*RepeatType.UNPACKED*/,
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }
@@ -907,8 +983,14 @@ class Participant$Type extends MessageType<Participant> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Participant): Participant {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Participant,
+  ): Participant {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -923,14 +1005,18 @@ class Participant$Type extends MessageType<Participant> {
         case /* repeated stream.video.sfu.models.TrackType published_tracks */
         3:
           if (wireType === WireType.LengthDelimited)
-            for (let e = reader.int32() + reader.pos; reader.pos < e;)
+            for (let e = reader.int32() + reader.pos; reader.pos < e; )
               message.publishedTracks.push(reader.int32());
-          else
-            message.publishedTracks.push(reader.int32());
+          else message.publishedTracks.push(reader.int32());
           break;
         case /* google.protobuf.Timestamp joined_at */
         4:
-          message.joinedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.joinedAt);
+          message.joinedAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.joinedAt,
+          );
           break;
         case /* string track_lookup_prefix */
         5:
@@ -962,7 +1048,12 @@ class Participant$Type extends MessageType<Participant> {
           break;
         case /* google.protobuf.Struct custom */
         12:
-          message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+          message.custom = Struct.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.custom,
+          );
           break;
         case /* repeated string roles */
         13:
@@ -971,16 +1062,28 @@ class Participant$Type extends MessageType<Participant> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Participant, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Participant,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string user_id = 1; */
     if (message.userId !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.userId);
@@ -996,7 +1099,11 @@ class Participant$Type extends MessageType<Participant> {
     }
     /* google.protobuf.Timestamp joined_at = 4; */
     if (message.joinedAt)
-      Timestamp.internalBinaryWrite(message.joinedAt, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Timestamp.internalBinaryWrite(
+        message.joinedAt,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* string track_lookup_prefix = 5; */
     if (message.trackLookupPrefix !== '')
       writer.tag(5, WireType.LengthDelimited).string(message.trackLookupPrefix);
@@ -1020,13 +1127,21 @@ class Participant$Type extends MessageType<Participant> {
       writer.tag(11, WireType.LengthDelimited).string(message.image);
     /* google.protobuf.Struct custom = 12; */
     if (message.custom)
-      Struct.internalBinaryWrite(message.custom, writer.tag(12, WireType.LengthDelimited).fork(), options).join();
+      Struct.internalBinaryWrite(
+        message.custom,
+        writer.tag(12, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* repeated string roles = 13; */
     for (let i = 0; i < message.roles.length; i++)
       writer.tag(13, WireType.LengthDelimited).string(message.roles[i]);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1044,7 +1159,11 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
         no: 1,
         name: 'video_quality',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.VideoQuality', VideoQuality, 'VIDEO_QUALITY_'],
+        T: () => [
+          'stream.video.sfu.models.VideoQuality',
+          VideoQuality,
+          'VIDEO_QUALITY_',
+        ],
       },
       { no: 2, name: 'user_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
@@ -1061,8 +1180,14 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StreamQuality): StreamQuality {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: StreamQuality,
+  ): StreamQuality {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1077,16 +1202,28 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: StreamQuality, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: StreamQuality,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.VideoQuality video_quality = 1; */
     if (message.videoQuality !== 0)
       writer.tag(1, WireType.Varint).int32(message.videoQuality);
@@ -1095,7 +1232,11 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
       writer.tag(2, WireType.LengthDelimited).string(message.userId);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1125,8 +1266,14 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoDimension): VideoDimension {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: VideoDimension,
+  ): VideoDimension {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1141,16 +1288,28 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: VideoDimension, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: VideoDimension,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* uint32 width = 1; */
     if (message.width !== 0)
       writer.tag(1, WireType.Varint).uint32(message.width);
@@ -1159,7 +1318,11 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
       writer.tag(2, WireType.Varint).uint32(message.height);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1186,7 +1349,11 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
         no: 6,
         name: 'quality',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.VideoQuality', VideoQuality, 'VIDEO_QUALITY_'],
+        T: () => [
+          'stream.video.sfu.models.VideoQuality',
+          VideoQuality,
+          'VIDEO_QUALITY_',
+        ],
       },
     ]);
   }
@@ -1202,8 +1369,14 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoLayer): VideoLayer {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: VideoLayer,
+  ): VideoLayer {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1213,7 +1386,12 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
           break;
         case /* stream.video.sfu.models.VideoDimension video_dimension */
         2:
-          message.videoDimension = VideoDimension.internalBinaryRead(reader, reader.uint32(), options, message.videoDimension);
+          message.videoDimension = VideoDimension.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.videoDimension,
+          );
           break;
         case /* uint32 bitrate */
         4:
@@ -1230,34 +1408,53 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: VideoLayer, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: VideoLayer,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string rid = 1; */
     if (message.rid !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.rid);
     /* stream.video.sfu.models.VideoDimension video_dimension = 2; */
     if (message.videoDimension)
-      VideoDimension.internalBinaryWrite(message.videoDimension, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+      VideoDimension.internalBinaryWrite(
+        message.videoDimension,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* uint32 bitrate = 4; */
     if (message.bitrate !== 0)
       writer.tag(4, WireType.Varint).uint32(message.bitrate);
     /* uint32 fps = 5; */
-    if (message.fps !== 0)
-      writer.tag(5, WireType.Varint).uint32(message.fps);
+    if (message.fps !== 0) writer.tag(5, WireType.Varint).uint32(message.fps);
     /* stream.video.sfu.models.VideoQuality quality = 6; */
     if (message.quality !== 0)
       writer.tag(6, WireType.Varint).int32(message.quality);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1275,7 +1472,7 @@ class Codec$Type extends MessageType<Codec> {
         no: 1,
         name: 'payload_type',
         kind: 'scalar',
-        T: 13, /*ScalarType.UINT32*/
+        T: 13 /*ScalarType.UINT32*/,
       },
       { no: 2, name: 'name', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'fmtp_line', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
@@ -1283,20 +1480,20 @@ class Codec$Type extends MessageType<Codec> {
         no: 4,
         name: 'clock_rate',
         kind: 'scalar',
-        T: 13, /*ScalarType.UINT32*/
+        T: 13 /*ScalarType.UINT32*/,
       },
       {
         no: 5,
         name: 'encoding_parameters',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
       {
         no: 6,
         name: 'feedbacks',
         kind: 'scalar',
         repeat: 2 /*RepeatType.UNPACKED*/,
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }
@@ -1319,8 +1516,14 @@ class Codec$Type extends MessageType<Codec> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Codec): Codec {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Codec,
+  ): Codec {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1351,16 +1554,28 @@ class Codec$Type extends MessageType<Codec> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Codec, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Codec,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* uint32 payload_type = 1; */
     if (message.payloadType !== 0)
       writer.tag(1, WireType.Varint).uint32(message.payloadType);
@@ -1375,13 +1590,19 @@ class Codec$Type extends MessageType<Codec> {
       writer.tag(4, WireType.Varint).uint32(message.clockRate);
     /* string encoding_parameters = 5; */
     if (message.encodingParameters !== '')
-      writer.tag(5, WireType.LengthDelimited).string(message.encodingParameters);
+      writer
+        .tag(5, WireType.LengthDelimited)
+        .string(message.encodingParameters);
     /* repeated string feedbacks = 6; */
     for (let i = 0; i < message.feedbacks.length; i++)
       writer.tag(6, WireType.LengthDelimited).string(message.feedbacks[i]);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1405,7 +1626,7 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
         no: 2,
         name: 'ice_candidate',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
       { no: 3, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
@@ -1422,8 +1643,14 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICETrickle): ICETrickle {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ICETrickle,
+  ): ICETrickle {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1442,16 +1669,28 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: ICETrickle, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: ICETrickle,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.PeerType peer_type = 1; */
     if (message.peerType !== 0)
       writer.tag(1, WireType.Varint).int32(message.peerType);
@@ -1463,7 +1702,11 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
       writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1482,7 +1725,11 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         no: 2,
         name: 'track_type',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.TrackType', TrackType, 'TRACK_TYPE_'],
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
       },
       {
         no: 5,
@@ -1517,8 +1764,14 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackInfo): TrackInfo {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: TrackInfo,
+  ): TrackInfo {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1532,7 +1785,9 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
           break;
         case /* repeated stream.video.sfu.models.VideoLayer layers */
         5:
-          message.layers.push(VideoLayer.internalBinaryRead(reader, reader.uint32(), options));
+          message.layers.push(
+            VideoLayer.internalBinaryRead(reader, reader.uint32(), options),
+          );
           break;
         case /* string mid */
         6:
@@ -1553,16 +1808,28 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: TrackInfo, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: TrackInfo,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string track_id = 1; */
     if (message.trackId !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.trackId);
@@ -1571,22 +1838,28 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       writer.tag(2, WireType.Varint).int32(message.trackType);
     /* repeated stream.video.sfu.models.VideoLayer layers = 5; */
     for (let i = 0; i < message.layers.length; i++)
-      VideoLayer.internalBinaryWrite(message.layers[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+      VideoLayer.internalBinaryWrite(
+        message.layers[i],
+        writer.tag(5, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* string mid = 6; */
     if (message.mid !== '')
       writer.tag(6, WireType.LengthDelimited).string(message.mid);
     /* bool dtx = 7; */
-    if (message.dtx !== false)
-      writer.tag(7, WireType.Varint).bool(message.dtx);
+    if (message.dtx !== false) writer.tag(7, WireType.Varint).bool(message.dtx);
     /* bool stereo = 8; */
     if (message.stereo !== false)
       writer.tag(8, WireType.Varint).bool(message.stereo);
     /* bool red = 9; */
-    if (message.red !== false)
-      writer.tag(9, WireType.Varint).bool(message.red);
+    if (message.red !== false) writer.tag(9, WireType.Varint).bool(message.red);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1606,13 +1879,13 @@ class Call$Type extends MessageType<Call> {
         no: 3,
         name: 'created_by_user_id',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
       {
         no: 4,
         name: 'host_user_id',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
       { no: 5, name: 'custom', kind: 'message', T: () => Struct },
       { no: 6, name: 'created_at', kind: 'message', T: () => Timestamp },
@@ -1626,13 +1899,18 @@ class Call$Type extends MessageType<Call> {
       enumerable: false,
       value: this,
     });
-    if (value !== undefined)
-      reflectionMergePartial<Call>(this, message, value);
+    if (value !== undefined) reflectionMergePartial<Call>(this, message, value);
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Call): Call {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Call,
+  ): Call {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1654,29 +1932,56 @@ class Call$Type extends MessageType<Call> {
           break;
         case /* google.protobuf.Struct custom */
         5:
-          message.custom = Struct.internalBinaryRead(reader, reader.uint32(), options, message.custom);
+          message.custom = Struct.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.custom,
+          );
           break;
         case /* google.protobuf.Timestamp created_at */
         6:
-          message.createdAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.createdAt);
+          message.createdAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.createdAt,
+          );
           break;
         case /* google.protobuf.Timestamp updated_at */
         7:
-          message.updatedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.updatedAt);
+          message.updatedAt = Timestamp.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.updatedAt,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Call, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Call,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string type = 1; */
     if (message.type !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.type);
@@ -1691,16 +1996,32 @@ class Call$Type extends MessageType<Call> {
       writer.tag(4, WireType.LengthDelimited).string(message.hostUserId);
     /* google.protobuf.Struct custom = 5; */
     if (message.custom)
-      Struct.internalBinaryWrite(message.custom, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+      Struct.internalBinaryWrite(
+        message.custom,
+        writer.tag(5, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* google.protobuf.Timestamp created_at = 6; */
     if (message.createdAt)
-      Timestamp.internalBinaryWrite(message.createdAt, writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+      Timestamp.internalBinaryWrite(
+        message.createdAt,
+        writer.tag(6, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* google.protobuf.Timestamp updated_at = 7; */
     if (message.updatedAt)
-      Timestamp.internalBinaryWrite(message.updatedAt, writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+      Timestamp.internalBinaryWrite(
+        message.updatedAt,
+        writer.tag(7, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1718,7 +2039,11 @@ class Error$Type extends MessageType<Error> {
         no: 1,
         name: 'code',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.ErrorCode', ErrorCode, 'ERROR_CODE_'],
+        T: () => [
+          'stream.video.sfu.models.ErrorCode',
+          ErrorCode,
+          'ERROR_CODE_',
+        ],
       },
       { no: 2, name: 'message', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'should_retry', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
@@ -1736,8 +2061,14 @@ class Error$Type extends MessageType<Error> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Error): Error {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Error,
+  ): Error {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1756,19 +2087,30 @@ class Error$Type extends MessageType<Error> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Error, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Error,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.ErrorCode code = 1; */
-    if (message.code !== 0)
-      writer.tag(1, WireType.Varint).int32(message.code);
+    if (message.code !== 0) writer.tag(1, WireType.Varint).int32(message.code);
     /* string message = 2; */
     if (message.message !== '')
       writer.tag(2, WireType.LengthDelimited).string(message.message);
@@ -1777,7 +2119,11 @@ class Error$Type extends MessageType<Error> {
       writer.tag(3, WireType.Varint).bool(message.shouldRetry);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1809,55 +2155,113 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ClientDetails): ClientDetails {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ClientDetails,
+  ): ClientDetails {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* stream.video.sfu.models.Sdk sdk */
         1:
-          message.sdk = Sdk.internalBinaryRead(reader, reader.uint32(), options, message.sdk);
+          message.sdk = Sdk.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.sdk,
+          );
           break;
         case /* stream.video.sfu.models.OS os */
         2:
-          message.os = OS.internalBinaryRead(reader, reader.uint32(), options, message.os);
+          message.os = OS.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.os,
+          );
           break;
         case /* stream.video.sfu.models.Browser browser */
         3:
-          message.browser = Browser.internalBinaryRead(reader, reader.uint32(), options, message.browser);
+          message.browser = Browser.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.browser,
+          );
           break;
         case /* stream.video.sfu.models.Device device */
         4:
-          message.device = Device.internalBinaryRead(reader, reader.uint32(), options, message.device);
+          message.device = Device.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.device,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: ClientDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: ClientDetails,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.Sdk sdk = 1; */
     if (message.sdk)
-      Sdk.internalBinaryWrite(message.sdk, writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+      Sdk.internalBinaryWrite(
+        message.sdk,
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* stream.video.sfu.models.OS os = 2; */
     if (message.os)
-      OS.internalBinaryWrite(message.os, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+      OS.internalBinaryWrite(
+        message.os,
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* stream.video.sfu.models.Browser browser = 3; */
     if (message.browser)
-      Browser.internalBinaryWrite(message.browser, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+      Browser.internalBinaryWrite(
+        message.browser,
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     /* stream.video.sfu.models.Device device = 4; */
     if (message.device)
-      Device.internalBinaryWrite(message.device, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Device.internalBinaryWrite(
+        message.device,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1889,13 +2293,18 @@ class Sdk$Type extends MessageType<Sdk> {
       enumerable: false,
       value: this,
     });
-    if (value !== undefined)
-      reflectionMergePartial<Sdk>(this, message, value);
+    if (value !== undefined) reflectionMergePartial<Sdk>(this, message, value);
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Sdk): Sdk {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Sdk,
+  ): Sdk {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1918,19 +2327,30 @@ class Sdk$Type extends MessageType<Sdk> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Sdk, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Sdk,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.SdkType type = 1; */
-    if (message.type !== 0)
-      writer.tag(1, WireType.Varint).int32(message.type);
+    if (message.type !== 0) writer.tag(1, WireType.Varint).int32(message.type);
     /* string major = 2; */
     if (message.major !== '')
       writer.tag(2, WireType.LengthDelimited).string(message.major);
@@ -1942,7 +2362,11 @@ class Sdk$Type extends MessageType<Sdk> {
       writer.tag(4, WireType.LengthDelimited).string(message.patch);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1962,7 +2386,7 @@ class OS$Type extends MessageType<OS> {
         no: 3,
         name: 'architecture',
         kind: 'scalar',
-        T: 9, /*ScalarType.STRING*/
+        T: 9 /*ScalarType.STRING*/,
       },
     ]);
   }
@@ -1973,13 +2397,18 @@ class OS$Type extends MessageType<OS> {
       enumerable: false,
       value: this,
     });
-    if (value !== undefined)
-      reflectionMergePartial<OS>(this, message, value);
+    if (value !== undefined) reflectionMergePartial<OS>(this, message, value);
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: OS): OS {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: OS,
+  ): OS {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1998,16 +2427,28 @@ class OS$Type extends MessageType<OS> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: OS, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: OS,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string name = 1; */
     if (message.name !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.name);
@@ -2019,7 +2460,11 @@ class OS$Type extends MessageType<OS> {
       writer.tag(3, WireType.LengthDelimited).string(message.architecture);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -2049,8 +2494,14 @@ class Browser$Type extends MessageType<Browser> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Browser): Browser {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Browser,
+  ): Browser {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -2065,16 +2516,28 @@ class Browser$Type extends MessageType<Browser> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Browser, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Browser,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string name = 1; */
     if (message.name !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.name);
@@ -2083,7 +2546,11 @@ class Browser$Type extends MessageType<Browser> {
       writer.tag(2, WireType.LengthDelimited).string(message.version);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -2113,8 +2580,14 @@ class Device$Type extends MessageType<Device> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: Device): Device {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Device,
+  ): Device {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -2129,16 +2602,28 @@ class Device$Type extends MessageType<Device> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: Device, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: Device,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string name = 1; */
     if (message.name !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.name);
@@ -2147,7 +2632,11 @@ class Device$Type extends MessageType<Device> {
       writer.tag(2, WireType.LengthDelimited).string(message.version);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -2165,19 +2654,19 @@ class CallGrants$Type extends MessageType<CallGrants> {
         no: 1,
         name: 'can_publish_audio',
         kind: 'scalar',
-        T: 8, /*ScalarType.BOOL*/
+        T: 8 /*ScalarType.BOOL*/,
       },
       {
         no: 2,
         name: 'can_publish_video',
         kind: 'scalar',
-        T: 8, /*ScalarType.BOOL*/
+        T: 8 /*ScalarType.BOOL*/,
       },
       {
         no: 3,
         name: 'can_screenshare',
         kind: 'scalar',
-        T: 8, /*ScalarType.BOOL*/
+        T: 8 /*ScalarType.BOOL*/,
       },
     ]);
   }
@@ -2197,8 +2686,14 @@ class CallGrants$Type extends MessageType<CallGrants> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: CallGrants): CallGrants {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: CallGrants,
+  ): CallGrants {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -2217,16 +2712,28 @@ class CallGrants$Type extends MessageType<CallGrants> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: CallGrants, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: CallGrants,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* bool can_publish_audio = 1; */
     if (message.canPublishAudio !== false)
       writer.tag(1, WireType.Varint).bool(message.canPublishAudio);
@@ -2238,7 +2745,11 @@ class CallGrants$Type extends MessageType<CallGrants> {
       writer.tag(3, WireType.Varint).bool(message.canScreenshare);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }

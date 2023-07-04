@@ -227,7 +227,9 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
     ]);
   }
 
-  create(value?: PartialMessage<UpdateMuteStatesRequest>): UpdateMuteStatesRequest {
+  create(
+    value?: PartialMessage<UpdateMuteStatesRequest>,
+  ): UpdateMuteStatesRequest {
     const message = { sessionId: '', muteStates: [] };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -238,8 +240,14 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStatesRequest): UpdateMuteStatesRequest {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: UpdateMuteStatesRequest,
+  ): UpdateMuteStatesRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -249,30 +257,52 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
           break;
         case /* repeated stream.video.sfu.signal.TrackMuteState mute_states */
         3:
-          message.muteStates.push(TrackMuteState.internalBinaryRead(reader, reader.uint32(), options));
+          message.muteStates.push(
+            TrackMuteState.internalBinaryRead(reader, reader.uint32(), options),
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: UpdateMuteStatesRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: UpdateMuteStatesRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string session_id = 1; */
     if (message.sessionId !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
     /* repeated stream.video.sfu.signal.TrackMuteState mute_states = 3; */
     for (let i = 0; i < message.muteStates.length; i++)
-      TrackMuteState.internalBinaryWrite(message.muteStates[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+      TrackMuteState.internalBinaryWrite(
+        message.muteStates[i],
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -290,7 +320,9 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
     ]);
   }
 
-  create(value?: PartialMessage<UpdateMuteStatesResponse>): UpdateMuteStatesResponse {
+  create(
+    value?: PartialMessage<UpdateMuteStatesResponse>,
+  ): UpdateMuteStatesResponse {
     const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -301,34 +333,65 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateMuteStatesResponse): UpdateMuteStatesResponse {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: UpdateMuteStatesResponse,
+  ): UpdateMuteStatesResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* stream.video.sfu.models.Error error */
         4:
-          message.error = Error.internalBinaryRead(reader, reader.uint32(), options, message.error);
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: UpdateMuteStatesResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: UpdateMuteStatesResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.Error error = 4; */
     if (message.error)
-      Error.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -346,7 +409,11 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
         no: 1,
         name: 'track_type',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.TrackType', TrackType, 'TRACK_TYPE_'],
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
       },
       { no: 2, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
@@ -363,8 +430,14 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackMuteState): TrackMuteState {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: TrackMuteState,
+  ): TrackMuteState {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -379,16 +452,28 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: TrackMuteState, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: TrackMuteState,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.TrackType track_type = 1; */
     if (message.trackType !== 0)
       writer.tag(1, WireType.Varint).int32(message.trackType);
@@ -397,7 +482,11 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
       writer.tag(2, WireType.Varint).bool(message.muted);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -426,8 +515,14 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AudioMuteChanged): AudioMuteChanged {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: AudioMuteChanged,
+  ): AudioMuteChanged {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -438,22 +533,38 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: AudioMuteChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: AudioMuteChanged,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* bool muted = 1; */
     if (message.muted !== false)
       writer.tag(1, WireType.Varint).bool(message.muted);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -482,8 +593,14 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: VideoMuteChanged): VideoMuteChanged {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: VideoMuteChanged,
+  ): VideoMuteChanged {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -494,22 +611,38 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: VideoMuteChanged, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: VideoMuteChanged,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* bool muted = 2; */
     if (message.muted !== false)
       writer.tag(2, WireType.Varint).bool(message.muted);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -534,7 +667,9 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
     ]);
   }
 
-  create(value?: PartialMessage<UpdateSubscriptionsRequest>): UpdateSubscriptionsRequest {
+  create(
+    value?: PartialMessage<UpdateSubscriptionsRequest>,
+  ): UpdateSubscriptionsRequest {
     const message = { sessionId: '', tracks: [] };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -545,8 +680,14 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateSubscriptionsRequest): UpdateSubscriptionsRequest {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: UpdateSubscriptionsRequest,
+  ): UpdateSubscriptionsRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -556,30 +697,56 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
           break;
         case /* repeated stream.video.sfu.signal.TrackSubscriptionDetails tracks */
         3:
-          message.tracks.push(TrackSubscriptionDetails.internalBinaryRead(reader, reader.uint32(), options));
+          message.tracks.push(
+            TrackSubscriptionDetails.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+            ),
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: UpdateSubscriptionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: UpdateSubscriptionsRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string session_id = 2; */
     if (message.sessionId !== '')
       writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
     /* repeated stream.video.sfu.signal.TrackSubscriptionDetails tracks = 3; */
     for (let i = 0; i < message.tracks.length; i++)
-      TrackSubscriptionDetails.internalBinaryWrite(message.tracks[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+      TrackSubscriptionDetails.internalBinaryWrite(
+        message.tracks[i],
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -597,7 +764,9 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
     ]);
   }
 
-  create(value?: PartialMessage<UpdateSubscriptionsResponse>): UpdateSubscriptionsResponse {
+  create(
+    value?: PartialMessage<UpdateSubscriptionsResponse>,
+  ): UpdateSubscriptionsResponse {
     const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -608,34 +777,65 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UpdateSubscriptionsResponse): UpdateSubscriptionsResponse {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: UpdateSubscriptionsResponse,
+  ): UpdateSubscriptionsResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* stream.video.sfu.models.Error error */
         4:
-          message.error = Error.internalBinaryRead(reader, reader.uint32(), options, message.error);
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: UpdateSubscriptionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: UpdateSubscriptionsResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.Error error = 4; */
     if (message.error)
-      Error.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -643,7 +843,8 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateSubscriptionsResponse
  */
-export const UpdateSubscriptionsResponse = new UpdateSubscriptionsResponse$Type();
+export const UpdateSubscriptionsResponse =
+  new UpdateSubscriptionsResponse$Type();
 
 // @generated message type with reflection information, may provide speed optimized methods
 class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails> {
@@ -655,13 +856,19 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
         no: 3,
         name: 'track_type',
         kind: 'enum',
-        T: () => ['stream.video.sfu.models.TrackType', TrackType, 'TRACK_TYPE_'],
+        T: () => [
+          'stream.video.sfu.models.TrackType',
+          TrackType,
+          'TRACK_TYPE_',
+        ],
       },
       { no: 4, name: 'dimension', kind: 'message', T: () => VideoDimension },
     ]);
   }
 
-  create(value?: PartialMessage<TrackSubscriptionDetails>): TrackSubscriptionDetails {
+  create(
+    value?: PartialMessage<TrackSubscriptionDetails>,
+  ): TrackSubscriptionDetails {
     const message = { userId: '', sessionId: '', trackType: 0 };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -672,8 +879,14 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TrackSubscriptionDetails): TrackSubscriptionDetails {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: TrackSubscriptionDetails,
+  ): TrackSubscriptionDetails {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -691,21 +904,38 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
           break;
         case /* stream.video.sfu.models.VideoDimension dimension */
         4:
-          message.dimension = VideoDimension.internalBinaryRead(reader, reader.uint32(), options, message.dimension);
+          message.dimension = VideoDimension.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.dimension,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: TrackSubscriptionDetails, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: TrackSubscriptionDetails,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string user_id = 1; */
     if (message.userId !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.userId);
@@ -717,10 +947,18 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
       writer.tag(3, WireType.Varint).int32(message.trackType);
     /* stream.video.sfu.models.VideoDimension dimension = 4; */
     if (message.dimension)
-      VideoDimension.internalBinaryWrite(message.dimension, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      VideoDimension.internalBinaryWrite(
+        message.dimension,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -756,8 +994,14 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SendAnswerRequest): SendAnswerRequest {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SendAnswerRequest,
+  ): SendAnswerRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -776,16 +1020,28 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: SendAnswerRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: SendAnswerRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.PeerType peer_type = 1; */
     if (message.peerType !== 0)
       writer.tag(1, WireType.Varint).int32(message.peerType);
@@ -797,7 +1053,11 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
       writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -826,34 +1086,65 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SendAnswerResponse): SendAnswerResponse {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SendAnswerResponse,
+  ): SendAnswerResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* stream.video.sfu.models.Error error */
         4:
-          message.error = Error.internalBinaryRead(reader, reader.uint32(), options, message.error);
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: SendAnswerResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: SendAnswerResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.Error error = 4; */
     if (message.error)
-      Error.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -882,34 +1173,65 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: ICETrickleResponse): ICETrickleResponse {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: ICETrickleResponse,
+  ): ICETrickleResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
         case /* stream.video.sfu.models.Error error */
         4:
-          message.error = Error.internalBinaryRead(reader, reader.uint32(), options, message.error);
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: ICETrickleResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: ICETrickleResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* stream.video.sfu.models.Error error = 4; */
     if (message.error)
-      Error.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -946,8 +1268,14 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetPublisherRequest): SetPublisherRequest {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SetPublisherRequest,
+  ): SetPublisherRequest {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -961,21 +1289,35 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
           break;
         case /* repeated stream.video.sfu.models.TrackInfo tracks */
         3:
-          message.tracks.push(TrackInfo.internalBinaryRead(reader, reader.uint32(), options));
+          message.tracks.push(
+            TrackInfo.internalBinaryRead(reader, reader.uint32(), options),
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: SetPublisherRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: SetPublisherRequest,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string sdp = 1; */
     if (message.sdp !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.sdp);
@@ -984,10 +1326,18 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
       writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
     /* repeated stream.video.sfu.models.TrackInfo tracks = 3; */
     for (let i = 0; i < message.tracks.length; i++)
-      TrackInfo.internalBinaryWrite(message.tracks[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+      TrackInfo.internalBinaryWrite(
+        message.tracks[i],
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1019,8 +1369,14 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
     return message;
   }
 
-  internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SetPublisherResponse): SetPublisherResponse {
-    let message = target ?? this.create(), end = reader.pos + length;
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: SetPublisherResponse,
+  ): SetPublisherResponse {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
@@ -1038,21 +1394,38 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
           break;
         case /* stream.video.sfu.models.Error error */
         4:
-          message.error = Error.internalBinaryRead(reader, reader.uint32(), options, message.error);
+          message.error = Error.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.error,
+          );
           break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
-            throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
           let d = reader.skip(wireType);
           if (u !== false)
-            (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
       }
     }
     return message;
   }
 
-  internalBinaryWrite(message: SetPublisherResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+  internalBinaryWrite(
+    message: SetPublisherResponse,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
     /* string sdp = 1; */
     if (message.sdp !== '')
       writer.tag(1, WireType.LengthDelimited).string(message.sdp);
@@ -1064,10 +1437,18 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
       writer.tag(3, WireType.Varint).bool(message.iceRestart);
     /* stream.video.sfu.models.Error error = 4; */
     if (message.error)
-      Error.internalBinaryWrite(message.error, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+      Error.internalBinaryWrite(
+        message.error,
+        writer.tag(4, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
-      (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
     return writer;
   }
 }
@@ -1079,30 +1460,33 @@ export const SetPublisherResponse = new SetPublisherResponse$Type();
 /**
  * @generated ServiceType for protobuf service stream.video.sfu.signal.SignalServer
  */
-export const SignalServer = new ServiceType('stream.video.sfu.signal.SignalServer', [
-  {
-    name: 'SetPublisher',
-    options: {},
-    I: SetPublisherRequest,
-    O: SetPublisherResponse,
-  },
-  {
-    name: 'SendAnswer',
-    options: {},
-    I: SendAnswerRequest,
-    O: SendAnswerResponse,
-  },
-  { name: 'IceTrickle', options: {}, I: ICETrickle, O: ICETrickleResponse },
-  {
-    name: 'UpdateSubscriptions',
-    options: {},
-    I: UpdateSubscriptionsRequest,
-    O: UpdateSubscriptionsResponse,
-  },
-  {
-    name: 'UpdateMuteStates',
-    options: {},
-    I: UpdateMuteStatesRequest,
-    O: UpdateMuteStatesResponse,
-  },
-]);
+export const SignalServer = new ServiceType(
+  'stream.video.sfu.signal.SignalServer',
+  [
+    {
+      name: 'SetPublisher',
+      options: {},
+      I: SetPublisherRequest,
+      O: SetPublisherResponse,
+    },
+    {
+      name: 'SendAnswer',
+      options: {},
+      I: SendAnswerRequest,
+      O: SendAnswerResponse,
+    },
+    { name: 'IceTrickle', options: {}, I: ICETrickle, O: ICETrickleResponse },
+    {
+      name: 'UpdateSubscriptions',
+      options: {},
+      I: UpdateSubscriptionsRequest,
+      O: UpdateSubscriptionsResponse,
+    },
+    {
+      name: 'UpdateMuteStates',
+      options: {},
+      I: UpdateMuteStatesRequest,
+      O: UpdateMuteStatesResponse,
+    },
+  ],
+);
