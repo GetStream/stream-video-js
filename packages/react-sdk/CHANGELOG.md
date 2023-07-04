@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.64...@stream-io/video-react-sdk-0.0.65) (2023-07-04)
+
+
+### Documentation
+
+* Unify UI components structure ([#742](https://github.com/GetStream/stream-video-js/issues/742)) ([d550163](https://github.com/GetStream/stream-video-js/commit/d550163cdcad0cac598b0cecadeee82e6d997b64)), closes [/github.com/GetStream/stream-video-js/pull/571#issue-1732498263](https://github.com/GetStream//github.com/GetStream/stream-video-js/pull/571/issues/issue-1732498263)
+
 ### [0.0.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.63...@stream-io/video-react-sdk-0.0.64) (2023-07-04)
 
 ### Dependency Updates
