@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.33...@stream-io/video-react-bindings-0.0.34) (2023-07-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Features
+
+* stop tracking permission requests in Call state ([#744](https://github.com/GetStream/stream-video-js/issues/744)) ([b330df3](https://github.com/GetStream/stream-video-js/commit/b330df39d9dce34d9e5a1a7ec58acb0a905ee07b))
+
 ### [0.0.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.32...@stream-io/video-react-bindings-0.0.33) (2023-07-03)
 
 ### Dependency Updates
