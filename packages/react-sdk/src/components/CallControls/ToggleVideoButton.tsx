@@ -55,14 +55,14 @@ export const ToggleVideoPublishingButton = (
     SfuModels.TrackType.VIDEO,
   );
 
-  const { toggleVideoMuteState: handleClick, isAwaitingApproval } =
+  const { toggleVideoMuteState: handleClick, isAwaitingPermission } =
     useToggleVideoMuteState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
-        isAwaitingApproval={isAwaitingApproval}
+        isAwaitingApproval={isAwaitingPermission}
         messageApproved="You can now share your video."
         messageAwaitingApproval="Awaiting for an approval to share your video."
         messageRevoked="You can no longer share your video."
