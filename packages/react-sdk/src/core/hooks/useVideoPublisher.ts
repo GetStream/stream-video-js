@@ -79,21 +79,19 @@ export const useVideoPublisher = ({
 
   const initialPublishRun = useRef(false);
   useEffect(() => {
-    if (callingState === CallingState.JOINED) {
-      if (
-        (!initialVideoMuted && !initialPublishRun.current) ||
-        isPublishingVideo
-      ) {
-        // automatic publishing should happen only when:
-        // - joining the call from the lobby, and the video is not muted
-        // - reconnecting to the call with the video already published
-        publishVideoStream().catch((e) => {
-          console.error('Failed to publish video stream', e);
-        });
-        initialPublishRun.current = true;
-      }
+    if (
+      callingState === CallingState.JOINED &&
+      !initialPublishRun.current &&
+      !initialVideoMuted
+    ) {
+      // automatic publishing should happen only when joining the call
+      // from the lobby, and the video is not muted
+      publishVideoStream().catch((e) => {
+        console.error('Failed to publish video stream', e);
+      });
+      initialPublishRun.current = true;
     }
-  }, [callingState, initialVideoMuted, isPublishingVideo, publishVideoStream]);
+  }, [callingState, initialVideoMuted, publishVideoStream]);
 
   useEffect(() => {
     if (!localParticipant$ || !hasBrowserPermissionVideoInput) return;

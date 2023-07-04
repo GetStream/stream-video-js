@@ -319,10 +319,7 @@ export const MediaDevicesProvider = ({
   }, [call, callingState]);
 
   const toggleInitialAudioMuteState = useCallback(
-    () =>
-      setInitialAudioEnabled((prev) => {
-        return !prev;
-      }),
+    () => setInitialAudioEnabled((prev) => !prev),
     [],
   );
   const toggleInitialVideoMuteState = useCallback(
