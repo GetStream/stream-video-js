@@ -37,7 +37,6 @@ export const PermissionRequests = () => {
   const [permissionRequests, setPermissionRequests] = useState<
     PermissionRequestEvent[]
   >([]);
-  console.log('permissionRequests', permissionRequests);
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
