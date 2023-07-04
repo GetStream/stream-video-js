@@ -3,7 +3,6 @@ title: Permissions & Moderation
 description: Explanation of call permissions and moderation features
 ---
 
-
 import SDKSpecific from '../SDKSpecific';
 
 In many types of calls, there is a requirement for providing different users with certain permissions and capabilities.
@@ -37,7 +36,7 @@ or perform some permission-related actions:
 ### Check permissions
 
 ```ts
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-sdk';
 
 const call = streamVideoClient.call(type, id);
 const canSendAudio = call.permissionsContext.hasPermission(
@@ -62,7 +61,7 @@ For example, in an audio-room call type, only the hosts have `send-audio` permis
 Other users should request this permission before they can start sending audio if the call settings allow it.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-sdk';
 
 const call = streamVideoClient.call(type, id);
 if (!call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)) {
@@ -84,7 +83,7 @@ You can listen to this event and approve the request.
 import {
   PermissionRequestEvent,
   StreamCallEvent,
-} from '@stream-io/video-client';
+} from '@stream-io/video-react-sdk';
 
 const call = streamVideoClient.call(type, id);
 call.on('call.permission_request', async (event: StreamCallEvent) => {
@@ -100,7 +99,7 @@ call.on('call.permission_request', async (event: StreamCallEvent) => {
 At any time, a moderator or host can decide to either grant or revoke certain permission to any participant.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-sdk';
 
 const call = streamVideoClient.call(type, id);
 await call.updateUserPermissions({
