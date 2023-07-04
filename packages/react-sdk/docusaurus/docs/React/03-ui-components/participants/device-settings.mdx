@@ -17,12 +17,6 @@ The SDK's default implementation of device settings components consists of audio
 
 There is also a composing component `DeviceSettings` putting these together.
 
-All the selector components make use of [`MediaDevicesContextAPI`](../../../guides/camera-and-microphone) to switch the device. To list the devices, each selector component relies on corresponding hook for listing devices by media kind:
-
-- `useVideoDevices`
-- `useAudioInputDevices`
-- `useAudioOutputDevices`
-
 <ImageShowcase
   items={[
     {
@@ -47,6 +41,44 @@ All the selector components make use of [`MediaDevicesContextAPI`](../../../guid
     },
   ]}
 />
+
+## General usage
+
+```tsx
+import { Call, DeviceSettings, StreamCall } from '@stream-io/video-react-sdk';
+
+const DevicePanel = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      <DeviceSettings />
+    </StreamCall>
+  );
+};
+```
+
+Or use the components individually:
+
+```tsx
+import {
+  Call,
+  DeviceSelectorAudioInput,
+  DeviceSelectorVideo,
+  StreamCall,
+} from '@stream-io/video-react-sdk';
+
+const DevicePanel = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      <DeviceSelectorVideo />
+      <DeviceSelectorAudioInput />
+    </StreamCall>
+  );
+};
+```
 
 ## Props
 
@@ -83,3 +115,7 @@ String displayed at the top of the selector component.
 | `string` \| `undefined` | `'Select Speakers'` |
 
 String displayed at the top of the selector component.
+
+## Customization
+
+If you want to create your own component, you can make use of [`MediaDevicesContextAPI`](../../../guides/camera-and-microphone) to list and select devices.
