@@ -19,7 +19,6 @@ export const ActiveCallHeader = () => {
 
   return (
     <AnimatedHeader
-      key={header}
       header={header}
       showLoadingIndicator={showLoadingIndicator}
     />
@@ -34,15 +33,18 @@ const AnimatedHeader = ({
   showLoadingIndicator: boolean;
 }) => {
   const { top } = useSafeAreaInsets();
-  const opacityAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
+  const opacityAnimRef = useRef(new Animated.Value(0)); // Initial value for opacity: 0
 
   useEffect(() => {
+    const opacityAnim = opacityAnimRef.current;
+    opacityAnim.setValue(0);
     Animated.timing(opacityAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [opacityAnim]);
+    // dep to header, because we restart animation whenever header change
+  }, [header]);
 
   return (
     <Animated.View
@@ -50,12 +52,12 @@ const AnimatedHeader = ({
         styles.container,
         {
           top,
-          opacity: opacityAnim,
+          opacity: opacityAnimRef.current,
           transform: [
             {
-              translateY: opacityAnim.interpolate({
+              translateY: opacityAnimRef.current.interpolate({
                 inputRange: [0, 1],
-                outputRange: [-50, 0], // 0 : 150, 0.5 : 75, 1 : 0
+                outputRange: [-50, 0], // move from top to position
               }),
             },
           ],
