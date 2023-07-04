@@ -39,7 +39,6 @@ export interface UpdateMuteStatesRequest {
    */
   muteStates: TrackMuteState[];
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.UpdateMuteStatesResponse
  */
@@ -49,7 +48,6 @@ export interface UpdateMuteStatesResponse {
    */
   error?: Error;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.TrackMuteState
  */
@@ -63,7 +61,6 @@ export interface TrackMuteState {
    */
   muted: boolean;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.AudioMuteChanged
  */
@@ -73,7 +70,6 @@ export interface AudioMuteChanged {
    */
   muted: boolean;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.VideoMuteChanged
  */
@@ -83,7 +79,6 @@ export interface VideoMuteChanged {
    */
   muted: boolean;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.UpdateSubscriptionsRequest
  */
@@ -97,7 +92,6 @@ export interface UpdateSubscriptionsRequest {
    */
   tracks: TrackSubscriptionDetails[];
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.UpdateSubscriptionsResponse
  */
@@ -107,7 +101,6 @@ export interface UpdateSubscriptionsResponse {
    */
   error?: Error;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.TrackSubscriptionDetails
  */
@@ -129,7 +122,6 @@ export interface TrackSubscriptionDetails {
    */
   dimension?: VideoDimension;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendAnswerRequest
  */
@@ -147,7 +139,6 @@ export interface SendAnswerRequest {
    */
   sessionId: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendAnswerResponse
  */
@@ -157,7 +148,6 @@ export interface SendAnswerResponse {
    */
   error?: Error;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.ICETrickleResponse
  */
@@ -167,7 +157,6 @@ export interface ICETrickleResponse {
    */
   error?: Error;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.SetPublisherRequest
  */
@@ -187,7 +176,6 @@ export interface SetPublisherRequest {
    */
   tracks: TrackInfo[];
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.signal.SetPublisherResponse
  */
@@ -211,7 +199,6 @@ export interface SetPublisherResponse {
    */
   error?: Error;
 }
-
 // @generated message type with reflection information, may provide speed optimized methods
 class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> {
   constructor() {
@@ -226,7 +213,6 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
       },
     ]);
   }
-
   create(
     value?: PartialMessage<UpdateMuteStatesRequest>,
   ): UpdateMuteStatesRequest {
@@ -239,7 +225,6 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
       reflectionMergePartial<UpdateMuteStatesRequest>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -251,12 +236,10 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string session_id */
-        1:
+        case /* string session_id */ 1:
           message.sessionId = reader.string();
           break;
-        case /* repeated stream.video.sfu.signal.TrackMuteState mute_states */
-        3:
+        case /* repeated stream.video.sfu.signal.TrackMuteState mute_states */ 3:
           message.muteStates.push(
             TrackMuteState.internalBinaryRead(reader, reader.uint32(), options),
           );
@@ -280,7 +263,6 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
     }
     return message;
   }
-
   internalBinaryWrite(
     message: UpdateMuteStatesRequest,
     writer: IBinaryWriter,
@@ -306,12 +288,10 @@ class UpdateMuteStatesRequest$Type extends MessageType<UpdateMuteStatesRequest> 
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStatesRequest
  */
 export const UpdateMuteStatesRequest = new UpdateMuteStatesRequest$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse> {
   constructor() {
@@ -319,7 +299,6 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
       { no: 4, name: 'error', kind: 'message', T: () => Error },
     ]);
   }
-
   create(
     value?: PartialMessage<UpdateMuteStatesResponse>,
   ): UpdateMuteStatesResponse {
@@ -332,7 +311,6 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
       reflectionMergePartial<UpdateMuteStatesResponse>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -344,8 +322,7 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.Error error */
-        4:
+        case /* stream.video.sfu.models.Error error */ 4:
           message.error = Error.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -372,7 +349,6 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
     }
     return message;
   }
-
   internalBinaryWrite(
     message: UpdateMuteStatesResponse,
     writer: IBinaryWriter,
@@ -395,12 +371,10 @@ class UpdateMuteStatesResponse$Type extends MessageType<UpdateMuteStatesResponse
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateMuteStatesResponse
  */
 export const UpdateMuteStatesResponse = new UpdateMuteStatesResponse$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class TrackMuteState$Type extends MessageType<TrackMuteState> {
   constructor() {
@@ -418,7 +392,6 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
       { no: 2, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
-
   create(value?: PartialMessage<TrackMuteState>): TrackMuteState {
     const message = { trackType: 0, muted: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -429,7 +402,6 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
       reflectionMergePartial<TrackMuteState>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -441,12 +413,10 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.TrackType track_type */
-        1:
+        case /* stream.video.sfu.models.TrackType track_type */ 1:
           message.trackType = reader.int32();
           break;
-        case /* bool muted */
-        2:
+        case /* bool muted */ 2:
           message.muted = reader.bool();
           break;
         default:
@@ -468,7 +438,6 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: TrackMuteState,
     writer: IBinaryWriter,
@@ -490,12 +459,10 @@ class TrackMuteState$Type extends MessageType<TrackMuteState> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.TrackMuteState
  */
 export const TrackMuteState = new TrackMuteState$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
   constructor() {
@@ -503,7 +470,6 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
       { no: 1, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
-
   create(value?: PartialMessage<AudioMuteChanged>): AudioMuteChanged {
     const message = { muted: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -514,7 +480,6 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
       reflectionMergePartial<AudioMuteChanged>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -526,8 +491,7 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* bool muted */
-        1:
+        case /* bool muted */ 1:
           message.muted = reader.bool();
           break;
         default:
@@ -549,7 +513,6 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: AudioMuteChanged,
     writer: IBinaryWriter,
@@ -568,12 +531,10 @@ class AudioMuteChanged$Type extends MessageType<AudioMuteChanged> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.AudioMuteChanged
  */
 export const AudioMuteChanged = new AudioMuteChanged$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
   constructor() {
@@ -581,7 +542,6 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
       { no: 2, name: 'muted', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
-
   create(value?: PartialMessage<VideoMuteChanged>): VideoMuteChanged {
     const message = { muted: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -592,7 +552,6 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
       reflectionMergePartial<VideoMuteChanged>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -604,8 +563,7 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* bool muted */
-        2:
+        case /* bool muted */ 2:
           message.muted = reader.bool();
           break;
         default:
@@ -627,7 +585,6 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: VideoMuteChanged,
     writer: IBinaryWriter,
@@ -646,12 +603,10 @@ class VideoMuteChanged$Type extends MessageType<VideoMuteChanged> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.VideoMuteChanged
  */
 export const VideoMuteChanged = new VideoMuteChanged$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsRequest> {
   constructor() {
@@ -666,7 +621,6 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
       },
     ]);
   }
-
   create(
     value?: PartialMessage<UpdateSubscriptionsRequest>,
   ): UpdateSubscriptionsRequest {
@@ -679,7 +633,6 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
       reflectionMergePartial<UpdateSubscriptionsRequest>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -691,12 +644,10 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string session_id */
-        2:
+        case /* string session_id */ 2:
           message.sessionId = reader.string();
           break;
-        case /* repeated stream.video.sfu.signal.TrackSubscriptionDetails tracks */
-        3:
+        case /* repeated stream.video.sfu.signal.TrackSubscriptionDetails tracks */ 3:
           message.tracks.push(
             TrackSubscriptionDetails.internalBinaryRead(
               reader,
@@ -724,7 +675,6 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
     }
     return message;
   }
-
   internalBinaryWrite(
     message: UpdateSubscriptionsRequest,
     writer: IBinaryWriter,
@@ -750,12 +700,10 @@ class UpdateSubscriptionsRequest$Type extends MessageType<UpdateSubscriptionsReq
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateSubscriptionsRequest
  */
 export const UpdateSubscriptionsRequest = new UpdateSubscriptionsRequest$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsResponse> {
   constructor() {
@@ -763,7 +711,6 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
       { no: 4, name: 'error', kind: 'message', T: () => Error },
     ]);
   }
-
   create(
     value?: PartialMessage<UpdateSubscriptionsResponse>,
   ): UpdateSubscriptionsResponse {
@@ -776,7 +723,6 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
       reflectionMergePartial<UpdateSubscriptionsResponse>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -788,8 +734,7 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.Error error */
-        4:
+        case /* stream.video.sfu.models.Error error */ 4:
           message.error = Error.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -816,7 +761,6 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
     }
     return message;
   }
-
   internalBinaryWrite(
     message: UpdateSubscriptionsResponse,
     writer: IBinaryWriter,
@@ -839,13 +783,11 @@ class UpdateSubscriptionsResponse$Type extends MessageType<UpdateSubscriptionsRe
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.UpdateSubscriptionsResponse
  */
 export const UpdateSubscriptionsResponse =
   new UpdateSubscriptionsResponse$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails> {
   constructor() {
@@ -865,7 +807,6 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
       { no: 4, name: 'dimension', kind: 'message', T: () => VideoDimension },
     ]);
   }
-
   create(
     value?: PartialMessage<TrackSubscriptionDetails>,
   ): TrackSubscriptionDetails {
@@ -878,7 +819,6 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
       reflectionMergePartial<TrackSubscriptionDetails>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -890,20 +830,16 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string user_id */
-        1:
+        case /* string user_id */ 1:
           message.userId = reader.string();
           break;
-        case /* string session_id */
-        2:
+        case /* string session_id */ 2:
           message.sessionId = reader.string();
           break;
-        case /* stream.video.sfu.models.TrackType track_type */
-        3:
+        case /* stream.video.sfu.models.TrackType track_type */ 3:
           message.trackType = reader.int32();
           break;
-        case /* stream.video.sfu.models.VideoDimension dimension */
-        4:
+        case /* stream.video.sfu.models.VideoDimension dimension */ 4:
           message.dimension = VideoDimension.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -930,7 +866,6 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
     }
     return message;
   }
-
   internalBinaryWrite(
     message: TrackSubscriptionDetails,
     writer: IBinaryWriter,
@@ -962,12 +897,10 @@ class TrackSubscriptionDetails$Type extends MessageType<TrackSubscriptionDetails
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.TrackSubscriptionDetails
  */
 export const TrackSubscriptionDetails = new TrackSubscriptionDetails$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
   constructor() {
@@ -982,7 +915,6 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
       { no: 3, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<SendAnswerRequest>): SendAnswerRequest {
     const message = { peerType: 0, sdp: '', sessionId: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -993,7 +925,6 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
       reflectionMergePartial<SendAnswerRequest>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1005,16 +936,13 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.PeerType peer_type */
-        1:
+        case /* stream.video.sfu.models.PeerType peer_type */ 1:
           message.peerType = reader.int32();
           break;
-        case /* string sdp */
-        2:
+        case /* string sdp */ 2:
           message.sdp = reader.string();
           break;
-        case /* string session_id */
-        3:
+        case /* string session_id */ 3:
           message.sessionId = reader.string();
           break;
         default:
@@ -1036,7 +964,6 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: SendAnswerRequest,
     writer: IBinaryWriter,
@@ -1061,12 +988,10 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.SendAnswerRequest
  */
 export const SendAnswerRequest = new SendAnswerRequest$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
   constructor() {
@@ -1074,7 +999,6 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
       { no: 4, name: 'error', kind: 'message', T: () => Error },
     ]);
   }
-
   create(value?: PartialMessage<SendAnswerResponse>): SendAnswerResponse {
     const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1085,7 +1009,6 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
       reflectionMergePartial<SendAnswerResponse>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1097,8 +1020,7 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.Error error */
-        4:
+        case /* stream.video.sfu.models.Error error */ 4:
           message.error = Error.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1125,7 +1047,6 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: SendAnswerResponse,
     writer: IBinaryWriter,
@@ -1148,12 +1069,10 @@ class SendAnswerResponse$Type extends MessageType<SendAnswerResponse> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.SendAnswerResponse
  */
 export const SendAnswerResponse = new SendAnswerResponse$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
   constructor() {
@@ -1161,7 +1080,6 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
       { no: 4, name: 'error', kind: 'message', T: () => Error },
     ]);
   }
-
   create(value?: PartialMessage<ICETrickleResponse>): ICETrickleResponse {
     const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1172,7 +1090,6 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
       reflectionMergePartial<ICETrickleResponse>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1184,8 +1101,7 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.Error error */
-        4:
+        case /* stream.video.sfu.models.Error error */ 4:
           message.error = Error.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1212,7 +1128,6 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: ICETrickleResponse,
     writer: IBinaryWriter,
@@ -1235,12 +1150,10 @@ class ICETrickleResponse$Type extends MessageType<ICETrickleResponse> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.ICETrickleResponse
  */
 export const ICETrickleResponse = new ICETrickleResponse$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
   constructor() {
@@ -1256,7 +1169,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
       },
     ]);
   }
-
   create(value?: PartialMessage<SetPublisherRequest>): SetPublisherRequest {
     const message = { sdp: '', sessionId: '', tracks: [] };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1267,7 +1179,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
       reflectionMergePartial<SetPublisherRequest>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1279,16 +1190,13 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string sdp */
-        1:
+        case /* string sdp */ 1:
           message.sdp = reader.string();
           break;
-        case /* string session_id */
-        2:
+        case /* string session_id */ 2:
           message.sessionId = reader.string();
           break;
-        case /* repeated stream.video.sfu.models.TrackInfo tracks */
-        3:
+        case /* repeated stream.video.sfu.models.TrackInfo tracks */ 3:
           message.tracks.push(
             TrackInfo.internalBinaryRead(reader, reader.uint32(), options),
           );
@@ -1312,7 +1220,6 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: SetPublisherRequest,
     writer: IBinaryWriter,
@@ -1341,12 +1248,10 @@ class SetPublisherRequest$Type extends MessageType<SetPublisherRequest> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.SetPublisherRequest
  */
 export const SetPublisherRequest = new SetPublisherRequest$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
   constructor() {
@@ -1357,7 +1262,6 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
       { no: 4, name: 'error', kind: 'message', T: () => Error },
     ]);
   }
-
   create(value?: PartialMessage<SetPublisherResponse>): SetPublisherResponse {
     const message = { sdp: '', sessionId: '', iceRestart: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1368,7 +1272,6 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
       reflectionMergePartial<SetPublisherResponse>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1380,20 +1283,16 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string sdp */
-        1:
+        case /* string sdp */ 1:
           message.sdp = reader.string();
           break;
-        case /* string session_id */
-        2:
+        case /* string session_id */ 2:
           message.sessionId = reader.string();
           break;
-        case /* bool ice_restart */
-        3:
+        case /* bool ice_restart */ 3:
           message.iceRestart = reader.bool();
           break;
-        case /* stream.video.sfu.models.Error error */
-        4:
+        case /* stream.video.sfu.models.Error error */ 4:
           message.error = Error.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1420,7 +1319,6 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: SetPublisherResponse,
     writer: IBinaryWriter,
@@ -1452,7 +1350,6 @@ class SetPublisherResponse$Type extends MessageType<SetPublisherResponse> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.signal.SetPublisherResponse
  */

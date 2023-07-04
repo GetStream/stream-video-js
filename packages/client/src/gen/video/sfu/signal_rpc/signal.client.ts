@@ -36,7 +36,6 @@ export interface ISignalServerClient {
     input: SetPublisherRequest,
     options?: RpcOptions,
   ): UnaryCall<SetPublisherRequest, SetPublisherResponse>;
-
   /**
    * answer is sent by the client to the SFU after receiving a subscriber_offer.
    *
@@ -46,7 +45,6 @@ export interface ISignalServerClient {
     input: SendAnswerRequest,
     options?: RpcOptions,
   ): UnaryCall<SendAnswerRequest, SendAnswerResponse>;
-
   /**
    * SendICECandidate sends an ICE candidate to the client
    *
@@ -56,7 +54,6 @@ export interface ISignalServerClient {
     input: ICETrickle,
     options?: RpcOptions,
   ): UnaryCall<ICETrickle, ICETrickleResponse>;
-
   /**
    * UpdateSubscribers is used to notify the SFU about the list of video subscriptions
    * TODO: sync subscriptions based on this + update tracks using the dimension info sent by the user
@@ -67,7 +64,6 @@ export interface ISignalServerClient {
     input: UpdateSubscriptionsRequest,
     options?: RpcOptions,
   ): UnaryCall<UpdateSubscriptionsRequest, UpdateSubscriptionsResponse>;
-
   /**
    * @generated from protobuf rpc: UpdateMuteStates(stream.video.sfu.signal.UpdateMuteStatesRequest) returns (stream.video.sfu.signal.UpdateMuteStatesResponse);
    */
@@ -76,7 +72,6 @@ export interface ISignalServerClient {
     options?: RpcOptions,
   ): UnaryCall<UpdateMuteStatesRequest, UpdateMuteStatesResponse>;
 }
-
 /**
  * @generated from protobuf service stream.video.sfu.signal.SignalServer
  */
@@ -84,9 +79,7 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
   typeName = SignalServer.typeName;
   methods = SignalServer.methods;
   options = SignalServer.options;
-
   constructor(private readonly _transport: RpcTransport) {}
-
   /**
    * SetPublisher sends the WebRTC offer for the peer connection used to publish A/V
    *
@@ -106,7 +99,6 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
       input,
     );
   }
-
   /**
    * answer is sent by the client to the SFU after receiving a subscriber_offer.
    *
@@ -126,7 +118,6 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
       input,
     );
   }
-
   /**
    * SendICECandidate sends an ICE candidate to the client
    *
@@ -146,7 +137,6 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
       input,
     );
   }
-
   /**
    * UpdateSubscribers is used to notify the SFU about the list of video subscriptions
    * TODO: sync subscriptions based on this + update tracks using the dimension info sent by the user
@@ -164,7 +154,6 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
       UpdateSubscriptionsResponse
     >('unary', this._transport, method, opt, input);
   }
-
   /**
    * @generated from protobuf rpc: UpdateMuteStates(stream.video.sfu.signal.UpdateMuteStatesRequest) returns (stream.video.sfu.signal.UpdateMuteStatesResponse);
    */

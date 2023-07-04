@@ -49,7 +49,6 @@ export interface CallState {
    */
   participantCount?: ParticipantCount;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.ParticipantCount
  */
@@ -68,7 +67,6 @@ export interface ParticipantCount {
    */
   anonymous: number;
 }
-
 /**
  * those who are online in the call
  *
@@ -130,7 +128,6 @@ export interface Participant {
    */
   roles: string[];
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.StreamQuality
  */
@@ -144,7 +141,6 @@ export interface StreamQuality {
    */
   userId: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.VideoDimension
  */
@@ -158,7 +154,6 @@ export interface VideoDimension {
    */
   height: number;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.VideoLayer
  */
@@ -188,7 +183,6 @@ export interface VideoLayer {
    */
   quality: VideoQuality;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
  */
@@ -218,7 +212,6 @@ export interface Codec {
    */
   feedbacks: string[];
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.ICETrickle
  */
@@ -236,7 +229,6 @@ export interface ICETrickle {
    */
   sessionId: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.TrackInfo
  */
@@ -272,7 +264,6 @@ export interface TrackInfo {
    */
   red: boolean;
 }
-
 /**
  * todo remove this
  *
@@ -316,7 +307,6 @@ export interface Call {
    */
   updatedAt?: Timestamp;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
  */
@@ -334,7 +324,6 @@ export interface Error {
    */
   shouldRetry: boolean;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.ClientDetails
  */
@@ -356,7 +345,6 @@ export interface ClientDetails {
    */
   device?: Device;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.Sdk
  */
@@ -378,7 +366,6 @@ export interface Sdk {
    */
   patch: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.OS
  */
@@ -396,7 +383,6 @@ export interface OS {
    */
   architecture: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.Browser
  */
@@ -410,7 +396,6 @@ export interface Browser {
    */
   version: string;
 }
-
 /**
  * @generated from protobuf message stream.video.sfu.models.Device
  */
@@ -424,7 +409,6 @@ export interface Device {
    */
   version: string;
 }
-
 /**
  * CallGrants represents the set of permissions given
  * to the user for the current call.
@@ -445,7 +429,6 @@ export interface CallGrants {
    */
   canScreenshare: boolean;
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
@@ -461,7 +444,6 @@ export enum PeerType {
    */
   SUBSCRIBER = 1,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.ConnectionQuality
  */
@@ -483,7 +465,6 @@ export enum ConnectionQuality {
    */
   EXCELLENT = 3,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.VideoQuality
  */
@@ -505,7 +486,6 @@ export enum VideoQuality {
    */
   OFF = 3,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.TrackType
  */
@@ -531,7 +511,6 @@ export enum TrackType {
    */
   SCREEN_SHARE_AUDIO = 4,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.ErrorCode
  */
@@ -601,7 +580,6 @@ export enum ErrorCode {
    */
   SFU_SHUTTING_DOWN = 600,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.SdkType
  */
@@ -635,7 +613,6 @@ export enum SdkType {
    */
   REACT_NATIVE = 6,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.TrackUnpublishReason
  */
@@ -671,7 +648,6 @@ export enum TrackUnpublishReason {
    */
   MODERATION = 3,
 }
-
 /**
  * @generated from protobuf enum stream.video.sfu.models.GoAwayReason
  */
@@ -689,7 +665,6 @@ export enum GoAwayReason {
    */
   REBALANCE = 2,
 }
-
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
   constructor() {
@@ -710,7 +685,6 @@ class CallState$Type extends MessageType<CallState> {
       },
     ]);
   }
-
   create(value?: PartialMessage<CallState>): CallState {
     const message = { participants: [] };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -721,7 +695,6 @@ class CallState$Type extends MessageType<CallState> {
       reflectionMergePartial<CallState>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -733,14 +706,12 @@ class CallState$Type extends MessageType<CallState> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* repeated stream.video.sfu.models.Participant participants */
-        1:
+        case /* repeated stream.video.sfu.models.Participant participants */ 1:
           message.participants.push(
             Participant.internalBinaryRead(reader, reader.uint32(), options),
           );
           break;
-        case /* google.protobuf.Timestamp started_at */
-        2:
+        case /* google.protobuf.Timestamp started_at */ 2:
           message.startedAt = Timestamp.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -748,8 +719,7 @@ class CallState$Type extends MessageType<CallState> {
             message.startedAt,
           );
           break;
-        case /* stream.video.sfu.models.ParticipantCount participant_count */
-        3:
+        case /* stream.video.sfu.models.ParticipantCount participant_count */ 3:
           message.participantCount = ParticipantCount.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -776,7 +746,6 @@ class CallState$Type extends MessageType<CallState> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: CallState,
     writer: IBinaryWriter,
@@ -813,12 +782,10 @@ class CallState$Type extends MessageType<CallState> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.CallState
  */
 export const CallState = new CallState$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class ParticipantCount$Type extends MessageType<ParticipantCount> {
   constructor() {
@@ -827,7 +794,6 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
       { no: 2, name: 'anonymous', kind: 'scalar', T: 13 /*ScalarType.UINT32*/ },
     ]);
   }
-
   create(value?: PartialMessage<ParticipantCount>): ParticipantCount {
     const message = { total: 0, anonymous: 0 };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -838,7 +804,6 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
       reflectionMergePartial<ParticipantCount>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -850,12 +815,10 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* uint32 total */
-        1:
+        case /* uint32 total */ 1:
           message.total = reader.uint32();
           break;
-        case /* uint32 anonymous */
-        2:
+        case /* uint32 anonymous */ 2:
           message.anonymous = reader.uint32();
           break;
         default:
@@ -877,7 +840,6 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: ParticipantCount,
     writer: IBinaryWriter,
@@ -899,12 +861,10 @@ class ParticipantCount$Type extends MessageType<ParticipantCount> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.ParticipantCount
  */
 export const ParticipantCount = new ParticipantCount$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Participant$Type extends MessageType<Participant> {
   constructor() {
@@ -959,7 +919,6 @@ class Participant$Type extends MessageType<Participant> {
       },
     ]);
   }
-
   create(value?: PartialMessage<Participant>): Participant {
     const message = {
       userId: '',
@@ -982,7 +941,6 @@ class Participant$Type extends MessageType<Participant> {
       reflectionMergePartial<Participant>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -994,23 +952,19 @@ class Participant$Type extends MessageType<Participant> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string user_id */
-        1:
+        case /* string user_id */ 1:
           message.userId = reader.string();
           break;
-        case /* string session_id */
-        2:
+        case /* string session_id */ 2:
           message.sessionId = reader.string();
           break;
-        case /* repeated stream.video.sfu.models.TrackType published_tracks */
-        3:
+        case /* repeated stream.video.sfu.models.TrackType published_tracks */ 3:
           if (wireType === WireType.LengthDelimited)
             for (let e = reader.int32() + reader.pos; reader.pos < e; )
               message.publishedTracks.push(reader.int32());
           else message.publishedTracks.push(reader.int32());
           break;
-        case /* google.protobuf.Timestamp joined_at */
-        4:
+        case /* google.protobuf.Timestamp joined_at */ 4:
           message.joinedAt = Timestamp.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1018,36 +972,28 @@ class Participant$Type extends MessageType<Participant> {
             message.joinedAt,
           );
           break;
-        case /* string track_lookup_prefix */
-        5:
+        case /* string track_lookup_prefix */ 5:
           message.trackLookupPrefix = reader.string();
           break;
-        case /* stream.video.sfu.models.ConnectionQuality connection_quality */
-        6:
+        case /* stream.video.sfu.models.ConnectionQuality connection_quality */ 6:
           message.connectionQuality = reader.int32();
           break;
-        case /* bool is_speaking */
-        7:
+        case /* bool is_speaking */ 7:
           message.isSpeaking = reader.bool();
           break;
-        case /* bool is_dominant_speaker */
-        8:
+        case /* bool is_dominant_speaker */ 8:
           message.isDominantSpeaker = reader.bool();
           break;
-        case /* float audio_level */
-        9:
+        case /* float audio_level */ 9:
           message.audioLevel = reader.float();
           break;
-        case /* string name */
-        10:
+        case /* string name */ 10:
           message.name = reader.string();
           break;
-        case /* string image */
-        11:
+        case /* string image */ 11:
           message.image = reader.string();
           break;
-        case /* google.protobuf.Struct custom */
-        12:
+        case /* google.protobuf.Struct custom */ 12:
           message.custom = Struct.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1055,8 +1001,7 @@ class Participant$Type extends MessageType<Participant> {
             message.custom,
           );
           break;
-        case /* repeated string roles */
-        13:
+        case /* repeated string roles */ 13:
           message.roles.push(reader.string());
           break;
         default:
@@ -1078,7 +1023,6 @@ class Participant$Type extends MessageType<Participant> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Participant,
     writer: IBinaryWriter,
@@ -1145,12 +1089,10 @@ class Participant$Type extends MessageType<Participant> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Participant
  */
 export const Participant = new Participant$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class StreamQuality$Type extends MessageType<StreamQuality> {
   constructor() {
@@ -1168,7 +1110,6 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
       { no: 2, name: 'user_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<StreamQuality>): StreamQuality {
     const message = { videoQuality: 0, userId: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1179,7 +1120,6 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
       reflectionMergePartial<StreamQuality>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1191,12 +1131,10 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.VideoQuality video_quality */
-        1:
+        case /* stream.video.sfu.models.VideoQuality video_quality */ 1:
           message.videoQuality = reader.int32();
           break;
-        case /* string user_id */
-        2:
+        case /* string user_id */ 2:
           message.userId = reader.string();
           break;
         default:
@@ -1218,7 +1156,6 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: StreamQuality,
     writer: IBinaryWriter,
@@ -1240,12 +1177,10 @@ class StreamQuality$Type extends MessageType<StreamQuality> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.StreamQuality
  */
 export const StreamQuality = new StreamQuality$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class VideoDimension$Type extends MessageType<VideoDimension> {
   constructor() {
@@ -1254,7 +1189,6 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
       { no: 2, name: 'height', kind: 'scalar', T: 13 /*ScalarType.UINT32*/ },
     ]);
   }
-
   create(value?: PartialMessage<VideoDimension>): VideoDimension {
     const message = { width: 0, height: 0 };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1265,7 +1199,6 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
       reflectionMergePartial<VideoDimension>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1277,12 +1210,10 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* uint32 width */
-        1:
+        case /* uint32 width */ 1:
           message.width = reader.uint32();
           break;
-        case /* uint32 height */
-        2:
+        case /* uint32 height */ 2:
           message.height = reader.uint32();
           break;
         default:
@@ -1304,7 +1235,6 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: VideoDimension,
     writer: IBinaryWriter,
@@ -1326,12 +1256,10 @@ class VideoDimension$Type extends MessageType<VideoDimension> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.VideoDimension
  */
 export const VideoDimension = new VideoDimension$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class VideoLayer$Type extends MessageType<VideoLayer> {
   constructor() {
@@ -1357,7 +1285,6 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
       },
     ]);
   }
-
   create(value?: PartialMessage<VideoLayer>): VideoLayer {
     const message = { rid: '', bitrate: 0, fps: 0, quality: 0 };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1368,7 +1295,6 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
       reflectionMergePartial<VideoLayer>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1380,12 +1306,10 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string rid */
-        1:
+        case /* string rid */ 1:
           message.rid = reader.string();
           break;
-        case /* stream.video.sfu.models.VideoDimension video_dimension */
-        2:
+        case /* stream.video.sfu.models.VideoDimension video_dimension */ 2:
           message.videoDimension = VideoDimension.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1393,16 +1317,13 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
             message.videoDimension,
           );
           break;
-        case /* uint32 bitrate */
-        4:
+        case /* uint32 bitrate */ 4:
           message.bitrate = reader.uint32();
           break;
-        case /* uint32 fps */
-        5:
+        case /* uint32 fps */ 5:
           message.fps = reader.uint32();
           break;
-        case /* stream.video.sfu.models.VideoQuality quality */
-        6:
+        case /* stream.video.sfu.models.VideoQuality quality */ 6:
           message.quality = reader.int32();
           break;
         default:
@@ -1424,7 +1345,6 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: VideoLayer,
     writer: IBinaryWriter,
@@ -1458,12 +1378,10 @@ class VideoLayer$Type extends MessageType<VideoLayer> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.VideoLayer
  */
 export const VideoLayer = new VideoLayer$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Codec$Type extends MessageType<Codec> {
   constructor() {
@@ -1497,7 +1415,6 @@ class Codec$Type extends MessageType<Codec> {
       },
     ]);
   }
-
   create(value?: PartialMessage<Codec>): Codec {
     const message = {
       payloadType: 0,
@@ -1515,7 +1432,6 @@ class Codec$Type extends MessageType<Codec> {
       reflectionMergePartial<Codec>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1527,28 +1443,22 @@ class Codec$Type extends MessageType<Codec> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* uint32 payload_type */
-        1:
+        case /* uint32 payload_type */ 1:
           message.payloadType = reader.uint32();
           break;
-        case /* string name */
-        2:
+        case /* string name */ 2:
           message.name = reader.string();
           break;
-        case /* string fmtp_line */
-        3:
+        case /* string fmtp_line */ 3:
           message.fmtpLine = reader.string();
           break;
-        case /* uint32 clock_rate */
-        4:
+        case /* uint32 clock_rate */ 4:
           message.clockRate = reader.uint32();
           break;
-        case /* string encoding_parameters */
-        5:
+        case /* string encoding_parameters */ 5:
           message.encodingParameters = reader.string();
           break;
-        case /* repeated string feedbacks */
-        6:
+        case /* repeated string feedbacks */ 6:
           message.feedbacks.push(reader.string());
           break;
         default:
@@ -1570,7 +1480,6 @@ class Codec$Type extends MessageType<Codec> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Codec,
     writer: IBinaryWriter,
@@ -1606,12 +1515,10 @@ class Codec$Type extends MessageType<Codec> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Codec
  */
 export const Codec = new Codec$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class ICETrickle$Type extends MessageType<ICETrickle> {
   constructor() {
@@ -1631,7 +1538,6 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
       { no: 3, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<ICETrickle>): ICETrickle {
     const message = { peerType: 0, iceCandidate: '', sessionId: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1642,7 +1548,6 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
       reflectionMergePartial<ICETrickle>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1654,16 +1559,13 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.PeerType peer_type */
-        1:
+        case /* stream.video.sfu.models.PeerType peer_type */ 1:
           message.peerType = reader.int32();
           break;
-        case /* string ice_candidate */
-        2:
+        case /* string ice_candidate */ 2:
           message.iceCandidate = reader.string();
           break;
-        case /* string session_id */
-        3:
+        case /* string session_id */ 3:
           message.sessionId = reader.string();
           break;
         default:
@@ -1685,7 +1587,6 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: ICETrickle,
     writer: IBinaryWriter,
@@ -1710,12 +1611,10 @@ class ICETrickle$Type extends MessageType<ICETrickle> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.ICETrickle
  */
 export const ICETrickle = new ICETrickle$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class TrackInfo$Type extends MessageType<TrackInfo> {
   constructor() {
@@ -1744,7 +1643,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       { no: 9, name: 'red', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
-
   create(value?: PartialMessage<TrackInfo>): TrackInfo {
     const message = {
       trackId: '',
@@ -1763,7 +1661,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
       reflectionMergePartial<TrackInfo>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1775,34 +1672,27 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string track_id */
-        1:
+        case /* string track_id */ 1:
           message.trackId = reader.string();
           break;
-        case /* stream.video.sfu.models.TrackType track_type */
-        2:
+        case /* stream.video.sfu.models.TrackType track_type */ 2:
           message.trackType = reader.int32();
           break;
-        case /* repeated stream.video.sfu.models.VideoLayer layers */
-        5:
+        case /* repeated stream.video.sfu.models.VideoLayer layers */ 5:
           message.layers.push(
             VideoLayer.internalBinaryRead(reader, reader.uint32(), options),
           );
           break;
-        case /* string mid */
-        6:
+        case /* string mid */ 6:
           message.mid = reader.string();
           break;
-        case /* bool dtx */
-        7:
+        case /* bool dtx */ 7:
           message.dtx = reader.bool();
           break;
-        case /* bool stereo */
-        8:
+        case /* bool stereo */ 8:
           message.stereo = reader.bool();
           break;
-        case /* bool red */
-        9:
+        case /* bool red */ 9:
           message.red = reader.bool();
           break;
         default:
@@ -1824,7 +1714,6 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: TrackInfo,
     writer: IBinaryWriter,
@@ -1863,12 +1752,10 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.TrackInfo
  */
 export const TrackInfo = new TrackInfo$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Call$Type extends MessageType<Call> {
   constructor() {
@@ -1892,7 +1779,6 @@ class Call$Type extends MessageType<Call> {
       { no: 7, name: 'updated_at', kind: 'message', T: () => Timestamp },
     ]);
   }
-
   create(value?: PartialMessage<Call>): Call {
     const message = { type: '', id: '', createdByUserId: '', hostUserId: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -1902,7 +1788,6 @@ class Call$Type extends MessageType<Call> {
     if (value !== undefined) reflectionMergePartial<Call>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -1914,24 +1799,19 @@ class Call$Type extends MessageType<Call> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string type */
-        1:
+        case /* string type */ 1:
           message.type = reader.string();
           break;
-        case /* string id */
-        2:
+        case /* string id */ 2:
           message.id = reader.string();
           break;
-        case /* string created_by_user_id */
-        3:
+        case /* string created_by_user_id */ 3:
           message.createdByUserId = reader.string();
           break;
-        case /* string host_user_id */
-        4:
+        case /* string host_user_id */ 4:
           message.hostUserId = reader.string();
           break;
-        case /* google.protobuf.Struct custom */
-        5:
+        case /* google.protobuf.Struct custom */ 5:
           message.custom = Struct.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1939,8 +1819,7 @@ class Call$Type extends MessageType<Call> {
             message.custom,
           );
           break;
-        case /* google.protobuf.Timestamp created_at */
-        6:
+        case /* google.protobuf.Timestamp created_at */ 6:
           message.createdAt = Timestamp.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1948,8 +1827,7 @@ class Call$Type extends MessageType<Call> {
             message.createdAt,
           );
           break;
-        case /* google.protobuf.Timestamp updated_at */
-        7:
+        case /* google.protobuf.Timestamp updated_at */ 7:
           message.updatedAt = Timestamp.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -1976,7 +1854,6 @@ class Call$Type extends MessageType<Call> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Call,
     writer: IBinaryWriter,
@@ -2025,12 +1902,10 @@ class Call$Type extends MessageType<Call> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Call
  */
 export const Call = new Call$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Error$Type extends MessageType<Error> {
   constructor() {
@@ -2049,7 +1924,6 @@ class Error$Type extends MessageType<Error> {
       { no: 3, name: 'should_retry', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
-
   create(value?: PartialMessage<Error>): Error {
     const message = { code: 0, message: '', shouldRetry: false };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2060,7 +1934,6 @@ class Error$Type extends MessageType<Error> {
       reflectionMergePartial<Error>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2072,16 +1945,13 @@ class Error$Type extends MessageType<Error> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.ErrorCode code */
-        1:
+        case /* stream.video.sfu.models.ErrorCode code */ 1:
           message.code = reader.int32();
           break;
-        case /* string message */
-        2:
+        case /* string message */ 2:
           message.message = reader.string();
           break;
-        case /* bool should_retry */
-        3:
+        case /* bool should_retry */ 3:
           message.shouldRetry = reader.bool();
           break;
         default:
@@ -2103,7 +1973,6 @@ class Error$Type extends MessageType<Error> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Error,
     writer: IBinaryWriter,
@@ -2127,12 +1996,10 @@ class Error$Type extends MessageType<Error> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Error
  */
 export const Error = new Error$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class ClientDetails$Type extends MessageType<ClientDetails> {
   constructor() {
@@ -2143,7 +2010,6 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
       { no: 4, name: 'device', kind: 'message', T: () => Device },
     ]);
   }
-
   create(value?: PartialMessage<ClientDetails>): ClientDetails {
     const message = {};
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2154,7 +2020,6 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
       reflectionMergePartial<ClientDetails>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2166,8 +2031,7 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.Sdk sdk */
-        1:
+        case /* stream.video.sfu.models.Sdk sdk */ 1:
           message.sdk = Sdk.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -2175,8 +2039,7 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
             message.sdk,
           );
           break;
-        case /* stream.video.sfu.models.OS os */
-        2:
+        case /* stream.video.sfu.models.OS os */ 2:
           message.os = OS.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -2184,8 +2047,7 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
             message.os,
           );
           break;
-        case /* stream.video.sfu.models.Browser browser */
-        3:
+        case /* stream.video.sfu.models.Browser browser */ 3:
           message.browser = Browser.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -2193,8 +2055,7 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
             message.browser,
           );
           break;
-        case /* stream.video.sfu.models.Device device */
-        4:
+        case /* stream.video.sfu.models.Device device */ 4:
           message.device = Device.internalBinaryRead(
             reader,
             reader.uint32(),
@@ -2221,7 +2082,6 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: ClientDetails,
     writer: IBinaryWriter,
@@ -2265,12 +2125,10 @@ class ClientDetails$Type extends MessageType<ClientDetails> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.ClientDetails
  */
 export const ClientDetails = new ClientDetails$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Sdk$Type extends MessageType<Sdk> {
   constructor() {
@@ -2286,7 +2144,6 @@ class Sdk$Type extends MessageType<Sdk> {
       { no: 4, name: 'patch', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<Sdk>): Sdk {
     const message = { type: 0, major: '', minor: '', patch: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2296,7 +2153,6 @@ class Sdk$Type extends MessageType<Sdk> {
     if (value !== undefined) reflectionMergePartial<Sdk>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2308,20 +2164,16 @@ class Sdk$Type extends MessageType<Sdk> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* stream.video.sfu.models.SdkType type */
-        1:
+        case /* stream.video.sfu.models.SdkType type */ 1:
           message.type = reader.int32();
           break;
-        case /* string major */
-        2:
+        case /* string major */ 2:
           message.major = reader.string();
           break;
-        case /* string minor */
-        3:
+        case /* string minor */ 3:
           message.minor = reader.string();
           break;
-        case /* string patch */
-        4:
+        case /* string patch */ 4:
           message.patch = reader.string();
           break;
         default:
@@ -2343,7 +2195,6 @@ class Sdk$Type extends MessageType<Sdk> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Sdk,
     writer: IBinaryWriter,
@@ -2370,12 +2221,10 @@ class Sdk$Type extends MessageType<Sdk> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Sdk
  */
 export const Sdk = new Sdk$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class OS$Type extends MessageType<OS> {
   constructor() {
@@ -2390,7 +2239,6 @@ class OS$Type extends MessageType<OS> {
       },
     ]);
   }
-
   create(value?: PartialMessage<OS>): OS {
     const message = { name: '', version: '', architecture: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2400,7 +2248,6 @@ class OS$Type extends MessageType<OS> {
     if (value !== undefined) reflectionMergePartial<OS>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2412,16 +2259,13 @@ class OS$Type extends MessageType<OS> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string name */
-        1:
+        case /* string name */ 1:
           message.name = reader.string();
           break;
-        case /* string version */
-        2:
+        case /* string version */ 2:
           message.version = reader.string();
           break;
-        case /* string architecture */
-        3:
+        case /* string architecture */ 3:
           message.architecture = reader.string();
           break;
         default:
@@ -2443,7 +2287,6 @@ class OS$Type extends MessageType<OS> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: OS,
     writer: IBinaryWriter,
@@ -2468,12 +2311,10 @@ class OS$Type extends MessageType<OS> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.OS
  */
 export const OS = new OS$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Browser$Type extends MessageType<Browser> {
   constructor() {
@@ -2482,7 +2323,6 @@ class Browser$Type extends MessageType<Browser> {
       { no: 2, name: 'version', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<Browser>): Browser {
     const message = { name: '', version: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2493,7 +2333,6 @@ class Browser$Type extends MessageType<Browser> {
       reflectionMergePartial<Browser>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2505,12 +2344,10 @@ class Browser$Type extends MessageType<Browser> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string name */
-        1:
+        case /* string name */ 1:
           message.name = reader.string();
           break;
-        case /* string version */
-        2:
+        case /* string version */ 2:
           message.version = reader.string();
           break;
         default:
@@ -2532,7 +2369,6 @@ class Browser$Type extends MessageType<Browser> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Browser,
     writer: IBinaryWriter,
@@ -2554,12 +2390,10 @@ class Browser$Type extends MessageType<Browser> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Browser
  */
 export const Browser = new Browser$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class Device$Type extends MessageType<Device> {
   constructor() {
@@ -2568,7 +2402,6 @@ class Device$Type extends MessageType<Device> {
       { no: 2, name: 'version', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
     ]);
   }
-
   create(value?: PartialMessage<Device>): Device {
     const message = { name: '', version: '' };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
@@ -2579,7 +2412,6 @@ class Device$Type extends MessageType<Device> {
       reflectionMergePartial<Device>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2591,12 +2423,10 @@ class Device$Type extends MessageType<Device> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string name */
-        1:
+        case /* string name */ 1:
           message.name = reader.string();
           break;
-        case /* string version */
-        2:
+        case /* string version */ 2:
           message.version = reader.string();
           break;
         default:
@@ -2618,7 +2448,6 @@ class Device$Type extends MessageType<Device> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: Device,
     writer: IBinaryWriter,
@@ -2640,12 +2469,10 @@ class Device$Type extends MessageType<Device> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.Device
  */
 export const Device = new Device$Type();
-
 // @generated message type with reflection information, may provide speed optimized methods
 class CallGrants$Type extends MessageType<CallGrants> {
   constructor() {
@@ -2670,7 +2497,6 @@ class CallGrants$Type extends MessageType<CallGrants> {
       },
     ]);
   }
-
   create(value?: PartialMessage<CallGrants>): CallGrants {
     const message = {
       canPublishAudio: false,
@@ -2685,7 +2511,6 @@ class CallGrants$Type extends MessageType<CallGrants> {
       reflectionMergePartial<CallGrants>(this, message, value);
     return message;
   }
-
   internalBinaryRead(
     reader: IBinaryReader,
     length: number,
@@ -2697,16 +2522,13 @@ class CallGrants$Type extends MessageType<CallGrants> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* bool can_publish_audio */
-        1:
+        case /* bool can_publish_audio */ 1:
           message.canPublishAudio = reader.bool();
           break;
-        case /* bool can_publish_video */
-        2:
+        case /* bool can_publish_video */ 2:
           message.canPublishVideo = reader.bool();
           break;
-        case /* bool can_screenshare */
-        3:
+        case /* bool can_screenshare */ 3:
           message.canScreenshare = reader.bool();
           break;
         default:
@@ -2728,7 +2550,6 @@ class CallGrants$Type extends MessageType<CallGrants> {
     }
     return message;
   }
-
   internalBinaryWrite(
     message: CallGrants,
     writer: IBinaryWriter,
@@ -2753,7 +2574,6 @@ class CallGrants$Type extends MessageType<CallGrants> {
     return writer;
   }
 }
-
 /**
  * @generated MessageType for protobuf message stream.video.sfu.models.CallGrants
  */
