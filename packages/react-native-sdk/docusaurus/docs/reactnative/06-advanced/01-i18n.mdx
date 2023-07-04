@@ -63,7 +63,7 @@ type TranslationLanguage = keyof typeof defaultTranslations | string;
 type TranslationSheet = typeof defaultTranslations.en | Record<string, string>;
 ```
 
-The translations are merged with the SDK's defaults. That means that the defaults are overridden or new keys are added to the translation sheets.
+The translations are merged with the SDKs defaults. That means that the defaults are overridden or new keys are added to the translation sheets.
 
 ```tsx
 const translations = {
@@ -138,7 +138,7 @@ const App = () => {
 
 #### Language
 
-You can set the current language for the translation service with `language` prop. This should be a language code (for example `en`, `de` etc.) that matches a key in `translationsOverrides` or is among the SDK's default language mutations which are specified by the type `TranslationLanguage`.
+You can set the current language for the translation service with `language` prop. This should be a language code (for example `en`, `de` etc.) that matches a key in `translationsOverrides` or is among the SDKs default language mutations which are specified by the type `TranslationLanguage`.
 
 ```tsx
 const App = () => {
