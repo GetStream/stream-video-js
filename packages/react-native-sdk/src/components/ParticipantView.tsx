@@ -123,6 +123,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
    * This effect updates the subscription either
    * 1. when video tracks are published and was unpublished before
    * 2. when the view's visibility changes
+   * 3. when call was rejoined
    */
   useEffect(() => {
     // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
