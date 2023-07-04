@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { ActiveCallHeader } from './ActiveCallHeader';
 
 type ActiveCallProps = CallControlsViewType;
 
@@ -46,6 +47,7 @@ export const ActiveCall = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <ActiveCallHeader />
       <CallParticipantsBadge style={[styles.iconGroup, { top }]} />
       <CallParticipantsView />
       <CallControlsView
