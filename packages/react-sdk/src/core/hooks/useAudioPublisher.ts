@@ -60,6 +60,19 @@ export const useAudioPublisher = ({
     }
   }, [audioDeviceId, call]);
 
+  const lastAudioDeviceId = useRef(audioDeviceId);
+  useEffect(() => {
+    if (
+      callingState === CallingState.JOINED &&
+      audioDeviceId !== lastAudioDeviceId.current
+    ) {
+      lastAudioDeviceId.current = audioDeviceId;
+      publishAudioStream().catch((e) => {
+        console.error('Failed to publish audio stream', e);
+      });
+    }
+  }, [audioDeviceId, callingState, publishAudioStream]);
+
   const initialPublishRun = useRef(false);
   useEffect(() => {
     if (
