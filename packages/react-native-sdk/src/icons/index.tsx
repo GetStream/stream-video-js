@@ -10,6 +10,7 @@ export * from './Chat';
 export * from './Participants';
 export * from './ThreeDots';
 export * from './Pin';
+export * from './PinVertical';
 export * from './Spotlight';
 export * from './Cross';
 export * from './ScreenShare';
