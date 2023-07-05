@@ -25,7 +25,7 @@ import {
   combineComparators,
   conditional,
   descending,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 
 type Participant = {
   id: number;
@@ -78,7 +78,7 @@ const sorted = [p1, p2, p3].sort(sortingCriteria);
 
 :::tip
 The `Comparator<T>` API is quite generic and can be used to sort any type of data.
-Works great in pair with browser's [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) API.
+Works great in pair with the [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) API.
 :::
 
 ## Built-in common comparators
@@ -98,7 +98,7 @@ The built-in common comparators include:
 - `role(...roles)`: Sorts participants based on their assigned role.
 - `name`: Sorts participants based on their names.
 
-All of these comparators are available in the `@stream-io/video-react-sdk` package and can be imported as follows:
+All of these comparators are available in the `@stream-io/video-react-native-sdk` package and can be imported as follows:
 
 ```ts
 import {
@@ -111,7 +111,7 @@ import {
   reactionType,
   role,
   name,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 
 // ...
 ```
@@ -138,7 +138,7 @@ import {
   speaking,
   reactionType,
   pinnned,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 
 // ... boilerplate code
 
@@ -174,7 +174,7 @@ import {
   useParticipants,
   combineComparators,
   name,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 
 // this will override the call's default sorting criteria
 // and will return a list of participants sorted by name
@@ -227,14 +227,14 @@ The following presets are available:
 These presets are directly applied to the call's sorting mechanism.
 For custom call types, unless specified otherwise, our SDK would use the `defaultSortPreset` preset.
 
-All of these presets are available in the `@stream-io/video-react-sdk` package and can be imported as follows:
+All of these presets are available in the `@stream-io/video-react-native-sdk` package and can be imported as follows:
 
 ```ts
 import {
   defaultSortPreset,
   speakerLayoutSortPreset,
   livestreamOrAudioRoomSortPreset,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 ```
 
 :::tip
@@ -252,7 +252,7 @@ To do so, you can register your sorting presets for your custom call types or ov
 by using our SDKs `CallTypes` registry.
 
 ```ts
-import { combineComparators, CallTypes, CallType } from '@stream-io/video-react-sdk';
+import { combineComparators, CallTypes, CallType } from '@stream-io/video-react-native-sdk';
 
 // setup your custom sorting preset
 const myCustomSortPreset = combineComparators(/* ... */);
@@ -274,7 +274,7 @@ In some cases, you may want to disable participant sorting altogether.
 This can be achieved by setting our special `noopComparator` as the sorting criteria of the Call or the CallType.
 
 ```ts
-import { noopComparator, useCall } from '@stream-io/video-react-sdk';
+import { noopComparator, useCall } from '@stream-io/video-react-native-sdk';
 
 const call = useCall();
 call.setSortParticipantsBy(noopComparator());

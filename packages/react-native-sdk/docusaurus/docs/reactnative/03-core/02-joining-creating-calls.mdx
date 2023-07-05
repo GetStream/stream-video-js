@@ -20,7 +20,7 @@ const callId = 'test-call';
 await videoClient.call(callType, callId).join({ create: true });
 ```
 
-The [call type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+The [call type](../../core/configuring-call-types) controls which features are enabled, and sets up permissions.
 
 One of the flags you can provide there is `create`. Set this to `true` if you want to enable creating new calls. Set it to `false` if you only want to allow joining existing calls.
 
@@ -46,7 +46,7 @@ call.leave();
 
 ### End call
 
-Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+Ending a call requires a [special permission](../../core/permissions-and-moderation/). This action terminates the call for everyone.
 
 ```typescript
 call.endCall();
@@ -127,7 +127,7 @@ call.leave();
 
 ### End call
 
-Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+Ending a call requires a [special permission](../../core/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
 call.endCall();

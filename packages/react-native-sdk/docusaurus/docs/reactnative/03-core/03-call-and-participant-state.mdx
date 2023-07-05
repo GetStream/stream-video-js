@@ -12,6 +12,9 @@ To observe call state you need to provide a `Call` instance to the [`StreamCall`
 Let's see an example where we use the `useCall` and `useCallCallingState` hooks to display some basic information about the call:
 
 ```tsx
+import { View, Text } from 'react-native';
+import { StreamCall, useCall, useCallCallingState, Call } from '@stream-io/video-react-native-sdk';
+
 export default function App() {
   let call: Call;
 
@@ -27,10 +30,10 @@ const CallUI = () => {
   const callingState = useCallCallingState();
 
   return (
-    <div>
-      <div>Call: {call?.data?.cid}</div>
-      <div>State: {callingState}</div>
-    </div>
+    <View>
+      <Text>Call: {call?.data?.cid}</Text>
+      <Text>State: {callingState}</Text>
+    </View>
   );
 };
 ```
@@ -92,8 +95,11 @@ If you want to display information about the joined participants of the call you
 | `useAnonymousParticipantCount` | The approximate participant count of anonymous users in the active call.                                                                                               |
 
 ```tsx
+import { View, Text } from 'react-native';
+import { useParticipantCount, useLocalParticipant, StreamCall, Call } from '@stream-io/video-react-native-sdk';
+
 export default function App() {
-  let call: call;
+  let call: Call;
 
   return (
     <StreamCall call={call}>
@@ -107,10 +113,10 @@ const CallUI = () => {
   const localParticipant = useLocalParticipant();
 
   return (
-    <div>
-      <div>Number of participants: {participantCount}</div>
-      <div>Session ID: {localParticipant.sessionId}</div>
-    </div>
+    <View>
+      <Text>Number of participants: {participantCount}</Text>
+      <Text>Session ID: {localParticipant.sessionId}</Text>
+    </View>
   );
 };
 ```
@@ -150,6 +156,10 @@ Let's see an example:
 If you want to observe the connected user you can use the `useConnectedUser` hook.
 
 ```tsx
+import {Text, View} from 'react-native';
+import {StreamVideo, StreamVideoClient, useConnectedUser} from '@stream-io/video-react-native-sdk';
+
+
 export default function App() {
   let client: StreamVideoClient;
 
@@ -162,7 +172,13 @@ export default function App() {
 
 const Header = () => {
   const user = useConnectedUser();
-  return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
+  return (
+    <View>
+      <Text>
+      {user ? `Logged in: ${user.name}` : 'Logged out'}
+      </Text>
+    </View>
+  );
 };
 ```
 

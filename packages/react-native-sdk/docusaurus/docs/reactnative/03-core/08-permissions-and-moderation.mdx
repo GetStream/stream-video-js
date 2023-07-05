@@ -20,7 +20,7 @@ The Stream Video API allows assigning roles to users. Each user has a global rol
 
 ### Call types
 
-[Call types](../../guides/configuring-call-types/) also allow for a more granular control system:
+[Call types](../../core/configuring-call-types/) also allow for a more granular control system:
 
 - you can enable/disable certain features on a call type level
 - you can configure how each call-level role works on a call type level
@@ -45,15 +45,13 @@ const canSendAudio = call.permissionsContext.hasPermission(
 );
 ```
 
-<SDKSpecific name="react">
-
-In our React Video SDK, you can use the `useHasPermissions` hook to check for permissions.
+In our React Native Video SDK, you can use the `useHasPermissions` hook to check for permissions.
 
 ```tsx
+import { useHasPermissions, OwnCapability } from '@stream-io/video-react-native-sdk';
+
 const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
 ```
-
-</SDKSpecific>
 
 ### Request permissions
 
@@ -62,7 +60,7 @@ For example, in an audio-room call type, only the hosts have `send-audio` permis
 Other users should request this permission before they can start sending audio if the call settings allow it.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-native-sdk';
 
 const call = streamVideoClient.call(type, id);
 if (!call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)) {
@@ -84,7 +82,7 @@ You can listen to this event and approve the request.
 import {
   PermissionRequestEvent,
   StreamCallEvent,
-} from '@stream-io/video-client';
+} from '@stream-io/video-react-native-sdk';
 
 const call = streamVideoClient.call(type, id);
 call.on('call.permission_request', async (event: StreamCallEvent) => {
@@ -100,7 +98,7 @@ call.on('call.permission_request', async (event: StreamCallEvent) => {
 At any time, a moderator or host can decide to either grant or revoke certain permission to any participant.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-react-native-sdk';
 
 const call = streamVideoClient.call(type, id);
 await call.updateUserPermissions({
@@ -146,7 +144,7 @@ await call.muteOthers('audio');
 await call.muteAllUsers('audio');
 ```
 
-This operation doesn't revoke any permission, and the user would still be able to un-mute itself.
+This operation doesn't revoke any permission, and the user would still be able to unmute itself.
 
 ### Ending call for everyone
 

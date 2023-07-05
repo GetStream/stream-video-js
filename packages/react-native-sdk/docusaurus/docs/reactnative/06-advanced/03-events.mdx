@@ -18,7 +18,7 @@ The SDK is subject to change.
 
 :::
 
-In most cases, you can simply use the [reactive state store](../../guides/call-and-participant-state) to be notified about state changes.
+In most cases, you can simply use the [reactive state store](../../core/call-and-participant-state) to be notified about state changes.
 However, for some advanced use cases, you might need to subscribe to the underlying WebSocket events.
 
 ## Client vs call events
@@ -34,7 +34,7 @@ These events are related to a specific call. These events are only delivered to 
 1. Call the `queryCalls` method with the `watch` option set to `true`:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 let client: StreamVideoClient;
 
@@ -47,7 +47,7 @@ client.queryCalls({
 2. Join a call:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 let client: StreamVideoClient;
 
@@ -57,7 +57,7 @@ client.call('default', 'test-call').join();
 3. Watch a call:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 let client: StreamVideoClient;
 
@@ -79,7 +79,7 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to all events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 let client: StreamVideoClient;
 
@@ -95,7 +95,7 @@ unsubscribe();
 Subscribing to `call.created` events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 let client: StreamVideoClient;
 
@@ -123,7 +123,7 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to `call.reaction_new` event.
 
 ```typescript
-import { Call } from '@stream-io/video-react-sdk';
+import { Call } from '@stream-io/video-react-native-sdk';
 
 let call: Call;
 
