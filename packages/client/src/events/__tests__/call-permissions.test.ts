@@ -2,48 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { CallState } from '../../store';
 import {
   watchCallGrantsUpdated,
-  watchCallPermissionRequest,
   watchCallPermissionsUpdated,
 } from '../call-permissions';
 import { OwnCapability } from '../../gen/coordinator';
 import { ConnectionQuality } from '../../gen/video/sfu/models/models';
 
 describe('Call Permission Events', () => {
-  it('call.permission_request ignores own requests', () => {
-    const state = new CallState();
-    // @ts-expect-error
-    state.updateOrAddParticipant('session-id', {
-      userId: 'test',
-      isLocalParticipant: true,
-    });
-    const handler = watchCallPermissionRequest(state);
-    handler({
-      type: 'call.permission_request',
-      permissions: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
-      // @ts-expect-error
-      user: { id: 'test' },
-    });
-
-    expect(state.callPermissionRequest).toBeUndefined();
-  });
-
-  it('call.permission_request updates the state', () => {
-    const state = new CallState();
-    const handler = watchCallPermissionRequest(state);
-    handler({
-      type: 'call.permission_request',
-      permissions: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
-      // @ts-expect-error
-      user: { id: 'test' },
-    });
-
-    expect(state.callPermissionRequest).toEqual({
-      type: 'call.permission_request',
-      permissions: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
-      user: { id: 'test' },
-    });
-  });
-
   it('handles call.permissions_updated', () => {
     const state = new CallState();
     state.setParticipants([

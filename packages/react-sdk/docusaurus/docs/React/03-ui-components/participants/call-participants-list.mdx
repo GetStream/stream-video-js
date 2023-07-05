@@ -4,29 +4,30 @@ title: Participants list
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import CallParticipantsList  from '../../assets/03-ui-components/call-participant-list/call-participant-list.png';
-import CallParticipantsListWithAdminActions  from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-admin-actions-menu.png';
-import CallParticipantsListWithUserActions  from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-user-actions-menu.png';
+import CallParticipantsList from '../../assets/03-ui-components/call-participant-list/call-participant-list.png';
+import CallParticipantsListWithAdminActions from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-admin-actions-menu.png';
+import CallParticipantsListWithUserActions from '../../assets/03-ui-components/call-participant-list/call-participant-list-with-user-actions-menu.png';
 
 The SDK provides a default implementation for listing call participants in `CallParticipantsList` component.
+
 <ImageShowcase
-    items={[
-        {
-            image: CallParticipantsList,
-            caption: 'Default UI of call participant list',
-            alt: 'Default UI of call participant list',
-        },
-        {
-            image: CallParticipantsListWithAdminActions,
-            caption: 'Default UI of call participant list with admin actions menu',
-            alt: 'Default UI of call participant list with admin actions menu',
-        },
-        {
-            image: CallParticipantsListWithUserActions,
-            caption: 'Default UI of call participant list with user actions menu',
-            alt: 'Default UI of call participant list with user actions menu',
-        },
-    ]}
+  items={[
+    {
+      image: CallParticipantsList,
+      caption: 'Default UI of call participant list',
+      alt: 'Default UI of call participant list',
+    },
+    {
+      image: CallParticipantsListWithAdminActions,
+      caption: 'Default UI of call participant list with admin actions menu',
+      alt: 'Default UI of call participant list with admin actions menu',
+    },
+    {
+      image: CallParticipantsListWithUserActions,
+      caption: 'Default UI of call participant list with user actions menu',
+      alt: 'Default UI of call participant list with user actions menu',
+    },
+  ]}
 />
 
 The component supports the following features:
@@ -37,36 +38,60 @@ The component supports the following features:
 - mute all users by call owners
 - per user actions like pin, block etc. (depends on each participant's permissions)
 
+## General usage
+
+```tsx
+import {
+  Call,
+  CallParticipantsList,
+  StreamCall,
+} from '@stream-io/video-react-sdk';
+
+const ParticipantList = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      <CallParticipantsList />
+    </StreamCall>
+  );
+};
+```
+
 ## Props
 
 ### `activeUsersSearchFn`
 
-| Type                    |
-| ----------------------- |
+| Type                                                                        |
+| --------------------------------------------------------------------------- |
 | `(searchQuery: string) => Promise<StreamVideoParticipant[]>` \| `undefined` |
 
 Custom function to override the searching logic of active participants.
 
 ### `blockedUsersSearchFn`
 
-| Type                    |
-| ----------------------- |
+| Type                                                        |
+| ----------------------------------------------------------- |
 | `(searchQuery: string) => Promise<string[]>` \| `undefined` |
 
 Custom function to override the searching logic of blocked users.
 
 ### `debounceSearchInterval`
 
-| Type                    | Default             |
-| ----------------------- | ------------------- |
-| `number` \| `undefined` |        `200`        |
+| Type                    | Default |
+| ----------------------- | ------- |
+| `number` \| `undefined` | `200`   |
 
 Interval in ms, during which the participant search calls will be debounced.
 
 ### `onClose`
 
 | Type         |
-|--------------|
+| ------------ |
 | `() => void` |
 
 Click event listener function to be invoked in order to dismiss/hide the CallParticipantsList from the UI.
+
+## Customization
+
+You can create your own participant list using the SDK's [participant hooks](../../../guides/call-and-participant-state/#participant-state).

@@ -1,4 +1,4 @@
-import { OwnCapability, PermissionRequestEvent } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import { useCallState } from './store';
 import { useObservableValue } from './helpers/useObservableValue';
 
@@ -22,16 +22,4 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
 export const useOwnCapabilities = (): OwnCapability[] => {
   const { ownCapabilities$ } = useCallState();
   return useObservableValue(ownCapabilities$);
-};
-
-/**
- * A hook which returns the latest call permission request.
- *
- * @category Call State
- */
-export const useCallPermissionRequest = ():
-  | PermissionRequestEvent
-  | undefined => {
-  const { callPermissionRequest$ } = useCallState();
-  return useObservableValue(callPermissionRequest$);
 };

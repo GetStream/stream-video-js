@@ -10,12 +10,13 @@ import {
 import {
   OwnCapability,
   PermissionRequestEvent,
+  StreamVideoEvent,
   UserResponse,
 } from '@stream-io/video-client';
 import {
   useCall,
-  useCallPermissionRequest,
   useHasPermissions,
+  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
@@ -31,23 +32,36 @@ const byNameOrId = (a: UserResponse, b: UserResponse) => {
 
 export const PermissionRequests = () => {
   const call = useCall();
+  const localParticipant = useLocalParticipant();
   const [expanded, setExpanded] = useState(false);
   const [permissionRequests, setPermissionRequests] = useState<
     PermissionRequestEvent[]
   >([]);
-
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
-  const permissionRequest = useCallPermissionRequest();
+
   useEffect(() => {
-    if (!canUpdateCallPermissions || !permissionRequest) return;
-    setPermissionRequests((requests) =>
-      [...requests, permissionRequest].sort((a, b) =>
-        byNameOrId(a.user, b.user),
-      ),
+    if (!call || !canUpdateCallPermissions) return;
+
+    const unsubscribe = call.on(
+      'call.permission_request',
+      (event: StreamVideoEvent) => {
+        if (event.type !== 'call.permission_request') return;
+
+        if (event.user.id !== localParticipant?.userId) {
+          setPermissionRequests((requests) =>
+            [...requests, event as PermissionRequestEvent].sort((a, b) =>
+              byNameOrId(a.user, b.user),
+            ),
+          );
+        }
+      },
     );
-  }, [canUpdateCallPermissions, permissionRequest]);
+    return () => {
+      unsubscribe();
+    };
+  }, [call, canUpdateCallPermissions, localParticipant]);
 
   const handleUpdatePermission = (
     request: PermissionRequestEvent,

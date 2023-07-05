@@ -27,8 +27,6 @@ export const join = async (
   id: string,
   data?: JoinCallData,
 ) => {
-  await httpClient.connectionIdPromise;
-
   const joinCallResponse = await doJoin(httpClient, type, id, data);
   const { call, credentials, members, own_capabilities } = joinCallResponse;
   return {

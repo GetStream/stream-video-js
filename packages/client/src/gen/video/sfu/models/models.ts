@@ -536,6 +536,10 @@ export enum ErrorCode {
    */
   PUBLISH_TRACK_VIDEO_LAYER_NOT_FOUND = 103,
   /**
+   * @generated from protobuf enum value: ERROR_CODE_LIVE_ENDED = 104;
+   */
+  LIVE_ENDED = 104,
+  /**
    * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_NOT_FOUND = 200;
    */
   PARTICIPANT_NOT_FOUND = 200,
@@ -547,14 +551,6 @@ export enum ErrorCode {
    * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATION_FAILED = 202;
    */
   PARTICIPANT_MIGRATION_FAILED = 202,
-  /**
-   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MIGRATING = 203;
-   */
-  PARTICIPANT_MIGRATING = 203,
-  /**
-   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_RECONNECT_FAILED = 204;
-   */
-  PARTICIPANT_RECONNECT_FAILED = 204,
   /**
    * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
    */

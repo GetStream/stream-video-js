@@ -82,7 +82,7 @@ export const OutgoingCallView = ({
           <CallControlsButton
             onPress={cancelCallHandler.onPressHandler}
             color={theme.light.error}
-            style={[styles.button, styles.hangupButton, theme.button.lg]}
+            style={[styles.button, styles.cancelCallButton, theme.button.lg]}
             svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
           >
             <PhoneDown color={theme.light.static_white} />
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginBottom: theme.margin.md,
   },
-  hangupButton: {
+  cancelCallButton: {
     alignSelf: 'center',
   },
   button: {},

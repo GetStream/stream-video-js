@@ -296,7 +296,7 @@ export class Call {
           currentUserId &&
           metadata.blocked_user_ids.includes(currentUserId)
         ) {
-          this.logger('info', 'Leaving call bacause of being blocked');
+          this.logger('info', 'Leaving call because of being blocked');
           await this.leave();
         }
       }),
@@ -1613,7 +1613,7 @@ export class Call {
   /**
    * Sends a custom event to all call participants.
    *
-   * @param event the event to send.
+   * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
     return this.streamClient.post<SendEventResponse, SendEventRequest>(

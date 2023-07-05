@@ -10,7 +10,7 @@ The SDK's default component to display statistics about a call is called `CallSt
 - **Call Latency** graph that outlines average round trip time (in ms).
 - **Call Performance** section that displays the below listed call statistics
 
-<img src={CallStats} alt="Panel displaying call statistics" width={300}/>
+<img src={CallStats} alt="Panel displaying call statistics" width={300} />
 
 ### The call statistics displayed:
 
@@ -26,6 +26,7 @@ The SDK's default component to display statistics about a call is called `CallSt
 - **Receiving bitrate** - the rate at which data is transmitted from the server to the app
 
 ## General usage
+
 The default component is just rendered without passing any props:
 
 ```tsx
@@ -40,10 +41,10 @@ const YourComponent = (someProps: SomeProps) => {
 }
 ```
 
-## Customization
-
-The component is not customizable through props, only by applying CSS to elements it renders.
-
 ## Props
 
 None
+
+## Customization
+
+You can create your own call statistics component using the SDK's [call state hooks](../../../guides/call-and-participant-state/#call-state).
