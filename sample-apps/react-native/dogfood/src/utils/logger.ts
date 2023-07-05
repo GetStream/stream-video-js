@@ -1,7 +1,7 @@
-import { Logger, LogLevel, logToConsole } from '@stream-io/video-react-sdk';
-import * as Sentry from '@sentry/nextjs';
+import { LogLevel, Logger, logToConsole } from '@stream-io/video-client';
+import * as Sentry from '@sentry/react-native';
 
-const logLevelMapping = new Map<LogLevel, Sentry.SeverityLevel>();
+const logLevelMapping = new Map<LogLevel, Sentry.Event['level']>();
 logLevelMapping.set('trace', 'debug');
 logLevelMapping.set('debug', 'debug');
 logLevelMapping.set('info', 'info');
