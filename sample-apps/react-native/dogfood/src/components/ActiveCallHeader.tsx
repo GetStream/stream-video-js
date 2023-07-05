@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { CallingState, useCallCallingState } from '@stream-io/video-react-sdk';
 import { ActivityIndicator, Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appTheme } from '../theme';
 import InfoIconSvg from '../assets/InfoIconSvg';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
+import { CallingState } from '@stream-io/video-client';
 
 export const ActiveCallHeader = () => {
   const callingState = useCallCallingState();
