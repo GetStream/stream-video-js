@@ -67,8 +67,8 @@ export class StreamClient {
   rejectConnectionId!: Function;
   connectionIdPromise: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
-  private waitForConnectPromise?: Promise<void>;
-  private resolveConnectPromise?: Function;
+  private waitForConnectionOkPromise?: Promise<void>;
+  private resolveConnectionOkPromise?: Function;
 
   /**
    * Initialize a client.
@@ -183,11 +183,11 @@ export class StreamClient {
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
   /**
-   * This will start a promise to hold API calls until `connectUser` is called, useful when user is set in `StreamVideoClient constructor`
+   * This will start a promise to hold API calls until `connection.ok` event is received, useful when user is set in `StreamVideoClient constructor`
    */
-  startWaitingForConnection = () => {
-    this.waitForConnectPromise = new Promise((resolve) => {
-      this.resolveConnectPromise = resolve;
+  startWaitingForConnectionOk = () => {
+    this.waitForConnectionOkPromise = new Promise((resolve) => {
+      this.resolveConnectionOkPromise = resolve;
     });
   };
 
@@ -251,12 +251,6 @@ export class StreamClient {
     this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
       (result) => result[1], // We only return connection promise;
     );
-
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
 
     try {
       return await this.setUserPromise;
@@ -399,11 +393,6 @@ export class StreamClient {
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
 
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
     // as anonymous users aren't allowed to open WS connections, we just
@@ -506,8 +495,8 @@ export class StreamClient {
     } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
     if (!options.publicEndpoint || this.user) {
-      if (this.waitForConnectPromise) {
-        await this.waitForConnectPromise;
+      if (this.waitForConnectionOkPromise) {
+        await this.waitForConnectionOkPromise;
       }
       await this.tokenManager.tokenReady();
     }
@@ -615,6 +604,12 @@ export class StreamClient {
 
   dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
+
+    if (event.type === 'connection.ok' && this.resolveConnectionOkPromise) {
+      this.resolveConnectionOkPromise();
+      this.waitForConnectionOkPromise = undefined;
+      this.resolveConnectionOkPromise = undefined;
+    }
 
     this.logger('debug', `Dispatching event: ${event.type}`, event);
     this._callClientListeners(event);

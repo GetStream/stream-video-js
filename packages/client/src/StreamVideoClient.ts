@@ -107,7 +107,7 @@ export class StreamVideoClient {
       this.user = apiKeyOrArgs.user;
       this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (this.user) {
-        this.streamClient.startWaitingForConnection();
+        this.streamClient.startWaitingForConnectionOk();
       }
     }
 
