@@ -333,7 +333,6 @@ export class StreamVideoClient {
    * @param data the query data.
    */
   queryCalls = async (data: QueryCallsRequest) => {
-    if (data.watch) await this.streamClient.connectionIdPromise;
     const response = await this.streamClient.post<
       QueryCallsResponse,
       QueryCallsRequest

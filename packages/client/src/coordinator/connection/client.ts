@@ -509,7 +509,10 @@ export class StreamClient {
       if (this.waitForConnectPromise) {
         await this.waitForConnectPromise;
       }
-      await this.tokenManager.tokenReady();
+      await Promise.all([
+        this.tokenManager.tokenReady(),
+        this.connectionIdPromise,
+      ]);
     }
     const requestConfig = this._enrichAxiosOptions(options);
     try {
