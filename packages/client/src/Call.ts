@@ -757,21 +757,19 @@ export class Call {
         if (!e.online) return;
         unsubscribeOnlineEvent();
         if (
-          [CallingState.JOINED, CallingState.JOINING].includes(
-            this.state.callingState,
-          )
+          callingState === CallingState.OFFLINE ||
+          callingState === CallingState.RECONNECTING_FAILED
         ) {
-          return;
+          this.logger('info', '[Rejoin]: Going online...');
+          rejoin().catch((err) => {
+            this.logger(
+              'error',
+              `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+              err,
+            );
+            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
+          });
         }
-        this.logger('info', '[Rejoin]: Going online...');
-        rejoin().catch((err) => {
-          this.logger(
-            'error',
-            `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
-            err,
-          );
-          this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-        });
       },
     );
     const unsubscribeOfflineEvent = this.streamClient.on(
