@@ -105,11 +105,11 @@ export class StableWSConnection {
     addConnectionEventListeners(this.onlineStatusChanged);
   }
 
-  _log(msg: string, extra: UR = {}, level: LogLevel = 'info') {
+  _log = (msg: string, extra: UR = {}, level: LogLevel = 'info') => {
     this.client.logger(level, 'connection:' + msg, {
       ...extra,
     });
-  }
+  };
 
   setClient = (client: StreamClient) => {
     this.client = client;
