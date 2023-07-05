@@ -26,7 +26,7 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
     let prevIsOnline = true;
     const unsubscribe = NetInfo.addEventListener((state) => {
       const { isConnected, isInternetReachable } = state;
-      const isOnline = isConnected === true && isInternetReachable === true;
+      const isOnline = isConnected === true && isInternetReachable !== false;
       if (isOnline === prevIsOnline) {
         return;
       }
