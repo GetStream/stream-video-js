@@ -2,6 +2,103 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.70](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.69...@stream-io/video-react-sdk-0.0.70) (2023-07-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.38`
+### [0.0.69](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.68...@stream-io/video-react-sdk-0.0.69) (2023-07-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.37`
+### [0.0.68](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.67...@stream-io/video-react-sdk-0.0.68) (2023-07-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.36`
+
+### Bug Fixes
+
+* prevent double publishStream invocation ([#749](https://github.com/GetStream/stream-video-js/issues/749)) ([9e3c22f](https://github.com/GetStream/stream-video-js/commit/9e3c22fd37d8dc00d275e8b69f9cd18f67e366fe))
+
+### [0.0.67](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.66...@stream-io/video-react-sdk-0.0.67) (2023-07-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.35`
+### [0.0.66](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.65...@stream-io/video-react-sdk-0.0.66) (2023-07-04)
+
+
+### Documentation
+
+* Remove video-client references ([2690f24](https://github.com/GetStream/stream-video-js/commit/2690f24b2227f4adc7404c0b30952c692b19ed88))
+
+### [0.0.65](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.64...@stream-io/video-react-sdk-0.0.65) (2023-07-04)
+
+
+### Documentation
+
+* Unify UI components structure ([#742](https://github.com/GetStream/stream-video-js/issues/742)) ([d550163](https://github.com/GetStream/stream-video-js/commit/d550163cdcad0cac598b0cecadeee82e6d997b64)), closes [/github.com/GetStream/stream-video-js/pull/571#issue-1732498263](https://github.com/GetStream//github.com/GetStream/stream-video-js/pull/571/issues/issue-1732498263)
+
+### [0.0.64](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.63...@stream-io/video-react-sdk-0.0.64) (2023-07-04)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.34`
+
+### Features
+
+* stop tracking permission requests in Call state ([#744](https://github.com/GetStream/stream-video-js/issues/744)) ([b330df3](https://github.com/GetStream/stream-video-js/commit/b330df39d9dce34d9e5a1a7ec58acb0a905ee07b))
+
+### [0.0.63](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.62...@stream-io/video-react-sdk-0.0.63) (2023-07-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.33`
+### [0.0.62](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.61...@stream-io/video-react-sdk-0.0.62) (2023-07-03)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.32`
+### [0.0.61](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.60...@stream-io/video-react-sdk-0.0.61) (2023-07-03)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.8`
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.31`
+
+### Features
+
+* SFU Session Migration and Graceful Shutdown ([#603](https://github.com/GetStream/stream-video-js/issues/603)) ([943169b](https://github.com/GetStream/stream-video-js/commit/943169bd2b7b9e138bcaf387cf72eb3fa0f23533))
+
+### [0.0.60](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.59...@stream-io/video-react-sdk-0.0.60) (2023-07-03)
+
+
+### Documentation
+
+* **react-sdk:** add PermissionNotification and PermissionRequests docs ([#731](https://github.com/GetStream/stream-video-js/issues/731)) ([7542e70](https://github.com/GetStream/stream-video-js/commit/7542e70eaca436164830d717ea90bdfa99ad5f15))
+
+### [0.0.59](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.58...@stream-io/video-react-sdk-0.0.59) (2023-06-30)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.0.7`
+* `@stream-io/video-react-bindings` updated to version `0.0.30`
+
+### Documentation
+
+* **react-sdk:** add CallStats docs ([#735](https://github.com/GetStream/stream-video-js/issues/735)) ([8fb2c15](https://github.com/GetStream/stream-video-js/commit/8fb2c1501a53121dd5dd30a3bbfeee74af0ad63c))
+* **react-sdk:** add SpeakingWhileMutedNotification docs ([#732](https://github.com/GetStream/stream-video-js/issues/732)) ([bdb9daa](https://github.com/GetStream/stream-video-js/commit/bdb9daaf921b0a790fa8013dded2ff1559d95fc9))
+
 ### [0.0.58](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.57...@stream-io/video-react-sdk-0.0.58) (2023-06-29)
 
 ### Dependency Updates

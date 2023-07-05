@@ -1,7 +1,6 @@
 import { CallingState, CallState } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
 import { Call } from '../Call';
-import { getLogger } from '../logger';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.

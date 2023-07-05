@@ -18,7 +18,7 @@ import { TextInput } from '../../components/TextInput';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
-  const username = useAppGlobalStoreValue((store) => store.username);
+  const userId = useAppGlobalStoreValue((store) => store.userId);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
 
@@ -56,7 +56,7 @@ const JoinCallScreen = () => {
       : ringingUserIdsText.split(',');
 
     // we also need to add our own user id in the members
-    ringingUserIds = [...new Set([...ringingUserIds, username])];
+    ringingUserIds = [...new Set([...ringingUserIds, userId])];
 
     try {
       const call = videoClient?.call('default', uuidv4().toLowerCase());
@@ -75,17 +75,17 @@ const JoinCallScreen = () => {
     } catch (error) {
       console.log('Failed to createCall', error);
     }
-  }, [ringingUserIdsText, ringingUsers, videoClient, username]);
+  }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
 
-  const isRingingUserSelected = (userId: string) =>
-    ringingUsers.find((ringingUser) => ringingUser === userId);
+  const isRingingUserSelected = (userid: string) =>
+    ringingUsers.find((ringingUser) => ringingUser === userid);
 
-  const ringingUsersSetHandler = (userId: string) => {
-    if (!isRingingUserSelected(userId)) {
-      setRingingUsers((prevState) => [...prevState, userId]);
+  const ringingUsersSetHandler = (userid: string) => {
+    if (!isRingingUserSelected(userid)) {
+      setRingingUsers((prevState) => [...prevState, userid]);
     } else {
       setRingingUsers(
-        ringingUsers.filter((ringingUser) => ringingUser !== userId),
+        ringingUsers.filter((ringingUser) => ringingUser !== userid),
       );
     }
   };
@@ -98,7 +98,7 @@ const JoinCallScreen = () => {
       <View>
         <Text style={styles.headerText}>Select Participants</Text>
         {users
-          .filter((user) => user.id !== username)
+          .filter((user) => user.id !== userId)
           .map((user) => {
             return (
               <Pressable

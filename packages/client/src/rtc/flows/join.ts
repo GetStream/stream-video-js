@@ -3,7 +3,12 @@ import {
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import { JoinCallData } from '../../types';
+import {
+  isStreamVideoLocalParticipant,
+  JoinCallData,
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
 import { getLogger } from '../../logger';
 
@@ -22,8 +27,6 @@ export const join = async (
   id: string,
   data?: JoinCallData,
 ) => {
-  await httpClient.connectionIdPromise;
-
   const joinCallResponse = await doJoin(httpClient, type, id, data);
   const { call, credentials, members, own_capabilities } = joinCallResponse;
   return {
@@ -51,6 +54,10 @@ const doJoin = async (
   // FIXME OL: remove this once cascading is enabled by default
   const cascadingModeParams = getCascadingModeParams();
   if (cascadingModeParams) {
+    // FIXME OL: remove after SFU migration is done
+    if (data?.migrating_from && cascadingModeParams['next_sfu_id']) {
+      cascadingModeParams['sfu_id'] = cascadingModeParams['next_sfu_id'];
+    }
     return httpClient.doAxiosRequest<JoinCallResponse, JoinCallRequest>(
       'post',
       `/call/${type}/${id}/join`,
@@ -113,4 +120,36 @@ const getCascadingModeParams = () => {
     return rawParams;
   }
   return null;
+};
+
+/**
+ * Reconciles the local state of the source participant into the target participant.
+ *
+ * @param target the participant to reconcile into.
+ * @param source the participant to reconcile from.
+ */
+export const reconcileParticipantLocalState = (
+  target: StreamVideoParticipant | StreamVideoLocalParticipant,
+  source?: StreamVideoParticipant | StreamVideoLocalParticipant,
+) => {
+  if (!source) return target;
+
+  target.audioStream = source.audioStream;
+  target.videoStream = source.videoStream;
+  target.screenShareStream = source.screenShareStream;
+
+  target.videoDimension = source.videoDimension;
+  target.screenShareDimension = source.screenShareDimension;
+  target.pinnedAt = source.pinnedAt;
+  target.reaction = source.reaction;
+  target.viewportVisibilityState = source.viewportVisibilityState;
+  if (
+    isStreamVideoLocalParticipant(source) &&
+    isStreamVideoLocalParticipant(target)
+  ) {
+    target.audioDeviceId = source.audioDeviceId;
+    target.videoDeviceId = source.videoDeviceId;
+    target.audioOutputDeviceId = source.audioOutputDeviceId;
+  }
+  return target;
 };

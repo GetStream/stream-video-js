@@ -2,6 +2,10 @@ import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
+import { getLogger } from '../logger';
+import { ErrorCode } from '../gen/video/sfu/models/models';
+
+const logger = getLogger(['events']);
 
 /**
  * An event responder which handles the `changePublishQuality` event.
@@ -61,5 +65,21 @@ export const watchParticipantCountChanged = (
       state.setParticipantCount(participantCount.total);
       state.setAnonymousParticipantCount(participantCount.anonymous);
     }
+  });
+};
+
+/**
+ * Watches and logs the errors reported by the currently connected SFU.
+ */
+export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
+  return dispatcher.on('error', (e) => {
+    if (e.eventPayload.oneofKind !== 'error' || !e.eventPayload.error.error)
+      return;
+    const error = e.eventPayload.error.error;
+    logger('error', 'SFU reported error', {
+      code: ErrorCode[error.code],
+      message: error.message,
+      shouldRetry: error.shouldRetry,
+    });
   });
 };

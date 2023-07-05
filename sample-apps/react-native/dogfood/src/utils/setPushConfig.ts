@@ -41,14 +41,15 @@ export function setPushConfig() {
  * This is used to create a video client for incoming calls in the background on a push notification.
  */
 const createStreamVideoClient = async () => {
-  const userName = mmkvStorage.getString('username');
+  const userId = mmkvStorage.getString('userId');
+  const userName = mmkvStorage.getString('userName');
   const userImageUrl = mmkvStorage.getString('userImageUrl');
-  if (!userName || !userImageUrl) {
+  if (!userId || !userImageUrl) {
     return undefined;
   }
   const user = {
-    id: userName,
-    name: userImageUrl,
+    id: userId,
+    name: userName,
     imageUrl: userImageUrl,
   };
   return new StreamVideoClient({

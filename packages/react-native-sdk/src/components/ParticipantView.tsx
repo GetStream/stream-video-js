@@ -9,7 +9,6 @@ import {
 } from '@stream-io/video-client';
 import { VideoRenderer } from './VideoRenderer';
 import { Avatar } from './Avatar';
-import { useStreamVideoStoreValue } from '../contexts';
 import { MicOff, ScreenShare, VideoSlash } from '../icons';
 import { theme } from '../theme';
 import { palette } from '../theme/constants';
@@ -18,6 +17,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { NetworkQualityIndicator } from './NetworkQualityIndicator';
 import { Z_INDEX } from '../constants';
 import { A11yComponents } from '../constants/A11yLabels';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -70,9 +70,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       ? SfuModels.TrackType.VIDEO
       : SfuModels.TrackType.SCREEN_SHARE,
   );
-  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
-    (store) => store.isCameraOnFrontFacingMode,
-  );
+  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
   const { connectionQuality, reaction, sessionId } = participant;
 
   /**
@@ -199,7 +197,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     borderWidth: 2,
   };
 
-  const participantLabel = participant.userId;
+  const participantLabel = participant.name || participant.userId;
 
   return (
     <View
@@ -261,7 +259,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
               <ScreenShare color={theme.light.static_white} />
             </View>
             <Text style={styles.userNameLabel} numberOfLines={1}>
-              {participant.userId} is sharing their screen.
+              {participantLabel} is sharing their screen.
             </Text>
           </View>
         )}

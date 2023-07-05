@@ -1,3 +1,4 @@
+import WebSocket from 'isomorphic-ws';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 
@@ -11,15 +12,15 @@ export const createWebSocketSignalChannel = (opts: {
   ws.binaryType = 'arraybuffer'; // do we need this?
 
   ws.addEventListener('error', (e) => {
-    logger?.('error', 'Signaling WS channel error', e);
+    logger('error', 'Signaling WS channel error', e);
   });
 
   ws.addEventListener('close', (e) => {
-    logger?.('info', 'Signaling WS channel is closed', e);
+    logger('info', 'Signaling WS channel is closed', e);
   });
 
   ws.addEventListener('open', (e) => {
-    logger?.('info', 'Signaling WS channel is open', e);
+    logger('info', 'Signaling WS channel is open', e);
   });
 
   if (onMessage) {
@@ -28,11 +29,11 @@ export const createWebSocketSignalChannel = (opts: {
         const message =
           e.data instanceof ArrayBuffer
             ? SfuEvent.fromBinary(new Uint8Array(e.data))
-            : SfuEvent.fromJsonString(e.data);
+            : SfuEvent.fromJsonString(e.data.toString());
 
         onMessage(message);
       } catch (err) {
-        logger?.(
+        logger(
           'error',
           'Failed to decode a message. Check whether the Proto models match.',
           { event: e, error: err },

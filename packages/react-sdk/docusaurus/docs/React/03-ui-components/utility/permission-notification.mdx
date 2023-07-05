@@ -3,8 +3,114 @@ id: permission-notification
 title: Permission notification
 ---
 
-:::warning
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import PermissionGrantedNotification from '../../assets/03-ui-components/permission-requests/permission-granted-notification.png';
 
-TODO: write about: https://github.com/GetStream/stream-video-js/blob/main/packages/react-sdk/src/components/Notification/PermissionNotification.tsx
+The default component used to display permission grant notifications is based on `Notification` component. It is just a popover displaying text. The text displayed is customisable.
 
-:::
+<div
+  style={{
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBlock: '1rem',
+  }}
+>
+  <img
+    src={PermissionGrantedNotification}
+    alt="Default UI of PermissionNotification component"
+  />
+</div>
+
+## General usage
+
+The `PermissionNotification` component is used by some call controls buttons. Here we demonstrate, how it can be used in a button that toggles the audio:
+
+```tsx
+import { OwnCapability, PermissionNotification, Restricted, useToggleAudioMuteState } from '@stream-io/video-react-sdk';
+import Icon from '../Icon';
+
+export type ToggleAudioPublishingButtonProps = {
+  // props ...
+};
+
+export const ToggleAudioPublishingButton = (
+  props: ToggleAudioPublishingButtonProps,
+) => {
+
+
+  const { toggleAudioMuteState: handleClick, isAwaitingApproval } =
+    useToggleAudioMuteState();
+
+  return (
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+      <PermissionNotification
+        permission={OwnCapability.SEND_AUDIO}
+        isAwaitingApproval={isAwaitingApproval}
+        messageApproved="You can now speak."
+        messageAwaitingApproval="Awaiting for an approval to speak."
+        messageRevoked="You can no longer speak."
+      >
+        <TheButton
+          onClick={handleClick}
+          {/* more props ... */}
+        ><Icon/></TheButton>
+      </PermissionNotification>
+    </Restricted>
+  );
+};
+```
+
+## Props
+
+### `isAwaitingApproval`
+
+| Type      |
+| --------- |
+| `boolean` |
+
+Set this to true if there is ongoing request for the permission.
+
+### `messageApproved`
+
+| Type     |
+| -------- |
+| `string` |
+
+The message to display in the notification once the requested permission is granted.
+
+### `messageRevoked`
+
+| Type     |
+| -------- |
+| `string` |
+
+The message to display in the notification once a permission is revoked.
+
+### `messageAwaitingApproval`
+
+| Type     |
+| -------- |
+| `string` |
+
+The message to display in the notification while the requested permission is awaiting approval.
+
+### `permission`
+
+| Type            |
+| --------------- |
+| `OwnCapability` |
+
+The permission for which the notification is displayed.
+
+### `visibilityTimeout`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `number` \| `undefined` | `3500`  |
+
+The time in milliseconds to display the notification. Defaults to 3500ms.
+
+## Customization
+
+To learn more about creating custom permission requests listings, have a look at our [permission requests customization guide](../../../ui-cookbook/permission-requests).

@@ -1,11 +1,12 @@
 import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Publisher } from '../publisher';
+import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Dispatcher } from '../Dispatcher';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { IceTrickleBuffer } from '../IceTrickleBuffer';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -37,8 +38,11 @@ describe('Publisher', () => {
     const dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
-      url: 'https://getstream.io/',
-      wsEndpoint: 'https://getstream.io/ws',
+      sfuServer: {
+        url: 'https://getstream.io/',
+        ws_endpoint: 'https://getstream.io/ws',
+        edge_name: 'sfu-1',
+      },
       token: 'token',
     });
 
@@ -82,12 +86,8 @@ describe('Publisher', () => {
 
     const transceiver = new RTCRtpTransceiver();
     vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
-    vi.spyOn(publisher['publisher'], 'addTransceiver').mockReturnValue(
-      transceiver,
-    );
-    vi.spyOn(publisher['publisher'], 'getTransceivers').mockReturnValue([
-      transceiver,
-    ]);
+    vi.spyOn(publisher['pc'], 'addTransceiver').mockReturnValue(transceiver);
+    vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([transceiver]);
 
     sfuClient.updateMuteState = vi.fn();
 
@@ -140,5 +140,73 @@ describe('Publisher', () => {
       TrackType.VIDEO,
     );
     expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
+  });
+
+  describe('Publisher migration', () => {
+    it('should update the sfuClient and peer connection configuration', async () => {
+      const newSfuClient = new StreamSfuClient({
+        dispatcher: new Dispatcher(),
+        sfuServer: {
+          url: 'https://getstream.io/',
+          ws_endpoint: 'https://getstream.io/ws',
+          edge_name: 'sfu-1',
+        },
+        token: 'token',
+      });
+
+      const newPeerConnectionConfig = {
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      };
+
+      vi.spyOn(publisher['pc'], 'setConfiguration');
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'connected';
+      // @ts-ignore
+      vi.spyOn(publisher, 'negotiate').mockReturnValue(Promise.resolve());
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+
+      await publisher.migrateTo(newSfuClient, newPeerConnectionConfig);
+
+      expect(publisher['sfuClient']).toEqual(newSfuClient);
+      expect(publisher['pc'].setConfiguration).toHaveBeenCalledWith(
+        newPeerConnectionConfig,
+      );
+      expect(publisher['negotiate']).toHaveBeenCalledWith({ iceRestart: true });
+    });
+
+    it('should initiate ICE Restart when there are published tracks', async () => {
+      vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([]);
+      // @ts-ignore
+      sfuClient['iceTrickleBuffer'] = new IceTrickleBuffer();
+      sfuClient.setPublisher = vi.fn().mockResolvedValue({
+        response: {
+          sessionId: 'new-session-id',
+          sdp: 'new-sdp',
+          iceRestart: false,
+        },
+      });
+
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'connected';
+      vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
+      vi.spyOn(publisher, 'getCurrentTrackInfos').mockReturnValue([
+        // @ts-expect-error
+        { layers: [], trackType: TrackType.AUDIO, mid: '0' },
+      ]);
+
+      await publisher.migrateTo(sfuClient, {
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      });
+
+      expect(publisher['pc'].createOffer).toHaveBeenCalledWith({
+        iceRestart: true,
+      });
+      expect(publisher['pc'].setLocalDescription).toHaveBeenCalled();
+      expect(publisher['pc'].setRemoteDescription).toHaveBeenCalledWith({
+        type: 'answer',
+        sdp: 'new-sdp',
+      });
+      expect(sfuClient.setPublisher).toHaveBeenCalled();
+    });
   });
 });

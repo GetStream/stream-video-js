@@ -27,7 +27,9 @@ const connectionQualitySignalColors: Record<
 export const NetworkQualityIndicator = ({
   connectionQuality,
 }: NetworkQualityIndicatorType) => {
-  if (!connectionQuality) return null;
+  if (!connectionQuality) {
+    return null;
+  }
 
   const connectionQualityColors =
     connectionQualitySignalColors[connectionQuality];

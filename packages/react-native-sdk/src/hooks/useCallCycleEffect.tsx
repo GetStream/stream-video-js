@@ -27,7 +27,9 @@ export const useCallCycleEffect = (
   } = callCycleHandlers;
 
   useEffect(() => {
-    if (!call || NON_ACTIVE_CALLING_STATES.includes(callingState)) return;
+    if (!call || NON_ACTIVE_CALLING_STATES.includes(callingState)) {
+      return;
+    }
     const isCallCreatedByMe = call.data?.created_by.id === call?.currentUserId;
     const isCallCreatedByOther =
       !!call.data?.created_by.id && !isCallCreatedByMe;
@@ -48,12 +50,24 @@ export const useCallCycleEffect = (
     const isCallJoining =
       callingState === CallingState.JOINING && onCallJoining;
 
-    if (isIncomingCall) return onCallIncoming();
-    if (isOutgoingCall) return onCallOutgoing();
-    if (isActiveCall) return onCallJoined();
-    if (isCallHungUp) return onCallHungUp();
-    if (isCallRejected) return onCallRejected();
-    if (isCallJoining) return onCallJoining();
+    if (isIncomingCall) {
+      return onCallIncoming();
+    }
+    if (isOutgoingCall) {
+      return onCallOutgoing();
+    }
+    if (isActiveCall) {
+      return onCallJoined();
+    }
+    if (isCallHungUp) {
+      return onCallHungUp();
+    }
+    if (isCallRejected) {
+      return onCallRejected();
+    }
+    if (isCallJoining) {
+      return onCallJoining();
+    }
   }, [
     callingState,
     prevCallingState,

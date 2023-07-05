@@ -3,8 +3,45 @@ id: speaking-while-muted-notification
 title: Speaking while muted notification
 ---
 
-:::warning
+import SpeakingWhileMutedNotification from '../../assets/03-ui-components/speaking-while-muted-notification.png';
 
-TODO: write about https://github.com/GetStream/stream-video-js/blob/main/packages/react-sdk/src/components/Notification/SpeakingWhileMutedNotification.tsx
+The `SpeakingWhileMuted` component is based on `Notification` component that is a simple popover. The SDK attaches the component to [`ToggleAudioPublishingButton`](../../call/call-controls). The popover rendering is controlled by sound detection mechanism put in place by `createSoundDetector()` function.
 
-:::
+<div
+  style={{
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    marginBlock: '1rem',
+  }}
+>
+  <img
+    src={SpeakingWhileMutedNotification}
+    alt="Default UI of SpeakingWhileMutedNotification component"
+    width={300}
+  />
+</div>
+
+## General usage
+
+The component is used by wrapping the component to which it will refer:
+
+```tsx
+<SpeakingWhileMutedNotification>
+  <ToggleAudioPublishingButton />
+</SpeakingWhileMutedNotification>
+```
+
+## Props
+
+### `text`
+
+| Type                    | Default                             |
+| ----------------------- | ----------------------------------- |
+| `string` \| `undefined` | `'You are muted. Unmute to speak.'` |
+
+Text message displayed by the notification.
+
+## Customization
+
+To learn more about creating sound detection functionality, have a look at our [speaking-while-muted tutorial](../../../ui-cookbook/speaking-while-muted).

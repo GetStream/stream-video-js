@@ -1,18 +1,9 @@
-import {
-  CallingState,
-  getAudioStream,
-  getVideoStream,
-  SfuModels,
-  Call,
-} from '@stream-io/video-client';
+import { Call, CallingState, SfuModels } from '@stream-io/video-client';
 import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect, useRef } from 'react';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../contexts';
 import { useAppStateListener } from '../utils/hooks/useAppStateListener';
 import NetInfo from '@react-native-community/netinfo';
+import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
  * A helper hook which exposes audio, video mute and camera facing mode and
@@ -28,54 +19,12 @@ export const useCallControls = () => {
   callRef.current = call;
   const isOnlineRef = useRef(true);
 
-  const setState = useStreamVideoStoreSetState();
-  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
-    (store) => store.isCameraOnFrontFacingMode,
-  );
-  const currentAudioDevice = useStreamVideoStoreValue(
-    (store) => store.currentAudioDevice,
-  );
-  const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
-  const currentVideoDevice = useStreamVideoStoreValue(
-    (store) => store.currentVideoDevice,
-  );
-
-  const audioDeviceId = currentAudioDevice?.deviceId;
-  const videoDeviceId = currentVideoDevice?.deviceId;
-
-  const publishAudioStream = useCallback(async () => {
-    try {
-      // Client picks up the default audio stream.
-      // For mobile devices there will always be one audio input
-      if (!call || !audioDeviceId || !isOnlineRef.current) {
-        return;
-      }
-
-      const audioStream = await getAudioStream({
-        deviceId: audioDeviceId,
-      });
-
-      await call.publishAudioStream(audioStream);
-    } catch (e) {
-      console.log('Failed to publish audio stream', e);
-    }
-  }, [audioDeviceId, call]);
-
-  const publishVideoStream = useCallback(async () => {
-    try {
-      if (!call || !videoDeviceId || !isOnlineRef.current) {
-        return;
-      }
-
-      const videoStream = await getVideoStream({
-        deviceId: videoDeviceId,
-      });
-
-      await call.publishVideoStream(videoStream);
-    } catch (e) {
-      console.log('Failed to publish video stream', e);
-    }
-  }, [call, videoDeviceId]);
+  const {
+    publishAudioStream,
+    publishVideoStream,
+    stopPublishingAudio,
+    stopPublishingVideo,
+  } = useMediaStreamManagement();
 
   const isAudioPublished = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
@@ -129,41 +78,23 @@ export const useCallControls = () => {
     if (!isVideoPublished) {
       publishVideoStream();
     } else {
-      await call?.stopPublish(SfuModels.TrackType.VIDEO);
+      stopPublishingVideo();
     }
-  }, [call, isVideoPublished, publishVideoStream]);
+  }, [isVideoPublished, publishVideoStream, stopPublishingVideo]);
 
   const toggleAudioMuted = useCallback(async () => {
     if (!isAudioPublished) {
       publishAudioStream();
     } else {
-      await call?.stopPublish(SfuModels.TrackType.AUDIO);
+      stopPublishingAudio();
     }
-  }, [call, isAudioPublished, publishAudioStream]);
-
-  const toggleCameraFacingMode = useCallback(() => {
-    const videoDevice = videoDevices.find((device) => {
-      // Check to only switch between video devices
-      if (device.kind !== 'videoinput') {
-        return;
-      }
-      return !isCameraOnFrontFacingMode
-        ? device.facing === 'front'
-        : device.facing === 'environment';
-    });
-    setState((prevState) => ({
-      currentVideoDevice: videoDevice,
-      isCameraOnFrontFacingMode: !prevState.isCameraOnFrontFacingMode,
-    }));
-  }, [isCameraOnFrontFacingMode, videoDevices, setState]);
+  }, [isAudioPublished, publishAudioStream, stopPublishingAudio]);
 
   return {
     isAudioPublished,
     isVideoPublished,
-    isCameraOnFrontFacingMode,
     toggleAudioMuted,
     toggleVideoMuted,
-    toggleCameraFacingMode,
   };
 };
 

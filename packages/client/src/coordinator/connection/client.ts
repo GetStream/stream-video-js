@@ -134,8 +134,8 @@ export class StreamClient {
     }
 
     this.axiosInstance = axios.create({
-      baseURL: this.baseURL,
       ...this.options,
+      baseURL: this.baseURL,
     });
 
     // WS connection is initialized when setUser is called
@@ -457,7 +457,7 @@ export class StreamClient {
       this.listeners[key] = [];
     }
 
-    this.logger('info', `Removing listener for ${key} event`);
+    this.logger('debug', `Removing listener for ${key} event`);
     this.listeners[key] = this.listeners[key].filter(
       (value) => value !== callback,
     );
@@ -471,8 +471,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
   ) {
-    this.logger('info', `client: ${type} - Request - ${url}`);
-    this.logger('debug', `client: ${type} - Request payload`, {
+    this.logger('trace', `client: ${type} - Request - ${url}`, {
       payload: data,
       config,
     });
@@ -480,13 +479,13 @@ export class StreamClient {
 
   _logApiResponse<T>(type: string, url: string, response: AxiosResponse<T>) {
     this.logger(
-      'info',
+      'trace',
       `client:${type} - Response - url: ${url} > status ${response.status}`,
       {
         response,
       },
     );
-    this.logger('debug', `client:${type} - Response payload`, {
+    this.logger('trace', `client:${type} - Response payload`, {
       response,
     });
   }
@@ -510,7 +509,10 @@ export class StreamClient {
       if (this.waitForConnectPromise) {
         await this.waitForConnectPromise;
       }
-      await this.tokenManager.tokenReady();
+      await Promise.all([
+        this.tokenManager.tokenReady(),
+        this.connectionIdPromise,
+      ]);
     }
     const requestConfig = this._enrichAxiosOptions(options);
     try {
@@ -617,8 +619,7 @@ export class StreamClient {
   dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
 
-    this.logger('info', `Dispatching event: ${event.type}`);
-    this.logger('debug', 'Event payload:', event);
+    this.logger('debug', `Dispatching event: ${event.type}`, event);
     this._callClientListeners(event);
   };
 

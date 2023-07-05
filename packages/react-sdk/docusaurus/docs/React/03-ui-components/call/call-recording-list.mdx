@@ -14,48 +14,63 @@ The [`CallRecordingList`](https://github.com/GetStream/stream-video-js/tree/main
 - `EmptyCallRecordingList`
 - `LoadingCallRecordingList`
 
+<ImageShowcase
+  items={[
+    {
+      image: EmptyCallRecordingList,
+      caption: 'Empty call recording list',
+      alt: 'Empty call recording list',
+    },
+    {
+      image: LoadingCallRecordingList,
+      caption: 'Loading call recording list',
+      alt: 'Loading call recording list',
+    },
+  ]}
+/>
+
+## General usage
+
+```tsx
+import { CallRecording, CallRecordingList } from '@stream-io/video-react-sdk';
+
+const CallRecordings = () => {
+  let callRecordings: CallRecording[];
+
+  return <CallRecordingList callRecordings={callRecordings} />;
+};
+```
+
 :::note
 The `CallRecordingList` component just displays the data. It does not retrieve the call recordings data. See the [call recording guide](../../../advanced/recording) to learn more about retrieving the call recording data.
 :::
 
-<ImageShowcase
-    items={[
-        {
-            image: EmptyCallRecordingList,
-            caption: 'Empty call recording list',
-            alt: 'Empty call recording list',
-        },
-        {
-            image: LoadingCallRecordingList,
-            caption: 'Loading call recording list',
-            alt: 'Loading call recording list',
-        },
-    ]}
-/>
-
 ## Call recording list components
+
 The components rendered by [`CallRecordingList`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/CallRecordingList) can be overridden through `CallRecordingListProps`. The default components descriptions follow.
 
-
 ### CallRecordingListHeader
+
 Component rendering title and call recordings count as well as a button to query the latest state of call recordings.
 
 #### Props
 
 | Name             | Description                    | Type              |
-|------------------|--------------------------------|-------------------|
+| ---------------- | ------------------------------ | ----------------- |
 | `callRecordings` | Array of CallRecording objects | `CallRecording[]` |
 
 ### CallRecordingListItem
+
 Component displays download link, copy-to-clipboard link button and recording date as a recording identifier.
 
 #### Props
 
 | Name            | Description                       | Type            |
-|-----------------|-----------------------------------|-----------------|
+| --------------- | --------------------------------- | --------------- |
 | `callRecording` | CallRecording object to represent | `CallRecording` |
 
 ### EmptyCallRecordingList
+
 Component displayed instead of `CallRecordingListItem` list if there are no recordings associated with the given call.
 
 #### Props
@@ -63,64 +78,65 @@ Component displayed instead of `CallRecordingListItem` list if there are no reco
 None
 
 ### LoadingCallRecordingList
+
 Component displayed while the latest call recordings data is queried. The default implementation renders the current call recording list and a loading indicator at the bottom.
 
 #### Props
 
 | Name             | Description                                     | Type              |
-|------------------|-------------------------------------------------|-------------------|
+| ---------------- | ----------------------------------------------- | ----------------- |
 | `callRecordings` | Array of currently loaded CallRecording objects | `CallRecording[]` |
-
 
 ## Props
 
 ### `callRecordings`
 
 | Type              |
-|-------------------|
+| ----------------- |
 | `CallRecording[]` |
-
 
 Array of CallRecording objects to be displayed.
 
 ### `CallRecordingListHeader`
 
 | Type                                                         |
-|--------------------------------------------------------------|
+| ------------------------------------------------------------ |
 | `ComponentType<CallRecordingListHeaderProps>` \| `undefined` |
-
 
 Custom component to replace the default header implementation.
 
 ### `CallRecordingListItem`
 
-| Type                                                         |
-|--------------------------------------------------------------|
-| `ComponentType<CallRecordingListItemProps>` \| `undefined`   |
-
+| Type                                                       |
+| ---------------------------------------------------------- |
+| `ComponentType<CallRecordingListItemProps>` \| `undefined` |
 
 Custom component to replace the default list item implementation.
 
 ### `EmptyCallRecordingList`
 
-| Type                             |
-|----------------------------------|
-| `ComponentType` \| `undefined`   |
+| Type                           |
+| ------------------------------ |
+| `ComponentType` \| `undefined` |
 
 Custom component to replace the default empty list component implementation.
 
 ### `loading`
 
-| Type                       |
-|----------------------------|
-| `boolean` \| `undefined`   |
+| Type                     |
+| ------------------------ |
+| `boolean` \| `undefined` |
 
 Signals that a request for new list of CallRecording object has been initiated.
 
 ### `LoadingCallRecordingList`
 
-| Type                                                            |
-|-----------------------------------------------------------------|
-| `ComponentType<LoadingCallRecordingListProps>` \| `undefined`   |
+| Type                                                          |
+| ------------------------------------------------------------- |
+| `ComponentType<LoadingCallRecordingListProps>` \| `undefined` |
 
 Custom component to be rendered when `loading` is true.
+
+## Customization
+
+The `CallRecordingList` component accepts UI components as [props](#props-4) to override parts of the displayed UI. It's also possible to build your own call recordings UI from scratch.

@@ -23,13 +23,16 @@ import {
   Codec,
   ConnectionQuality,
   Error as Error$,
+  GoAwayReason,
   ICETrickle as ICETrickle$,
   Participant,
   ParticipantCount,
   PeerType,
+  TrackInfo,
   TrackType,
   TrackUnpublishReason,
 } from '../models/models';
+import { TrackSubscriptionDetails } from '../signal_rpc/signal';
 
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
@@ -44,6 +47,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'subscriberOffer';
         /**
+         * SubscriberOffer sends the SDP offer for establishing the
+         * subscriber PeerConnection.
+         *
          * @generated from protobuf field: stream.video.sfu.event.SubscriberOffer subscriber_offer = 1;
          */
         subscriberOffer: SubscriberOffer;
@@ -51,6 +57,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'publisherAnswer';
         /**
+         * PublisherAnswer sends the SDP answer to the offer sent by
+         * the client for establishing the Publisher PeerConnection.
+         *
          * @generated from protobuf field: stream.video.sfu.event.PublisherAnswer publisher_answer = 2;
          */
         publisherAnswer: PublisherAnswer;
@@ -58,6 +67,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'connectionQualityChanged';
         /**
+         * ConnectionQualityChanged is sent to inform the connection
+         * quality of the participants in the call. It does not have
+         * to contain the full list of call participants in it.
+         *
          * @generated from protobuf field: stream.video.sfu.event.ConnectionQualityChanged connection_quality_changed = 3;
          */
         connectionQualityChanged: ConnectionQualityChanged;
@@ -65,6 +78,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'audioLevelChanged';
         /**
+         * AudioLevelChanged is sent for change in audio levels of
+         * the participants.
+         *
          * @generated from protobuf field: stream.video.sfu.event.AudioLevelChanged audio_level_changed = 4;
          */
         audioLevelChanged: AudioLevelChanged;
@@ -72,6 +88,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'iceTrickle';
         /**
+         * ICETrickle contains the ICE candidate required to establish
+         * the ICE transport: part of establishing the PeerConnection
+         * and also for ICE restarts.
+         *
          * @generated from protobuf field: stream.video.sfu.models.ICETrickle ice_trickle = 5;
          */
         iceTrickle: ICETrickle$;
@@ -79,6 +99,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'changePublishQuality';
         /**
+         * ChangePublishQuality advises the publisher to switch on/off
+         * various qualities of their video stream based on the subscription.
+         * This is done to save the bandwidth and the CPU of the publisher.
+         *
          * @generated from protobuf field: stream.video.sfu.event.ChangePublishQuality change_publish_quality = 6;
          */
         changePublishQuality: ChangePublishQuality;
@@ -86,6 +110,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'participantJoined';
         /**
+         * ParticipantJoined notifies the client that a new participant
+         * has joined the call. This is not sent for anonymous users.
+         *
          * @generated from protobuf field: stream.video.sfu.event.ParticipantJoined participant_joined = 10;
          */
         participantJoined: ParticipantJoined;
@@ -93,6 +120,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'participantLeft';
         /**
+         * ParticipantLeft notifies the client that a call participant
+         * has left the call. This is not sent for anonymous users.
+         *
          * @generated from protobuf field: stream.video.sfu.event.ParticipantLeft participant_left = 11;
          */
         participantLeft: ParticipantLeft;
@@ -100,6 +130,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'dominantSpeakerChanged';
         /**
+         * DominantSpeakerChanged notifies the client about the current
+         * dominant speaker. This is required for certain use cases like
+         * the spotlight view.
+         *
          * @generated from protobuf field: stream.video.sfu.event.DominantSpeakerChanged dominant_speaker_changed = 12;
          */
         dominantSpeakerChanged: DominantSpeakerChanged;
@@ -107,6 +141,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'joinResponse';
         /**
+         * JoinResponse acknowledges a participant successfully joining
+         * the call. This is sent in response to the JoinRequest.
+         *
          * @generated from protobuf field: stream.video.sfu.event.JoinResponse join_response = 13;
          */
         joinResponse: JoinResponse;
@@ -114,6 +151,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'healthCheckResponse';
         /**
+         * HealthCheckResponse is sent in response to the HealthCheckRequest.
+         * It contains the participant count in the call.
+         *
          * @generated from protobuf field: stream.video.sfu.event.HealthCheckResponse health_check_response = 14;
          */
         healthCheckResponse: HealthCheckResponse;
@@ -121,6 +161,9 @@ export interface SfuEvent {
     | {
         oneofKind: 'trackPublished';
         /**
+         * TrackPublished is sent when a new track (like audio, video, screenshare)
+         * is published by a participant in the call. It is also sent on mute/unmute.
+         *
          * @generated from protobuf field: stream.video.sfu.event.TrackPublished track_published = 16;
          */
         trackPublished: TrackPublished;
@@ -128,6 +171,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'trackUnpublished';
         /**
+         * TrackUnpublished is sent when a track (like audio, video, screenshare)
+         * is no longer published. It is sent on muting a track or when the participant
+         * is leaving the call.
+         *
          * @generated from protobuf field: stream.video.sfu.event.TrackUnpublished track_unpublished = 17;
          */
         trackUnpublished: TrackUnpublished;
@@ -135,6 +182,10 @@ export interface SfuEvent {
     | {
         oneofKind: 'error';
         /**
+         * Error is used to communicate any error related to the participant. The
+         * error code and the message explain what went wrong. Whether the participant
+         * can retry is also indicated.
+         *
          * @generated from protobuf field: stream.video.sfu.event.Error error = 18;
          */
         error: Error;
@@ -142,9 +193,21 @@ export interface SfuEvent {
     | {
         oneofKind: 'callGrantsUpdated';
         /**
+         * CallGrantsUpdated tells what tracks a participant is allowed to publish.
+         *
          * @generated from protobuf field: stream.video.sfu.event.CallGrantsUpdated call_grants_updated = 19;
          */
         callGrantsUpdated: CallGrantsUpdated;
+      }
+    | {
+        oneofKind: 'goAway';
+        /**
+         * GoAway tells the client to migrate away from the SFU it is connected to.
+         * The reason field indicates why this message was sent.
+         *
+         * @generated from protobuf field: stream.video.sfu.event.GoAway go_away = 20;
+         */
+        goAway: GoAway;
       }
     | {
         oneofKind: undefined;
@@ -292,8 +355,31 @@ export interface JoinRequest {
   /**
    * @generated from protobuf field: stream.video.sfu.models.ClientDetails client_details = 4;
    */
-  clientDetails?: ClientDetails; // TODO: we should know if this is going to be
-  // - publishing and subscribing, or just subscribing for future routing
+  clientDetails?: ClientDetails;
+  /**
+   * TODO: we should know if this is going to be
+   * - publishing and subscribing, or just subscribing for future routing
+   *
+   * @generated from protobuf field: stream.video.sfu.event.Migration migration = 5;
+   */
+  migration?: Migration;
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.Migration
+ */
+export interface Migration {
+  /**
+   * @generated from protobuf field: string from_sfu_id = 1;
+   */
+  fromSfuId: string;
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.TrackInfo announced_tracks = 2;
+   */
+  announcedTracks: TrackInfo[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions = 3;
+   */
+  subscriptions: TrackSubscriptionDetails[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.JoinResponse
@@ -589,6 +675,18 @@ export interface CallGrantsUpdated {
    */
   message: string;
 }
+/**
+ * Go away is sent by the SFU to the client to signal to migrate away from the SFU.
+ * The evict reason may specify why the user is being evicted.
+ *
+ * @generated from protobuf message stream.video.sfu.event.GoAway
+ */
+export interface GoAway {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.GoAwayReason reason = 1;
+   */
+  reason: GoAwayReason;
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class SfuEvent$Type extends MessageType<SfuEvent> {
   constructor() {
@@ -697,6 +795,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         kind: 'message',
         oneof: 'eventPayload',
         T: () => CallGrantsUpdated,
+      },
+      {
+        no: 20,
+        name: 'go_away',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => GoAway,
       },
     ]);
   }
@@ -887,6 +992,17 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             ),
           };
           break;
+        case /* stream.video.sfu.event.GoAway go_away */ 20:
+          message.eventPayload = {
+            oneofKind: 'goAway',
+            goAway: GoAway.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+              (message.eventPayload as any).goAway,
+            ),
+          };
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -1014,6 +1130,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
       CallGrantsUpdated.internalBinaryWrite(
         message.eventPayload.callGrantsUpdated,
         writer.tag(19, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* stream.video.sfu.event.GoAway go_away = 20; */
+    if (message.eventPayload.oneofKind === 'goAway')
+      GoAway.internalBinaryWrite(
+        message.eventPayload.goAway,
+        writer.tag(20, WireType.LengthDelimited).fork(),
         options,
       ).join();
     let u = options.writeUnknownFields;
@@ -1697,6 +1820,7 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         kind: 'message',
         T: () => ClientDetails,
       },
+      { no: 5, name: 'migration', kind: 'message', T: () => Migration },
     ]);
   }
   create(value?: PartialMessage<JoinRequest>): JoinRequest {
@@ -1735,6 +1859,14 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
             reader.uint32(),
             options,
             message.clientDetails,
+          );
+          break;
+        case /* stream.video.sfu.event.Migration migration */ 5:
+          message.migration = Migration.internalBinaryRead(
+            reader,
+            reader.uint32(),
+            options,
+            message.migration,
           );
           break;
         default:
@@ -1777,6 +1909,13 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
         writer.tag(4, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.event.Migration migration = 5; */
+    if (message.migration)
+      Migration.internalBinaryWrite(
+        message.migration,
+        writer.tag(5, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1791,6 +1930,125 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
  * @generated MessageType for protobuf message stream.video.sfu.event.JoinRequest
  */
 export const JoinRequest = new JoinRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class Migration$Type extends MessageType<Migration> {
+  constructor() {
+    super('stream.video.sfu.event.Migration', [
+      {
+        no: 1,
+        name: 'from_sfu_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 2,
+        name: 'announced_tracks',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => TrackInfo,
+      },
+      {
+        no: 3,
+        name: 'subscriptions',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => TrackSubscriptionDetails,
+      },
+    ]);
+  }
+  create(value?: PartialMessage<Migration>): Migration {
+    const message = { fromSfuId: '', announcedTracks: [], subscriptions: [] };
+    globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
+      enumerable: false,
+      value: this,
+    });
+    if (value !== undefined)
+      reflectionMergePartial<Migration>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: Migration,
+  ): Migration {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* string from_sfu_id */ 1:
+          message.fromSfuId = reader.string();
+          break;
+        case /* repeated stream.video.sfu.models.TrackInfo announced_tracks */ 2:
+          message.announcedTracks.push(
+            TrackInfo.internalBinaryRead(reader, reader.uint32(), options),
+          );
+          break;
+        case /* repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions */ 3:
+          message.subscriptions.push(
+            TrackSubscriptionDetails.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+            ),
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: Migration,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* string from_sfu_id = 1; */
+    if (message.fromSfuId !== '')
+      writer.tag(1, WireType.LengthDelimited).string(message.fromSfuId);
+    /* repeated stream.video.sfu.models.TrackInfo announced_tracks = 2; */
+    for (let i = 0; i < message.announcedTracks.length; i++)
+      TrackInfo.internalBinaryWrite(
+        message.announcedTracks[i],
+        writer.tag(2, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    /* repeated stream.video.sfu.signal.TrackSubscriptionDetails subscriptions = 3; */
+    for (let i = 0; i < message.subscriptions.length; i++)
+      TrackSubscriptionDetails.internalBinaryWrite(
+        message.subscriptions[i],
+        writer.tag(3, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.Migration
+ */
+export const Migration = new Migration$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class JoinResponse$Type extends MessageType<JoinResponse> {
   constructor() {
@@ -3368,3 +3626,84 @@ class CallGrantsUpdated$Type extends MessageType<CallGrantsUpdated> {
  * @generated MessageType for protobuf message stream.video.sfu.event.CallGrantsUpdated
  */
 export const CallGrantsUpdated = new CallGrantsUpdated$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class GoAway$Type extends MessageType<GoAway> {
+  constructor() {
+    super('stream.video.sfu.event.GoAway', [
+      {
+        no: 1,
+        name: 'reason',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.GoAwayReason',
+          GoAwayReason,
+          'GO_AWAY_REASON_',
+        ],
+      },
+    ]);
+  }
+  create(value?: PartialMessage<GoAway>): GoAway {
+    const message = { reason: 0 };
+    globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
+      enumerable: false,
+      value: this,
+    });
+    if (value !== undefined)
+      reflectionMergePartial<GoAway>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: GoAway,
+  ): GoAway {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* stream.video.sfu.models.GoAwayReason reason */ 1:
+          message.reason = reader.int32();
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: GoAway,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* stream.video.sfu.models.GoAwayReason reason = 1; */
+    if (message.reason !== 0)
+      writer.tag(1, WireType.Varint).int32(message.reason);
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.GoAway
+ */
+export const GoAway = new GoAway$Type();

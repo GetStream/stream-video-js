@@ -15,7 +15,6 @@ import {
   CallResponse,
   MemberResponse,
   OwnCapability,
-  PermissionRequestEvent,
 } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
@@ -61,6 +60,11 @@ export enum CallingState {
    * The call is in the process of reconnecting.
    */
   RECONNECTING = 'reconnecting',
+
+  /**
+   * The call is in the process of migrating from one node to another.
+   */
+  MIGRATING = 'migrating',
 
   /**
    * The call has failed to reconnect.
@@ -161,16 +165,6 @@ export class CallState {
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
-  /**
-   * Emits the latest call permission request sent by any participant of the
-   * current call.
-   *
-   * @internal
-   */
-  private callPermissionRequestSubject = new BehaviorSubject<
-    PermissionRequestEvent | undefined
-  >(undefined);
-
   // Derived state
 
   /**
@@ -245,11 +239,6 @@ export class CallState {
   callRecordingList$: Observable<CallRecording[]>;
 
   /**
-   * Emits the latest call permission request sent by any participant of the current call.
-   */
-  callPermissionRequest$: Observable<PermissionRequestEvent | undefined>;
-
-  /**
    * The raw call metadata object, as defined on the backend.
    */
   metadata$: Observable<CallResponse | undefined>;
@@ -320,8 +309,6 @@ export class CallState {
       this.anonymousParticipantCountSubject.asObservable();
 
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.callPermissionRequest$ =
-      this.callPermissionRequestSubject.asObservable();
     this.callRecordingList$ = this.callRecordingListSubject.asObservable();
     this.metadata$ = this.metadataSubject.asObservable();
     this.members$ = this.membersSubject.asObservable();
@@ -504,25 +491,6 @@ export class CallState {
   };
 
   /**
-   * The last call permission request.
-   */
-  get callPermissionRequest() {
-    return this.getCurrentValue(this.callPermissionRequest$);
-  }
-
-  /**
-   * Sets the last call permission request.
-   *
-   * @internal
-   * @param request the last call permission request.
-   */
-  setCallPermissionRequest = (
-    request: Patch<PermissionRequestEvent | undefined>,
-  ) => {
-    return this.setCurrentValue(this.callPermissionRequestSubject, request);
-  };
-
-  /**
    * The call stats report.
    */
   get callStatsReport() {
@@ -601,6 +569,21 @@ export class CallState {
     sessionId: string,
   ): StreamVideoParticipant | undefined => {
     return this.participants.find((p) => p.sessionId === sessionId);
+  };
+
+  /**
+   * Returns a new lookup table of participants indexed by their session ID.
+   */
+  getParticipantLookupBySessionId = () => {
+    return this.participants.reduce<{
+      [sessionId: string]:
+        | StreamVideoParticipant
+        | StreamVideoLocalParticipant
+        | undefined;
+    }>((lookupTable, participant) => {
+      lookupTable[participant.sessionId] = participant;
+      return lookupTable;
+    }, {});
   };
 
   /**
