@@ -303,15 +303,13 @@ export class StreamVideoClient {
    *
    * @param type the type of the call.
    * @param id the id of the call, if not provided a unique random value is used
-   * @param {boolean} [ringing] whether the call should be created in the ringing state.
    */
-  call = (type: string, id: string, ringing?: boolean) => {
+  call = (type: string, id: string) => {
     return new Call({
       streamClient: this.streamClient,
       id: id,
       type: type,
       clientStore: this.writeableStateStore,
-      ringing,
     });
   };
 
@@ -483,6 +481,33 @@ export class StreamVideoClient {
   ) {
     return this.streamClient.createToken(userID, exp, iat, call_cids);
   }
+
+  /**
+   * A callback that can be used to create ringing calls from push notifications. If the call already existis, it will do nothing.
+   * @param call_cid
+   * @returns
+   */
+  onRingingCall = async (call_cid: string) => {
+    // if we find the call and is already ringing, we don't need to create a new call
+    // as client would have received the call.ring state because the app had WS alive when receiving push notifications
+    let call = this.readOnlyStateStore.calls.find(
+      (c) => c.cid === call_cid && c.ringing,
+    );
+    if (!call) {
+      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+      const [callType, callId] = call_cid.split(':');
+      call = new Call({
+        streamClient: this.streamClient,
+        type: callType,
+        id: callId,
+        clientStore: this.writeableStateStore,
+        ringing: true,
+      });
+      await call.get();
+    }
+
+    return call;
+  };
 
   /**
    * Connects the given anonymous user to the client.
