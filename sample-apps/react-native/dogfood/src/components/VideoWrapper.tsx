@@ -7,6 +7,7 @@ import { STREAM_API_KEY } from 'react-native-dotenv';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
+import { customSentryLogger } from '../utils/logger';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -30,6 +31,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       apiKey: STREAM_API_KEY,
       user,
       tokenProvider: async () => createToken({ user_id: user.id }),
+      options: { logger: customSentryLogger, logLevel: 'warn' },
     });
     setVideoClient(_videoClient);
 
