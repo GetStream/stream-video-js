@@ -483,7 +483,7 @@ export class StreamVideoClient {
   }
 
   /**
-   * A callback that can be used to create ringing calls from push notifications. If the call already existis, it will do nothing.
+   * A callback that can be used to create ringing calls from push notifications. If the call already exists, it will do nothing.
    * @param call_cid
    * @returns
    */
