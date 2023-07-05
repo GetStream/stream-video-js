@@ -531,9 +531,18 @@ export class Publisher {
       this.logger('warn', 'No mid found for track. Trying to find it from SDP');
 
       const parsedSdp = SDP.parse(sdp);
-      const media = parsedSdp.media.find((m) => m.type === track.kind);
+      const media = parsedSdp.media.find((m) => {
+        return (
+          m.type === track.kind &&
+          // if `msid` is not present, we assume that the track is the first one
+          (m.msid?.includes(track.id) ?? true)
+        );
+      });
       if (typeof media?.mid === 'undefined') {
-        this.logger('warn', `No mid found in SDP for track type ${track.kind}`);
+        this.logger(
+          'warn',
+          `No mid found in SDP for track type ${track.kind} and id ${track.id}`,
+        );
         return '';
       }
       return String(media.mid);
