@@ -60,10 +60,8 @@ export const useAudioPublisher = ({
   const initialPublishRun = useRef(false);
 
   /*
-   * When joining the call, publish video stream automatically in the following cases:
-   * 1. joining the call from the lobby, and the video is not muted
-   * 2. reconnecting to the call with the video already published
-   * 3. when the video device is changed (this is handled by the dependency to publishVideoStream function)
+   * When joining the call, publish video stream automatically in the following case:
+   * - joining the call from the lobby, and the video is not muted
    */
   useEffect(() => {
     if (callingState !== CallingState.JOINED) {
@@ -71,18 +69,14 @@ export const useAudioPublisher = ({
     }
     const shouldJoinInitially =
       !initialAudioMuted && !initialPublishRun.current;
-    const shouldRejoin = isPublishingAudio;
-    // if we are not joining the call from the lobby or equivalent view,
-    // and we are not reconnecting to the call,
-    // then do not publish the audio stream
-    if (!shouldJoinInitially && !shouldRejoin) {
+    if (!shouldJoinInitially) {
       return;
     }
     publishAudioStream().catch((e) => {
       console.error('Failed to publish audio stream', e);
     });
     initialPublishRun.current = true;
-  }, [callingState, initialAudioMuted, isPublishingAudio, publishAudioStream]);
+  }, [callingState, initialAudioMuted, publishAudioStream]);
 
   /*
    * When track ended unexpectedly due to unknown external factors, try to publish the video stream again
