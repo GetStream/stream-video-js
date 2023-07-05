@@ -535,7 +535,7 @@ export class Publisher {
         return (
           m.type === track.kind &&
           // if `msid` is not present, we assume that the track is the first one
-          (m.msid?.includes(track.id) || true)
+          (m.msid?.includes(track.id) ?? true)
         );
       });
       if (typeof media?.mid === 'undefined') {
