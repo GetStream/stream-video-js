@@ -756,9 +756,10 @@ export class Call {
         if (e.type !== 'connection.changed') return;
         if (!e.online) return;
         unsubscribeOnlineEvent();
+        const currentCallingState = this.state.callingState;
         if (
-          callingState === CallingState.OFFLINE ||
-          callingState === CallingState.RECONNECTING_FAILED
+          currentCallingState === CallingState.OFFLINE ||
+          currentCallingState === CallingState.RECONNECTING_FAILED
         ) {
           this.logger('info', '[Rejoin]: Going online...');
           rejoin().catch((err) => {
