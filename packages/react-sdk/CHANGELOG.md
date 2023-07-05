@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.71](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.70...@stream-io/video-react-sdk-0.0.71) (2023-07-05)
+
+
+### Bug Fixes
+
+* restore device switching functionality ([#757](https://github.com/GetStream/stream-video-js/issues/757)) ([3de6a44](https://github.com/GetStream/stream-video-js/commit/3de6a4418ce1eda92f2a528a481cb2e0977db974)), closes [#749](https://github.com/GetStream/stream-video-js/issues/749)
+
 ### [0.0.70](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.69...@stream-io/video-react-sdk-0.0.70) (2023-07-05)
 
 ### Dependency Updates
