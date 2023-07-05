@@ -89,7 +89,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: '90%',
     margin: appTheme.spacing.xs,
-    padding: appTheme.spacing.xs,
+    paddingVertical: appTheme.spacing.xs,
+    paddingHorizontal: appTheme.spacing.sm,
   },
   header: {
     textAlign: 'center',
