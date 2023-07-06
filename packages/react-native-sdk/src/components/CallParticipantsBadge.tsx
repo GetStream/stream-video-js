@@ -45,8 +45,6 @@ const styles = StyleSheet.create({
     paddingVertical: theme.padding.xs,
     paddingHorizontal: theme.padding.sm,
     position: 'absolute',
-    right: 0,
-    top: -theme.spacing.sm,
     zIndex: Z_INDEX.IN_FRONT,
   },
   badgeText: {
