@@ -1,5 +1,5 @@
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
-import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactionMap } from '../Reaction';
@@ -27,17 +27,19 @@ export interface ReactionsButtonProps {
 export const ReactionsButton = ({
   reactions = defaultReactions,
 }: ReactionsButtonProps) => {
+  const { t } = useI18n();
+
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <CompositeButton
         active={false}
-        caption="Reactions"
+        caption={t('Reactions')}
         menuPlacement="top-start"
         Menu={<DefaultReactionsMenu reactions={reactions} />}
       >
         <IconButton
           icon="reactions"
-          title="Reactions"
+          title={t('Reactions')}
           onClick={() => {
             console.log('Reactions');
           }}

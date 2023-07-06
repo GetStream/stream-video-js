@@ -63,9 +63,11 @@ export const ToggleVideoPublishingButton = (
       <PermissionNotification
         permission={OwnCapability.SEND_VIDEO}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved="You can now share your video."
-        messageAwaitingApproval="Awaiting for an approval to share your video."
-        messageRevoked="You can no longer share your video."
+        messageApproved={t('You can now share your video.')}
+        messageAwaitingApproval={t(
+          'Awaiting for an approval to share your video.',
+        )}
+        messageRevoked={t('You can no longer share your video.')}
       >
         <CompositeButton Menu={Menu} active={isVideoMute} caption={caption}>
           <IconButton

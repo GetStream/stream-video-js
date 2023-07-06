@@ -3,6 +3,7 @@ import {
   Restricted,
   useCall,
   useHasOngoingScreenShare,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
@@ -18,6 +19,7 @@ export const ScreenShareButton = ({
   const call = useCall();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
 
+  const { t } = useI18n();
   const { toggleScreenShare, isAwaitingPermission, isScreenSharing } =
     useToggleScreenShare();
 
@@ -26,14 +28,14 @@ export const ScreenShareButton = ({
       <PermissionNotification
         permission={OwnCapability.SCREENSHARE}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved="You can now share your screen."
-        messageAwaitingApproval="Awaiting for an approval to share screen."
-        messageRevoked="You can no longer share your screen."
+        messageApproved={t('You can now share your screen.')}
+        messageAwaitingApproval={t('Awaiting for an approval to share screen.')}
+        messageRevoked={t('You can no longer share your screen.')}
       >
         <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
           <IconButton
             icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
-            title="Share screen"
+            title={t('Share screen')}
             disabled={(!isScreenSharing && isSomeoneScreenSharing) || !call}
             onClick={toggleScreenShare}
           />

@@ -1,5 +1,5 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { useToggleCallRecording } from '../../hooks/useToggleCallRecording';
@@ -13,6 +13,7 @@ export const RecordCallButton = ({
 }: RecordCallButtonProps) => {
   const call = useCall();
 
+  const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
 
@@ -28,8 +29,8 @@ export const RecordCallButton = ({
           <LoadingIndicator
             tooltip={
               isCallRecordingInProgress
-                ? 'Waiting for recording to stop... '
-                : 'Waiting for recording to start...'
+                ? t('Waiting for recording to stop...')
+                : t('Waiting for recording to start...')
             }
           />
         ) : (
@@ -38,7 +39,7 @@ export const RecordCallButton = ({
             enabled={!!call}
             disabled={!call}
             icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-            title="Record call"
+            title={t('Record call')}
             onClick={toggleCallRecording}
           />
         )}

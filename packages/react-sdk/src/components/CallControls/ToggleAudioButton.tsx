@@ -64,9 +64,9 @@ export const ToggleAudioPublishingButton = (
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
         isAwaitingApproval={isAwaitingPermission}
-        messageApproved="You can now speak."
-        messageAwaitingApproval="Awaiting for an approval to speak."
-        messageRevoked="You can no longer speak."
+        messageApproved={t('You can now speak.')}
+        messageAwaitingApproval={t('Awaiting for an approval to speak.')}
+        messageRevoked={t('You can no longer speak.')}
       >
         <CompositeButton Menu={Menu} active={isAudioMute} caption={caption}>
           <IconButton
