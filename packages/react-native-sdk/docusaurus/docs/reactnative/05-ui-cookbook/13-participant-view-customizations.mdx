@@ -1,0 +1,328 @@
+---
+id: participant-view-customizations
+title: ParticipantView customizations
+---
+
+:::warning
+Write React Native Specifics
+
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
+:::
+
+[//]: # ()
+[//]: # (import ParticipantViewUIImage from '../assets/06-ui-cookbook/14-participant-view-customizations/participant-view-ui.png';)
+
+[//]: # ()
+[//]: # (In this guide, you'll learn how to customize default call layouts and how to apply custom video placeholder and UI components to the `ParticipantView` component. We recommend using the `ParticipantView` component provided by the SDK because it handles rendering your video. It also manages video quality updates, subscriptions, and visibility state when the element is not in the visible viewport. By following this guide, you'll be able to tailor the call layouts and visual elements according to your specific needs while leveraging the capabilities provided by the `ParticipantView` component.)
+
+[//]: # ()
+[//]: # (### Purpose of the `ParticipantViewUI` and `VideoPlaceholder` templates)
+
+[//]: # ()
+[//]: # (`ParticipantView` comes by default with certain participant information displayed in the "box" - such as mute states of either video or audio, quality indicator, participant's name, reactions, etc. which are displayed over the video element positioned absolutely &#40;see picture&#41;. By utilizing the `ParticipantViewUI` property, we can extend the `ParticipantView` component with custom UI elements specific to each participant. This allows us to tailor the visual representation of the participant based on our application's requirements and design.)
+
+[//]: # ()
+[//]: # (<img src={ParticipantViewUIImage} alt="ParticipantViewUI elements" />)
+
+[//]: # ()
+[//]: # (The `VideoPlaceholder` property allows us to replace the default placeholder displayed over the video element when the video is not playing. This placeholder is positioned absolutely over the video element. It provides us with the flexibility to customize the placeholder's appearance and content according to our needs.)
+
+[//]: # ()
+[//]: # (:::caution)
+
+[//]: # (Our custom `VideoPlaceholder` component should be able to accept a `style` property coming from `ParticipantView` to allow for absolute positioning.)
+
+[//]: # (:::)
+
+[//]: # ()
+[//]: # (## Customization in SDK provided layout components &#40;preferred way&#41;)
+
+[//]: # ()
+[//]: # (We highly recommend using layout components provided by the SDK as it is possible to modify the `ParticipantViewUI` in these call layouts. You can follow [this guide]&#40;../video-layout&#41; to build your own call layout.)
+
+[//]: # ()
+[//]: # (### `PaginatedGridLayout`)
+
+[//]: # ()
+[//]: # (Call layout for large calls where `ParticipantView` elements are equally sized, you have the ability to customize the `ParticipantViewUI` and `VideoPlaceholder` components using their respective properties of this component.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import {)
+
+[//]: # (  PaginatedGridLayout,)
+
+[//]: # (  StreamVideo,)
+
+[//]: # (  StreamCall,)
+
+[//]: # (  useParticipantViewContext,)
+
+[//]: # (  type VideoPlaceholderProps,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const CustomParticipantViewUI = &#40;&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="participant-name">{participant.name || participant.id}</div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomVideoPlaceholder = &#40;{ style }: VideoPlaceholderProps&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="video-placeholder" style={style}>)
+
+[//]: # (      <img src={participant.image} alt={participant.id} />)
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const App = &#40;{ client, callId }&#41; => {)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <StreamVideo client={client}>)
+
+[//]: # (      <StreamCall callId={callId}>)
+
+[//]: # (        <PaginatedGridLayout)
+
+[//]: # (          VideoPlaceholder={CustomVideoPlaceholder})
+
+[//]: # (          ParticipantViewUI={CustomParticipantViewUI})
+
+[//]: # (        />)
+
+[//]: # (      </StreamCall>)
+
+[//]: # (    </StreamVideo>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### `SpeakerLayout`)
+
+[//]: # ()
+[//]: # (The `SpeakerLayout` component allows you to tweak participant UI in the spotlight and in the scrollable bar independently.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import {)
+
+[//]: # (  SpeakerLayout,)
+
+[//]: # (  StreamVideo,)
+
+[//]: # (  StreamCall,)
+
+[//]: # (  useParticipantViewContext,)
+
+[//]: # (  type VideoPlaceholderProps,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const CustomParticipantViewUIBar = &#40;&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="bar-participant-name">)
+
+[//]: # (      {participant.name || participant.id})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomParticipantViewUISpotlight = &#40;&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="spotlight-participant-name">)
+
+[//]: # (      {participant.name || participant.id})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomVideoPlaceholder = &#40;{ style }: VideoPlaceholderProps&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="video-placeholder" style={style}>)
+
+[//]: # (      <img src={participant.image} alt={participant.id} />)
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const App = &#40;{ client, callId }&#41; => {)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <StreamVideo client={client}>)
+
+[//]: # (      <StreamCall callId={callId}>)
+
+[//]: # (        <SpeakerLayout)
+
+[//]: # (          VideoPlaceholder={CustomVideoPlaceholder})
+
+[//]: # (          ParticipantViewUIBar={CustomParticipantViewUIBar})
+
+[//]: # (          ParticipantViewUISpotlight={CustomParticipantViewUISpotlight})
+
+[//]: # (        />)
+
+[//]: # (      </StreamCall>)
+
+[//]: # (    </StreamVideo>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (## Standalone `ParticipantView` customization &#40;in custom call layouts&#41;)
+
+[//]: # ()
+[//]: # (The `ParticipantViewUI` property accepts three possible values:)
+
+[//]: # ()
+[//]: # (- `ReactElement` - find out what's considered a ReactElement in the [React documentation]&#40;https://react.dev/reference/react/isValidElement&#41;)
+
+[//]: # (- component which can access `ParticipantView` related data through `useParticipantViewContext` hook)
+
+[//]: # (- `null` if you wish to not render any UI)
+
+[//]: # ()
+[//]: # (The following example shows the utilization of the `ParticipantViewUI` prop by passing down `ReactElement`:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { type PropsWithChildren } from 'react';)
+
+[//]: # (import {)
+
+[//]: # (  type VideoPlaceholderProps,)
+
+[//]: # (  ParticipantView,)
+
+[//]: # (  useParticipants,)
+
+[//]: # (  useParticipantViewContext,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const CustomVideoPlaceholder = &#40;{ style }: VideoPlaceholderProps&#41; => {)
+
+[//]: # (  const { participant } = useParticipantViewContext&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="video-placeholder" style={style}>)
+
+[//]: # (      <img src={participant.image} alt={participant.id} />)
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomParticipantViewUI = &#40;{ children }: PropsWithChildren&#41; => {)
+
+[//]: # (  return <div className="participant-name">{children}</div>;)
+
+[//]: # (};)
+
+[//]: # ()
+[//]: # (const CustomCallLayout = &#40;&#41; => {)
+
+[//]: # (  const participants = useParticipants&#40;&#41;;)
+
+[//]: # ()
+[//]: # (  return &#40;)
+
+[//]: # (    <div className="custom-call-layout">)
+
+[//]: # (      {participants.map&#40;&#40;participant&#41; => &#40;)
+
+[//]: # (        <ParticipantView)
+
+[//]: # (          key={participant.sessionId})
+
+[//]: # (          VideoPlaceholder={CustomVideoPlaceholder})
+
+[//]: # (          ParticipantViewUI={)
+
+[//]: # (            <CustomParticipantViewUI>)
+
+[//]: # (              {participant.name || participant.id})
+
+[//]: # (            </CustomParticipantViewUI>)
+
+[//]: # (          })
+
+[//]: # (        />)
+
+[//]: # (      &#41;&#41;})
+
+[//]: # (    </div>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
