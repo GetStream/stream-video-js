@@ -2,32 +2,31 @@ import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
 import { appTheme } from '../theme';
-import { CallParticipantsViewProps } from '@stream-io/video-react-native-sdk';
 
-export type Mode = NonNullable<CallParticipantsViewProps['mode']>;
+type Layout = 'grid' | 'spotlight';
 
-const ModeSelectionItem = ({
-  mode,
+const LayoutSelectionItem = ({
+  layout,
   selectedLayout,
   setSelectedLayout,
   closeModal,
 }: {
-  mode: Mode;
-  selectedLayout: Mode;
-  setSelectedLayout: (mode: Mode) => void;
+  layout: Layout;
+  selectedLayout: Layout;
+  setSelectedLayout: (mode: Layout) => void;
   closeModal: () => void;
 }) => {
   return (
     <Pressable
       onPress={() => {
-        setSelectedLayout(mode);
+        setSelectedLayout(layout);
         closeModal();
       }}
       style={styles.modalButton}
     >
       <Text style={styles.modalText}>
-        {selectedLayout === mode ? '• ' : '  '}
-        {mode[0].toUpperCase() + mode.substring(1)}
+        {selectedLayout === layout ? '• ' : '  '}
+        {layout[0].toUpperCase() + layout.substring(1)}
       </Text>
     </Pressable>
   );
@@ -37,8 +36,8 @@ export const ParticipantsLayoutButtons = ({
   selectedLayout,
   setSelectedLayout,
 }: {
-  selectedLayout: Mode;
-  setSelectedLayout: (m: Mode) => void;
+  selectedLayout: Layout;
+  setSelectedLayout: (m: Layout) => void;
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const closeModal = () => setModalVisible(false);
@@ -56,14 +55,14 @@ export const ParticipantsLayoutButtons = ({
           onPress={() => setModalVisible(false)}
         >
           <View style={styles.modalView} onStartShouldSetResponder={() => true}>
-            <ModeSelectionItem
-              mode="grid"
+            <LayoutSelectionItem
+              layout="grid"
               selectedLayout={selectedLayout}
               setSelectedLayout={setSelectedLayout}
               closeModal={closeModal}
             />
-            <ModeSelectionItem
-              mode="spotlight"
+            <LayoutSelectionItem
+              layout="spotlight"
               selectedLayout={selectedLayout}
               setSelectedLayout={setSelectedLayout}
               closeModal={closeModal}

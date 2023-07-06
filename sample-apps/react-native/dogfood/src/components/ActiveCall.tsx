@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsView,
   CallControlsViewType,
@@ -14,9 +14,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { Mode, ParticipantsLayoutButtons } from './ParticipantLayoutButton';
+import { ParticipantsLayoutButtons } from './ParticipantLayoutButton';
 
 type ActiveCallProps = CallControlsViewType;
+
+type Layout = 'spotlight' | 'grid';
 
 export const ActiveCall = ({
   chatButton,
@@ -25,7 +27,7 @@ export const ActiveCall = ({
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
-  const [selectedLayout, setSelectedLayout] = React.useState<Mode>('grid');
+  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
 
   useEffect(() => {
     return () => {
