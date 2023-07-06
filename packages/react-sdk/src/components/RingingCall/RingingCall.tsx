@@ -7,7 +7,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../Avatar';
-import { PendingCallControls } from './PendingCallControls';
+import { RingingCallControls } from './RingingCallControls';
 
 const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
   [CallingState.JOINING]: 'Joining',
@@ -22,7 +22,7 @@ const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
   [CallingState.LEFT]: 'Left call',
 };
 
-export type PendingCallPanelProps = {
+export type RingingCallProps = {
   /**
    * Whether to include the current user in the list of members to show.
    * @default false.
@@ -36,7 +36,7 @@ export type PendingCallPanelProps = {
   totalMembersToShow?: number;
 };
 
-export const PendingCallPanel = (props: PendingCallPanelProps) => {
+export const RingingCall = (props: RingingCallProps) => {
   const { includeSelf = false, totalMembersToShow = 3 } = props;
   const call = useCall();
   const callingState = useCallCallingState();
@@ -66,7 +66,7 @@ export const PendingCallPanel = (props: PendingCallPanelProps) => {
   const callingStateLabel = CALLING_STATE_TO_LABEL[callingState];
 
   return (
-    <div className="str-video__call-panel str-video__call-panel--pending">
+    <div className="str-video__call-panel str-video__call-panel--ringing">
       <div className="str-video__call-panel__members-list">
         {membersToShow.map((user) => (
           <div key={user.id} className="str-video__call-panel__member-box">
@@ -87,7 +87,7 @@ export const PendingCallPanel = (props: PendingCallPanelProps) => {
       )}
 
       {[CallingState.RINGING, CallingState.JOINING].includes(callingState) && (
-        <PendingCallControls />
+        <RingingCallControls />
       )}
     </div>
   );

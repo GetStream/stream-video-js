@@ -1,10 +1,10 @@
 ---
-id: pending-call
-title: Pending Call
-description: Pending Call
+id: ringing-call
+title: Ringing Call
+description: Ringing Call
 ---
 
-When building an application that relies on [`ring call workflow`](../../guides/joining-and-creating-calls/#ring-call), you'll often want to build your own incoming or outgoing call panels. The React SDK already comes with a pre-built [`PendingCallPanel`](../../ui-components/call/pending-call-panel) component. However, in this article we will build a new one from scratch.
+When building an application that relies on [`ring call workflow`](../../guides/joining-and-creating-calls/#ring-call), you'll often want to build your own incoming or outgoing call panels. The React SDK already comes with a pre-built [`RingingCall`](../../ui-components/call/ringing-call) component. However, in this article we will build a new one from scratch.
 
 The component will render:
 
@@ -33,7 +33,7 @@ yarn add @stream-io/video-react-sdk
 
 In order we can start performing calls we need a `StreamVideoClient` instance connected to the Stream's server network with app credentials. For more information on how to do that, please take a look at our [authentication guide](../../guides/client-auth#setting-up-a-streamvideoclient-and-connecting-a-user).
 
-## Pending call panel implementation
+## Ringing call panel implementation
 
 The component will rely on data accessed via our utility hooks:
 
@@ -69,13 +69,13 @@ import { CallCallingStateLabel } from './CallCallingStateLabel';
 import { CallControls } from './CallControls';
 import { CallMembers } from './CallMembers';
 
-type PendingCallPanelProps = {
+type RingingCallProps = {
   showMemberCount?: number;
 };
 
-export const CustomPendingCallPanel = ({
+export const CustomRingingCall = ({
   showMemberCount = 3,
-}: PendingCallPanelProps) => {
+}: RingingCallProps) => {
   const call = useCall();
   const metadata = useCallMetadata();
   const members = useCallMembers();
@@ -114,7 +114,7 @@ export const CustomPendingCallPanel = ({
 
 #### Video preview enablement
 
-Enable the initial video in [`VideoPreview`](../../ui-components/participants/video-preview) component with `mediaDevicesProviderProps` prop on [`StreamCall`](../../ui-components/core/stream-call) component. In the snippet below, the `CallPanel` component is expected to render our `CustomPendingCallPanel`.
+Enable the initial video in [`VideoPreview`](../../ui-components/participants/video-preview) component with `mediaDevicesProviderProps` prop on [`StreamCall`](../../ui-components/core/stream-call) component. In the snippet below, the `CallPanel` component is expected to render our `CustomRingingCall`.
 
 ```tsx
 import {
@@ -126,7 +126,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { CustomActiveCallPanel } from './CustomActiveCallPanel';
-import { CustomPendingCallPanel } from './CustomPendingCallPanel';
+import { CustomRingingCall } from './CustomRingingCall';
 
 export const Video = () => {
   const calls = useCalls();
@@ -146,7 +146,7 @@ export const Video = () => {
   );
 };
 
-// custom component that renders pending as well as active call UI
+// custom component that renders ringing as well as active call UI
 const CallPanel = () => {
   const call = useCall();
   const callingState = useCallCallingState();
@@ -158,7 +158,7 @@ const CallPanel = () => {
   } else if (
     [CallingState.RINGING, CallingState.JOINING].includes(callingState)
   ) {
-    return <CustomPendingCallPanel />;
+    return <CustomRingingCall />;
   }
 
   return null;
@@ -271,7 +271,7 @@ const CallControls = () => {
   const callingState = useCallCallingState();
 
   if (!call) return null;
-  // show pending call panel components only before the call is joined
+  // show ringing call panel components only before the call is joined
   if (![CallingState.RINGING, CallingState.JOINING].includes(callingState))
     return null;
 
