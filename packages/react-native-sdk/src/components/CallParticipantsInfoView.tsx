@@ -26,7 +26,7 @@ import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
 import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
-import { Z_INDEX } from '../constants';
+import { CALL_PARTICIPANTS_INFO_VIEW_TOP_MARGIN, Z_INDEX } from '../constants';
 import { palette } from '../theme/constants';
 
 type CallParticipantInfoViewType = {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     zIndex: Z_INDEX.IN_FRONT,
     backgroundColor: theme.dark.bars,
     borderRadius: theme.rounded.md,
-    marginVertical: theme.margin.lg,
+    marginVertical: CALL_PARTICIPANTS_INFO_VIEW_TOP_MARGIN,
     marginHorizontal: theme.margin.md,
   },
   header: {

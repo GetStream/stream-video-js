@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     zIndex: Z_INDEX.IN_MIDDLE,
     overflow: 'hidden',
-    backgroundColor: theme.light.disabled,
+    backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
     alignItems: 'center',
   },

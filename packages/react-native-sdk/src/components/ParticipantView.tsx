@@ -202,6 +202,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const videoOnlyStyle = {
     borderColor: palette.grey800,
     borderWidth: 2,
+    backgroundColor: theme.light.disabled,
   };
   const unPinParticipantHandler = () => {
     call?.setParticipantPinnedAt(participant.sessionId, undefined);

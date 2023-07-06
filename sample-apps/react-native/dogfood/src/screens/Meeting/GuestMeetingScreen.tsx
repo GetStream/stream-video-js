@@ -68,6 +68,12 @@ export const GuestMeetingScreen = (props: Props) => {
     return videoClient.call(callType, callId);
   }, [callId, callType, videoClient]);
 
+  useEffect(() => {
+    call?.getOrCreate().catch((err) => {
+      console.error('Failed to get or create call', err);
+    });
+  }, [call, videoClient]);
+
   if (!videoClient || !call) {
     return null;
   }

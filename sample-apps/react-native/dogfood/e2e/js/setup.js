@@ -11,7 +11,8 @@ output.pages = {
   joinMeeting: {
     callIdInputField: 'Type your Call ID',
     startCallButton: 'Join Call',
-    logOutAvatar: 'log-out-avatar-button',
+    chooseFlowButton: 'choose-mode-button',
+    logOutButton: 'log-out-button',
     confirmSignOutButton: 'OK',
   },
   lobby: {

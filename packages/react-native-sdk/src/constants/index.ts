@@ -6,6 +6,8 @@ export const LOCAL_VIDEO_VIEW_STYLE = {
   borderRadius: theme.rounded.sm,
 };
 
+export const CALL_PARTICIPANTS_INFO_VIEW_TOP_MARGIN = 2 * theme.margin.lg;
+
 export const defaultEmojiReactions = [
   {
     type: 'reaction',

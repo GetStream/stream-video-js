@@ -3,8 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Mic, MicOff, Video, VideoSlash } from '../icons';
 import {
   useCall,
+  useCallMetadata,
   useConnectedUser,
-  useParticipantCount,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../theme';
@@ -47,8 +47,9 @@ export const LobbyView = ({ joinButton }: LobbyViewType) => {
     isCameraOnFrontFacingMode,
   } = useMediaStreamManagement();
   const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
-  const count = useParticipantCount();
   const call = useCall();
+  const callMetadata = useCallMetadata();
+  const participantsCount = callMetadata?.session?.participants.length;
 
   const MicIcon = !initialAudioEnabled ? (
     <MicOff color={theme.light.static_white} />
@@ -125,8 +126,8 @@ export const LobbyView = ({ joinButton }: LobbyViewType) => {
         <View style={styles.info}>
           <Text style={styles.infoText}>
             You are about to join a call with id {call?.id} at Stream.{' '}
-            {count
-              ? `${count}  more people are in the call now.`
+            {participantsCount !== 0
+              ? `${participantsCount} more people are in the call now.`
               : 'You are first to Join the call.'}
           </Text>
           <Pressable
@@ -144,8 +145,7 @@ export const LobbyView = ({ joinButton }: LobbyViewType) => {
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled, initialVideoEnabled } =
-    useMediaStreamManagement();
+  const { initialAudioEnabled } = useMediaStreamManagement();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
@@ -154,11 +154,6 @@ const ParticipantStatus = () => {
       {!initialAudioEnabled && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
-        </View>
-      )}
-      {!initialVideoEnabled && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <VideoSlash color={theme.light.error} />
         </View>
       )}
     </View>
