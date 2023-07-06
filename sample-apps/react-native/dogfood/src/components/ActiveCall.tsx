@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  CallContentView,
+  CallContentViewProps,
   CallControlsView,
   CallControlsViewType,
-  CallParticipantsBadge,
-  CallParticipantsView,
-  CallContentViewProps,
   CallingState,
   ParticipantsInfoBadge,
+  CallContentView,
   useCall,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
@@ -53,15 +51,14 @@ export const ActiveCall = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <CallContentView />
       <View style={[styles.icons, { top }]}>
         <ParticipantsLayoutButtons
           selectedLayout={selectedLayout}
           setSelectedLayout={setSelectedLayout}
         />
-        <CallParticipantsBadge />
+        <ParticipantsInfoBadge />
       </View>
-      <CallParticipantsView mode={selectedLayout} />
+      <CallContentView mode={selectedLayout} />
       <CallControlsView
         chatButton={chatButton}
         hangUpCallButton={hangUpCallButton}
