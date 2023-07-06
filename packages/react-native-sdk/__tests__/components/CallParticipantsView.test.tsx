@@ -158,7 +158,7 @@ describe('CallParticipantsView', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const localParticipant = within(
-      screen.getByLabelText(A11yComponents.LOCAL_PARTICIPANT),
+      screen.getByLabelText(`participant-${P_IDS.LOCAL_1}`),
     );
     const participant1 = within(
       screen.getByLabelText(`participant-${P_IDS.REMOTE_1}`),
