@@ -8,9 +8,7 @@ import {
 import { UserInfoView } from './internal/UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
-import {
-  useMediaStreamManagement,
-} from '../../providers/MediaStreamManagement';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * The props for the Accept Call button in the IncomingCallView component.
@@ -53,9 +51,9 @@ export type IncomingCallViewType = {
  * Used when the user is receiving a call.
  */
 export const IncomingCallView = ({
-                                   acceptCallButton,
-                                   rejectCallButton,
-                                 }: IncomingCallViewType) => {
+  acceptCallButton,
+  rejectCallButton,
+}: IncomingCallViewType) => {
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
 

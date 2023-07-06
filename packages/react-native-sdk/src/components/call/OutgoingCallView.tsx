@@ -7,15 +7,8 @@ import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
-import {
-  useMediaStreamManagement,
-} from '../../providers/MediaStreamManagement';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
-/**
- * An outgoing call view with the callee's avatar, name, caller's camera in background, reject and mute buttons.
- * Used after the user has initiated a call.
- */
-export const OutgoingCallView = () => {
 /**
  * The props for the Cancel Call button in the OutgoingCallView component.
  */
@@ -37,6 +30,10 @@ export type OutgoingCallViewType = {
   cancelCallHandler: CancelCallButton;
 };
 
+/**
+ * An outgoing call view with the callee's avatar, name, caller's camera in background, reject and mute buttons.
+ * Used after the user has initiated a call.
+ */
 export const OutgoingCallView = ({
   cancelCallHandler,
 }: OutgoingCallViewType) => {

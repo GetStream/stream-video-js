@@ -16,7 +16,7 @@ import {
 } from '@stream-io/video-client';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { Avatar } from '../utility/Avatar';
-import { MicOff, ScreenShare, VideoSlash } from '../../icons';
+import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
 import { ParticipantReaction } from './internal/ParticipantReaction';
