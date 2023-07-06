@@ -93,15 +93,30 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Chat integration guide
 - [x] Simulcasting- Android
 - [x] Push notification- VoIP iOS
-- [ ] Reconnection (awaiting BE)
-- [ ] Simulcasting- iOS
-- [ ] Components alignment and refactor
-- [ ] UI Component documentation
-- [ ] Pinning and spotlighting participants
+- [x] Reconnection (awaiting BE)
+- [x] Simulcasting- iOS
+- [x] Pinning and spotlighting participants
+- [ ] Components parity, alignment and refactor
+- [ ] Write docs:
+  - [ ] UI Components
+  - [ ] Tutorials
+    - [ ] Video Rooms Tutorial
+    - [ ] Audio Rooms Tutorial
+  - [ ] Core
+    - [ ] Camera & Microphone
+  - [ ] Advanced
+    - [ ] Chat Integration
+    - [ ] Internationalization
+    - [ ] Push Notification (validate)
+  - [ ] UI Cookbook
+    - [ ] Call Controls
+    - [ ] Permission requests (native)
+    - [ ] Runtime layout switching
+    - [ ] Video Layout (refactor)
+    - [ ] ParticipantView customizations
 
 ### 0.2 milestone
 - [ ] Livestream tutorial
-- [ ] Audio Rooms tutorial
 - [ ] Regular Push Notification
 - [ ] Deeplink support for video call demo (Dogfooding already implemented)
 - [ ] Speaking while muted
