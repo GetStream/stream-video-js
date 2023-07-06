@@ -1,0 +1,139 @@
+---
+id: events
+title: Events
+description: How to listen to events
+---
+
+:::warning
+Validate and add React Native Specifics
+
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
+:::
+
+:::warning
+
+- List of all WS events
+- State which events require call watching to be delivered (is it all call events except `call.created`, `call.accepted`, `call.rejected` and `call.cancelled`)
+
+:::
+
+In most cases, you can simply use the [reactive state store](../../core/call-and-participant-state) to be notified about state changes.
+However, for some advanced use cases, you might need to subscribe to the underlying WebSocket events.
+
+## Client vs call events
+
+### Client events
+
+Client events are always delivered if a user is connected to the client using the `connectUser` method.
+
+### Call events
+
+These events are related to a specific call. These events are only delivered to clients that are watching the specific call. There are 3 ways to watch a call:
+
+1. Call the `queryCalls` method with the `watch` option set to `true`:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+let client: StreamVideoClient;
+
+client.queryCalls({
+    ...
+    watch: true
+});
+```
+
+2. Join a call:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+let client: StreamVideoClient;
+
+client.call('default', 'test-call').join();
+```
+
+3. Watch a call:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+let client: StreamVideoClient;
+
+client.call('default', 'test-call').getOrCreate();
+// or
+client.call('default', 'test-call').get();
+```
+
+## Listening to client and call events
+
+You can use the `on` method of the `StreamVideoClient` instance to subscribe to client and call WebSocket events.
+
+The `on` method takes the type of the event you want to subscribe to or the 'all' keyword indicating that you want to be notified about all events.
+
+The event handler will receive an object with type [`StreamVideoEvent`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) that has a `type` attribute that tells the type of the event. The available event types are described by the [`EventTypes`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) type.
+
+The `on` method returns a method that can be called to unsubscribe from WebSocket events.
+
+Subscribing to all events:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+let client: StreamVideoClient;
+
+// Subscribe to all events
+const unsubscribe = client.on('all', (event: StreamVideoEvent) => {
+  console.log(event);
+});
+
+// Unsubscribe
+unsubscribe();
+```
+
+Subscribing to `call.created` events:
+
+```typescript
+import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+let client: StreamVideoClient;
+
+// Subscribe to all events
+const unsubscribe = client.on('call.created', (event: StreamVideoEvent) => {
+  if (event.type === 'call.created') {
+    console.log(`Call created: ${event.call_cid}`);
+  }
+});
+
+// Unsubscribe
+unsubscribe();
+```
+
+## Listening to call events
+
+You can use the `on` method of the `Call` instance to subscribe to WebSocket events belonging to a specific call.
+
+The `on` method takes the type of the event you want to subscribe to.
+
+The event handler will receive an object with type [`StreamCallEvent`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) that has a `type` attribute that tells the type of the event. The available event types are described by the [`CallEventTypes`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) type.
+
+The `on` method returns a method that can be called to unsubscribe from WebSocket events.
+
+Subscribing to `call.reaction_new` event.
+
+```typescript
+import { Call } from '@stream-io/video-react-native-sdk';
+
+let call: Call;
+
+// Subscribe to new reactions event
+const unsubscribe = call.on('call.reaction_new', (event: StreamVideoEvent) => {
+  if (event.type === 'call.reaction_new') {
+    console.log(`New reaction: ${event.reaction}`);
+  }
+});
+
+// Unsubscribe
+unsubscribe();
+```
