@@ -34,10 +34,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!client) {
-      return;
-    }
-    setCall(client.call('default', import.meta.env.VITE_STREAM_CALL_ID));
+    setCall(client?.call('default', import.meta.env.VITE_STREAM_CALL_ID));
 
     return () => {
       setCall(undefined);

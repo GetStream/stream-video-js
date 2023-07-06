@@ -38,6 +38,27 @@ export const StreamVideo = ({
   language,
   translationsOverrides,
 }: PropsWithChildren<StreamVideoProps>) => {
+  const prevClient = useRef<StreamVideoClient | undefined>(undefined);
+
+  useEffect(() => {
+    // Clean up any user connection the prev client might had
+    console.log('disconnect user');
+    prevClient.current?.disconnectUser().catch((error) => {
+      console.error(`Failed to disconnect`, error);
+      throw error;
+    });
+
+    prevClient.current = client;
+
+    return () => {
+      // Clean up any user connection the client might had
+      client?.disconnectUser().catch((error) => {
+        console.error(`Failed to disconnect`, error);
+        throw error;
+      });
+    };
+  }, [client]);
+
   if (!client) {
     return null;
   }
