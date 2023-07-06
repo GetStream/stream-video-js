@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
 import { appTheme } from '../theme';
+import { CallParticipantsViewProps } from '@stream-io/video-react-native-sdk';
 
-type Layout = 'grid' | 'spotlight';
+type Layout = CallParticipantsViewProps['mode'];
 
 const LayoutSelectionItem = ({
   layout,
@@ -16,6 +17,10 @@ const LayoutSelectionItem = ({
   setSelectedLayout: (mode: Layout) => void;
   closeModal: () => void;
 }) => {
+  if (!layout) {
+    return null;
+  }
+
   return (
     <Pressable
       onPress={() => {

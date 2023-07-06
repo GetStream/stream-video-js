@@ -4,6 +4,7 @@ import {
   CallControlsViewType,
   CallParticipantsBadge,
   CallParticipantsView,
+  CallParticipantsViewProps,
   CallingState,
   useCall,
   useIncallManager,
@@ -18,7 +19,7 @@ import { ParticipantsLayoutButtons } from './ParticipantLayoutButton';
 
 type ActiveCallProps = CallControlsViewType;
 
-type Layout = 'spotlight' | 'grid';
+type Layout = CallParticipantsViewProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
