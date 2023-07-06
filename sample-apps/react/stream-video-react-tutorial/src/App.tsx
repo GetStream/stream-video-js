@@ -4,42 +4,42 @@ import {
   StreamCall,
   StreamTheme,
   StreamVideo,
-  StreamVideoClient,
   PaginatedGridLayout,
   CallControls,
 } from '@stream-io/video-react-sdk';
 
 import './style.css';
+import { useCreateStreamVideoClient } from './useCreateStreamVideoClient';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
-    const user = {
-      id: import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-
-    return new StreamVideoClient({
-      apiKey: import.meta.env.VITE_STREAM_API_KEY,
-      user,
-      token,
-    });
+  const client = useCreateStreamVideoClient({
+    apiKey: import.meta.env.VITE_STREAM_API_KEY,
+    tokenOrProvider: import.meta.env.VITE_STREAM_USER_TOKEN,
+    user: { id: import.meta.env.VITE_STREAM_USER_ID },
   });
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+  const [call, setCall] = useState<Call>();
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      call?.leave();
+      setCall(undefined);
+    };
+  }, [client]);
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
-      </StreamCall>
+      {call && (
+        <StreamCall call={call}>
+          <StreamTheme className="video__call">
+            <UI />
+          </StreamTheme>
+        </StreamCall>
+      )}
     </StreamVideo>
   );
 }

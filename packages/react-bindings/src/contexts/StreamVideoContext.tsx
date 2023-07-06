@@ -45,10 +45,9 @@ export const StreamVideo = ({
         .catch((error) =>
           console.error('Failed to establish connection', error),
         );
+
+      prevClient.current = client;
     }
-
-    prevClient.current = client;
-
     return () => {
       prevClient.current
         ?.disconnectUser()
