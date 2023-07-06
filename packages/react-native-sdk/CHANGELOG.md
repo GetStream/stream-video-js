@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.249](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.248...@stream-io/video-react-native-sdk-0.0.1-alpha.249) (2023-07-06)
+
+
+### Features
+
+* **react-native:** pinning and unpinning of participants ([#754](https://github.com/GetStream/stream-video-js/issues/754)) ([03d5ade](https://github.com/GetStream/stream-video-js/commit/03d5ade9f76a52f82819aaa9ad171f0c74fe60f1))
+
+
+
 ## [0.0.1-alpha.248](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.247...@stream-io/video-react-native-sdk-0.0.1-alpha.248) (2023-07-06)
 
 
