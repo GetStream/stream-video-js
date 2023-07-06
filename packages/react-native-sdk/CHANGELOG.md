@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.250](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.249...@stream-io/video-react-native-sdk-0.0.1-alpha.250) (2023-07-06)
+
+
+### Features
+
+* **react-native:** ability to switch between spotlight and grid mode ([#756](https://github.com/GetStream/stream-video-js/issues/756)) ([97adcd9](https://github.com/GetStream/stream-video-js/commit/97adcd9efd3c7cb9078d29f70a0a62e13ba70806))
+
+
+
 ## [0.0.1-alpha.249](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.248...@stream-io/video-react-native-sdk-0.0.1-alpha.249) (2023-07-06)
 
 
