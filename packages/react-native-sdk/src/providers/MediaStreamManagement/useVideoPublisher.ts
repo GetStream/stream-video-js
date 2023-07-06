@@ -57,6 +57,19 @@ export const useVideoPublisher = ({
     }
   }, [call, videoDeviceId]);
 
+  const lastVideoDeviceId = useRef(videoDeviceId);
+  useEffect(() => {
+    if (
+      callingState === CallingState.JOINED &&
+      videoDeviceId !== lastVideoDeviceId.current
+    ) {
+      lastVideoDeviceId.current = videoDeviceId;
+      publishVideoStream().catch((e) => {
+        console.error('Failed to publish video stream', e);
+      });
+    }
+  }, [callingState, publishVideoStream, videoDeviceId]);
+
   const initialPublishRun = useRef(false);
 
   /*
