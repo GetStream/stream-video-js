@@ -4,20 +4,6 @@ import { SfuEvent } from '../gen/video/sfu/event/events';
 import { OwnCapability } from '../gen/coordinator';
 
 /**
- * Event handler that watches for `call.permission_request` events
- * Updates the state store using the `callPermissionRequest$` stream
- */
-export const watchCallPermissionRequest = (state: CallState) => {
-  return function onCallPermissionRequest(event: StreamVideoEvent) {
-    if (event.type !== 'call.permission_request') return;
-    const { localParticipant } = state;
-    if (event.user.id !== localParticipant?.userId) {
-      state.setCallPermissionRequest(event);
-    }
-  };
-};
-
-/**
  * Event handler that watches for `call.permissions_updated` events
  */
 export const watchCallPermissionsUpdated = (state: CallState) => {

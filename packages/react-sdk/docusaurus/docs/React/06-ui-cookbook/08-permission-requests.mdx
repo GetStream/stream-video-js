@@ -158,21 +158,32 @@ For readability, the code snippet only contains the `PermissionRequestNotificati
 ```tsx
 const PermissionRequestNotifications = () => {
   const call = useCall();
-  const permissionRequest = useCallPermissionRequest();
+  const localParticipant = useLocalParticipant();
+  const canUpdateCallPermissions = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
   const [permissionRequests, setPermissionRequests] = useState([]);
 
   useEffect(() => {
-    if (!permissionRequest) {
-      return;
-    }
-    setPermissionRequests((requests) => [...requests, permissionRequest]);
-  }, [permissionRequest]);
+    if (!call || !canUpdateCallPermissions) return;
 
-  if (
-    !call ||
-    permissionRequests.length === 0 ||
-    !call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)
-  ) {
+    const unsubscribe = call.on(
+      'call.permission_request',
+      (event: StreamVideoEvent) => {
+        // ignore own requests
+        if (event.user.id !== localParticipant?.userId) {
+          setPermissionRequests((requests) =>
+            [...requests, event as PermissionRequestEvent],
+          );
+        }
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [call, canUpdateCallPermissions, localParticipant]);
+
+  if (!call || permissionRequests.length === 0) {
     return null;
   }
 
@@ -190,8 +201,8 @@ const PermissionRequestNotifications = () => {
       {permissionRequests.map((request) => (
         <div>
           New request from {request.user.id} to publish {request.permissions}
-          <button onClick={() => answerRequest('accept')}>Accept</button>
-          <button onClick={() => answerRequest('reject')}>Reject</button>
+          <button onClick={() => answerRequest('accept', request)}>Accept</button>
+          <button onClick={() => answerRequest('reject', request)}>Reject</button>
         </div>
       ))}
     </div>
@@ -202,7 +213,7 @@ const PermissionRequestNotifications = () => {
 Let's unpack the above code snippet:
 
 - We only show the permission requests to users that have the necessary capability to accept/reject: `call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)`
-- We use the `useCallPermissionRequest` hook to be notified about permission requests
+- We subscribe to listen to `'call.permission_request'` WS event to update the list of requests
 - A permission request can be accepted with the `grantPermissions` method of the `Call` instance
 - A permission request can be rejected with the `revokePermissions` method of the `Call` instance. This method can also be used to revoke permissions later in the call.
 
@@ -212,14 +223,16 @@ Here is the full example:
 
 ```tsx
 import {
-  StreamVideo,
-  StreamCall,
-  CallParticipantsView,
-  useCall,
-  StreamTheme,
-  OwnCapability,
-  useCallPermissionRequest,
   CallControls,
+  CallParticipantsView,
+  OwnCapability,
+  PermissionRequestEvent,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  StreamVideoEvent,
+  useCall,
+  useLocalParticipant,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -301,21 +314,32 @@ const PermissionRequests = () => {
 
 const PermissionRequestNotifications = () => {
   const call = useCall();
-  const permissionRequest = useCallPermissionRequest();
+  const localParticipant = useLocalParticipant();
+  const canUpdateCallPermissions = useHasPermissions(
+    OwnCapability.UPDATE_CALL_PERMISSIONS,
+  );
   const [permissionRequests, setPermissionRequests] = useState([]);
 
   useEffect(() => {
-    if (!permissionRequest) {
-      return;
-    }
-    setPermissionRequests((requests) => [...requests, permissionRequest]);
-  }, [permissionRequest]);
+    if (!call || !canUpdateCallPermissions) return;
 
-  if (
-    !call ||
-    permissionRequests.length === 0 ||
-    !call.hasPermission(OwnCapability.UPDATE_CALL_PERMISSIONS)
-  ) {
+    const unsubscribe = call.on(
+      'call.permission_request',
+      (event: StreamVideoEvent) => {
+        // ignore own requests
+        if (event.user.id !== localParticipant?.userId) {
+          setPermissionRequests((requests) =>
+            [...requests, event as PermissionRequestEvent],
+          );
+        }
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [call, canUpdateCallPermissions, localParticipant]);
+
+  if (!call || permissionRequests.length === 0) {
     return null;
   }
 
@@ -333,8 +357,8 @@ const PermissionRequestNotifications = () => {
       {permissionRequests.map((request) => (
         <div>
           New request from {request.user.id} to publish {request.permissions}
-          <button onClick={() => answerRequest('accept')}>Accept</button>
-          <button onClick={() => answerRequest('reject')}>Reject</button>
+          <button onClick={() => answerRequest('accept', request)}>Accept</button>
+          <button onClick={() => answerRequest('reject', request)}>Reject</button>
         </div>
       ))}
     </div>

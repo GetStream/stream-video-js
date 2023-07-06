@@ -1,5 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
 import {
   SfuModels,
@@ -192,6 +199,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     borderColor: palette.grey800,
     borderWidth: 2,
   };
+  const unPinParticipantHandler = () => {
+    call?.setParticipantPinnedAt(participant.sessionId, undefined);
+  };
 
   const participantLabel = participant.name || participant.userId;
 
@@ -243,6 +253,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
               <View style={[styles.svgContainerStyle, theme.icon.xs]}>
                 <VideoSlash color={theme.light.error} />
               </View>
+            )}
+            {participant.pinnedAt && (
+              <Pressable
+                style={[styles.svgContainerStyle, theme.icon.xs]}
+                onPress={unPinParticipantHandler}
+              >
+                <PinVertical color={theme.light.static_white} />
+              </Pressable>
             )}
           </View>
         )}

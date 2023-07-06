@@ -63,9 +63,3 @@ buck-out/
 # Ruby / CocoaPods
 /ios/Pods/
 /vendor/bundle/
-
-# Ignore generated documentation. It can always be regenerated
-*.gen.mdx
-docusaurus/docs/reactnative/04-call-engine/
-docusaurus/docs/reactnative/03-ui/**/*.md
-docusaurus/docs/reactnative/SDKSpecific.jsx

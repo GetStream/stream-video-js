@@ -2,45 +2,62 @@ import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import {
-  useCall,
-  useCallCallingState,
   useCallMembers,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './internal/UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
-import { CallingState } from '@stream-io/video-client';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import {
+  useMediaStreamManagement,
+} from '../../providers/MediaStreamManagement';
+
+/**
+ * The props for the Accept Call button in the IncomingCallView component.
+ */
+type AcceptCallButton = {
+  /**
+   * Handler to be called when the accept call button is pressed.
+   * @returns void
+   */
+  onPressHandler: () => void;
+};
+
+/**
+ * The props for the Reject Call button in the IncomingCallView component.
+ */
+type RejectCallButton = {
+  /**
+   * Handler to be called when the reject call button is pressed.
+   * @returns void
+   */
+  onPressHandler: () => void;
+};
+
+/**
+ * Props for the IncomingCallView Component.
+ */
+export type IncomingCallViewType = {
+  /**
+   * Accept Call Button Props to be passed as an object
+   */
+  acceptCallButton: AcceptCallButton;
+  /**
+   * Reject Call Button Props to be passed as an object
+   */
+  rejectCallButton: RejectCallButton;
+};
 
 /**
  * An incoming call view with the caller's avatar, name and accept/reject buttons.
  * Used when the user is receiving a call.
  */
-export const IncomingCallView = () => {
+export const IncomingCallView = ({
+                                   acceptCallButton,
+                                   rejectCallButton,
+                                 }: IncomingCallViewType) => {
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
-  const call = useCall();
-  const callingState = useCallCallingState();
-
-  const answerCallHandler = async () => {
-    try {
-      await call?.join();
-    } catch (error) {
-      console.log('Error joining Call', error);
-    }
-  };
-
-  const rejectCallHandler = async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave({ reject: true });
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-  };
 
   return (
     <Background>
@@ -51,7 +68,7 @@ export const IncomingCallView = () => {
 
       <View style={styles.buttonGroup}>
         <CallControlsButton
-          onPress={rejectCallHandler}
+          onPress={rejectCallButton.onPressHandler}
           color={theme.light.error}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
@@ -75,7 +92,7 @@ export const IncomingCallView = () => {
           )}
         </CallControlsButton>
         <CallControlsButton
-          onPress={answerCallHandler}
+          onPress={acceptCallButton.onPressHandler}
           color={theme.light.info}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}

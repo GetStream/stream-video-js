@@ -7,7 +7,6 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
-  useHasPermissions,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -163,27 +162,19 @@ export const ParticipantsInfoListView = ({
   );
 };
 
-type ParticipantInfoItemType = {
+type ParticipantInfoType = {
   participant: StreamVideoParticipant;
   setSelectedParticipant: React.Dispatch<
     React.SetStateAction<StreamVideoParticipant | undefined>
   >;
 };
 
-const ParticipantInfoItem = (props: ParticipantInfoItemType) => {
+const ParticipantInfoItem = (props: ParticipantInfoType) => {
   const { participant, setSelectedParticipant } = props;
   const connectedUser = useConnectedUser();
   const participantIsLocalParticipant =
     participant.userId === connectedUser?.id;
-  const userHasMuteUsersCapability = useHasPermissions(
-    OwnCapability.MUTE_USERS,
-  );
-  const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
-  );
-  const userHasBlockUserCapability = useHasPermissions(
-    OwnCapability.BLOCK_USERS,
-  );
+
   const optionsOpenHandler = useCallback(() => {
     if (!participantIsLocalParticipant) {
       setSelectedParticipant(participant);
@@ -199,17 +190,9 @@ const ParticipantInfoItem = (props: ParticipantInfoItemType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
-  const isParticipantItemPressable =
-    userHasBlockUserCapability ||
-    userHasMuteUsersCapability ||
-    userHasUpdateCallPermissionsCapability;
 
   return (
-    <Pressable
-      style={styles.participant}
-      onPress={optionsOpenHandler}
-      disabled={!isParticipantItemPressable}
-    >
+    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
@@ -233,17 +216,9 @@ const ParticipantInfoItem = (props: ParticipantInfoItemType) => {
           </View>
         )}
         {!participantIsLocalParticipant && (
-          <Restricted
-            requiredGrants={[
-              OwnCapability.MUTE_USERS,
-              OwnCapability.UPDATE_CALL_PERMISSIONS,
-              OwnCapability.BLOCK_USERS,
-            ]}
-          >
-            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-              <ArrowRight color={theme.dark.text_high_emphasis} />
-            </View>
-          </Restricted>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <ArrowRight color={theme.dark.text_high_emphasis} />
+          </View>
         )}
       </View>
     </Pressable>

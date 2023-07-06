@@ -7,6 +7,7 @@ import {
   Cross,
   Mic,
   MicOff,
+  Pin,
   ScreenShare,
   Video,
   VideoDisabled,
@@ -81,6 +82,13 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
 
   const blockUser = async () => {
     await call?.blockUser(participant.userId);
+  };
+
+  const toggleParticipantPinnedAt = () => {
+    call?.setParticipantPinnedAt(
+      participant.sessionId,
+      participant.pinnedAt ? undefined : Date.now(),
+    );
   };
 
   const participantPublishesVideo = participant.publishedTracks.includes(
@@ -163,7 +171,14 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
         ]
       : [];
 
+  const pinParticipant: CallParticipantOptionType | null = {
+    icon: <Pin color={theme.dark.text_high_emphasis} />,
+    title: participant.pinnedAt ? 'Unpin' : 'Pin',
+    onPressHandler: toggleParticipantPinnedAt,
+  };
+
   const options: (CallParticipantOptionType | null)[] = [
+    pinParticipant,
     ...blockCapabilities,
     ...muteUserCapabilities,
     ...updateCallPermissionsCapabilities,
