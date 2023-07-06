@@ -17,21 +17,21 @@ export const Signal: FC<Props> = ({ className }) => {
     >
       <path
         d="M12 16L12 11"
-        stroke="#006CFF"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M7 16L7 14"
-        stroke="#006CFF"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M17 16L17 8"
-        stroke="#006CFF"
+        stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

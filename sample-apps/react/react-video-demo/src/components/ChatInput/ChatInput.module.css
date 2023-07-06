@@ -48,6 +48,10 @@
   resize: none;
 }
 
+.input textarea:focus {
+  outline: none;
+}
+
 .input.uploads textarea:focus {
   @apply outline-none;
 }

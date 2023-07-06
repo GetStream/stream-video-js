@@ -5,6 +5,7 @@ type URLCredentials = {
   user_id?: string;
   token?: string;
   api_key?: string;
+  qr?: string;
 };
 
 export const getURLCredentials = (): URLCredentials => {
