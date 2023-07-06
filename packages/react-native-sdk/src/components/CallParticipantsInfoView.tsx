@@ -7,7 +7,6 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
-  useHasPermissions,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -42,15 +41,7 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const connectedUser = useConnectedUser();
   const participantIsLocalParticipant =
     participant.userId === connectedUser?.id;
-  const userHasMuteUsersCapability = useHasPermissions(
-    OwnCapability.MUTE_USERS,
-  );
-  const userHasUpdateCallPermissionsCapability = useHasPermissions(
-    OwnCapability.UPDATE_CALL_PERMISSIONS,
-  );
-  const userHasBlockUserCapability = useHasPermissions(
-    OwnCapability.BLOCK_USERS,
-  );
+
   const optionsOpenHandler = useCallback(() => {
     if (!participantIsLocalParticipant) {
       setSelectedParticipant(participant);
@@ -66,17 +57,9 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
   const isScreenSharing = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
-  const isParticipantItemPressable =
-    userHasBlockUserCapability ||
-    userHasMuteUsersCapability ||
-    userHasUpdateCallPermissionsCapability;
 
   return (
-    <Pressable
-      style={styles.participant}
-      onPress={optionsOpenHandler}
-      disabled={!isParticipantItemPressable}
-    >
+    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <Avatar radius={theme.avatar.xs} participant={participant} />
 
       <Text style={styles.name}>
@@ -100,17 +83,9 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
           </View>
         )}
         {!participantIsLocalParticipant && (
-          <Restricted
-            requiredGrants={[
-              OwnCapability.MUTE_USERS,
-              OwnCapability.UPDATE_CALL_PERMISSIONS,
-              OwnCapability.BLOCK_USERS,
-            ]}
-          >
-            <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-              <ArrowRight color={theme.dark.text_high_emphasis} />
-            </View>
-          </Restricted>
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <ArrowRight color={theme.dark.text_high_emphasis} />
+          </View>
         )}
       </View>
     </Pressable>
