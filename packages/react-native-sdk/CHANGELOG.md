@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.248](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.247...@stream-io/video-react-native-sdk-0.0.1-alpha.248) (2023-07-06)
+
+
+### Features
+
+* Remove ringing flag from call client ([#755](https://github.com/GetStream/stream-video-js/issues/755)) ([b78c605](https://github.com/GetStream/stream-video-js/commit/b78c60500e06b39fb4dce623bde6f7b10acdd8c1)), closes [/github.com/GetStream/stream-video-android/blob/develop/stream-video-android-core/src/main/kotlin/io/getstream/video/android/core/notifications/internal/VideoPushDelegate.kt#L82](https://github.com//github.com/GetStream/stream-video-android/blob/develop/stream-video-android-core/src/main/kotlin/io/getstream/video/android/core/notifications/internal/VideoPushDelegate.kt/issues/L82)
+
+
+
+## [0.0.1-alpha.247](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.246...@stream-io/video-react-native-sdk-0.0.1-alpha.247) (2023-07-05)
+
+
+
+## [0.0.1-alpha.246](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.245...@stream-io/video-react-native-sdk-0.0.1-alpha.246) (2023-07-05)
+
+
+
+## [0.0.1-alpha.245](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.244...@stream-io/video-react-native-sdk-0.0.1-alpha.245) (2023-07-05)
+
+
+
 ## [0.0.1-alpha.244](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.243...@stream-io/video-react-native-sdk-0.0.1-alpha.244) (2023-07-05)
 
 

@@ -1,4 +1,4 @@
-import { StreamVideoClient } from '@stream-io/video-client';
+import { Call, StreamVideoClient } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -39,21 +39,12 @@ export const processCallFromPush = async (
   call_cid: string,
   action: 'accept' | 'decline' | 'pressed',
 ) => {
-  // if the we find the call and is already ringing, we don't need create a new call
-  // as client would have received the call.ring state because the app had WS alive when receiving push notifications
-  let callFromPush = client.readOnlyStateStore.calls.find(
-    (call) => call.cid === call_cid && call.ringing,
-  );
-  if (!callFromPush) {
-    // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-    const [callType, callId] = call_cid.split(':');
-    callFromPush = client.call(callType, callId, true);
-    try {
-      await callFromPush.get();
-    } catch (e) {
-      console.log('failed to fetch call from push notification', e);
-      return;
-    }
+  let callFromPush: Call;
+  try {
+    callFromPush = await client.onRingingCall(call_cid);
+  } catch (e) {
+    console.log('failed to fetch call from push notification', e);
+    return;
   }
   // note: when action was pressed, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {

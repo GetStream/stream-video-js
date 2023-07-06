@@ -1,4 +1,4 @@
-export * from './useCallCycleEffect';
+export * from './useCallControls';
 export * from './useLocalVideoStream';
 export * from './useIncallManager';
 export * from './usePermissionRequest';

@@ -1,0 +1,281 @@
+---
+title: Participant sorting
+description: Overview of the Sorting API used to sort call participants.
+---
+
+The Participant Sorting API is a powerful tool built on top of the internal `Comparator<T>` API,
+providing developers with the ability to sort participants in various scenarios. This API offers common comparators and built-in presets that can be easily customized or used out-of-the-box, making participant sorting a seamless experience.
+
+When dealing with real-time communication applications, it is often necessary to sort participants based on specific criteria.
+Whether you need to adjust the sorting in existing view layouts or define new sorting presets, the **Participant Sorting API** is here to simplify the process.
+
+By utilizing the `Comparator<T>` API and the provided built-in comparators and presets, developers can effortlessly sort participants according to their requirements.
+
+## `Comparator<T>` API overview
+
+The `Comparator<T>` API is the foundation upon which the Participant Sorting API is built.
+It defines a function type `Comparator<T>` that takes two arguments `a` and `b` of type `T` and returns `-1`, `0`, or `1` based on the comparison between the two items.
+This API allows developers to create custom comparators tailored to their specific needs.
+
+Ultimately, this API can be used in conjunction with the `Array.sort` method to sort any type of data.
+
+```ts
+import {
+  Comparator,
+  combineComparators,
+  conditional,
+  descending,
+} from '@stream-io/video-react-native-sdk';
+
+type Participant = {
+  id: number;
+  name: string;
+};
+
+// comparator that sorts by name in ascending order
+const byName: Comparator<Participant> = (a, b) => {
+  if (a.name < b.name) return -1;
+  if (a.name > b.name) return 1;
+  return 0;
+};
+
+// comparator that sorts by id in ascending order
+const byId: Comparator<Participant> = (a, b) => {
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+};
+
+// comparator that sorts by age in ascending order
+const byAge: Comparator<Participant> = (a, b) => {
+  if (a.age < b.age) return -1;
+  if (a.age > b.age) return 1;
+  return 0;
+};
+
+// creates a new comparator that sorts by name in descending order
+const byNameDescending: Comparator<Participant> = descending(byName);
+
+// `conditional` creates a new comparator that applies the provided comparator only
+// if the provided predicate returns `true`. The `predicate` itself, takes the two arguments
+// and returns a boolean value.
+const byAgeIfEnabled: Comparator<Participant> = conditional(
+  (a, b) => opts.isSortByAgeEnabled,
+)(descending(byAge));
+
+// combineComparator creates a new Comparator<T> that combines the provided comparators in one.
+// this comparator will sort by name in descending order, by age if enabled,
+// and then by id in ascending order
+const sortingCriteria = combineComparators(
+  byNameDescending,
+  byAgeIfEnabled,
+  byId,
+);
+
+// participants array
+const sorted = [p1, p2, p3].sort(sortingCriteria);
+```
+
+:::tip
+The `Comparator<T>` API is quite generic and can be used to sort any type of data.
+Works great in pair with the [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) API.
+:::
+
+## Built-in common comparators
+
+The Participant Sorting API provides a set of common comparators that cover common sorting scenarios.
+These comparators are specifically designed for participant sorting and offer convenience when defining sorting criteria.
+
+The built-in common comparators include:
+
+- `dominantSpeaker`: Sorts participants based on their dominance in the call.
+- `speaking`: Sorts participants based on whether they are currently speaking.
+- `screenSharing`: Sorts participants based on whether they are currently screen sharing.
+- `publishingVideo`: Sorts participants based on whether they are currently publishing video.
+- `publishingAudio`: Sorts participants based on whether they are currently publishing audio.
+- `pinned`: Sorts participants based on whether they are pinned in the user interface.
+- `reactionType(type)`: Sorts participants based on the type of reaction they have.
+- `role(...roles)`: Sorts participants based on their assigned role.
+- `name`: Sorts participants based on their names.
+
+All of these comparators are available in the `@stream-io/video-react-native-sdk` package and can be imported as follows:
+
+```ts
+import {
+  dominantSpeaker,
+  speaking,
+  screenSharing,
+  publishingVideo,
+  publishingAudio,
+  pinned,
+  reactionType,
+  role,
+  name,
+} from '@stream-io/video-react-native-sdk';
+
+// ...
+```
+
+These built-in comparators serve as a starting point for sorting participants
+and can be used individually or combined to create more complex sorting criteria.
+
+## Sorting customization on the call level
+
+The Participant Sorting API allows dynamic sorting customization during runtime.
+Developers can utilize the `call.setSortParticipantsBy(comparator)` API to change the sorting criteria based on user interactions or application logic.
+This flexibility empowers developers to provide sorting controls within their application, giving users the ability to customize participant sorting according to their preferences.
+
+Lets take a look at an example:
+
+```ts
+import {
+  useCall,
+  combineComparators,
+  dominantSpeaker,
+  publishingVideo,
+  publishingAudio,
+  screensharing,
+  speaking,
+  reactionType,
+  pinnned,
+} from '@stream-io/video-react-native-sdk';
+
+// ... boilerplate code
+
+// we take the existing call instance
+const call = useCall();
+
+// we create a new comparator that combines the built-in comparators
+// and sorts participants by the following criteria:
+const comparator = combineComparators(
+  pinned, // 1. pinned participants first
+  screenSharing, // 2. participants who are screensharing
+  dominantSpeaker, // 3. dominant speaker
+  reactionType('raised-hand'), // 4. participants with raised hand
+  speaking, // 5. participants currently speaking
+  publishingVideo, // 6. participants publishing video
+  publishingAudio, // 7. participants publishing audio
+  // 8. everyone else
+);
+
+// will apply the new sorting criteria immediately
+call.setSortParticipantsBy(comparator);
+```
+
+:::note
+In some scenarios, we might want to have special sorting criteria for a specific component in our app.
+For example, in the participant list component, we might want to sort participants by name.
+:::
+
+For this purpose, we have extended the built-in `useParticipants` hook with a `sortBy: Comparator<StreamVideoParticipant>` option parameter.
+
+```ts
+import {
+  useParticipants,
+  combineComparators,
+  name,
+} from '@stream-io/video-react-native-sdk';
+
+// this will override the call's default sorting criteria
+// and will return a list of participants sorted by name
+const participants = useParticipants({ sortBy: name });
+
+// you can also provide your custom comparator
+const myComparator = combineComparators(/* ... */);
+const participants = useParticipants({ sortBy: myComparator });
+```
+
+:::caution
+When using custom comparator in combination with the `useParticipants` hook, please make sure to provide a stable reference to the comparator.
+Otherwise, you might end up with unexpected behavior (unexpected re-renders, etc.).
+
+Our proposal is to use stateless comparators defined outside of the component's scope.
+In case you need to use a stateful comparator, please make sure to memoize it using [`React.useMemo`](https://react.dev/reference/react/useMemo) or [`React.useCallback`](https://react.dev/reference/react/useCallback) hooks.
+
+```ts
+// stateless comparator
+const myStatelessComparator = combineComparators(/* ... */);
+
+export const MyComponent = () => {
+  // component scope
+  const participants1 = useParticipants({ sortBy: myStatelessComparator });
+
+  // memoized comparator
+  const myStatefulComparator = React.useMemo(
+    () => combineComparators(/* ... */),
+    [dependency1, dependency2],
+  );
+  const participants2 = useParticipants({ sortBy: myStatefulComparator });
+
+  // ...
+};
+```
+
+:::
+
+## Built-in sorting presets
+
+To further simplify participant sorting, the Participant Sorting API offers built-in presets.
+These presets are pre-configured sorting criteria linked to specific call types, reducing the effort required to define sorting rules.
+
+The following presets are available:
+
+- `defaultSortPreset`: The default sorting preset applicable to general call scenarios.
+- `speakerLayoutSortPreset`: A preset specifically designed for the [`'default'` call type](../02-guides/05-call-types.mdx#default), optimizing participant sorting for speaker layout view.
+- `livestreamOrAudioRoomSortPreset`: A preset tailored for the [`'livestream'`](../../guides/configuring-call-types#livestream) and [`'audio_room'`](../../guides/configuring-call-types#audio-room) call types, ensuring optimal participant sorting in livestream or audio room scenarios.
+
+These presets are directly applied to the call's sorting mechanism.
+For custom call types, unless specified otherwise, our SDK would use the `defaultSortPreset` preset.
+
+All of these presets are available in the `@stream-io/video-react-native-sdk` package and can be imported as follows:
+
+```ts
+import {
+  defaultSortPreset,
+  speakerLayoutSortPreset,
+  livestreamOrAudioRoomSortPreset,
+} from '@stream-io/video-react-native-sdk';
+```
+
+:::tip
+
+For your custom call types, you can define your participant sorting presets and register them generally in the SDK.
+
+Check the next section to learn how.
+
+:::
+
+## Sorting customization on the call type
+
+Sometimes, you want to keep your UI components free from sorting logic and instead, define sorting criteria per call type.
+To do so, you can register your sorting presets for your custom call types or override the existing ones
+by using our SDKs `CallTypes` registry.
+
+```ts
+import { combineComparators, CallTypes, CallType } from '@stream-io/video-react-native-sdk';
+
+// setup your custom sorting preset
+const myCustomSortPreset = combineComparators(/* ... */);
+
+// update existing type
+CallTypes.get('default').options.sortParticipantsBy = myCustomSortPreset;
+
+// register new type
+CallTypes.register(new CallType('my-custom-type', {
+  options: {
+    sortParticipantsBy: myCustomSortPreset,
+  },
+});
+```
+
+## Disabling participant sorting
+
+In some cases, you may want to disable participant sorting altogether.
+This can be achieved by setting our special `noopComparator` as the sorting criteria of the Call or the CallType.
+
+```ts
+import { noopComparator, useCall } from '@stream-io/video-react-native-sdk';
+
+const call = useCall();
+call.setSortParticipantsBy(noopComparator());
+```
