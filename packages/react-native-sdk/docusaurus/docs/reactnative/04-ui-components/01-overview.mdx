@@ -1,0 +1,174 @@
+---
+title: Overview
+description: Overview of the UI components
+---
+
+:::warning
+Write React Native Specifics
+
+This documentation is for the beta version of the Stream Video SDK.
+The SDK is subject to change.
+:::
+
+[//]: # (There are different ways to use the React Video SDK to build out UI. It comes with powerful built-in components ready for use.)
+
+[//]: # (In addition, it allows for styling and custom theming options with custom CSS.)
+
+[//]: # ()
+[//]: # (For custom use cases it is also possible to create your own components to fully tailor the SDK to your needs.)
+
+[//]: # (:::note)
+
+[//]: # ()
+[//]: # (Please note that we suggest not to override a few, core components as those contain complex, low-level logic related to performance, the list of these components can be found in the UI Components/Core section.)
+
+[//]: # ()
+[//]: # (:::)
+
+[//]: # ()
+[//]: # (This page guides you through all the options you have with increasing levels of customization.)
+
+[//]: # ()
+[//]: # (## Using pre-built components)
+
+[//]: # ()
+[//]: # (You can create a fully functioning video calling application with just a few lines of code using pre-built components:)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import '@stream-io/video-react-sdk/dist/css/styles.css';)
+
+[//]: # (import {)
+
+[//]: # (  CallControls,)
+
+[//]: # (  StreamCall,)
+
+[//]: # (  StreamTheme,)
+
+[//]: # (  StreamVideo,)
+
+[//]: # (  SpeakerLayout,)
+
+[//]: # (} from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const MyApp = &#40;&#41; => {)
+
+[//]: # (  // Assuming you have the 'client' and 'call' instance created)
+
+[//]: # (  return &#40;)
+
+[//]: # (    <StreamVideo client={client}>)
+
+[//]: # (      <StreamTheme>)
+
+[//]: # (        <StreamCall call={call}>)
+
+[//]: # (          <SpeakerLayout />)
+
+[//]: # (          <CallControls />)
+
+[//]: # (        </StreamCall>)
+
+[//]: # (      </StreamTheme>)
+
+[//]: # (    </StreamVideo>)
+
+[//]: # (  &#41;;)
+
+[//]: # (};)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (## Theming with CSS)
+
+[//]: # ()
+[//]: # (If you only want to customize the styling of the available components, there is a wide range of CSS variables that you can override.)
+
+[//]: # (With that, you can achieve a significant amount of theming in your video product.)
+
+[//]: # ()
+[//]: # (To change them you can simply override them with your custom values.)
+
+[//]: # ()
+[//]: # (Here is an example:)
+
+[//]: # ()
+[//]: # (```scss)
+
+[//]: # (.str-video {)
+
+[//]: # (  // The primary color that is used)
+
+[//]: # (  --str-video__primary-color: green;)
+
+[//]: # (})
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (Check out the [theming guide]&#40;../../ui-components/video-theme&#41; for more details.)
+
+[//]: # ()
+[//]: # (## Custom components)
+
+[//]: # ()
+[//]: # (You can create custom components from scratch or you can use built-in components as building blocks.)
+
+[//]: # ()
+[//]: # (The [Call & Participant State guide]&#40;../../guides/call-and-participant-state&#41; describes how you can access state variables in your custom components.)
+
+[//]: # ()
+[//]: # (Here is an example of how you can use the `useParticipants&#40;&#41;` hook to get all call participants and render them in your application.)
+
+[//]: # ()
+[//]: # (```tsx)
+
+[//]: # (import { useParticipants } from '@stream-io/video-react-sdk';)
+
+[//]: # ()
+[//]: # (const ParticipantList = &#40;&#41; => {)
+
+[//]: # (    const participants = useParticipants&#40;&#41;;)
+
+[//]: # ()
+[//]: # (    return &#40;)
+
+[//]: # (        <>)
+
+[//]: # (            <h2>Participants</h2>)
+
+[//]: # (            { participants.map&#40;&#40;participant&#41; => &#40;)
+
+[//]: # (                <div key={participant.userId}>)
+
+[//]: # (                    <img src={participant.image} alt={`Profile picture of ${participant.name}.`})
+
+[//]: # (                    <span>{participant.name}</span>)
+
+[//]: # (                </div>)
+
+[//]: # (            &#41;&#41;})
+
+[//]: # (        </>)
+
+[//]: # (    &#41;)
+
+[//]: # (})
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (:::tip)
+
+[//]: # (The [UI Cookbook section]&#40;../06-ui-cookbook/01-overview.mdx&#41; contains tutorials that cover common customization examples.)
+
+[//]: # (:::)
+
+[//]: # ()
+[//]: # (Combining all of the possibilities that you have gives you the freedom to use the performant pre-built components when they suit your needs.)
+
+[//]: # (At the same time if you have more customized use cases you can fully tailor the appearance to your needs.)

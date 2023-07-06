@@ -60,23 +60,34 @@ export const useAudioPublisher = ({
     }
   }, [audioDeviceId, call]);
 
+  const lastAudioDeviceId = useRef(audioDeviceId);
+  useEffect(() => {
+    if (
+      callingState === CallingState.JOINED &&
+      audioDeviceId !== lastAudioDeviceId.current
+    ) {
+      lastAudioDeviceId.current = audioDeviceId;
+      publishAudioStream().catch((e) => {
+        console.error('Failed to publish audio stream', e);
+      });
+    }
+  }, [audioDeviceId, callingState, publishAudioStream]);
+
   const initialPublishRun = useRef(false);
   useEffect(() => {
-    if (callingState === CallingState.JOINED) {
-      if (
-        (!initialAudioMuted && !initialPublishRun.current) ||
-        isPublishingAudio
-      ) {
-        // automatic publishing should happen only when:
-        // - joining the call from the lobby, and the audio is not muted
-        // - reconnecting to the call with the audio already published
-        publishAudioStream().catch((e) => {
-          console.error('Failed to publish audio stream', e);
-        });
-        initialPublishRun.current = true;
-      }
+    if (
+      callingState === CallingState.JOINED &&
+      !initialPublishRun.current &&
+      !initialAudioMuted
+    ) {
+      // automatic publishing should happen only when joining the call
+      // from the lobby, and the audio is not muted
+      publishAudioStream().catch((e) => {
+        console.error('Failed to publish audio stream', e);
+      });
+      initialPublishRun.current = true;
     }
-  }, [callingState, initialAudioMuted, isPublishingAudio, publishAudioStream]);
+  }, [callingState, initialAudioMuted, publishAudioStream]);
 
   useEffect(() => {
     if (!localParticipant$ || !hasBrowserPermissionAudioInput) return;

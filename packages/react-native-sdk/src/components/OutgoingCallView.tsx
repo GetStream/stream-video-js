@@ -6,33 +6,42 @@ import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../icons';
 import { VideoRenderer } from './VideoRenderer';
 import { useLocalVideoStream } from '../hooks/useLocalVideoStream';
 import { theme } from '../theme';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
 import { Z_INDEX } from '../constants';
 import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
-export const OutgoingCallView = () => {
+/**
+ * The props for the Cancel Call button in the OutgoingCallView component.
+ */
+type CancelCallButton = {
+  /**
+   * Handler to be called when the cancel/hungup call button is pressed.
+   * @returns void
+   */
+  onPressHandler: () => void;
+};
+
+/**
+ * Props for the OutgoingCallView Component.
+ */
+export type OutgoingCallViewType = {
+  /**
+   * Cancel/Reject Call Button Props to be passed as an object
+   */
+  cancelCallHandler: CancelCallButton;
+};
+
+export const OutgoingCallView = ({
+  cancelCallHandler,
+}: OutgoingCallViewType) => {
   const {
     initialAudioEnabled,
     initialVideoEnabled,
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
   } = useMediaStreamManagement();
-  const call = useCall();
-  const callingState = useCallCallingState();
 
-  const hangupCallHandler = async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-  };
-  const muteStatusColor = (muted: boolean) => {
-    return muted ? theme.light.overlay_dark : theme.light.static_white;
+  const muteStatusColor = (status: boolean) => {
+    return status ? theme.light.overlay_dark : theme.light.static_white;
   };
 
   return (
@@ -71,9 +80,9 @@ export const OutgoingCallView = () => {
           </View>
 
           <CallControlsButton
-            onPress={hangupCallHandler}
+            onPress={cancelCallHandler.onPressHandler}
             color={theme.light.error}
-            style={[styles.button, styles.hangupButton, theme.button.lg]}
+            style={[styles.button, styles.cancelCallButton, theme.button.lg]}
             svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
           >
             <PhoneDown color={theme.light.static_white} />
@@ -128,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginBottom: theme.margin.md,
   },
-  hangupButton: {
+  cancelCallButton: {
     alignSelf: 'center',
   },
   button: {},

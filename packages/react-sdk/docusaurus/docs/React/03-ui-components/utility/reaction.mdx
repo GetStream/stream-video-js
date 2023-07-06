@@ -5,19 +5,11 @@ title: Reaction
 
 Reaction component is used to display emojis in real-time for a specified amount of time. You can utilise this functionality, for example, to notify other participants that you want to speak by "raising hand". Our default sorting algorithm will push participants with raised hand to the top of the list for better visibility. Learn more about reaction events and their customization in the [Reactions & Custom Events guide](../../../guides/reactions-and-custom-events) and see how sorting works in the [Participant Sorting guide](../../../guides/sorting-api).
 
-The SDK comes with the `defaultEmojiReactionMap` which consists of three reactions:
-
-- `:like:` (renders 👍)
-- `:raise-hand:` (renders ✋)
-- `:fireworks:`: (renders 🎉)
-
-You can extend `Reaction` component with your custom map if you need to through `emojiReactionMap` property.
-
 ![Reaction component preview](../../assets/03-ui-components/reaction.png)
 
 ## General usage
 
-Our `DefaultParticipantViewUI` already comes with the `Reaction` component built in but if you're building your custom `ParticipantViewUI` here's how you'd incorporate the `Reaction` component into your UI:
+Our `DefaultParticipantViewUI` already comes with the `Reaction` component built-in but if you're building your custom `ParticipantViewUI` here's how you'd incorporate the `Reaction` component into your UI:
 
 ```tsx
 import {
@@ -46,8 +38,6 @@ export const CustomParticipantViewUI = () => {
 };
 ```
 
-## Final steps
-
 Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [ParticipantView customizations guide](../../../ui-cookbook/participant-view-customizations).
 
 ## Props
@@ -67,3 +57,21 @@ The participant whose reaction the component should display.
 | `number` \| `undefined` |
 
 Timeout in miliseconds after which the component resets [participant reaction state](../../../guides/reactions-and-custom-events/#clearing-reactions).
+
+### empjiReactionMap
+
+| Type                     |
+| ------------------------ |
+| `Record<string, string>` |
+
+Mapping of the emoji keys (for example `:like:`) and the associated emoji (for example 👍)
+
+The SDK comes with the following default mapping:
+
+- `:like:` (renders 👍)
+- `:raise-hand:` (renders ✋)
+- `:fireworks:`: (renders 🎉)
+
+## Customization
+
+If you want to build your own reaction component, you'll have to provide your own `ParticipantViewUI` component. For more information visit the [ParticipantView customizations guide](../../../ui-cookbook/participant-view-customizations).

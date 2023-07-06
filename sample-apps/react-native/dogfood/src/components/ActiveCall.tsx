@@ -1,22 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsView,
   CallControlsViewType,
   CallParticipantsBadge,
   CallParticipantsView,
+  CallParticipantsViewProps,
   CallingState,
   useCall,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { ActiveCallHeader } from './ActiveCallHeader';
+import { ParticipantsLayoutButtons } from './ParticipantLayoutButton';
 
 type ActiveCallProps = CallControlsViewType;
+
+type Layout = CallParticipantsViewProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
@@ -25,6 +29,7 @@ export const ActiveCall = ({
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
+  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
 
   useEffect(() => {
     return () => {
@@ -48,8 +53,14 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ActiveCallHeader />
-      <CallParticipantsBadge style={[styles.iconGroup, { top }]} />
-      <CallParticipantsView />
+      <View style={[styles.icons, { top }]}>
+        <ParticipantsLayoutButtons
+          selectedLayout={selectedLayout}
+          setSelectedLayout={setSelectedLayout}
+        />
+        <CallParticipantsBadge />
+      </View>
+      <CallParticipantsView mode={selectedLayout} />
       <CallControlsView
         chatButton={chatButton}
         hangUpCallButton={hangUpCallButton}
@@ -67,10 +78,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: appTheme.colors.static_grey,
   },
-  iconGroup: {
+  icons: {
     position: 'absolute',
-    marginTop: appTheme.spacing.lg,
-    right: appTheme.spacing.sm,
+    right: 0,
+    marginTop: appTheme.spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
     zIndex: appTheme.zIndex.IN_FRONT,
   },
   callControlsWrapper: {

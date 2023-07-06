@@ -4,7 +4,7 @@ import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
 import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 
-type CallParticipantsViewProps = {
+export type CallParticipantsViewProps = {
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.

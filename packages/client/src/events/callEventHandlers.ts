@@ -14,7 +14,6 @@ import {
   watchCallMemberRemoved,
   watchCallMemberUpdated,
   watchCallMemberUpdatedPermission,
-  watchCallPermissionRequest,
   watchCallPermissionsUpdated,
   watchCallRecordingStarted,
   watchCallRecordingStopped,
@@ -51,6 +50,7 @@ type AllCallEvents = Exclude<
   | 'call.created' // handled by StreamVideoClient
   | 'call.ring' // handled by StreamVideoClient
   | 'call.notification' // not used currently
+  | 'call.permission_request' // should be handled by the SDK component
   | 'custom' // integrators should handle custom events
   | RingCallEvents // handled by registerRingingCallEventHandlers
 >;
@@ -79,7 +79,6 @@ export const registerEventHandlers = (
     'call.member_removed': watchCallMemberRemoved(state),
     'call.member_updated': watchCallMemberUpdated(state),
     'call.member_updated_permission': watchCallMemberUpdatedPermission(state),
-    'call.permission_request': watchCallPermissionRequest(state),
     'call.permissions_updated': watchCallPermissionsUpdated(state),
     'call.reaction_new': watchNewReactions(state),
     'call.recording_started': watchCallRecordingStarted(state),
@@ -98,11 +97,11 @@ export const registerEventHandlers = (
     watchConnectionQualityChanged(dispatcher, state),
     watchParticipantCountChanged(dispatcher, state),
 
-    watchParticipantJoined(dispatcher, state),
-    watchParticipantLeft(dispatcher, state),
+    call.on('participantJoined', watchParticipantJoined(state)),
+    call.on('participantLeft', watchParticipantLeft(state)),
 
-    watchTrackPublished(dispatcher, state),
-    watchTrackUnpublished(dispatcher, state),
+    call.on('trackPublished', watchTrackPublished(state)),
+    call.on('trackUnpublished', watchTrackUnpublished(state)),
 
     watchAudioLevelChanged(dispatcher, state),
     watchDominantSpeakerChanged(dispatcher, state),

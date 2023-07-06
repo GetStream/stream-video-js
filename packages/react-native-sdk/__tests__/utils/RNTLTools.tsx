@@ -1,10 +1,6 @@
 import React, { PropsWithChildren } from 'react';
 import { Call, StreamVideoClient } from '@stream-io/video-client';
-import {
-  CallCycleHandlersType,
-  CallCycleLogicsWrapper,
-  StreamVideo,
-} from '../../src/providers';
+import { StreamVideo } from '../../src/providers';
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import {
   render as rtlRender,
@@ -20,40 +16,24 @@ export interface RenderProps {
 
   options?: RenderOptions & {
     call?: Call;
-    callCycleHandlers?: CallCycleHandlersType;
   };
 }
 
 interface WrapperProps {
   client: StreamVideoClient;
   call: Call;
-  callCycleHandlers: CallCycleHandlersType;
 }
-
-const mockedCallCycleHandlers = {
-  onCallAccepted: jest.fn(),
-  onCallEnded: jest.fn(),
-  onCallRejected: jest.fn(),
-  onCallStarted: jest.fn(),
-  onCallTimeout: jest.fn(),
-  onCallError: jest.fn(),
-};
 
 export * from '@testing-library/react-native';
 
 const Wrapper = ({
   children,
   client,
-  callCycleHandlers,
   call,
 }: PropsWithChildren<WrapperProps>) => (
   <StreamVideo client={client} language={'en'}>
     <StreamCallProvider call={call}>
-      <MediaStreamManagement>
-        <CallCycleLogicsWrapper callCycleHandlers={callCycleHandlers}>
-          {children}
-        </CallCycleLogicsWrapper>
-      </MediaStreamManagement>
+      <MediaStreamManagement>{children}</MediaStreamManagement>
     </StreamCallProvider>
   </StreamVideo>
 );
@@ -61,22 +41,13 @@ const Wrapper = ({
 // that way we can wrap the component with the necessary providers
 const render = (
   component: RenderProps['component'],
-  {
-    call,
-    callCycleHandlers = mockedCallCycleHandlers,
-    ...options
-  }: RenderProps['options'] = {},
+  { call, ...options }: RenderProps['options'] = {},
 ): RenderResult => {
   const testClient = mockClientWithUser({ id: 'test-user-id' });
   const testCall = call || mockCall(testClient);
   return rtlRender(component, {
     wrapper: (props) => (
-      <Wrapper
-        {...props}
-        client={testClient}
-        call={testCall}
-        callCycleHandlers={callCycleHandlers}
-      />
+      <Wrapper {...props} client={testClient} call={testCall} />
     ),
     ...options,
   });
