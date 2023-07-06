@@ -1,5 +1,6 @@
 .root {
   @apply inline-flex items-center justify-center border-2 rounded-button font-body;
+  outline: none;
 }
 
 .container {

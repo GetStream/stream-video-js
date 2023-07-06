@@ -1,7 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-import Gleap from 'gleap';
 import * as Sentry from '@sentry/react';
 
 import './index.css';
@@ -33,10 +32,6 @@ if (
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
   });
-}
-
-if (import.meta.env.MODE === 'staging') {
-  Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 }
 
 ReactDOM.createRoot(
