@@ -34,20 +34,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    setCall(client?.call('default', import.meta.env.VITE_STREAM_CALL_ID));
-
-    return () => {
-      setCall(undefined);
-    };
-  }, [client]);
-
-  useEffect(() => {
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
     call?.join({ create: true });
+    setCall(call);
 
     return () => {
       call?.leave();
+      setCall(undefined);
     };
-  }, [call]);
+  }, [client]);
 
   return (
     <StreamVideo client={client}>
