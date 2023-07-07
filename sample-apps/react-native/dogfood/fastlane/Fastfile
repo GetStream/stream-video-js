@@ -125,12 +125,21 @@ lane :test_ios do |options|
   end
 
   Dir.chdir('..') do
+    # Record simulator screen using codec h264
     sh("xcrun simctl io #{udid} recordVideo --codec h264 --force fastlane/video.mp4 > fastlane/recording.log 2>&1 &")
+    # Record simulator log in compact style
     sh("xcrun simctl spawn #{udid} log stream --style compact > fastlane/device.log 2>&1 &")
+
     sh('maestro test e2e/test.yaml')
   ensure
     `pgrep simctl`.strip.split("\n").each { |pid| sh("kill -s INT #{pid} || true") }
-    ['device.log', 'recording.log', 'video.mp4'].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
+    sh('maestro hierarchy > fastlane/hierarchy.json || true')
+    [
+      'recording.log',
+      'hierarchy.json',
+      'device.log',
+      'video.mp4'
+    ].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
     stop_video_buddy
     stop_metro
   end
@@ -138,12 +147,14 @@ end
 
 lane :deploy_ios do
   upload_to_testflight(
+    api_key: app_store_connect_api_key,
     ipa: "#{build_dir}/app.ipa",
     groups: ['Dev Testers', 'Stream Testers'],
     changelog: 'Lots of amazing new features to test out!',
     reject_build_waiting_for_review: false,
     skip_waiting_for_build_processing: false
   )
+
   sentry_upload_dsym(
     auth_token: ENV.fetch('SENTRY_RN_AUTH_TOKEN'),
     org_slug: 'stream',
@@ -189,21 +200,31 @@ end
 lane :test_android do |options|
   start_video_buddy
 
-  wait_for_android_emulator_idle
+  wait_android_emu_idle if is_ci
 
   emulator_status = -> { sh('adb devices').include?('emulator') }
 
   Dir.chdir('..') do
     sh('adb logcat -c || true') if emulator_status.call
     sh("adb install #{build_dir}/app.apk") unless options[:skip_install]
+
+    # Record emulator screen using codec h264
+    # adb limits the recording to 3 minutes, so we bypass this by redirecting the stream to ffmpeg tool
     video_group_pid = Process.spawn('adb shell "while true; do screenrecord --output-format=h264 -; done" | ' \
                                     'ffmpeg -y -i - fastlane/video.mp4 > fastlane/recording.log 2>&1 &', pgroup: true)
     video_pid = `pgrep -g #{Process.getpgid(video_group_pid)}`.split.map(&:to_i).first
+
     sh('maestro test e2e/test.yaml')
   ensure
     sh("kill -s INT #{video_pid} || true")
     sh('adb logcat -d > fastlane/device.log || true') if emulator_status.call
-    ['recording.log', 'device.log', 'video.mp4'].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
+    sh('maestro hierarchy > fastlane/hierarchy.json || true')
+    [
+      'recording.log',
+      'hierarchy.json',
+      'device.log',
+      'video.mp4'
+    ].each { |f| sh("mv -f fastlane/#{f} ~/.maestro/tests || true") } if is_ci
     stop_video_buddy
     stop_metro
   end
@@ -216,43 +237,4 @@ lane :deploy_android do
     android_artifact_path: "#{build_dir}/app.apk",
     groups: 'react-native-dev, video-sdk-non-devs'
   )
-end
-
-# Helps to wait until emulator is idle on CI. Applicable to API 30 and above
-lane :wait_for_android_emulator_idle do
-  next unless is_ci && ENV['ANDROID_API_LEVEL'].to_i > 29
-
-  start_time = Time.now
-  load_threshold = 1.0
-  UI.important("Start waiting until device is idle (#{Time.now})")
-  adb_command = 'adb shell uptime | cut -d , -f 3 | cut -f 2 -d :'
-  load = `#{adb_command}`.strip.to_f
-
-  end_time = start_time + 1800
-  while load > load_threshold && Time.now < end_time
-    if load < 4
-      `adb shell dumpsys window | grep -E "mCurrentFocus.*Application Not Responding" || echo`
-      anr_package = `adb shell dumpsys window | grep -E "mCurrentFocus.*Application Not Responding" | cut -f 2 -d : | sed -e "s/}//" -e "s/^ *//"`.strip
-      unless anr_package.empty?
-        UI.important("ANR on screen for: #{anr_package}. Restarting it.")
-        begin
-          `adb shell su 0 killall #{anr_package}`
-        rescue StandardError => e
-          UI.error(e)
-          # Fallback to click if kill didn't work. This location is for a 1080x1920 screen
-          `adb shell input tap 540 935 || echo`
-        end
-
-        if anr_package == 'com.android.systemui'
-          `adb shell am start-service -n com.android.systemui/.SystemUIService || echo`
-        end
-      end
-    end
-
-    sleep(10)
-    load = `#{adb_command}`.strip.to_f
-  end
-
-  UI.important('Reached timeout before device is idle.') if load > load_threshold
-  UI.important("Waited until device is idle for #{(Time.now - start_time).to_i} seconds.")
 end

@@ -41,6 +41,7 @@ jobs:
 
       - uses: ./.github/actions/rn-bootstrap
         env:
+          INSTALL_NODE: true
           INSTALL_RN_DEPENDENCIES: true
 
       - name: Lint source code
@@ -61,6 +62,7 @@ jobs:
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 30
         env:
+          INSTALL_NODE: true
           INSTALL_PODS: true
           INSTALL_RN_DEPENDENCIES: true
           INSTALL_IOS_PERMISSIONS: true
@@ -91,6 +93,7 @@ jobs:
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 30
         env:
+          INSTALL_NODE: true
           INSTALL_PODS: true
           INSTALL_PYTHON: true
           INSTALL_MAESTRO: true
@@ -142,6 +145,7 @@ jobs:
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 30
         env:
+          INSTALL_NODE: true
           INSTALL_JAVA: true
           INSTALL_RN_DEPENDENCIES: true
 
@@ -169,9 +173,10 @@ jobs:
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 30
         env:
+          INSTALL_NODE: true
+          INSTALL_FFMPEG: true
           INSTALL_MAESTRO: true
           INSTALL_VIDEO_BUDDY: true
-          INSTALL_FFMPEG: true
 
       - name: Download .apk
         uses: actions/download-artifact@v3

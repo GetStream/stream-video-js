@@ -5,6 +5,8 @@ ruby '>= 2.6.10'
 
 gem 'cocoapods', '~> 1.12', '>= 1.12.1'
 gem 'fastlane'
+
+# Rubocop gems are needed to lint the Fastfile and other Ruby files
 gem 'rubocop', '1.38'
 gem 'rubocop-performance'
 gem 'rubocop-require_tools'

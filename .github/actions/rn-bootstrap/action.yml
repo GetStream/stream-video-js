@@ -7,11 +7,13 @@ runs:
       shell: bash
 
     - uses: actions/setup-node@v3
+      if: ${{ env.INSTALL_NODE == 'true' }}
       with:
         node-version: 18.x
         cache: 'yarn'
 
     - name: Install Yarn Dependencies
+      if: ${{ env.INSTALL_NODE == 'true' }}
       run: yarn install --immutable
       shell: bash
 
