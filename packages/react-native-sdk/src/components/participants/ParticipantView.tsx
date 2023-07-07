@@ -15,17 +15,17 @@ import {
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { VideoRenderer } from './VideoRenderer';
-import { Avatar } from './Avatar';
-import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../icons';
-import { theme } from '../theme';
-import { palette } from '../theme/constants';
-import { ParticipantReaction } from './ParticipantReaction';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { NetworkQualityIndicator } from './NetworkQualityIndicator';
-import { Z_INDEX } from '../constants';
-import { A11yComponents } from '../constants/A11yLabels';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { Z_INDEX } from '../../constants';
+import { A11yComponents } from '../../constants/A11yLabels';
+import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { theme } from '../../theme';
+import { palette } from '../../theme/constants';
+import { Avatar } from '../utility';
+import { VideoRenderer } from '../utility/internal/VideoRenderer';
+import { NetworkQualityIndicator } from './internal/NetworkQualityIndicator';
+import { ParticipantReaction } from './internal/ParticipantReaction';
 
 /**
  * Props to be passed for the ParticipantView component.
