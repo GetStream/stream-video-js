@@ -22,28 +22,29 @@ function Room() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const loadRoom = useCallback(
-    async (id: string, type: string) => {
-      if (!(client && user)) return;
-      const newCall = client.call(type, id);
+  const loadRoom = useCallback(async () => {
+    if (!(client && user && roomId)) return;
+
+    const urlCredentials = getURLCredentials();
+    setLoading(true);
+    try {
+      const newCall = client.call(urlCredentials.type ?? CALL_TYPE, roomId);
       await newCall.getOrCreate(generateRoomPayload({ user }));
-      return newCall;
-    },
-    [client, user],
-  );
+      setCall(newCall);
+    } catch (e) {
+      setError(e as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [client, roomId, user]);
 
   useEffect(() => {
-    if (!roomId) return;
-    if (roomId === joinedCall?.id) {
+    if (roomId && roomId === joinedCall?.id) {
       setCall(joinedCall);
       return;
     }
-    const urlCredentials = getURLCredentials();
-    setLoading(true);
-    loadRoom(roomId, urlCredentials.type ?? CALL_TYPE)
-      .then(setCall)
-      .catch(setError)
-      .finally(() => setLoading(false));
+
+    loadRoom();
   }, [roomId, loadRoom, joinedCall]);
 
   if (loading) {
@@ -65,7 +66,7 @@ function Room() {
 
   return (
     <StreamCall call={call}>
-      <RoomUI />
+      <RoomUI loadRoom={loadRoom} />
     </StreamCall>
   );
 }

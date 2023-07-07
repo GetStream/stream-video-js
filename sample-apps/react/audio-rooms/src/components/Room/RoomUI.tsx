@@ -2,15 +2,19 @@ import {
   CallingState,
   OwnCapability,
   Restricted,
+  SfuEvents,
+  SfuModels,
+  StreamVideoEvent,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   useCall,
   useCallCallingState,
   useCallMetadata,
   useHasPermissions,
+  useLocalParticipant,
   useParticipants,
 } from '@stream-io/video-react-sdk';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ChatIcon, PersonIcon } from '../icons';
 import { SpeakerElement } from './SpeakerElement';
 import { SpeakingRequestsList } from './SpeakingRequestsList';
@@ -23,11 +27,16 @@ import { RoomAccessControls } from './RoomAccessControls';
 import { useLayoutController } from '../../contexts';
 import type { CustomCallData } from '../../types';
 
-export const RoomUI = () => {
+type RoomUIProps = {
+  loadRoom: () => Promise<void>;
+};
+
+export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   const { showRoomList } = useLayoutController();
   const call = useCall();
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
+  const localParticipant = useLocalParticipant();
   const participants = useParticipants();
   const canJoinBackstage = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
   const {
@@ -41,6 +50,39 @@ export const RoomUI = () => {
     hosts = [],
     speakerIds = [],
   } = (callMetadata?.custom || {}) as CustomCallData;
+
+  useEffect(() => {
+    if (!call || !localParticipant) return;
+
+    const unsubscribeFromLiveEnded = call.on(
+      'error',
+      (e: SfuEvents.SfuEvent) => {
+        if (
+          e.eventPayload.oneofKind !== 'error' ||
+          !e.eventPayload.error.error ||
+          e.eventPayload.error.error.code !== SfuModels.ErrorCode.LIVE_ENDED
+        )
+          return;
+        if (
+          !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
+        )
+          loadRoom();
+      },
+    );
+
+    const unsubscribeFromParticipantLeft = call.on(
+      'call.session_participant_left',
+      (e: StreamVideoEvent) => {
+        if (e.type !== 'call.session_participant_left') return;
+
+        if (e.user_session_id === localParticipant.sessionId) loadRoom();
+      },
+    );
+    return () => {
+      unsubscribeFromLiveEnded();
+      unsubscribeFromParticipantLeft();
+    };
+  }, [loadRoom, call, localParticipant]);
 
   const { speakers, listeners } = useMemo(() => {
     const hostIds = hosts.map((host) => host.id) || [];

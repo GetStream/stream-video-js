@@ -80,7 +80,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
       unsubscribeFromLiveEnded();
       unsubscribeFromParticipantLeft();
     };
-  }, [call, localParticipant]);
+  }, [loadRoom, call, localParticipant]);
 
   const { speakers, listeners } = useMemo(() => {
     const hostIds = hosts.map((host) => host.id) || [];
