@@ -223,7 +223,7 @@ export class StreamVideoClient {
         if (userToConnect.id === call.created_by.id) {
           this.logger(
             'debug',
-            'Received `call.ring` sent by the current user so ignored processing it',
+            'Received `call.ring` sent by the current user so ignoring the event',
           );
           return;
         }
