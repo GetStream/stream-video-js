@@ -72,7 +72,7 @@ export const GuestMeetingScreen = (props: Props) => {
     call?.getOrCreate().catch((err) => {
       console.error('Failed to get or create call', err);
     });
-  }, [call, videoClient]);
+  }, [call]);
 
   if (!videoClient || !call) {
     return null;

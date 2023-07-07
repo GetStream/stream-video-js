@@ -28,7 +28,7 @@ export const MeetingScreen = (props: Props) => {
     call?.getOrCreate().catch((err) => {
       console.error('Failed to get or create call', err);
     });
-  }, [call, client]);
+  }, [call]);
 
   if (!call) {
     return null;
