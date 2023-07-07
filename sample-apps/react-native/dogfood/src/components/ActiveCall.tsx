@@ -8,6 +8,7 @@ import {
   CallContentView,
   useCall,
   useIncallManager,
+  theme,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   },
   icons: {
     position: 'absolute',
-    right: 0,
+    right: theme.spacing.lg * 2,
     marginTop: appTheme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',

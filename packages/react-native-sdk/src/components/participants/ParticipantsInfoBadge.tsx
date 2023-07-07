@@ -27,7 +27,7 @@ export const ParticipantsInfoBadge = ({ style }: IParticipantsInfoBadge) => {
     <Pressable
       onPress={onOpenCallParticipantsInfoView}
       accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
-      style={[styles.container, style]}
+      style={style}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{participantCount}</Text>
@@ -44,17 +44,18 @@ export const ParticipantsInfoBadge = ({ style }: IParticipantsInfoBadge) => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: theme.padding.sm },
   badge: {
     backgroundColor: theme.light.text_low_emphasis,
     borderRadius: theme.rounded.xl,
     paddingVertical: theme.padding.xs,
     paddingHorizontal: theme.padding.sm,
-    position: 'absolute',
     zIndex: Z_INDEX.IN_FRONT,
+    top: theme.spacing.sm,
+    left: theme.spacing.xl,
   },
   badgeText: {
     color: theme.light.static_white,
+    textAlign: 'center',
     ...theme.fonts.caption,
   },
 });
