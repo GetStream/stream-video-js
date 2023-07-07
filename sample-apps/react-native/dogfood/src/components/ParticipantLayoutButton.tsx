@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
 import { appTheme } from '../theme';
-import { CallParticipantsViewProps } from '@stream-io/video-react-native-sdk';
+import { CallContentViewProps } from '@stream-io/video-react-native-sdk';
 
-type Layout = CallParticipantsViewProps['mode'];
+type Layout = CallContentViewProps['mode'];
 
 const LayoutSelectionItem = ({
   layout,
