@@ -6,7 +6,7 @@ import InfoIconSvg from '../assets/InfoIconSvg';
 import { useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
-export const ActiveCallHeader = () => {
+export const ActiveCallNotification = () => {
   const callingState = useCallCallingState();
   const header = getHeader(callingState);
 
@@ -19,14 +19,14 @@ export const ActiveCallHeader = () => {
     callingState === CallingState.RECONNECTING;
 
   return (
-    <AnimatedHeader
+    <AnimatedContainer
       header={header}
       showLoadingIndicator={showLoadingIndicator}
     />
   );
 };
 
-const AnimatedHeader = ({
+const AnimatedContainer = ({
   header,
   showLoadingIndicator,
 }: {
