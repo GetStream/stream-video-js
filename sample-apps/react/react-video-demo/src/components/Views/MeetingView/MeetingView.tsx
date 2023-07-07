@@ -1,5 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { StreamChat } from 'stream-chat';
+import { v1 as uuid } from 'uuid';
 
 import {
   Call,
@@ -17,6 +18,7 @@ import Header from '../../Header';
 import Footer from '../../Footer';
 import Sidebar from '../../Sidebar';
 import Meeting from '../../Meeting';
+import { Info } from '../../Icons';
 
 import MeetingLayout from '../../Layout/MeetingLayout';
 
@@ -24,6 +26,8 @@ import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
 import { useTourContext } from '../../../contexts/TourContext';
 import { usePanelContext } from '../../../contexts/PanelContext';
+import { useNotificationContext } from '../../../contexts/NotificationsContext';
+
 import { tour } from '../../../../data/tour';
 
 import '@stream-io/video-styling/dist/css/styles.css';
@@ -63,6 +67,7 @@ export const View: FC<Props & Meeting> = ({
 
   const { setSteps } = useTourContext();
   const { isChatVisible } = usePanelContext();
+  const { addNotification } = useNotificationContext();
 
   const client = useStreamVideoClient();
   const participants = useParticipants();
@@ -142,7 +147,16 @@ export const View: FC<Props & Meeting> = ({
   const handleStartRecording = useCallback(async () => {
     setIsAwaitingRecordingResponse(true);
     if (!isCallRecordingInProgress) {
-      await client?.call(callType, callId).startRecording();
+      try {
+        await client?.call(callType, callId).startRecording();
+      } catch (error) {
+        addNotification({
+          id: uuid(),
+          message: 'Recording failed to start. Please try again.',
+          icon: <Info />,
+        });
+        setIsAwaitingRecordingResponse(false);
+      }
     }
   }, [callId, client, isCallRecordingInProgress, callType, call]);
 
