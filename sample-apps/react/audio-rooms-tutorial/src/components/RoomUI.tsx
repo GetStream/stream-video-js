@@ -63,8 +63,6 @@ export const RoomUI = ({loadRoom}: RoomUIProps) => {
 
     const unsubscribeFromParticipantLeft = call.on('call.session_participant_left', (e: StreamVideoEvent) => {
       if (e.type !== 'call.session_participant_left') return;
-      console.log('localParticipant', localParticipant);
-      console.log('event',e)
       if (e.user_session_id === localParticipant.sessionId)
         loadRoom();
     });
