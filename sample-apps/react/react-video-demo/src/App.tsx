@@ -129,7 +129,10 @@ const Init = () => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
-      const response: GetEdgesResponse = await client?.edges();
+      if (!client) {
+        return;
+      }
+      const response: GetEdgesResponse = await client.edges();
 
       if (!edges) {
         const features = createGeoJsonFeatures(response.edges);
@@ -181,15 +184,17 @@ const Init = () => {
               <NotificationProvider>
                 <PanelProvider>
                   <TourProvider>
-                    <MeetingView
-                      logo={logo}
-                      call={activeCall}
-                      callId={callId}
-                      callType={callType}
-                      isCallActive={isCallActive}
-                      setCallHasEnded={setCallHasEnded}
-                      chatClient={chatClient}
-                    />
+                    {activeCall && (
+                      <MeetingView
+                        logo={logo}
+                        call={activeCall}
+                        callId={callId}
+                        callType={callType}
+                        isCallActive={isCallActive}
+                        setCallHasEnded={setCallHasEnded}
+                        chatClient={chatClient}
+                      />
+                    )}
                   </TourProvider>
                 </PanelProvider>
               </NotificationProvider>
