@@ -2,7 +2,7 @@ import {
   CallingState,
   CancelCallButton,
   PaginatedGridLayout,
-  PendingCallPanel,
+  RingingCall,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   ToggleAudioPublishingButton,
@@ -53,7 +53,7 @@ export const CallPanel = () => {
   ) {
     return (
       <div className="rmc__call-panel-wrapper" ref={setPanelElement}>
-        <PendingCallPanel />
+        <RingingCall />
       </div>
     );
   }

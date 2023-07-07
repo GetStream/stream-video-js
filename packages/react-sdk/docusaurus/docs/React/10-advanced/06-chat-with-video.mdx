@@ -190,7 +190,7 @@ export const Video = () => {
 To identify an outgoing call, use the `call.isCreatedByMe` flag.
 :::
 
-In our demo app, we reflect the incoming calls state in channel list. Channel preview shows buttons to accept or reject the incoming call. The outgoing call or incoming call in an active channel is represented by a [`CallPanel` component](../../ui-components/call/pending-call-panel) floating above the chat UI:
+In our demo app, we reflect the incoming calls state in channel list. Channel preview shows buttons to accept or reject the incoming call. The outgoing call or incoming call in an active channel is represented by a [`CallPanel` component](../../ui-components/call/ringing-call) floating above the chat UI:
 
 <ImageShowcase
   items={[
@@ -254,7 +254,7 @@ Each call can pass through different states. The call calling state is made avai
 
 ```tsx
 import {
-  PendingCallPanel,
+  RingingCall,
   // highlight-next-line
   CallingState,
   CallParticipantsView,
@@ -313,7 +313,7 @@ export const CallPanel = () => {
   ) {
     return (
       <div className="rmc__call-panel-wrapper" ref={setPanelElement}>
-        <PendingCallPanel />
+        <RingingCall />
       </div>
     );
   }
@@ -337,7 +337,7 @@ A user who rejected or left a call can re-join the same call again as long as th
 So depending on the context, we associate a bit different click handlers with the button, that terminates the call for the current user:
 
 **Reject an incoming call**
-Our [`PendingCallControls`](../../ui-components/call/pending-call-panel/#pending-call-controls) attaches the following callback to the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button that rejects the call:
+Our [`RingingCallControls`](../../ui-components/call/ringing-call/#pending-call-controls) attaches the following callback to the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button that rejects the call:
 
 ```tsx
 <CancelCallButton
@@ -348,7 +348,7 @@ Our [`PendingCallControls`](../../ui-components/call/pending-call-panel/#pending
 ```
 
 **End/Cancel an outgoing call & Leave already joined call**
-The default callback of the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button is pure `call.leave()` without any parameters. Again the [`PendingCallControls`](../../ui-components/call/pending-call-panel/#pending-call-controls) as well as the demo's active call panel components make use of this by not overriding the default `onClick`:
+The default callback of the [`CancelCallButton`](../../ui-components/call/call-controls/#cancelcallbutton) button is pure `call.leave()` without any parameters. Again the [`RingingCallControls`](../../ui-components/call/ringing-call/#pending-call-controls) as well as the demo's active call panel components make use of this by not overriding the default `onClick`:
 
 ```tsx
 <CancelCallButton />
