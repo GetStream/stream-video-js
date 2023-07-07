@@ -48,6 +48,29 @@
   backdrop-filter: blur(2px);
 }
 
+.room-intro .room-host {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-intro .room-host h3 {
+  margin: .5rem 0 0;
+  font-size: 1.5rem;
+}
+
+.room-intro .host-avatar {
+  width: 80px;
+  height: 80px;
+  font-size: 2rem;
+}
+
+.room-intro .room-description {
+  margin-bottom: 3rem;
+  font-size: 1.2rem;
+}
+
 .participants-section {
   width: 100%;
   display: flex;

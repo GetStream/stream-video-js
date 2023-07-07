@@ -44,17 +44,17 @@ export const RoomLobby = () => {
       {callingState === CallingState.JOINING && <p>Joining the room...</p>}
       {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
       {callingState === CallingState.OFFLINE && <p>You are offline</p>}
-        <button
-          disabled={!isLive}
-          className="room-access-controls-button"
-          onClick={async () => {
-            await call.join().catch((err) => {
-              console.log(err);
-            });
-          }}
-        >
-          Join
-        </button>
+      <button
+        disabled={!isLive}
+        className="room-access-controls-button"
+        onClick={async () => {
+          await call.join().catch((err) => {
+            console.log(err);
+          });
+        }}
+      >
+        Join
+      </button>
     </div>
   );
 };
