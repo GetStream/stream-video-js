@@ -7,7 +7,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { MediaStream, RTCView } from 'react-native-webrtc';
+import { RTCView } from 'react-native-webrtc';
 import {
   SfuModels,
   StreamVideoLocalParticipant,
@@ -175,13 +175,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     pendingVideoLayoutRef.current = undefined;
   };
 
-  // NOTE: We have to cast to MediaStream type from webrtc
-  // as JS client sends the web navigators' mediastream type instead
-  const videoStream = (
-    kind === 'video' ? participant.videoStream : participant.screenShareStream
-  ) as MediaStream | undefined;
+  const videoStream =
+    kind === 'video' ? participant.videoStream : participant.screenShareStream;
 
-  const audioStream = participant.audioStream as MediaStream | undefined;
+  const audioStream = participant.audioStream;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const hasScreenShareTrack = publishedTracks.includes(
@@ -228,16 +225,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <VideoRenderer
           zOrder={Z_INDEX.IN_BACK}
           mirror={mirror}
-          mediaStream={videoStream as MediaStream}
+          mediaStream={videoStream}
           objectFit={isScreenSharing ? 'contain' : 'cover'}
           style={[styles.videoRenderer, props.videoRendererStyle]}
         />
       ) : (
         <Avatar participant={participant} />
       )}
-      {isAudioAvailable && (
-        <RTCView streamURL={(audioStream as MediaStream).toURL()} />
-      )}
+      {isAudioAvailable && <RTCView streamURL={audioStream.toURL()} />}
       <View style={styles.bottomView}>
         {kind === 'video' && (
           <View style={styles.status}>
