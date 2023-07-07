@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
-import { CallParticipantsSpotlightView } from '../../src/components/CallParticipantsSpotlightView';
+import { CallParticipantsSpotlightView } from '../../src/components/call/internal/CallParticipantsSpotlightView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();

@@ -13,26 +13,26 @@ export const ParticipantsPreview = () => {
     return null;
   return (
     <Stack sx={{ gap: '0.75rem', margin: 0 }}>
-      <Typography sx={{ fontSize: '1.125rem', fontWeight: '700' }}>
-        Already in call ({callMetadata.session.participants.length}):
+      <Typography variant="body1">
+        Already in this call ({callMetadata.session.participants.length}):
       </Typography>
       <Stack
         direction="row"
+        gap="0.5rem"
+        flexWrap="wrap"
         sx={{
-          flexWrap: 'wrap',
           overflowY: 'auto',
-          maxHeight: '300px',
-          maxWidth: '200px',
-          gap: '0.5rem',
         }}
       >
         {callMetadata.session.participants.map((participant) => (
-          <Stack alignItems="center" key={participant.user.id}>
+          <Stack alignItems="center" key={participant.user_session_id}>
             <Avatar
               name={participant.user.name}
               imageSrc={participant.user.image}
             />
-            {participant.user.name && <div>{participant.user.name}</div>}
+            {participant.user.name && (
+              <Typography variant="caption">{participant.user.name}</Typography>
+            )}
           </Stack>
         ))}
       </Stack>

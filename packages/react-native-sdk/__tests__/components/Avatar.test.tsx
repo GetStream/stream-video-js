@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '../utils/RNTLTools';
-import { Avatar } from '../../src/components/Avatar';
 import mockParticipant from '../mocks/participant';
 import { A11yComponents, A11yImages } from '../../src/constants/A11yLabels';
+import { Avatar } from '../../src/components/utility/Avatar';
 
 describe('Avatar', () => {
   it('should render initials of participant when imageUrl is not specified', async () => {

@@ -1,0 +1,75 @@
+---
+id: ringing-call
+title: Ringing call
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import RingingCallIncoming from '../../assets/03-ui-components/ringing-call-panel-incoming.png';
+import RingingCallOutgoing from '../../assets/03-ui-components/ringing-call-panel-outgoing.png';
+
+The component [`RingingCall`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/components/RingingCall) is designed to represent incoming or outgoing [ring call](../../../guides/joining-and-creating-calls/#ring-call). The default implementation displays:
+
+- call member avatars
+- call connection status
+- call control buttons to accept or cancel the call
+
+<ImageShowcase
+  items={[
+    {
+      image: RingingCallIncoming,
+      caption: 'Default incoming call panel',
+      alt: 'Default incoming call panel',
+    },
+    {
+      image: RingingCallOutgoing,
+      caption: 'Default outgoing call panel',
+      alt: 'Default outgoing call panel',
+    },
+  ]}
+/>
+
+## General usage
+
+```tsx
+import { Call, RingingCall, StreamCall } from '@stream-io/video-react-sdk';
+
+const RingingCallUI = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      <RingingCall />
+    </StreamCall>
+  );
+};
+```
+
+## Ringing call controls
+
+The `RingingCall` component features [`CancelCallButton`](../call-controls#cancelcallbutton) to reject/cancel the outgoing/incoming call and in case of incoming call panel, also [`AcceptCallButton`](../call-controls#acceptcallbutton) is displayed.
+
+## Props RingingCall
+
+### `includeSelf`
+
+| Type                     | Default |
+| ------------------------ | ------- |
+| `boolean` \| `undefined` | `false` |
+
+Whether to include the current user in the list of members to show.
+
+### `totalMembersToShow`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `number` \| `undefined` | `3`     |
+
+The maximum number of members to show.
+
+## Props RingingCallControls
+
+None
+
+## Customization
+
+If you want to create your own ringing call panel, have a look at our [ringing call panel customization guide](../../../ui-cookbook/ringing-call).
