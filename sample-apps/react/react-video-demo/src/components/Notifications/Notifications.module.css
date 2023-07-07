@@ -1,6 +1,6 @@
 .root {
   @apply absolute flex flex-col pl-4 pr-4 md:top-[60px;];
-  z-index: 50;
+  z-index: 2;
 }
 
 .notification {

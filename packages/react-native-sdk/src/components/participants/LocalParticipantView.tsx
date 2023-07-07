@@ -7,20 +7,20 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { VideoRenderer } from './VideoRenderer';
+import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
-import { theme } from '../theme';
-import { VideoSlash } from '../icons';
-import { A11yComponents } from '../constants/A11yLabels';
-import { Avatar } from './Avatar';
-import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../constants';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { theme } from '../../theme';
+import { VideoSlash } from '../../icons';
+import { A11yComponents } from '../../constants/A11yLabels';
+import { Avatar } from '../utility/Avatar';
+import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * Props to be passed for the LocalVideoView component.
  */
-export interface LocalVideoViewProps {
+export interface LocalParticipantViewProps {
   /**
    * An optional style object to be applied to the local video view
    * @defaultValue
@@ -46,13 +46,9 @@ export interface LocalVideoViewProps {
 }
 
 /**
- * Shows a floating participant UI that can be dragged (to be implemented) within certain bounds.
- *
- * | Local Video | Local Video in relation to active call screen |
- * | :---- | :----: |
- * |![local-video-view-1](https://user-images.githubusercontent.com/25864161/217491433-60848d95-1a14-422e-b4e1-7540f3ba30b4.png)|![local-video-view-2](https://user-images.githubusercontent.com/25864161/217491438-75bad10c-8850-49f5-b3bd-af22995e11c2.png)|
+ * A component to render the local participant's video.
  */
-export const LocalVideoView = (props: LocalVideoViewProps) => {
+export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const { layout = 'floating', zOrder = Z_INDEX.IN_MIDDLE } = props;
   const containerStyle =
     layout === 'floating'

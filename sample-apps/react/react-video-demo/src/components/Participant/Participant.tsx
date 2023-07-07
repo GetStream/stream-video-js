@@ -8,6 +8,8 @@ import {
   ParticipantView,
   StreamReaction,
   VideoPlaceholderProps,
+  CallingState,
+  useCallCallingState,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -25,36 +27,6 @@ export type Props = {
   slider?: 'horizontal' | 'vertical';
 };
 
-// export const VideoPlaceholder: FC<{
-//   participant: StreamVideoParticipant;
-//   hasAudio: boolean;
-//   sessionId: string;
-//   call: Call;
-//   className?: string;
-//   slider?: 'horizontal' | 'vertical';
-// }> = ({ participant, hasAudio, sessionId, call, className }) => {
-//   const disabledPreviewClassNames = classnames(
-//     className,
-//     styles.disabledPreview,
-//   );
-//
-//   return (
-//     <div className={disabledPreviewClassNames}>
-//       <div className={styles.fallAvatarContainer}>
-//         <div className={styles.fallbackInitial}>
-//           {participant.name?.split('')[0]}
-//         </div>
-//       </div>
-//       <Overlay
-//         name={participant.name}
-//         hasAudio={hasAudio}
-//         call={call}
-//         sessionId={sessionId}
-//       />
-//     </div>
-//   );
-// };
-
 const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
   ({ participant }, ref) => (
     <div className={styles.placeholder} ref={ref}>
@@ -70,7 +42,8 @@ const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
 export const Overlay: FC<{
   name?: string;
   hasAudio?: boolean;
-  connectionQuality?: string | boolean;
+  connectionQualityAsString?: string | false;
+  connectionQuality?: SfuModels.ConnectionQuality;
   reaction?: StreamReaction;
   call: Call;
   sessionId: string;
@@ -79,16 +52,25 @@ export const Overlay: FC<{
   name,
   hasAudio,
   connectionQuality,
+  connectionQualityAsString,
   reaction,
   call,
   sessionId,
   slider,
 }) => {
+  const callingState = useCallCallingState();
+
   const videoOverlayClassNames = classnames(styles.videoOverlay, {
     [styles?.[`${slider}`]]: Boolean(slider),
   });
-  const connectionQualityClassNames = classnames(styles.connectionQualityIcon, {
-    [styles?.[`${connectionQuality}`]]: Boolean(connectionQuality),
+  const connectionQualityClassNames = classnames(styles.connectionQuality, {
+    [styles?.[`${connectionQualityAsString}`]]: Boolean(
+      connectionQualityAsString,
+    ),
+    [styles.poor]: connectionQuality === SfuModels.ConnectionQuality.POOR,
+    [styles.good]: connectionQuality === SfuModels.ConnectionQuality.GOOD,
+    [styles.exellent]:
+      connectionQuality === SfuModels.ConnectionQuality.EXCELLENT,
   });
 
   return (
@@ -105,9 +87,9 @@ export const Overlay: FC<{
         <div className={styles.name}>{name}</div>
         {!hasAudio ? <MicMuted className={styles.micMuted} /> : null}
       </div>
-      {connectionQuality ? (
-        <div className={styles.connectionQuality}>
-          <Signal className={connectionQualityClassNames} />
+      {connectionQuality && callingState !== CallingState.OFFLINE ? (
+        <div className={connectionQualityClassNames}>
+          <Signal className={styles.connectionQualityIcon} />
         </div>
       ) : null}
     </div>
@@ -173,7 +155,8 @@ export const Participant: FC<Props> = ({
       VideoPlaceholder={VideoPlaceholder}
       ParticipantViewUI={
         <Overlay
-          connectionQuality={connectionQualityAsString}
+          connectionQualityAsString={connectionQualityAsString}
+          connectionQuality={connectionQuality}
           name={participant.name}
           hasAudio={hasAudio}
           reaction={reaction}

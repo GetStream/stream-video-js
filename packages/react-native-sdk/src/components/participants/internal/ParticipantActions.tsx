@@ -12,14 +12,14 @@ import {
   Video,
   VideoDisabled,
   VideoSlash,
-} from '../icons';
+} from '../../../icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { generateParticipantTitle } from '../utils';
+import { generateParticipantTitle } from '../../../utils';
 import React, { useCallback } from 'react';
-import { Avatar } from './Avatar';
-import { theme } from '../theme';
+import { Avatar } from '../../utility/Avatar';
+import { theme } from '../../../theme';
 import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
-import { palette } from '../theme/constants';
+import { palette } from '../../../theme/constants';
 
 type CallParticipantOptionType = {
   title: string;
@@ -27,14 +27,14 @@ type CallParticipantOptionType = {
   onPressHandler: () => void;
 };
 
-type CallParticipantOptionsType = {
+type ParticipantActionsType = {
   participant: StreamVideoParticipant | undefined;
   setSelectedParticipant: React.Dispatch<
     React.SetStateAction<StreamVideoParticipant | undefined>
   >;
 };
 
-export const CallParticipantOptions = (props: CallParticipantOptionsType) => {
+export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
   const userHasMuteUsersCapability = useHasPermissions(

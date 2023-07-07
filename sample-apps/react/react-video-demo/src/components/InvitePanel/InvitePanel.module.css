@@ -39,10 +39,11 @@
 }
 
 .input {
-  @apply bg-video-transparent relative border-none z-10 cursor-pointer w-full h-full text-xs;
+  @apply bg-video-transparent relative border-none cursor-pointer w-full h-full text-xs;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  z-index: 2;
 }
 .input:focus,
 .input:hover {

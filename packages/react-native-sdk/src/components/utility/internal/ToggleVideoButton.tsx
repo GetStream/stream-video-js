@@ -6,11 +6,11 @@ import {
   useHasPermissions,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { muteStatusColor } from '../utils';
+import { muteStatusColor } from '../../../utils';
 import { Alert, StyleSheet } from 'react-native';
-import { theme } from '../theme';
-import { Video, VideoSlash } from '../icons';
-import { useCallControls, usePermissionNotification } from '../hooks';
+import { theme } from '../../../theme';
+import { Video, VideoSlash } from '../../../icons';
+import { useCallControls, usePermissionNotification } from '../../../hooks';
 
 export const ToggleVideoButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);

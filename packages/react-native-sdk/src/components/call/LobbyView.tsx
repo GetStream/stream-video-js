@@ -1,20 +1,24 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Mic, MicOff, Video, VideoSlash } from '../icons';
+import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import {
   useCall,
   useConnectedUser,
   useParticipantCount,
 } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../theme';
-import { useLocalVideoStream } from '../hooks';
-import { VideoRenderer } from './VideoRenderer';
-import { Avatar } from './Avatar';
+import { CallControlsButton } from '../utility/internal/CallControlsButton';
+import { theme } from '../../theme';
+import { useLocalVideoStream } from '../../hooks';
+import { VideoRenderer } from '../utility/internal/VideoRenderer';
+import { Avatar } from '../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { LOCAL_VIDEO_VIEW_STYLE } from '../constants';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
+/**
+ * Use this view prior to joining a call.
+ * This view allows the user to toggle their audio and video state before joining a call.
+ */
 /**
  * The props for the Join Button in the LobbyView.
  */

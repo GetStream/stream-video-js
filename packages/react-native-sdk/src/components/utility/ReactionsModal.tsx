@@ -1,18 +1,20 @@
 import { StreamReaction } from '@stream-io/video-client';
 import { Pressable, StyleSheet, View, Text, Modal } from 'react-native';
-
-import { theme } from '../theme';
+import { theme } from '../../theme';
 import React, { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
-import { StreamVideoRN } from '../utils';
-import { Cross } from '../icons';
-import { A11yComponents } from '../constants/A11yLabels';
+import { StreamVideoRN } from '../../utils';
+import { Cross } from '../../icons';
+import { A11yComponents } from '../../constants/A11yLabels';
 
 type ReactionModalType = {
   isReactionModalActive: boolean;
   setIsReactionModalActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+/**
+ * A component that shows a list of reactions that can be sent in a call.
+ */
 export const ReactionModal = (props: ReactionModalType) => {
   const { isReactionModalActive, setIsReactionModalActive } = props;
   const onCloseReactionsModal = useCallback(() => {

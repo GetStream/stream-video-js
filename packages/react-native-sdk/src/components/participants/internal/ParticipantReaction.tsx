@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { StreamReaction } from '@stream-io/video-client';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { theme } from '../theme';
-import { StreamVideoRN } from '../utils';
+import { theme } from '../../../theme';
+import { StreamVideoRN } from '../../../utils';
 
 export type ReactionProps = {
   reaction?: StreamReaction;
