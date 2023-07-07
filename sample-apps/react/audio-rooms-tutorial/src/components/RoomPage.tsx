@@ -39,10 +39,12 @@ function Room({ roomId }: RoomProps) {
     } finally {
       setLoading(false);
     }
-  }, [client, connectedUser]);
+  }, [client, connectedUser, roomId]);
 
   useEffect(() => {
-    loadRoom();
+    loadRoom().catch((err) => {
+      console.error(`Error loading room.`, err);
+    });
   }, [loadRoom]);
 
   if (loading) {

@@ -56,16 +56,17 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
     const unsubscribeFromLiveEnded = call.on(
       'error',
       (e: SfuEvents.SfuEvent) => {
-        if (
-          e.eventPayload.oneofKind !== 'error' ||
-          !e.eventPayload.error.error ||
-          e.eventPayload.error.error.code !== SfuModels.ErrorCode.LIVE_ENDED
-        )
-          return;
-        if (
-          !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
-        )
-          loadRoom();
+        if (e.eventPayload.oneofKind !== 'error') return;
+        const { error } = e.eventPayload.error;
+        if (!error || error.code !== SfuModels.ErrorCode.LIVE_ENDED) return;
+
+        const hasPermissionToJoinBackstage =
+          call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE);
+        if (!hasPermissionToJoinBackstage) {
+          loadRoom().catch((err) => {
+            console.error(`Error loading room.`, err);
+          });
+        }
       },
     );
 
@@ -73,7 +74,11 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
       'call.session_participant_left',
       (e: StreamVideoEvent) => {
         if (e.type !== 'call.session_participant_left') return;
-        if (e.user_session_id === localParticipant.sessionId) loadRoom();
+        if (e.user_session_id === localParticipant.sessionId) {
+          loadRoom().catch((err) => {
+            console.error(`Error loading room.`, err);
+          });
+        }
       },
     );
     return () => {
@@ -84,7 +89,9 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
 
   const { speakers, listeners } = useMemo(() => {
     const hostIds = hosts.map((host) => host.id) || [];
-    return participants.reduce(
+    return participants.reduce<
+      Record<string, (StreamVideoParticipant | StreamVideoLocalParticipant)[]>
+    >(
       (acc, p) => {
         if (hostIds?.includes(p.userId) || speakerIds.includes(p.userId)) {
           acc.speakers.push(p);
@@ -93,10 +100,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
         }
         return acc;
       },
-      { speakers: [], listeners: [] } as Record<
-        string,
-        (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-      >,
+      { speakers: [], listeners: [] },
     );
   }, [hosts, speakerIds, participants]);
 
