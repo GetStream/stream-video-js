@@ -50,6 +50,16 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     [],
   );
 
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SKIP_LOBBY !== 'true') return;
+    const id = setTimeout(() => {
+      onJoin();
+    }, 500);
+    return () => {
+      clearTimeout(id);
+    };
+  }, [onJoin]);
+
   if (!session) {
     return null;
   }
