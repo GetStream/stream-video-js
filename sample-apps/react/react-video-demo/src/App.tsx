@@ -8,6 +8,8 @@ import {
 } from 'unique-names-generator';
 
 import {
+  Call,
+  CallingState,
   GetEdgesResponse,
   StreamCall,
   StreamVideo,
@@ -63,9 +65,21 @@ const Init = () => {
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
 
-  const [client] = useState(
-    () => new StreamVideoClient({ apiKey, user, token, tokenProvider }),
-  );
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
+    const _client = new StreamVideoClient({
+      apiKey,
+      user,
+      token,
+      tokenProvider,
+    });
+    setClient(_client);
+
+    return () => {
+      _client?.disconnectUser();
+    };
+  }, []);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -84,7 +98,19 @@ const Init = () => {
     window.location.search = `?id=${id}`;
     return id;
   });
-  const [activeCall] = useState(() => client.call(callType, callId));
+  const [activeCall, setActiveCall] = useState<Call>();
+
+  useEffect(() => {
+    const call = client?.call(callType, callId);
+    setActiveCall(call);
+
+    return () => {
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setActiveCall(undefined);
+    };
+  }, [client]);
 
   useEffect(() => {
     setSteps(tour);
