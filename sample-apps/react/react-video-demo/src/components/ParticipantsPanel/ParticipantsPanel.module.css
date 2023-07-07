@@ -55,9 +55,8 @@
 .mic,
 .block,
 .options {
-  @apply flex text-video-white;
+  @apply text-video-white;
   width: 15px;
-  height: 15px;
 }
 
 .mic,
@@ -72,9 +71,8 @@
 
 .videoOff,
 .micMuted {
-  @apply flex text-video-red-400;
+  @apply text-video-red-400;
   width: 15px;
-  height: 15px;
 }
 
 .video:hover,

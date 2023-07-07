@@ -76,6 +76,18 @@
   border-radius: 4px;
 }
 
+.connectionQuality.poor {
+  @apply text-video-red-600;
+}
+
+.connectionQuality.good {
+  @apply text-video-yellow-500;
+}
+
+.connectionQuality.excellent {
+  @apply text-video-stream-500;
+}
+
 .videoOverlay.horizontal .connectionQuality {
   @apply top-0 mt-2 mr-2 bottom-[auto];
 }
