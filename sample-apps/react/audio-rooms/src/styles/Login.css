@@ -48,12 +48,13 @@
   gap: 1rem;
   align-items: center;
   font-weight: bold;
+  background-color: var(--background-color-light);
   transition: background 150ms ease-out;
   cursor: pointer;
 }
 
 .user-list button:hover {
-  background: var(--background-color-light);
+  background: var(--background-color);
 }
 
 .user-list button:not(:last-child) {
