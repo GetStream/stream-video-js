@@ -103,7 +103,6 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
-import { isReactNative } from './helpers/platforms';
 import { getLogger } from './logger';
 
 /**
@@ -134,16 +133,6 @@ export class Call {
    * The state of this call.
    */
   readonly state = new CallState();
-
-  private rejoinPromise: (() => Promise<void>) | undefined;
-
-  /**
-   * A promise that exposes the reconnection logic
-   * The use-case is for the react-native platform where online/offline events are not available in the window
-   */
-  get rejoin(): (() => Promise<void>) | undefined {
-    return this.rejoinPromise;
-  }
 
   /**
    * Flag indicating whether this call is "watched" and receives
@@ -387,7 +376,6 @@ export class Call {
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
-    this.rejoinPromise = undefined;
 
     if (this.ringing) {
       // I'm the one who started the call, so I should cancel it.
@@ -685,7 +673,7 @@ export class Call {
       // we shouldn't be republishing the streams if we're migrating
       // as the underlying peer connection will take care of it as part
       // of the ice-restart process
-      if (localParticipant && !isReactNative() && !migrate) {
+      if (localParticipant && !migrate) {
         const {
           audioStream,
           videoStream,
@@ -702,8 +690,6 @@ export class Call {
         `[Rejoin]: State restored. Attempt: ${this.reconnectAttempts}`,
       );
     };
-
-    this.rejoinPromise = rejoin;
 
     // reconnect if the connection was closed unexpectedly. example:
     // - SFU crash or restart
@@ -744,8 +730,6 @@ export class Call {
           sfuClient.isMigratingAway
         )
           return;
-        // do nothing for react-native as it is handled by SDK
-        if (isReactNative()) return;
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch((err) => {
             this.logger(
@@ -766,17 +750,17 @@ export class Call {
     });
 
     // handlers for connection online/offline events
-    // Note: window.addEventListener is not available in React Native, hence the check
-    if (typeof window !== 'undefined' && window.addEventListener) {
-      const handleOnOffline = () => {
-        window.removeEventListener('offline', handleOnOffline);
-        this.logger('warn', '[Rejoin]: Going offline...');
-        this.state.setCallingState(CallingState.OFFLINE);
-      };
-
-      const handleOnOnline = () => {
-        window.removeEventListener('online', handleOnOnline);
-        if (this.state.callingState === CallingState.OFFLINE) {
+    const unsubscribeOnlineEvent = this.streamClient.on(
+      'connection.changed',
+      (e) => {
+        if (e.type !== 'connection.changed') return;
+        if (!e.online) return;
+        unsubscribeOnlineEvent();
+        const currentCallingState = this.state.callingState;
+        if (
+          currentCallingState === CallingState.OFFLINE ||
+          currentCallingState === CallingState.RECONNECTING_FAILED
+        ) {
           this.logger('info', '[Rejoin]: Going online...');
           rejoin().catch((err) => {
             this.logger(
@@ -787,17 +771,22 @@ export class Call {
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
           });
         }
-      };
+      },
+    );
+    const unsubscribeOfflineEvent = this.streamClient.on(
+      'connection.changed',
+      (e) => {
+        if (e.type !== 'connection.changed') return;
+        if (e.online) return;
+        unsubscribeOfflineEvent();
+        this.state.setCallingState(CallingState.OFFLINE);
+      },
+    );
 
-      window.addEventListener('offline', handleOnOffline);
-      window.addEventListener('online', handleOnOnline);
-
-      // register cleanup hooks
-      this.leaveCallHooks.push(
-        () => window.removeEventListener('offline', handleOnOffline),
-        () => window.removeEventListener('online', handleOnOnline),
-      );
-    }
+    this.leaveCallHooks.push(() => {
+      unsubscribeOnlineEvent();
+      unsubscribeOfflineEvent();
+    });
 
     if (!this.subscriber) {
       this.subscriber = new Subscriber({

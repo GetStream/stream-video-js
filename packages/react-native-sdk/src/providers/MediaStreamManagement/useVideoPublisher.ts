@@ -57,13 +57,24 @@ export const useVideoPublisher = ({
     }
   }, [call, videoDeviceId]);
 
+  const lastVideoDeviceId = useRef(videoDeviceId);
+  useEffect(() => {
+    if (
+      callingState === CallingState.JOINED &&
+      videoDeviceId !== lastVideoDeviceId.current
+    ) {
+      lastVideoDeviceId.current = videoDeviceId;
+      publishVideoStream().catch((e) => {
+        console.error('Failed to publish video stream', e);
+      });
+    }
+  }, [callingState, publishVideoStream, videoDeviceId]);
+
   const initialPublishRun = useRef(false);
 
   /*
-   * When joining the call, publish video stream automatically in the following cases:
-   * 1. joining the call from the lobby, and the video is not muted
-   * 2. reconnecting to the call with the video already published
-   * 3. when the video device is changed (this is handled by the dependency to publishVideoStream function)
+   * When joining the call, publish video stream automatically in the following case:
+   * - joining the call from the lobby, and the video is not muted
    */
   useEffect(() => {
     if (callingState !== CallingState.JOINED) {
@@ -71,18 +82,14 @@ export const useVideoPublisher = ({
     }
     const shouldJoinInitially =
       !initialVideoMuted && !initialPublishRun.current;
-    const shouldRejoin = isPublishingVideo;
-    // if we are not joining the call from the lobby or equivalent view,
-    // and we are not reconnecting to the call,
-    // then do not publish the video stream
-    if (!shouldJoinInitially && !shouldRejoin) {
+    if (!shouldJoinInitially) {
       return;
     }
     publishVideoStream().catch((e) => {
       console.error('Failed to publish video stream', e);
     });
     initialPublishRun.current = true;
-  }, [callingState, initialVideoMuted, isPublishingVideo, publishVideoStream]);
+  }, [callingState, initialVideoMuted, publishVideoStream]);
 
   /*
    * When track ended unexpectedly due to unknown external factors, try to publish the video stream again

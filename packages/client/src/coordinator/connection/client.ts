@@ -162,20 +162,20 @@ export class StreamClient {
       : () => null;
   }
 
-  devToken(userID: string) {
+  devToken = (userID: string) => {
     return DevToken(userID);
-  }
+  };
 
-  getAuthType() {
+  getAuthType = () => {
     return this.anonymous ? 'anonymous' : 'jwt';
-  }
+  };
 
-  setBaseURL(baseURL: string) {
+  setBaseURL = (baseURL: string) => {
     this.baseURL = baseURL;
     this.wsBaseURL = this.baseURL
       .replace('http', 'ws')
       .replace(':3030', ':8800');
-  }
+  };
 
   _getConnectionID = () =>
     this.wsConnection?.connectionID || this.wsFallback?.connectionID;
@@ -282,7 +282,7 @@ export class StreamClient {
       isAnonymous,
     );
 
-  _setUser(user: UserWithId) {
+  _setUser = (user: UserWithId) => {
     /**
      * This one is used by the frontend. This is a copy of the current user object stored on backend.
      * It contains reserved properties and own user properties which are not present in `this._user`.
@@ -291,7 +291,7 @@ export class StreamClient {
     this.userID = user.id;
     // this one is actually used for requests. This is a copy of current user provided to `connectUser` function.
     this._user = { ...user };
-  }
+  };
 
   /**
    * Disconnects the websocket connection, without removing the user set on client.
@@ -423,10 +423,10 @@ export class StreamClient {
    *
    * @return {Function} Returns a function which, when called, unsubscribes the event handler.
    */
-  on(
+  on = (
     callbackOrEventName: EventHandler | string,
     callbackOrNothing?: EventHandler,
-  ) {
+  ) => {
     const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
     const callback = callbackOrNothing
       ? callbackOrNothing
@@ -439,16 +439,16 @@ export class StreamClient {
     return () => {
       this.off(key, callback);
     };
-  }
+  };
 
   /**
    * off - Remove the event handler
    *
    */
-  off(
+  off = (
     callbackOrEventName: EventHandler | string,
     callbackOrNothing?: EventHandler,
-  ) {
+  ) => {
     const key = callbackOrNothing ? (callbackOrEventName as string) : 'all';
     const callback = callbackOrNothing
       ? callbackOrNothing
@@ -461,23 +461,27 @@ export class StreamClient {
     this.listeners[key] = this.listeners[key].filter(
       (value) => value !== callback,
     );
-  }
+  };
 
-  _logApiRequest(
+  _logApiRequest = (
     type: string,
     url: string,
     data: unknown,
     config: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     },
-  ) {
+  ) => {
     this.logger('trace', `client: ${type} - Request - ${url}`, {
       payload: data,
       config,
     });
-  }
+  };
 
-  _logApiResponse<T>(type: string, url: string, response: AxiosResponse<T>) {
+  _logApiResponse = <T>(
+    type: string,
+    url: string,
+    response: AxiosResponse<T>,
+  ) => {
     this.logger(
       'trace',
       `client:${type} - Response - url: ${url} > status ${response.status}`,
@@ -488,14 +492,14 @@ export class StreamClient {
     this.logger('trace', `client:${type} - Response payload`, {
       response,
     });
-  }
+  };
 
-  _logApiError(type: string, url: string, error: unknown) {
+  _logApiError = (type: string, url: string, error: unknown) => {
     this.logger('error', `client:${type} - Error - url: ${url}`, {
       url,
       error,
     });
-  }
+  };
 
   doAxiosRequest = async <T, D = unknown>(
     type: string,
@@ -568,33 +572,33 @@ export class StreamClient {
     }
   };
 
-  get<T>(url: string, params?: AxiosRequestConfig['params']) {
+  get = <T>(url: string, params?: AxiosRequestConfig['params']) => {
     return this.doAxiosRequest<T, unknown>('get', url, null, {
       params,
     });
-  }
+  };
 
-  put<T, D = unknown>(url: string, data?: D) {
+  put = <T, D = unknown>(url: string, data?: D) => {
     return this.doAxiosRequest<T, D>('put', url, data);
-  }
+  };
 
-  post<T, D = unknown>(url: string, data?: D) {
+  post = <T, D = unknown>(url: string, data?: D) => {
     return this.doAxiosRequest<T, D>('post', url, data);
-  }
+  };
 
-  patch<T, D = unknown>(url: string, data?: D) {
+  patch = <T, D = unknown>(url: string, data?: D) => {
     return this.doAxiosRequest<T, D>('patch', url, data);
-  }
+  };
 
-  delete<T>(url: string, params?: AxiosRequestConfig['params']) {
+  delete = <T>(url: string, params?: AxiosRequestConfig['params']) => {
     return this.doAxiosRequest<T, unknown>('delete', url, null, {
       params,
     });
-  }
+  };
 
-  errorFromResponse(
+  errorFromResponse = (
     response: AxiosResponse<APIErrorResponse>,
-  ): ErrorFromResponse<APIErrorResponse> {
+  ): ErrorFromResponse<APIErrorResponse> => {
     let err: ErrorFromResponse<APIErrorResponse>;
     err = new ErrorFromResponse(`Stream error HTTP code: ${response.status}`);
     if (response.data && response.data.code) {
@@ -606,15 +610,15 @@ export class StreamClient {
     err.response = response;
     err.status = response.status;
     return err;
-  }
+  };
 
-  handleResponse<T>(response: AxiosResponse<T>) {
+  handleResponse = <T>(response: AxiosResponse<T>) => {
     const data = response.data;
     if (isErrorResponse(response)) {
       throw this.errorFromResponse(response);
     }
     return data;
-  }
+  };
 
   dispatchEvent = (event: StreamVideoEvent) => {
     if (!event.received_at) event.received_at = new Date();
@@ -650,7 +654,7 @@ export class StreamClient {
   /**
    * @private
    */
-  async connect() {
+  connect = async () => {
     if (!this.userID || !this._user) {
       throw Error(
         'Call connectUser or connectAnonymousUser before starting the connection',
@@ -716,14 +720,14 @@ export class StreamClient {
 
       throw err;
     }
-  }
+  };
 
   /**
    * Check the connectivity with server for warmup purpose.
    *
    * @private
    */
-  _sayHi() {
+  _sayHi = () => {
     const client_request_id = randomId();
     const opts = {
       headers: AxiosHeaders.from({
@@ -739,27 +743,27 @@ export class StreamClient {
         });
       }
     });
-  }
+  };
 
-  getUserAgent() {
+  getUserAgent = () => {
     return (
       this.userAgent ||
       `stream-video-javascript-client-${this.node ? 'node' : 'browser'}-${
         process.env.PKG_VERSION
       }`
     );
-  }
+  };
 
-  setUserAgent(userAgent: string) {
+  setUserAgent = (userAgent: string) => {
     this.userAgent = userAgent;
-  }
+  };
 
   /**
    * _isUsingServerAuth - Returns true if we're using server side auth
    */
   _isUsingServerAuth = () => !!this.secret;
 
-  _enrichAxiosOptions(
+  _enrichAxiosOptions = (
     options: AxiosRequestConfig & { config?: AxiosRequestConfig } & {
       publicEndpoint?: boolean;
     } = {
@@ -767,7 +771,7 @@ export class StreamClient {
       headers: {},
       config: {},
     },
-  ): AxiosRequestConfig {
+  ): AxiosRequestConfig => {
     const token =
       options.publicEndpoint && !this.user ? undefined : this._getToken();
     const authorization = token ? { Authorization: token } : undefined;
@@ -804,13 +808,13 @@ export class StreamClient {
       ...options.config,
       ...this.options.axiosRequestConfig,
     };
-  }
+  };
 
-  _getToken() {
+  _getToken = () => {
     if (!this.tokenManager) return null;
 
     return this.tokenManager.getToken();
-  }
+  };
 
   /**
    * encode ws url payload
@@ -828,9 +832,9 @@ export class StreamClient {
   /**
    * creates an abort controller that will be used by the next HTTP Request.
    */
-  createAbortControllerForNextRequest() {
+  createAbortControllerForNextRequest = () => {
     return (this.nextRequestAbortController = new AbortController());
-  }
+  };
 
   /**
    * createToken - Creates a token to authenticate this user. This function is used server side.
@@ -842,12 +846,12 @@ export class StreamClient {
    *
    * @return {string} Returns a token
    */
-  createToken(
+  createToken = (
     userID: string,
     exp?: number,
     iat?: number,
     call_cids?: string[],
-  ) {
+  ) => {
     if (this.secret == null) {
       throw Error(
         `tokens can only be created server-side using the API Secret`,
@@ -868,5 +872,5 @@ export class StreamClient {
     }
 
     return JWTUserToken(this.secret, userID, extra, {});
-  }
+  };
 }
