@@ -9,7 +9,6 @@ import {
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
-
 export const RoomAccessControls = () => {
   const { setInitialAudioEnabled } = useMediaDevices();
   const call = useCall();
@@ -25,25 +24,28 @@ export const RoomAccessControls = () => {
   )
     return null;
 
-  const canJoin = ![CallingState.JOINING, CallingState.JOINED, CallingState.LEFT].includes(callingState)
+  const canJoin = ![
+    CallingState.JOINING,
+    CallingState.JOINED,
+    CallingState.LEFT,
+  ].includes(callingState);
   return (
     <div className="room-access-controls">
       {!isLive ? (
-          <Restricted
-            requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
-            hasPermissionsOnly
+        <Restricted
+          requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
+          hasPermissionsOnly
+        >
+          <button
+            className="room-access-controls-button"
+            onClick={async () => {
+              await call.goLive();
+              if (canJoin) await call.join();
+            }}
           >
-            <button
-              className="room-access-controls-button"
-              onClick={async () => {
-                await call.goLive();
-                if (canJoin)
-                  await call.join();
-              }}
-            >
-              Go live{canJoin ? ' and join' : ''}!
-            </button>
-          </Restricted>
+            Go live{canJoin ? ' and join' : ''}!
+          </button>
+        </Restricted>
       ) : (
         <>
           <Restricted

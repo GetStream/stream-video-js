@@ -4,7 +4,7 @@ import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
 import { ErrorCode } from '../gen/video/sfu/models/models';
-import {OwnCapability} from "../gen/coordinator";
+import { OwnCapability } from '../gen/coordinator';
 
 const logger = getLogger(['events']);
 
@@ -69,7 +69,7 @@ export const watchParticipantCountChanged = (
   });
 };
 
-export const watchLiveEnded = (dispatcher: Dispatcher, call: Call,) => {
+export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
   return dispatcher.on('error', (e) => {
     if (
       e.eventPayload.oneofKind !== 'error' ||
@@ -80,8 +80,8 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call,) => {
 
     if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE))
       call.leave();
-  })
-}
+  });
+};
 
 /**
  * Watches and logs the errors reported by the currently connected SFU.
