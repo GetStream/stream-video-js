@@ -146,6 +146,7 @@ export class Publisher {
       });
     }
 
+    this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
     this.pc.close();
   };
 
