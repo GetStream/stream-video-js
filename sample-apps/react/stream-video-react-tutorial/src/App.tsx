@@ -7,6 +7,7 @@ import {
   StreamVideoClient,
   PaginatedGridLayout,
   CallControls,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 
 import './style.css';
@@ -39,7 +40,9 @@ export default function App() {
     setCall(call);
 
     return () => {
-      call?.leave();
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
       setCall(undefined);
     };
   }, [client]);
