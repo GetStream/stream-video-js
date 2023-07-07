@@ -14,30 +14,42 @@ export const EndedRoomOverlay = () => {
   );
 };
 
+const CallingStateStatus: Record<string, string> = {
+  [CallingState.RECONNECTING]: 'Trying to reconnect',
+  [CallingState.RECONNECTING_FAILED]: 'Reconnect failed',
+  [CallingState.OFFLINE]: 'You are offline',
+  [CallingState.JOINING]: 'Joining the room...',
+};
+
 export const RoomLobby = () => {
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
+
   if (!call) return null;
+
+  if (Object.keys(CallingStateStatus).includes(callingState)) {
+    return (
+      <div className="room-overlay">
+        <p>{CallingStateStatus[callingState]}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="room-overlay">
-      {isLive && <p>The room is live.</p>}
-      {!isLive && <RoomIntro/>}
-      {callingState === CallingState.JOINING && <p>Joining the room...</p>}
-      {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
-      {callingState === CallingState.OFFLINE && <p>You are offline</p>}
-        <button
-          disabled={!isLive}
-          className="room-access-controls-button"
-          onClick={async () => {
-            await call.join().catch((err) => {
-              console.log(err);
-            });
-          }}
-        >
-          Join
-        </button>
+      {isLive ? <p>The room is live.</p> : <RoomIntro/>}
+      <button
+        disabled={!isLive}
+        className="room-access-controls-button"
+        onClick={async () => {
+          await call.join().catch((err) => {
+            console.log(err);
+          });
+        }}
+      >
+        Join
+      </button>
     </div>
   );
 };

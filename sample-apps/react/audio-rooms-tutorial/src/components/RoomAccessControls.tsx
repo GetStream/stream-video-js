@@ -25,7 +25,7 @@ export const RoomAccessControls = () => {
   )
     return null;
 
-  const canJoin = ![CallingState.JOINING, CallingState.JOINED, CallingState.LEFT].includes(callingState)
+  const canJoin = ![CallingState.JOINING, CallingState.JOINED, CallingState.LEFT].includes(callingState);
   return (
     <div className="room-access-controls">
       {!isLive ? (
