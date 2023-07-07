@@ -221,7 +221,10 @@ export class StreamVideoClient {
         if (event.type !== 'call.ring') return;
         const { call, members } = event;
         if (userToConnect.id === call.created_by.id) {
-          this.logger('warn', 'Received `call.ring` sent by the current user');
+          this.logger(
+            'debug',
+            'Received `call.ring` sent by the current user so ignoring the event',
+          );
           return;
         }
 

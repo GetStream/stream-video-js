@@ -248,7 +248,7 @@ export class Subscriber {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      logger('warn', 'null ice candidate');
+      logger('debug', 'null ice candidate');
       return;
     }
 
