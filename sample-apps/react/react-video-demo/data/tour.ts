@@ -16,7 +16,6 @@ export const tour = [
   },
   {
     header: 'Try It On Your Phone',
-    explanation:
-      'Scan the QR code to open the app on your phone. Or invite a friend by sending them this URL.',
+    explanation: 'Invite a friend by sending them this URL.',
   },
 ];

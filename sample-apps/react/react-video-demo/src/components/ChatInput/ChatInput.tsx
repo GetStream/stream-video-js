@@ -1,8 +1,7 @@
-import { useMemo, useState, useCallback, ChangeEventHandler } from 'react';
+import { useMemo, useCallback, ChangeEventHandler } from 'react';
 import { UploadButton } from 'react-file-utils';
 import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
-import { nanoid } from 'nanoid';
 
 import {
   ChatAutoComplete,

@@ -31,7 +31,7 @@ export const EndCallView: FC<Props> = ({ className }) => {
             color="primary"
             shape="oval"
             onClick={() => {
-              window.location.href = import.meta.env.VITE_TALK_TO_AN_EXPERT_URL;
+              window.location.href = '/video/#contact';
             }}
           >
             TALK TO AN EXPERT
@@ -41,7 +41,7 @@ export const EndCallView: FC<Props> = ({ className }) => {
             color="primary"
             shape="oval"
             onClick={() => {
-              window.location.href = import.meta.env.VITE_SDK_TUTORIALS_URL;
+              window.location.href = '/video/sdk/';
             }}
           >
             SDK Tutorials
