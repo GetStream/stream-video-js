@@ -129,7 +129,7 @@ const Init = () => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
-      const response: GetEdgesResponse = await client.edges();
+      const response: GetEdgesResponse = await client?.edges();
 
       if (!edges) {
         const features = createGeoJsonFeatures(response.edges);
@@ -147,7 +147,7 @@ const Init = () => {
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
     try {
-      await activeCall.join({ create: true });
+      await activeCall?.join({ create: true });
 
       setIsCallActive(true);
       setIsJoiningCall(false);
