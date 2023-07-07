@@ -14,6 +14,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  SafeAreaView,
   Share,
   StyleSheet,
   Text,
@@ -26,7 +27,7 @@ import { CallParticipantOptions } from './CallParticipantsOptions';
 import { Avatar } from './Avatar';
 import { theme } from '../theme';
 import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
-import { CALL_PARTICIPANTS_INFO_VIEW_TOP_MARGIN, Z_INDEX } from '../constants';
+import { Z_INDEX } from '../constants';
 import { palette } from '../theme/constants';
 
 type CallParticipantInfoViewType = {
@@ -172,36 +173,38 @@ export const CallParticipantsInfoView = ({
       <>
         {/*independent background, needed due to desired opacity only
          on background, exc. modal content*/}
-        <View style={styles.backDropBackground} />
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.leftHeaderElement} />
-            <Text style={styles.headerText}>
-              Participants ({participants.length})
-            </Text>
-            <Pressable
-              onPress={onCloseCallParticipantsViewVisible}
-              accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
-              style={styles.closePressable}
-            >
-              <Cross color={theme.dark.primary} style={theme.icon.xs} />
-            </Pressable>
-          </View>
-          <FlatList data={participants} renderItem={renderItem} />
-          <View style={styles.buttonGroup}>
-            <Pressable style={styles.button} onPress={inviteHandler}>
-              <Text style={styles.buttonText}>Invite</Text>
-            </Pressable>
-            <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+        <SafeAreaView style={styles.backDropBackground}>
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <View style={styles.leftHeaderElement} />
+              <Text style={styles.headerText}>
+                Participants ({participants.length})
+              </Text>
               <Pressable
-                style={styles.button}
-                onPress={muteAllParticipantsHandler}
+                onPress={onCloseCallParticipantsViewVisible}
+                accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
+                style={styles.closePressable}
               >
-                <Text style={styles.buttonText}>Mute All</Text>
+                <Cross color={theme.dark.primary} style={theme.icon.xs} />
               </Pressable>
-            </Restricted>
+            </View>
+            <FlatList data={participants} renderItem={renderItem} />
+            <View style={styles.buttonGroup}>
+              <Pressable style={styles.button} onPress={inviteHandler}>
+                <Text style={styles.buttonText}>Invite</Text>
+              </Pressable>
+              <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
+                <Pressable
+                  style={styles.button}
+                  onPress={muteAllParticipantsHandler}
+                >
+                  <Text style={styles.buttonText}>Mute All</Text>
+                </Pressable>
+              </Restricted>
+            </View>
           </View>
-        </View>
+        </SafeAreaView>
+
         <Modal
           animationType="fade"
           transparent
@@ -225,16 +228,14 @@ export const CallParticipantsInfoView = ({
 
 const styles = StyleSheet.create({
   backDropBackground: {
-    opacity: 0.75,
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: theme.dark.static_white,
+    backgroundColor: theme.dark.overlay,
     zIndex: Z_INDEX.IN_BACK,
   },
   content: {
     zIndex: Z_INDEX.IN_FRONT,
     backgroundColor: theme.dark.bars,
     borderRadius: theme.rounded.md,
-    marginVertical: CALL_PARTICIPANTS_INFO_VIEW_TOP_MARGIN,
     marginHorizontal: theme.margin.md,
   },
   header: {

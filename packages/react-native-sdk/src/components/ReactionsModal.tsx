@@ -5,7 +5,6 @@ import { theme } from '../theme';
 import React, { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../utils';
-import { Cross } from '../icons';
 import { A11yComponents } from '../constants/A11yLabels';
 
 type ReactionModalType = {
@@ -34,8 +33,11 @@ export const ReactionModal = (props: ReactionModalType) => {
       visible={isReactionModalActive}
       onRequestClose={onCloseReactionsModal}
     >
-      <View style={styles.container}>
-        <View style={styles.menu}>
+      <Pressable
+        style={styles.container}
+        onPress={() => setIsReactionModalActive(false)}
+      >
+        <View style={styles.menu} onStartShouldSetResponder={() => true}>
           <View style={styles.reactions}>
             {supportedReactions.map((reaction) => (
               <Pressable
@@ -52,15 +54,9 @@ export const ReactionModal = (props: ReactionModalType) => {
                 </Text>
               </Pressable>
             ))}
-            <Pressable
-              style={[styles.closeIcon, theme.icon.sm]}
-              onPress={onCloseReactionsModal}
-            >
-              <Cross color={theme.light.primary} />
-            </Pressable>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -70,6 +66,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.light.overlay,
   },
   menu: {
     backgroundColor: theme.light.bars,
