@@ -61,12 +61,15 @@ const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
 
   return (
     <Pressable style={styles.participant} onPress={optionsOpenHandler}>
-      <Avatar radius={theme.avatar.xs} participant={participant} />
+      <View style={styles.participantInfo}>
+        <Avatar radius={theme.avatar.xs} participant={participant} />
 
-      <Text style={styles.name}>
-        {(participant.name || generateParticipantTitle(participant.userId)) +
-          (participantIsLocalParticipant ? ' (You)' : '')}
-      </Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {(participant.name || generateParticipantTitle(participant.userId)) +
+            (participantIsLocalParticipant ? ' (You)' : '')}
+        </Text>
+      </View>
+
       <View style={styles.icons}>
         {isScreenSharing && (
           <View style={[styles.svgContainerStyle, theme.icon.md]}>
@@ -278,21 +281,24 @@ const styles = StyleSheet.create({
   participant: {
     paddingHorizontal: theme.padding.sm,
     paddingVertical: theme.padding.xs,
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomColor: theme.dark.borders,
     borderBottomWidth: 1,
+  },
+  participantInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
   },
   name: {
     marginLeft: theme.margin.sm,
     color: theme.dark.text_high_emphasis,
+    flexShrink: 1,
     ...theme.fonts.subtitleBold,
   },
   icons: {
-    position: 'absolute',
-    right: theme.spacing.lg,
-    display: 'flex',
     flexDirection: 'row',
   },
   svgContainerStyle: {
