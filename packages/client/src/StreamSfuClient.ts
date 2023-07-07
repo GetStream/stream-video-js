@@ -319,7 +319,7 @@ export class StreamSfuClient {
           new Date().getTime() - this.lastMessageTimestamp.getTime();
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
-          this.logger('error', 'SFU connection unhealthy, closing');
+          this.logger('debug', 'SFU connection unhealthy, closing');
           this.close(
             4001,
             `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,

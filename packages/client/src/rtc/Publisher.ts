@@ -412,7 +412,7 @@ export class Publisher {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      this.logger('warn', 'null ice candidate');
+      this.logger('debug', 'null ice candidate');
       return;
     }
     await this.sfuClient.iceTrickle({
@@ -615,14 +615,14 @@ export class Publisher {
 
   private onIceConnectionStateChange = () => {
     this.logger(
-      'error',
+      'debug',
       `ICE Connection state changed`,
       this.pc.iceConnectionState,
     );
   };
 
   private onIceGatheringStateChange = () => {
-    this.logger('error', `ICE Gathering State`, this.pc.iceGatheringState);
+    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   private onSignalingStateChange = () => {
