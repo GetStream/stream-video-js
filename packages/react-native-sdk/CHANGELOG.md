@@ -2,6 +2,61 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.256](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.255...@stream-io/video-react-native-sdk-0.0.1-alpha.256) (2023-07-07)
+
+
+
+## [0.0.1-alpha.255](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.254...@stream-io/video-react-native-sdk-0.0.1-alpha.255) (2023-07-07)
+
+
+
+## [0.0.1-alpha.254](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.253...@stream-io/video-react-native-sdk-0.0.1-alpha.254) (2023-07-07)
+
+
+
+## [0.0.1-alpha.253](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.252...@stream-io/video-react-native-sdk-0.0.1-alpha.253) (2023-07-07)
+
+
+
+## [0.0.1-alpha.252](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.251...@stream-io/video-react-native-sdk-0.0.1-alpha.252) (2023-07-06)
+
+
+
+## [0.0.1-alpha.251](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.250...@stream-io/video-react-native-sdk-0.0.1-alpha.251) (2023-07-06)
+
+
+
+## [0.0.1-alpha.250](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.249...@stream-io/video-react-native-sdk-0.0.1-alpha.250) (2023-07-06)
+
+
+### Features
+
+* **react-native:** ability to switch between spotlight and grid mode ([#756](https://github.com/GetStream/stream-video-js/issues/756)) ([97adcd9](https://github.com/GetStream/stream-video-js/commit/97adcd9efd3c7cb9078d29f70a0a62e13ba70806))
+
+
+
+## [0.0.1-alpha.249](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.248...@stream-io/video-react-native-sdk-0.0.1-alpha.249) (2023-07-06)
+
+
+### Features
+
+* **react-native:** pinning and unpinning of participants ([#754](https://github.com/GetStream/stream-video-js/issues/754)) ([03d5ade](https://github.com/GetStream/stream-video-js/commit/03d5ade9f76a52f82819aaa9ad171f0c74fe60f1))
+
+
+
+## [0.0.1-alpha.248](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.247...@stream-io/video-react-native-sdk-0.0.1-alpha.248) (2023-07-06)
+
+
+### Features
+
+* Remove ringing flag from call client ([#755](https://github.com/GetStream/stream-video-js/issues/755)) ([b78c605](https://github.com/GetStream/stream-video-js/commit/b78c60500e06b39fb4dce623bde6f7b10acdd8c1)), closes [/github.com/GetStream/stream-video-android/blob/develop/stream-video-android-core/src/main/kotlin/io/getstream/video/android/core/notifications/internal/VideoPushDelegate.kt#L82](https://github.com//github.com/GetStream/stream-video-android/blob/develop/stream-video-android-core/src/main/kotlin/io/getstream/video/android/core/notifications/internal/VideoPushDelegate.kt/issues/L82)
+
+
+
+## [0.0.1-alpha.247](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.246...@stream-io/video-react-native-sdk-0.0.1-alpha.247) (2023-07-05)
+
+
+
 ## [0.0.1-alpha.246](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.245...@stream-io/video-react-native-sdk-0.0.1-alpha.246) (2023-07-05)
 
 

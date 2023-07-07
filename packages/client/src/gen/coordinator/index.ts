@@ -14,10 +14,10 @@ export interface APIError {
   StatusCode: number;
   /**
    * API error code
-   * @type {string}
+   * @type {number}
    * @memberof APIError
    */
-  code: APIErrorCodeEnum;
+  code: number;
   /**
    * Additional error-specific information
    * @type {Array<number>}
@@ -49,47 +49,6 @@ export interface APIError {
    */
   more_info: string;
 }
-
-/**
- * @export
- */
-export const APIErrorCodeEnum = {
-  INTERNAL_ERROR: 'internal-error',
-  ACCESS_KEY_ERROR: 'access-key-error',
-  INPUT_ERROR: 'input-error',
-  AUTH_FAILED: 'auth-failed',
-  DUPLICATE_USERNAME: 'duplicate-username',
-  RATE_LIMITED: 'rate-limited',
-  NOT_FOUND: 'not-found',
-  NOT_ALLOWED: 'not-allowed',
-  EVENT_NOT_SUPPORTED: 'event-not-supported',
-  CHANNEL_FEATURE_NOT_SUPPORTED: 'channel-feature-not-supported',
-  MESSAGE_TOO_LONG: 'message-too-long',
-  MULTIPLE_NESTING_LEVEL: 'multiple-nesting-level',
-  PAYLOAD_TOO_BIG: 'payload-too-big',
-  EXPIRED_TOKEN: 'expired-token',
-  TOKEN_NOT_VALID_YET: 'token-not-valid-yet',
-  TOKEN_USED_BEFORE_IAT: 'token-used-before-iat',
-  INVALID_TOKEN_SIGNATURE: 'invalid-token-signature',
-  CUSTOM_COMMAND_ENDPOINT_MISSING: 'custom-command-endpoint-missing',
-  CUSTOM_COMMAND_ENDPOINTCALL_ERROR: 'custom-command-endpoint=call-error',
-  CONNECTION_ID_NOT_FOUND: 'connection-id-not-found',
-  COOL_DOWN: 'cool-down',
-  QUERY_CHANNEL_PERMISSIONS_MISMATCH: 'query-channel-permissions-mismatch',
-  TOO_MANY_CONNECTIONS: 'too-many-connections',
-  NOT_SUPPORTED_IN_PUSH_V1: 'not-supported-in-push-v1',
-  MODERATION_FAILED: 'moderation-failed',
-  VIDEO_PROVIDER_NOT_CONFIGURED: 'video-provider-not-configured',
-  VIDEO_INVALID_CALL_ID: 'video-invalid-call-id',
-  VIDEO_CREATE_CALL_FAILED: 'video-create-call-failed',
-  APP_SUSPENDED: 'app-suspended',
-  VIDEO_NO_DATACENTERS_AVAILABLE: 'video-no-datacenters-available',
-  VIDEO_JOIN_CALL_FAILURE: 'video-join-call-failure',
-  QUERY_CALLS_PERMISSIONS_MISMATCH: 'query-calls-permissions-mismatch',
-} as const;
-export type APIErrorCodeEnum =
-  (typeof APIErrorCodeEnum)[keyof typeof APIErrorCodeEnum];
-
 /**
  *
  * @export
@@ -155,6 +114,12 @@ export interface AudioSettings {
   access_request_enabled: boolean;
   /**
    *
+   * @type {string}
+   * @memberof AudioSettings
+   */
+  default_device: AudioSettingsDefaultDeviceEnum;
+  /**
+   *
    * @type {boolean}
    * @memberof AudioSettings
    */
@@ -178,6 +143,17 @@ export interface AudioSettings {
    */
   speaker_default_on: boolean;
 }
+
+/**
+ * @export
+ */
+export const AudioSettingsDefaultDeviceEnum = {
+  SPEAKER: 'speaker',
+  EARPIECE: 'earpiece',
+} as const;
+export type AudioSettingsDefaultDeviceEnum =
+  (typeof AudioSettingsDefaultDeviceEnum)[keyof typeof AudioSettingsDefaultDeviceEnum];
+
 /**
  *
  * @export
@@ -190,6 +166,12 @@ export interface AudioSettingsRequest {
    * @memberof AudioSettingsRequest
    */
   access_request_enabled?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof AudioSettingsRequest
+   */
+  default_device: AudioSettingsRequestDefaultDeviceEnum;
   /**
    *
    * @type {boolean}
@@ -215,6 +197,17 @@ export interface AudioSettingsRequest {
    */
   speaker_default_on?: boolean;
 }
+
+/**
+ * @export
+ */
+export const AudioSettingsRequestDefaultDeviceEnum = {
+  SPEAKER: 'speaker',
+  EARPIECE: 'earpiece',
+} as const;
+export type AudioSettingsRequestDefaultDeviceEnum =
+  (typeof AudioSettingsRequestDefaultDeviceEnum)[keyof typeof AudioSettingsRequestDefaultDeviceEnum];
+
 /**
  *
  * @export
@@ -747,10 +740,22 @@ export interface CallParticipantResponse {
   joined_at: string;
   /**
    *
+   * @type {string}
+   * @memberof CallParticipantResponse
+   */
+  role: string;
+  /**
+   *
    * @type {UserResponse}
    * @memberof CallParticipantResponse
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantResponse
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
@@ -1193,6 +1198,12 @@ export interface CallSessionParticipantJoinedEvent {
    * @memberof CallSessionParticipantJoinedEvent
    */
   user: UserResponse;
+  /**
+   * The user session ID of the user that joined the call session
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when a participant leaves a call session
@@ -1230,6 +1241,12 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   user: UserResponse;
+  /**
+   * The user session ID of the user that left the call session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  user_session_id: string;
 }
 /**
  *
@@ -1647,6 +1664,37 @@ export interface ConnectedEvent {
    * The type of event: "connection.ok" in this case
    * @type {string}
    * @memberof ConnectedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when the WS connection fails
+ * @export
+ * @interface ConnectionErrorEvent
+ */
+export interface ConnectionErrorEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectionErrorEvent
+   */
+  connection_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectionErrorEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {APIError}
+   * @memberof ConnectionErrorEvent
+   */
+  error: APIError | null;
+  /**
+   * The type of event: "connection.ok" in this case
+   * @type {string}
+   * @memberof ConnectionErrorEvent
    */
   type: string;
 }
@@ -2958,7 +3006,7 @@ export interface QueryCallsRequest {
    * @type {Array<SortParamRequest>}
    * @memberof QueryCallsRequest
    */
-  sort: Array<SortParamRequest>;
+  sort?: Array<SortParamRequest>;
   /**
    *
    * @type {boolean}
@@ -3014,7 +3062,7 @@ export interface QueryMembersRequest {
    * @type {string}
    * @memberof QueryMembersRequest
    */
-  id?: string;
+  id: string;
   /**
    *
    * @type {number}
@@ -3453,13 +3501,13 @@ export interface SendReactionResponse {
  */
 export interface SortParamRequest {
   /**
-   *
+   * Direction of sorting, -1 for descending, 1 for ascending
    * @type {number}
    * @memberof SortParamRequest
    */
   direction?: number;
   /**
-   *
+   * Name of field to sort by
    * @type {string}
    * @memberof SortParamRequest
    */
@@ -4135,6 +4183,7 @@ export type VideoEvent =
   | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
   | ({ type: 'call.updated' } & CallUpdatedEvent)
   | ({ type: 'call.user_muted' } & CallUserMuted)
+  | ({ type: 'connection.error' } & ConnectionErrorEvent)
   | ({ type: 'connection.ok' } & ConnectedEvent)
   | ({ type: 'custom' } & CustomVideoEvent)
   | ({ type: 'health.check' } & HealthCheckEvent);

@@ -58,19 +58,13 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     <Stack height={1}>
       <LobbyHeader />
       <Stack
-        direction="row"
+        direction="column"
         justifyContent="center"
         alignItems="center"
         spacing={2}
         flexGrow={1}
       >
-        <Box
-          sx={{
-            position: 'fixed',
-            left: '1rem',
-            top: '80px',
-          }}
-        >
+        <Box>
           <ParticipantsPreview />
         </Box>
         <Stack spacing={2} alignItems="center">

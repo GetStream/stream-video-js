@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
@@ -16,20 +16,34 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { appTheme } from '../theme';
+import { AuthenticationProgress } from '../components/AuthenticatingProgress';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
-type ScreenTypes = 'incoming' | 'outgoing' | 'active-call' | 'none';
-
-const CallPanel = ({
-  show,
-  setShow,
-}: {
-  show: ScreenTypes;
-  setShow: React.Dispatch<React.SetStateAction<ScreenTypes>>;
-}) => {
+const CallPanel = () => {
   const call = useCall();
+  const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
+
   const callingState = useCallCallingState();
+
+  const onCallAcceptHandler = React.useCallback(async () => {
+    try {
+      await call?.join();
+    } catch (error) {
+      console.log('Error joining Call', error);
+    }
+  }, [call]);
+
+  const onCallRejectHandler = React.useCallback(async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave({ reject: true });
+    } catch (error) {
+      console.log('Error rejecting Call', error);
+    }
+  }, [call, callingState]);
 
   const onHangUpCallButtonHandler = React.useCallback(async () => {
     try {
@@ -37,27 +51,37 @@ const CallPanel = ({
         return;
       }
       await call?.leave();
-      setShow('none');
     } catch (error) {
       console.log('Error leaving Call', error);
     }
-  }, [call, callingState, setShow]);
+  }, [call, callingState]);
 
-  switch (show) {
-    case 'incoming':
-      return <IncomingCallView />;
-    case 'outgoing':
-      return (
+  switch (callingState) {
+    case CallingState.RINGING:
+      return isCallCreatedByMe ? (
         <View style={styles.container}>
-          <OutgoingCallView />
+          <OutgoingCallView
+            cancelCallHandler={{ onPressHandler: onHangUpCallButtonHandler }}
+          />
         </View>
+      ) : (
+        <IncomingCallView
+          acceptCallButton={{ onPressHandler: onCallAcceptHandler }}
+          rejectCallButton={{ onPressHandler: onCallRejectHandler }}
+        />
       );
-    case 'active-call':
+    case CallingState.JOINED:
       return (
         <View style={styles.container}>
           <ActiveCall
             hangUpCallButton={{ onPressHandler: onHangUpCallButtonHandler }}
           />
+        </View>
+      );
+    case CallingState.JOINING:
+      return (
+        <View style={styles.container}>
+          <AuthenticationProgress />
         </View>
       );
     default:
@@ -66,7 +90,6 @@ const CallPanel = ({
 };
 
 const Calls = () => {
-  const [show, setShow] = useState<ScreenTypes>('none');
   const calls = useCalls();
 
   const handleMoreCalls = useCallback(async () => {
@@ -80,49 +103,10 @@ const Calls = () => {
 
   // Reset the state of the show variable when there are no calls.
   useEffect(() => {
-    if (!calls.length) {
-      setShow('none');
-    }
     if (calls.length > 1) {
       handleMoreCalls();
     }
   }, [calls.length, handleMoreCalls]);
-
-  const onCallJoined = React.useCallback(() => {
-    setShow('active-call');
-  }, [setShow]);
-
-  const onCallIncoming = React.useCallback(() => {
-    setShow('incoming');
-  }, [setShow]);
-
-  const onCallOutgoing = React.useCallback(() => {
-    setShow('outgoing');
-  }, [setShow]);
-
-  const onCallHungUp = React.useCallback(() => {
-    setShow('none');
-  }, [setShow]);
-
-  const onCallRejected = React.useCallback(() => {
-    setShow('none');
-  }, [setShow]);
-
-  const callCycleHandlers = React.useMemo(() => {
-    return {
-      onCallJoined,
-      onCallIncoming,
-      onCallOutgoing,
-      onCallHungUp,
-      onCallRejected,
-    };
-  }, [
-    onCallJoined,
-    onCallIncoming,
-    onCallOutgoing,
-    onCallHungUp,
-    onCallRejected,
-  ]);
 
   const firstCall = calls[0];
 
@@ -131,8 +115,8 @@ const Calls = () => {
   }
 
   return (
-    <StreamCall call={calls[0]} callCycleHandlers={callCycleHandlers}>
-      <CallPanel show={show} setShow={setShow} />
+    <StreamCall call={firstCall}>
+      <CallPanel />
     </StreamCall>
   );
 };

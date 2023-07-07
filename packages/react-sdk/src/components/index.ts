@@ -8,7 +8,7 @@ export * from './Icon';
 export * from './LoadingIndicator';
 export * from './Menu';
 export * from './Notification';
-export * from './PendingCallPanel';
+export * from './RingingCall';
 export * from './Permissions';
 export * from './StreamTheme';
 export * from './Search';

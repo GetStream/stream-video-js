@@ -6,6 +6,8 @@ import { Copy, UserChecked, Reload } from '../Icons';
 import Panel from '../Panel';
 import Button from '../Button';
 
+import { useUserContext } from '../../contexts/UserContext';
+
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './InvitePanel.module.css';
@@ -102,7 +104,7 @@ export const InvitePanel: FC<Props> = ({
   fulllHeight,
 }) => {
   const [showQr, setShowQr] = useState(false);
-
+  const { qr } = useUserContext();
   const breakpoint = useBreakpoint();
 
   useEffect(() => {
@@ -133,16 +135,22 @@ export const InvitePanel: FC<Props> = ({
     >
       <>
         <Invite callId={callId} canShare={false} />
-        <p className={styles.description} onClick={handleToggleDisplayQr}>
-          Or scan the QR code with your phone to test it yourself:
-          <span className={showQrIndicatorClassNames}>▼</span>
-        </p>
-        <div className={qrClassNames}>
-          <QRCodeSVG
-            className={styles.code}
-            value={`${window.location.href}?id=${callId}`}
-          />
-        </div>
+
+        {Boolean(qr) ? (
+          <>
+            <p className={styles.description} onClick={handleToggleDisplayQr}>
+              Or scan the QR code with your phone to test it yourself:
+              <span className={showQrIndicatorClassNames}>▼</span>
+            </p>
+
+            <div className={qrClassNames}>
+              <QRCodeSVG
+                className={styles.code}
+                value={`${window.location.href}?id=${callId}`}
+              />
+            </div>
+          </>
+        ) : null}
       </>
     </Panel>
   );

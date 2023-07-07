@@ -13,7 +13,6 @@ export type Props = {
 export const EndCallView: FC<Props> = ({ className }) => {
   const rootClassName = classnames(styles.root, className);
 
-  const handleTalkToAnExpert = () => {};
   return (
     <div className={rootClassName}>
       <div className={styles.panel}>

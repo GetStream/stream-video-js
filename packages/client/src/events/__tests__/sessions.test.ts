@@ -68,6 +68,7 @@ describe('call.session events', () => {
         id: 'user-id',
         role: 'user',
       },
+      user_session_id: '123',
     });
     expect(state.metadata).toEqual({
       session: {
@@ -78,6 +79,8 @@ describe('call.session events', () => {
               id: 'user-id',
               role: 'user',
             },
+            user_session_id: '123',
+            role: 'user',
           },
         ],
         participants_count_by_role: {
@@ -100,6 +103,7 @@ describe('call.session events', () => {
               id: 'user-id',
               role: 'user',
             },
+            user_session_id: '123',
           },
         ],
         participants_count_by_role: {
@@ -115,6 +119,7 @@ describe('call.session events', () => {
         id: 'user-id',
         role: 'user',
       },
+      user_session_id: '123',
     });
     expect(state.metadata).toEqual({
       session: {

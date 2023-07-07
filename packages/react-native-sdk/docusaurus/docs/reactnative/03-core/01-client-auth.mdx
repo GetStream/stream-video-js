@@ -1,0 +1,163 @@
+---
+id: client-auth
+title: Client & Authentication
+description: How to setup the client and authenticate
+---
+
+## Client & Auth
+
+Before joining a call, it is necessary to set up the video client. Here's a basic example:
+
+```ts
+import { StreamVideoClient, User } from '@stream-io/video-react-native-sdk';
+
+const user: User = {
+  id: 'sara';
+};
+
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+});
+```
+
+- The API Key can be found in your dashboard.
+- The user can be either authenticated, anonymous or guest.
+- Note: You can store custom data on the user object, if required.
+
+Typically, you'll want to initialize the client when your application loads and use a context provider to make it available to the rest of your application.
+
+## Generating a token
+
+Tokens need to be generated server side. You can use our server side SDKs to quickly add support for this. Typically you integrate this into the part of your codebase where you login or register users. The tokens provide a way to authenticate a user or give access to a specific set of calls.
+
+:::note
+For development purposes, you can use our [Token Generator](https://getstream.io/chat/docs/token_generator/).
+:::
+
+## Different types of users
+
+- Authenticated users are users that have an account on your app.
+- Guest users are temporary user accounts. You can use it to temporarily give someone a name and image when joining a call.
+- Anonymous users are users that are not authenticated. It's common to use this for watching a livestream or similar where you aren't authenticated.
+
+This example shows the client setup for a guest user:
+
+```ts
+import { StreamVideoClient, User } from '@stream-io/video-react-native-sdk';
+
+const user: User = {
+  id: 'jack-guest',
+  type: 'guest',
+};
+
+const client = new StreamVideoClient({
+  apiKey,
+  user,
+});
+```
+
+And here's an example for an anonymous user
+
+```ts
+import { StreamVideoClient, User } from '@stream-io/video-react-native-sdk';
+
+const user: User = {
+  type: 'anonymous',
+};
+
+const client = new StreamVideoClient({
+  apiKey,
+  user,
+});
+```
+
+## Client options
+
+### `token` or `tokenProvider`
+
+To authenticate users you can either provide a string `token` or a `tokenProvider` function that returns `Promise<string>`. If you use the `tokenProvider` the SDK will automatically call the provider whenever the token is expired.
+
+### Logging
+
+You can configure the log level and the logger method used by the SDK.
+
+The default log level is `warn`, other options are: `debug`, `info`, and `error`.
+
+The default logger method will log to the browser `console`.
+
+```ts
+import { StreamVideoClient, Logger } from '@stream-io/video-react-native-sdk';
+
+const myLogger: Logger;
+
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+  options: {
+    logLevel: 'info',
+    logger: myLogger,
+  },
+});
+```
+
+Here is an example showing a basic [Sentry](https://sentry.io/welcome/) integration:
+
+```ts
+import { LogLevel, Logger, logToConsole } from '@stream-io/video-react-native-sdk';
+import * as Sentry from '@sentry/nextjs';
+
+const logLevelMapping = new Map<LogLevel, Sentry.SeverityLevel>();
+logLevelMapping.set('debug', 'debug');
+logLevelMapping.set('info', 'info');
+logLevelMapping.set('warn', 'warning');
+logLevelMapping.set('error', 'error');
+
+export const customSentryLogger: Logger = (
+  logLevel: LogLevel,
+  message: string,
+  extraData?: any,
+  tags?: string[],
+) => {
+  if (logLevel === 'warn' || logLevel === 'error') {
+    Sentry.captureEvent({
+      level: logLevelMapping.get(logLevel),
+      extra: extraData,
+    });
+  }
+
+  // Call the SDK's default log method
+  logToConsole(logLevel, message, extraData, tags);
+};
+```
+
+## StreamVideo context provider
+
+You can use the `StreamVideo` context provider to make the SDK client available to the rest of the application. We also use the `tokenProvider` to show how to perform auth server-side.
+
+```tsx
+import { useState } from 'react';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
+export const App = () => {
+  const [client] = useState(() => {
+    const user = {
+      id: '<id>',
+      name: '<name>',
+    };
+    const tokenProvider = () => Promise.resolve('<token>');
+    return new StreamVideoClient({
+      apiKey,
+      tokenProvider,
+      user,
+    });
+  });
+
+  return (
+    <StreamVideo client={client}>
+      <MyVideoApp />
+    </StreamVideo>
+  );
+};
+```
