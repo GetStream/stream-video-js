@@ -32,7 +32,7 @@ const App = () => {
     image,
   };
 
-  const [client] = useState<StreamVideoClient>(
+  const [client] = useState(
     () =>
       new StreamVideoClient({
         apiKey,
@@ -42,11 +42,11 @@ const App = () => {
   );
 
   return (
-    <StreamVideo client={client}>
-      <div className="app-container">
+    <div className="app-container">
+      <StreamVideo client={client}>
         <Room roomId={roomId} />
-      </div>
-    </StreamVideo>
+      </StreamVideo>
+    </div>
   );
 };
 
