@@ -130,8 +130,8 @@ export const LobbyView = ({ joinButton }: LobbyViewType) => {
         <View style={styles.info}>
           <Text style={styles.infoText}>
             You are about to join a call with id {call?.id} at Stream.{' '}
-            {participantsCount !== 0
-              ? `${participantsCount} more people are in the call now.`
+            {participantsCount
+              ? `${participantsCount} participant(s) are in the call.`
               : 'You are first to Join the call.'}
           </Text>
           <Pressable
