@@ -1,0 +1,46 @@
+button, a.filled-button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  white-space: nowrap;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.filled-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.6rem 1rem;
+  transition: background-color 200ms ease-out;
+}
+
+.filled-button svg {
+  height: 1rem;
+}
+
+.filled-button--blue {
+  background: hsl(240, 100%, 50%);
+}
+
+.filled-button--blue,
+.filled-button--blue *,
+a.filled-button--blue:hover {
+  color: white;
+}
+
+.filled-button:hover {
+  background: hsl(240, 100%, 70%);
+}
