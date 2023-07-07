@@ -9,7 +9,7 @@ import {
 
 export const useGleap = (
   gleapApiKey: string | undefined,
-  client: StreamVideoClient,
+  client: StreamVideoClient | undefined,
   user: User,
 ) => {
   useEffect(() => {
@@ -22,7 +22,7 @@ export const useGleap = (
   }, [gleapApiKey, user.name, user.id]);
 
   useEffect(() => {
-    if (!gleapApiKey) return;
+    if (!gleapApiKey || !client) return;
 
     Gleap.on('flow-started', () => {
       try {
@@ -61,7 +61,7 @@ export const useGleap = (
         console.error(e);
       }
     });
-  }, [client.readOnlyStateStore, gleapApiKey]);
+  }, [client, client?.readOnlyStateStore, gleapApiKey]);
 };
 
 export const serializeCallState = (call: Call) => {

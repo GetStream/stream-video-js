@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   Call,
+  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -42,20 +43,29 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
-  const [client] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        user,
-        tokenProvider,
-        options: {
-          baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
-          logLevel: 'debug',
-          logger: customSentryLogger,
-        },
-      }),
-  );
-  const [call] = useState<Call>(() => client.call(callType, callId));
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
+    const _client = new StreamVideoClient({
+      apiKey,
+      user,
+      tokenProvider,
+      options: {
+        baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
+        logLevel: 'debug',
+        logger: customSentryLogger,
+      },
+    });
+    setClient(_client);
+
+    return () => {
+      _client
+        .disconnectUser()
+        .catch((e) => console.error('Failed to disconnect user', e));
+      setClient(undefined);
+    };
+  }, []);
+  const [call, setCall] = useState<Call>();
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -64,10 +74,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   });
 
   useEffect(() => {
-    call.getOrCreate().catch((err) => {
+    const _call = client?.call(callType, callId);
+    setCall(_call);
+
+    return () => {
+      if (_call?.state.callingState !== CallingState.LEFT) {
+        _call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  useEffect(() => {
+    call?.getOrCreate().catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call, client]);
+  }, [call]);
 
   useGleap(gleapApiKey, client, user);
 

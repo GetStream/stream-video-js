@@ -5,7 +5,7 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { LobbyHeader } from '../LobbyHeader';
@@ -24,15 +24,24 @@ export const CallRecordingsPage = ({
   const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
   const [error, setError] = useState<Error | undefined>();
   const [loading, setLoading] = useState(false);
-  const [videoClient] = useState<StreamVideoClient>(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        user,
-        token: userToken,
-        options: { logLevel: 'info', logger: customSentryLogger },
-      }),
-  );
+  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
+    const _client = new StreamVideoClient({
+      apiKey,
+      user,
+      token: userToken,
+      options: { logLevel: 'info', logger: customSentryLogger },
+    });
+    setVideoClient(_client);
+
+    return () => {
+      _client
+        .disconnectUser()
+        .catch((e) => console.error(`Couldn't disconnect user`, e));
+      setVideoClient(undefined);
+    };
+  }, []);
 
   return (
     <StreamVideo client={videoClient} language={language}>

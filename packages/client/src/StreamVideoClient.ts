@@ -144,18 +144,23 @@ export class StreamVideoClient {
       user.id = '!anon';
       return this.connectAnonymousUser(user as UserWithId, token);
     }
-    if (user.type === 'guest') {
-      const response = await this.createGuestUser({
-        user: {
-          ...user,
-          role: 'guest',
-        },
-      });
-      return this.connectUser(response.user, response.access_token);
-    }
-    const connectUser = () => {
+    let connectUser = () => {
       return this.streamClient.connectUser(user, token);
     };
+    if (user.type === 'guest') {
+      connectUser = async () => {
+        const response = await this.createGuestUser({
+          user: {
+            ...user,
+            role: 'guest',
+          },
+        });
+        return this.streamClient.connectUser(
+          response.user,
+          response.access_token,
+        );
+      };
+    }
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
       : connectUser();
@@ -268,7 +273,7 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    if (!this.streamClient.user) {
+    if (!this.streamClient.user && !this.connectionPromise) {
       return;
     }
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);

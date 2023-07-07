@@ -7,7 +7,7 @@ import {
 } from '../../contexts';
 
 export type StreamCallProps = {
-  call?: Call;
+  call: Call | undefined;
 
   /**
    * An optional props to pass to the `MediaDevicesProvider`.

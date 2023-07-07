@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from 'next';
 import {
   Call,
+  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -11,7 +12,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { MeetingUI } from '../../../components';
 import { createToken } from '../../../helpers/jwt';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
 import { customSentryLogger } from '../../../helpers/logger';
 
@@ -31,30 +32,49 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
     const userToConnect: User =
       mode === 'anon'
         ? { type: 'anonymous' }
         : { id: guestUserId, type: 'guest' };
     const tokenToUse = mode === 'anon' ? token : undefined;
-    return new StreamVideoClient({
+    const _client = new StreamVideoClient({
       apiKey,
       user: userToConnect,
       token: tokenToUse,
       options: {
-        logLevel: 'info',
+        logLevel: 'warn',
         logger: customSentryLogger,
       },
     });
-  });
+    setClient(_client);
 
-  const call = useMemo<Call>(
-    () => client.call(callType, callId),
-    [client, callType, callId],
-  );
+    return () => {
+      _client
+        .disconnectUser()
+        .catch((e) => console.error('Failed to disconnect user', e));
+      setClient(undefined);
+    };
+  }, []);
+
+  const [call, setCall] = useState<Call>();
 
   useEffect(() => {
-    call.getOrCreate().catch((err) => {
+    const _call = client?.call(callType, callId);
+    setCall(_call);
+
+    return () => {
+      if (_call?.state.callingState !== CallingState.LEFT) {
+        _call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client, callType, callId]);
+
+  useEffect(() => {
+    call?.getOrCreate().catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
   }, [call]);
