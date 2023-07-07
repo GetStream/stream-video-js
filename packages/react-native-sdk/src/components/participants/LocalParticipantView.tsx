@@ -97,7 +97,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
           <VideoRenderer
             mirror={isCameraOnFrontFacingMode}
             mediaStream={localParticipant.videoStream}
-            style={styles.videoStream}
+            style={styles.videoStreamFullScreen}
             zOrder={zOrder}
           />
         )}
@@ -157,6 +157,9 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     flex: 1,
+  },
+  videoStreamFullScreen: {
+    ...StyleSheet.absoluteFillObject,
   },
   topView: {
     position: 'absolute',
