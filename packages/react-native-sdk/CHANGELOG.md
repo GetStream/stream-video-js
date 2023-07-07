@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.257](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.256...@stream-io/video-react-native-sdk-0.0.1-alpha.257) (2023-07-07)
+
+
+### Features
+
+* reconnection flow support for react-native ([#746](https://github.com/GetStream/stream-video-js/issues/746)) ([8677317](https://github.com/GetStream/stream-video-js/commit/86773172cd6e9c77940645302cc80b138ecc090a))
+
+
+
 ## [0.0.1-alpha.256](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.255...@stream-io/video-react-native-sdk-0.0.1-alpha.256) (2023-07-07)
 
 
