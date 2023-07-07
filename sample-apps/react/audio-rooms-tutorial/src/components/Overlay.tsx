@@ -2,7 +2,8 @@ import {
   Avatar,
   CallingState,
   useCall,
-  useCallCallingState, useCallMetadata,
+  useCallCallingState,
+  useCallMetadata,
   useIsCallLive,
 } from '@stream-io/video-react-sdk';
 
@@ -38,18 +39,22 @@ export const RoomLobby = () => {
 
   return (
     <div className="room-overlay">
-      {isLive ? <p>The room is live.</p> : <RoomIntro/>}
-      <button
-        disabled={!isLive}
-        className="room-access-controls-button"
-        onClick={async () => {
-          await call.join().catch((err) => {
-            console.log(err);
-          });
-        }}
-      >
-        Join
-      </button>
+      {isLive && <p>The room is live.</p>}
+      {!isLive && <RoomIntro />}
+      {callingState === CallingState.JOINING && <p>Joining the room...</p>}
+      {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
+      {callingState === CallingState.OFFLINE && <p>You are offline</p>}
+        <button
+          disabled={!isLive}
+          className="room-access-controls-button"
+          onClick={async () => {
+            await call.join().catch((err) => {
+              console.log(err);
+            });
+          }}
+        >
+          Join
+        </button>
     </div>
   );
 };
@@ -61,11 +66,15 @@ const RoomIntro = () => {
   return (
     <div className="room-intro">
       <div className="room-host">
-        <Avatar className="host-avatar" name={hostName} imageSrc={host?.imageUrl} />
+        <Avatar
+          className="host-avatar"
+          name={hostName}
+          imageSrc={host?.imageUrl}
+        />
         <h3>{hostName}</h3>
       </div>
       <p className="room-description">{metaData?.custom.description}</p>
       <p>The room isn't live. Please wait until the host opens it.</p>
     </div>
   );
-}
+};

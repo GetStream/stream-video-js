@@ -1,20 +1,20 @@
-import {useCallback, useEffect, useState} from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Call,
   StreamCall,
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import {RoomUI} from './RoomUI';
+import { RoomUI } from './RoomUI';
 
 type RoomProps = {
   roomId: string;
-}
+};
 
-function Room({roomId}: RoomProps) {
+function Room({ roomId }: RoomProps) {
   const client = useStreamVideoClient();
   const connectedUser = useConnectedUser();
-  const [call, setCall] = useState<Call | undefined>( );
+  const [call, setCall] = useState<Call | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
@@ -64,7 +64,7 @@ function Room({roomId}: RoomProps) {
 
   return (
     <StreamCall call={call}>
-      <RoomUI loadRoom={loadRoom}/>
+      <RoomUI loadRoom={loadRoom} />
     </StreamCall>
   );
 }
