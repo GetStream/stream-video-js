@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     padding: theme.padding.xs,
   },
   topView: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
     zIndex: Z_INDEX.IN_FRONT,
   },
   videoRenderer: {
