@@ -33,7 +33,7 @@ export const watchCallSessionEnded = (state: CallState) => {
 export const watchCallSessionParticipantJoined = (state: CallState) => {
   return function onCallParticipantJoined(event: StreamVideoEvent) {
     if (event.type !== 'call.session_participant_joined') return;
-    const { user } = event;
+    const { user, user_session_id } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
         state.logger(
@@ -55,6 +55,8 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
               // FIXME OL: ideally, this comes from the backend
               joined_at: new Date().toISOString(),
               user,
+              role: user.role,
+              user_session_id,
             },
           ],
           participants_count_by_role: {
@@ -75,7 +77,7 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
 export const watchCallSessionParticipantLeft = (state: CallState) => {
   return function onCallParticipantLeft(event: StreamVideoEvent) {
     if (event.type !== 'call.session_participant_left') return;
-    const { user } = event;
+    const { user, user_session_id } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
         state.logger(
@@ -91,7 +93,9 @@ export const watchCallSessionParticipantLeft = (state: CallState) => {
         ...metadata,
         session: {
           ...session,
-          participants: participants.filter((p) => p.user.id !== user.id),
+          participants: participants.filter(
+            (p) => p.user_session_id !== user_session_id,
+          ),
           participants_count_by_role: {
             ...participants_count_by_role,
             [user.role]: Math.max(

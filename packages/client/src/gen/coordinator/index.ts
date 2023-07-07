@@ -149,6 +149,7 @@ export interface AudioSettings {
  */
 export const AudioSettingsDefaultDeviceEnum = {
   SPEAKER: 'speaker',
+  EARPIECE: 'earpiece',
 } as const;
 export type AudioSettingsDefaultDeviceEnum =
   (typeof AudioSettingsDefaultDeviceEnum)[keyof typeof AudioSettingsDefaultDeviceEnum];
@@ -202,6 +203,7 @@ export interface AudioSettingsRequest {
  */
 export const AudioSettingsRequestDefaultDeviceEnum = {
   SPEAKER: 'speaker',
+  EARPIECE: 'earpiece',
 } as const;
 export type AudioSettingsRequestDefaultDeviceEnum =
   (typeof AudioSettingsRequestDefaultDeviceEnum)[keyof typeof AudioSettingsRequestDefaultDeviceEnum];
@@ -738,10 +740,22 @@ export interface CallParticipantResponse {
   joined_at: string;
   /**
    *
+   * @type {string}
+   * @memberof CallParticipantResponse
+   */
+  role: string;
+  /**
+   *
    * @type {UserResponse}
    * @memberof CallParticipantResponse
    */
   user: UserResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantResponse
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
@@ -1184,6 +1198,12 @@ export interface CallSessionParticipantJoinedEvent {
    * @memberof CallSessionParticipantJoinedEvent
    */
   user: UserResponse;
+  /**
+   * The user session ID of the user that joined the call session
+   * @type {string}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when a participant leaves a call session
@@ -1221,6 +1241,12 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   user: UserResponse;
+  /**
+   * The user session ID of the user that left the call session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  user_session_id: string;
 }
 /**
  *
