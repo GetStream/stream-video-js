@@ -6,17 +6,17 @@ import React, {
   useState,
 } from 'react';
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { ParticipantView } from './ParticipantView';
+import { ParticipantView } from '../participants/ParticipantView';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
+import { theme } from '../../theme';
+import { useDebouncedValue } from '../../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
-import { A11yComponents } from '../constants/A11yLabels';
+import { A11yComponents } from '../../constants/A11yLabels';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -27,9 +27,6 @@ const VIEWABILITY_CONFIG: FlatListProps['viewabilityConfig'] = {
   itemVisiblePercentThreshold: 60,
 };
 
-/**
- * The props for the CallParticipantsList component
- */
 interface CallParticipantsListProps {
   /**
    * The list of participants to display in the list
@@ -47,10 +44,12 @@ interface CallParticipantsListProps {
 }
 
 /**
- * The CallParticipantsList component displays a list of participants in a FlatList
- * NOTE: this component depends on a flex container to calculate the width and height of the participant view, hence it should be used only in a flex parent container
+ * This component displays a list of participants in a FlatList.
+ * You can use this component to display participants either in a vertical or horizontal scrolling mode.
+ * NOTE: this component depends on a flex container to calculate the width and height of the participant view,
+ * hence it should be used only in a flex parent container
  */
-export const CallParticipantsList = (props: CallParticipantsListProps) => {
+export const CallParticipantsListView = (props: CallParticipantsListProps) => {
   const { numColumns = 2, horizontal, participants } = props;
   const [containerLayout, setContainerLayout] = useState({
     width: 0,

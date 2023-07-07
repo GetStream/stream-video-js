@@ -63,7 +63,6 @@ export interface VideoRendererProps {
 
 /**
  * Lower level component, that represents only the video part (wrapper around the WebRTC)
- * //Todo: SG: add photo's with all states
  */
 export const VideoRenderer = (props: VideoRendererProps) => {
   const {

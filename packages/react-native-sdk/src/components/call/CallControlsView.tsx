@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, ViewProps } from 'react-native';
-import { CameraSwitch, Chat, PhoneDown, Reaction } from '../icons';
-import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../theme';
+import { CameraSwitch, Chat, PhoneDown, Reaction } from '../../icons';
+import { CallControlsButton } from '../utility/internal/CallControlsButton';
+import { theme } from '../../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted } from '@stream-io/video-react-bindings';
-import { ReactionModal } from './ReactionsModal';
-import { ToggleAudioButton } from './ToggleAudioButton';
-import { ToggleVideoButton } from './ToggleVideoButton';
-import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
-import { Z_INDEX } from '../constants';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { ReactionModal } from '../utility/ReactionsModal';
+import { ToggleAudioButton } from '../utility/internal/ToggleAudioButton';
+import { ToggleVideoButton } from '../utility/internal/ToggleVideoButton';
+import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
+import { Z_INDEX } from '../../constants';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * The props for the Chat Button in the Call Control View.
@@ -53,12 +53,8 @@ export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
 }
 
 /**
- * Shows a list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
+ * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
- *
- * | Call Controls |
- * | :--- |
- * | ![call-controls-view](https://user-images.githubusercontent.com/25864161/217349666-af0f3278-393e-449d-b30e-2d1b196abe5e.png) |
  */
 export const CallControlsView = ({
   chatButton,

@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
-import { theme } from '../theme';
+import { theme } from '../../../theme';
 import { SfuModels } from '@stream-io/video-client';
-
+import React from 'react';
 /**
  * Props to be passed for the NetworkQualityIndicator component.
  */

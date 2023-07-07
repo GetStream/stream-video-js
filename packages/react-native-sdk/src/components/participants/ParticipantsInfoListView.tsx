@@ -19,80 +19,23 @@ import {
   Text,
   View,
 } from 'react-native';
-import { ArrowRight, Cross, MicOff, ScreenShare, VideoSlash } from '../icons';
+import {
+  ArrowRight,
+  Cross,
+  MicOff,
+  ScreenShare,
+  VideoSlash,
+} from '../../icons';
 import React, { useCallback, useState } from 'react';
-import { generateParticipantTitle } from '../utils';
-import { CallParticipantOptions } from './CallParticipantsOptions';
-import { Avatar } from './Avatar';
-import { theme } from '../theme';
-import { A11yButtons, A11yComponents } from '../constants/A11yLabels';
-import { Z_INDEX } from '../constants';
-import { palette } from '../theme/constants';
+import { generateParticipantTitle } from '../../utils';
+import { ParticipantActions } from './internal/ParticipantActions';
+import { Avatar } from '../utility/Avatar';
+import { theme } from '../../theme';
+import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
+import { Z_INDEX } from '../../constants';
+import { palette } from '../../theme/constants';
 
-type CallParticipantInfoViewType = {
-  participant: StreamVideoParticipant;
-  setSelectedParticipant: React.Dispatch<
-    React.SetStateAction<StreamVideoParticipant | undefined>
-  >;
-};
-
-const CallParticipantInfoItem = (props: CallParticipantInfoViewType) => {
-  const { participant, setSelectedParticipant } = props;
-  const connectedUser = useConnectedUser();
-  const participantIsLocalParticipant =
-    participant.userId === connectedUser?.id;
-
-  const optionsOpenHandler = useCallback(() => {
-    if (!participantIsLocalParticipant) {
-      setSelectedParticipant(participant);
-    }
-  }, [participant, setSelectedParticipant, participantIsLocalParticipant]);
-
-  if (!participant) {
-    return null;
-  }
-  const { publishedTracks } = participant;
-  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const isScreenSharing = publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-
-  return (
-    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
-      <Avatar radius={theme.avatar.xs} participant={participant} />
-
-      <Text style={styles.name}>
-        {(participant.name || generateParticipantTitle(participant.userId)) +
-          (participantIsLocalParticipant ? ' (You)' : '')}
-      </Text>
-      <View style={styles.icons}>
-        {isScreenSharing && (
-          <View style={[styles.svgContainerStyle, theme.icon.md]}>
-            <ScreenShare color={theme.dark.info} />
-          </View>
-        )}
-        {isAudioMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <MicOff color={theme.dark.error} />
-          </View>
-        )}
-        {isVideoMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <VideoSlash color={theme.dark.error} />
-          </View>
-        )}
-        {!participantIsLocalParticipant && (
-          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
-            <ArrowRight color={theme.dark.text_high_emphasis} />
-          </View>
-        )}
-      </View>
-    </Pressable>
-  );
-};
-
-export interface CallParticipantsInfoViewType {
+export interface ParticipantsInfoListViewProps {
   /**
    * Boolean that decided whether the CallPartcipantsInfoView modal should be open or not.
    */
@@ -106,18 +49,14 @@ export interface CallParticipantsInfoViewType {
 }
 
 /**
- * Shows information about the call, it's participants in the call and
- * their mute states, handler to trigger options (TBD, permissions not impl)
- * and options to invite more people to the call.
- *
- * | Participants List | Options Modal is Open |
- * | :--- | :----: |
- * |![call-participants-info-view-1](https://user-images.githubusercontent.com/25864161/217341952-1e875bc3-e31f-42eb-918b-307eace116b1.png) | ![call-participants-info-view-2](https://user-images.githubusercontent.com/25864161/217341960-5016b678-d1a5-4ecf-bb4b-e463987b9cae.png)|
+ * A component that shows a list of participants in the call and their information.
+ * their mute states, video states, screen share states, etc.
+ * Mute all participants, invite participants, etc.
  **/
-export const CallParticipantsInfoView = ({
+export const ParticipantsInfoListView = ({
   isCallParticipantsViewVisible,
   setIsCallParticipantsViewVisible,
-}: CallParticipantsInfoViewType) => {
+}: ParticipantsInfoListViewProps) => {
   const participants = useParticipants();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
@@ -151,7 +90,7 @@ export const CallParticipantsInfoView = ({
   const renderItem = useCallback(
     ({ item }: { item: StreamVideoParticipant }) => {
       return (
-        <CallParticipantInfoItem
+        <ParticipantInfoItem
           key={item.sessionId}
           participant={item}
           setSelectedParticipant={setSelectedParticipant}
@@ -212,7 +151,7 @@ export const CallParticipantsInfoView = ({
             {/*independent background, needed due to desired opacity only
          on background, exc. modal content*/}
             <View style={styles.backDropBackground} />
-            <CallParticipantOptions
+            <ParticipantActions
               participant={selectedParticipant}
               setSelectedParticipant={setSelectedParticipant}
             />
@@ -220,6 +159,69 @@ export const CallParticipantsInfoView = ({
         </Modal>
       </>
     </Modal>
+  );
+};
+
+type ParticipantInfoType = {
+  participant: StreamVideoParticipant;
+  setSelectedParticipant: React.Dispatch<
+    React.SetStateAction<StreamVideoParticipant | undefined>
+  >;
+};
+
+const ParticipantInfoItem = (props: ParticipantInfoType) => {
+  const { participant, setSelectedParticipant } = props;
+  const connectedUser = useConnectedUser();
+  const participantIsLocalParticipant =
+    participant.userId === connectedUser?.id;
+
+  const optionsOpenHandler = useCallback(() => {
+    if (!participantIsLocalParticipant) {
+      setSelectedParticipant(participant);
+    }
+  }, [participant, setSelectedParticipant, participantIsLocalParticipant]);
+
+  if (!participant) {
+    return null;
+  }
+  const { publishedTracks } = participant;
+  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isScreenSharing = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
+  return (
+    <Pressable style={styles.participant} onPress={optionsOpenHandler}>
+      <Avatar radius={theme.avatar.xs} participant={participant} />
+
+      <Text style={styles.name}>
+        {(participant.name || generateParticipantTitle(participant.userId)) +
+          (participantIsLocalParticipant ? ' (You)' : '')}
+      </Text>
+      <View style={styles.icons}>
+        {isScreenSharing && (
+          <View style={[styles.svgContainerStyle, theme.icon.md]}>
+            <ScreenShare color={theme.dark.info} />
+          </View>
+        )}
+        {isAudioMuted && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <MicOff color={theme.dark.error} />
+          </View>
+        )}
+        {isVideoMuted && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <VideoSlash color={theme.dark.error} />
+          </View>
+        )}
+        {!participantIsLocalParticipant && (
+          <View style={[styles.svgContainerStyle, theme.icon.sm]}>
+            <ArrowRight color={theme.dark.text_high_emphasis} />
+          </View>
+        )}
+      </View>
+    </Pressable>
   );
 };
 

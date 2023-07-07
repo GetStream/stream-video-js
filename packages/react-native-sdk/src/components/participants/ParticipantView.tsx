@@ -7,24 +7,24 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { MediaStream, RTCView } from 'react-native-webrtc';
+import { RTCView } from 'react-native-webrtc';
 import {
   SfuModels,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { VideoRenderer } from './VideoRenderer';
-import { Avatar } from './Avatar';
-import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../icons';
-import { theme } from '../theme';
-import { palette } from '../theme/constants';
-import { ParticipantReaction } from './ParticipantReaction';
+import { VideoRenderer } from '../utility/internal/VideoRenderer';
+import { Avatar } from '../utility/Avatar';
+import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
+import { theme } from '../../theme';
+import { palette } from '../../theme/constants';
+import { ParticipantReaction } from './internal/ParticipantReaction';
 import { useCall } from '@stream-io/video-react-bindings';
-import { NetworkQualityIndicator } from './NetworkQualityIndicator';
-import { Z_INDEX } from '../constants';
-import { A11yComponents } from '../constants/A11yLabels';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { NetworkQualityIndicator } from './internal/NetworkQualityIndicator';
+import { Z_INDEX } from '../../constants';
+import { A11yComponents } from '../../constants/A11yLabels';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * Props to be passed for the ParticipantView component.
@@ -57,13 +57,9 @@ interface ParticipantViewProps {
 }
 
 /**
- * Renders either the participants' video track or screenShare track
- * and additional info, by an absence of a video track or when disableVideo is truthy,
+ * A component that renders the participants' video track or screenShare track
+ * and additional info. By an absence of a video track or when disableVideo is truthy,
  * only an avatar and audio track will be rendered.
- *
- * | When Video is Enabled | When Video is Disabled |
- * | :--- | :----: |
- * |![participant-view-1](https://user-images.githubusercontent.com/25864161/217489213-d4532ca1-49ee-4ef5-940c-af2e55bc0a5f.png)|![participant-view-2](https://user-images.githubusercontent.com/25864161/217489207-fb20c124-8bce-4c2b-87f9-4fe67bc50438.png)|
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
@@ -179,13 +175,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     pendingVideoLayoutRef.current = undefined;
   };
 
-  // NOTE: We have to cast to MediaStream type from webrtc
-  // as JS client sends the web navigators' mediastream type instead
-  const videoStream = (
-    kind === 'video' ? participant.videoStream : participant.screenShareStream
-  ) as MediaStream | undefined;
+  const videoStream =
+    kind === 'video' ? participant.videoStream : participant.screenShareStream;
 
-  const audioStream = participant.audioStream as MediaStream | undefined;
+  const audioStream = participant.audioStream;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const hasScreenShareTrack = publishedTracks.includes(
@@ -232,16 +225,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <VideoRenderer
           zOrder={Z_INDEX.IN_BACK}
           mirror={mirror}
-          mediaStream={videoStream as MediaStream}
+          mediaStream={videoStream}
           objectFit={isScreenSharing ? 'contain' : 'cover'}
           style={[styles.videoRenderer, props.videoRendererStyle]}
         />
       ) : (
         <Avatar participant={participant} />
       )}
-      {isAudioAvailable && (
-        <RTCView streamURL={(audioStream as MediaStream).toURL()} />
-      )}
+      {isAudioAvailable && <RTCView streamURL={audioStream.toURL()} />}
       <View style={styles.bottomView}>
         {kind === 'video' && (
           <View style={styles.status}>

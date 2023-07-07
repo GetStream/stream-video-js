@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { A11yButtons, A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen } from '../utils/RNTLTools';
-import { CallParticipantsBadge } from '../../src/components';
+import { ParticipantsInfoBadge } from '../../src/components';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -21,7 +21,7 @@ describe('CallParticipantsBadge', () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({ isLocalParticipant: true }),
     ]);
-    render(<CallParticipantsBadge />, {
+    render(<ParticipantsInfoBadge />, {
       call,
     });
 
@@ -35,7 +35,7 @@ describe('CallParticipantsBadge', () => {
       mockParticipant({ isLocalParticipant: true }),
     ]);
 
-    render(<CallParticipantsBadge />, {
+    render(<ParticipantsInfoBadge />, {
       call,
     });
 
@@ -69,7 +69,7 @@ describe('CallParticipantsBadge', () => {
       }),
     ]);
 
-    render(<CallParticipantsBadge />, {
+    render(<ParticipantsInfoBadge />, {
       call,
     });
 

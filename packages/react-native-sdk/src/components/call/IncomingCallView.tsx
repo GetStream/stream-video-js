@@ -1,14 +1,14 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { CallControlsButton } from './CallControlsButton';
+import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import {
   useCallMembers,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
-import { UserInfoView } from './UserInfoView';
-import { Phone, PhoneDown, Video, VideoSlash } from '../icons';
-import { theme } from '../theme';
-import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
+import { UserInfoView } from './internal/UserInfoView';
+import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
+import { theme } from '../../theme';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * The props for the Accept Call button in the IncomingCallView component.
@@ -46,11 +46,15 @@ export type IncomingCallViewType = {
   rejectCallButton: RejectCallButton;
 };
 
+/**
+ * An incoming call view with the caller's avatar, name and accept/reject buttons.
+ * Used when the user is receiving a call.
+ */
 export const IncomingCallView = ({
   acceptCallButton,
   rejectCallButton,
 }: IncomingCallViewType) => {
-  const { initialVideoEnabled, toggleInitialVideoMuteState } =
+  const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
 
   return (

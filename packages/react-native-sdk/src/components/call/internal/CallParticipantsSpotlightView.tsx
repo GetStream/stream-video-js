@@ -1,13 +1,16 @@
 import React from 'react';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  SfuModels,
+  StreamVideoParticipant,
+  speakerLayoutSortPreset,
+} from '@stream-io/video-client';
 import { useParticipants } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { ParticipantView } from './ParticipantView';
-import { theme } from '../theme';
-import { useDebouncedValue } from '../utils/hooks/useDebouncedValue';
-import { CallParticipantsList } from './CallParticipantsList';
-import { speakerLayoutSortPreset } from '@stream-io/video-client';
-import { A11yComponents } from '../constants/A11yLabels';
+import { ParticipantView } from '../../participants/ParticipantView';
+import { theme } from '../../../theme';
+import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import { A11yComponents } from '../../../constants/A11yLabels';
+import { CallParticipantsListView } from '../../call/CallParticipantsListView';
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -33,7 +36,7 @@ export const CallParticipantsSpotlightView = () => {
         />
       )}
       <View style={styles.participantVideoContainer}>
-        <CallParticipantsList
+        <CallParticipantsListView
           participants={
             isScreenShareOnSpotlight ? allParticipants : otherParticipants
           }

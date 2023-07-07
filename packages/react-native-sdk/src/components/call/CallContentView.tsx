@@ -1,10 +1,10 @@
 import React from 'react';
-import { CallParticipantsGridView } from './CallParticipantsGridView';
-import { CallParticipantsSpotlightView } from './CallParticipantsSpotlightView';
+import { CallParticipantsGridView } from './internal/CallParticipantsGridView';
+import { CallParticipantsSpotlightView } from './internal/CallParticipantsSpotlightView';
 import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 
-export type CallParticipantsViewProps = {
+export type CallContentViewProps = {
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
@@ -12,7 +12,12 @@ export type CallParticipantsViewProps = {
   mode?: 'grid' | 'spotlight';
 };
 
-export const CallParticipantsView = ({ mode }: CallParticipantsViewProps) => {
+/**
+ * The main view of an active call.
+ * This view renders the participants in either grid or spotlight mode.
+ * @param mode The mode of the call view. Defaults to 'grid'.
+ */
+export const CallContentView = ({ mode }: CallContentViewProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
 
   const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;

@@ -6,11 +6,11 @@ import {
   useHasPermissions,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { useCallControls, usePermissionNotification } from '../hooks';
-import { theme } from '../theme';
-import { Mic, MicOff } from '../icons';
+import { useCallControls, usePermissionNotification } from '../../../hooks';
+import { theme } from '../../../theme';
+import { Mic, MicOff } from '../../../icons';
 import { Alert, StyleSheet } from 'react-native';
-import { muteStatusColor } from '../utils';
+import { muteStatusColor } from '../../../utils';
 
 export const ToggleAudioButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
