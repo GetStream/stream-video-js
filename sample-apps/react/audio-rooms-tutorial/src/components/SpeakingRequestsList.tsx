@@ -1,18 +1,15 @@
-import { useCallback } from 'react';
-import {
-  PermissionRequestEvent,
-  useCall,
-  useCallMetadata,
-} from '@stream-io/video-react-sdk';
+import { PermissionRequestEvent } from '@stream-io/video-react-sdk';
 import { AcceptIcon, CloseIcon } from './icons';
 
 type SpeakingRequestsListProps = {
+  acceptRequest: (speakingRequest: PermissionRequestEvent) => Promise<void>;
   close: () => void;
   dismissSpeakingRequest: (request: PermissionRequestEvent) => void;
   speakingRequests: PermissionRequestEvent[];
 };
 
 export const SpeakingRequestsList = ({
+  acceptRequest,
   close,
   dismissSpeakingRequest,
   speakingRequests,
@@ -27,50 +24,29 @@ export const SpeakingRequestsList = ({
     {speakingRequests.length ? (
       speakingRequests.map((speakingRequest) => (
         <SpeakingRequest
+          accept={acceptRequest}
           key={speakingRequest.user.id}
           speakingRequest={speakingRequest}
           dismiss={dismissSpeakingRequest}
         />
       ))
     ) : (
-      <div>There are not speaker requests</div>
+      <div>There are no speaker requests</div>
     )}
   </div>
 );
 
 interface SpeakingRequestProps {
+  accept: (speakingRequest: PermissionRequestEvent) => Promise<void>;
   dismiss: (speakingRequest: PermissionRequestEvent) => void;
   speakingRequest: PermissionRequestEvent;
 }
 
 const SpeakingRequest = ({
+  accept,
   dismiss,
   speakingRequest,
 }: SpeakingRequestProps) => {
-  const call = useCall();
-  const metadata = useCallMetadata();
-
-  const acceptRequest = useCallback(async () => {
-    if (!(call && metadata?.custom)) return null;
-
-    await call?.updateUserPermissions({
-      user_id: speakingRequest.user.id,
-      grant_permissions: [...speakingRequest.permissions],
-    });
-
-    await call?.update({
-      custom: {
-        ...(metadata?.custom || {}),
-        speakerIds: [
-          ...(metadata?.custom.speakerIds || []),
-          speakingRequest.user.id,
-        ],
-      },
-    });
-
-    dismiss(speakingRequest);
-  }, [dismiss, call, metadata?.custom, speakingRequest]);
-
   return (
     <div className="speaking-request">
       <p>
@@ -86,7 +62,7 @@ const SpeakingRequest = ({
         </button>
         <button
           className="icon-button accept-button"
-          onClick={() => acceptRequest()}
+          onClick={() => accept(speakingRequest)}
         >
           <AcceptIcon />
         </button>

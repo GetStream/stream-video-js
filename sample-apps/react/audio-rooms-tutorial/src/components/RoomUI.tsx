@@ -39,6 +39,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   const participants = useParticipants();
   const canJoinBackstage = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
   const {
+    acceptRequest,
     isOpenRequestList,
     dismissSpeakingRequest,
     setIsOpenRequestList,
@@ -151,6 +152,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
             hasPermissionsOnly
           >
             <SpeakingRequestsList
+              acceptRequest={acceptRequest}
               close={() => setIsOpenRequestList(false)}
               dismissSpeakingRequest={dismissSpeakingRequest}
               speakingRequests={speakingRequests}
