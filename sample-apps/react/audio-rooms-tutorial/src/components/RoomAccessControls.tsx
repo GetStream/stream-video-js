@@ -6,11 +6,9 @@ import {
   useCallCallingState,
   useCallMetadata,
   useIsCallLive,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 export const RoomAccessControls = () => {
-  const { setInitialAudioEnabled } = useMediaDevices();
   const call = useCall();
   const metadata = useCallMetadata();
   const callingState = useCallCallingState();
@@ -68,7 +66,6 @@ export const RoomAccessControls = () => {
               await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
-              setInitialAudioEnabled(false);
             }}
           >
             Leave Quietly
