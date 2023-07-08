@@ -22,10 +22,12 @@ import {
 } from './icons';
 import type { CustomCallData } from '../types';
 
-type LiveRoomControlsProps = {
+type OpenNotificationsButtonProps = {
   hasNotifications: boolean;
   openRequestsList: () => void;
 };
+
+type LiveRoomControlsProps = OpenNotificationsButtonProps;
 export const LiveRoomControls = ({
   hasNotifications,
   openRequestsList,
@@ -34,7 +36,6 @@ export const LiveRoomControls = ({
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();
-  const localParticipant = useLocalParticipant();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
     OwnCapability.SEND_AUDIO,
@@ -47,39 +48,6 @@ export const LiveRoomControls = ({
   const isSpeaker = (callMetadata?.custom as CustomCallData).speakerIds?.some(
     (id) => id === connectedUser?.id,
   );
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
-  const toggleAudio = useCallback(async () => {
-    if (!call) return;
-
-    if (isAudioMute) {
-      if (!canSendAudio) {
-        setIsAwaitingAudioApproval(true);
-        await call
-          .requestPermissions({
-            permissions: [OwnCapability.SEND_AUDIO],
-          })
-          .catch((reason) => {
-            console.log('RequestPermissions failed', reason);
-          });
-        return;
-      }
-      // todo move to publishAudioStream()
-      setInitialAudioEnabled(true);
-      await publishAudioStream();
-    } else {
-      stopPublishingAudio();
-    }
-  }, [
-    call,
-    canSendAudio,
-    isAudioMute,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
@@ -107,12 +75,6 @@ export const LiveRoomControls = ({
     }
   }, [canSendAudio]);
 
-  useEffect(() => {
-    if (callingState !== CallingState.LEFT) {
-      setIsAwaitingAudioApproval(false);
-    }
-  }, [callingState]);
-
   if (!call || callingState !== CallingState.JOINED) return null;
 
   const showMuteButton =
@@ -120,53 +82,131 @@ export const LiveRoomControls = ({
 
   return (
     <div className="live-room-controls">
-      <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
-        <button
-          className={`icon-button ${hasNotifications ? 'notifications' : ''}`}
-          onClick={openRequestsList}
-          title="Requests"
-        >
-          <BellIcon />
-        </button>
-      </Restricted>
-      {showMuteButton && (
-        <button
-          className="icon-button"
-          disabled={isAwaitingAudioApproval}
-          onClick={toggleAudio}
-          title={isAudioMute ? 'Unmute' : 'Mute'}
-        >
-          {isAwaitingAudioApproval ? (
-            <LoadingIcon />
-          ) : isAudioMute ? (
-            <MuteMicrophoneIcon />
-          ) : (
-            <MicrophoneIcon />
-          )}
-        </button>
-      )}
-      {!showMuteButton && (
-        <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
-          <button
-            className="icon-button"
-            disabled={isAwaitingAudioApproval}
-            title="Request to speak"
-            onClick={() => {
-              setIsAwaitingAudioApproval(true);
-              call.requestPermissions({
-                permissions: [OwnCapability.SEND_AUDIO],
-              });
-            }}
-          >
-            <RaiseHandIcon />
-          </button>
-        </Restricted>
-      )}
-      {isAwaitingAudioApproval && (
-        <div className="live-room-controls__notificaton">
-          Waiting for permission to speak
-        </div>
+      <OpenNotificationsButton
+        hasNotifications={hasNotifications}
+        openRequestsList={openRequestsList}
+      />
+      {isAwaitingAudioApproval ? (
+        <AwaitingApprovalIndicator />
+      ) : showMuteButton ? (
+        <ToggleMuteButton
+          setIsAwaitingAudioApproval={setIsAwaitingAudioApproval}
+        />
+      ) : (
+        <RequestToSpeakButton
+          setIsAwaitingAudioApproval={setIsAwaitingAudioApproval}
+        />
       )}
     </div>
   );
 };
+
+type AudioRequestApprovalProps = {
+  setIsAwaitingAudioApproval: (isAwaiting: boolean) => void;
+};
+
+const ToggleMuteButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  const call = useCall();
+  const localParticipant = useLocalParticipant();
+  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+
+  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
+    useMediaDevices();
+
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
+  const toggleAudio = useCallback(async () => {
+    if (!call) return;
+
+    if (isAudioMute) {
+      if (!canSendAudio) {
+        setIsAwaitingAudioApproval(true);
+        await call
+          .requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          })
+          .catch((reason) => {
+            console.log('RequestPermissions failed', reason);
+          });
+        return;
+      }
+
+      setInitialAudioEnabled(true);
+      await publishAudioStream();
+    } else {
+      stopPublishingAudio();
+    }
+  }, [
+    call,
+    canSendAudio,
+    isAudioMute,
+    publishAudioStream,
+    setInitialAudioEnabled,
+    setIsAwaitingAudioApproval,
+    stopPublishingAudio,
+  ]);
+
+  return (
+    <button
+      className="icon-button"
+      onClick={toggleAudio}
+      title={isAudioMute ? 'Unmute' : 'Mute'}
+    >
+      {isAudioMute ? <MuteMicrophoneIcon /> : <MicrophoneIcon />}
+    </button>
+  );
+};
+
+const RequestToSpeakButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  const call = useCall();
+  if (!call) return null;
+
+  return (
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
+      <button
+        className="icon-button"
+        title="Request to speak"
+        onClick={() => {
+          setIsAwaitingAudioApproval(true);
+          call.requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          });
+        }}
+      >
+        <RaiseHandIcon />
+      </button>
+    </Restricted>
+  );
+};
+
+const AwaitingApprovalIndicator = () => (
+  <>
+    <button className="icon-button" disabled title={'Awaiting approval'}>
+      <LoadingIcon />
+    </button>
+    <div className="live-room-controls__notificaton">
+      Waiting for permission to speak
+    </div>
+  </>
+);
+
+const OpenNotificationsButton = ({
+  hasNotifications,
+  openRequestsList,
+}: OpenNotificationsButtonProps) => (
+  <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
+    <button
+      className={`icon-button ${hasNotifications ? 'notifications' : ''}`}
+      onClick={openRequestsList}
+      title="Requests"
+    >
+      <BellIcon />
+    </button>
+  </Restricted>
+);
