@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.77](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.76...@stream-io/video-react-sdk-0.0.77) (2023-07-10)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+* `@stream-io/video-react-bindings` updated to version `0.0.43`
+
+### Documentation
+
+* **react-sdk:** add token snippet to audio rooms tutorial ([#739](https://github.com/GetStream/stream-video-js/issues/739)) ([bf0b46c](https://github.com/GetStream/stream-video-js/commit/bf0b46ce40329458ad545c82b70a4099c4afc8f2))
+
 ### [0.0.76](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.75...@stream-io/video-react-sdk-0.0.76) (2023-07-10)
 
 
