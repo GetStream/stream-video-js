@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.262](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.261...@stream-io/video-react-native-sdk-0.0.1-alpha.262) (2023-07-10)
+
+
+### Bug Fixes
+
+* **react-native:** fix ui issues in dogfood app ([#763](https://github.com/GetStream/stream-video-js/issues/763)) ([289374c](https://github.com/GetStream/stream-video-js/commit/289374c0d17f7897906fab22ee2e06be0380eb51))
+
+
+
 ## [0.0.1-alpha.261](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.260...@stream-io/video-react-native-sdk-0.0.1-alpha.261) (2023-07-10)
 
 
