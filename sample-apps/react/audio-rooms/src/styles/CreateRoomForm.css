@@ -1,3 +1,10 @@
+.open-create-room-button {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+
+}
+
 .form-modal-background-overlay {
   position: absolute;
   display: flex;
@@ -5,7 +12,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
 }
 .form-container {
   background: #fff;
@@ -32,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--background-color);
 }
 
 .form-container__header .form-container__close-button svg {
@@ -49,6 +57,7 @@ form input {
   border-radius: 1rem;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
+  background-color: var(--background-color-light);
 }
 
 form button {
@@ -63,4 +72,14 @@ form button {
 
 .create-button:hover {
   background: hsl(240, 100%, 70%);
+}
+
+@media screen and (max-width: 800px) {
+  .open-create-room-button {
+    padding: 0.875rem;
+  }
+
+  .open-create-room-button span {
+    display: none;
+  }
 }

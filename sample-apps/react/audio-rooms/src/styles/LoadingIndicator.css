@@ -9,4 +9,5 @@
 
 .loading-icon {
   animation: rotation 2s infinite linear;
+  fill: #fff;
 }

@@ -62,6 +62,8 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
 
   useEffect(() => {
     setLoadingCalls(true);
+    setCalls([]);
+    nextPage.current = undefined;
     loadCalls()
       .catch(setLoadingError)
       .finally(() => setLoadingCalls(false));
@@ -142,7 +144,6 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
 
   return (
     <div id={`${liveState}-listing-section`} className="room-listing-section">
-      <h2>{liveState} audio rooms</h2>
       {content}
     </div>
   );

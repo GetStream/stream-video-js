@@ -28,6 +28,12 @@ export const RoomAccessControls = () => {
   )
     return null;
 
+  const canJoin = ![
+    CallingState.JOINING,
+    CallingState.JOINED,
+    CallingState.LEFT,
+  ].includes(callingState);
+
   return (
     <div className="room-access-controls">
       {!isLive ? (
@@ -47,11 +53,11 @@ export const RoomAccessControls = () => {
                   setInitialAudioEnabled(false);
                 }
                 await call.goLive();
-                await call.join();
+                if (canJoin) await call.join();
                 setJoinedCall(call);
               }}
             >
-              Go live!
+              Go live{canJoin ? ' and join' : ''}!
             </button>
           </Restricted>
         </>
@@ -65,11 +71,10 @@ export const RoomAccessControls = () => {
               className="room-access-controls-button"
               onClick={async () => {
                 await call.stopLive();
-                await call.endCall();
-                setJoinedCall(undefined);
+                await call?.leave();
               }}
             >
-              End room
+              Stop room
             </button>
           </Restricted>
           <button

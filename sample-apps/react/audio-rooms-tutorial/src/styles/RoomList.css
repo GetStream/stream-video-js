@@ -1,0 +1,88 @@
+.rooms-overview h2 {
+  text-align: center;
+}
+
+.room-listing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 400px));
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.room-listing--empty {
+  width: 100%;
+  text-align: center;
+}
+
+.room-card-button {
+  padding: 0;
+  background: transparent;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.room-card-button:hover {
+  border-color: var(--prominent-color);
+}
+
+.room-card {
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+  border-radius: 8px;
+  background: var(--background-color-light);
+  padding: 0.6rem 1.2rem;
+  height: 100%;
+  max-width: 400px;
+  min-width: 0;
+}
+
+.room-card > span {
+  font-weight: lighter;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.hosts-grid {
+  display: flex;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--background-color);
+}
+
+.hosts-grid div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hosts-grid span {
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.room-listing__load-more-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-block: 2rem 3.5rem;
+}
+
+.room-listing__load-more-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-block: 2rem 3.5rem;
+}
+
+@media screen and (max-width: 800px) {
+  .active-room .rooms-overview {
+    width: 100%;
+    overflow: unset;
+    max-width: unset;
+  }
+}

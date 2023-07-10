@@ -9,7 +9,7 @@ import {
   useCallMetadata,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
-import { CloseIcon, MuteMicrophoneIcon, StarIcon } from '../icons';
+import { CloseIcon, MuteMicrophoneIcon } from '../icons';
 import type { CustomCallData } from '../../types';
 
 export const SpeakerElement = ({
@@ -70,7 +70,6 @@ export const SpeakerElement = ({
       </div>
 
       <div className="speaker-name">
-        <StarIcon />
         <span>{displayName}</span>
       </div>
     </div>

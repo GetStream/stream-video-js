@@ -3,9 +3,11 @@ title: Audio Room Tutorial
 description: How to build an audio room using Stream's video SDKs
 ---
 
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
 In this guide, you'll build an audio room experience similar to Twitter Spaces / Clubhouse.
 
-The code for the final result can also be found on GitHub, so if you're only interested in seeing the resulting code, go [here](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms).
+The code for the final result can also be found on GitHub, so if you're only interested in seeing the resulting code, go [here](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms-tutorial).
 
 :::note
 For the sake of simplicity, the code provided in this guide may be simplified in certain situations. However, there will always be a link to the repository with the full code, so that you'll be able to have a look at that.
@@ -14,12 +16,16 @@ For the sake of simplicity, the code provided in this guide may be simplified in
 Alright, let's get started. Creating this app will require the following steps:
 
 1. Set up the project
-2. Describe the login flow
-3. Creating rooms via the API
-4. Querying calls (with real-time updates)
-5. Going live
-6. Joining, leaving and ending a room
-7. Managing speaking requests
+2. Creating rooms via the API
+3. Querying calls (with real-time updates)
+4. Going live
+5. Joining, leaving and ending a room
+6. Managing speaking requests
+
+### App preview
+You can preview the Audio Rooms demo application by joining an audio room:
+
+<TokenSnippet sampleApp='audio-rooms' displayStyle="join"/>
 
 ## Project setup and prerequisites
 
@@ -38,138 +44,145 @@ npm install @stream-io/video-react-sdk
 yarn add @stream-io/video-react-sdk
 ```
 
-5. Have populated `.env` file in the project root
-
-```shell
-VITE_STREAM_API_KEY=<your_api_key>
-# URL from which the JWT is requested
-VITE_TOKEN_PROVIDER_URL=<your_token_provider_url>
-```
-
 With the basic setup of the project and the Stream SDK ready we can dive into the code.
 
-### The Audio Rooms app structure
-
-The application has basically 4 types of views:
-
-1. **Login page** - here we select and authenticate a user
-2. **Rooms overview page** - lists all the rooms based on given filter conditions
-3. **Room detail page** - allows to load, join, leave a room and ask for permissions to speak
-4. **Create room view as a modal** - allows to create a room and redirects to the room detail page
-
-In the following sections we will explain how to achieve the actions described above.
-
-:::note
-Routing in the app is done by using 3rd party library [react-router-dom](https://reactrouter.com/en/main)
-:::
-
-### User Authentication
+### User authentication
 
 The first important step is to initialize the Stream Video client. Therefore, we need an API key and a token provider.
 
-:::tip
-Want to learn why we need the token provider and how it works? See [the authentication guide](../../guides/client-auth/#streamvideo-context-provider) for more detail.
-:::
+<TokenSnippet sampleApp='audio-rooms' displayStyle="credentials"/>
 
-The token is retrieved using `tokenProvider` function that needs to be aware of the selected user, the API key. It then builds an URL for generating the token. The URL is custom to this project:
+Normally, you would store these values in your project's `.env` file. For the simplicity we include those values statically in the source as shown below. The credentials can then be passed to the `StreamVideoClient` constructor:
 
 ```tsx
-import {
-  ReactNode,
-  useCallback,
-  useState,
-} from 'react';
-import { User } from '../data/users';
-import {
-  ChildrenOnly,
-} from '@stream-io/video-react-sdk';
+import { useState } from 'react';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 
-const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-const tokenProviderURL = import.meta.env.VITE_TOKEN_PROVIDER_URL;
+import Room from './components/RoomPage';
 
-export const UserContextProvider = ({ children }: ChildrenOnly) => {
-  const [user, setUser] = useState<User | undefined>();
-  const [authInProgress, setAuthInProgress] = useState(false);
+const apiKey: string = ''; // The API key can be found in the Credentials section
+const token: string = ''; // The Token can be found in the Credentials section
+const userId: string = ''; // The User ID can be found in the Credentials section
+const image: string = ''; // (Optional) The image URL, you would like to be displayed in the UI.
+const roomId: string = ''; // The room ID we plan to join.
 
-  // omitted code ...
-  // highlight-start
-  const tokenProvider = useCallback(async (): Promise<string> => {
-    if (!apiKey) {
-      throw new Error('Missing VITE_STREAM_API_KEY');
-    }
-    if (!tokenProviderURL) {
-      throw new Error('Missing VITE_TOKEN_PROVIDER_URL');
-    }
-
-    if (!user) {
-      throw new Error('User is not selected');
-    }
-
-    const url = new URL(tokenProviderURL);
-    url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('user_id', user.id);
-
-    setAuthInProgress(true);
-    const response = await fetch(url.toString());
-    const { token } = await response.json();
-    setAuthInProgress(false);
-    return token;
-  }, [user]);
-  // highlight-end
-
-  // omitted code ...
-
-}
-```
-
-The `tokenProvider` function is called by `StreamVideoClient` instance every time the token is expired. In order for this to happen, we pass the `tokenProvider` function to `StreamVideoClient` constructor:
-
-```tsx
-import { useEffect, useState } from 'react';
-import {
-  ChildrenOnly,
-  StreamVideo,
-  StreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { useUserContext } from './UserContext';
-
-const apiKey = import.meta.env.VITE_STREAM_API_KEY as string;
-
-export const VideoClientProvider = ({ children }: ChildrenOnly) => {
-  const { user, tokenProvider } = useUserContext();
-  const [client, setClient] = useState<StreamVideoClient>();
-
-  useEffect(() => {
-    if (!user) return;
-    setClient(
-      new StreamVideoClient({
-        apiKey,
-        // highlight-next-line
-        tokenProvider,
-        user: {
-          id: user.id,
-          image: user.imageUrl,
-          name: user.name,
-        },
-      }),
-    );
-  }, [tokenProvider, user]);
-
-  if (!client) return null;
-
-  return <StreamVideo client={client}>{children}</StreamVideo>;
+const user = {
+  id: userId,
+  name: userId,
+  image,
 };
 
+const App = () => {
+  const [client] = useState(
+    () =>
+      new StreamVideoClient({
+        apiKey,
+        token,
+        user,
+      }),
+  );
+
+  return (
+    <div className="app-container">
+      <StreamVideo client={client}>
+        <Room roomId={roomId} />
+      </StreamVideo>
+    </div>
+  );
+};
+
+export default App;
 ```
 
-### Creating rooms
 
-Now that we are done with the user authentication, we can start building the app. The first thing we'll do is to allow users to create an audio room where others can then join.
+### Creating & loading the room
 
-We will populate `custom` attribute of a `Call` object with the following data:
+Now that we are done with the user authentication, we can start building the app. The first thing we'll do is to allow users to create an audio room where others can then join. We do this by creating a new `Call` instance and calling `getOrCreate` method on it:
+
+```tsx
+import { useCallback, useEffect, useState } from 'react';
+import {
+  Call,
+  StreamCall,
+  useConnectedUser,
+  useStreamVideoClient,
+} from '@stream-io/video-react-sdk';
+import { RoomUI } from './RoomUI';
+
+type RoomProps = {
+  roomId: string;
+};
+
+function Room({ roomId }: RoomProps) {
+  const client = useStreamVideoClient();
+  const connectedUser = useConnectedUser();
+  const [call, setCall] = useState<Call | undefined>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | undefined>();
+
+  const loadRoom = useCallback(async () => {
+    if (!(client && connectedUser)) return;
+    try {
+      setLoading(true);
+      // highlight-start
+      const newCall = client.call('audio_room', roomId);
+      await newCall.getOrCreate({
+        data: {
+          members: [{ user_id: connectedUser.id, role: 'admin' }],
+          custom: {
+            title: `${connectedUser.id}'s Room`,
+            description: `Room created by ${connectedUser.id}.`,
+            hosts: [connectedUser],
+          },
+        },
+      });
+      // highlight-end
+      setCall(newCall);
+    } catch (e) {
+      setError(e as Error);
+    } finally {
+      setLoading(false);
+    }
+  }, [client, connectedUser, roomId]);
+
+  useEffect(() => {
+    loadRoom().catch((err) => {
+      console.error(`Error loading room.`, err);
+    });
+  }, [loadRoom]);
+
+  if (loading) {
+    return <div className="loading-panel">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="error-panel">
+        <h2>Error</h2>
+        {error.message}
+      </div>
+    );
+  }
+
+  if (!call) {
+    return null;
+  }
+
+  return (
+    <StreamCall call={call}>
+      <RoomUI loadRoom={loadRoom} />
+    </StreamCall>
+  );
+}
+
+export default Room;
+```
+We make sure the user that creates the room has `admin` rights and is listed in the `members` object.
+
+We populate `custom` call data with the following payload:
 
 :::note
-We keep an array of user ids called `speakerIds` in order to make it visible to all the room participants, who has been granted permission to speak.
+We keep an array of user IDs called `speakerIds` in order to make it visible to all the room participants, who has been granted permission to speak. This array is populated once the participant is granted permission to speak.
 :::
 
 ```ts
@@ -192,252 +205,39 @@ export interface User {
 }
 ```
 
-The `description` and `title` will be provided from user input via a `CreateRoomModal` component. The room creator is given `admin` role. That will enable the given user to open the room for participants and also to end the room session:
 
-```tsx
-import { useCallback } from 'react';
-// omitted imports...
-import { useStreamVideoClient } from '@stream-io/video-react-sdk';
-import { CALL_TYPE, useUserContext } from '../contexts';
-
-type CreateCallParams = {
-  title: string;
-  description: string;
-};
-
-type CreateRoomModalProps = {
-  close: () => void;
-};
-
-export const CreateRoomModal = ({ close }: CreateRoomModalProps) => {
-  const { user } = useUserContext();
-  const client = useStreamVideoClient();
-
-  // omitted code...
-
-  // highlight-start
-  const createRoom = useCallback(
-    async (params: CreateCallParams) => {
-      if (!(client && user)) return;
-      const randomId = Math.random().toString(36).substring(2, 12);
-      const call = client.call(CALL_TYPE, randomId);
-      await call.getOrCreate({
-        data: {
-          members: [{ user_id: user.id, role: 'admin' }],
-          custom: {
-            title: params.title,
-            description: params.description,
-            hosts: [user],
-          },
-        },
-      });
-      return call;
-    },
-    [client, user],
-  );
-  // highlight-end
-
-  // omitted code...
-};
-```
-
-:::note
-You can read more on the different call types that we offer and how to configure your own on the `Call Types` [page](../../guides/configuring-call-types).
-:::
-
-We make sure the user that creates the room has `admin` rights and is listed in the `members` object.
-
-
-### Querying calls (with real-time updates)
-
-One of the main screens of the application will be showing a list of the rooms that are available for users to join. We will query the data using `videoClient.queryCalls()`. We want to group the calls into 3 categories:
-
-1. **upcoming**
-2. **live**
-3. **ended**
-
-```ts
-export type RoomLiveState = 'live' | 'upcoming' | 'ended';
-```
-
-The grouping will be performed on the back-end side thanks to the [use of `filter_conditions`](../../guides/querying-calls) in our calls queries. The calls will be queried inside the `RoomListing` component. Note we are implementing pagination with `next` query parameter:
-
-```ts
-import { useCallback, useEffect, useRef, useState } from 'react';
-// omitted imports ...
-import {
-  Call,
-  // omitted imports ...
-  QueryCallsRequest,
-  // omitted imports ...
-  useStreamVideoClient
-} from '@stream-io/video-react-sdk';
-import { CALL_TYPE } from '../../contexts';
-// omitted imports
-import { RoomLiveState } from '../../utils/roomLiveState';
-
-const CALL_TYPE_FILTER = { type: CALL_TYPE };
-
-const BY_ROOM_STATE_FILTER: Record<
-  RoomLiveState,
-  QueryCallsRequest['filter_conditions']
-> = {
-  upcoming: {
-    ...CALL_TYPE_FILTER,
-    backstage: true,
-    ended_at: null,
-  },
-  live: {
-    ...CALL_TYPE_FILTER,
-    backstage: false,
-    ended_at: null,
-  },
-  ended: {
-    ...CALL_TYPE_FILTER,
-    ended_at: { $lte: new Date().toISOString() },
-  },
-};
-
-export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
-  const client = useStreamVideoClient();
-  const [calls, setCalls] = useState<Call[]>([]);
-  // omitted code initiating state variables ...
-  const nextPage = useRef<string | undefined>();
-
-  const loadCalls = useCallback(async () => {
-    if (!client) return;
-    const result = await client.queryCalls({
-      // sort in descending order by `created_at` field
-      sort: [{ direction: -1, field: 'created_at' }],
-      // max 10 items per query
-      limit: 10,
-      // subscribe to receive WS events for every call object queried
-      watch: true,
-      // highlight-next-line
-      filter_conditions: BY_ROOM_STATE_FILTER[liveState],
-      // highlight-start
-      // load the next page of results
-      next: nextPage.current,
-      // highlight-end
-    });
-
-    if (result) {
-      // highlight-start
-      // store the next page reference for the next query
-      nextPage.current = result.next;
-      setCalls((prev) => [...prev, ...result.calls]);
-      // highlight-end
-    }
-  }, [client, liveState, nextPage]);
-
-  // omitted code ...
-};
-```
-
-### Loading the room
-The room detail page will take care of:
-
-1. initiating a `Call` instance
-2. loading the room data
-3. providing the `Call` instance to the room UI components
 
 :::note
 It is important to load the call anew with each page visit so that all the subscriptions that handle the call state internally, are put in place. For example, if a call was previously left, the subscriptions are not in place anymore.
 :::
 
-```tsx
-import {
-  Call,
-  StreamCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import { useParams } from 'react-router-dom';
-import { RoomUI } from '../components/Room';
-import { CALL_TYPE, useJoinedCall } from '../contexts';
-import { useCallback, useEffect, useState } from 'react';
-// the use of the following are omitted in the code example
-import { LoadingPanel } from '../components/Loading';
-import { ErrorPanel } from '../components/Error';
+### The room UI
+The room UI should allow users to:
 
-function Room() {
-  const client = useStreamVideoClient();
-  // keeps track of a call, that has already been joined - an active WS exists
-  // more details will be provided in the next section
-  const { joinedCall } = useJoinedCall();
-  const { roomId } = useParams<{ roomId: string }>();
-  const [call, setCall] = useState<Call | undefined>();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | undefined>();
+1. Control the room access
+2. List speakers and listeners
+3. Request permission to speak
 
-  const loadCall = useCallback(
-    async (id: string, type: string = CALL_TYPE) => {
-      if (!client) return;
-      // highlight-start
-      // 1. initiate the call instance
-      const newCall = client.call(type, id);
-      // 2. perform a request to load the call data and subscribe to WS updates
-      await newCall.get();
-      // highlight-end
-      return newCall;
-    },
-    [client],
-  );
+### Controlling the room access
+The calls of the type `audio_room` are created with restricted possibility to join the room.  In order users can join the room the host needs to set it live by calling  `call.goLive()`. The hosts are the users that have the permission `join-backstage`.
 
-  useEffect(() => {
-    if (!roomId) return;
-    // avoid loading the call data, if already loaded
-    if (roomId === joinedCall?.id) {
-      setCall(joinedCall);
-      return;
-    }
-    setLoading(true);
-    loadCall(roomId)
-      .then(setCall)
-      .catch(setError)
-      .finally(() => setLoading(false));
-  }, [roomId, loadCall, joinedCall]);
+Once the room is live, the participants can join the room by simply calling `call.join()`. The room can be left by calling `call.leave()`. To return the room to backstage mode, hosts can invoke `call.stopLive()`. Stopping the room will kick all the participants out and can be performed only by the user with permission `end-call`. This permission will be again reserved to the call host.
 
-  // omitted code handling loading, error and non-existent call states ...
+All the mentioned operations are enabled in our app through the `RoomAccessControls` component. The render of buttons reserved for the hosts is controlled by the `Restricted` component:
 
-  // highlight-next-line
-  // 3. Provide the loaded Call instance to the RoomUI components
-  return (
-    <StreamCall call={call}>
-      <RoomUI />
-    </StreamCall>
-  );
-}
-
-export default Room;
-````
-
-### Entering the room
-The calls of the type `audio_room` provide the ability to restrict the initial access to room hosts only. When an audio room is created its property `backstage` is set to `true`. The hosts are the users that need the permission `join-backstage` to be able to set the room live by calling `call.goLive()`. Once the room is live, the participants can join the room by simply calling `call.join()`. The room can be left by calling `call.leave()` and be permanently ended with `call.end()`. Ending the call will kick all the participants out of an active room and can be performed only by the user with permission `end-call`. This permission will be again reserved to the call host. When ending the room, we need to stop the livestreaming by `call.stopLive()`.
-
-All the mentioned operations are enabled in our app through the `RoomAccessControls` component. The render of buttons reserved for the hosts is controlled by `Restricted` component:
-
-:::note
-As the demo app allows to navigate to other pages without leaving a joined call, we need to keep track of the joined call. That is why, each click handler that intends to join a call, needs to leave already joined call first.
-:::
 
 ```tsx
 import {
   CallingState,
-  ChildrenOnly,
   OwnCapability,
   Restricted,
   useCall,
   useCallCallingState,
   useCallMetadata,
   useIsCallLive,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { useJoinedCall } from '../../contexts';
-import { useNavigate } from 'react-router-dom';
 
 export const RoomAccessControls = () => {
-  const { setInitialAudioEnabled } = useMediaDevices();
-  const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
   const metadata = useCallMetadata();
   const callingState = useCallCallingState();
@@ -451,38 +251,35 @@ export const RoomAccessControls = () => {
   )
     return null;
 
+  const canJoin = ![
+    CallingState.JOINING,
+    CallingState.JOINED,
+    CallingState.LEFT,
+  ].includes(callingState);
+
   return (
     <div className="room-access-controls">
       {!isLive ? (
-        <>
-          <CloseInactiveRoomButton>Back to overview</CloseInactiveRoomButton>
-          <Restricted
-            requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
-            hasPermissionsOnly
+        <Restricted
+          // highlight-next-line
+          requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
+          hasPermissionsOnly
+        >
+          <button
+            className="room-access-controls-button"
+            onClick={async () => {
+              // highlight-next-line
+              await call.goLive();
+              if (canJoin) await call.join();
+            }}
           >
-            <button
-              className="room-access-controls-button"
-              onClick={async () => {
-                // highlight-start
-                if (joinedCall) {
-                  await joinedCall.leave().catch((err) => {
-                    console.error('Error leaving call', err);
-                  });
-                  setInitialAudioEnabled(false);
-                }
-                await call.goLive();
-                await call.join();
-                setJoinedCall(call);
-                // highlight-end
-              }}
-            >
-              Go live!
-            </button>
-          </Restricted>
-        </>
+            Go live{canJoin ? ' and join' : ''}!
+          </button>
+        </Restricted>
       ) : (
         <>
           <Restricted
+            // highlight-next-line
             requiredGrants={[OwnCapability.END_CALL]}
             hasPermissionsOnly
           >
@@ -491,24 +288,21 @@ export const RoomAccessControls = () => {
               onClick={async () => {
                 // highlight-start
                 await call.stopLive();
-                await call.endCall();
-                setJoinedCall(undefined);
+                // leave the call to reset the Call state
+                await call?.leave();
                 // highlight-end
               }}
             >
-              End room
+              Stop room
             </button>
           </Restricted>
           <button
             className="room-access-controls-button"
             onClick={async () => {
-              // highlight-start
+              // highlight-next-line
               await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
-              setInitialAudioEnabled(false);
-              setJoinedCall(undefined);
-              // highlight-end
             }}
           >
             Leave Quietly
@@ -519,129 +313,136 @@ export const RoomAccessControls = () => {
   );
 };
 
-export const CloseInactiveRoomButton = ({ children }: ChildrenOnly) => {
-  const navigate = useNavigate();
-  return (
-    <button
-      className="room-access-controls-button"
-      onClick={async () => navigate('/rooms')}
-    >
-      {children}
-    </button>
-  );
-};
 ```
 
-Before leaving the room, we make sure, that the initial audio is disabled. This is so that our audio is not published to other participants immediately when we join the room the next time. This is done with a function `setInitialAudioEnabled` exposed by [`MediaDevicesProvider`](../../call-engine/hooks-and-contexts#mediadevicesprovider).
 
-:::tip
-The application introduces room lobby in form of overlays [`RoomLobby` and `EndedRoomOverlay`](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms/src/components/Room/Overlay.tsx). These are useful to grant app users possibility to decide, when to join a call.
-:::
+The application introduces room lobby in form of overlay `RoomLobby` component. This is to give app users possibility to decide, when to enter the room. To determine, whether a room is live, we use `useIsCallLive` hook. We also rely on `Call` calling state to display informative text about the call connection state. The value is updated by `useCallCallingState` hook.
 
-Access to the `Call` instance representing the rendered room and to [`MediaDevicesContextAPI`](../../call-engine/hooks-and-contexts#mediadevicescontextapi) propagated through `MediaDevicesProvider` is enabled by the use of [`StreamCall` component](todo add link) inside our app's custom `Room` component.
+```tsx
+import {
+  Avatar,
+  CallingState,
+  useCall,
+  useCallCallingState,
+  useCallMetadata,
+  useIsCallLive,
+} from '@stream-io/video-react-sdk';
 
-To learn more about the media devices API exposed by the SDK, please see the [Camera & Microphone guide](../../guides/camera-and-microphone).
+export const EndedRoomOverlay = () => {
+  return (
+    <div className="room-overlay">
+      <p>This room has been terminated</p>
+    </div>
+  );
+};
+
+const CallingStateStatus: Record<string, string> = {
+  [CallingState.RECONNECTING]: 'Trying to reconnect',
+  [CallingState.RECONNECTING_FAILED]: 'Reconnect failed',
+  [CallingState.OFFLINE]: 'You are offline',
+  [CallingState.JOINING]: 'Joining the room...',
+};
+
+export const RoomLobby = () => {
+  const call = useCall();
+  // emits the latest Call calling state value
+  // highlight-next-line
+  const callingState = useCallCallingState();
+  // changes to true once the call is set live by the host
+  // highlight-next-line
+  const isLive = useIsCallLive();
+
+  if (!call) return null;
+
+  if (Object.keys(CallingStateStatus).includes(callingState)) {
+    return (
+      <div className="room-overlay">
+        <p>{CallingStateStatus[callingState]}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="room-overlay">
+      {isLive && <p>The room is live.</p>}
+      {!isLive && <RoomIntro />}
+      <button
+        disabled={!isLive}
+        className="room-access-controls-button"
+        onClick={async () => {
+          // highlight-start
+          await call.join().catch((err) => {
+            console.log(err);
+          });
+          // highlight-end
+        }}
+      >
+        Join
+      </button>
+    </div>
+  );
+};
+
+const RoomIntro = () => {
+  const metaData = useCallMetadata();
+  const host = metaData?.custom.hosts[0];
+  const hostName = host?.name ?? host?.id ?? 'Host';
+  return (
+    <div className="room-intro">
+      <div className="room-host">
+        <Avatar
+          className="host-avatar"
+          name={hostName}
+          imageSrc={host?.imageUrl}
+        />
+        <h3>{hostName}</h3>
+      </div>
+      <p className="room-description">{metaData?.custom.description}</p>
+      <p>The room isn't live. Please wait until the host opens it.</p>
+    </div>
+  );
+};
+
+```
+
 
 ### Managing speaking requests
 Only the room hosts have default permission to speak (`send-audio`) during the live stream. The rest has to request a permission to speak. A permission to speak can be requested only, if this is [enabled for a given call in call settings](todo add link to enablement guide).
 
 All the above is reflected in the `LiveRoomControls` component that:
 
-- renders the mute button, if the user has `send-audio` permission
-- renders the request-permission-to-speak button if the call settings enable to ask for permission
-- renders the button to open list of requests to speak if the user has permission `update-call-permissions`
+- renders `ToggleMuteButton`, if the user has `send-audio` permission
+- renders `RequestToSpeakButton` if the call settings allow to ask for permission
+- renders the button to open the list of requests to speak if the user has permission `update-call-permissions` (the user can grant permission to speak).
 
 :::important
 Participants, that are not hosts have to request speaking permissions each time they (re)join a room.
 :::
 
-The logic of requesting speaking permission is as follows.
-
-The requester:
-
-1. For the `call.permissions_updated` WS event (the permission has been granted), register event handler, that will start streaming user's audio
-```ts
-import {
-  OwnCapability,
-  StreamCallEvent,
-  useCall,
-  useConnectedUser,
-  useHasPermissions,
-  useMediaDevices,
-} from '@stream-io/video-react-sdk';
-import { useEffect, useState } from 'react';
-// omitted imports ...
-
-// omitted code ...
-
-export const LiveRoomControls = ({
-  hasNotifications,
-  openRequestsList,
-}: LiveRoomControlsProps) => {
-  const call = useCall();
-  const connectedUser = useConnectedUser();
-  // omitted code ...
-  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
-    useMediaDevices();
-  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
-  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
-
-  // omitted code ...
-
-  useEffect(() => {
-    if (!(call && connectedUser)) return;
-    // highlight-start
-    return call.on('call.permissions_updated', (event: StreamCallEvent) => {
-      if (event.type !== 'call.permissions_updated') return;
-      if (connectedUser.id !== event.user.id) return;
-      if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
-        setInitialAudioEnabled(true);
-        setIsAwaitingAudioApproval(false);
-        publishAudioStream();
-      } else {
-        stopPublishingAudio();
-      }
-    });
-    // highlight-end
-  }, [
-    call,
-    connectedUser,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
-
-  useEffect(() => {
-    if (canSendAudio) {
-      setIsAwaitingAudioApproval(false);
-    }
-  }, [canSendAudio]);
-  // omitted code ...
-}
-```
-2. Check, whether the permission can be requested and display the request button conditionally
 
 ```tsx
 import {
   CallingState,
   OwnCapability,
-  Restricted,
-  // omitted imports ...
+  StreamCallEvent,
   useCall,
   useCallCallingState,
   useCallMetadata,
   useConnectedUser,
   useHasPermissions,
-  // omitted imports ...
+  useLocalParticipant,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { useState } from 'react';
-import {
-  // omitted imports ...
-  RaiseHandIcon,
-} from '../icons';
-import type { CustomCallData } from '../../types';
+import { useEffect, useState } from 'react';
+import type { CustomCallData } from '../types';
 
-// omitted code ...
+type OpenNotificationsButtonProps = {
+  hasNotifications: boolean;
+  openRequestsList: () => void;
+};
+
+type LiveRoomControlsProps = OpenNotificationsButtonProps;
+
 
 export const LiveRoomControls = ({
   hasNotifications,
@@ -651,20 +452,49 @@ export const LiveRoomControls = ({
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();
-  // omitted code ...
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
     OwnCapability.SEND_AUDIO,
   );
-  // omitted code...
+  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
+    useMediaDevices();
 
   const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
 
+  // Determine, whether the current user has been promoted to speaker in the past by looking at Call's custom data
   const isSpeaker = (callMetadata?.custom as CustomCallData).speakerIds?.some(
     (id) => id === connectedUser?.id,
   );
 
-  // omitted code ...
+  // highlight-start
+  // Register an effect that will start publishing the user's audio, once permission to speak is granted
+  useEffect(() => {
+    if (!(call && connectedUser)) return;
+    return call.on('call.permissions_updated', (event: StreamCallEvent) => {
+      if (event.type !== 'call.permissions_updated') return;
+      if (connectedUser.id !== event.user.id) return;
+      if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
+        setInitialAudioEnabled(true);
+        publishAudioStream();
+      } else {
+        stopPublishingAudio();
+      }
+    });
+  }, [
+    call,
+    connectedUser,
+    publishAudioStream,
+    setInitialAudioEnabled,
+    stopPublishingAudio,
+  ]);
+  // highlight-end
+
+  // Don't wait for approval once the user has permission to speak
+  useEffect(() => {
+    if (canSendAudio) {
+      setIsAwaitingAudioApproval(false);
+    }
+  }, [canSendAudio]);
 
   if (!call || callingState !== CallingState.JOINED) return null;
 
@@ -673,156 +503,112 @@ export const LiveRoomControls = ({
 
   return (
     <div className="live-room-controls">
-      {/* omitted code ... */}
-      // highlight-start
-      {/*  ... */}
-      {!showMuteButton && (
-        <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
-          <button
-            className="icon-button"
-            disabled={isAwaitingAudioApproval}
-            title="Request to speak"
-            onClick={() => {
-              setIsAwaitingAudioApproval(true);
-              call.requestPermissions({
-                permissions: [OwnCapability.SEND_AUDIO],
-              });
-            }}
-          >
-            <RaiseHandIcon />
-          </button>
-        </Restricted>
-      )}
-      // highlight-end
-      {isAwaitingAudioApproval && (
-        <div className="live-room-controls__notificaton">
-          Waiting for permission to speak
-        </div>
+      <OpenNotificationsButton
+        hasNotifications={hasNotifications}
+        openRequestsList={openRequestsList}
+      />
+      {isAwaitingAudioApproval ? (
+        <AwaitingApprovalIndicator />
+      ) : showMuteButton ? (
+        <ToggleMuteButton
+          setIsAwaitingAudioApproval={setIsAwaitingAudioApproval}
+        />
+      ) : (
+        <RequestToSpeakButton
+          setIsAwaitingAudioApproval={setIsAwaitingAudioApproval}
+        />
       )}
     </div>
   );
 };
 
-```
-3. Request the permission, set loading flag to provide UI feedback. Note that the `toggleAudio` function takes care of requesting the permission if not granted yet as well as publishing the audio stream (speaker left a call -> lost the permission to speak, but is still listed among the speakers).
+type AudioRequestApprovalProps = {
+  setIsAwaitingAudioApproval: (isAwaiting: boolean) => void;
+};
 
-```ts
+const ToggleMuteButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  // ... implementation below ...
+};
+
+const RequestToSpeakButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  // ... implementation below ...
+};
+
+const AwaitingApprovalIndicator = () => (
+  // ... implementation below ...
+);
+
+const OpenNotificationsButton = ({
+  hasNotifications,
+  openRequestsList,
+}: OpenNotificationsButtonProps) => (
+  // ... implementation below ...
+);
+```
+
+The logic of requesting speaking permission is as follows.
+
+1. Request the permission to speak and observe the waiting-for-permission indicator
+
+```tsx
 import {
   OwnCapability,
-  SfuModels,
+  Restricted,
   useCall,
-  useHasPermissions,
-  useLocalParticipant,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { useCallback, useState } from 'react';
-// omitted imports ...
-
-// omitted code ...
-
-export const LiveRoomControls = ({
-  hasNotifications,
-  openRequestsList,
-}: LiveRoomControlsProps) => {
-  const call = useCall();
-  const localParticipant = useLocalParticipant();
-  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
-  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
-    useMediaDevices();
-
-  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
-
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
-  const toggleAudio = useCallback(async () => {
-    if (!call) return;
-
-    if (isAudioMute) {
-      // request the permission
-      // highlight-start
-      if (!canSendAudio) {
-        setIsAwaitingAudioApproval(true);
-        await call
-          .requestPermissions({
-            permissions: [OwnCapability.SEND_AUDIO],
-          })
-          .catch((reason) => {
-            console.log('RequestPermissions failed', reason);
-          });
-        return;
-    }
-    // highlight-end
-      setInitialAudioEnabled(true);
-      await publishAudioStream();
-    } else {
-      stopPublishingAudio();
-    }
-  }, [
-    call,
-    canSendAudio,
-    isAudioMute,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
-
-  // omitted code ...
-}
-```
-4. Reset the awaiting permission state if leaving a call
-```ts
 import {
-  CallingState,
-  // omitted imports ...
-  useCallCallingState,
-  // omitted imports ...
-} from '@stream-io/video-react-sdk';
-import { useEffect, useState } from 'react';
+  RaiseHandIcon,
+} from './icons';
 
-// omitted imports ...
+type AudioRequestApprovalProps = {
+  setIsAwaitingAudioApproval: (isAwaiting: boolean) => void;
+};
 
-// omitted code ...
+const RequestToSpeakButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  const call = useCall();
+  if (!call) return null;
 
-export const LiveRoomControls = ({
-  hasNotifications,
-  openRequestsList,
-}: LiveRoomControlsProps) => {
-  // omitted code ...
-  const callingState = useCallCallingState();
-  // omitted code ...
-  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
+  return (
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]} canRequestOnly>
+      <button
+        className="icon-button"
+        title="Request to speak"
+        onClick={() => {
+          setIsAwaitingAudioApproval(true);
+          call.requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          });
+        }}
+      >
+        <RaiseHandIcon />
+      </button>
+    </Restricted>
+  );
+};
+````
 
-  // omitted code ...
+2. The host who has permission to update other participants permissions can approve or dismiss the request. The controller API for speaker requests can be located into a hook we can call `useSpeakingRequests`:
 
-  // highlight-start
-  useEffect(() => {
-    if (callingState !== CallingState.LEFT) {
-      setIsAwaitingAudioApproval(false);
-    }
-  }, [callingState]);
-  // highlight-end
-
-  // omitted code ...
-}
-```
-
-On the other side the host:
-
-1. Registers `call.permission_request` WS event handler, that will update the state of pending requests (to be approved / rejected)
 ```ts
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   OwnCapability,
   PermissionRequestEvent,
   StreamCallEvent,
   useCall,
+  useCallMetadata,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
 
 export const useSpeakingRequests = () => {
   const call = useCall();
+  const metadata = useCallMetadata();
   const canUpdatePermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
@@ -832,9 +618,50 @@ export const useSpeakingRequests = () => {
     PermissionRequestEvent[]
   >([]);
 
-  // omitted code ...
+  // To dismiss a speaking request in our case means to unmount it from the UI
+  const dismissSpeakingRequest = useCallback(
+    (speakingRequest: PermissionRequestEvent) => {
+      const newRequests = speakingRequests.filter(
+        (r) => r.user.id !== speakingRequest.user.id,
+      );
+      setSpeakingRequests(newRequests);
+      if (newRequests.length === 0) {
+        setIsOpenRequestList(false);
+      }
+    },
+    [speakingRequests],
+  );
 
   // highlight-start
+  // Accepting means updating user permissions
+  // and letting other participants know a new speaker is present by including the user id in speakerIds array
+  const acceptRequest = useCallback(
+    async (speakingRequest: PermissionRequestEvent) => {
+      if (!(call && metadata?.custom)) return;
+
+      await call?.updateUserPermissions({
+        user_id: speakingRequest.user.id,
+        grant_permissions: [...speakingRequest.permissions],
+      });
+
+      await call?.update({
+        custom: {
+          ...(metadata?.custom || {}),
+          speakerIds: [
+            ...(metadata?.custom.speakerIds || []),
+            speakingRequest.user.id,
+          ],
+        },
+      });
+
+      dismissSpeakingRequest(speakingRequest);
+    },
+    [dismissSpeakingRequest, call, metadata?.custom],
+  );
+  // highlight-end
+
+  // highlight-start
+  // Register event handler to process arriving permission requests
   useEffect(() => {
     if (!(call && canUpdatePermissions)) return;
     const unsubscribe = call.on(
@@ -856,68 +683,146 @@ export const useSpeakingRequests = () => {
   }, [call, canUpdatePermissions]);
   // highlight-end
 
-  // omitted code ...
+  return {
+    acceptRequest,
+    dismissSpeakingRequest,
+    isOpenRequestList,
+    setIsOpenRequestList,
+    speakingRequests,
+  };
 };
 
+
 ```
-2. Approves the request  and updates the array of `speakerIds` in the call (room) `custom` data
 
+
+
+3. The requester is notified the permission has been granted via `call.permissions_updated` WS event. An already mentioned  registered event handler in `LiveRoomControls` component will start to publish user's audio:
 ```ts
-import { useCallback } from 'react';
 import {
-  PermissionRequestEvent,
-  useCall,
-  useCallMetadata,
+  OwnCapability,
+  StreamCallEvent,
 } from '@stream-io/video-react-sdk';
+import { useEffect } from 'react';
+// omitted imports ...
 
+// omitted code ...
 
-
-interface SpeakingRequestProps {
-  dismiss: (speakingRequest: PermissionRequestEvent) => void;
-  speakingRequest: PermissionRequestEvent;
-}
-
-const SpeakingRequest = ({
-  dismiss,
-  speakingRequest,
-}: SpeakingRequestProps) => {
-  const call = useCall();
-  const metadata = useCallMetadata();
+export const LiveRoomControls = ({
+  hasNotifications,
+  openRequestsList,
+}: LiveRoomControlsProps) => {
+  // omitted code ...
 
   // highlight-start
-  const acceptRequest = useCallback(async () => {
-    if (!(call && metadata?.custom)) return null;
-
-    await call?.updateUserPermissions({
-      user_id: speakingRequest.user.id,
-      grant_permissions: [...speakingRequest.permissions],
+  useEffect(() => {
+    if (!(call && connectedUser)) return;
+    return call.on('call.permissions_updated', (event: StreamCallEvent) => {
+      if (event.type !== 'call.permissions_updated') return;
+      if (connectedUser.id !== event.user.id) return;
+      if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
+        setInitialAudioEnabled(true);
+        publishAudioStream();
+      } else {
+        stopPublishingAudio();
+      }
     });
+  }, [
+    call,
+    connectedUser,
+    publishAudioStream,
+    setInitialAudioEnabled,
+    stopPublishingAudio,
+  ]);
+  // highlight-end
 
-    await call?.update({
-      custom: {
-        ...(metadata?.custom || {}),
-        speakerIds: [
-          ...(metadata?.custom.speakerIds || []),
-          speakingRequest.user.id,
-        ],
-      },
-    });
+  // omitted code ...
+}
+```
 
-    dismiss(speakingRequest);
-  }, [dismiss, call, metadata?.custom, speakingRequest]);
+4. Now the participant with permission to speak can toggle audio mute state. The button has to account for the situation of a speaker leaving and re-joining the room. In that case the permission to speak has to be requested again.
+
+```tsx
+import {
+  OwnCapability,
+  SfuModels,
+  useCall,
+  useHasPermissions,
+  useLocalParticipant,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+import { useCallback } from 'react';
+import {
+  MicrophoneIcon,
+  MuteMicrophoneIcon,
+} from './icons';
+
+type AudioRequestApprovalProps = {
+  setIsAwaitingAudioApproval: (isAwaiting: boolean) => void;
+};
+
+const ToggleMuteButton = ({
+  setIsAwaitingAudioApproval,
+}: AudioRequestApprovalProps) => {
+  const call = useCall();
+  const localParticipant = useLocalParticipant();
+  const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
+
+  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
+    useMediaDevices();
+
+  const isAudioMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
+  // highlight-start
+  const toggleAudio = useCallback(async () => {
+    if (!call) return;
+
+    if (isAudioMute) {
+      if (!canSendAudio) {
+        setIsAwaitingAudioApproval(true);
+        await call
+          .requestPermissions({
+            permissions: [OwnCapability.SEND_AUDIO],
+          })
+          .catch((reason) => {
+            console.log('RequestPermissions failed', reason);
+          });
+        return;
+      }
+
+      setInitialAudioEnabled(true);
+      await publishAudioStream();
+    } else {
+      stopPublishingAudio();
+    }
+  }, [
+    call,
+    canSendAudio,
+    isAudioMute,
+    publishAudioStream,
+    setInitialAudioEnabled,
+    setIsAwaitingAudioApproval,
+    stopPublishingAudio,
+  ]);
   // highlight-end
 
   return (
-    // the UI
+    <button
+      className="icon-button"
+      onClick={toggleAudio}
+      title={isAudioMute ? 'Unmute' : 'Mute'}
+    >
+      {isAudioMute ? <MuteMicrophoneIcon /> : <MicrophoneIcon />}
+    </button>
   );
 };
 ```
 
-Back on the requester side:
+### Putting the room components together
 
-1. The event handler for the `call.permissions_updated` WS event is executed and user starts streaming audio
-
-Once a user's id is added to the `speakerIds` array in call's `custom` property, a new `SpeakerElement` is rendered. The `SpeakerElement` internally renders SDK's `Audio` component.
+With updating permissions the user's ID is added to the `speakerIds` array in call's `custom` property, a new `SpeakerElement` is rendered. The `SpeakerElement` internally renders SDK's `Audio` component.
 
 ```tsx
 import {
@@ -947,27 +852,146 @@ export const SpeakerElement = ({
   return (
     <div className="speaker-container">
       // highlight-next-line
-      <Audio muted={!isAudioEnabled} audioStream={speaker.audioStream}></Audio>
+      <Audio muted={!isAudioEnabled} audioStream={speaker.audioStream} />
       {/* the rest of the UI */}
     </div>
   );
 };
 ```
 
+The speakers are filtered from room participants by id listed in `Call.custom.speakerIds` array. This is demonstrated in the `RoomUI` component below. This component also registers event handlers to reload the `Call` instance. That way we make sure the `Call` state is reset and ready for rejoining the room. The `RoomUI` component renders all the UI components mentioned and some more.
+
+```tsx
+import {
+  CallingState,
+  OwnCapability,
+  Restricted,
+  SfuEvents,
+  SfuModels,
+  StreamVideoEvent,
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+  useCall,
+  useCallCallingState,
+  useCallMetadata,
+  useHasPermissions,
+  useIsCallLive,
+  useLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-sdk';
+import { useEffect, useMemo } from 'react';
+// some imports are omitted
+import { useSpeakingRequests } from '../hooks/useSpeakingRequests';
+// some imports are omitted
+import type { CustomCallData } from '../types';
+
+type RoomUIProps = {
+  loadRoom: () => Promise<void>;
+};
+
+export const RoomUI = ({ loadRoom }: RoomUIProps) => {
+  const call = useCall();
+  const callMetadata = useCallMetadata();
+  const isLive = useIsCallLive();
+  const callingState = useCallCallingState();
+  const localParticipant = useLocalParticipant();
+  const participants = useParticipants();
+  const canJoinBackstage = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
+  const {
+    acceptRequest,
+    isOpenRequestList,
+    dismissSpeakingRequest,
+    setIsOpenRequestList,
+    speakingRequests,
+  } = useSpeakingRequests();
+  const {
+    title,
+    hosts = [],
+    speakerIds = [],
+  } = (callMetadata?.custom || {}) as CustomCallData;
+
+  // highlight-start
+  useEffect(() => {
+    if (!call || !localParticipant) return;
+
+    // reload the Call data in order to reset the Call state when kicked out of the room due to stopping the live room
+    const unsubscribeFromLiveEnded = call.on(
+      'error',
+      (e: SfuEvents.SfuEvent) => {
+        if (e.eventPayload.oneofKind !== 'error') return;
+        const { error } = e.eventPayload.error;
+        if (!error || error.code !== SfuModels.ErrorCode.LIVE_ENDED) return;
+
+        const hasPermissionToJoinBackstage =
+          call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE);
+        if (!hasPermissionToJoinBackstage) {
+          loadRoom().catch((err) => {
+            console.error(`Error loading room.`, err);
+          });
+        }
+      },
+    );
+
+    // reload the Call data after leaving the room to be able to re-join it
+    const unsubscribeFromParticipantLeft = call.on(
+      'call.session_participant_left',
+      (e: StreamVideoEvent) => {
+        if (e.type !== 'call.session_participant_left') return;
+        if (e.user_session_id === localParticipant.sessionId) {
+          loadRoom().catch((err) => {
+            console.error(`Error loading room.`, err);
+          });
+        }
+      },
+    );
+    return () => {
+      unsubscribeFromLiveEnded();
+      unsubscribeFromParticipantLeft();
+    };
+  }, [loadRoom, call, localParticipant]);
+  // highlight-end
+
+  // filter the speakers
+  const { speakers, listeners } = useMemo(() => {
+    const hostIds = hosts.map((host) => host.id) || [];
+    return participants.reduce<
+      Record<string, (StreamVideoParticipant | StreamVideoLocalParticipant)[]>
+    >(
+      (acc, p) => {
+        if (hostIds?.includes(p.userId) || speakerIds.includes(p.userId)) {
+          acc.speakers.push(p);
+        } else {
+          acc.listeners.push(p);
+        }
+        return acc;
+      },
+      { speakers: [], listeners: [] },
+    );
+  }, [hosts, speakerIds, participants]);
+
+  if (!call) return null;
+
+  const showLobby =
+    (!canJoinBackstage || (canJoinBackstage && isLive)) &&
+    !callMetadata?.ended_at &&
+    ![CallingState.JOINED].includes(callingState);
+
+  const showRoomEnded = !!callMetadata?.ended_at && !showLobby;
+
+  return (
+   // ...please see the omitted elements rendered in the project's source code ...
+  );
+};
+
+```
+
+
 ### Summary
 
 In this guide, we've built a great example of how to fully customize the UI of our application by only accessing
 the low-level hooks and functions of the call engine.
 
-We've done quite a few things:
-
-- User Authentication
-- Creating rooms
-- Listening to real-time updates
-- Joining and leaving rooms
-- Allowing for speaker requests
-
-This is just an example of how to utilize the SDK to tailor it toward your specific use-case. In this tutorial, we have highlighted the most important parts of the workflow implemented by the Audio Rooms app. If you are interested in further implementation details, please, take a look at [the Audio rooms tutorial source code](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms).
+This is just an example of how to utilize the SDK to tailor it toward your specific use-case. In this tutorial, we have highlighted the most important parts of the workflow implemented by the Audio Rooms app. If you are interested in further implementation details, please, take a look at [the Audio rooms tutorial source code](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms-tutorial).
 
 For more examples check out our [Video Call Tutorial](../video-calling) as well as our [Livestream Tutorial](../livestream).
 
