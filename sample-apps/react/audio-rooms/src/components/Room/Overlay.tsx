@@ -59,7 +59,9 @@ export const RoomLobby = () => {
 
 const RoomIntro = () => {
   const metaData = useCallMetadata();
-  const host = metaData?.custom.hosts[0];
+  const host = metaData?.custom.hosts
+    ? metaData.custom.hosts[0]
+    : metaData?.created_by;
   const hostName = host?.name ?? host?.id ?? 'Host';
   return (
     <div className="room-intro">
@@ -69,7 +71,7 @@ const RoomIntro = () => {
           name={hostName}
           imageSrc={host?.imageUrl}
         />
-        <h3>{hostName}</h3>
+        <h3>{metaData?.custom.title ?? hostName}</h3>
       </div>
       <p className="room-description">{metaData?.custom.description}</p>
       <p>The room isn't live. Please wait until the host opens it.</p>
