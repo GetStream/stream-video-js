@@ -90,17 +90,6 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const showBlankStream =
     isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
 
-  const VideoRenderOrBlankComponent = showBlankStream ? (
-    <View style={style} />
-  ) : (
-    <VideoRenderer
-      mirror={debouncedCameraOnFrontFacingMode}
-      mediaStream={localParticipant.videoStream}
-      style={style}
-      zOrder={zOrder}
-    />
-  );
-
   if (layout === 'fullscreen') {
     return (
       <View
@@ -115,8 +104,15 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
         </View>
         {isVideoMuted ? (
           <Avatar participant={localParticipant} />
+        ) : showBlankStream ? (
+          <View style={styles.videoStreamFullScreen} />
         ) : (
-          VideoRenderOrBlankComponent
+          <VideoRenderer
+            mirror={debouncedCameraOnFrontFacingMode}
+            mediaStream={localParticipant.videoStream}
+            style={styles.videoStreamFullScreen}
+            zOrder={zOrder}
+          />
         )}
       </View>
     );
@@ -143,8 +139,15 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
           <View style={theme.icon.md}>
             <VideoSlash color={theme.light.static_white} />
           </View>
+        ) : showBlankStream ? (
+          <View style={styles.videoStream} />
         ) : (
-          VideoRenderOrBlankComponent
+          <VideoRenderer
+            mirror={debouncedCameraOnFrontFacingMode}
+            mediaStream={localParticipant.videoStream}
+            style={styles.videoStream}
+            zOrder={zOrder}
+          />
         )}
       </View>
     </Animated.View>
