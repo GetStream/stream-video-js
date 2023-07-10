@@ -15,7 +15,8 @@ import { VideoSlash } from '../../icons';
 import { A11yComponents } from '../../constants/A11yLabels';
 import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { useStreamVideoStoreValue } from '../../contexts';
+import { useDebouncedValue } from '../../utils/hooks';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -56,7 +57,14 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
       : styles.fullScreenContainer;
   const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
+    (store) => store.isCameraOnFrontFacingMode,
+  );
+  // it takes a few milliseconds for the camera stream to actually switch
+  const debouncedCameraOnFrontFacingMode = useDebouncedValue(
+    isCameraOnFrontFacingMode,
+    500,
+  );
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
     PanResponder.create({
@@ -78,6 +86,22 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
     SfuModels.TrackType.VIDEO,
   );
 
+  // when camera is switching show a blank stream
+  //otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
+  const showBlankStream =
+    isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
+
+  const VideoRenderOrBlankComponent = showBlankStream ? (
+    <View style={style} />
+  ) : (
+    <VideoRenderer
+      mirror={debouncedCameraOnFrontFacingMode}
+      mediaStream={localParticipant.videoStream}
+      style={style}
+      zOrder={zOrder}
+    />
+  );
+
   if (layout === 'fullscreen') {
     if (isVideoMuted) {
       return (
@@ -89,14 +113,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
         </View>
       );
     }
-    return (
-      <VideoRenderer
-        mirror={isCameraOnFrontFacingMode}
-        mediaStream={localParticipant.videoStream}
-        style={style}
-        zOrder={zOrder}
-      />
-    );
+    return VideoRenderOrBlankComponent;
   }
 
   return (
@@ -116,12 +133,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
           </View>
         </View>
       ) : (
-        <VideoRenderer
-          mirror={isCameraOnFrontFacingMode}
-          mediaStream={localParticipant.videoStream}
-          style={style}
-          zOrder={zOrder}
-        />
+        VideoRenderOrBlankComponent
       )}
     </Animated.View>
   );
