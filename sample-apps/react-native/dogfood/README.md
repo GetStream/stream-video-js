@@ -8,12 +8,13 @@
    and `STREAM_API_SECRET`
 4. Run `yarn build:all` to build the dependent packages
 5. Move to `cd sample-apps/react-native/dogfood/`
-6. Run `npx pod-install` to install pods (ios only)
-7. Follow [this guide](https://www.notion.so/stream-wiki/Video-dogfood-app-8fd4b72b2ac9495eb55872f5a70b5f6d) and setup
+6. Run `npx react-native setup-ios-permissions` to setup permissions (ios only)
+7. Run `npx pod-install` to install pods (ios only)
+8. Follow [this guide](https://www.notion.so/stream-wiki/Video-dogfood-app-8fd4b72b2ac9495eb55872f5a70b5f6d) and setup
    Sentry error tracking (or: `SENTRY_RN_AUTH_TOKEN=<your-token> ./scripts/create-sentry-properties.sh`)
-8. Run the app
-   a. On simulator: Run `yarn ios` and/or `yarn android` to run the app
-   b: On device: Run `npm install -g ios-deploy` then `yarn ios --device`
+9. Run the app 
+   - On simulator: Run `yarn ios` and/or `yarn android` to run the app 
+   - On device: Run `npm install -g ios-deploy` then `yarn ios --device`
 
 ## Invite links to install app on devices
 
