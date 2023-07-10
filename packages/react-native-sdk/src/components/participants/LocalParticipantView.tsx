@@ -15,8 +15,8 @@ import { VideoSlash } from '../../icons';
 import { A11yComponents } from '../../constants/A11yLabels';
 import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
-import { useStreamVideoStoreValue } from '../../contexts';
 import { useDebouncedValue } from '../../utils/hooks';
+import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -57,13 +57,11 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
       : styles.fullScreenContainer;
   const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
-  const isCameraOnFrontFacingMode = useStreamVideoStoreValue(
-    (store) => store.isCameraOnFrontFacingMode,
-  );
+  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
   // it takes a few milliseconds for the camera stream to actually switch
   const debouncedCameraOnFrontFacingMode = useDebouncedValue(
     isCameraOnFrontFacingMode,
-    500,
+    300,
   );
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
