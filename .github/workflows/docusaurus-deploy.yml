@@ -39,7 +39,7 @@ jobs:
       - name: Push React SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: 'staging'
+          target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-sdk/docusaurus'
         env:
