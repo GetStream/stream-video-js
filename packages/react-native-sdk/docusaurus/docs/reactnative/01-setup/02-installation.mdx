@@ -3,47 +3,75 @@ title: Installation
 description: Install the SDK for video calling
 ---
 
-:::warning
-Write React Native Specifics
+### Prerequisites
 
-This documentation is for the beta version of the Stream Video SDK.
-The SDK is subject to change.
-:::
+First things first, make sure you have set up the development environment for React Native.
+You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-[//]: # ()
-[//]: # (The installation of the packages for the Stream Video React SDK can be either done with `yarn` or `npm`.)
+### Add Stream's Video SDK and its peer dependencies
 
-[//]: # ()
-[//]: # (For `yarn`:)
+In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
 
-[//]: # ()
-[//]: # (```)
+```bash
+yarn add @stream-io/video-react-native-sdk react-native-webrtc react-native-callkeep react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules @react-native-community/netinfo @notifee/react-native
+```
 
-[//]: # (yarn add @stream-io/video-react-sdk)
+The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
+Please follow the links below to complete the installation process:
 
-[//]: # (```)
+- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md).
+- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps.
+- `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
 
-[//]: # ()
-[//]: # (For `npm`:)
+So what did we install precisely?
 
-[//]: # ()
-[//]: # (```)
+- `@stream-io/video-react-native-sdk` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
+- `react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
+- `react-native-device-info` is responsible for retrieving device info and sending it to the Stream Video servers.
+- `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
+- `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
+- `text-encoding-polyfill` is an implementation of the `WHATWG URL` Standard optimized for React Native.
+- `react-native-url-polyfill` is a polyfill for the `Encoding Living Standard API` for the Web. This dependency allows encoding and decoding of textual data to and from Typed Array buffers for binary data in JS.
+- `react-native-get-random-values` is used for `crypto.getRandomValues` polyfill to generate uuids.
+- `intl-pluralrules` - allows i18n with support for pluralization based on [`Intl.Plurales`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/PluralRules).
+- `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
+- `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
-[//]: # (npm install @stream-io/video-react-sdk)
+### Optional peer dependencies
 
-[//]: # (```)
+Some of the optional features we provide require additional dependencies to be installed in order to work properly.
 
-[//]: # ()
-[//]: # (## Core Client)
+#### Ringing flow
 
-[//]: # ()
-[//]: # ()
-[//]: # (## UI Components)
+The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
+To enable this feature you need to install the following dependencies:
 
-[//]: # ()
-[//]: # (## Push Notifications)
+- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
+- `@react-native-voip-push-notification` to receive notifications on iOS.
 
-[//]: # (We ship multiple artifacts to easily integrate Stream Chat with third party push notification providers. See the Push Notification page for more details.)
+More about how to enable this feature can be found [in our push notification guide](../../advanced/push-notifications/).
 
-[//]: # ()
-[//]: # (Check the Releases page for the latest version and the changelog.)
+### Initial app setup: encoding and polyfills
+
+Add the following imports and statements to your `index.js` file in the project's root.
+
+```tsx
+/** Initialize URL polyfill */
+import 'text-encoding-polyfill';
+/** Initialize text decoder polyfill */
+import 'react-native-url-polyfill/auto';
+/** Initialize polyfill for uuid */
+import 'react-native-get-random-values';
+/** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
+import 'intl-pluralrules';
+import {registerGlobals} from 'react-native-webrtc';
+...
+
+// We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
+// This will result in creation of 2 global objects: `window` and `navigator`
+// Further [reading](https://github.com/react-native-webrtc/react-native-webrtc/blob/16cff1523da457dbcc27bb0744ee2bad3a987c41/Documentation/BasicUsage.md#registering-globals) about this process
+if (Platform.OS !== 'web') {
+  registerGlobals();
+}
+```
