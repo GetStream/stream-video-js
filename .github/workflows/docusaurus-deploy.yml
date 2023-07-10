@@ -40,6 +40,7 @@ jobs:
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
           target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
+          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-sdk/docusaurus'
         env:
