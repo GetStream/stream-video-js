@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.263](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.262...@stream-io/video-react-native-sdk-0.0.1-alpha.263) (2023-07-10)
+
+
+### Bug Fixes
+
+* **react-native:** video published on foreground even if it was muted ([#773](https://github.com/GetStream/stream-video-js/issues/773)) ([6fc1ce9](https://github.com/GetStream/stream-video-js/commit/6fc1ce91db183e6fa2c962b86b5715e3ac4421c6))
+
+
+
 ## [0.0.1-alpha.262](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.261...@stream-io/video-react-native-sdk-0.0.1-alpha.262) (2023-07-10)
 
 
