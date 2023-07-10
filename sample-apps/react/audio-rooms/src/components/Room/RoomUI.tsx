@@ -68,12 +68,15 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
           e.eventPayload.oneofKind !== 'error' ||
           !e.eventPayload.error.error ||
           e.eventPayload.error.error.code !== SfuModels.ErrorCode.LIVE_ENDED
-        )
+        ) {
           return;
+        }
         if (
           !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
         )
-          loadRoom();
+          loadRoom().catch((err) => {
+            console.error('Error loading room', err);
+          });
       },
     );
 
@@ -82,7 +85,11 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
       (e: StreamVideoEvent) => {
         if (e.type !== 'call.session_participant_left') return;
 
-        if (e.user_session_id === localParticipant.sessionId) loadRoom();
+        if (e.user_session_id === localParticipant.sessionId) {
+          loadRoom().catch((err) => {
+            console.error('Error loading room', err);
+          });
+        }
       },
     );
     return () => {
