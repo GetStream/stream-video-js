@@ -88,7 +88,7 @@ export const useVideoPublisher = ({
         console.error('Failed to publish video stream', e);
       });
     }
-  }, [publishVideoStream, videoDeviceId]);
+  }, [publishVideoStream, videoDeviceId, callingState]);
 
   const initialPublishRun = useRef(false);
   useEffect(() => {
