@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Call,
@@ -23,6 +23,12 @@ export const MeetingScreen = (props: Props) => {
     }
     return client.call(callType, callId);
   }, [callId, callType, client]);
+
+  useEffect(() => {
+    call?.getOrCreate().catch((err) => {
+      console.error('Failed to get or create call', err);
+    });
+  }, [call]);
 
   if (!call) {
     return null;

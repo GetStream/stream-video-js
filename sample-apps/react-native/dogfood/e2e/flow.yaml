@@ -31,7 +31,8 @@ appId: io.getstream.rnvideosample
 #- Leave the call
 - tapOn: ${output.pages.activeCall.hangupButton}
 #- Log out
-- tapOn: ${output.pages.joinMeeting.logOutAvatar}
+- tapOn: ${output.pages.joinMeeting.chooseFlowButton}
+- tapOn: ${output.pages.joinMeeting.logOutButton}
 - assertVisible: ${output.assertions.joinMeeting.signOutModalTitle}
 - tapOn: ${output.pages.joinMeeting.confirmSignOutButton}
 #- Assert that user is logged out

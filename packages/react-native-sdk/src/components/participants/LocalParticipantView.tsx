@@ -16,6 +16,7 @@ import { A11yComponents } from '../../constants/A11yLabels';
 import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { ParticipantReaction } from './internal/ParticipantReaction';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -79,23 +80,28 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   );
 
   if (layout === 'fullscreen') {
-    if (isVideoMuted) {
-      return (
-        <View
-          accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN}
-          style={styles.avatarContainer}
-        >
-          <Avatar participant={localParticipant} />
-        </View>
-      );
-    }
     return (
-      <VideoRenderer
-        mirror={isCameraOnFrontFacingMode}
-        mediaStream={localParticipant.videoStream}
+      <View
+        accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN}
         style={style}
-        zOrder={zOrder}
-      />
+      >
+        <View style={styles.topView}>
+          <ParticipantReaction
+            reaction={localParticipant.reaction}
+            sessionId={localParticipant.sessionId}
+          />
+        </View>
+        {isVideoMuted ? (
+          <Avatar participant={localParticipant} />
+        ) : (
+          <VideoRenderer
+            mirror={isCameraOnFrontFacingMode}
+            mediaStream={localParticipant.videoStream}
+            style={styles.videoStreamFullScreen}
+            zOrder={zOrder}
+          />
+        )}
+      </View>
     );
   }
 
@@ -109,20 +115,26 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
       }}
       {...panResponder.panHandlers}
     >
-      {isVideoMuted ? (
-        <View style={style}>
+      <View style={style}>
+        <View style={styles.topView}>
+          <ParticipantReaction
+            reaction={localParticipant.reaction}
+            sessionId={localParticipant.sessionId}
+          />
+        </View>
+        {isVideoMuted ? (
           <View style={theme.icon.md}>
             <VideoSlash color={theme.light.static_white} />
           </View>
-        </View>
-      ) : (
-        <VideoRenderer
-          mirror={isCameraOnFrontFacingMode}
-          mediaStream={localParticipant.videoStream}
-          style={style}
-          zOrder={zOrder}
-        />
-      )}
+        ) : (
+          <VideoRenderer
+            mirror={isCameraOnFrontFacingMode}
+            mediaStream={localParticipant.videoStream}
+            style={styles.videoStream}
+            zOrder={zOrder}
+          />
+        )}
+      </View>
     </Animated.View>
   );
 };
@@ -136,10 +148,24 @@ const styles = StyleSheet.create({
     top: theme.margin.xl * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     zIndex: Z_INDEX.IN_MIDDLE,
-    overflow: 'hidden',
-    backgroundColor: theme.light.disabled,
+    backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  videoStream: {
+    height: LOCAL_VIDEO_VIEW_STYLE.height,
+    width: LOCAL_VIDEO_VIEW_STYLE.width,
+    flex: 1,
+  },
+  videoStreamFullScreen: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  topView: {
+    position: 'absolute',
+    top: theme.spacing.sm,
+    left: theme.spacing.sm,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   fullScreenContainer: {
     flex: 1,

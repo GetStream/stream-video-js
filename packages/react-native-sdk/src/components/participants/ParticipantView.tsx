@@ -214,6 +214,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const videoOnlyStyle = {
     borderColor: palette.grey800,
     borderWidth: 2,
+    backgroundColor: theme.light.disabled,
   };
   const unPinParticipantHandler = () => {
     call?.setParticipantPinnedAt(participant.sessionId, undefined);
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
     padding: theme.padding.xs,
   },
   topView: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
     zIndex: Z_INDEX.IN_FRONT,
   },
   videoRenderer: {
