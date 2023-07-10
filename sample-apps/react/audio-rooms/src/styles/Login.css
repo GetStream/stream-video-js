@@ -13,14 +13,28 @@
 }
 
 .login-screen {
-  display: grid;
+  display: flex;
   max-width: var(--max-width);
-  grid-template-columns: repeat(2, 1fr);
+  flex-wrap: wrap;
   margin: auto;
   padding: 2rem;
   align-items: center;
   gap: 4rem;
+  height: 100%;
+  overflow-y: auto;
 }
+
+.login-screen > * {
+  flex: 1;
+}
+
+/*@media screen and (max-width: 800px) {*/
+/*  .login-screen {*/
+/*    grid-template-columns: 1fr;*/
+/*    gap: 2rem;*/
+/*    padding: 1rem;*/
+/*  }*/
+/*}*/
 
 .user-list {
   border-radius: 1rem;
@@ -34,12 +48,13 @@
   gap: 1rem;
   align-items: center;
   font-weight: bold;
+  background-color: var(--background-color-light);
   transition: background 150ms ease-out;
   cursor: pointer;
 }
 
 .user-list button:hover {
-  background: var(--background-color-light);
+  background: var(--background-color);
 }
 
 .user-list button:not(:last-child) {

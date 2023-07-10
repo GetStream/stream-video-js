@@ -1,11 +1,11 @@
 import {
+  Avatar,
   CallingState,
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useIsCallLive,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
-import { useJoinedCall } from '../../contexts';
 import { CloseInactiveRoomButton } from './RoomAccessControls';
 
 export const EndedRoomOverlay = () => {
@@ -17,55 +17,62 @@ export const EndedRoomOverlay = () => {
   );
 };
 
+const CallingStateStatus: Record<string, string> = {
+  [CallingState.RECONNECTING]: 'Trying to reconnect',
+  [CallingState.RECONNECTING_FAILED]: 'Reconnect failed',
+  [CallingState.OFFLINE]: 'You are offline',
+  [CallingState.JOINING]: 'Joining the room...',
+};
+
 export const RoomLobby = () => {
-  const { joinedCall, setJoinedCall } = useJoinedCall();
-  const { setInitialAudioEnabled } = useMediaDevices();
   const call = useCall();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
   if (!call) return null;
 
+  if (Object.keys(CallingStateStatus).includes(callingState)) {
+    return (
+      <div className="room-overlay">
+        <p>{CallingStateStatus[callingState]}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="room-overlay">
-      {isLive && <p>The room is live.</p>}
-      {!isLive && (
-        <p>The room isn't live yet. Please wait until the host opens it.</p>
-      )}
-      {joinedCall && joinedCall.cid !== call.cid && (
-        <>
-          <div>
-            You are already connected to another room:{' '}
-            {joinedCall.data?.custom.title}
-          </div>
-          <div>
-            If you join this one, you will silently leave the other one.
-          </div>
-        </>
-      )}
-      {callingState === CallingState.JOINING && <p>Joining the room...</p>}
-      {callingState === CallingState.RECONNECTING && <p>Trying to reconnect</p>}
-      {callingState === CallingState.OFFLINE && <p>You are offline</p>}
-      {joinedCall?.cid !== call.cid && (
-        <button
-          disabled={!isLive}
-          className="room-access-controls-button"
-          onClick={async () => {
-            if (joinedCall) {
-              await joinedCall.leave().catch((err) => {
-                console.log(err);
-              });
-              setInitialAudioEnabled(false);
-            }
-            await call.join().catch((err) => {
-              console.log(err);
-            });
-            setJoinedCall(call);
-          }}
-        >
-          Join
-        </button>
-      )}
+      {isLive ? <p>The room is live.</p> : <RoomIntro />}
+      <button
+        disabled={!isLive}
+        className="room-access-controls-button"
+        onClick={async () => {
+          await call.join().catch((err) => {
+            console.log(err);
+          });
+        }}
+      >
+        Join
+      </button>
+    </div>
+  );
+};
+
+const RoomIntro = () => {
+  const metaData = useCallMetadata();
+  const host = metaData?.custom.hosts[0];
+  const hostName = host?.name ?? host?.id ?? 'Host';
+  return (
+    <div className="room-intro">
+      <div className="room-host">
+        <Avatar
+          className="host-avatar"
+          name={hostName}
+          imageSrc={host?.imageUrl}
+        />
+        <h3>{hostName}</h3>
+      </div>
+      <p className="room-description">{metaData?.custom.description}</p>
+      <p>The room isn't live. Please wait until the host opens it.</p>
     </div>
   );
 };

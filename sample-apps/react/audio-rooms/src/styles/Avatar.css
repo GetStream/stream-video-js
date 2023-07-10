@@ -5,7 +5,6 @@
   width: 2rem;
   height: 2rem;
   font-size: 1rem;
-  color: var(--primary-text);
   background-color: var(--prominent-color);
   font-weight: 600;
   border-radius: 999px;
@@ -30,8 +29,8 @@
 }
 
 .sidebar .str-video__avatar--initials-fallback {
-  width: 6rem;
-  height: 6rem;
+  width: 100px;
+  height: 100px;
   font-size: 3rem;
 }
 

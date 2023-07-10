@@ -26,6 +26,7 @@ import {
   watchChangePublishQuality,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
+  watchLiveEnded,
   watchNewReactions,
   watchParticipantCountChanged,
   watchParticipantJoined,
@@ -92,6 +93,7 @@ export const registerEventHandlers = (
     'call.user_muted': () => console.log('call.user_muted received'),
   };
   const eventHandlers = [
+    watchLiveEnded(dispatcher, call),
     watchSfuErrorReports(dispatcher),
     watchChangePublishQuality(dispatcher, call),
     watchConnectionQualityChanged(dispatcher, state),

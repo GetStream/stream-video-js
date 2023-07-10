@@ -1,23 +1,17 @@
 import { useParams } from 'react-router-dom';
-import { RoomLiveState, roomStates } from '../utils/roomLiveState';
 import { RoomListing } from '../components/RoomList';
+import { RoomListingTabs } from '../components/RoomList/RoomListingTabs';
+import { RoomLiveState, roomStates } from '../utils/roomLiveState';
 
 const RoomList = () => {
   const { roomState } = useParams<{ roomState: RoomLiveState }>();
-
-  if (roomState && roomStates.includes(roomState)) {
-    return (
-      <section className="rooms-overview">
-        <RoomListing liveState={roomState} />
-      </section>
-    );
-  }
+  const activeLiveState =
+    roomState && roomStates.includes(roomState) ? roomState : 'live';
 
   return (
     <section className="rooms-overview">
-      <RoomListing liveState="live" />
-      <RoomListing liveState="upcoming" />
-      <RoomListing liveState="ended" />
+      <RoomListingTabs activeLiveState={activeLiveState} />
+      <RoomListing liveState={activeLiveState} />
     </section>
   );
 };

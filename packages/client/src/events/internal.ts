@@ -4,6 +4,7 @@ import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
 import { ErrorCode } from '../gen/video/sfu/models/models';
+import { OwnCapability } from '../gen/coordinator';
 
 const logger = getLogger(['events']);
 
@@ -65,6 +66,20 @@ export const watchParticipantCountChanged = (
       state.setParticipantCount(participantCount.total);
       state.setAnonymousParticipantCount(participantCount.anonymous);
     }
+  });
+};
+
+export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
+  return dispatcher.on('error', (e) => {
+    if (
+      e.eventPayload.oneofKind !== 'error' ||
+      !e.eventPayload.error.error ||
+      e.eventPayload.error.error.code !== ErrorCode.LIVE_ENDED
+    )
+      return;
+
+    if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE))
+      call.leave();
   });
 };
 

@@ -4,17 +4,17 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text } from 'react-native';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
 } from '../contexts/AppContext';
-import { A11yButtons } from '../constants/A11yLabels';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
+import { A11yButtons } from '../constants/A11yLabels';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
@@ -61,14 +61,15 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
 
   return (
     <SafeAreaView style={styles.header} edges={['top']}>
-      <Pressable
-        onPress={!showChooseModeButton ? undefined : logoutHandler}
-        accessibilityLabel={A11yButtons.LOG_OUT_AVATAR}
-      >
-        <Text style={styles.headerText}>{userName}</Text>
-      </Pressable>
+      <Text style={styles.headerText} numberOfLines={1}>
+        {userName}
+      </Text>
       {!showChooseModeButton ? (
-        <Button onPress={logoutHandler} title="Logout" />
+        <Button
+          onPress={logoutHandler}
+          title="Logout"
+          accessibilityLabel={A11yButtons.LOG_OUT}
+        />
       ) : (
         <Button
           onPress={() => {
@@ -76,6 +77,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           }}
           title="Choose Mode"
           titleStyle={styles.buttonText}
+          accessibilityLabel={A11yButtons.CHOOSE_MODE}
         />
       )}
     </SafeAreaView>
@@ -84,17 +86,20 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
 
 const styles = StyleSheet.create({
   header: {
+    width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: appTheme.spacing.lg,
     backgroundColor: appTheme.colors.static_grey,
   },
   headerText: {
+    flexShrink: 1,
     fontSize: 20,
     fontWeight: '500',
     color: appTheme.colors.static_white,
+    marginRight: appTheme.spacing.lg,
   },
   avatar: {
     height: AVATAR_SIZE,
