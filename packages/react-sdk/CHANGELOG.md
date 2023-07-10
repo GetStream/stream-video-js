@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.77...@stream-io/video-react-sdk-0.0.78) (2023-07-10)
+
+
+### Documentation
+
+* events, UI cookbook overview, add coming soon texts ([#777](https://github.com/GetStream/stream-video-js/issues/777)) ([7cc2581](https://github.com/GetStream/stream-video-js/commit/7cc25811da7b1541cffba4be529e3056e6ceffad))
+
 ### [0.0.77](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.76...@stream-io/video-react-sdk-0.0.77) (2023-07-10)
 
 ### Dependency Updates
