@@ -41,7 +41,7 @@ export const EndCallView: FC<Props> = ({ className }) => {
             color="primary"
             shape="oval"
             onClick={() => {
-              window.location.href = '/video/sdk/';
+              window.location.href = '/video/docs/';
             }}
           >
             SDK Tutorials
