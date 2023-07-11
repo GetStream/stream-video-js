@@ -447,6 +447,7 @@ export const PermissionRequestsPanel = () => {
   const [permissionRequests, setPermissionRequests] = useState<
     PermissionRequestEvent[]
   >([]);
+
   useEffect(() => {
     return call?.on('call.permission_request', (event) => {
       const request = event as PermissionRequestEvent;
