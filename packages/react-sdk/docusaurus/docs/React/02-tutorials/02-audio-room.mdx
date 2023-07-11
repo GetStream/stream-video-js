@@ -84,7 +84,8 @@ export default function App() {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <UILayout /> // we'll add the UI components here later
+        {/** We will introduce the <UILayout /> component later */}
+        {/** <UILayout /> */}
       </StreamCall>
     </StreamVideo>
   );
@@ -200,7 +201,7 @@ export const ParticipantsPanel = () => {
         return (
           <div className="participant" key={participant.sessionId}>
             <Avatar imageSrc={participant.image} />
-            <div>{participant.name}</div>
+            <div className="name">{participant.name}</div>
           </div>
         );
       })}
@@ -232,6 +233,25 @@ export const UILayout = () => {
     </div>
   );
 };
+```
+
+Finally, let's add the `UILayout` to the main app component:
+
+```tsx title=App.tsx
+// ... omitted imports
+import { UILayout } from './UILayout';
+
+export default function App() {
+  // ... omitted code
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        // highlight-next-line
+        <UILayout />
+      </StreamCall>
+    </StreamVideo>
+  );
+}
 ```
 
 The approach is the same for all components.
@@ -333,7 +353,7 @@ export const Participant = ({
 }: {
   participant: StreamVideoParticipant;
 }) => {
-  // `isSpeaking` information is available on the participant object
+  // `isSpeaking` information is available on the participant object,
   // and it is automatically detected by our system and updated by our SDK.
   const { isSpeaking } = participant;
   return (
