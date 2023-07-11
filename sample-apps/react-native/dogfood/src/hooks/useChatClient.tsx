@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   StreamChat,
   OwnUserResponse,
@@ -19,31 +19,45 @@ export const useChatClient = <
   tokenProvider?: TokenOrProvider;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
+  const disconnectRef = useRef(Promise.resolve());
 
   useEffect(() => {
-    const client = new StreamChat<SCG>(apiKey);
-
     if (!userData) {
       return;
     }
 
+    const client = new StreamChat<SCG>(apiKey);
     const connectUser = async () => {
-      await client.connectUser(userData, tokenProvider);
+      await disconnectRef.current;
+      try {
+        await client.connectUser(userData, tokenProvider);
+        console.log(`[Chat client]: Connected user: ${userData.id}`);
+      } catch (e) {
+        console.error('[Chat client]: Failed to establish connection', e);
+      }
       if (!didUserConnectInterrupt) {
         setChatClient(client);
       }
     };
 
     let didUserConnectInterrupt = false;
-    connectUser();
+    const connectPromise = connectUser();
 
-    const cleanUp = () => {
+    const cleanUp = async () => {
       didUserConnectInterrupt = true;
+      await connectPromise;
+      try {
+        await client.disconnectUser();
+        console.log(`[Chat client]: Disconnected user: ${userData.id}`);
+      } catch (e) {
+        console.error('[Chat client]: Failed to disconnect', e);
+      }
       setChatClient(null);
-      client.disconnectUser();
     };
 
-    return cleanUp;
+    return () => {
+      disconnectRef.current = cleanUp();
+    };
   }, [apiKey, userData, tokenProvider]);
 
   return chatClient;

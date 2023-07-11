@@ -96,7 +96,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Reconnection (awaiting BE)
 - [x] Simulcasting- iOS
 - [x] Pinning and spotlighting participants
-- [ ] Components parity, alignment and refactor
+- [x] Components parity, alignment and refactor
 - [ ] Write docs:
   - [ ] UI Components
   - [ ] Tutorials

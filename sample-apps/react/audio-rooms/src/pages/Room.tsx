@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   Call,
   StreamCall,
@@ -18,10 +18,12 @@ function Room() {
   const { joinedCall } = useJoinedCall();
   const { user } = useUserContext();
   const { roomId } = useParams<{ roomId: string }>();
+  const [params] = useSearchParams({ create: 'false' });
   const [call, setCall] = useState<Call | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
+  const create = params.get('create');
   const loadRoom = useCallback(async () => {
     if (!(client && user && roomId)) return;
 
@@ -29,14 +31,19 @@ function Room() {
     setLoading(true);
     try {
       const newCall = client.call(urlCredentials.type ?? CALL_TYPE, roomId);
-      await newCall.getOrCreate(generateRoomPayload({ user }));
+      if (create === 'true') {
+        const payload = generateRoomPayload({ user });
+        await newCall.getOrCreate(payload);
+      } else {
+        await newCall.get();
+      }
       setCall(newCall);
     } catch (e) {
       setError(e as Error);
     } finally {
       setLoading(false);
     }
-  }, [client, roomId, user]);
+  }, [client, create, roomId, user]);
 
   useEffect(() => {
     if (roomId && roomId === joinedCall?.id) {
@@ -44,7 +51,10 @@ function Room() {
       return;
     }
 
-    loadRoom();
+    loadRoom().catch((e) => {
+      console.error('Error loading room', e);
+      setError(e as Error);
+    });
   }, [roomId, loadRoom, joinedCall]);
 
   if (loading) {

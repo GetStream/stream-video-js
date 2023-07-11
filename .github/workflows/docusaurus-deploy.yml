@@ -37,9 +37,10 @@ jobs:
           DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}
 
       - name: Push React SDK documentation
-        uses: GetStream/push-stream-chat-docusaurus-action@main
+        uses: GetStream/push-stream-chat-docusaurus-action@fix-target-branch-problem
         with:
-          target-branch: 'staging'
+          target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
+          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-sdk/docusaurus'
         env:
