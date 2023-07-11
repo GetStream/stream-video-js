@@ -21,7 +21,10 @@ export const useCreateStreamChatClient = <
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
 
+  const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
   useEffect(() => {
+    if (disableChat) return;
+
     const client = new StreamChat<SCG>(apiKey, {
       timeout: 5000,
     });
