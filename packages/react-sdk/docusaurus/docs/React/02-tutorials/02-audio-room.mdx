@@ -6,7 +6,7 @@ description: How to build an audio room using Stream's React Video SDK
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
 This tutorial will teach you how to build an audio room experience like Twitter Spaces or Clubhouse.
-The end result will look like the image on the right and support the following features:
+The end result will look like the image below and will support the following features:
 
 - Backstage mode. You can start the call with your co-hosts and chat a bit before going live
 - Calls run on Stream's global edge network for optimal latency and scalability
@@ -18,11 +18,10 @@ The end result will look like the image on the right and support the following f
 
 Time to get started building an audio-room for your app.
 
-### Step 1 - Create a new React application and install React SDK
+### Step 1 - Create a new React app and install the React Video SDK
 
 In this step, we will create a new React application using the Vite CLI, and install Stream's React Video SDK.
-
-We recommend using Vite because it's fast and easy to use.
+We recommend using [Vite](https://vitejs.dev/) because it's fast and easy to use.
 
 ```bash title="Terminal"
 yarn create vite audio-rooms --template react-ts
@@ -57,11 +56,7 @@ const user: User = {
 };
 
 // initialize the StreamVideoClient
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
+const client = new StreamVideoClient({ apiKey, user, token });
 
 export default function App() {
   // initialize the call object
@@ -98,12 +93,13 @@ export default function App() {
 
 Let's review the example above and go over the details.
 
-**User** setup. First we create a user object.
-You typically sync your users via a server side integration from your own backend.
+#### User setup
+
+First we create a user object. You typically sync your users via a server side integration from your own backend.
 Alternatively, you can also use guest or anonymous users.
 
 ```ts
-import { User } from '@stream-io/video-react-sdk';
+import type { User } from '@stream-io/video-react-sdk';
 
 const user: User = {
   id: userId,
@@ -112,15 +108,21 @@ const user: User = {
 };
 ```
 
-**Client setup**. Next we initialize the client by passing the API Key, user and user token.
+#### Client setup
+
+Next, we initialize the client by passing the API Key, user and user token.
 
 ```ts
-const client = new StreamVideoClient({ apiKey, token, user });
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
+const client = new StreamVideoClient({ apiKey, user, token });
 ```
 
-**Create and join call** After the user and client are created, we create a call like this:
+#### Create and join call
 
-```ts
+After the user and client are created, we create a call like this:
+
+```tsx
 const [call] = useState(() => client.call('audio_room', callId));
 useEffect(() => {
   call
@@ -143,7 +145,7 @@ useEffect(() => {
 }, [call]);
 ```
 
-- This joins and creates a call with the type: "audio_room" and the specified callId
+- This joins and creates a call with the type: `audio_room` and the specified `callId`
 - The users with id `john_smith` and `jane_doe` are added as members to the call
 - And we set the `title` and `description` custom field on the call object
 
@@ -155,7 +157,7 @@ Please update **REPLACE_WITH_USER_ID**, **REPLACE_WITH_TOKEN** and **REPLACE_WIT
 
 <TokenSnippet sampleApp="audio-rooms" />
 
-With valid credentials in place, we can join the call. When you run the app you'll see the following:
+With valid credentials in place, we can join the call.
 
 ### Step 3 - Adding audio room UI elements
 
@@ -170,15 +172,17 @@ In this next step we'll add:
 Let's create the components we need to render this and add them to the main app
 
 ```tsx title=DescriptionPanel.tsx
-import { useCallMetadata } from '@stream-io/video-react-sdk';
+import { useCallMetadata, useParticipants } from '@stream-io/video-react-sdk';
 
 export const DescriptionPanel = () => {
+  const participants = useParticipants();
   const metadata = useCallMetadata();
   const custom = metadata?.custom;
   return (
     <div className="description-panel">
       <h2 className="title">{custom?.title ?? '<Title>'}</h2>
       <h3 className="description">{custom?.description ?? '<Description>'}</h3>
+      <p className="participant-count">{participants.length} participants</p>
     </div>
   );
 };
@@ -216,7 +220,7 @@ export const ControlsPanel = () => {
 };
 ```
 
-That's it for the basics, here's how the app UI layout should look like now:
+That's it for the basics, here's how the app `UILayout` should look like now:
 
 ```tsx title=UILayout.tsx
 export const UILayout = () => {
@@ -230,14 +234,14 @@ export const UILayout = () => {
 };
 ```
 
-If you run the app now, it should look like this:
-
 The approach is the same for all components.
 We take the states of the call by observing `call.state` updates through the SDK provided hooks,
-such as `useParticipants()` and use it to power our UI.
+such as `useParticipants()` or `useCallMetadata()` and use it to power our UI.
 
 :::note
 In React, all `call.state` properties can be accessed via a set of utility hooks.
+This makes it easier to build UI components that react to changes in the call state.
+
 Read more about it at [Call & Participant State](../../guides/call-and-participant-state/).
 :::
 
@@ -249,42 +253,7 @@ To make this a little more interactive, let's join the audio room from the brows
 
 As you probably noticed by opening the same room from the browser, audio rooms by default are not live.
 Regular users can only join an audio room when it is in live mode.
-Let's expand the `ControlPanel` and add a button that controls the backstage or the room.
-
-```tsx title=MicButton.tsx
-import {
-  SfuModels,
-  useLocalParticipant,
-  useMediaDevices,
-} from '@stream-io/video-react-sdk';
-
-export const MicButton = () => {
-  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
-
-  const localParticipant = useLocalParticipant();
-  const isMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
-  return (
-    <button
-      type="button"
-      className="mic-button"
-      onClick={() => {
-        if (isMuted) {
-          publishAudioStream().catch((err) => {
-            console.error(`Error publishing audio stream`, err);
-          });
-        } else {
-          stopPublishingAudio();
-        }
-      }}
-    >
-      {isMuted ? 'Unmute' : 'Mute'}
-    </button>
-  );
-};
-```
+Let's expand the `ControlPanel` and add a button that controls the backstage of the room.
 
 ```tsx title=LiveButton.tsx
 import { useCall, useIsCallLive } from '@stream-io/video-react-sdk';
@@ -294,7 +263,6 @@ export const LiveButton = () => {
   const isLive = useIsCallLive();
   return (
     <button
-      type="button"
       className="live-button"
       onClick={() => {
         if (isLive) {
@@ -314,10 +282,44 @@ export const LiveButton = () => {
 };
 ```
 
+While we're at it, let's also add a button that allows to mute/unmute the local audio track:
+
+```tsx title=MicButton.tsx
+import {
+  SfuModels,
+  useLocalParticipant,
+  useMediaDevices,
+} from '@stream-io/video-react-sdk';
+
+export const MicButton = () => {
+  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
+
+  const localParticipant = useLocalParticipant();
+  const isMuted = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
+  return (
+    <button
+      className="mic-button"
+      onClick={() => {
+        if (isMuted) {
+          publishAudioStream().catch((err) => {
+            console.error(`Error publishing audio stream`, err);
+          });
+        } else {
+          stopPublishingAudio();
+        }
+      }}
+    >
+      {isMuted ? 'Unmute' : 'Mute'}
+    </button>
+  );
+};
+```
+
 Now the app exposes a mic control button and a button that allows to toggle live mode on/off.
 If you try the web demo of the audio room you should be able to join as a regular user.
-
-[//]: # '![Preview of the app with live button](../assets/audioroom_tutorial/live)'
 
 #### List Participants
 
@@ -331,11 +333,13 @@ export const Participant = ({
 }: {
   participant: StreamVideoParticipant;
 }) => {
+  // `isSpeaking` information is available on the participant object
+  // and it is automatically detected by our system and updated by our SDK.
   const { isSpeaking } = participant;
   return (
     <div className={`participant ${isSpeaking ? 'speaking' : ''}`}>
       <Avatar imageSrc={participant.image} />
-      <div>{participant.name}</div>
+      <div className="name">{participant.name}</div>
     </div>
   );
 };
@@ -346,6 +350,9 @@ import { useParticipants } from '@stream-io/video-react-sdk';
 import { Participant } from './Participant';
 
 export const ParticipantsPanel = () => {
+  // whenever a participant receives an update, this hook will re-render
+  // the component with the updated list of participants, ensuring that
+  // the UI is always in sync with the call state.
   const participants = useParticipants();
   return (
     <div className="participants-panel">
@@ -358,16 +365,19 @@ export const ParticipantsPanel = () => {
 };
 ```
 
-With these changes things get more interesting, the app is now showing a list of all participants connected to the call and displays a small circle next to the ones that are speaking.
+With these changes things get more interesting, the app is now showing a list of all participants connected to the call
+and displays a green frame around the ones that are speaking.
 
 ### Step 4 - Go live and join from the browser
 
 If you now join the call from the browser you will see that the participant list updates as you open/close the browser tab.
 
+:::note
 Note how the web interface won't allow you to share your audio/video.
 The reason for this is that by default the `audio_room` call type only allows moderators or admins to speak.
 Regular participants can request permission.
 And if different defaults make sense for your app you can edit the call type in the dashboard or create your own.
+:::
 
 ### Step 5 - Requesting permission to speak
 
@@ -385,19 +395,22 @@ await call.requestPermissions({
 
 #### Handling permission requests
 
-Permission requests delivered to the call object in a form of an event one can subscribe to:
+Permission requests are delivered to the call object in a form of an event one can subscribe to:
 
-```tsx
-import { PermissionRequestEvent } from '@stream-io/video-react-sdk';
+```ts
+import type { PermissionRequestEvent } from '@stream-io/video-react-sdk';
 
 call.on(
   'call.permission_requested',
   async (request: PermissionRequestEvent) => {
+    // get the permission request data
+    const { user, permissions } = request;
+
     // reject it
-    await call.revokePermissions(request.user.id, request.permissions);
+    await call.revokePermissions(user.id, permissions);
 
     // grant it
-    await call.grantPermissions(request.user.id, request.permissions);
+    await call.grantPermissions(user.id, permissions);
   },
 );
 ```
@@ -405,7 +418,11 @@ call.on(
 Let's add another view that shows the last incoming request as well as the buttons to grant / reject it
 
 ```tsx title=PermissionRequestsPanel.tsx
+import { useCall, PermissionRequestEvent } from '@stream-io/video-react-sdk';
+import { useCallback, useEffect, useState } from 'react';
+
 export const PermissionRequestsPanel = () => {
+  // this hook will take the call instance from the <StreamCall /> context.
   const call = useCall();
   const [permissionRequests, setPermissionRequests] = useState<
     PermissionRequestEvent[]
@@ -419,15 +436,16 @@ export const PermissionRequestsPanel = () => {
 
   const handlePermissionRequest = useCallback(
     async (request: PermissionRequestEvent, accept: boolean) => {
+      const { user, permissions } = request;
       try {
         if (accept) {
-          await call?.grantPermissions(request.user.id, request.permissions);
+          await call?.grantPermissions(user.id, permissions);
         } else {
-          await call?.revokePermissions(request.user.id, request.permissions);
+          await call?.revokePermissions(user.id, permissions);
         }
         setPermissionRequests((reqs) => reqs.filter((req) => req !== request));
       } catch (err) {
-        console.error(`Error granting permissions`, err);
+        console.error(`Error granting or revoking permissions`, err);
       }
     },
     [call],
@@ -456,7 +474,7 @@ export const PermissionRequestsPanel = () => {
 };
 ```
 
-And here is the updated UI Layout code that includes it:
+And here is the updated `UILayout` code that includes it:
 
 ```tsx title=UILayout.tsx
 export const UILayout = () => {
@@ -471,8 +489,6 @@ export const UILayout = () => {
   );
 };
 ```
-
-Now when a user requests access to speak the app will look like this:
 
 ### Step 6 - Group participants
 
@@ -500,7 +516,7 @@ const speakers = participants.filter((p) => hasAudio(p));
 const listeners = participants.filter((p) => !hasAudio(p));
 ```
 
-We already have a view to display participants so all we need to do is to update it to use the new `speakers` and `listeners` lists.
+We already have a view to display participants so all we need to do is to update it to use the new `speakers` and `listeners` arrays.
 
 ```tsx title=ParticipantsPanel.tsx
 import {
@@ -565,4 +581,6 @@ To recap what we've learned:
 The SDKs enable you to build audio rooms, video calling and livestreaming in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
-You can find the code for this tutorial in [this CodeSandbox](https://codesandbox.io/s/audio-rooms-tutorial-glhgrg).
+You can find the code and the stylesheet for this tutorial in [this CodeSandbox](https://codesandbox.io/s/audio-rooms-tutorial-glhgrg).
+
+The source code for the companion audio room app, together with all of its features, is available on [GitHub.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/audio-rooms)
