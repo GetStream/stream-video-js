@@ -279,11 +279,15 @@ Let's expand the `ControlPanel` and add a button that controls the backstage of 
 import { useCall, useIsCallLive } from '@stream-io/video-react-sdk';
 
 export const LiveButton = () => {
+  // this utility hook returns the call object from the <StreamCall /> context
   const call = useCall();
+  // this utility hook is a wrapper around the `call.state.metadata$` observable,
+  // and it will emit a new value whenever the call goes live or stops being live.
+  // we can use it to update the button text or adjust any other UI elements
   const isLive = useIsCallLive();
   return (
     <button
-      className="live-button"
+      className={`live-button ${isLive ? 'live' : ''}`}
       onClick={() => {
         if (isLive) {
           call?.stopLive().catch((err) => {
