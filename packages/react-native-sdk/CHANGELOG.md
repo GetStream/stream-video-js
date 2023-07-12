@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.276](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.275...@stream-io/video-react-native-sdk-0.0.1-alpha.276) (2023-07-12)
+
+
+### Bug Fixes
+
+* **react-native:** camera facing mode mirroring issue ([#775](https://github.com/GetStream/stream-video-js/issues/775)) ([92eb545](https://github.com/GetStream/stream-video-js/commit/92eb545609fb6722636716d064d8108e8849d3be))
+
+
+
 ## [0.0.1-alpha.275](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.274...@stream-io/video-react-native-sdk-0.0.1-alpha.275) (2023-07-12)
 
 
