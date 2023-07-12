@@ -38,8 +38,6 @@ export class StreamVideoClient {
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly user?: User;
-  readonly token?: TokenOrProvider;
   readonly logLevel: LogLevel = 'warn';
   readonly logger: Logger;
 
