@@ -55,6 +55,14 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+  /**
+   * An array maintaining the order how transceivers were added to the peer connection.
+   * This is needed because some browsers (Firefox) don't reliably report
+   * trackId and `mid` parameters.
+   *
+   * @private
+   */
+  private transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -225,6 +233,8 @@ export class Publisher {
         sendEncodings: videoEncodings,
       });
 
+      this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
+      this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
@@ -522,6 +532,7 @@ export class Publisher {
     const extractMid = (
       defaultMid: string | null,
       track: MediaStreamTrack,
+      trackType: TrackType,
     ): string => {
       if (defaultMid) return defaultMid;
       if (!sdp) {
@@ -529,7 +540,10 @@ export class Publisher {
         return '';
       }
 
-      this.logger('warn', 'No mid found for track. Trying to find it from SDP');
+      this.logger(
+        'debug',
+        `No 'mid' found for track. Trying to find it from the Offer SDP`,
+      );
 
       const parsedSdp = SDP.parse(sdp);
       const media = parsedSdp.media.find((m) => {
@@ -541,9 +555,16 @@ export class Publisher {
       });
       if (typeof media?.mid === 'undefined') {
         this.logger(
-          'warn',
-          `No mid found in SDP for track type ${track.kind} and id ${track.id}`,
+          'debug',
+          `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
         );
+
+        const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
+        if (heuristicMid !== -1) {
+          return String(heuristicMid);
+        }
+
+        this.logger('debug', 'No heuristic mid found. Returning empty mid');
         return '';
       }
       return String(media.mid);
@@ -596,7 +617,7 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: extractMid(transceiver.mid, track),
+          mid: extractMid(transceiver.mid, track, trackType),
 
           // FIXME OL: adjust these values
           stereo: false,
