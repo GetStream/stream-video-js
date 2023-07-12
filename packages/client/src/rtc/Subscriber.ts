@@ -177,7 +177,7 @@ export class Subscriber {
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
-  restartIce = async () => {
+  restartIce = () => {
     logger('debug', 'Restarting ICE connection');
     this.pc.restartIce();
   };
