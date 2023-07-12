@@ -15,6 +15,7 @@ import { VideoSlash } from '../../icons';
 import { A11yComponents } from '../../constants/A11yLabels';
 import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
+import { useDebouncedValue } from '../../utils/hooks';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { ParticipantReaction } from './internal/ParticipantReaction';
 
@@ -58,6 +59,11 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
   const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  // it takes a few milliseconds for the camera stream to actually switch
+  const debouncedCameraOnFrontFacingMode = useDebouncedValue(
+    isCameraOnFrontFacingMode,
+    300,
+  );
   const pan = useRef(new Animated.ValueXY()).current;
   const panResponder = useRef(
     PanResponder.create({
@@ -79,6 +85,11 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
     SfuModels.TrackType.VIDEO,
   );
 
+  // when camera is switching show a blank stream
+  //otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
+  const showBlankStream =
+    isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
+
   if (layout === 'fullscreen') {
     return (
       <View
@@ -93,9 +104,11 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
         </View>
         {isVideoMuted ? (
           <Avatar participant={localParticipant} />
+        ) : showBlankStream ? (
+          <View style={styles.videoStreamFullScreen} />
         ) : (
           <VideoRenderer
-            mirror={isCameraOnFrontFacingMode}
+            mirror={debouncedCameraOnFrontFacingMode}
             mediaStream={localParticipant.videoStream}
             style={styles.videoStreamFullScreen}
             zOrder={zOrder}
@@ -126,9 +139,11 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
           <View style={theme.icon.md}>
             <VideoSlash color={theme.light.static_white} />
           </View>
+        ) : showBlankStream ? (
+          <View style={styles.videoStream} />
         ) : (
           <VideoRenderer
-            mirror={isCameraOnFrontFacingMode}
+            mirror={debouncedCameraOnFrontFacingMode}
             mediaStream={localParticipant.videoStream}
             style={styles.videoStream}
             zOrder={zOrder}
