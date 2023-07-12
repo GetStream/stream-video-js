@@ -174,6 +174,14 @@ export class Subscriber {
     this.pc = pc;
   };
 
+  /**
+   * Restarts the ICE connection and renegotiates with the SFU.
+   */
+  restartIce = async () => {
+    logger('debug', 'Restarting ICE connection');
+    this.pc.restartIce();
+  };
+
   private handleOnTrack = (e: RTCTrackEvent) => {
     const [primaryStream] = e.streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
