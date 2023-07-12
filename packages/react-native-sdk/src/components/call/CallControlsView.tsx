@@ -157,6 +157,7 @@ const UnreadBadeCountIndicator = ({
 
 const styles = StyleSheet.create({
   container: {
+    padding: theme.padding.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     zIndex: Z_INDEX.IN_FRONT,
