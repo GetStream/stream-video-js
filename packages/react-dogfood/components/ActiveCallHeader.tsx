@@ -16,7 +16,7 @@ import { USAGE_GUIDE_LINK } from './index';
 import { IconInviteLinkButton } from './InviteLinkButton';
 import { LayoutSelector, LayoutSelectorProps } from './LayoutSelector';
 import { useSettings } from '../context/SettingsContext';
-import { SwapSfuButton } from './SwapSfuButton';
+import { DevMenu } from './DevMenu';
 
 export const ActiveCallHeader = ({
   selectedLayout,
@@ -42,7 +42,7 @@ export const ActiveCallHeader = ({
       <div className="str-video__call-header">
         <CallHeaderTitle />
         <div className="str-video__call-header__controls-group">
-          <SwapSfuButton />
+          <DevMenu />
           <LayoutSelector
             selectedLayout={selectedLayout}
             onMenuItemClick={setLayout}

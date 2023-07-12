@@ -453,6 +453,14 @@ export class Publisher {
     }
   };
 
+  /**
+   * Restarts the ICE connection and renegotiates with the SFU.
+   */
+  restartIce = () => {
+    this.logger('debug', 'Restarting ICE connection');
+    this.pc.restartIce();
+  };
+
   private onNegotiationNeeded = async () => {
     await this.negotiate();
   };
@@ -635,11 +643,15 @@ export class Publisher {
   };
 
   private onIceConnectionStateChange = () => {
-    this.logger(
-      'debug',
-      `ICE Connection state changed`,
-      this.pc.iceConnectionState,
-    );
+    const state = this.pc.iceConnectionState;
+    this.logger('debug', `ICE Connection state changed`, state);
+    if (state === 'failed' || state === 'disconnected') {
+      this.logger(
+        'warn',
+        `ICE Connection state changed to ${state}. Attempting to restart ICE`,
+      );
+      this.restartIce();
+    }
   };
 
   private onIceGatheringStateChange = () => {
