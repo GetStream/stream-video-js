@@ -1,10 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  CallingState,
-  useCall,
-  useCallCallingState,
-} from '@stream-io/video-react-native-sdk';
+import { useCall } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { LobbyViewComponent } from './LobbyViewComponent';
 import { ActiveCall } from './ActiveCall';
@@ -30,7 +26,6 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const call = useCall();
-  const callingState = useCallCallingState();
 
   const returnToHomeHandler = () => {
     navigation.navigate('JoinMeetingScreen');
@@ -55,13 +50,9 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     }
   }, [call, appStoreSetState]);
 
-  const onHangUpCallButtonHandler = async () => {
+  const onCallHangupHandler = async () => {
     setShow('loading');
     try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
       setShow('lobby');
       navigation.goBack();
     } catch (error) {
@@ -112,7 +103,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           unreadBadgeCountIndicator,
         }}
         hangUpCallButton={{
-          onPressHandler: onHangUpCallButtonHandler,
+          onCallHangupHandler,
         }}
       />
     );

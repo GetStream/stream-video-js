@@ -101,7 +101,9 @@ describe('CallControlsView', () => {
     const mockCallLeave = jest.fn();
 
     render(
-      <CallControlsView hangUpCallButton={{ onPressHandler: mockCallLeave }} />,
+      <CallControlsView
+        hangUpCallButton={{ onCallHangupHandler: mockCallLeave }}
+      />,
       {
         call,
       },

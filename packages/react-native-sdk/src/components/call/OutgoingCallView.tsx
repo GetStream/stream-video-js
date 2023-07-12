@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from '../call/internal/UserInfoView';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
@@ -8,6 +8,8 @@ import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * The props for the Cancel Call button in the OutgoingCallView component.
@@ -27,7 +29,7 @@ export type OutgoingCallViewType = {
   /**
    * Cancel/Reject Call Button Props to be passed as an object
    */
-  cancelCallHandler: CancelCallButton;
+  cancelCallButton?: CancelCallButton;
 };
 
 /**
@@ -35,7 +37,7 @@ export type OutgoingCallViewType = {
  * Used after the user has initiated a call.
  */
 export const OutgoingCallView = ({
-  cancelCallHandler,
+  cancelCallButton,
 }: OutgoingCallViewType) => {
   const {
     initialAudioEnabled,
@@ -43,10 +45,26 @@ export const OutgoingCallView = ({
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
   } = useMediaStreamManagement();
-
+  const call = useCall();
+  const callingState = useCallCallingState();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
+
+  const cancelCallHandler = useCallback(async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave();
+      if (cancelCallButton?.onPressHandler) {
+        cancelCallButton.onPressHandler();
+      }
+    } catch (error) {
+      console.log('Error leaving Call', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call]);
 
   return (
     <>
@@ -84,7 +102,7 @@ export const OutgoingCallView = ({
           </View>
 
           <CallControlsButton
-            onPress={cancelCallHandler.onPressHandler}
+            onPress={cancelCallHandler}
             color={theme.light.error}
             style={[styles.button, styles.cancelCallButton, theme.button.lg]}
             svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}

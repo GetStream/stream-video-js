@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, ViewProps } from 'react-native';
-import { CameraSwitch, Chat, PhoneDown, Reaction } from '../../icons';
+import { Chat, Reaction } from '../../icons';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
 import { OwnCapability } from '@stream-io/video-client';
@@ -10,7 +10,11 @@ import { ToggleAudioButton } from '../utility/internal/ToggleAudioButton';
 import { ToggleVideoButton } from '../utility/internal/ToggleVideoButton';
 import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
 import { Z_INDEX } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { ToggleCameraFaceButton } from '../utility/internal/ToggleCameraFaceButton';
+import {
+  HangUpCallButton,
+  HangUpCallButtonType,
+} from '../utility/internal/HangupCallButton';
 
 /**
  * The props for the Chat Button in the Call Control View.
@@ -25,17 +29,6 @@ type ChatButtonType = {
    * The unread message indicator to be displayed above on the Chat button.
    */
   unreadBadgeCountIndicator?: number;
-};
-
-/**
- * The props for the Hang up call button in the Call Control View.
- */
-type HangUpCallButtonType = {
-  /**
-   * Handler to be called when the hang up button is pressed.
-   * @returns void
-   */
-  onPressHandler: () => void;
 };
 
 /**
@@ -63,13 +56,6 @@ export const CallControlsView = ({
 }: CallControlsViewType) => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
-
-  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
-    useMediaStreamManagement();
-
-  const muteStatusColor = (status: boolean) => {
-    return status ? theme.light.overlay_dark : theme.light.static_white;
-  };
 
   const onOpenReactionsModalHandler = useCallback(() => {
     setIsReactionModalActive(true);
@@ -108,29 +94,10 @@ export const CallControlsView = ({
       )}
       <ToggleVideoButton />
       <ToggleAudioButton />
-      <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
-        <CallControlsButton
-          onPress={toggleCameraFacingMode}
-          color={muteStatusColor(!isCameraOnFrontFacingMode)}
-          style={isCameraOnFrontFacingMode ? styles.button : null}
-        >
-          <CameraSwitch
-            color={
-              isCameraOnFrontFacingMode
-                ? theme.light.static_black
-                : theme.light.static_white
-            }
-          />
-        </CallControlsButton>
-      </Restricted>
-      <CallControlsButton
-        onPress={hangUpCallButton?.onPressHandler}
-        color={theme.light.error}
-        style={[styles.button, { shadowColor: theme.light.error }]}
-        accessibilityLabel={A11yButtons.HANG_UP_CALL}
-      >
-        <PhoneDown color={theme.light.static_white} />
-      </CallControlsButton>
+      <ToggleCameraFaceButton />
+      <HangUpCallButton
+        onCallHangupHandler={hangUpCallButton?.onCallHangupHandler}
+      />
     </View>
   );
 };
