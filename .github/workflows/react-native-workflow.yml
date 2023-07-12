@@ -10,6 +10,10 @@ env:
   SENTRY_RN_AUTH_TOKEN: ${{ secrets.SENTRY_RN_AUTH_TOKEN }}
   STREAM_API_KEY: ${{ vars.STREAM_DOGFOOD_API_KEY }}
   STREAM_API_SECRET: ${{ secrets.STREAM_DOGFOOD_API_SECRET }}
+  STREAM_SDK_TEST_APP: ${{ secrets.STREAM_SDK_TEST_APP }}
+  STREAM_SDK_TEST_ACCOUNT_EMAIL: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_EMAIL }}
+  STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
+  STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
 
 on:
   push:
@@ -21,121 +25,207 @@ on:
       - 'packages/react-native-sdk/**'
       - '!**/docusaurus/**'
 
+  workflow_dispatch:
+
 concurrency:
   group: react-native-workflow-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy_ios:
-    name: Build iOS and Deploy-${{ github.ref == 'refs/heads/main' }}
-    timeout-minutes: 60
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-
-      - name: ESLint Cache
-        uses: actions/cache@v3
-        with:
-          path: './.eslintcache'
-          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
-      - name: Install Yarn Dependencies
-        run: yarn install --immutable
-      - name: Build react native dependency packages
-        run: yarn build:react-native:deps
-      - name: Test RN SDK
-        run: yarn test:react-native:sdk
-      - name: Install Ruby and Gems
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.7.5'
-          working-directory: sample-apps/react-native/dogfood
-          bundler-cache: true
-      - name: Cache pods
-        uses: actions/cache@v3
-        with:
-          path: sample-apps/react-native/dogfood/ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('sample-apps/react-native/dogfood/ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-      - name: Setup and link permissions
-        run: |
-          cd sample-apps/react-native/dogfood;
-          npx react-native setup-ios-permissions;
-      - name: iOS pods setup
-        uses: nick-invision/retry@v2
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: |
-            cd sample-apps/react-native/dogfood/ios;
-            bundle exec pod install;
-          on_retry_command: |
-            cd sample-apps/react-native/dogfood/ios;
-            pod update hermes-engine --no-repo-update;  # Due this error https://github.com/facebook/react-native/issues/36945#issuecomment-1556230597
-      - name: Build and optionally deploy
-        run: |
-          cd sample-apps/react-native/dogfood;
-          ./scripts/create-sentry-properties.sh;
-          bundle exec fastlane build_ios deploy:${{ github.ref == 'refs/heads/main' }};
-  deploy_android:
-    name: Deploy Android and Deploy-${{ github.ref == 'refs/heads/main' }}
+  code_review:
+    name: Code Review
     timeout-minutes: 20
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-      - name: ESLint Cache
-        uses: actions/cache@v3
-        with:
-          path: './.eslintcache'
-          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
-      - name: Install Yarn Dependencies
-        run: yarn install --immutable
-      - name: Build react native dependency packages
-        run: yarn build:react-native:deps
+
+      - uses: ./.github/actions/rn-bootstrap
+        env:
+          INSTALL_NODE: true
+          INSTALL_RN_DEPENDENCIES: true
+
+      - name: Lint source code
+        working-directory: sample-apps/react-native/dogfood
+        run: yarn lint:ci
+
+      - name: Lint fastlane
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane rubocop
+
+  build_ios:
+    name: Build iOS
+    timeout-minutes: 60
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+        env:
+          INSTALL_NODE: true
+          INSTALL_PODS: true
+          INSTALL_RN_DEPENDENCIES: true
+          INSTALL_IOS_PERMISSIONS: true
+
       - name: Test RN SDK
         run: yarn test:react-native:sdk
-      - name: Install Ruby and Gems
-        uses: ruby/setup-ruby@v1
+
+      - name: Build
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane build_ios
+
+      - name: Upload .ipa
+        uses: actions/upload-artifact@v3
         with:
-          ruby-version: '2.7.5'
-          working-directory: sample-apps/react-native/dogfood
-          bundler-cache: true
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '11'
-          check-latest: true
-      - name: Cache Gradle
-        uses: actions/cache@v3
-        with:
+          name: ipa
           path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('sample-apps/react-native/dogfood/*.gradle*', 'sample-apps/react-native/dogfood/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: Build and optionally deploy
-        run: |
-          cd sample-apps/react-native/dogfood;
-          ./scripts/create-sentry-properties.sh;
-          bundle exec fastlane build_android deploy:${{ github.ref == 'refs/heads/main' }};
+            **/dogfood/dist/*.ipa
+            **/dogfood/dist/*.zip
+
+  test_ios:
+    name: Test iOS
+    needs: build_ios
+    timeout-minutes: 100
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+        env:
+          INSTALL_NODE: true
+          INSTALL_PODS: true
+          INSTALL_PYTHON: true
+          INSTALL_MAESTRO: true
+          INSTALL_VIDEO_BUDDY: true
+          INSTALL_RN_DEPENDENCIES: true
+          INSTALL_IOS_PERMISSIONS: true
+
+      - name: Test
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane test_ios
+
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: iOS Test Data
+          path: |
+            **/fastlane/recordings
+            **/fastlane/video-buddy-log.txt
+            ~/.maestro/tests
+
+  deploy_ios:
+    name: Deploy iOS
+    needs: test_ios
+    timeout-minutes: 60
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+
+      - name: Download .ipa
+        uses: actions/download-artifact@v3
+        with:
+          name: ipa
+
+      - name: Deploy
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane deploy_ios
+
+  build_android:
+    name: Build Android
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+        env:
+          INSTALL_NODE: true
+          INSTALL_JAVA: true
+          INSTALL_RN_DEPENDENCIES: true
+
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
+
+      - name: Build
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane build_android
+
+      - name: Upload .apk
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk
+          path: '**/dist/*.apk'
+
+  test_android:
+    name: Test Android
+    needs: build_android
+    timeout-minutes: 100
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+        env:
+          INSTALL_NODE: true
+          INSTALL_FFMPEG: true
+          INSTALL_MAESTRO: true
+          INSTALL_VIDEO_BUDDY: true
+
+      - name: Download .apk
+        uses: actions/download-artifact@v3
+        with:
+          name: apk
+
+      - name: Test
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANDROID_API_LEVEL: 32
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          profile: pixel
+          arch: x86_64
+          force-avd-creation: false
+          avd-name: test
+          target: google_apis
+          emulator-options: -no-window -no-boot-anim -no-audio -no-snapshot-load -gpu swiftshader_indirect
+          emulator-boot-timeout: 1000
+          disable-animations: true
+          working-directory: sample-apps/react-native/dogfood
+          script: bundle exec fastlane test_android
+
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: Android Test Data
+          path: |
+            **/fastlane/recordings
+            **/fastlane/video-buddy-log.txt
+            ~/.maestro/tests
+
+  deploy_android:
+    name: Deploy Android
+    needs: test_android
+    timeout-minutes: 60
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/rn-bootstrap
+        timeout-minutes: 30
+
+      - name: Download .apk
+        uses: actions/download-artifact@v3
+        with:
+          name: apk
+
+      - name: Deploy
+        working-directory: sample-apps/react-native/dogfood
+        run: bundle exec fastlane deploy_android

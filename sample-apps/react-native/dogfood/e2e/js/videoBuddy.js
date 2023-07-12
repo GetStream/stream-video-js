@@ -1,10 +1,10 @@
 const params = [];
 
 const argsWithValue = {
-  'call-id': call_id,
-  'user-count': user_count,
+  'call-id': callId,
+  'user-count': userCount,
   duration: duration,
-  'show-window': show_window,
+  'show-window': showWindow,
 };
 const argsWithNoValue = { camera: camera, mic: mic };
 

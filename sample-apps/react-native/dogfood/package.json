@@ -10,9 +10,10 @@
     "build": "tsc",
     "clean-install": "rm -rf node_modules && yarn cache clean && yarn install",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install",
-    "test-e2e": "./e2e/run_tests.sh",
+    "test-e2e": "bundle exec fastlane test_e2e",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint --cache --fix 'src/**/*.{ts,tsx}'",
+    "lint:ci": "eslint --cache 'src/**/*.{ts,tsx}'"
   },
   "dependencies": {
     "@notifee/react-native": "^7.7.1",

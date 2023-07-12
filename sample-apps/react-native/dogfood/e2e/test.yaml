@@ -10,7 +10,7 @@ appId: io.getstream.rnvideosample
 - tapOn: ${output.pages.chooseFlow.meeting}
 #- Create a new call
 - tapOn: ${output.pages.joinMeeting.callIdInputField}
-- inputText: ${output.call_id}
+- inputText: ${output.callId}
 - tapOn: ${output.pages.joinMeeting.startCallButton}
 #- Join the call
 - tapOn: ${output.pages.lobby.joinButton}
@@ -21,12 +21,14 @@ appId: io.getstream.rnvideosample
 - runScript:
     file: js/videoBuddy.js
     env:
-      call_id: ${output.call_id}
-      duration: 30
-      user_count: 5
+      callId: ${output.callId}
+      duration: ${output.callDuration}
+      userCount: 5
       camera: true
 #- Assert that there are 6 participants in the call
-- assertVisible: ${output.assertions.participantsInfo.participantsCountIs6}
+- extendedWaitUntil:
+    visible: ${output.assertions.participantsInfo.participantsCountIs6}
+    timeout: 80000
 - tapOn: ${output.pages.participantsInfo.exitButton}
 #- Leave the call
 - tapOn: ${output.pages.activeCall.hangupButton}

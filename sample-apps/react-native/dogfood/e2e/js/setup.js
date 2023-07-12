@@ -1,4 +1,5 @@
-output.call_id = (Math.random() + 1).toString(36).substring(7);
+output.callId = (Math.random() + 1).toString(36).substring(7);
+output.callDuration = 80;
 output.pages = {
   chooseFlow: {
     meeting: 'Meeting',
