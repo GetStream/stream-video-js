@@ -9,7 +9,7 @@ If you haven't already, we recommend starting with the __[introduction](../../)_
 
 ## Client setup & Calls
 
-Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
+Create an instance of `StreamVideoClient` that will establish a WebSocket connection by connecting a user. Next, you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
 
 ```tsx
 import {
@@ -44,13 +44,13 @@ export default function App() {
 }
 ```
 
-`default` is a call type. There are 4 built-in [call types](../../core/configuring-call-types/). and you can also create your own.
+When creating a call on the client, the string `default` is a call type. There are 4 built-in [call types](../../core/configuring-call-types/). and you can also create your own.
 The call type controls the permissions and which features are enabled.
 
-The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+The second argument is the call id. Call ids can be reused, meaning it's possible to join a call with the same id multiple times (for example, for recurring meetings).
 
 :::info
-Don't forget to fill the above mentioned constants (`apiKey`, `userId`, `token`, `callId`) with the values below.
+Don't forget to fill in the constants mentioned earlier (`apiKey`, `userId`, `token`, `callId`) with the values below.
 :::
 <TokenSnippet sampleApp="meeting" />
 

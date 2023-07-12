@@ -3,12 +3,12 @@ id: native-permissions
 title: Manage Native Permissions
 ---
 
-In this guide we will create a hook to manage the native permissions required for the app to function properly.
-This hook will be used to sync the permissions of the app with the Stream Video SDK.
+In this guide, we will create a hook to manage the native permissions required for the app to function correctly.
+This hook will be used to sync the app's permissions with the Stream Video SDK.
 
-We will ask for relevant permissions after the parent screen is mounted and when app state changes to foreground.
+We will ask for relevant permissions after the parent screen is mounted and when the app state changes to the foreground.
 This ensures the latest permissions are synced with the Stream Video SDK, that way the SDK will subscribe to
-audio/video devices as preparation for a call.
+audio/video devices in preparation for a call.
 
 ```tsx
 import { useEffect } from 'react';
@@ -89,9 +89,9 @@ const iOSProcessResultsAndSetToConfig = (
 ```
 
 ## Sync Permissions on App State Change
-In order to sync the permissions when the app comes back to foreground, we will add a listener to the app state change event.
-This will ensure that the permissions are always in sync when the user comes back to the app from background after
-changing the permissions in the app's settings screen.
+
+In order to sync the permissions when the app comes back to the foreground, we will add a listener to the app state change event.
+This will ensure that the permissions are always in sync when the user comes back to the app from the background after changing the permissions in the app's settings screen.
 
 ```tsx
 import {useEffect, useRef} from 'react';
@@ -157,6 +157,7 @@ const iOSProcessResultsAndSetToConfig = (results) => {...};
 ```
 
 ## Use the Permissions Hook
+
 Use the permissions hook in the parent component of the call screen.
 This will ensure that the permissions are synced before the call screen is mounted.
 
