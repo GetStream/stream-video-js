@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.80](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.79...@stream-io/video-react-sdk-0.0.80) (2023-07-12)
+
+
+### Documentation
+
+* **react-sdk:** fix broken link in the VideoPlaceholder cookbook ([#784](https://github.com/GetStream/stream-video-js/issues/784)) ([9865644](https://github.com/GetStream/stream-video-js/commit/9865644cd9d60ae06496dc676565fc2a69f9295e))
+
+### [0.0.79](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.78...@stream-io/video-react-sdk-0.0.79) (2023-07-11)
+
+
+### Documentation
+
+* align React audio rooms tutorial with iOS and Android ([#781](https://github.com/GetStream/stream-video-js/issues/781)) ([e5b9642](https://github.com/GetStream/stream-video-js/commit/e5b9642dd278566e7ab7e55f7004ad435421af86))
+
 ### [0.0.78](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.77...@stream-io/video-react-sdk-0.0.78) (2023-07-10)
 
 
