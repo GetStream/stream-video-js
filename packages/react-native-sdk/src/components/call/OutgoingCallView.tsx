@@ -52,14 +52,15 @@ export const OutgoingCallView = ({
   };
 
   const cancelCallHandler = useCallback(async () => {
+    if (cancelCallButton?.onPressHandler) {
+      cancelCallButton.onPressHandler();
+      return;
+    }
     try {
       if (callingState === CallingState.LEFT) {
         return;
       }
       await call?.leave();
-      if (cancelCallButton?.onPressHandler) {
-        cancelCallButton.onPressHandler();
-      }
     } catch (error) {
       console.log('Error leaving Call', error);
     }

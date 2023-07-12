@@ -63,11 +63,12 @@ export const IncomingCallView = ({
   const callingState = useCallCallingState();
 
   const acceptCallHandler = useCallback(async () => {
+    if (acceptCallButton?.onPressHandler) {
+      acceptCallButton.onPressHandler();
+      return;
+    }
     try {
       await call?.join();
-      if (acceptCallButton?.onPressHandler) {
-        acceptCallButton.onPressHandler();
-      }
     } catch (error) {
       console.log('Error joining Call', error);
     }
@@ -75,14 +76,15 @@ export const IncomingCallView = ({
   }, [call]);
 
   const rejectCallHandler = useCallback(async () => {
+    if (rejectCallButton?.onPressHandler) {
+      rejectCallButton.onPressHandler();
+      return;
+    }
     try {
       if (callingState === CallingState.LEFT) {
         return;
       }
       await call?.leave({ reject: true });
-      if (rejectCallButton?.onPressHandler) {
-        rejectCallButton.onPressHandler();
-      }
     } catch (error) {
       console.log('Error rejecting Call', error);
     }

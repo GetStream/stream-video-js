@@ -12,37 +12,35 @@ import { CallingState } from '@stream-io/video-client';
  */
 export type HangUpCallButtonType = {
   /**
-   * Handler to be called when the hang up button is pressed.
+   * Handler to override the hang up handler when the hangup button is pressed.
    * @returns void
    */
-  onCallHangupHandler?: () => void;
+  onPressHandler?: () => void;
 };
 
-export const HangUpCallButton = ({
-  onCallHangupHandler,
-}: HangUpCallButtonType) => {
+export const HangUpCallButton = ({ onPressHandler }: HangUpCallButtonType) => {
   const call = useCall();
   const callingState = useCallCallingState();
 
-  const onPressHandler = useCallback(async () => {
+  const hangUpCallHandler = useCallback(async () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
     try {
       if (callingState === CallingState.LEFT) {
         return;
       }
       await call?.leave();
-      if (onCallHangupHandler) {
-        onCallHangupHandler();
-      }
     } catch (error) {
       console.error('Error leaving call:', error);
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [call]);
 
   return (
     <CallControlsButton
-      onPress={onPressHandler}
+      onPress={hangUpCallHandler}
       color={theme.light.error}
       style={[styles.button, { shadowColor: theme.light.error }]}
       accessibilityLabel={A11yButtons.HANG_UP_CALL}

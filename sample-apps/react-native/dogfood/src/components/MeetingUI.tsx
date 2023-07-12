@@ -53,6 +53,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const onCallHangupHandler = async () => {
     setShow('loading');
     try {
+      await call?.leave();
       setShow('lobby');
       navigation.goBack();
     } catch (error) {
@@ -103,7 +104,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           unreadBadgeCountIndicator,
         }}
         hangUpCallButton={{
-          onCallHangupHandler,
+          onPressHandler: onCallHangupHandler,
         }}
       />
     );

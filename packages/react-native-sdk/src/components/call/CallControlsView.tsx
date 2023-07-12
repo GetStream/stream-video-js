@@ -95,9 +95,7 @@ export const CallControlsView = ({
       <ToggleVideoButton />
       <ToggleAudioButton />
       <ToggleCameraFaceButton />
-      <HangUpCallButton
-        onCallHangupHandler={hangUpCallButton?.onCallHangupHandler}
-      />
+      <HangUpCallButton onPressHandler={hangUpCallButton?.onPressHandler} />
     </View>
   );
 };
