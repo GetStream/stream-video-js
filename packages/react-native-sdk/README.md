@@ -110,7 +110,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
     - [ ] Push Notification (validate)
   - [ ] UI Cookbook
     - [ ] Call Controls
-    - [ ] Permission requests (native)
+    - [x] Permission requests (native)
     - [ ] Runtime layout switching
     - [ ] Video Layout (refactor)
     - [ ] ParticipantView customizations
