@@ -4,32 +4,25 @@ title: Events
 description: How to listen to events
 ---
 
-:::warning
-Validate and add React Native Specifics
-
-This documentation is for the beta version of the Stream Video SDK.
-The SDK is subject to change.
-:::
-
-:::warning
-
-- List of all WS events
-- State which events require call watching to be delivered (is it all call events except `call.created`, `call.accepted`, `call.rejected` and `call.cancelled`)
-
-:::
-
 In most cases, you can simply use the [reactive state store](../../core/call-and-participant-state) to be notified about state changes.
 However, for some advanced use cases, you might need to subscribe to the underlying WebSocket events.
 
-## Client vs call events
+## List of events
 
 ### Client events
 
 Client events are always delivered if a user is connected to the client using the `connectUser` method.
 
+The list of client events:
+
+| Name               | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `connection.ok`    | Fired when the authentication process finished successfully |
+| `connection.error` | Fired when the WS connections fails                         |
+
 ### Call events
 
-These events are related to a specific call. These events are only delivered to clients that are watching the specific call. There are 3 ways to watch a call:
+These events are related to a specific call. Some of these events are only delivered to clients that are watching the specific call. There are 3 ways to watch a call:
 
 1. Call the `queryCalls` method with the `watch` option set to `true`:
 
@@ -65,6 +58,37 @@ client.call('default', 'test-call').getOrCreate();
 // or
 client.call('default', 'test-call').get();
 ```
+
+The list of call events:
+
+| Name                              | Description                                                    | Delivered to     |
+| --------------------------------- | -------------------------------------------------------------- | ---------------- |
+| `call.accepted`                   | A user accepts a notification to join a call                   | All call members |
+| `call.blocked_user`               | A user is blocked from the call                                | Call watchers    |
+| `call.broadcasting_started`       | The call started to broadcast                                  | Call watchers    |
+| `call.broadcasting_stopped`       | The call stopped broadcasting                                  | Call watchers    |
+| `call.created`                    | The call was created                                           | All call members |
+| `call.ended`                      | The call was ended                                             | All call members |
+| `call.live_started`               | The call left backstage mode                                   | Call watchers    |
+| `call.member_added`               | One or more members were added to the call                     | All call members |
+| `call.member_removed`             | One or more members were removed from the call                 | All call members |
+| `call.member_updated`             | One or more members were updated                               | All call members |
+| `call.member_updated_permission`  | One or more members' role was updated                          | All call members |
+| `call.notification`               | A user is calling all call members                             | All call members |
+| `call.permission_request`         | A user is requesting permissions                               | Call watchers    |
+| `call.permissions_updated`        | A member's permissions were updated                            | Call watchers    |
+| `call.reaction_new`               | A new reaction was sent                                        | Call watchers    |
+| `call.recording_started`          | A recording has been started                                   | Call watchers    |
+| `call.recording_stopped`          | The recording was stopped                                      | Call watchers    |
+| `call.rejected`                   | A user declined to join the call                               | All call members |
+| `call.ring`                       | A user is calling all call members                             | All call members |
+| `call.session_ended`              | A call session ended (all participants have left the call)     | Call watchers    |
+| `call.session_participant_joined` | A participant joined to the call sessions                      | Call watchers    |
+| `call.session_participant_left`   | A participant left a call session                              | Call watchers    |
+| `call.session_started`            | A call session started (the first participant joined the call) | Call watchers    |
+| `call.unblocked_user`             | A user is unblocked                                            | Call watchers    |
+| `call.updated`                    | The call was updated                                           | Call watchers    |
+| `custom`                          | Custom event                                                   | All call members |
 
 ## Listening to client and call events
 
