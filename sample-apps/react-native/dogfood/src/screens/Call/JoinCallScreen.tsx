@@ -129,7 +129,7 @@ const JoinCallScreen = () => {
           onChangeText={(value) => {
             setRingingUserIdsText(value);
           }}
-          textInputStyle={styles.textInputStyle}
+          style={styles.textInputStyle}
         />
       </View>
       <Button
