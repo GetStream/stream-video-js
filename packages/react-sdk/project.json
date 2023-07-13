@@ -26,6 +26,17 @@
         "postTargets": ["@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
       }
     },
+    "copy-version": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn copy-version:react-sdk ${notes}",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
     "github": {
       "executor": "@jscutlery/semver:github",
       "options": {
