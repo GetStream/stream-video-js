@@ -33,6 +33,7 @@ import {
   UserWithId,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
+import { version } from '../../../version';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -748,9 +749,9 @@ export class StreamClient {
   getUserAgent = () => {
     return (
       this.userAgent ||
-      `stream-video-javascript-client-${this.node ? 'node' : 'browser'}-${
-        process.env.PKG_VERSION
-      }`
+      `stream-video-javascript-client-${
+        this.node ? 'node' : 'browser'
+      }-${version}`
     );
   };
 

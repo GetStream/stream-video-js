@@ -17,6 +17,6 @@
     "sourceMap": true,
     "jsx": "react-native"
   },
-  "include": ["./src", "index.ts", "__tests__", "./jest-setup.ts"],
+  "include": ["./src", "index.ts", "__tests__", "./jest-setup.ts", "version.ts"],
   "exclude": ["./dist", "node_modules"]
 }
