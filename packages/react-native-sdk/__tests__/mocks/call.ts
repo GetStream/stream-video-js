@@ -21,5 +21,7 @@ export const mockCall = (
   call.permissionsContext.setPermissions(ownCapabilities ?? []);
   call.state.setOwnCapabilities(ownCapabilities ?? []);
 
+  call.leave = jest.fn().mockResolvedValue(undefined);
+
   return call;
 };

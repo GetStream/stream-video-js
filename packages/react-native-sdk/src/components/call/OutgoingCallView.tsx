@@ -2,32 +2,25 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from '../call/internal/UserInfoView';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
-import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../../icons';
+import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-
-/**
- * The props for the Cancel Call button in the OutgoingCallView component.
- */
-type CancelCallButton = {
-  /**
-   * Handler to be called when the cancel/hungup call button is pressed.
-   * @returns void
-   */
-  onPressHandler: () => void;
-};
+import {
+  HangUpCallButton,
+  HangUpCallButtonType,
+} from '../utility/internal/HangupCallButton';
 
 /**
  * Props for the OutgoingCallView Component.
  */
 export type OutgoingCallViewType = {
   /**
-   * Cancel/Reject Call Button Props to be passed as an object
+   * HangUp Call Button Props to be passed as an object
    */
-  cancelCallHandler: CancelCallButton;
+  hangupCallButton?: HangUpCallButtonType;
 };
 
 /**
@@ -35,7 +28,7 @@ export type OutgoingCallViewType = {
  * Used after the user has initiated a call.
  */
 export const OutgoingCallView = ({
-  cancelCallHandler,
+  hangupCallButton,
 }: OutgoingCallViewType) => {
   const {
     initialAudioEnabled,
@@ -43,7 +36,6 @@ export const OutgoingCallView = ({
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
   } = useMediaStreamManagement();
-
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -82,15 +74,10 @@ export const OutgoingCallView = ({
               )}
             </CallControlsButton>
           </View>
-
-          <CallControlsButton
-            onPress={cancelCallHandler.onPressHandler}
-            color={theme.light.error}
-            style={[styles.button, styles.cancelCallButton, theme.button.lg]}
-            svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-          >
-            <PhoneDown color={theme.light.static_white} />
-          </CallControlsButton>
+          <HangUpCallButton
+            onPressHandler={hangupCallButton?.onPressHandler}
+            style={[styles.cancelCallButton, theme.button.lg]}
+          />
         </View>
       </View>
       <Background />

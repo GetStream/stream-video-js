@@ -26,56 +26,19 @@ const CallPanel = () => {
 
   const callingState = useCallCallingState();
 
-  const onCallAcceptHandler = React.useCallback(async () => {
-    try {
-      await call?.join();
-    } catch (error) {
-      console.log('Error joining Call', error);
-    }
-  }, [call]);
-
-  const onCallRejectHandler = React.useCallback(async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave({ reject: true });
-    } catch (error) {
-      console.log('Error rejecting Call', error);
-    }
-  }, [call, callingState]);
-
-  const onHangUpCallButtonHandler = React.useCallback(async () => {
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-  }, [call, callingState]);
-
   switch (callingState) {
     case CallingState.RINGING:
       return isCallCreatedByMe ? (
         <View style={styles.container}>
-          <OutgoingCallView
-            cancelCallHandler={{ onPressHandler: onHangUpCallButtonHandler }}
-          />
+          <OutgoingCallView />
         </View>
       ) : (
-        <IncomingCallView
-          acceptCallButton={{ onPressHandler: onCallAcceptHandler }}
-          rejectCallButton={{ onPressHandler: onCallRejectHandler }}
-        />
+        <IncomingCallView />
       );
     case CallingState.JOINED:
       return (
         <View style={styles.container}>
-          <ActiveCall
-            hangUpCallButton={{ onPressHandler: onHangUpCallButtonHandler }}
-          />
+          <ActiveCall />
         </View>
       );
     case CallingState.JOINING:
