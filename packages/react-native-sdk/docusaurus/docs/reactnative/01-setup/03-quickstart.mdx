@@ -2,10 +2,11 @@
 title: Quickstart
 description: For when you're in a hurry and want to quickly get up and running
 ---
+
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
 In this guide, we will cover the basics of making your first call using Stream Video.
-If you haven't already, we recommend starting with the __[introduction](../../)__ and __[installation](../installation)__ steps first, as this guide will build on the material covered in those sections.
+If you haven't already, we recommend starting with the **[introduction](../../)** and **[installation](../installation)** steps first, as this guide will build on the material covered in those sections.
 
 ## Client setup & Calls
 
@@ -30,7 +31,7 @@ export default function App() {
   const [client] = useState(
     () => new StreamVideoClient({ apiKey, user, token }),
   );
-  const [call] = useState(() => client.call('default',callId));
+  const [call] = useState(() => client.call('default', callId));
 
   useEffect(() => {
     call.join({ create: true });
@@ -38,7 +39,9 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>{/* We will add the video UI in the next step */}</StreamCall>
+      <StreamCall call={call}>
+        {/* We will add the video UI in the next step */}
+      </StreamCall>
     </StreamVideo>
   );
 }
@@ -52,6 +55,7 @@ The second argument is the call id. Call ids can be reused, meaning it's possibl
 :::info
 Don't forget to fill in the constants mentioned earlier (`apiKey`, `userId`, `token`, `callId`) with the values below.
 :::
+
 <TokenSnippet sampleApp="meeting" />
 
 ## Rendering video
@@ -59,7 +63,10 @@ Don't forget to fill in the constants mentioned earlier (`apiKey`, `userId`, `to
 The call's state can be accessed using hooks, you'll often work with `useParticipants`. Have a look below for a basic example of how to render the videos of all participants:
 
 ```tsx
-import {CallParticipantsListView, useParticipants} from '@stream-io/video-react-native-sdk';
+import {
+  CallParticipantsListView,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
 
 function VideoUI() {
   const participants = useParticipants();
@@ -81,23 +88,25 @@ More information about state management can be found in the [Call & Participant 
 Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera:
 
 ```tsx
-import {useCallControls } from '@stream-io/video-react-native-sdk';
-import {Pressable, Text} from 'react-native';
+import { useCallControls } from '@stream-io/video-react-native-sdk';
+import { Pressable, Text } from 'react-native';
 
 function VideoButton() {
   const { isVideoPublished, toggleVideoMuted } = useCallControls();
 
   return (
     <Pressable
-        style={{ padding: 8, backgroundColor: '###010101' }}
-        onPress={toggleVideoMuted}
+      style={{ padding: 8, backgroundColor: '###010101' }}
+      onPress={toggleVideoMuted}
     >
       <Text>{isVideoPublished ? 'Turn on camera' : 'Turn off camera'}</Text>
     </Pressable>
   );
 }
 ```
+
 With the help of the `useCallControls` hook, you can access the call controls state and its functions.
+
 - `isVideoPublished` is a boolean that indicates whether the local video is published/muted or not.
 - `toggleVideoMuted` is a function that toggles the local video mute state and publishes/unpublishes the video track.
 
@@ -122,7 +131,7 @@ Let's see an example where we set up the UI using Stream's built-in components:
 ```tsx
 import {
   CallContentView,
-  CallControlsView
+  CallControlsView,
 } from '@stream-io/video-react-native-sdk';
 
 const MyApp = () => {
@@ -143,9 +152,8 @@ import QuickStartFinishedState from '../assets/01-setup/quickstart-finished-stat
 
 ![Finished State](../assets/01-setup/quickstart-finished-state.png)
 
-
 ## Next steps
-- Start using you camera and microphone by learning how to manage your native permissions. See the [Manage Native Permissions](../../advanced/native-permissions) guide.
+
+- Start using your camera and microphone by learning how to manage your native permissions. See the [Manage Native Permissions](../../advanced/native-permissions) guide.
 - Tweak an [Customize the UI](../../ui-cookbook/overview).
 - Discover and [Configure Call Types](../../core/configuring-call-types).
-
