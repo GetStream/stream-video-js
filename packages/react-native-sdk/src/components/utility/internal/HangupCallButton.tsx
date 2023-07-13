@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
-import { StyleSheet } from 'react-native';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { PhoneDown } from '../../../icons';
 import { A11yButtons } from '../../../constants/A11yLabels';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
@@ -16,9 +16,17 @@ export type HangUpCallButtonType = {
    * @returns void
    */
   onPressHandler?: () => void;
+
+  /**
+   * Style of the Button Container
+   */
+  style?: StyleProp<ViewStyle>;
 };
 
-export const HangUpCallButton = ({ onPressHandler }: HangUpCallButtonType) => {
+export const HangUpCallButton = ({
+  onPressHandler,
+  style,
+}: HangUpCallButtonType) => {
   const call = useCall();
   const callingState = useCallCallingState();
 
@@ -42,7 +50,7 @@ export const HangUpCallButton = ({ onPressHandler }: HangUpCallButtonType) => {
     <CallControlsButton
       onPress={hangUpCallHandler}
       color={theme.light.error}
-      style={[styles.button, { shadowColor: theme.light.error }]}
+      style={[styles.button, { shadowColor: theme.light.error }, style]}
       accessibilityLabel={A11yButtons.HANG_UP_CALL}
     >
       <PhoneDown color={theme.light.static_white} />

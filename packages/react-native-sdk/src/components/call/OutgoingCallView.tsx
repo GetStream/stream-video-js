@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from '../call/internal/UserInfoView';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
-import { Mic, MicOff, PhoneDown, Video, VideoSlash } from '../../icons';
+import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
@@ -10,6 +10,7 @@ import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
+import { HangUpCallButton } from '../utility/internal/HangupCallButton';
 
 /**
  * The props for the Cancel Call button in the OutgoingCallView component.
@@ -101,15 +102,10 @@ export const OutgoingCallView = ({
               )}
             </CallControlsButton>
           </View>
-
-          <CallControlsButton
-            onPress={cancelCallHandler}
-            color={theme.light.error}
-            style={[styles.button, styles.cancelCallButton, theme.button.lg]}
-            svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-          >
-            <PhoneDown color={theme.light.static_white} />
-          </CallControlsButton>
+          <HangUpCallButton
+            onPressHandler={cancelCallHandler}
+            style={[styles.cancelCallButton, theme.button.lg]}
+          />
         </View>
       </View>
       <Background />
