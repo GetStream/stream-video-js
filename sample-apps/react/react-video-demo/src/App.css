@@ -24,6 +24,10 @@ body {
   left: 55px;
 }
 
+.mapboxgl-canvas-container.mapboxgl-interactive {
+  cursor: initial;
+}
+
 .str-video__participant_details {
   display: none;
 }
