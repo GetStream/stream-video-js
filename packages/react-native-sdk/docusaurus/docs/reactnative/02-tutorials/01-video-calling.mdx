@@ -97,11 +97,66 @@ export default function App() {
 }
 ```
 
+### Step 5 - Adding Native Permissions
+
 :::note
 Start using your camera and microphone by learning how to manage your Native Permissions. See the [Manage Native Permissions](../../advanced/native-permissions) guide.
 :::
 
-### Step 5 - Joining from the Web
+For this tutorial, we can create the same hook as `useSyncPermissions` as in the [Manage Native Permissions](../../advanced/native-permissions) guide and use it as below:
+
+```tsx title="App.tsx"
+import React, { useEffect, useState } from 'react';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import { VideoCallUI } from './components/VideoCallUI';
+
+export default function App() {
+  const [client] = useState<StreamVideoClient>(() => {
+    const user = {
+      id: 'your-user-id',
+    };
+    const token = 'your-user-token';
+
+    return new StreamVideoClient({
+      apiKey: STREAM_API_KEY,
+      user,
+      token,
+      options: {
+        logLevel: 'warn',
+      },
+    });
+  });
+
+  const callId = 'your-call-id';
+  const [call] = useState<Call>(() => client.call('default', callId));
+
+  // Added this hook to manage native permissions
+  useSyncPermissions();
+
+  useEffect(() => {
+    const joinCall = async () => {
+      await call.join({ create: true });
+    };
+
+    joinCall();
+  }, [call]);
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <VideoCallUI />
+      </StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+### Step 6 - Joining from the Web
 
 To make this a little more interactive, let's join the call from your browser.
 
@@ -109,7 +164,7 @@ To make this a little more interactive, let's join the call from your browser.
 
 On your app, you'll see the new participant from the web, once we add the Video call UI. Let's keep the browser tab open as you go through the tutorial.
 
-### Step 6 - Rendering Video
+### Step 7 - Rendering Video
 
 In this step, we are going to add the participant's view which displays us the participants video/audio stream and other related info,
 and the call controls view which allows you to control your streaming of audio/video.
@@ -154,15 +209,13 @@ const styles = StyleSheet.create({
 
 ![Video Call Video View](../assets/02-tutorials/video-call-video-view.png)
 
-### Step 7 - Full Video Calling UI
+### Step 8 - Full Video Calling UI
 
 Next, we will add the `ParticipantsInfoBadge`, to make our UI complete. It is responsible to handle the following:
 
 - Show the number of participants in a form of badge.
 - Show the info about the participants in a list view with name, status of media streaming.
 - Show available options within the call like Pin participant, enable/disable audio/video, etc.
-
-![Video Call Participants Info View](../assets/02-tutorials/video-call-participants-info-view.png)
 
 This is how you can add the same on the existing component.
 
@@ -205,7 +258,7 @@ const styles = StyleSheet.create({
 
 ![Video Call Finished View](../assets/02-tutorials/video-call-finished-view.png)
 
-### Step 8 - Customizing the UI
+### Step 9 - Customizing the UI
 
 Stream ships with several UI components to make this easy. You can customize the components with theming, props and swapping parts of them. This is convenient if you want to quickly build a production-ready calling experience for your app. (and if you need more flexibility, many customers use the above low-level approach to build a UI from scratch).
 
