@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfoView } from '../call/internal/UserInfoView';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
@@ -8,29 +8,19 @@ import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
-import { HangUpCallButton } from '../utility/internal/HangupCallButton';
-
-/**
- * The props for the Cancel Call button in the OutgoingCallView component.
- */
-type CancelCallButton = {
-  /**
-   * Handler to be called when the cancel/hungup call button is pressed.
-   * @returns void
-   */
-  onPressHandler: () => void;
-};
+import {
+  HangUpCallButton,
+  HangUpCallButtonType,
+} from '../utility/internal/HangupCallButton';
 
 /**
  * Props for the OutgoingCallView Component.
  */
 export type OutgoingCallViewType = {
   /**
-   * Cancel/Reject Call Button Props to be passed as an object
+   * HangUp Call Button Props to be passed as an object
    */
-  cancelCallButton?: CancelCallButton;
+  hangupCallButton?: HangUpCallButtonType;
 };
 
 /**
@@ -38,7 +28,7 @@ export type OutgoingCallViewType = {
  * Used after the user has initiated a call.
  */
 export const OutgoingCallView = ({
-  cancelCallButton,
+  hangupCallButton,
 }: OutgoingCallViewType) => {
   const {
     initialAudioEnabled,
@@ -46,27 +36,9 @@ export const OutgoingCallView = ({
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
   } = useMediaStreamManagement();
-  const call = useCall();
-  const callingState = useCallCallingState();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
-
-  const cancelCallHandler = useCallback(async () => {
-    if (cancelCallButton?.onPressHandler) {
-      cancelCallButton.onPressHandler();
-      return;
-    }
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-    } catch (error) {
-      console.log('Error leaving Call', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
 
   return (
     <>
@@ -103,7 +75,7 @@ export const OutgoingCallView = ({
             </CallControlsButton>
           </View>
           <HangUpCallButton
-            onPressHandler={cancelCallHandler}
+            onPressHandler={hangupCallButton?.onPressHandler}
             style={[styles.cancelCallButton, theme.button.lg]}
           />
         </View>
