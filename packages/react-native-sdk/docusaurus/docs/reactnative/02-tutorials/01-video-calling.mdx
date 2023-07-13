@@ -4,8 +4,6 @@ description: How to build a video call application similar to Zoom or Google Mee
 ---
 
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
-import VideoCallVideoView from '../assets/02-tutorials/video-call-video-view.png';
-import VideoCallFinishedView from '../assets/02-tutorials/video-call-finished-view.png';
 
 This tutorial teaches you how to build a video calling application in the style of Zoom and Google Meet.
 
@@ -217,7 +215,9 @@ Next, we will add the `ParticipantsInfoBadge`, to make our UI complete. It is re
 - Show the info about the participants in a list view with the name, and status of media streaming.
 - Show available options within the call like pinning a participant, enabling/disabling audio/video, etc.
 
-This is how you can add the same on the existing component.
+![Video Call ParticipantView Info View](../assets/02-tutorials/video-call-participants-info-view.png)
+
+This is how you can add the same on the existing component:
 
 ```tsx title="components/VideoCallUI.tsx"
 import React from 'react';
