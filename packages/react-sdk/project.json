@@ -21,7 +21,7 @@
           ]
         },
         "trackDeps": true,
-        "push": true,
+        "push": false,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
         "postTargets": ["@stream-io/video-react-sdk:copy-version", "@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
       }
@@ -33,8 +33,13 @@
           {
             "command": "yarn copy-version:react-sdk ${version}",
             "forwardAllArgs": false
+          },
+          {
+            "command": "git commit --amend --no-edit",
+            "forwardAllArgs": false
           }
-        ]
+        ],
+        "parallel": false
       }
     },
     "github": {
@@ -50,6 +55,17 @@
         "commands": [
           {
             "command": "yarn release:react-sdk",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "git push --follow-tags",
             "forwardAllArgs": false
           }
         ]
