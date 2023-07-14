@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -73,6 +74,9 @@ const JoinCallScreen = () => {
         },
       });
     } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert('Error calling users', error.message);
+      }
       console.log('Failed to createCall', error);
     }
   }, [ringingUserIdsText, ringingUsers, videoClient, userId]);
