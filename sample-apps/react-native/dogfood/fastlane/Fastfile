@@ -2,6 +2,7 @@ skip_docs
 video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
+bundle_id = 'io.getstream.rnvideosample'
 android_app_id = '1:296557120037:android:b5d44592a3a4b44af60dcc'
 
 before_all do
@@ -15,7 +16,7 @@ desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
     type: 'appstore',
-    app_identifier: ['io.getstream.rnvideosample'],
+    app_identifier: [bundle_id],
     readonly: is_ci
   )
 end
@@ -71,7 +72,7 @@ lane :bump_ios_version_number do
 
   current_build_number = app_store_build_number(
     live: false,
-    app_identifier: 'io.getstream.rnvideosample'
+    app_identifier: bundle_id
   )
 
   increment_build_number(
@@ -81,11 +82,11 @@ lane :bump_ios_version_number do
 end
 
 lane :build_ios do
+  app_store_connect_api_key
+
   bump_ios_version_number if is_ci
 
   create_sentry_properties
-
-  app_store_connect_api_key
 
   match_appstore
 
@@ -195,10 +196,7 @@ lane :build_android do
 
   create_sentry_properties
 
-  gradle(
-    project_dir: 'android',
-    tasks: %w[clean assembleRelease]
-  )
+  gradle(project_dir: 'android', tasks: %w[clean assembleRelease])
 
   Dir.chdir('..') do
     sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} #{build_dir}/app.apk")
@@ -206,17 +204,21 @@ lane :build_android do
 end
 
 lane :test_android do |options|
-  build_android unless is_ci && options[:skip_install]
+  build_android unless is_ci || options[:skip_install]
 
   start_video_buddy
 
-  wait_android_emu_idle if is_ci
+  wait_android_emu_idle(load_threshold: 1, timeout: 2200) if is_ci
 
   emulator_status = -> { sh('adb devices').include?('emulator') }
 
   Dir.chdir('..') do
+    unless options[:skip_install]
+      sh("adb uninstall #{bundle_id} >/dev/null || true")
+      sh("adb install #{build_dir}/app.apk")
+    end
+
     sh('adb logcat -c || true') if emulator_status.call
-    sh("adb install #{build_dir}/app.apk") unless options[:skip_install]
 
     # Record emulator screen using codec h264
     # adb limits the recording to 3 minutes, so we bypass this by redirecting the stream to ffmpeg tool
