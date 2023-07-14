@@ -105,7 +105,10 @@ export class StreamClient {
     this.node = !this.browser;
 
     if (this.browser) {
-      this.locationHint = getLocationHint(options?.locationHintTimeout);
+      this.locationHint = getLocationHint(
+        options?.locationHintUrl,
+        options?.locationHintTimeout,
+      );
     }
 
     this.options = {
@@ -185,10 +188,14 @@ export class StreamClient {
       .replace(':3030', ':8800');
   };
 
-  getLocationHint = async (timeout?: number): Promise<string> => {
+  getLocationHint = async (
+    hintUrl?: string,
+    timeout?: number,
+  ): Promise<string> => {
     const hint = await this.locationHint;
     if (!hint || hint === 'ERR') {
       this.locationHint = getLocationHint(
+        hintUrl ?? this.options.locationHintUrl,
         timeout ?? this.options.locationHintTimeout,
       );
       return this.locationHint;

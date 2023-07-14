@@ -103,6 +103,10 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   logger?: Logger;
   logLevel?: LogLevel;
   /**
+   * The URL to use for the location hint.
+   */
+  locationHintUrl?: string;
+  /**
    * The default timeout for requesting a location hint.
    */
   locationHintTimeout?: number;
