@@ -17,7 +17,7 @@
     "test-ci": "vitest --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
     "generate:open-api:dev": "./generate-openapi.sh chat",
-    "copy-version": "VERSION=\"$1\" && echo \"export const version = '$VERSION';\" > ./version.ts && echo \"export const version = '$VERSION';\" > ./dist/version.js"
+    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build"
   },
   "files": [
     "dist",

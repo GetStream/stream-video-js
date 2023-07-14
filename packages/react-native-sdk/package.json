@@ -9,7 +9,7 @@
     "start": "tsc --project tsconfig.json --watch",
     "build": "yarn clean && tsc --project tsconfig.json",
     "test": "jest --coverage",
-    "copy-version": "VERSION=\"$1\" && echo \"export const version = '$VERSION';\" > ./version.ts && echo \"export const version = '$VERSION';\" > ./dist/version.js"
+    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build"
   },
   "files": [
     "dist",
