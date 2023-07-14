@@ -36,5 +36,5 @@
     "rimraf": "^3.0.2",
     "typescript": "^4.9.5"
   },
-  "version": "0.0.49"
+  "version": "0.0.50"
 }
