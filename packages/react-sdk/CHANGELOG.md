@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.87](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.86...@stream-io/video-react-sdk-0.0.87) (2023-07-14)
+
+
+### Bug Fixes
+
+* Commit version.ts after release ([1252dc9](https://github.com/GetStream/stream-video-js/commit/1252dc981ef315975406aee4fd48b03f81e5a087))
+
 ### [0.0.86](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.85...@stream-io/video-react-sdk-0.0.86) (2023-07-14)
 
 ### Dependency Updates
