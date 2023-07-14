@@ -6,14 +6,16 @@ import {
 } from '@stream-io/video-client';
 import { getDeviceInfoLib } from './device-info/libs';
 import { Platform } from 'react-native';
+import { version } from '../../version';
+
+const [major, minor, patch] = version.split('.');
 
 export const setClientDetails = () => {
-  // TODO: set valid version
   setSdkInfo({
     type: SfuModels.SdkType.REACT_NATIVE,
-    major: '0',
-    minor: '0',
-    patch: '0',
+    major,
+    minor,
+    patch,
   });
 
   const deviceInfo = getDeviceInfoLib();

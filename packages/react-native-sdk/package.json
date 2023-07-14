@@ -8,7 +8,8 @@
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
     "build": "yarn clean && tsc --project tsconfig.json",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "copy-version": "VERSION=\"$1\" && echo \"export const version = '$VERSION';\" > ./version.ts && echo \"export const version = '$VERSION';\" > ./dist/version.js"
   },
   "files": [
     "dist",

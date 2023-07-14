@@ -33,6 +33,8 @@ import type {
   UserWithId,
 } from './coordinator/connection/types';
 import { getLogger, logToConsole, setLogger } from './logger';
+import { getSdkInfo } from './client-details';
+import { SdkType } from './gen/video/sfu/models/models';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -104,6 +106,15 @@ export class StreamVideoClient {
         logger: this.logger,
       });
 
+      const sdkInfo = getSdkInfo();
+      if (sdkInfo) {
+        this.streamClient.setUserAgent(
+          this.streamClient.getUserAgent() +
+            `-video-${SdkType[sdkInfo.type].toLowerCase()}-sdk-${
+              sdkInfo.major
+            }.${sdkInfo.minor}.${sdkInfo.patch}`,
+        );
+      }
       this.user = apiKeyOrArgs.user;
       this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
       if (this.user) {
