@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.284](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.283...@stream-io/video-react-native-sdk-0.0.1-alpha.284) (2023-07-14)
+
+
+### Bug Fixes
+
+* version.ts override ([4238936](https://github.com/GetStream/stream-video-js/commit/4238936ec5d24c4ec1ce2147eb4ac2d7b74935ca))
+
+
+
 ## [0.0.1-alpha.283](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.282...@stream-io/video-react-native-sdk-0.0.1-alpha.283) (2023-07-14)
 
 
