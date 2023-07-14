@@ -3,7 +3,9 @@ import { useCall } from '@stream-io/video-react-sdk';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import IconButton from '@mui/material/IconButton';
 import DownloadingIcon from '@mui/icons-material/Downloading';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import Menu from '@mui/material/Menu';
+import Divider from '@mui/material/Divider';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -42,6 +44,9 @@ export const DevMenu = () => {
           {/*<Divider />*/}
           <RestartPublisher />
           <RestartSubscriber />
+          <Divider />
+          <LogPublisherStats />
+          <LogSubscriberStats />
         </MenuList>
       </Menu>
     </div>
@@ -133,6 +138,52 @@ const RestartSubscriber = () => {
         <DownloadingIcon fontSize="small" />
       </ListItemIcon>
       <ListItemText>ICERestart Subscriber</ListItemText>
+    </MenuItem>
+  );
+};
+
+const LogPublisherStats = () => {
+  const call = useCall();
+  return (
+    <MenuItem
+      onClick={() => {
+        if (!call) return;
+        call['publisher']?.getStats().then((stats: RTCStatsReport) => {
+          const arr: any = [];
+          stats.forEach((value) => {
+            arr.push(value);
+          });
+          console.log('Publisher stats', arr);
+        });
+      }}
+    >
+      <ListItemIcon>
+        <QueryStatsIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Log Publisher stats</ListItemText>
+    </MenuItem>
+  );
+};
+
+const LogSubscriberStats = () => {
+  const call = useCall();
+  return (
+    <MenuItem
+      onClick={() => {
+        if (!call) return;
+        call['subscriber']?.getStats().then((stats: RTCStatsReport) => {
+          const arr: any = [];
+          stats.forEach((value) => {
+            arr.push(value);
+          });
+          console.log('Subscriber stats', arr);
+        });
+      }}
+    >
+      <ListItemIcon>
+        <QueryStatsIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Log Subscriber stats</ListItemText>
     </MenuItem>
   );
 };
