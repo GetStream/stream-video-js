@@ -39,13 +39,13 @@ jobs:
         run: yarn install --immutable
 
       - name: Lint Packages
-        run: yarn lint:ci:all
+        run: yarn lint:ci:packages
 
       - name: Build packages
-        run: NODE_ENV=production yarn build:all
+        run: NODE_ENV=production yarn build:libs
 
       - name: Test packages
-        run: yarn test:ci:all
+        run: yarn test:ci:libs
 
       - name: Version and release packages
         if: ${{ github.ref_name == 'main' }}
