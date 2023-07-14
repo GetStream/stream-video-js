@@ -65,7 +65,7 @@
       "options": {
         "commands": [
           {
-            "command": "git push --follow-tags",
+            "command": "git push && git push --tags",
             "forwardAllArgs": false
           }
         ]
