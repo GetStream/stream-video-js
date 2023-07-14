@@ -27,6 +27,7 @@ import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
+import { NavigationHeader } from './src/components/NavigationHeader';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -72,7 +73,7 @@ const StackNavigator = () => {
         <Stack.Screen
           name="AudioRoom"
           component={AudioRoomScreen}
-          options={{ headerShown: false }}
+          options={{ header: NavigationHeader }}
         />
       );
       break;

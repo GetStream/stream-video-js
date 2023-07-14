@@ -1,14 +1,18 @@
 import React from 'react';
-import { Call } from '@stream-io/video-react-native-sdk';
+import { Call, StreamCall } from '@stream-io/video-react-native-sdk';
 import Room from './Room';
-import JoinAudioRoom from './JoinRoom';
+import AudioRoomList from './RoomList';
 
 export default function AudioRoom() {
   const [call, setCall] = React.useState<Call>();
 
   if (call) {
-    return <Room call={call} />;
+    return (
+      <StreamCall call={call}>
+        <Room />
+      </StreamCall>
+    );
   }
 
-  return <JoinAudioRoom setCall={setCall} />;
+  return <AudioRoomList setCall={setCall} />;
 }

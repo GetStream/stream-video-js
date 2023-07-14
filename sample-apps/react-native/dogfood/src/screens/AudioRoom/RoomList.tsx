@@ -13,7 +13,7 @@ type Props = {
   setCall: (call: Call) => void;
 };
 
-const JoinAudioRoom = (props: Props) => {
+const AudioRoomList = (props: Props) => {
   const { setCall } = props;
   const client = useStreamVideoClient();
   const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
@@ -24,17 +24,33 @@ const JoinAudioRoom = (props: Props) => {
   const nextPage = useRef<string>();
 
   const queryLiveCalls = useCallback(async () => {
-    if (!client) {
+    if (!client || client.user?.id === undefined) {
       return;
     }
     setLoadingCalls(true);
     setLoadingError(undefined);
     // get all the live calls
     try {
+      const filterForLiveCalls = {
+        type: 'audio_room',
+        backstage: false,
+        ended_at: null,
+      };
+      const filterForJoinableBackstageCalls = {
+        type: 'audio_room',
+        backstage: true,
+        ended_at: null,
+        $or: [
+          {
+            created_by_user_id: client.user.id,
+          },
+          {
+            members: { $in: [client.user?.id] },
+          },
+        ],
+      };
       const result = await client.queryCalls({
-        filter_conditions: {
-          type: 'audio_room',
-        },
+        filter_conditions: filterForLiveCalls,
         sort: [{ field: 'created_at', direction: -1 }],
         limit: 10,
         next: nextPage.current,
@@ -77,7 +93,15 @@ const JoinAudioRoom = (props: Props) => {
           }
           key={callItem.id}
           onPress={() => {
-            callItem.get();
+            const join = async () => {
+              try {
+                await callItem.get();
+                await callItem.join();
+              } catch (error) {
+                console.log('Error joining Call', error);
+              }
+            };
+            join();
             setCall(callItem);
           }}
         >
@@ -115,7 +139,7 @@ const JoinAudioRoom = (props: Props) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <CreateRoomModal
         modalVisible={showCreateRoomModal}
         onClose={() => setShowCreateRoomModal(false)}
@@ -126,7 +150,6 @@ const JoinAudioRoom = (props: Props) => {
         bounces={false}
         ListEmptyComponent={renderEmpty}
         renderItem={renderItem}
-        // ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
       />
       <Pressable
@@ -141,7 +164,7 @@ const JoinAudioRoom = (props: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: appTheme.spacing.lg,
+    // paddingVertical: appTheme.spacing.lg,
     backgroundColor: appTheme.colors.static_grey,
     flex: 1,
   },
@@ -180,12 +203,6 @@ const styles = StyleSheet.create({
   button: {
     margin: appTheme.spacing.sm,
   },
-  startNewCallButton: {
-    width: '100%',
-  },
-  iconButton: {
-    width: 40,
-  },
   callItem: {
     padding: appTheme.spacing.sm,
     borderBottomWidth: 1,
@@ -193,4 +210,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default JoinAudioRoom;
+export default AudioRoomList;

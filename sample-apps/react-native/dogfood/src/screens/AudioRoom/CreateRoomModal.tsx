@@ -48,7 +48,7 @@ export default function CreateRoomModal(props: Props) {
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
 
-  const createRoom = async () => {
+  const createRoom = () => {
     if (!client) {
       return;
     }
@@ -58,7 +58,16 @@ export default function CreateRoomModal(props: Props) {
       image: userImageUrl,
     };
     const call = client.call('audio_room', generateRoomId());
-    await call.getOrCreate(generateRoomPayload({ user, title, description }));
+    const join = async () => {
+      try {
+        await call.getOrCreate(
+          generateRoomPayload({ user, title, description }),
+        );
+      } catch (e) {
+        console.log('Error while creating audio room', e);
+      }
+    };
+    join();
     props.setCall(call);
   };
 
