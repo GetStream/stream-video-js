@@ -85,7 +85,7 @@ https://domain.name/.well-known/assetlinks.json
 
 You can use [this tool](https://developers.google.com/digital-asset-links/tools/generator) to generate the `assetlink.json` for your web project. Enter the Hosting site name, App package name and App package fingerprint(SHA256) to generate it.
 
-- Hosting site name is the url of the website which we will use for deep linking in our app.
+- Hosting site name is the URL of the website which we will use for deep linking in our app.
 - App package name can be easily found in the first line of your `MainActivity.java` file as a value to `package`.
 - To get your App package fingerprint(SHA256) follow [this](https://developers.google.com/android/guides/client-auth) guide.
 
@@ -191,13 +191,13 @@ This is all that you need to do for getting started with iOS deep linking.
 
 After the configuration on Android and iOS, we will finally use the [Linking](https://reactnative.dev/docs/linking) API from the React Native to set up handling the link and using it to navigate in the app.
 
-If the app is _not already_ open, it is opened and the url is passed in as the initialURL.
+If the app is _not already_ open, it is opened and the URL is passed in as the initialURL.
 
 You can handle these events with getInitialURL() - it returns a Promise that resolves to the URL if there is one.
 
-We then will parse the url and set our actions accordingly.
+We then will parse the URL and set our actions accordingly.
 
-If the app is _already open_, the app is foregrounded, and a Linking 'url' event is fired. You can handle these events with `addEventListener('url', callback)`- it calls `callback({url})` with the linked URL.
+If the app is _already open_, the app is foregrounded, and a Linking `url` event is fired. You can handle these events with `addEventListener('url', callback)`- it calls `callback({url})` with the linked URL.
 
 An example of both is shared below:
 
