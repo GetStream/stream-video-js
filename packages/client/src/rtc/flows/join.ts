@@ -10,7 +10,6 @@ import {
   StreamVideoParticipant,
 } from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
-import { getLogger } from '../../logger';
 
 /**
  * Collects all necessary information to join a call, talks to the coordinator
@@ -45,7 +44,7 @@ const doJoin = async (
   id: string,
   data?: JoinCallData,
 ) => {
-  const location = await getLocationHint();
+  const location = await httpClient.getLocationHint();
   const request: JoinCallRequest = {
     ...data,
     location,
@@ -73,27 +72,6 @@ const doJoin = async (
     `/call/${type}/${id}/join`,
     request,
   );
-};
-
-const getLocationHint = async () => {
-  const hintURL = `https://hint.stream-io-video.com/`;
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), 1000);
-  const logger = getLogger(['call']);
-  try {
-    const response = await fetch(hintURL, {
-      method: 'HEAD',
-      signal: abortController.signal,
-    });
-    const awsPop = response.headers.get('x-amz-cf-pop') || 'ERR';
-    logger?.('info', `Location header: ${awsPop}`);
-    return awsPop.substring(0, 3); // AMS1-P2 -> AMS
-  } catch (e) {
-    logger?.('error', `Failed to get location hint from ${hintURL}`, e);
-    return 'ERR';
-  } finally {
-    clearTimeout(timeoutId);
-  }
 };
 
 const toRtcConfiguration = (config?: ICEServer[]) => {
