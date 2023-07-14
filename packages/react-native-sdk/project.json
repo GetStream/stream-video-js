@@ -25,7 +25,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-native-sdk:copy-version", "@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
+        "postTargets": ["@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
       }
     },
     "copy-version": {
