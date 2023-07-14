@@ -10,7 +10,7 @@
     "build": "tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s",
-    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build && git add ./version.ts"
+    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && (yarn build & git add ./version.ts)"
   },
   "repository": {
     "type": "git",
