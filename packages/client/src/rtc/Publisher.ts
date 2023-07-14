@@ -456,9 +456,9 @@ export class Publisher {
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
-  restartIce = () => {
+  restartIce = async () => {
     this.logger('debug', 'Restarting ICE connection');
-    this.pc.restartIce();
+    await this.negotiate({ iceRestart: true });
   };
 
   private onNegotiationNeeded = async () => {
@@ -644,13 +644,29 @@ export class Publisher {
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE Connection state changed`, state);
-    if (state === 'failed' || state === 'disconnected') {
-      this.logger(
-        'warn',
-        `ICE Connection state changed to ${state}. Attempting to restart ICE`,
-      );
-      this.restartIce();
+    this.logger('debug', `ICE Connection state changed to`, state);
+
+    if (state === 'failed') {
+      this.logger('warn', `Attempting to restart ICE`);
+      this.restartIce().catch((e) => {
+        this.logger('error', `ICE restart error`, e);
+      });
+    } else if (state === 'disconnected') {
+      // when in `disconnected` state, the browser may recover automatically,
+      // hence, we delay the ICE restart
+      this.logger('warn', `Scheduling ICE restart in 5 seconds`);
+      setTimeout(() => {
+        // check if the state is still `disconnected` or `failed`
+        // as the connection may have recovered (or failed) in the meantime
+        if (
+          this.pc.iceConnectionState === 'disconnected' ||
+          this.pc.iceConnectionState === 'failed'
+        ) {
+          this.restartIce().catch((e) => {
+            this.logger('error', `ICE restart error`, e);
+          });
+        }
+      }, 5000);
     }
   };
 
