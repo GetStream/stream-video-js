@@ -6,6 +6,7 @@
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json",

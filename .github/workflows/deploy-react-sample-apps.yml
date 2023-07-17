@@ -1,23 +1,26 @@
-name: Deploy Sample Apps
+name: Deploy React Sample Apps
 
 on:
   push:
     branches:
       - main
-      - demo-apps
-      - egress-composite
     paths:
       - '.github/workflows/deploy-sample-apps.yml'
       - 'sample-apps/react/**'
-      - 'packages/client/**'
-      - 'packages/react-sdk/**'
-      - 'packages/react-bindings/**'
-      - 'packages/styling/**'
+    tags:
+      - '@stream-io/video-react-sdk-*'
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
+    paths:
+      - '.github/workflows/deploy-sample-apps.yml'
+      - 'sample-apps/react/**'
+      - 'packages/**'
+      - '!packages/angular-sdk/**'
+      - '!packages/react-native-sdk/**'
+      - '!packages/react-sdk/docusaurus/**'
 
 jobs:
   build-and-deploy-sample-apps:
@@ -41,6 +44,8 @@ jobs:
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
+          - name: react-dogfood
+            project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -55,6 +60,8 @@ jobs:
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -76,27 +83,24 @@ jobs:
       - name: Build packages
         run: NODE_ENV=production yarn build:react:deps
 
-      - name: Test packages
-        run: yarn test:ci:all
-
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull Configuration (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Build (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Deploy (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull Configuration (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Build (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Deploy (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
