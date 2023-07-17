@@ -119,8 +119,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 16,
-    // width: '100%',
-    // alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -137,12 +135,14 @@ const styles = StyleSheet.create({
   textInputTitle: {
     flex: 0,
     padding: 4,
+    color: 'black',
     backgroundColor: '#d6d6d6',
     height: 40,
   },
   textInputDescription: {
     marginVertical: 8,
     padding: 4,
+    color: 'black',
     backgroundColor: '#d6d6d6',
     height: 60,
   },

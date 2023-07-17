@@ -62,13 +62,7 @@ const RoomList = (props: Props) => {
         next: nextPage.current,
       });
       nextPage.current = result.next;
-      setCalls((prev) => [
-        ...prev,
-        ...result.calls,
-        // ...result.calls.filter(
-        //   (c) => c.data?.custom?.title && c.data.custom?.description,
-        // ),
-      ]);
+      setCalls((prev) => [...prev, ...result.calls]);
     } catch (e) {
       if (e instanceof Error) {
         setLoadingError(e);
