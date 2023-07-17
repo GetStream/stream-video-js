@@ -10,7 +10,7 @@
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "rollup -w -c",
+    "start": "yarn copy-version && rollup -w -c",
     "build": "yarn clean && yarn copy-version && rollup -c",
     "test": "vitest",
     "clean:docs": "rimraf generated-docs",

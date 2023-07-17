@@ -7,7 +7,7 @@
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
+    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build": "yarn copy-version && tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s",
