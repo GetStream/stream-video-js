@@ -11,13 +11,13 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -w -c",
-    "build": "yarn clean && rollup -c",
+    "build": "yarn clean && yarn copy-version && rollup -c",
     "test": "vitest",
     "clean:docs": "rimraf generated-docs",
     "test-ci": "vitest --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
     "generate:open-api:dev": "./generate-openapi.sh chat",
-    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build"
+    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "files": [
     "dist",

@@ -7,9 +7,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "tsc --project tsconfig.json --watch",
-    "build": "yarn clean && tsc --project tsconfig.json",
+    "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json",
     "test": "jest --coverage",
-    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build"
+    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "files": [
     "dist",
