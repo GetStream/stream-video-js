@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.92...@stream-io/video-react-sdk-0.1.0) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.1`
+* `@stream-io/video-react-bindings` updated to version `0.1.0`
+
+### ⚠ BREAKING CHANGES
+
+* Trigger breaking change to react-sdk
+
+### Features
+
+* **react-sdk:** extract toggle functions to hooks + permissions ([#750](https://github.com/GetStream/stream-video-js/issues/750)) ([e6fab59](https://github.com/GetStream/stream-video-js/commit/e6fab59d3ebc4b91b8b8ed79e6f56bf6b6b10b52))
+* Trigger breaking change to react-sdk ([1e1f21f](https://github.com/GetStream/stream-video-js/commit/1e1f21f212be370fbd54a36371d1a7a485e6cec4))
+
 ### [0.0.92](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.91...@stream-io/video-react-sdk-0.0.92) (2023-07-17)
 
 ### Dependency Updates
