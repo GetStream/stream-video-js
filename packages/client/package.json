@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
     "start": "rollup -w -c",
     "build": "yarn clean && yarn copy-version && rollup -c",
