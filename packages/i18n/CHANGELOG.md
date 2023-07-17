@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.8...@stream-io/i18n-0.1.0) (2023-07-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* Trigger breaking change for i18n
+
+### Features
+
+* Trigger breaking change for i18n ([a5dc50d](https://github.com/GetStream/stream-video-js/commit/a5dc50d99e2eed2c00d425eef73f3f442d7ee691))
+
 ### [0.0.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.7...@stream-io/i18n-0.0.8) (2023-07-03)
 
 
