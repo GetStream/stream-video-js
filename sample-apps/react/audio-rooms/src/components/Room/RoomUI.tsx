@@ -85,7 +85,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
       (e: StreamVideoEvent) => {
         if (e.type !== 'call.session_participant_left') return;
 
-        if (e.user_session_id === localParticipant.sessionId) {
+        if (e.participant.user_session_id === localParticipant.sessionId) {
           loadRoom().catch((err) => {
             console.error('Error loading room', err);
           });
