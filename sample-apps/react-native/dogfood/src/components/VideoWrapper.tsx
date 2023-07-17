@@ -2,7 +2,6 @@ import React, { PropsWithChildren, useEffect, useState } from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-native-sdk';
 import { STREAM_API_KEY } from 'react-native-dotenv';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
