@@ -1,4 +1,4 @@
-name: Deploy Sample Apps
+name: Deploy React Sample Apps
 
 on:
   push:
@@ -14,6 +14,13 @@ on:
       - opened
       - synchronize
       - reopened
+    paths:
+      - '.github/workflows/deploy-sample-apps.yml'
+      - 'sample-apps/react/**'
+      - 'packages/**'
+      - '!packages/angular-sdk/**'
+      - '!packages/react-native-sdk/**'
+      - '!packages/**/*.mdx'
 
 jobs:
   build-and-deploy-sample-apps:
