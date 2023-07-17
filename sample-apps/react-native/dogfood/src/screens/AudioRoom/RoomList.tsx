@@ -13,7 +13,7 @@ type Props = {
   setCall: (call: Call) => void;
 };
 
-const AudioRoomList = (props: Props) => {
+const RoomList = (props: Props) => {
   const { setCall } = props;
   const client = useStreamVideoClient();
   const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
@@ -31,26 +31,25 @@ const AudioRoomList = (props: Props) => {
     setLoadingError(undefined);
     // get all the live calls
     try {
-      const filterForLiveCalls = {
+      const filterForJoinableCalls = {
         type: 'audio_room',
-        backstage: false,
-        ended_at: null,
-      };
-      const filterForJoinableBackstageCalls = {
-        type: 'audio_room',
-        backstage: true,
         ended_at: null,
         $or: [
           {
+            backstage: true,
             created_by_user_id: client.user.id,
           },
           {
+            backstage: true,
             members: { $in: [client.user?.id] },
+          },
+          {
+            backstage: false,
           },
         ],
       };
       const result = await client.queryCalls({
-        filter_conditions: filterForLiveCalls,
+        filter_conditions: filterForJoinableCalls,
         sort: [{ field: 'created_at', direction: -1 }],
         limit: 10,
         next: nextPage.current,
@@ -93,15 +92,7 @@ const AudioRoomList = (props: Props) => {
           }
           key={callItem.id}
           onPress={() => {
-            const join = async () => {
-              try {
-                await callItem.get();
-                await callItem.join();
-              } catch (error) {
-                console.log('Error joining Call', error);
-              }
-            };
-            join();
+            callItem.get();
             setCall(callItem);
           }}
         >
@@ -210,4 +201,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AudioRoomList;
+export default RoomList;

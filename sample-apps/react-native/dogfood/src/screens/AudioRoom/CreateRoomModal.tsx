@@ -9,7 +9,6 @@ import { TextInput } from '../../components/TextInput';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { Button } from '../../components/Button';
 import { appTheme } from '../../theme';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const generateRoomId = () => Math.random().toString(36).substring(2, 12);
 const generateRoomPayload = ({
@@ -58,16 +57,7 @@ export default function CreateRoomModal(props: Props) {
       image: userImageUrl,
     };
     const call = client.call('audio_room', generateRoomId());
-    const join = async () => {
-      try {
-        await call.getOrCreate(
-          generateRoomPayload({ user, title, description }),
-        );
-      } catch (e) {
-        console.log('Error while creating audio room', e);
-      }
-    };
-    join();
+    call.getOrCreate(generateRoomPayload({ user, title, description }));
     props.setCall(call);
   };
 

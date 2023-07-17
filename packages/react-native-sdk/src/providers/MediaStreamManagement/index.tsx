@@ -6,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { CallingState, SfuModels } from '@stream-io/video-client';
+import {
+  CallingState,
+  OwnCapability,
+  SfuModels,
+} from '@stream-io/video-client';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import {
   isMicPermissionGranted$,
@@ -96,11 +100,14 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   );
 
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
-    isMicPermissionGranted$.getValue(),
+    isMicPermissionGranted$.getValue() &&
+      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_AUDIO),
   );
 
   const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(
-    isCameraPermissionGranted$.getValue(),
+    isCameraPermissionGranted$.getValue() &&
+      call?.type !== 'audio_room' &&
+      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_VIDEO),
   );
 
   const publishVideoStream = useVideoPublisher({

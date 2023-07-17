@@ -1,7 +1,7 @@
 import React from 'react';
 import { Call, StreamCall } from '@stream-io/video-react-native-sdk';
 import Room from './Room';
-import AudioRoomList from './RoomList';
+import RoomList from './RoomList';
 
 export default function AudioRoom() {
   const [call, setCall] = React.useState<Call>();
@@ -14,5 +14,5 @@ export default function AudioRoom() {
     );
   }
 
-  return <AudioRoomList setCall={setCall} />;
+  return <RoomList setCall={setCall} />;
 }

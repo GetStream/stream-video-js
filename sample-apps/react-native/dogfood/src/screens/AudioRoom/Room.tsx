@@ -1,52 +1,38 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import {
-  Call,
-  CallContentView,
-  ParticipantView,
-  StreamCall,
   StreamVideoParticipant,
   useCall,
-  useCallMetadata,
-  useIsCallLive,
+  useIncallManager,
   useParticipants,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import {
-  FlatList,
-  FlatListProps,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, FlatListProps, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
+import { ControlsPanel } from '../../components/AudioRoom/ControlsPanel';
+import { SpeakingPermissionsRequestButtonsList } from '../../components/AudioRoom/SpeakerPermissionsRequestList';
+import { Avatar } from 'stream-chat-react-native';
 
 type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
 
 export default function Room() {
   const client = useStreamVideoClient();
   const call = useCall();
-  const isLive = useIsCallLive();
 
-  // useEffect(() => {
-  //   call?.join().catch((e) => {
-  //     console.log('Error while joining the call', e);
-  //   });
-  // }, [call]);
-
-  const callMetadata = useCallMetadata();
-  const participantsMeta = callMetadata?.session?.participants.length;
-
+  useIncallManager({ media: 'audio', auto: true });
   const participants = useParticipants();
 
   const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
     useCallback(({ item: participantItem }) => {
+      const { isSpeaking } = participantItem;
       return (
-        <ParticipantView
+        <View
           key={participantItem.sessionId}
-          participant={participantItem}
-          kind="video"
-        />
+          style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
+        >
+          <Avatar size={80} image={participantItem.image} />
+          <Text>{participantItem.name}</Text>
+        </View>
       );
     }, []);
 
@@ -56,22 +42,31 @@ export default function Room() {
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1 }}>
-      <Text>In Room {call.data?.custom?.title || call.cid}</Text>
-      <Text>{participants.map((p) => p.name).join(',')}</Text>
-      <Text>{`isLive: ${isLive}`}</Text>
-      <Text>{`isBackStage: ${call.data?.backstage}`}</Text>
-      <CallContentView />
-      {/* <FlatList numColumns={2} data={participants} renderItem={renderItem} /> */}
-      {/** We will introduce the <UILayout /> component later */}
-      {/** <UILayout /> */}
+      <DescriptionPanel />
+      <FlatList
+        bounces={false}
+        style={styles.speakerListContainer}
+        numColumns={3}
+        data={participants}
+        renderItem={renderItem}
+      />
+      <ControlsPanel />
+      <SpeakingPermissionsRequestButtonsList />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  speakerListContainer: {
+    flex: 1,
+    padding: 4,
+  },
   avatar: {
-    height: 80,
-    width: 80,
-    borderRadius: 20,
+    flex: 1,
+    alignItems: 'center',
+  },
+  speakingAvatar: {
+    borderWidth: 1,
+    borderColor: 'green',
   },
 });
