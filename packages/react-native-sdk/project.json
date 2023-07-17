@@ -33,7 +33,7 @@
       "options": {
         "commands": [
           {
-            "command": "build:react-native:sdk",
+            "command": "yarn build:react-native:sdk",
             "forwardAllArgs": false
           }
         ]
