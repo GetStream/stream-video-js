@@ -1,9 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatListProps, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  FlatListProps,
+  Pressable,
+  StyleSheet,
+  Text,
+  Button,
+  ActivityIndicator,
+} from 'react-native';
 import { appTheme } from '../../theme';
-import { Button } from '../../components/Button';
+// import { Button } from '../../components/Button';
 import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
-import { FlatList } from 'react-native';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,7 +36,7 @@ const RoomList = (props: Props) => {
     }
     setLoadingCalls(true);
     setLoadingError(undefined);
-    // get all the live calls
+    // get all the joinable calls
     try {
       const filterForJoinableCalls = {
         type: 'audio_room',
@@ -108,29 +115,32 @@ const RoomList = (props: Props) => {
     [setCall],
   );
 
-  const renderFooter: RoomFlatList['ListFooterComponent'] = useCallback(
-    () =>
-      nextPage.current ? (
-        <Button
-          onPress={queryLiveCalls}
-          title="Load more"
-          buttonStyle={styles.button}
-        />
-      ) : null,
-    [queryLiveCalls],
-  );
+  const renderFooter: RoomFlatList['ListFooterComponent'] = useCallback(() => {
+    if (!nextPage.current) {
+      return null;
+    }
+    return loadingCalls ? (
+      <ActivityIndicator size={'small'} style={styles.activityIndicator} />
+    ) : (
+      <Button onPress={queryLiveCalls} title="Load more" />
+    );
+  }, [loadingCalls, queryLiveCalls]);
 
-  const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(
-    () => (
-      <Text style={[styles.emptyListText, styles.title]}>
-        {'No live audio rooms found'}
-      </Text>
-    ),
-    [],
-  );
+  const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {
+    let text = 'No live audio rooms found';
+    if (loadingCalls) {
+      text = 'Loading...';
+    } else if (loadingError) {
+      text = 'Error loading calls';
+    }
+    return <Text style={[styles.emptyListText, styles.title]}>{text}</Text>;
+  }, [loadingCalls, loadingError]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'bottom', 'left', 'right']}
+    >
       <CreateRoomModal
         modalVisible={showCreateRoomModal}
         onClose={() => setShowCreateRoomModal(false)}
@@ -147,7 +157,7 @@ const RoomList = (props: Props) => {
         style={styles.fab}
         onPress={() => setShowCreateRoomModal(true)}
       >
-        <Text style={styles.title}>＋</Text>
+        <Text style={styles.fabText}>＋</Text>
       </Pressable>
     </SafeAreaView>
   );
@@ -155,9 +165,12 @@ const RoomList = (props: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    // paddingVertical: appTheme.spacing.lg,
-    backgroundColor: appTheme.colors.static_grey,
     flex: 1,
+  },
+  fabText: {
+    fontSize: 24,
+    color: 'white',
+    textAlignVertical: 'center',
   },
   fab: {
     position: 'absolute',
@@ -182,22 +195,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   title: {
+    color: 'black',
     fontSize: 20,
-    color: appTheme.colors.static_white,
     fontWeight: '500',
   },
   subTitle: {
-    color: appTheme.colors.light_gray,
+    color: 'black',
     fontSize: 16,
     marginTop: 2,
   },
   button: {
     margin: appTheme.spacing.sm,
   },
+  activityIndicator: {
+    paddingVertical: appTheme.spacing.sm,
+  },
   callItem: {
     padding: appTheme.spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: appTheme.colors.static_white,
+    borderBottomColor: 'black',
   },
 });
 

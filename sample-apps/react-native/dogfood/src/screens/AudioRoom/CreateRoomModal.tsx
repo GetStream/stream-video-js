@@ -4,10 +4,17 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { TextInput } from '../../components/TextInput';
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  View,
+  Button,
+  TextInput,
+} from 'react-native';
+// import { TextInput } from '../../components/TextInput';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { Button } from '../../components/Button';
+// import { Button } from '../../components/Button';
 import { appTheme } from '../../theme';
 
 const generateRoomId = () => Math.random().toString(36).substring(2, 12);
@@ -75,6 +82,9 @@ export default function CreateRoomModal(props: Props) {
             value={title}
             style={styles.textInputTitle}
             autoCorrect={false}
+            placeholderTextColor="#808080"
+            //To remove underline in Android
+            underlineColorAndroid="transparent"
             onChangeText={setTitle}
           />
           <TextInput
@@ -82,14 +92,13 @@ export default function CreateRoomModal(props: Props) {
             value={description}
             multiline={true}
             autoCorrect={false}
+            placeholderTextColor="#808080"
+            //To remove underline in Android
+            underlineColorAndroid="transparent"
             style={styles.textInputDescription}
             onChangeText={setDescription}
           />
-          <Button
-            onPress={createRoom}
-            title="Create"
-            //   buttonStyle={styles.startNewCallButton}
-          />
+          <Button onPress={createRoom} title="Create" />
         </View>
       </Pressable>
     </Modal>
@@ -105,10 +114,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.8)',
   },
   modalView: {
-    marginHorizontal: 8,
+    marginHorizontal: 16,
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 16,
     // width: '100%',
     // alignItems: 'center',
     shadowColor: '#000',
@@ -123,16 +133,17 @@ const styles = StyleSheet.create({
   container: {
     padding: appTheme.spacing.lg,
     backgroundColor: 'white',
-    // flex: 1,
-    // height: '100%',
-    // justifyContent: 'space-around',
   },
   textInputTitle: {
     flex: 0,
+    padding: 4,
+    backgroundColor: '#d6d6d6',
     height: 40,
   },
   textInputDescription: {
-    flex: 0,
+    marginVertical: 8,
+    padding: 4,
+    backgroundColor: '#d6d6d6',
     height: 60,
   },
 });

@@ -25,17 +25,21 @@ export const DescriptionPanel = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 4,
+    marginHorizontal: 32,
     alignItems: 'center',
   },
   title: {
     fontSize: 16,
+    color: 'black',
     fontWeight: 'bold',
   },
   subtitle: {
+    color: 'black',
     paddingVertical: 4,
     fontSize: 14,
   },
   participantsCount: {
+    color: 'black',
     fontSize: 12,
   },
 });

@@ -1,72 +1,61 @@
-import React, { useCallback } from 'react';
+import React, { useEffect } from 'react';
 import {
-  StreamVideoParticipant,
-  useCall,
+  CallingState,
+  useCallCallingState,
   useIncallManager,
-  useParticipants,
-  useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import { FlatList, FlatListProps, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
 import { ControlsPanel } from '../../components/AudioRoom/ControlsPanel';
-import { SpeakingPermissionsRequestButtonsList } from '../../components/AudioRoom/SpeakerPermissionsRequestList';
-import { Avatar } from 'stream-chat-react-native';
+import { PermissionRequestsPanel } from '../../components/AudioRoom/PermissionRequestsPanel';
+import { ParticipantsPanel } from '../../components/AudioRoom/ParticipantsPanel';
+import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
 
-type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
-
-export default function Room() {
-  const client = useStreamVideoClient();
-  const call = useCall();
-
+export default function Room({ onClose }: { onClose: () => void }) {
   useIncallManager({ media: 'audio', auto: true });
-  const participants = useParticipants();
+  const callingState = useCallCallingState();
 
-  const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
-    useCallback(({ item: participantItem }) => {
-      const { isSpeaking } = participantItem;
-      return (
-        <View
-          key={participantItem.sessionId}
-          style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
-        >
-          <Avatar size={80} image={participantItem.image} />
-          <Text>{participantItem.name}</Text>
-        </View>
-      );
-    }, []);
-
-  if (!client || !call) {
-    return null;
-  }
+  // when the call ends, close the room component
+  useEffect(() => {
+    if (callingState === CallingState.LEFT) {
+      onClose();
+    }
+  }, [callingState, onClose]);
 
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={{ flex: 1 }}>
+    <SafeAreaView
+      edges={['top', 'bottom', 'left', 'right']}
+      style={styles.container}
+    >
       <DescriptionPanel />
-      <FlatList
-        bounces={false}
-        style={styles.speakerListContainer}
-        numColumns={3}
-        data={participants}
-        renderItem={renderItem}
-      />
+      <ParticipantsPanel />
+      <PermissionRequestsPanel />
       <ControlsPanel />
-      <SpeakingPermissionsRequestButtonsList />
+      <Pressable
+        onPress={onClose}
+        style={(state) =>
+          state.pressed
+            ? [styles.closeButton, { opacity: 0.2 }]
+            : styles.closeButton
+        }
+      >
+        <Text style={styles.closeText}>X</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  speakerListContainer: {
+  container: {
     flex: 1,
     padding: 4,
   },
-  avatar: {
-    flex: 1,
-    alignItems: 'center',
+  closeButton: {
+    position: 'absolute',
+    top: 48,
+    right: 16,
   },
-  speakingAvatar: {
-    borderWidth: 1,
-    borderColor: 'green',
+  closeText: {
+    fontSize: 24,
   },
 });

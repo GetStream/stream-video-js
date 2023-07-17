@@ -9,7 +9,7 @@ export default function AudioRoom() {
   if (call) {
     return (
       <StreamCall call={call}>
-        <Room />
+        <Room onClose={() => setCall(undefined)} />
       </StreamCall>
     );
   }
