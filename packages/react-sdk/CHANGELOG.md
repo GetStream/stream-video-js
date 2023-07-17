@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.1...@stream-io/video-react-sdk-0.1.2) (2023-07-17)
+
+
+### Features
+
+* Trigger react-sdk release to test sample app deployment ([77abdb6](https://github.com/GetStream/stream-video-js/commit/77abdb67bafa6c33bf7b86070999f7ad9d6010df))
+
 ### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.0...@stream-io/video-react-sdk-0.1.1) (2023-07-17)
 
 ### Dependency Updates
