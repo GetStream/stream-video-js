@@ -37,7 +37,7 @@
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
     "build:all": "yarn workspaces foreach -v --topological-dev run build",
-    "build:libs": "yarn build:styling && yarn workspaces foreach -v --topological-dev --no-private run build",
+    "build:libs": "yarn workspaces foreach -v --topological-dev --no-private run build",
     "clean:all": "yarn workspaces foreach -vt run clean",
     "lint:all": "yarn lint:packages && yarn lint:sample-apps",
     "lint:packages": "eslint --cache --fix 'packages/**/*.{ts,tsx}'",
