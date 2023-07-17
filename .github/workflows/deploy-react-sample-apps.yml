@@ -85,22 +85,22 @@ jobs:
 
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull Configuration (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Build (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Deploy (Preview)
-        if: ${{ github.ref_name != 'main' }}
+        if: ${{ github.ref_name != 'main' && !contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull Configuration (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Build (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Deploy (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || contains(github.ref, 'tags/@stream-io/video-react-sdk') }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
