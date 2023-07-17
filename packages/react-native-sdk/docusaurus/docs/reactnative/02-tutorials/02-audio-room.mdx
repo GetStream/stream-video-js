@@ -1034,33 +1034,44 @@ export const PermissionRequestsPanel = () => {
   if (!canUpdatePermissions || !speakingRequests.length) {
     return null;
   }
-  <ScrollView style={styles.scrollContainer}>
-    {speakingRequests.map((request) => (
-      <View key={request.user.id} style={styles.itemContainer}>
-        <Text>
-          {`${request.user.name} requested to ${request.permissions.join(',')}`}
-        </Text>
-        <Button
-          title="Approve"
-          onPress={() => handlePermissionRequest(request, true)}
-        />
-        <Button
-          title="Deny"
-          onPress={() => handlePermissionRequest(request, false)}
-        />
-      </View>
-    ))}
-  </ScrollView>;
+
+  return (
+    <ScrollView style={styles.scrollContainer}>
+      {speakingRequests.map((request) => (
+        <View style={styles.itemContainer} key={request.user.id}>
+          <Text style={styles.text} numberOfLines={2} ellipsizeMode="tail">
+            {`${request.user.name} requested to ${request.permissions.join(
+              ',',
+            )}`}
+          </Text>
+          <Button
+            title="Approve"
+            onPress={() => handlePermissionRequest(request, true)}
+          />
+          <Button
+            title="Deny"
+            onPress={() => handlePermissionRequest(request, false)}
+          />
+        </View>
+      ))}
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
   scrollContainer: {
-    maxHeight: 40,
+    width: '100%',
+    maxHeight: 60,
+  },
+  text: {
+    flexShrink: 1,
   },
   itemContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 20,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    width: '100%',
   },
 });
 ```

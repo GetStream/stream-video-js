@@ -52,22 +52,11 @@ export const PermissionRequestsPanel = () => {
     return null;
   }
 
-  console.log(
-    'speakingRequests',
-    speakingRequests.map(
-      (r) => `${r.user.name} requested to ${r.permissions.join(',')}`,
-    ),
-  );
   return (
     <ScrollView style={styles.scrollContainer}>
       {speakingRequests.map((request) => (
-        <View style={styles.itemContainer}>
-          <Text
-            key={request.user.id}
-            style={styles.text}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
+        <View style={styles.itemContainer} key={request.user.id}>
+          <Text style={styles.text} numberOfLines={2} ellipsizeMode="tail">
             {`${request.user.name} requested to ${request.permissions.join(
               ',',
             )}`}
