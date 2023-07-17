@@ -3,7 +3,47 @@ id: call-content-view
 title: CallContentView
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
+CallContentView is one of the main components for a Call. This is responsible for listing all the participant's video stream in a vertical/horizontal list and play the audio streams for those participants.
+
+![Preview of the CallContentView component.](../../assets/04-ui-components/call-content-view-grid.png)
+
+The CallContentView has two modes(`grid` or `spotlight`). The grid mode simply lists the participants vertically one after the other, while the spotlight mode is responsible to show the screen sharing view, a single dominant speaker, or a pinned participant in an elongated view, while other participants being in an horizontal view.
+
+![Preview of the CallContentView component in spotlight mode](../../assets/04-ui-components/call-content-view-spotlight.png)
+
+## General usage
+
+The `CallContentView` can be used to display the video stream of all the participants and play their audio stream.
+
+```tsx
+import {
+  Call,
+  CallContentView,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      // highlight-next-line
+      <CallContentView />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `mode`
+
+| Type                  | Default Value |
+| --------------------- | ------------- |
+| `grid` \| `spotlight` | `grid`        |
+
+This is used to switch the list between the grid and the spotlight mode.
+
+:::note
+When a screen is shared, the layout automatically changes to `spotlight` mode.
 :::
