@@ -31,7 +31,7 @@
       "options": {
         "commands": [
           {
-            "command": "build:client",
+            "command": "yarn build:client",
             "forwardAllArgs": false
           }
         ]
