@@ -4,15 +4,11 @@ on:
   push:
     branches:
       - main
-      - demo-apps
-      - egress-composite
     paths:
       - '.github/workflows/deploy-sample-apps.yml'
       - 'sample-apps/react/**'
-      - 'packages/client/**'
-      - 'packages/react-sdk/**'
-      - 'packages/react-bindings/**'
-      - 'packages/styling/**'
+    tags:
+      - '@stream-io/video-react-sdk-*'
   pull_request:
     types:
       - opened
@@ -41,6 +37,8 @@ jobs:
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
+          - name: react-dogfood
+            project-id: prj_8vo9hxdzh9FnRjO950qpt1fwUuPl
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -55,6 +53,8 @@ jobs:
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -75,9 +75,6 @@ jobs:
 
       - name: Build packages
         run: NODE_ENV=production yarn build:react:deps
-
-      - name: Test packages
-        run: yarn test:ci:all
 
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull Configuration (Preview)

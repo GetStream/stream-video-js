@@ -1,22 +1,25 @@
-name: Version and release
+name: Test
 env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
+  # Trigger flow when pushing in main or pull requests, and when creating
+  # a pull request.
   push:
     branches:
       - main
     paths-ignore:
       - 'packages/react-native-sdk/docusaurus/**'
       - 'packages/react-sdk/docusaurus/**'
-      - 'sample-apps/**'
-
-concurrency:
-  group: version-and-release-${{ github.ref }}
-  cancel-in-progress: true
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
 
 jobs:
-  version-and-release:
+  test-and-build:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
@@ -43,22 +46,16 @@ jobs:
         run: yarn install --immutable
 
       - name: Lint Packages
-        run: yarn lint:ci:packages
+        run: yarn lint:ci:all
 
       - name: Build packages
-        run: NODE_ENV=production yarn build:libs
+        run: NODE_ENV=production yarn build:all
 
       - name: Test packages
-        run: yarn test:ci:libs
+        run: yarn test:ci:all
 
-      - name: Version and release packages
-        if: ${{ github.ref_name == 'main' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          yarn config set npmRegistryServer https://registry.npmjs.org/
-          yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
-          yarn release
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
