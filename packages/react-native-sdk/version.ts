@@ -1,1 +1,1 @@
-export const version = '0.0.1-alpha.277';
+export const version = 'VERSION_PLACEHOLDER';
