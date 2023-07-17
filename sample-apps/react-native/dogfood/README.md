@@ -28,6 +28,6 @@ The following are the steps to run the E2E tests:
 - Install [maestro](https://github.com/mobile-dev-inc/maestro) CLI tool.
 - Install [stream-video-buddy](https://github.com/GetStream/stream-video-buddy) CLI tool.
 - Launch the simulator and install the test app by following the instructions above.
-- Start the test flow by running `yarn test-e2e:ios or yarn test-e2e-android` from the root of this project(`/sample-apps/react-native/dogfood`) to run the tests for iOS and Android, respectively. This will run the tests on a device of your choice.
+- Start the test flow by running `yarn test-e2e:ios or yarn test-e2e:android` from the root of this project(`/sample-apps/react-native/dogfood`) to run the tests for iOS and Android, respectively. This will run the tests on a device of your choice.
 
 > Note: If you get this error: `[11:32:00]: Exit status of command 'scripts/create-sentry-properties.sh' was 1 instead of 0. Must provide SENTRY_RN_AUTH_TOKEN in environment`, please add `SENTRY_RN_AUTH_TOKEN` to your `.env` file of the project. The value for the same, can be found [here](https://www.notion.so/stream-wiki/Video-dogfood-app-8fd4b72b2ac9495eb55872f5a70b5f6d).
