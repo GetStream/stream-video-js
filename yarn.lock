@@ -8298,7 +8298,6 @@ __metadata:
     isomorphic-ws: ^5.0.0
     jsonwebtoken: ^9.0.0
     prettier: ^2.8.4
-    replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rollup: ^3.25.1
     rxjs: ~7.8.1
@@ -8347,7 +8346,6 @@ __metadata:
     "@types/react": ^18.0.26
     "@types/rimraf": ^3.0.2
     react: ^18.2.0
-    replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ~7.8.1
     typescript: ^4.9.5
@@ -8358,9 +8356,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react-dogfood@workspace:packages/react-dogfood":
+"@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-react-dogfood@workspace:packages/react-dogfood"
+  resolution: "@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood"
   dependencies:
     "@emotion/react": ^11.11.0
     "@emotion/styled": ^11.11.0
@@ -8492,12 +8490,9 @@ __metadata:
     react-native-voip-push-notification: 3.3.1
     react-native-webrtc: ~106.0.4
     react-test-renderer: ^18.2.0
-    replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
-    typedoc: ^0.24.7
-    typedoc-plugin-markdown: ^3.15.3
     typescript: ^4.9.5
   peerDependencies:
     "@notifee/react-native": ">=7.7.0"
@@ -8563,7 +8558,6 @@ __metadata:
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
-    replace-in-file: ^6.3.5
     rimraf: ^3.0.2
     rxjs: ~7.8.1
     typescript: ^4.9.5
@@ -11249,13 +11243,10 @@ __metadata:
     ng-packagr: ^14.1.0
     ng2-charts: ~4.0.2
     ngx-popperjs: ^14.1.2
-    replace-in-file: ^6.3.5
     rxjs: ~7.8.1
     stream-chat: ^8.4.1
     stream-chat-angular: ^4.15.0
     tslib: ^2.5.0
-    typedoc: ^0.24.7
-    typedoc-plugin-markdown: ^3.15.3
     typescript: ~4.7.4
     vercel: ^30.2.1
     wait-on: ^6.0.1
@@ -11347,13 +11338,6 @@ __metadata:
   version: 6.0.1
   resolution: "ansi-regex@npm:6.0.1"
   checksum: 1ff8b7667cded1de4fa2c9ae283e979fc87036864317da86a2e546725f96406746411d0d85e87a2d12fa5abd715d90006de7fa4fa0477c92321ad3b4c7d4e169
-  languageName: node
-  linkType: hard
-
-"ansi-sequence-parser@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "ansi-sequence-parser@npm:1.1.0"
-  checksum: 75f4d3a4c555655a698aec05b5763cbddcd16ccccdbfd178fb0aa471ab74fdf98e031b875ef26e64be6a95cf970c89238744b26de6e34af97f316d5186b1df53
   languageName: node
   linkType: hard
 
@@ -23937,13 +23921,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lunr@npm:^2.3.9":
-  version: 2.3.9
-  resolution: "lunr@npm:2.3.9"
-  checksum: 176719e24fcce7d3cf1baccce9dd5633cd8bdc1f41ebe6a180112e5ee99d80373fe2454f5d4624d437e5a8319698ca6837b9950566e15d2cae5f2a543a3db4b8
-  languageName: node
-  linkType: hard
-
 "lz-string@npm:^1.4.4":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -24141,15 +24118,6 @@ __metadata:
   version: 3.0.3
   resolution: "markdown-table@npm:3.0.3"
   checksum: 8fcd3d9018311120fbb97115987f8b1665a603f3134c93fbecc5d1463380c8036f789e2a62c19432058829e594fff8db9ff81c88f83690b2f8ed6c074f8d9e10
-  languageName: node
-  linkType: hard
-
-"marked@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "marked@npm:4.3.0"
-  bin:
-    marked: bin/marked.js
-  checksum: 0db6817893952c3ec710eb9ceafb8468bf5ae38cb0f92b7b083baa13d70b19774674be04db5b817681fa7c5c6a088f61300815e4dd75a59696f4716ad69f6260
   languageName: node
   linkType: hard
 
@@ -31381,19 +31349,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"replace-in-file@npm:^6.3.5":
-  version: 6.3.5
-  resolution: "replace-in-file@npm:6.3.5"
-  dependencies:
-    chalk: ^4.1.2
-    glob: ^7.2.0
-    yargs: ^17.2.1
-  bin:
-    replace-in-file: bin/cli.js
-  checksum: e5ac3bfee531dcb70cfbb327e6d4ec86bcf4c8045f292e46fb0e4c8743bd70a274c2402918d2609a25fde829862b6e1fe5f09f6c171aabbdde142a9f33008cf1
-  languageName: node
-  linkType: hard
-
 "require-directory@npm:^2.1.1":
   version: 2.1.1
   resolution: "require-directory@npm:2.1.1"
@@ -32441,18 +32396,6 @@ __metadata:
   version: 1.8.0
   resolution: "shell-quote@npm:1.8.0"
   checksum: 6ef7c5e308b9c77eedded882653a132214fa98b4a1512bb507588cf6cd2fc78bfee73e945d0c3211af028a1eabe09c6a19b96edd8977dc149810797e93809749
-  languageName: node
-  linkType: hard
-
-"shiki@npm:^0.14.1":
-  version: 0.14.1
-  resolution: "shiki@npm:0.14.1"
-  dependencies:
-    ansi-sequence-parser: ^1.1.0
-    jsonc-parser: ^3.2.0
-    vscode-oniguruma: ^1.7.0
-    vscode-textmate: ^8.0.0
-  checksum: b19ea337cc84da69d99ca39d109f82946e0c56c11cc4c67b3b91cc14a9479203365fd0c9e0dd87e908f493ab409dc6f1849175384b6ca593ce7da884ae1edca2
   languageName: node
   linkType: hard
 
@@ -34900,33 +34843,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:^3.15.3":
-  version: 3.15.3
-  resolution: "typedoc-plugin-markdown@npm:3.15.3"
-  dependencies:
-    handlebars: ^4.7.7
-  peerDependencies:
-    typedoc: ">=0.24.0"
-  checksum: 845d8907948a7ea9f3eed31d8c2f1a4053569fb763f5c5187d06ecbffd247c6a6e532eaf0ec09d11f09eabbf26a3df8646c96fc3ac1a836cc9af273fa0e53413
-  languageName: node
-  linkType: hard
-
-"typedoc@npm:^0.24.7":
-  version: 0.24.7
-  resolution: "typedoc@npm:0.24.7"
-  dependencies:
-    lunr: ^2.3.9
-    marked: ^4.3.0
-    minimatch: ^9.0.0
-    shiki: ^0.14.1
-  peerDependencies:
-    typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x
-  bin:
-    typedoc: bin/typedoc
-  checksum: 9ae433566cb02b96deb9eb2a9f5b23d1b199f5aeb61ca8c7e2653ff5d339fbfb4d526e024febab4f3278332978814aaa0885f1d5925ba21a441d93a611510ac3
-  languageName: node
-  linkType: hard
-
 "typescript@npm:4.9.5, typescript@npm:^4.9.5":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
@@ -36097,20 +36013,6 @@ __metadata:
   version: 2.0.1
   resolution: "void-elements@npm:2.0.1"
   checksum: 700c07ba9cfa2dff88bb23974b3173118f9ad8107143db9e5d753552be15cf93380954d4e7f7d7bc80e7306c35c3a7fb83ab0ce4d4dcc18abf90ca8b31452126
-  languageName: node
-  linkType: hard
-
-"vscode-oniguruma@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "vscode-oniguruma@npm:1.7.0"
-  checksum: 53519d91d90593e6fb080260892e87d447e9b200c4964d766772b5053f5699066539d92100f77f1302c91e8fc5d9c772fbe40fe4c90f3d411a96d5a9b1e63f42
-  languageName: node
-  linkType: hard
-
-"vscode-textmate@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "vscode-textmate@npm:8.0.0"
-  checksum: 127780dfea89559d70b8326df6ec344cfd701312dd7f3f591a718693812b7852c30b6715e3cfc8b3200a4e2515b4c96f0843c0eacc0a3020969b5de262c2a4bb
   languageName: node
   linkType: hard
 

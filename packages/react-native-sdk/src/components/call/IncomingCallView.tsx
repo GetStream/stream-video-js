@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import {
+  useCall,
+  useCallCallingState,
   useCallMembers,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
@@ -9,6 +11,7 @@ import { UserInfoView } from './internal/UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * The props for the Accept Call button in the IncomingCallView component.
@@ -18,7 +21,7 @@ type AcceptCallButton = {
    * Handler to be called when the accept call button is pressed.
    * @returns void
    */
-  onPressHandler: () => void;
+  onPressHandler?: () => void;
 };
 
 /**
@@ -29,7 +32,7 @@ type RejectCallButton = {
    * Handler to be called when the reject call button is pressed.
    * @returns void
    */
-  onPressHandler: () => void;
+  onPressHandler?: () => void;
 };
 
 /**
@@ -39,11 +42,11 @@ export type IncomingCallViewType = {
   /**
    * Accept Call Button Props to be passed as an object
    */
-  acceptCallButton: AcceptCallButton;
+  acceptCallButton?: AcceptCallButton;
   /**
    * Reject Call Button Props to be passed as an object
    */
-  rejectCallButton: RejectCallButton;
+  rejectCallButton?: RejectCallButton;
 };
 
 /**
@@ -56,6 +59,37 @@ export const IncomingCallView = ({
 }: IncomingCallViewType) => {
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  const acceptCallHandler = useCallback(async () => {
+    if (acceptCallButton?.onPressHandler) {
+      acceptCallButton.onPressHandler();
+      return;
+    }
+    try {
+      await call?.join();
+    } catch (error) {
+      console.log('Error joining Call', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call]);
+
+  const rejectCallHandler = useCallback(async () => {
+    if (rejectCallButton?.onPressHandler) {
+      rejectCallButton.onPressHandler();
+      return;
+    }
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave({ reject: true });
+    } catch (error) {
+      console.log('Error rejecting Call', error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [call]);
 
   return (
     <Background>
@@ -66,7 +100,7 @@ export const IncomingCallView = ({
 
       <View style={styles.buttonGroup}>
         <CallControlsButton
-          onPress={rejectCallButton.onPressHandler}
+          onPress={rejectCallHandler}
           color={theme.light.error}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
@@ -90,7 +124,7 @@ export const IncomingCallView = ({
           )}
         </CallControlsButton>
         <CallControlsButton
-          onPress={acceptCallButton.onPressHandler}
+          onPress={acceptCallHandler}
           color={theme.light.info}
           style={[styles.button, theme.button.lg]}
           svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}

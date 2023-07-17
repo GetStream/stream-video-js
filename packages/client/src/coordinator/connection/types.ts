@@ -103,6 +103,14 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   logger?: Logger;
   logLevel?: LogLevel;
   /**
+   * The URL to use for the location hint.
+   */
+  locationHintUrl?: string;
+  /**
+   * The default timeout for requesting a location hint.
+   */
+  locationHintTimeout?: number;
+  /**
    * When true, user will be persisted on client. Otherwise if `connectUser` call fails, then you need to
    * call `connectUser` again to retry.
    * This is mainly useful for chat application working in offline mode, where you will need client.user to

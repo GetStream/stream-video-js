@@ -1,4 +1,5 @@
 import { setSdkInfo, SfuModels } from '@stream-io/video-client';
+import { version } from './version';
 
 export * from '@stream-io/video-client';
 export * from '@stream-io/video-react-bindings';
@@ -15,10 +16,11 @@ export {
   useToggleVideoMuteState,
 } from './src/hooks';
 
-// TODO: set valid version
+const [major, minor, patch] = version.split('.');
+
 setSdkInfo({
   type: SfuModels.SdkType.REACT,
-  major: '0',
-  minor: '0',
-  patch: '0',
+  major,
+  minor,
+  patch,
 });

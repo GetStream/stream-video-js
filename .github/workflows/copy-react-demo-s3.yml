@@ -19,14 +19,16 @@ jobs:
     env:
       VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
       VITE_STREAM_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
-      VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
-      VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
+      VITE_STREAM_KEY: ${{ vars.VIDEO_DEMO_STREAM_API_KEY }}
+      VITE_STREAM_SECRET: ${{ secrets.VIDEO_DEMO_STREAM_SECRET }}
       VITE_VIDEO_USER_ID: ${{vars.VIDEO_DEMO_USER_ID}}
       VITE_VIDEO_USER_NAME: ${{vars.VIDEO_DEMO_USER_NAME}}
       VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
       VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
+      VITE_GTM_ID: ${{ secrets.VIDEO_DEMO_GTM_ID }}
+      VITE_GTM_PROJECT: ${{ vars.VIDEO_DEMO_GTM_PROJECT }}
     steps:
      - name: Checkout
        uses: actions/checkout@v3

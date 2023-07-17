@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-client",
-  "version": "0.0.41",
+  "version": "0.1.0",
   "packageManager": "yarn@3.2.4",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -9,14 +9,16 @@
   "types": "dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "rollup -w -c",
-    "build": "yarn clean && rollup -c",
+    "start": "yarn copy-version && rollup -w -c",
+    "build": "yarn clean && yarn copy-version && rollup -c",
     "test": "vitest",
     "clean:docs": "rimraf generated-docs",
     "test-ci": "vitest --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
-    "generate:open-api:dev": "./generate-openapi.sh chat"
+    "generate:open-api:dev": "./generate-openapi.sh chat",
+    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "files": [
     "dist",
@@ -52,7 +54,6 @@
     "@types/ws": "^8.5.4",
     "@vitest/coverage-c8": "^0.31.0",
     "prettier": "^2.8.4",
-    "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "rollup": "^3.25.1",
     "typescript": "^4.9.5",

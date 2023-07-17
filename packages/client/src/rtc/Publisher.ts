@@ -55,6 +55,14 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+  /**
+   * An array maintaining the order how transceivers were added to the peer connection.
+   * This is needed because some browsers (Firefox) don't reliably report
+   * trackId and `mid` parameters.
+   *
+   * @private
+   */
+  private transceiverInitOrder: TrackType[] = [];
 
   private readonly trackKindMapping: {
     [key in TrackType]: 'video' | 'audio' | undefined;
@@ -225,6 +233,8 @@ export class Publisher {
         sendEncodings: videoEncodings,
       });
 
+      this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
+      this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
@@ -443,6 +453,14 @@ export class Publisher {
     }
   };
 
+  /**
+   * Restarts the ICE connection and renegotiates with the SFU.
+   */
+  restartIce = async () => {
+    this.logger('debug', 'Restarting ICE connection');
+    await this.negotiate({ iceRestart: true });
+  };
+
   private onNegotiationNeeded = async () => {
     await this.negotiate();
   };
@@ -522,6 +540,7 @@ export class Publisher {
     const extractMid = (
       defaultMid: string | null,
       track: MediaStreamTrack,
+      trackType: TrackType,
     ): string => {
       if (defaultMid) return defaultMid;
       if (!sdp) {
@@ -529,7 +548,10 @@ export class Publisher {
         return '';
       }
 
-      this.logger('warn', 'No mid found for track. Trying to find it from SDP');
+      this.logger(
+        'debug',
+        `No 'mid' found for track. Trying to find it from the Offer SDP`,
+      );
 
       const parsedSdp = SDP.parse(sdp);
       const media = parsedSdp.media.find((m) => {
@@ -541,9 +563,16 @@ export class Publisher {
       });
       if (typeof media?.mid === 'undefined') {
         this.logger(
-          'warn',
-          `No mid found in SDP for track type ${track.kind} and id ${track.id}`,
+          'debug',
+          `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
         );
+
+        const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
+        if (heuristicMid !== -1) {
+          return String(heuristicMid);
+        }
+
+        this.logger('debug', 'No heuristic mid found. Returning empty mid');
         return '';
       }
       return String(media.mid);
@@ -596,7 +625,7 @@ export class Publisher {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: extractMid(transceiver.mid, track),
+          mid: extractMid(transceiver.mid, track, trackType),
 
           // FIXME OL: adjust these values
           stereo: false,
@@ -614,11 +643,31 @@ export class Publisher {
   };
 
   private onIceConnectionStateChange = () => {
-    this.logger(
-      'debug',
-      `ICE Connection state changed`,
-      this.pc.iceConnectionState,
-    );
+    const state = this.pc.iceConnectionState;
+    this.logger('debug', `ICE Connection state changed to`, state);
+
+    if (state === 'failed') {
+      this.logger('warn', `Attempting to restart ICE`);
+      this.restartIce().catch((e) => {
+        this.logger('error', `ICE restart error`, e);
+      });
+    } else if (state === 'disconnected') {
+      // when in `disconnected` state, the browser may recover automatically,
+      // hence, we delay the ICE restart
+      this.logger('warn', `Scheduling ICE restart in 5 seconds`);
+      setTimeout(() => {
+        // check if the state is still `disconnected` or `failed`
+        // as the connection may have recovered (or failed) in the meantime
+        if (
+          this.pc.iceConnectionState === 'disconnected' ||
+          this.pc.iceConnectionState === 'failed'
+        ) {
+          this.restartIce().catch((e) => {
+            this.logger('error', `ICE restart error`, e);
+          });
+        }
+      }, 5000);
+    }
   };
 
   private onIceGatheringStateChange = () => {

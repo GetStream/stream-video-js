@@ -2,6 +2,171 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.308](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.307...@stream-io/video-react-native-sdk-0.0.1-alpha.308) (2023-07-17)
+
+
+
+## [0.0.1-alpha.307](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.306...@stream-io/video-react-native-sdk-0.0.1-alpha.307) (2023-07-17)
+
+
+
+## [0.0.1-alpha.306](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.305...@stream-io/video-react-native-sdk-0.0.1-alpha.306) (2023-07-17)
+
+
+
+## [0.0.1-alpha.305](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.304...@stream-io/video-react-native-sdk-0.0.1-alpha.305) (2023-07-17)
+
+
+
+## [0.0.1-alpha.304](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.303...@stream-io/video-react-native-sdk-0.0.1-alpha.304) (2023-07-17)
+
+
+
+## [0.0.1-alpha.303](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.302...@stream-io/video-react-native-sdk-0.0.1-alpha.303) (2023-07-17)
+
+
+
+## [0.0.1-alpha.302](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.301...@stream-io/video-react-native-sdk-0.0.1-alpha.302) (2023-07-17)
+
+
+
+## [0.0.1-alpha.301](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.300...@stream-io/video-react-native-sdk-0.0.1-alpha.301) (2023-07-17)
+
+
+
+## [0.0.1-alpha.300](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.299...@stream-io/video-react-native-sdk-0.0.1-alpha.300) (2023-07-17)
+
+
+
+## [0.0.1-alpha.299](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.298...@stream-io/video-react-native-sdk-0.0.1-alpha.299) (2023-07-17)
+
+
+
+## [0.0.1-alpha.298](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.297...@stream-io/video-react-native-sdk-0.0.1-alpha.298) (2023-07-17)
+
+
+
+## [0.0.1-alpha.297](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.296...@stream-io/video-react-native-sdk-0.0.1-alpha.297) (2023-07-17)
+
+
+### Bug Fixes
+
+* promote prop-types to a 'dependency' in react-sdk ([#805](https://github.com/GetStream/stream-video-js/issues/805)) ([7109c9b](https://github.com/GetStream/stream-video-js/commit/7109c9b6d4087789f44ab8beb539bca495ba8f76))
+
+
+
+## [0.0.1-alpha.296](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.295...@stream-io/video-react-native-sdk-0.0.1-alpha.296) (2023-07-17)
+
+
+
+## [0.0.1-alpha.295](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.294...@stream-io/video-react-native-sdk-0.0.1-alpha.295) (2023-07-17)
+
+
+
+## [0.0.1-alpha.294](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.293...@stream-io/video-react-native-sdk-0.0.1-alpha.294) (2023-07-14)
+
+
+
+## [0.0.1-alpha.293](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.292...@stream-io/video-react-native-sdk-0.0.1-alpha.293) (2023-07-14)
+
+
+
+## [0.0.1-alpha.292](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.291...@stream-io/video-react-native-sdk-0.0.1-alpha.292) (2023-07-14)
+
+
+
+## [0.0.1-alpha.291](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.290...@stream-io/video-react-native-sdk-0.0.1-alpha.291) (2023-07-14)
+
+
+
+## [0.0.1-alpha.290](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.289...@stream-io/video-react-native-sdk-0.0.1-alpha.290) (2023-07-14)
+
+
+
+## [0.0.1-alpha.289](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.288...@stream-io/video-react-native-sdk-0.0.1-alpha.289) (2023-07-14)
+
+
+
+## [0.0.1-alpha.288](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.287...@stream-io/video-react-native-sdk-0.0.1-alpha.288) (2023-07-14)
+
+
+
+## [0.0.1-alpha.287](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.286...@stream-io/video-react-native-sdk-0.0.1-alpha.287) (2023-07-14)
+
+
+
+## [0.0.1-alpha.286](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.285...@stream-io/video-react-native-sdk-0.0.1-alpha.286) (2023-07-14)
+
+
+
+## [0.0.1-alpha.285](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.284...@stream-io/video-react-native-sdk-0.0.1-alpha.285) (2023-07-14)
+
+
+
+## [0.0.1-alpha.284](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.283...@stream-io/video-react-native-sdk-0.0.1-alpha.284) (2023-07-14)
+
+
+### Bug Fixes
+
+* version.ts override ([4238936](https://github.com/GetStream/stream-video-js/commit/4238936ec5d24c4ec1ce2147eb4ac2d7b74935ca))
+
+
+
+## [0.0.1-alpha.283](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.282...@stream-io/video-react-native-sdk-0.0.1-alpha.283) (2023-07-14)
+
+
+### Features
+
+* fix version problem ([096425b](https://github.com/GetStream/stream-video-js/commit/096425bbcb6fcc06a566458dc6bd8431183d31d8))
+
+
+
+## [0.0.1-alpha.282](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.281...@stream-io/video-react-native-sdk-0.0.1-alpha.282) (2023-07-14)
+
+
+### Features
+
+* SDK version header ([#790](https://github.com/GetStream/stream-video-js/issues/790)) ([6c662db](https://github.com/GetStream/stream-video-js/commit/6c662db59321db4060b5499d8eaad8a18b1eaf6c))
+
+
+
+## [0.0.1-alpha.281](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.280...@stream-io/video-react-native-sdk-0.0.1-alpha.281) (2023-07-13)
+
+
+
+## [0.0.1-alpha.280](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.279...@stream-io/video-react-native-sdk-0.0.1-alpha.280) (2023-07-13)
+
+
+
+## [0.0.1-alpha.279](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.278...@stream-io/video-react-native-sdk-0.0.1-alpha.279) (2023-07-13)
+
+
+
+## [0.0.1-alpha.278](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.277...@stream-io/video-react-native-sdk-0.0.1-alpha.278) (2023-07-13)
+
+
+
+## [0.0.1-alpha.277](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.276...@stream-io/video-react-native-sdk-0.0.1-alpha.277) (2023-07-12)
+
+
+
+## [0.0.1-alpha.276](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.275...@stream-io/video-react-native-sdk-0.0.1-alpha.276) (2023-07-12)
+
+
+### Bug Fixes
+
+* **react-native:** camera facing mode mirroring issue ([#775](https://github.com/GetStream/stream-video-js/issues/775)) ([92eb545](https://github.com/GetStream/stream-video-js/commit/92eb545609fb6722636716d064d8108e8849d3be))
+
+
+
+## [0.0.1-alpha.275](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.274...@stream-io/video-react-native-sdk-0.0.1-alpha.275) (2023-07-12)
+
+
+
+## [0.0.1-alpha.274](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.273...@stream-io/video-react-native-sdk-0.0.1-alpha.274) (2023-07-12)
+
+
+
 ## [0.0.1-alpha.273](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.272...@stream-io/video-react-native-sdk-0.0.1-alpha.273) (2023-07-12)
 
 

@@ -19,10 +19,7 @@ import {
 import { useAudioPublisher } from './useAudioPublisher';
 import { useVideoPublisher } from './useVideoPublisher';
 import { Alert } from 'react-native';
-import {
-  useStreamVideoStoreSetState,
-  useStreamVideoStoreValue,
-} from '../../contexts';
+import { useStreamVideoStoreValue } from '../../contexts';
 
 /**
  * API to control device enablement, device selection and media stream access for a call.
@@ -90,14 +87,10 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
   const callingState = useCallCallingState();
   const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
-  const currentVideoDevice = useStreamVideoStoreValue(
-    (store) => store.currentVideoDevice,
-  );
-  const setState = useStreamVideoStoreSetState();
+  const localVideoStream = useLocalParticipant()?.videoStream;
 
-  const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] = useState(
-    currentVideoDevice?.facing === 'front' ?? false,
-  );
+  const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] =
+    useState(true);
 
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
     isMicPermissionGranted$.getValue() &&
@@ -165,23 +158,16 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   );
 
   const toggleCameraFacingMode = useCallback(() => {
-    const videoDevice = videoDevices.find((device) => {
-      // Check to only switch between video devices
-      if (device.kind !== 'videoinput') {
-        return;
+    const canSwitchCamera = videoDevices.length > 1;
+    if (canSwitchCamera && localVideoStream) {
+      const tracks = localVideoStream.getVideoTracks();
+      const videoTrack = tracks[0];
+      if (videoTrack) {
+        videoTrack._switchCamera();
+        setIsCameraOnFrontFacingMode((prev) => !prev);
       }
-      return !isCameraOnFrontFacingMode
-        ? device.facing === 'front'
-        : device.facing === 'environment';
-    });
-    if (!videoDevice) {
-      return;
     }
-    setIsCameraOnFrontFacingMode((prev) => !prev);
-    setState({
-      currentVideoDevice: videoDevice,
-    });
-  }, [isCameraOnFrontFacingMode, videoDevices, setState]);
+  }, [localVideoStream, videoDevices.length]);
 
   const contextValue = useMemo(() => {
     return {

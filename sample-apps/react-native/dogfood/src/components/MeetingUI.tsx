@@ -55,7 +55,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     }
   }, [call, appStoreSetState]);
 
-  const onHangUpCallButtonHandler = async () => {
+  const onCallHangupHandler = async () => {
     setShow('loading');
     try {
       if (callingState === CallingState.LEFT) {
@@ -112,7 +112,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           unreadBadgeCountIndicator,
         }}
         hangUpCallButton={{
-          onPressHandler: onHangUpCallButtonHandler,
+          onPressHandler: onCallHangupHandler,
         }}
       />
     );

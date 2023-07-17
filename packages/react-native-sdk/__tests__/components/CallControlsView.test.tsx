@@ -89,7 +89,7 @@ describe('CallControlsView', () => {
     expect(screen.getByLabelText(A11yComponents.REACTIONS_MODAL)).toBeVisible();
   });
 
-  it('terminate call when hangup call button is pressed in call controls view', async () => {
+  it('execute onPressHandler when its passed to hangup call button when its pressed in call controls view', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -98,19 +98,36 @@ describe('CallControlsView', () => {
       }),
     ]);
 
-    const mockCallLeave = jest.fn();
+    const hangUpCallButton = { onPressHandler: jest.fn() };
 
-    render(
-      <CallControlsView hangUpCallButton={{ onPressHandler: mockCallLeave }} />,
-      {
-        call,
-      },
-    );
+    render(<CallControlsView hangUpCallButton={hangUpCallButton} />, {
+      call,
+    });
 
     const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
 
     fireEvent.press(button);
 
-    expect(mockCallLeave).toHaveBeenCalled();
+    expect(hangUpCallButton.onPressHandler).toHaveBeenCalled();
+  });
+
+  it('execute call.leave when hangup button is pressed with no custom handler in call controls view', async () => {
+    const call = mockCall(mockClientWithUser(), [
+      mockParticipant({
+        isLocalParticipant: true,
+        sessionId: P_IDS.LOCAL_1,
+        userId: P_IDS.LOCAL_1,
+      }),
+    ]);
+
+    render(<CallControlsView />, {
+      call,
+    });
+
+    const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
+
+    fireEvent.press(button);
+
+    expect(call.leave).toHaveBeenCalled();
   });
 });

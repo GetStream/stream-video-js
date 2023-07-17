@@ -1,15 +1,18 @@
 {
   "name": "@stream-io/video-react-sdk",
+  "version": "0.1.2",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
-    "build": "tsc --project tsconfig.production.json && yarn copy-css",
+    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
+    "build": "yarn copy-version && tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
-    "start:docs": "npx stream-chat-docusaurus -s"
+    "start:docs": "npx stream-chat-docusaurus -s",
+    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "repository": {
     "type": "git",
@@ -33,6 +36,7 @@
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "clsx": "^1.2.1",
+    "prop-types": "^15.8.1",
     "rxjs": "~7.8.1"
   },
   "peerDependencies": {
@@ -43,12 +47,9 @@
     "@stream-io/video-styling": "workspace:^",
     "@types/prop-types": "^15.7.5",
     "@types/rimraf": "^3.0.2",
-    "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.5"
-  },
-  "version": "0.0.80"
+  }
 }

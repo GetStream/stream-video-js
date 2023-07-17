@@ -1,0 +1,34 @@
+name: Push React Native docusaurus documentation
+
+env:
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+on:
+  push:
+    paths:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - '.github/workflows/docusaurus-react-native-deploy.yml'
+
+jobs:
+  push_docusaurus:
+    name: Build and deploy the documentation
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Node Setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Push React Native SDK documentation
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: 'staging'
+          destination-repository-name: 'stream-video-docusaurus'
+          source-directory: 'packages/react-native-sdk/docusaurus'
+        env:
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}

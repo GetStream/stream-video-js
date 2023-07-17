@@ -33,6 +33,8 @@ import {
   UserWithId,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
+import { version } from '../../../version';
+import { getLocationHint } from './location';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -46,6 +48,8 @@ export class StreamClient {
   key: string;
   listeners: Record<string, Array<(event: StreamVideoEvent) => void>>;
   logger: Logger;
+
+  private locationHint: Promise<string> | undefined;
 
   node: boolean;
   options: StreamClientOptions;
@@ -99,6 +103,13 @@ export class StreamClient {
 
     this.browser = inputOptions.browser || typeof window !== 'undefined';
     this.node = !this.browser;
+
+    if (this.browser) {
+      this.locationHint = getLocationHint(
+        options?.locationHintUrl,
+        options?.locationHintTimeout,
+      );
+    }
 
     this.options = {
       timeout: 5000,
@@ -175,6 +186,21 @@ export class StreamClient {
     this.wsBaseURL = this.baseURL
       .replace('http', 'ws')
       .replace(':3030', ':8800');
+  };
+
+  getLocationHint = async (
+    hintUrl?: string,
+    timeout?: number,
+  ): Promise<string> => {
+    const hint = await this.locationHint;
+    if (!hint || hint === 'ERR') {
+      this.locationHint = getLocationHint(
+        hintUrl ?? this.options.locationHintUrl,
+        timeout ?? this.options.locationHintTimeout,
+      );
+      return this.locationHint;
+    }
+    return hint;
   };
 
   _getConnectionID = () =>
@@ -748,9 +774,9 @@ export class StreamClient {
   getUserAgent = () => {
     return (
       this.userAgent ||
-      `stream-video-javascript-client-${this.node ? 'node' : 'browser'}-${
-        process.env.PKG_VERSION
-      }`
+      `stream-video-javascript-client-${
+        this.node ? 'node' : 'browser'
+      }-${version}`
     );
   };
 
