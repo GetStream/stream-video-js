@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.1.0...@stream-io/i18n-0.1.1) (2023-07-17)
+
+
+### Features
+
+* **react-sdk:** extract toggle functions to hooks + permissions ([#750](https://github.com/GetStream/stream-video-js/issues/750)) ([e6fab59](https://github.com/GetStream/stream-video-js/commit/e6fab59d3ebc4b91b8b8ed79e6f56bf6b6b10b52))
+
+
+### Documentation
+
+* Update readme ([2a31622](https://github.com/GetStream/stream-video-js/commit/2a31622307fdd90aa1e3ae370f320b083be51a23))
+
 ## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/i18n-0.0.8...@stream-io/i18n-0.1.0) (2023-07-17)
 
 
