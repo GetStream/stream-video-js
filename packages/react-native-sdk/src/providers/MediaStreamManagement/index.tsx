@@ -11,7 +11,11 @@ import {
   OwnCapability,
   SfuModels,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import {
   isMicPermissionGranted$,
   isCameraPermissionGranted$,
