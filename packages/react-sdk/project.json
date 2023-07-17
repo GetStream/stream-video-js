@@ -23,7 +23,7 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test"],
-        "postTargets": ["@stream-io/video-react-sdk:update-version", "@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish"]
+        "postTargets": ["@stream-io/video-react-sdk:update-version", "@stream-io/video-react-sdk:github", "@stream-io/video-react-sdk:publish", "@stream-io/video-react-sdk:deploy-sample-apps"]
       }
     },
     "update-version": {
@@ -50,6 +50,17 @@
         "commands": [
           {
             "command": "yarn release:react-sdk",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "deploy-sample-apps": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "gh workflow run 'Deploy React Sample Apps'",
             "forwardAllArgs": false
           }
         ]
