@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.54...@stream-io/video-react-bindings-0.1.0) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.1`
+
+### ⚠ BREAKING CHANGES
+
+* Trigger breaking change to react-sdk
+
+### Features
+
+* Trigger breaking change to react-sdk ([1e1f21f](https://github.com/GetStream/stream-video-js/commit/1e1f21f212be370fbd54a36371d1a7a485e6cec4))
+
 ### [0.0.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.53...@stream-io/video-react-bindings-0.0.54) (2023-07-17)
 
 ### Dependency Updates
