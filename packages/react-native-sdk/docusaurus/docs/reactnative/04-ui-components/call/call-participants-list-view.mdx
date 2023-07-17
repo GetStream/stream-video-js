@@ -3,7 +3,63 @@ id: call-participants-list-view
 title: CallParticipantsListView
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
+This component displays a list of participants in a [FlatList](https://reactnative.dev/docs/flatlist). You can use this component to display participants either in a vertical or horizontal scrolling mode.
+
+:::note
+This component depends on a flex container to calculate the width and height of the participant view, hence it should be used only in a flex parent container
 :::
+
+The [CallContentView](./call-content-view.mdx) internally uses this component.
+
+![Preview of the CallParticipantsListView component.](../../assets/04-ui-components/call-participants-list-view.png)
+
+## General Usage
+
+The `CallParticipantsListView` can be used to display the all the participants in the form of FlatList. By default it shows the participants vertically with 2 participants in each row. This is customizable using the props.
+
+```tsx
+import {
+  Call,
+  CallParticipantsListView,
+  StreamCall,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  const allParticipants = useParticipants();
+
+  return (
+    <StreamCall call={call}>
+      // highlight-next-line
+      <CallParticipantsListView participants={allParticipants} />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `participants`
+
+| Type                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------- |
+| [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts)[] |
+
+The list of participants to list in the view.
+
+### numberOfColumns
+
+| Type                    |
+| ----------------------- |
+| `number` \| `undefined` |
+
+The number of participants to be displayed in a single row.
+
+### horizontal
+
+| Type                     |
+| ------------------------ |
+| `boolean` \| `undefined` |
+
+This decides whether the participants should be listed vertically or horizontally.
