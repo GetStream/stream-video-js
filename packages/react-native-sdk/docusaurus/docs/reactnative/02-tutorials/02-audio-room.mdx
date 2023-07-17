@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-That's it for the basics, here's how the component `Room` should look like now:
+That's it for the basics, lets construct the `Room` component like below:
 
 ```tsx title=src/Room.tsx
 import React, { useEffect } from 'react';
@@ -687,6 +687,27 @@ export default function Room({ onClose }: { onClose: () => void }) {
       onClose();
     }
   }, [callingState, onClose]);
+
+  // when the call has stopped being live, we need to exit
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+
+    return call.on('error', (e) => {
+      if (e.eventPayload.oneofKind !== 'error') {
+        return;
+      }
+      if (e.eventPayload.error.error?.code !== SfuModels.ErrorCode.LIVE_ENDED) {
+        return;
+      }
+      if (
+        !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
+      ) {
+        onClose();
+      }
+    });
+  }, [call, onClose]);
 
   return (
     <SafeAreaView

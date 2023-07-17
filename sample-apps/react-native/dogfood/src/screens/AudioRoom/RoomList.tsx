@@ -60,6 +60,7 @@ const RoomList = (props: Props) => {
         sort: [{ field: 'created_at', direction: -1 }],
         limit: 10,
         next: nextPage.current,
+        watch: true,
       });
       nextPage.current = result.next;
       setCalls((prev) => [...prev, ...result.calls]);
@@ -82,6 +83,29 @@ const RoomList = (props: Props) => {
     }
   }, [queryLiveCalls]);
 
+  // listen to new calls that go live
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    return client.on('call.live_started', (e) => {
+      if (e.type !== 'call.live_started') {
+        return;
+      }
+      setCalls((prevCalls) => {
+        for (const c of prevCalls) {
+          if (c.cid === e.call.cid) {
+            return prevCalls;
+          }
+        }
+        const newCall = client.call(e.call.type, e.call.id);
+        newCall.get();
+        return [newCall, ...prevCalls];
+      });
+      e.call_cid;
+    });
+  }, [client]);
+
   const renderItem: NonNullable<RoomFlatList['renderItem']> = useCallback(
     ({ item: callItem }) => {
       return (
@@ -93,7 +117,6 @@ const RoomList = (props: Props) => {
           }
           key={callItem.id}
           onPress={() => {
-            callItem.get();
             setCall(callItem);
           }}
         >
@@ -131,10 +154,7 @@ const RoomList = (props: Props) => {
   }, [loadingCalls, loadingError]);
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={['top', 'bottom', 'left', 'right']}
-    >
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <CreateRoomModal
         modalVisible={showCreateRoomModal}
         onClose={() => setShowCreateRoomModal(false)}

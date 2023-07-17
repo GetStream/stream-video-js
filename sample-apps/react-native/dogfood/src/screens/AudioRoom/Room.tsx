@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import {
   CallingState,
+  OwnCapability,
+  SfuModels,
+  useCall,
   useCallCallingState,
   useIncallManager,
 } from '@stream-io/video-react-native-sdk';
@@ -14,6 +17,7 @@ import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
 export default function Room({ onClose }: { onClose: () => void }) {
   useIncallManager({ media: 'audio', auto: true });
   const callingState = useCallCallingState();
+  const call = useCall();
 
   // when the call ends, close the room component
   useEffect(() => {
@@ -22,11 +26,28 @@ export default function Room({ onClose }: { onClose: () => void }) {
     }
   }, [callingState, onClose]);
 
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+
+    return call.on('error', (e) => {
+      if (e.eventPayload.oneofKind !== 'error') {
+        return;
+      }
+      if (e.eventPayload.error.error?.code !== SfuModels.ErrorCode.LIVE_ENDED) {
+        return;
+      }
+      if (
+        !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
+      ) {
+        onClose();
+      }
+    });
+  }, [call, onClose]);
+
   return (
-    <SafeAreaView
-      edges={['top', 'bottom', 'left', 'right']}
-      style={styles.container}
-    >
+    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
       <DescriptionPanel />
       <ParticipantsPanel />
       <PermissionRequestsPanel />
@@ -52,10 +73,11 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 48,
+    top: 4,
     right: 16,
   },
   closeText: {
     fontSize: 24,
+    color: 'black',
   },
 });

@@ -13,7 +13,6 @@ export function ParticipantsPanel() {
   const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
     useCallback(({ item: participantItem }) => {
       const { isSpeaking } = participantItem;
-      console.log({ isSpeaking });
       return (
         <View
           key={participantItem.sessionId}

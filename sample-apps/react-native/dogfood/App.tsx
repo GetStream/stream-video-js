@@ -73,8 +73,7 @@ const StackNavigator = () => {
         <Stack.Screen
           name="AudioRoom"
           component={AudioRoomScreen}
-          options={{ headerShown: false }}
-          // options={{ header: NavigationHeader }}
+          options={{ header: NavigationHeader }}
         />
       );
       break;
