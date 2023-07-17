@@ -53,32 +53,37 @@ Here are some of the features we support:
 
 ## Roadmap
 
-### 0.1 milestone
-- [ ] Call session migration
-- [ ] Hardware-accelerated video encoding on supported platforms
-
 ### 0.2 milestone
-- [ ] Composite layout for streaming and recording
-- [ ] Dynascale: turn off incoming video when the browser is in the background
-- [ ] Performance and bundle-size optimizations
-- [ ] Typescript generics enhancements
-- [ ] Logging 2.0
+
+- [ ] Fast-reconnects
+- [ ] Enhanced SDK build system (rollup)
+- [ ] Hardware-accelerated video encoding on supported platforms
+- [ ] React hooks for permissions management
 - [ ] E2E testing platform
 - [ ] Increase test coverage
 
 ### 0.3 milestone
+
+- [ ] Performance and bundle-size optimizations
+- [ ] Typescript generics enhancements
 - [ ] Video and audio filters
-- [ ] Transcriptions
-- [ ] Closed captions
+- [ ] Dynascale: turn off incoming video when the browser is in the background
+- [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
+- [ ] Call analytics / stats
+- [ ] Logging 2.0
 
 ### 0.4 milestone
+
 - [ ] Enhanced UI components and theming
+- [ ] Composite layout for streaming and recording
 - [ ] Break-out rooms
 - [ ] Waiting rooms
+- [ ] Transcriptions
+- [ ] Closed captions
 
 ## Contributing
 
 - How can I submit a sample app?
-    - Apps submissions are always welcome. 🥳 Open a PR with a proper description and we'll review it as soon as possible.
+  - Apps submissions are always welcome. 🥳 Open a PR with a proper description and we'll review it as soon as possible.
 - Spot a bug 🕷 ?
-    - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
+  - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
