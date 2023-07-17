@@ -56,6 +56,7 @@ Here are some of the features we support:
 ### 0.2 milestone
 
 - [ ] Fast-reconnects
+- [ ] SFU retries
 - [ ] Enhanced SDK build system (rollup)
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] React hooks for permissions management
