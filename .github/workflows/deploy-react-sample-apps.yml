@@ -20,7 +20,7 @@ on:
       - 'packages/**'
       - '!packages/angular-sdk/**'
       - '!packages/react-native-sdk/**'
-      - '!packages/**/*.mdx'
+      - '!packages/react-sdk/docusaurus/**'
 
 jobs:
   build-and-deploy-sample-apps:
