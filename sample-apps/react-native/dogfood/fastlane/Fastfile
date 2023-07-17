@@ -63,18 +63,7 @@ lane :pod_install do
   end
 end
 
-lane :build_ios do
-  create_sentry_properties
-
-  app_store_connect_api_key
-
-  match_appstore
-
-  settings_to_override = {
-    BUNDLE_IDENTIFIER: 'io.getstream.rnvideosample',
-    PROVISIONING_PROFILE_SPECIFIER: 'match AppStore io.getstream.rnvideosample'
-  }
-
+lane :bump_ios_version_number do
   increment_version_number(
     version_number: load_package['version'],
     xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
@@ -89,6 +78,21 @@ lane :build_ios do
     build_number: current_build_number + 1,
     xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
   )
+end
+
+lane :build_ios do
+  bump_ios_version_number if is_ci
+
+  create_sentry_properties
+
+  app_store_connect_api_key
+
+  match_appstore
+
+  settings_to_override = {
+    BUNDLE_IDENTIFIER: 'io.getstream.rnvideosample',
+    PROVISIONING_PROFILE_SPECIFIER: 'match AppStore io.getstream.rnvideosample'
+  }
 
   gym(
     workspace: 'ios/StreamReactNativeVideoSDKSample.xcworkspace',
@@ -168,9 +172,7 @@ rescue StandardError => e
   UI.important('Another build is already in beta review. Skipping beta review submission')
 end
 
-lane :build_android do
-  create_sentry_properties
-
+lane :bump_android_version_number do
   ENV['ENVFILE'] = '.env.production'
 
   latest_app_distribution_version_code = firebase_app_distribution_get_latest_release(
@@ -186,6 +188,12 @@ lane :build_android do
     gradle_file_path: 'android/app/build.gradle',
     version_name: load_package['version']
   )
+end
+
+lane :build_android do
+  bump_android_version_number if is_ci
+
+  create_sentry_properties
 
   gradle(
     project_dir: 'android',
@@ -198,6 +206,8 @@ lane :build_android do
 end
 
 lane :test_android do |options|
+  build_android unless is_ci && options[:skip_install]
+
   start_video_buddy
 
   wait_android_emu_idle if is_ci

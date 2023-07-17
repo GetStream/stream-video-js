@@ -16,11 +16,13 @@ import {
 import {
   useCall,
   useHasPermissions,
+  useI18n,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
 import { useFloatingUIPreset } from '../../hooks';
+import { TranslatorFunction } from '@stream-io/i18n';
 
 const byNameOrId = (a: UserResponse, b: UserResponse) => {
   if (a.name && b.name && a.name < b.name) return -1;
@@ -29,6 +31,11 @@ const byNameOrId = (a: UserResponse, b: UserResponse) => {
   if (a.id > b.id) return 1;
   return 0;
 };
+
+type HandleUpdatePermission = (
+  request: PermissionRequestEvent,
+  type: 'grant' | 'revoke' | 'dismiss',
+) => () => Promise<void>;
 
 export const PermissionRequests = () => {
   const call = useCall();
@@ -63,16 +70,18 @@ export const PermissionRequests = () => {
     };
   }, [call, canUpdateCallPermissions, localParticipant]);
 
-  const handleUpdatePermission = (
-    request: PermissionRequestEvent,
-    allow: boolean,
-  ) => {
+  const handleUpdatePermission: HandleUpdatePermission = (request, type) => {
     return async () => {
       const { user, permissions } = request;
-      if (allow) {
-        await call?.grantPermissions(user.id, permissions);
-      } else {
-        await call?.revokePermissions(user.id, permissions);
+      switch (type) {
+        case 'grant':
+          await call?.grantPermissions(user.id, permissions);
+          break;
+        case 'revoke':
+          await call?.revokePermissions(user.id, permissions);
+          break;
+        default:
+          break;
       }
       setPermissionRequests((requests) =>
         requests.filter((r) => r !== request),
@@ -122,10 +131,7 @@ export const PermissionRequests = () => {
 
 export type PermissionRequestListProps = ComponentProps<'div'> & {
   permissionRequests: PermissionRequestEvent[];
-  handleUpdatePermission: (
-    request: PermissionRequestEvent,
-    allow: boolean,
-  ) => () => Promise<void>;
+  handleUpdatePermission: HandleUpdatePermission;
 };
 
 export const PermissionRequestList = forwardRef<
@@ -133,6 +139,9 @@ export const PermissionRequestList = forwardRef<
   PermissionRequestListProps
 >((props, ref) => {
   const { permissionRequests, handleUpdatePermission, ...rest } = props;
+
+  const { t } = useI18n();
+
   return (
     <div className="str-video__permission-requests-list" ref={ref} {...rest}>
       {permissionRequests.map((request, reqIndex) => {
@@ -142,21 +151,28 @@ export const PermissionRequestList = forwardRef<
             {permissions.map((permission) => (
               <div className="str-video__permission-request" key={permission}>
                 <div className="str-video__permission-request__message">
-                  {messageForPermission(user.name || user.id, permission)}
+                  {messageForPermission(user.name || user.id, permission, t)}
                 </div>
                 <Button
                   className="str-video__permission-request__button--allow"
                   type="button"
-                  onClick={handleUpdatePermission(request, true)}
+                  onClick={handleUpdatePermission(request, 'grant')}
                 >
-                  Allow
+                  {t('Allow')}
                 </Button>
                 <Button
                   className="str-video__permission-request__button--reject"
                   type="button"
-                  onClick={handleUpdatePermission(request, false)}
+                  onClick={handleUpdatePermission(request, 'revoke')}
                 >
-                  Reject
+                  {t('Revoke')}
+                </Button>
+                <Button
+                  className="str-video__permission-request__button--reject"
+                  type="button"
+                  onClick={handleUpdatePermission(request, 'dismiss')}
+                >
+                  {t('Dismiss')}
                 </Button>
               </div>
             ))}
@@ -179,15 +195,26 @@ const Button = (
   );
 };
 
-const messageForPermission = (userName: string, permission: string) => {
+const messageForPermission = (
+  userName: string,
+  permission: string,
+  t: TranslatorFunction,
+) => {
   switch (permission) {
     case OwnCapability.SEND_AUDIO:
-      return `${userName} is requesting to speak`;
+      return t('{{ userName }} is requesting to speak', { userName });
     case OwnCapability.SEND_VIDEO:
-      return `${userName} is requesting to share their camera`;
+      return t('{{ userName }} is requesting to share their camera', {
+        userName,
+      });
     case OwnCapability.SCREENSHARE:
-      return `${userName} is requesting to present their screen`;
+      return t('{{ userName }} is requesting to present their screen', {
+        userName,
+      });
     default:
-      return `${userName} is requesting permission: ${permission}`;
+      return t('{{ userName }} is requesting permission: {{ permission }}', {
+        userName,
+        permission,
+      });
   }
 };

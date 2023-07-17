@@ -1,13 +1,14 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "0.0.88",
+  "version": "0.1.2",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
+    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build": "yarn copy-version && tsc --project tsconfig.production.json && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s",

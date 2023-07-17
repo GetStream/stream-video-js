@@ -3,11 +3,12 @@ GEM
   specs:
     CFPropertyList (3.0.6)
       rexml
-    activesupport (7.0.6)
+    activesupport (6.1.7.4)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     addressable (2.8.4)
       public_suffix (>= 2.0.2, < 6.0)
     algoliasearch (1.27.5)
@@ -256,7 +257,7 @@ GEM
       unicode-display_width (>= 1.4.0, < 3.0)
     rubocop-ast (1.29.0)
       parser (>= 3.2.1.0)
-    rubocop-performance (1.18.0)
+    rubocop-performance (1.17.1)
       rubocop (>= 1.7.0, < 2.0)
       rubocop-ast (>= 0.4.0)
     rubocop-require_tools (0.1.2)
@@ -304,6 +305,7 @@ GEM
     xcpretty-travis-formatter (1.0.1)
       xcpretty (~> 0.2, >= 0.0.7)
     xctest_list (1.2.1)
+    zeitwerk (2.6.8)
 
 PLATFORMS
   ruby
@@ -325,4 +327,4 @@ RUBY VERSION
    ruby 3.1.1p18
 
 BUNDLED WITH
-   2.3.14
+   2.3.21

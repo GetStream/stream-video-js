@@ -1,4 +1,3 @@
-@use '../../../styling/src/utils';
 
 .str-video__call-header {
   display: flex;
@@ -16,7 +15,12 @@
     }
 
     .str-video__call-header-title {
-      @include utils.ellipsis-text;
+      white-space: nowrap;
+      overflow-y: visible;
+      // Not every browser support clip overflow, so hidden is defined as a fallback
+      overflow-x: hidden;
+      overflow-x: clip;
+      text-overflow: ellipsis;
       font-size: 24px;
       font-weight: 400;
       margin: 0;

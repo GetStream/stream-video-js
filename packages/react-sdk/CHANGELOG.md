@@ -2,12 +2,73 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
-### [0.0.88](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.87...@stream-io/video-react-sdk-0.0.88) (2023-07-14)
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.1...@stream-io/video-react-sdk-0.1.2) (2023-07-17)
 
+
+### Features
+
+* Trigger react-sdk release to test sample app deployment ([77abdb6](https://github.com/GetStream/stream-video-js/commit/77abdb67bafa6c33bf7b86070999f7ad9d6010df))
+
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.0...@stream-io/video-react-sdk-0.1.1) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `0.1.0`
+- `@stream-io/video-react-bindings` updated to version `0.1.1`
+
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.92...@stream-io/video-react-sdk-0.1.0) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/i18n` updated to version `0.1.1`
+- `@stream-io/video-react-bindings` updated to version `0.1.0`
+
+### ⚠ BREAKING CHANGES
+
+- Trigger breaking change to react-sdk
+
+### Features
+
+- **react-sdk:** extract toggle functions to hooks + permissions ([#750](https://github.com/GetStream/stream-video-js/issues/750)) ([e6fab59](https://github.com/GetStream/stream-video-js/commit/e6fab59d3ebc4b91b8b8ed79e6f56bf6b6b10b52))
+- Trigger breaking change to react-sdk ([1e1f21f](https://github.com/GetStream/stream-video-js/commit/1e1f21f212be370fbd54a36371d1a7a485e6cec4))
+
+### [0.0.92](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.91...@stream-io/video-react-sdk-0.0.92) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/i18n` updated to version `0.1.0`
+- `@stream-io/video-react-bindings` updated to version `0.0.54`
+
+### [0.0.91](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.90...@stream-io/video-react-sdk-0.0.91) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `0.0.1`
+- `@stream-io/video-react-bindings` updated to version `0.0.53`
+
+### [0.0.90](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.89...@stream-io/video-react-sdk-0.0.90) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `0.0.1`
+- `@stream-io/video-react-bindings` updated to version `0.0.52`
+
+### [0.0.89](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.88...@stream-io/video-react-sdk-0.0.89) (2023-07-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `0.0.1`
+- `@stream-io/video-react-bindings` updated to version `0.0.51`
 
 ### Bug Fixes
 
-* trigger react sdk release ([2337910](https://github.com/GetStream/stream-video-js/commit/2337910950b8bf67b545f162f39946b380b7718d))
+- promote prop-types to a 'dependency' in react-sdk ([#805](https://github.com/GetStream/stream-video-js/issues/805)) ([7109c9b](https://github.com/GetStream/stream-video-js/commit/7109c9b6d4087789f44ab8beb539bca495ba8f76))
+
+### [0.0.88](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.87...@stream-io/video-react-sdk-0.0.88) (2023-07-14)
+
+### Bug Fixes
+
+- trigger react sdk release ([2337910](https://github.com/GetStream/stream-video-js/commit/2337910950b8bf67b545f162f39946b380b7718d))
 
 ### [0.0.87](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.86...@stream-io/video-react-sdk-0.0.87) (2023-07-14)
 
@@ -700,15 +761,3 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 ### Documentation
 
 - Call layout ([#589](https://github.com/GetStream/stream-video-js/issues/589)) ([df35463](https://github.com/GetStream/stream-video-js/commit/df35463b45cca4a7f0570d0b249a234261750b24))
-
-### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.3...@stream-io/video-react-sdk-0.0.4) (2023-06-02)
-
-### Documentation
-
-- **react-sdk:** add custom connection unstable notification tutorial ([#582](https://github.com/GetStream/stream-video-js/issues/582)) ([3ee5bb8](https://github.com/GetStream/stream-video-js/commit/3ee5bb87f933a4fc6974ccb9aec4f7f2c7e5af59))
-
-### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.0.2...@stream-io/video-react-sdk-0.0.3) (2023-06-02)
-
-### Documentation
-
-- **react-sdk:** add CallRecordingList component documentation ([#588](https://github.com/GetStream/stream-video-js/issues/588)) ([f906f42](https://github.com/GetStream/stream-video-js/commit/f906f42791f2d32303616689830aacf889fb39f4))

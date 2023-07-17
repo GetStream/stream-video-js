@@ -8356,9 +8356,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/video-react-dogfood@workspace:packages/react-dogfood":
+"@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood":
   version: 0.0.0-use.local
-  resolution: "@stream-io/video-react-dogfood@workspace:packages/react-dogfood"
+  resolution: "@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood"
   dependencies:
     "@emotion/react": ^11.11.0
     "@emotion/styled": ^11.11.0

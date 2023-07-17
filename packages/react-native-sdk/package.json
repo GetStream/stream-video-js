@@ -1,13 +1,14 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.0.1-alpha.296",
+  "version": "0.0.1-alpha.307",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
+    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json",
     "test": "jest --coverage",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"

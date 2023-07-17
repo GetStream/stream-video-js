@@ -11,6 +11,8 @@
     "clean-install": "rm -rf node_modules && yarn cache clean && yarn install",
     "setup": "yarn && yarn build:react-native:deps && npx pod-install",
     "test-e2e": "bundle exec fastlane test_e2e",
+    "test-e2e:android": "bundle exec fastlane test_android",
+    "test-e2e:ios": "bundle exec fastlane test_ios",
     "test": "jest",
     "lint": "eslint --cache --fix 'src/**/*.{ts,tsx}'",
     "lint:ci": "eslint --cache 'src/**/*.{ts,tsx}'"
