@@ -1,6 +1,4 @@
 name: Version and release
-env:
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
   push:
