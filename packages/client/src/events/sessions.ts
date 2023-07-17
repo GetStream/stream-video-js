@@ -33,7 +33,7 @@ export const watchCallSessionEnded = (state: CallState) => {
 export const watchCallSessionParticipantJoined = (state: CallState) => {
   return function onCallParticipantJoined(event: StreamVideoEvent) {
     if (event.type !== 'call.session_participant_joined') return;
-    const { Participant } = event;
+    const { participant } = event;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
         state.logger(
@@ -45,12 +45,12 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
       }
       const { session } = metadata;
       const { participants, participants_count_by_role } = session;
-      const { user } = Participant;
+      const { user } = participant;
       return {
         ...metadata,
         session: {
           ...session,
-          participants: [...participants, Participant],
+          participants: [...participants, participant],
           participants_count_by_role: {
             ...participants_count_by_role,
             [user.role]: (participants_count_by_role[user.role] || 0) + 1,
@@ -69,7 +69,7 @@ export const watchCallSessionParticipantJoined = (state: CallState) => {
 export const watchCallSessionParticipantLeft = (state: CallState) => {
   return function onCallParticipantLeft(event: StreamVideoEvent) {
     if (event.type !== 'call.session_participant_left') return;
-    const { user, user_session_id } = event.Participant;
+    const { user, user_session_id } = event.participant;
     state.setMetadata((metadata) => {
       if (!metadata || !metadata.session) {
         state.logger(

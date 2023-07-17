@@ -63,7 +63,7 @@ describe('call.session events', () => {
     const handler = watchCallSessionParticipantJoined(state);
     handler({
       type: 'call.session_participant_joined',
-      Participant: {
+      participant: {
         // @ts-ignore
         user: {
           id: 'user-id',
@@ -114,7 +114,7 @@ describe('call.session events', () => {
     const handler = watchCallSessionParticipantLeft(state);
     handler({
       type: 'call.session_participant_left',
-      Participant: {
+      participant: {
         // @ts-ignore
         user: {
           id: 'user-id',

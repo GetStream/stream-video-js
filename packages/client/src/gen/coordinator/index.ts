@@ -1170,12 +1170,6 @@ export interface CallSessionEndedEvent {
 export interface CallSessionParticipantJoinedEvent {
   /**
    *
-   * @type {CallParticipantResponse}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  Participant: CallParticipantResponse;
-  /**
-   *
    * @type {string}
    * @memberof CallSessionParticipantJoinedEvent
    */
@@ -1186,6 +1180,12 @@ export interface CallSessionParticipantJoinedEvent {
    * @memberof CallSessionParticipantJoinedEvent
    */
   created_at: string;
+  /**
+   *
+   * @type {CallParticipantResponse}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  participant: CallParticipantResponse;
   /**
    * Call session ID
    * @type {string}
@@ -1207,12 +1207,6 @@ export interface CallSessionParticipantJoinedEvent {
 export interface CallSessionParticipantLeftEvent {
   /**
    *
-   * @type {CallParticipantResponse}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  Participant: CallParticipantResponse;
-  /**
-   *
    * @type {string}
    * @memberof CallSessionParticipantLeftEvent
    */
@@ -1223,6 +1217,12 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   created_at: string;
+  /**
+   *
+   * @type {CallParticipantResponse}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  participant: CallParticipantResponse;
   /**
    * Call session ID
    * @type {string}
