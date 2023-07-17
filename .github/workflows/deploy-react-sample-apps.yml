@@ -19,7 +19,7 @@ on:
       - '!packages/angular-sdk/**'
       - '!packages/react-native-sdk/**'
       - '!packages/react-sdk/docusaurus/**'
-  workflow_dispatch
+  workflow_dispatch:
 
 jobs:
   build-and-deploy-sample-apps:
