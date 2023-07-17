@@ -1170,6 +1170,12 @@ export interface CallSessionEndedEvent {
 export interface CallSessionParticipantJoinedEvent {
   /**
    *
+   * @type {CallParticipantResponse}
+   * @memberof CallSessionParticipantJoinedEvent
+   */
+  Participant: CallParticipantResponse;
+  /**
+   *
    * @type {string}
    * @memberof CallSessionParticipantJoinedEvent
    */
@@ -1192,18 +1198,6 @@ export interface CallSessionParticipantJoinedEvent {
    * @memberof CallSessionParticipantJoinedEvent
    */
   type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  user: UserResponse;
-  /**
-   * The user session ID of the user that joined the call session
-   * @type {string}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  user_session_id: string;
 }
 /**
  * This event is sent when a participant leaves a call session
@@ -1211,6 +1205,12 @@ export interface CallSessionParticipantJoinedEvent {
  * @interface CallSessionParticipantLeftEvent
  */
 export interface CallSessionParticipantLeftEvent {
+  /**
+   *
+   * @type {CallParticipantResponse}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  Participant: CallParticipantResponse;
   /**
    *
    * @type {string}
@@ -1235,18 +1235,6 @@ export interface CallSessionParticipantLeftEvent {
    * @memberof CallSessionParticipantLeftEvent
    */
   type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  user: UserResponse;
-  /**
-   * The user session ID of the user that left the call session
-   * @type {string}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  user_session_id: string;
 }
 /**
  *
