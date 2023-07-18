@@ -62,8 +62,13 @@
           {
             "command": "gh workflow run 'Deploy React Sample Apps'",
             "forwardAllArgs": false
+          },
+          {
+            "command": "gh workflow run 'Copy React Demo to S3 bucket'",
+            "forwardAllArgs": false
           }
-        ]
+        ],
+        "parallel": false
       }
     }
   }

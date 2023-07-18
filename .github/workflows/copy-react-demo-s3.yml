@@ -11,6 +11,7 @@ on:
       - opened
       - synchronize
       - reopened
+  workflow_dispatch:
 
 jobs:
   build-and-copy:
@@ -30,47 +31,47 @@ jobs:
       VITE_GTM_ID: ${{ secrets.VIDEO_DEMO_GTM_ID }}
       VITE_GTM_PROJECT: ${{ vars.VIDEO_DEMO_GTM_PROJECT }}
     steps:
-     - name: Checkout
-       uses: actions/checkout@v3
-       with:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
           fetch-depth: 0
 
-     - name: Setup Node
-       uses: actions/setup-node@v3
-       with:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
           node-version: 18.x
           cache: 'yarn'
 
-     - name: Install Dependencies
-       run: yarn install --immutable
+      - name: Install Dependencies
+        run: yarn install --immutable
 
-     - name: Build packages
-       run: NODE_ENV=production yarn build:react:deps
+      - name: Build packages
+        run: NODE_ENV=production yarn build:react:deps
 
-     - name: Test packages
-       run: yarn test:ci:all
+      - name: Test packages
+        run: yarn test:ci:all
 
-     - name: Build React Demo staging
-       if: ${{ github.ref_name != 'main' }}
-       run: yarn build:react:video-demo --mode staging
+      - name: Build React Demo staging
+        if: ${{ github.ref_name != 'main' }}
+        run: yarn build:react:video-demo --mode staging
 
-     - name: Build React Demo production
-       if: ${{ github.ref_name == 'main' }}
-       run: yarn build:react:video-demo --mode production
+      - name: Build React Demo production
+        if: ${{ github.ref_name == 'main' }}
+        run: yarn build:react:video-demo --mode production
 
-     - name: Setup AWS credentials
-       uses: aws-actions/configure-aws-credentials@v2
-       with:
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{vars.AWS_REGION}}
 
-     - name: Copy PR build artifacts to AWS S3 Bucket
-       if: ${{ github.ref_name != 'main' }}
-       run: |
+      - name: Copy PR build artifacts to AWS S3 Bucket
+        if: ${{ github.ref_name != 'main' }}
+        run: |
           aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_STAGING}}/video/demos --delete
 
-     - name: Copy main build artifacts to AWS S3 Bucket
-       if: ${{ github.ref_name == 'main' }}
-       run: |
+      - name: Copy main build artifacts to AWS S3 Bucket
+        if: ${{ github.ref_name == 'main' }}
+        run: |
           aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete

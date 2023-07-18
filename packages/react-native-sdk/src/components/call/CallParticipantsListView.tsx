@@ -33,10 +33,10 @@ interface CallParticipantsListProps {
    */
   participants: (StreamVideoParticipant | StreamVideoLocalParticipant)[];
   /**
-   * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode
+   * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
    * @default 2
    */
-  numColumns?: number;
+  numberOfColumns?: number;
   /**
    * If true, the list will be displayed in horizontal scrolling mode
    */
@@ -50,7 +50,7 @@ interface CallParticipantsListProps {
  * hence it should be used only in a flex parent container
  */
 export const CallParticipantsListView = (props: CallParticipantsListProps) => {
-  const { numColumns = 2, horizontal, participants } = props;
+  const { numberOfColumns = 2, horizontal, participants } = props;
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -123,7 +123,7 @@ export const CallParticipantsListView = (props: CallParticipantsListProps) => {
     containerHeight: containerLayout.height,
     containerWidth: containerLayout.width,
     participantsLength: participants.length,
-    numColumns,
+    numberOfColumns,
     horizontal,
   });
 
@@ -175,13 +175,13 @@ export const CallParticipantsListView = (props: CallParticipantsListProps) => {
   return (
     <FlatList
       onLayout={onLayout}
-      key={!horizontal ? numColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
+      key={!horizontal ? numberOfColumns : undefined} // setting numColumns as key is a strict requirement of react-native to support changing numColumns on the fly
       data={participants}
       keyExtractor={keyExtractor}
       viewabilityConfig={VIEWABILITY_CONFIG}
       onViewableItemsChanged={onViewableItemsChanged}
       renderItem={renderItem}
-      numColumns={!horizontal ? numColumns : undefined}
+      numColumns={!horizontal ? numberOfColumns : undefined}
       horizontal={horizontal}
       showsHorizontalScrollIndicator={false}
       extraData={`${forceUpdateValue}`} // this is important to force re-render when visibility changes
@@ -215,13 +215,13 @@ function calculateParticipantViewSize({
   containerHeight,
   containerWidth,
   participantsLength,
-  numColumns,
+  numberOfColumns,
   horizontal,
 }: {
   containerHeight: number;
   containerWidth: number;
   participantsLength: number;
-  numColumns: number;
+  numberOfColumns: number;
   horizontal: boolean | undefined;
 }) {
   let itemHeight = containerHeight;
@@ -236,7 +236,7 @@ function calculateParticipantViewSize({
     }
   }
 
-  let itemWidth = containerWidth / numColumns;
+  let itemWidth = containerWidth / numberOfColumns;
   if (horizontal) {
     // in horizontal mode we apply margin to the participant view and that should be subtracted from the width
     itemWidth = itemWidth - theme.margin.sm * 2;

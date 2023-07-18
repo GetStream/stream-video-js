@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/deploy-sample-apps.yml'
       - 'sample-apps/react/**'
+      - '!packages/**' # avoid duplicated deployment if react-sdk also changed
   pull_request:
     types:
       - opened
