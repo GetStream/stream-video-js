@@ -194,8 +194,6 @@ export class Subscriber {
     logger('debug', 'Restarting ICE connection');
     await this.sfuClient.iceRestart({
       peerType: PeerType.SUBSCRIBER,
-      // FIXME OL: not sure if we need to pass the userId here
-      userId: this.state.localParticipant?.userId ?? '',
     });
   };
 

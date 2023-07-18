@@ -560,13 +560,9 @@ export enum ErrorCode {
    */
   PARTICIPANT_RECONNECT_FAILED = 204,
   /**
-   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_TOO_MANY_FAILED_ICE_RESTARTS = 205;
+   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MEDIA_TRANSPORT_FAILURE = 205;
    */
-  PARTICIPANT_TOO_MANY_FAILED_ICE_RESTARTS = 205,
-  /**
-   * @generated from protobuf enum value: ERROR_CODE_PARTICIPANT_MEDIA_TRANSPORT_FAILURE = 206;
-   */
-  PARTICIPANT_MEDIA_TRANSPORT_FAILURE = 206,
+  PARTICIPANT_MEDIA_TRANSPORT_FAILURE = 205,
   /**
    * @generated from protobuf enum value: ERROR_CODE_CALL_NOT_FOUND = 300;
    */

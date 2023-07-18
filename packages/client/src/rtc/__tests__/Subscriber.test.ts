@@ -139,7 +139,6 @@ describe('Subscriber', () => {
 
       expect(sfuClient.iceRestart).toHaveBeenCalledWith({
         peerType: PeerType.SUBSCRIBER,
-        userId: expect.any(String),
       });
     });
 

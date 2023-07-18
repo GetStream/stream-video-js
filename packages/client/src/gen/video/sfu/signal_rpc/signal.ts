@@ -31,15 +31,11 @@ import {
  */
 export interface ICERestartRequest {
   /**
-   * @generated from protobuf field: string user_id = 1;
-   */
-  userId: string;
-  /**
-   * @generated from protobuf field: string session_id = 2;
+   * @generated from protobuf field: string session_id = 1;
    */
   sessionId: string;
   /**
-   * @generated from protobuf field: stream.video.sfu.models.PeerType peer_type = 3;
+   * @generated from protobuf field: stream.video.sfu.models.PeerType peer_type = 2;
    */
   peerType: PeerType;
 }
@@ -229,10 +225,9 @@ export interface SetPublisherResponse {
 class ICERestartRequest$Type extends MessageType<ICERestartRequest> {
   constructor() {
     super('stream.video.sfu.signal.ICERestartRequest', [
-      { no: 1, name: 'user_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      { no: 2, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
-        no: 3,
+        no: 2,
         name: 'peer_type',
         kind: 'enum',
         T: () => ['stream.video.sfu.models.PeerType', PeerType, 'PEER_TYPE_'],
@@ -240,7 +235,7 @@ class ICERestartRequest$Type extends MessageType<ICERestartRequest> {
     ]);
   }
   create(value?: PartialMessage<ICERestartRequest>): ICERestartRequest {
-    const message = { userId: '', sessionId: '', peerType: 0 };
+    const message = { sessionId: '', peerType: 0 };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
       value: this,
@@ -260,13 +255,10 @@ class ICERestartRequest$Type extends MessageType<ICERestartRequest> {
     while (reader.pos < end) {
       let [fieldNo, wireType] = reader.tag();
       switch (fieldNo) {
-        case /* string user_id */ 1:
-          message.userId = reader.string();
-          break;
-        case /* string session_id */ 2:
+        case /* string session_id */ 1:
           message.sessionId = reader.string();
           break;
-        case /* stream.video.sfu.models.PeerType peer_type */ 3:
+        case /* stream.video.sfu.models.PeerType peer_type */ 2:
           message.peerType = reader.int32();
           break;
         default:
@@ -293,15 +285,12 @@ class ICERestartRequest$Type extends MessageType<ICERestartRequest> {
     writer: IBinaryWriter,
     options: BinaryWriteOptions,
   ): IBinaryWriter {
-    /* string user_id = 1; */
-    if (message.userId !== '')
-      writer.tag(1, WireType.LengthDelimited).string(message.userId);
-    /* string session_id = 2; */
+    /* string session_id = 1; */
     if (message.sessionId !== '')
-      writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
-    /* stream.video.sfu.models.PeerType peer_type = 3; */
+      writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+    /* stream.video.sfu.models.PeerType peer_type = 2; */
     if (message.peerType !== 0)
-      writer.tag(3, WireType.Varint).int32(message.peerType);
+      writer.tag(2, WireType.Varint).int32(message.peerType);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
