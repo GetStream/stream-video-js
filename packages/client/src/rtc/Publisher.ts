@@ -28,10 +28,12 @@ import {
 } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
+import { Dispatcher } from './Dispatcher';
 
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
+  dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
@@ -45,6 +47,7 @@ export type PublisherOpts = {
 export class Publisher {
   private pc: RTCPeerConnection;
   private readonly state: CallState;
+  private readonly dispatcher: Dispatcher;
 
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -89,6 +92,8 @@ export class Publisher {
   private readonly preferredVideoCodec?: string;
   private logger: Logger = getLogger(['Publisher']);
 
+  private readonly unsubscribeOnIceRestart: () => void;
+
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -100,6 +105,7 @@ export class Publisher {
    * @param connectionConfig the connection configuration to use.
    * @param sfuClient the SFU client to use.
    * @param state the call state to use.
+   * @param dispatcher the dispatcher to use.
    * @param isDtxEnabled whether DTX is enabled.
    * @param isRedEnabled whether RED is enabled.
    * @param preferredVideoCodec the preferred video codec.
@@ -107,6 +113,7 @@ export class Publisher {
   constructor({
     connectionConfig,
     sfuClient,
+    dispatcher,
     state,
     isDtxEnabled,
     isRedEnabled,
@@ -115,9 +122,20 @@ export class Publisher {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
+    this.dispatcher = dispatcher;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
     this.preferredVideoCodec = preferredVideoCodec;
+
+    this.unsubscribeOnIceRestart = dispatcher.on(
+      'iceRestart',
+      async (message) => {
+        if (message.eventPayload.oneofKind !== 'iceRestart') return;
+        const { iceRestart } = message.eventPayload;
+        if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
+        await this.restartIce();
+      },
+    );
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
@@ -154,6 +172,7 @@ export class Publisher {
       });
     }
 
+    this.unsubscribeOnIceRestart();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
     this.pc.close();
   };

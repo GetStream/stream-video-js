@@ -5,8 +5,9 @@ import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Dispatcher } from '../Dispatcher';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { SfuEvent } from '../../gen/video/sfu/event/events';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -33,9 +34,10 @@ describe('Publisher', () => {
   let publisher: Publisher;
   let sfuClient: StreamSfuClient;
   let state: CallState;
+  let dispatcher: Dispatcher;
 
   beforeEach(() => {
-    const dispatcher = new Dispatcher();
+    dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
       sfuServer: {
@@ -52,6 +54,7 @@ describe('Publisher', () => {
     state = new CallState();
     publisher = new Publisher({
       sfuClient,
+      dispatcher,
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
@@ -61,6 +64,7 @@ describe('Publisher', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    dispatcher.offAll();
   });
 
   it('can publish, re-publish and un-publish a stream', async () => {
@@ -207,6 +211,38 @@ describe('Publisher', () => {
         sdp: 'new-sdp',
       });
       expect(sfuClient.setPublisher).toHaveBeenCalled();
+    });
+  });
+
+  describe('Publisher ICE Restart', () => {
+    it('should perform ICE restart when iceRestart event is received', async () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.PUBLISHER_UNSPECIFIED,
+            },
+          },
+        }),
+      );
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it('should not perform ICE restart when iceRestart event is received for a different peer type', async () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.SUBSCRIBER,
+            },
+          },
+        }),
+      );
+      expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });
 });

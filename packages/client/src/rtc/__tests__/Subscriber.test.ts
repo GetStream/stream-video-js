@@ -5,6 +5,8 @@ import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Subscriber } from '../Subscriber';
 import { CallState } from '../../store';
+import { SfuEvent } from '../../gen/video/sfu/event/events';
+import { PeerType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -17,9 +19,10 @@ describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
   let state = new CallState();
+  let dispatcher: Dispatcher;
 
   beforeEach(() => {
-    const dispatcher = new Dispatcher();
+    dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
       sfuServer: {
@@ -41,6 +44,7 @@ describe('Subscriber', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    dispatcher.offAll();
   });
 
   describe('Subscriber migration', () => {
@@ -116,6 +120,43 @@ describe('Subscriber', () => {
         onTrack,
       );
       expect(oldPeerConnection.close).toHaveBeenCalled();
+    });
+  });
+
+  describe('Subscriber ICE restart', () => {
+    it('should perform ICE restart when iceRestart event is received', async () => {
+      sfuClient.iceRestart = vi.fn();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.SUBSCRIBER,
+            },
+          },
+        }),
+      );
+
+      expect(sfuClient.iceRestart).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+        userId: expect.any(String),
+      });
+    });
+
+    it('should not perform ICE restart when iceRestart event is received for a different peer type', async () => {
+      sfuClient.iceRestart = vi.fn();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.PUBLISHER_UNSPECIFIED,
+            },
+          },
+        }),
+      );
+
+      expect(sfuClient.iceRestart).not.toHaveBeenCalled();
     });
   });
 });
