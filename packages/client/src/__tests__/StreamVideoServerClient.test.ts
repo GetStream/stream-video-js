@@ -47,35 +47,42 @@ describe('StreamVideoServerClient - docs snippets', () => {
     });
   });
 
-  // TODO: figure out how to put these into separate tests, and run those tests sequentially
-  it('call types CRUD API', async () => {
+  describe('call type CRUD API', () => {
     const callTypeName = `calltype${generateUUIDv4()}`;
 
-    // create
-    const createResponse = await client.createCallType({ name: callTypeName });
+    it('create', async () => {
+      const createResponse = await client.createCallType({
+        name: callTypeName,
+      });
 
-    expect(createResponse.name).toBe(callTypeName);
-
-    // read
-    const readResponse = await client.listCallTypes();
-
-    expect(readResponse.call_types[callTypeName]).toContain({
-      name: callTypeName,
+      expect(createResponse.name).toBe(callTypeName);
     });
 
-    // update
-    const updateResponse = await client.updateCallType(callTypeName, {
-      settings: {
-        audio: { mic_default_on: false, default_device: 'earpiece' },
-      },
+    it('read', async () => {
+      const readResponse = await client.listCallTypes();
+
+      expect(readResponse.call_types[callTypeName]).toContain({
+        name: callTypeName,
+      });
     });
 
-    expect(updateResponse.settings.audio.mic_default_on).toBeFalsy();
-    expect(updateResponse.settings.audio.default_device).toBe('earpiece');
+    it('update', async () => {
+      const updateResponse = await client.updateCallType(callTypeName, {
+        settings: {
+          audio: { mic_default_on: false, default_device: 'earpiece' },
+        },
+      });
 
-    // delete
-    await client.deleteCallType(callTypeName);
+      expect(updateResponse.settings.audio.mic_default_on).toBeFalsy();
+      expect(updateResponse.settings.audio.default_device).toBe('earpiece');
+    });
 
-    await expect(() => client.getCallType(callTypeName)).rejects.toThrowError();
-  }, 10000);
+    it('delete', async () => {
+      await client.deleteCallType(callTypeName);
+
+      await expect(() =>
+        client.getCallType(callTypeName),
+      ).rejects.toThrowError();
+    });
+  });
 });
