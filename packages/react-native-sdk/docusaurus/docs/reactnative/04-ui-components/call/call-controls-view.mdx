@@ -3,7 +3,7 @@ id: call-controls-view
 title: CallControlsView
 ---
 
-CallControlsView allow users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang up call, etc.).
+CallControlsView allows users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang-up calls, etc.).
 We provide a built-in component that displays all relevant call controls during a call.
 
 ![Preview of the CallControlsView component.](../../assets/04-ui-components/call-controls-view.png)
@@ -41,7 +41,7 @@ const VideoCallUI = () => {
 | --------------------------- |
 | [ChatButton](#chatbutton-1) |
 
-Prop for the Chat button that contains all the necessary elements to make it functional.
+Prop for the chat button that contains all the necessary elements to make it functional.
 
 ### `hangUpCallButton`
 
@@ -49,11 +49,11 @@ Prop for the Chat button that contains all the necessary elements to make it fun
 | --------------------------------------- |
 | [HangUpCallButton](#hangupcallbutton-1) |
 
-Prop for the Hangup call button that contains all the necessary props to make it functional.
+Prop for the hang-up call button that contains all the necessary props to make it functional.
 
 ## Button Prop
 
-Each Call Controls Button have a separate props to customize it, handle the `onPress` event etc.
+Each call controls button has separate props to customize it, handle the `onPress` event, etc.
 
 ### `ChatButton`
 
@@ -68,11 +68,11 @@ The chat button, which on press opens up the Chat UI if integrated in the applic
 
 ### `HangUpCallButton`
 
-The hang up call button, which on press hangs up the call.
+The hang-up call button, which hangs up the call when pressed.
 
 #### Props
 
 | Name             | Description                                             | Type                                                       |
 | ---------------- | ------------------------------------------------------- | ---------------------------------------------------------- |
-| `onPressHandler` | Callback to be called when the hangup button is pressed | `() => void` \| `undefined`                                |
+| `onPressHandler` | Callback to be called when the hang-up button is pressed | `() => void` \| `undefined`                                |
 | `style`          | Styles to be applied on the container of the button     | [ViewStyle](https://reactnative.dev/docs/view-style-props) |
