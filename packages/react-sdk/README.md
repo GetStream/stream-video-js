@@ -57,7 +57,7 @@ Here are some of the features we support:
 
 - [ ] Fast-reconnects
 - [ ] SFU retries
-- [ ] Enhanced SDK build system (rollup)
+- [ ] Enhanced SDK build system
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] React hooks for permissions management
 - [ ] E2E testing platform
