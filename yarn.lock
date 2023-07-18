@@ -8441,7 +8441,6 @@ __metadata:
     react-native-incall-manager: ^4.0.0
     react-native-mmkv: 2.8.0
     react-native-permissions: ^3.8.0
-    react-native-polyfill-globals: ^3.1.0
     react-native-reanimated: ^3.3.0
     react-native-safe-area-context: ^4.4.1
     react-native-screens: ^3.18.1
@@ -30250,20 +30249,6 @@ __metadata:
     react-native-windows:
       optional: true
   checksum: acbd8605adabfc48e19fbc468a3a143fb85bd34d3ed0fe6a4b52f16304591b8a4b3c561a507c11643fcc8ce1b4dc09e31f149387d1ea461098a2e40c43989f7c
-  languageName: node
-  linkType: hard
-
-"react-native-polyfill-globals@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "react-native-polyfill-globals@npm:3.1.0"
-  peerDependencies:
-    base-64: "*"
-    react-native-fetch-api: "*"
-    react-native-get-random-values: "*"
-    react-native-url-polyfill: "*"
-    text-encoding: "*"
-    web-streams-polyfill: "*"
-  checksum: ff968f257a10c420c96fb1b5e838bf665f5312b9709ff23001fd57480a05991df6d0f8751a2f46250174f858dcc3ebfdaf5548c9f37b729d472d3152b99e3356
   languageName: node
   linkType: hard
 
