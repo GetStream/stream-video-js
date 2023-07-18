@@ -6,7 +6,7 @@ import { generateUUIDv4 } from '../coordinator/connection/utils';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
-console.log(apiKey, secret);
+
 describe('StreamVideoServerClient - docs snippets', () => {
   let client: StreamVideoServerClient;
 
