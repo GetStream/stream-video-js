@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.314](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.313...@stream-io/video-react-native-sdk-0.0.1-alpha.314) (2023-07-18)
+
+
+### Bug Fixes
+
+* **react-native:** minor lint warnings ([1802b2c](https://github.com/GetStream/stream-video-js/commit/1802b2c624fc8357d40376bbd3af90d11f158413))
+
+
+
 ## [0.0.1-alpha.313](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.312...@stream-io/video-react-native-sdk-0.0.1-alpha.313) (2023-07-18)
 
 
