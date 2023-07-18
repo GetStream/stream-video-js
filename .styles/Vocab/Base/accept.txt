@@ -63,3 +63,4 @@ noopComparator
 combineComparators
 unmute
 (?i)boolean
+onPress
