@@ -3,7 +3,60 @@ id: lobby-view
 title: LobbyView
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+LobbyView is a component that is designed to make your entrance and invite experience to the meeting user-friendly. This mostly contains all the necessary information about the meeting including:
+
+- The call details such as its id, etc.
+- Participants who are already in the meeting.
+- Control the pre-join audio/video mute status.
+- Handle the join button which is used to join the meeting.
+
+![Preview of the LobbyView component.](../../assets/04-ui-components/lobby-view.png)
+
+## General usage
+
+```tsx
+import { useCallback } from 'react';
+import {
+  Call,
+  LobbyView,
+  StreamCall,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
+
+const LobbyViewComponent = () => {
+  let call = useCall();
+
+  const onCallJoinHandler = useCallback(async () => {
+    try {
+      // Handle what should happen before joining the call. Eg: showing loader, etc.
+      await call?.join({ create: true });
+      // Handle what should happen after the call is joined. Eg: navigation, etc.
+    } catch (error) {
+      // Handle the case when there is an error while joining the call
+    }
+  }, [call, appStoreSetState]);
+
+  // highlight-next-line
+  return <LobbyView joinCallButton={{ onPressHandler: onCallJoinHandler }} />;
+};
+```
+
+## Props
+
+### `joinCallButton`
+
+| Type                                |
+| ----------------------------------- |
+| [JoinCallButton](#joincallbutton-1) |
+
+Prop for the join call button that contains all the necessary elements to make it functional.
+
+## Button Prop
+
+### `JoinCallButton`
+
+This handles the joining of the call from the app. It can also be used to show user feedback before/after joining, or handling errors, as in the example of [General usage](#general-usage) above.
+
+| Name             | Description                                           | Type         |
+| ---------------- | ----------------------------------------------------- | ------------ |
+| `onPressHandler` | Callback to be called when the join button is pressed | `() => void` |
