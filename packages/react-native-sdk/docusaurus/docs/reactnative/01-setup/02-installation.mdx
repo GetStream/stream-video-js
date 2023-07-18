@@ -13,7 +13,7 @@ You can find the official guide [here](https://reactnative.dev/docs/environment-
 In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
 
 ```bash
-yarn add @stream-io/video-react-native-sdk react-native-webrtc react-native-callkeep react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill react-native-get-random-values intl-pluralrules @react-native-community/netinfo @notifee/react-native
+yarn add @stream-io/video-react-native-sdk react-native-webrtc react-native-callkeep react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
 ```
 
 The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
@@ -30,9 +30,8 @@ So what did we install precisely?
 - `react-native-device-info` is responsible for retrieving device info and sending it to the Stream Video servers.
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
-- `text-encoding-polyfill` is an implementation of the `WHATWG URL` Standard optimized for React Native.
-- `react-native-url-polyfill` is a polyfill for the `Encoding Living Standard API` for the Web. This dependency allows encoding and decoding of textual data to and from Typed Array buffers for binary data in JS.
-- `react-native-get-random-values` is used for `crypto.getRandomValues` polyfill to generate uuids.
+- `text-encoding-polyfill` a polyfill for the `Encoding Living Standard` API, allowing encoding and decoding of textual data to and from Typed Array buffers for binary data in React Native.
+- `react-native-url-polyfill` is an implementation of the `WHATWG URL` Standard optimized for React Native.
 - `intl-pluralrules` - allows i18n with support for pluralization based on [`Intl.Plurales`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/PluralRules).
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
@@ -57,12 +56,10 @@ More about how to enable this feature can be found [in our push notification gui
 Add the following imports and statements to your `index.js` file in the project's root.
 
 ```tsx
-/** Initialize URL polyfill */
+/** Initialize text encoder/decoder polyfill */
 import 'text-encoding-polyfill';
-/** Initialize text decoder polyfill */
+/** Initialize URL polyfill */
 import 'react-native-url-polyfill/auto';
-/** Initialize polyfill for uuid */
-import 'react-native-get-random-values';
 /** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
 import 'intl-pluralrules';
 import {registerGlobals} from 'react-native-webrtc';
