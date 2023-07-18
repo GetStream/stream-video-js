@@ -5,7 +5,6 @@ import {
   SfuModels,
   useCall,
   useCallCallingState,
-  useIncallManager,
 } from '@stream-io/video-react-native-sdk';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +14,6 @@ import { ParticipantsPanel } from '../../components/AudioRoom/ParticipantsPanel'
 import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
 
 export default function Room({ onClose }: { onClose: () => void }) {
-  useIncallManager({ media: 'audio', auto: true });
   const callingState = useCallCallingState();
   const call = useCall();
 

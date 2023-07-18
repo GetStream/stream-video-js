@@ -674,7 +674,6 @@ import React, { useEffect } from 'react';
 import {
   CallingState,
   useCallCallingState,
-  useIncallManager,
 } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, Pressable, StyleSheet, Text } from 'react-native';
 import ControlsPanel from './ControlsPanel';
@@ -898,6 +897,7 @@ import {
   useCall,
   useConnectedUser,
   useHasPermissions,
+  useIncallManager,
   useLocalParticipant,
   useMediaStreamManagement,
 } from '@stream-io/video-react-native-sdk';
@@ -905,6 +905,9 @@ import React, { useEffect, useState } from 'react';
 import { Button } from 'react-native';
 
 export default function ToggleAudioButton() {
+  // start incall manager in audio only mode
+  useIncallManager({ media: 'audio', auto: true });
+
   const { publishAudioStream, stopPublishingAudio } =
     useMediaStreamManagement();
   const call = useCall();
@@ -974,7 +977,6 @@ export default function ToggleAudioButton() {
       stopPublishingAudio();
     }
   };
-
   return <Button title={title} onPress={onPress} />;
 }
 ```
