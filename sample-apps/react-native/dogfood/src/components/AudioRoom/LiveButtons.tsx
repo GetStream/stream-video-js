@@ -9,7 +9,7 @@ import {
 import React from 'react';
 import { Button } from 'react-native';
 
-export default function LiveButtons() {
+export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
   // this utility hook returns the call object from the <StreamCall /> context
   const call = useCall();
   // this utility hook is a wrapper around the `call.state.metadata$` observable,
@@ -57,6 +57,7 @@ export default function LiveButtons() {
               onPress={async () => {
                 try {
                   await call.join();
+                  onJoined();
                 } catch (error) {
                   console.log('Error joining call:', error);
                 }
@@ -76,6 +77,7 @@ export default function LiveButtons() {
               try {
                 await call.goLive();
                 await call.join();
+                onJoined();
               } catch (error) {
                 console.log('Error Start Live and Join:', error);
               }

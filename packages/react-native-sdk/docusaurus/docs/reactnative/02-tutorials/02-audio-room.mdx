@@ -652,10 +652,11 @@ import LiveButtons from './LiveButtons'; // we will add this later in the Backst
 import ToggleAudioButton from './ToggleAudioButton'; // we will add this later in the Muting and Unmuting the audio track section
 
 export default function ControlsPanel() {
+  const [callJoined, setCallJoined] = React.useState(false);
   return (
     <View style={styles.container}>
-      <ToggleAudioButton />
-      <LiveButtons />
+      {callJoined && <ToggleAudioButton />}
+      <LiveButtons onJoined={() => setCallJoined(true)} />
     </View>
   );
 };
@@ -789,7 +790,7 @@ import {
 import React from 'react';
 import { Button } from 'react-native';
 
-export default function LiveButtons() {
+export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
   // this utility hook returns the call object from the <StreamCall /> context
   const call = useCall();
   // this utility hook is a wrapper around the `call.state.metadata$` observable,
@@ -837,6 +838,7 @@ export default function LiveButtons() {
               onPress={async () => {
                 try {
                   await call.join();
+                  onJoined();
                 } catch (error) {
                   console.log('Error joining call:', error);
                 }
@@ -856,6 +858,7 @@ export default function LiveButtons() {
               try {
                 await call.goLive();
                 await call.join();
+                onJoined();
               } catch (error) {
                 console.log('Error Start Live and Join:', error);
               }

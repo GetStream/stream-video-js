@@ -4,10 +4,11 @@ import LiveButtons from './LiveButtons';
 import ToggleAudioButton from './ToggleAudioButton';
 
 export const ControlsPanel = () => {
+  const [callJoined, setCallJoined] = React.useState(false);
   return (
     <View style={styles.container}>
-      <ToggleAudioButton />
-      <LiveButtons />
+      {callJoined && <ToggleAudioButton />}
+      <LiveButtons onJoined={() => setCallJoined(true)} />
     </View>
   );
 };
