@@ -7,9 +7,9 @@ import {
   Text,
   Button,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { appTheme } from '../../theme';
-// import { Button } from '../../components/Button';
 import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +27,8 @@ const RoomList = (props: Props) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error>();
+  // state for the pull to refresh
+  const [refreshing, setRefreshing] = React.useState(false);
   // holds the cursor to the next page of calls
   const nextPage = useRef<string>();
 
@@ -36,24 +38,13 @@ const RoomList = (props: Props) => {
     }
     setLoadingCalls(true);
     setLoadingError(undefined);
-    // get all the joinable calls
+    // get all the audio room calls
     try {
       const filterForJoinableCalls = {
         type: 'audio_room',
         ended_at: null,
-        $or: [
-          {
-            backstage: true,
-            created_by_user_id: client.user.id,
-          },
-          {
-            backstage: true,
-            members: { $in: [client.user?.id] },
-          },
-          {
-            backstage: false,
-          },
-        ],
+        'custom.title': { $exists: true },
+        'custom.description': { $exists: true },
       };
       const result = await client.queryCalls({
         filter_conditions: filterForJoinableCalls,
@@ -73,6 +64,14 @@ const RoomList = (props: Props) => {
     }
   }, [client]);
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    nextPage.current = undefined;
+    setCalls([]);
+    await queryLiveCalls();
+    setRefreshing(false);
+  }, [queryLiveCalls]);
+
   // query live calls on initial render
   const initialRunDoneRef = useRef(false);
   useEffect(() => {
@@ -83,26 +82,29 @@ const RoomList = (props: Props) => {
     }
   }, [queryLiveCalls]);
 
-  // listen to new calls that go live
+  // listen to new calls that were created with the current user as a member
   useEffect(() => {
     if (!client) {
       return;
     }
-    return client.on('call.live_started', (e) => {
-      if (e.type !== 'call.live_started') {
+    return client.on('call.created', (e) => {
+      if (e.type !== 'call.created') {
+        return;
+      }
+      const callResponse = e.call;
+      if (callResponse.type !== 'audio_room') {
         return;
       }
       setCalls((prevCalls) => {
         for (const c of prevCalls) {
-          if (c.cid === e.call.cid) {
+          if (c.cid === callResponse.cid) {
             return prevCalls;
           }
         }
-        const newCall = client.call(e.call.type, e.call.id);
+        const newCall = client.call(callResponse.type, callResponse.id);
         newCall.get();
         return [newCall, ...prevCalls];
       });
-      e.call_cid;
     });
   }, [client]);
 
@@ -120,11 +122,9 @@ const RoomList = (props: Props) => {
             setCall(callItem);
           }}
         >
-          <Text style={styles.title}>
-            {callItem.data?.custom.title ?? callItem.id}
-          </Text>
+          <Text style={styles.title}>{callItem.data?.custom.title}</Text>
           <Text style={styles.subTitle}>
-            {callItem.data?.custom.description ?? 'no description'}
+            {callItem.data?.custom.description}
           </Text>
         </Pressable>
       );
@@ -162,7 +162,9 @@ const RoomList = (props: Props) => {
       />
       <FlatList
         data={calls}
-        bounces={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={renderEmpty}
         renderItem={renderItem}
         ListFooterComponent={renderFooter}

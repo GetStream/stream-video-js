@@ -299,7 +299,7 @@ call.getOrCreate({
 
 ### Step 4 - Add an Audio rooms list
 
-In this step, we show a list of active rooms that are live. By clicking on a room, the user can join and listen to the ongoing conversation. The list also contains a floating action button to open the `CreateRoomModal` component that was added in the previous section.
+In this step, we show a list of audio rooms. By clicking on a room, the user can join when the room is live and listen to the ongoing conversation. The list also contains a floating action button to open the `CreateRoomModal` component that was added in the previous section.
 
 Create a new file `src/RoomList.tsx` and replace it with this code:
 
@@ -336,17 +336,19 @@ export default function RoomList(props: Props) {
     if (!client) {
       return;
     }
-    // get all the live calls
+    // get all the audio room calls that are not ended and has a title and description set
     try {
       const filterForLiveCalls = {
         type: 'audio_room',
         ended_at: null,
-        backstage: false,
+        'custom.title': { $exists: true },
+        'custom.description': { $exists: true },
       };
       const result = await client.queryCalls({
         filter_conditions: filterForJoinableCalls,
-        sort: [{ field: 'created_at', direction: -1 }],
+        sort: [{ field: 'created_at', direction: -1 }], // sort by created order 
         limit: 10,
+        watch: true,
         next: nextPage.current,
       });
       nextPage.current = result.next;
@@ -380,15 +382,14 @@ export default function RoomList(props: Props) {
           }
           key={callItem.id}
           onPress={() => {
-            callItem.get();
             setCall(callItem);
           }}
         >
           <Text style={styles.title}>
-            {callItem.data?.custom.title ?? `id: ${callItem.id}`}
+            {callItem.data?.custom.title}
           </Text>
           <Text style={styles.subTitle}>
-            {callItem.data?.custom.description ?? 'no description'}
+            {callItem.data?.custom.description}
           </Text>
         </Pressable>
       );
@@ -477,7 +478,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-In this component, we show a list of the calls that can be joined by the user. A button to open the `CreateRoomModal` component that was added in the previous section to be able to create a new audio room. A button to load more calls at the bottom of the list.
+In this component, we show a list of the audio room calls. We show a button to open the `CreateRoomModal` component that was added in the previous section to be able to create a new audio room. We also show a button to load more calls at the bottom of the list.
 
 This is how the list should look like:
 
@@ -512,17 +513,6 @@ setCalls((prev) => [
 - The calls are sorted in the chronological order of their creation time.
 - Also, we support pagination, the next 10 calls can be fetched by calling this again.
 - There are more possibilities with querying calls, for example, you can have a list of calls that are in backstage mode for which you are a member of. For more about querying calls head over to __[Querying Calls](../../core/querying-calls)__ page.
-
-#### Watching the selected audio room call
-
-Once a call is selected by the user through a tap. We invoke the following code to get the latest details and watch the call:
-
-```ts
-callItem.get();
-setCall(callItem);
-```
-
-By invoking `setCall` we inform our root component named `AudioRoom` that this is the call that the user has selected. In the next sections, we will discuss how to show the details of an audio room call.
 
 ### Step 5 - Adding audio room UI elements
 
