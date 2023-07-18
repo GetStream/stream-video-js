@@ -48,12 +48,12 @@ export class StreamVideoClient {
   readonly token?: TokenOrProvider;
   readonly logger: Logger;
 
-  private readonly writeableStateStore: StreamVideoWriteableStateStore;
+  protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
-  private eventHandlersToUnregister: Array<() => void> = [];
-  private connectionPromise: Promise<void | ConnectedEvent> | undefined;
-  private disconnectionPromise: Promise<void> | undefined;
+  protected eventHandlersToUnregister: Array<() => void> = [];
+  protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
+  protected disconnectionPromise: Promise<void> | undefined;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -529,7 +529,7 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
    */
-  private connectAnonymousUser = async (
+  protected connectAnonymousUser = async (
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
