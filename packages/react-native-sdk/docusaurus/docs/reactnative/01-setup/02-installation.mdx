@@ -51,7 +51,7 @@ To enable this feature you need to install the following dependencies:
 
 More about how to enable this feature can be found [in our push notification guide](../../advanced/push-notifications/).
 
-### Initial app setup: encoding and polyfills
+### Initial app setup: register polyfills
 
 Add the following imports and statements to your `index.js` file in the project's root.
 
@@ -62,7 +62,7 @@ import 'text-encoding-polyfill';
 import 'react-native-url-polyfill/auto';
 /** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
 import 'intl-pluralrules';
-import {registerGlobals} from 'react-native-webrtc';
+import { registerGlobals } from 'react-native-webrtc';
 ...
 
 // We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
