@@ -3,17 +3,17 @@ id: call-content-view
 title: CallContentView
 ---
 
-CallContentView is one of the main components for a Call. This is responsible for listing all the participant's video stream in a vertical/horizontal list and play the audio streams for those participants.
+CallContentView is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
 
 ![Preview of the CallContentView component.](../../assets/04-ui-components/call-content-view-grid.png)
 
-The CallContentView has two modes(`grid` or `spotlight`). The grid mode simply lists the participants vertically one after the other, while the spotlight mode is responsible to show the screen sharing view, a single dominant speaker, or a pinned participant in an elongated view, while other participants being in an horizontal view.
+The CallContentView has two modes(`grid` or `spotlight`). The grid mode lists the participants vertically, one after the other. In contrast, the spotlight mode shows the screen sharing view, or a single dominant speaker, or a pinned participant in an elongated view, while other participants are in a horizontal view.
 
 ![Preview of the CallContentView component in spotlight mode](../../assets/04-ui-components/call-content-view-spotlight.png)
 
 ## General usage
 
-The `CallContentView` can be used to display the video stream of all the participants and play their audio stream.
+The `CallContentView` can be used to display the video stream of all the participants and also play their audio stream.
 
 ```tsx
 import {
@@ -24,6 +24,7 @@ import {
 
 const VideoCallUI = () => {
   let call: Call;
+  // your logic to create a new call or get an existing call
 
   return (
     <StreamCall call={call}>
@@ -42,7 +43,7 @@ const VideoCallUI = () => {
 | --------------------- | ------------- |
 | `grid` \| `spotlight` | `grid`        |
 
-This is used to switch the list between the grid and the spotlight mode.
+This switches the list between the grid and the spotlight mode.
 
 :::note
 When a screen is shared, the layout automatically changes to `spotlight` mode.
