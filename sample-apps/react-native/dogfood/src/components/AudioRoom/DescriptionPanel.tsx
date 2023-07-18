@@ -1,14 +1,12 @@
-import {
-  useCallMetadata,
-  useParticipants,
-} from '@stream-io/video-react-native-sdk';
+import { useCallMetadata } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const DescriptionPanel = () => {
-  const participants = useParticipants();
   const metadata = useCallMetadata();
   const custom = metadata?.custom;
+  const participantsCount = metadata?.session?.participants?.length ?? 0;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{custom?.title ?? '<Title>'}</Text>
@@ -16,7 +14,7 @@ export const DescriptionPanel = () => {
         {custom?.description ?? '<Description>'}
       </Text>
       <Text style={styles.participantsCount}>
-        {participants.length} participants
+        {participantsCount} joined participants
       </Text>
     </View>
   );
