@@ -34,7 +34,7 @@ const LobbyViewComponent = () => {
     } catch (error) {
       // Handle the case when there is an error while joining the call
     }
-  }, [call, appStoreSetState]);
+  }, [call]);
 
   // highlight-next-line
   return <LobbyView joinCallButton={{ onPressHandler: onCallJoinHandler }} />;
