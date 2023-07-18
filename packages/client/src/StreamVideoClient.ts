@@ -108,8 +108,6 @@ export class StreamVideoClient {
             }.${sdkInfo.minor}.${sdkInfo.patch}`,
         );
       }
-      this.user = apiKeyOrArgs.user;
-      this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
     }
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
