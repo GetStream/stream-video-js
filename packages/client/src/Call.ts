@@ -849,6 +849,7 @@ export class Call {
             subscriberSdp: sdp || '',
             clientDetails: getClientDetails(),
             migration,
+            fastReconnect: false,
           });
         });
 
