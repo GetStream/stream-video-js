@@ -63,24 +63,24 @@ describe('call.session events', () => {
     const handler = watchCallSessionParticipantJoined(state);
     handler({
       type: 'call.session_participant_joined',
-      // @ts-ignore
-      user: {
-        id: 'user-id',
-        role: 'user',
+      participant: {
+        // @ts-ignore
+        user: {
+          id: 'user-id',
+          role: 'user',
+        },
+        user_session_id: '123',
       },
-      user_session_id: '123',
     });
     expect(state.metadata).toEqual({
       session: {
         participants: [
           {
-            joined_at: expect.any(String),
             user: {
               id: 'user-id',
               role: 'user',
             },
             user_session_id: '123',
-            role: 'user',
           },
         ],
         participants_count_by_role: {
@@ -114,12 +114,14 @@ describe('call.session events', () => {
     const handler = watchCallSessionParticipantLeft(state);
     handler({
       type: 'call.session_participant_left',
-      // @ts-ignore
-      user: {
-        id: 'user-id',
-        role: 'user',
+      participant: {
+        // @ts-ignore
+        user: {
+          id: 'user-id',
+          role: 'user',
+        },
+        user_session_id: '123',
       },
-      user_session_id: '123',
     });
     expect(state.metadata).toEqual({
       session: {
