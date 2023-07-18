@@ -1,4 +1,7 @@
 name: Version and release
+env:
+  STREAM_API_KEY: ${{ secrets.CLIENT_TEST_API_KEY }}
+  STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
 
 on:
   push:

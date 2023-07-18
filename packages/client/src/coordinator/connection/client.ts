@@ -69,7 +69,7 @@ export class StreamClient {
   defaultWSTimeout: number;
   resolveConnectionId!: Function;
   rejectConnectionId!: Function;
-  connectionIdPromise: Promise<string | undefined>;
+  connectionIdPromise?: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
   private waitForConnectPromise?: Promise<void>;
   private resolveConnectPromise?: Function;
@@ -125,12 +125,12 @@ export class StreamClient {
       });
     }
 
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
-        this.resolveConnectionId = resolve;
-        this.rejectConnectionId = reject;
-      },
-    );
+    this.connectionIdPromise = this.secret
+      ? undefined
+      : new Promise<string | undefined>((resolve, reject) => {
+          this.resolveConnectionId = resolve;
+          this.rejectConnectionId = reject;
+        });
 
     this.setBaseURL(
       this.options.baseURL || 'https://video.stream-io-api.com/video',

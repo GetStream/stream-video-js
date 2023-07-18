@@ -53,6 +53,7 @@
     "@types/ua-parser-js": "^0.7.36",
     "@types/ws": "^8.5.4",
     "@vitest/coverage-c8": "^0.31.0",
+    "dotenv": "^16.3.1",
     "prettier": "^2.8.4",
     "rimraf": "^3.0.2",
     "rollup": "^3.25.1",
