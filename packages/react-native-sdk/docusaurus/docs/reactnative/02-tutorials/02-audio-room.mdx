@@ -685,11 +685,18 @@ import ParticipantsPanel from './ParticipantsPanel';
 import DescriptionPanel from './DescriptionPanel';
 
 export default function Room({ onClose }: { onClose: () => void }) {
-  // use the audio only mode of the in call manager
-  useIncallManager({ media: 'audio', auto: true });
   const callingState = useCallCallingState();
 
-  // when the call ends, close the room component
+  // when the component unmounts, leave the call if necessary
+  useEffect(() => {
+    return () => {
+      if (call?.state.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+    };
+  }, [call]);
+
+  // when the call is left, close the room component
   useEffect(() => {
     if (callingState === CallingState.LEFT) {
       onClose();

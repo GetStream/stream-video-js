@@ -19,6 +19,15 @@ export default function Room({ onClose }: { onClose: () => void }) {
   const callingState = useCallCallingState();
   const call = useCall();
 
+  // when the component unmounts, leave the call
+  useEffect(() => {
+    return () => {
+      if (call?.state.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+    };
+  }, [call]);
+
   // when the call ends, close the room component
   useEffect(() => {
     if (callingState === CallingState.LEFT) {
