@@ -33,7 +33,7 @@ interface CallParticipantsListProps {
    */
   participants: (StreamVideoParticipant | StreamVideoLocalParticipant)[];
   /**
-   * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode
+   * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
    * @default 2
    */
   numberOfColumns?: number;
