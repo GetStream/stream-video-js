@@ -8,8 +8,6 @@ import TabItem from '@theme/TabItem';
 
 This guide talks about deep linking into a [video call](../02-tutorials/01-video-calling.mdx) or a generic application directly. It also focuses on getting the call id or similar entity through a Deep link URL and thereby use it to start a call.
 
-Our API makes it very easy to integrate and start with your custom UI, or our existing screens powered by our UI components.
-
 ### Step 1 - Native Setup
 
 :::note
@@ -68,7 +66,7 @@ Combined together your intent filter should look like:
 </intent-filter>
 ```
 
-#### Verifying the link
+#### Adding Asset Links
 
 An Android App Link is a special type of deep link that allows your website URLs to immediately open the corresponding content in your Android app, without requiring the user to select the app.
 Android App Links use the [Digital Asset Links API](https://developers.google.com/digital-asset-links) to establish trust that your app has been approved by the website to automatically open links for that domain. If the system successfully verifies that you own the URLs, the system automatically routes those URL intents to your app.
@@ -93,7 +91,7 @@ You can use [this tool](https://developers.google.com/digital-asset-links/tools/
 
 <TabItem value='ios'>
 
-#### Adding deep linking support in `AppDelegate.m`
+#### Adding deep linking support in AppDelegate
 
 For adding the support of deep linking in iOS we will have to follow the below steps:
 
@@ -107,6 +105,14 @@ For adding the support of deep linking in iOS we will have to follow the below s
    options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
 {
   return [RCTLinkingManager application:application openURL:url options:options];
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity
+ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+ return [RCTLinkingManager application:application
+                  continueUserActivity:userActivity
+                    restorationHandler:restorationHandler];
 }
 ```
 
@@ -153,11 +159,11 @@ One you are done with this step, a `.entitlements` file will be created, inside 
 
 Now we will add the AASA (Apple App Site Association) File to our web project. To do this, follow the steps below:
 
-- Create a `apple-app-site-association` file inside `.well-known` directory on the top level of your domain, so that the file is hosted at `https://domain.name/.well-known/assetlinks.json`.
+- Create a `apple-app-site-association` file inside `.well-known` directory on the top level of your domain, so that the file is hosted at `https://domain.name/.well-known/apple-app-site-association`.
 
 :::note
 
-If you have a React project, the `.well-known/assetlinks.json` should go inside your `public` directory of the project.
+If you have a React project, the `.well-known/apple-app-site-association` should go inside your `public` directory of the project.
 
 :::
 
@@ -231,8 +237,8 @@ Please do let us know if you ran into any issues while integrating deep linking 
 
 To recap what we've learned about Deep Linking:
 
-- The Native Setup is an important step to achieve deep linking in both Android and iOS.
-- The Native steps should be followed one after the other, sequentially.
-- To handle the Links in a React Native app the [Linking](https://reactnative.dev/docs/linking) API must be used.
+- We added lines in AndroidManifest and AppDelegate for the app to be able to read the link URLs.
+- We added the `apple-app-site-association` file and `assetlinks.json` file in our domain to relate our app with the domain.
+- We handle the links using the built-in [Linking](https://reactnative.dev/docs/linking) API.
 
 We hope this guide helped you. Please do feel free to reach out if you have any suggestions or questions.
