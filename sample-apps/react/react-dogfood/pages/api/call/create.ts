@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoServerClient } from '@stream-io/video-react-sdk';
 import yargs from 'yargs';
 import { meetingId } from '../../../lib/meetingId';
-import { createToken } from '../../../helpers/jwt';
 
 const apiKey = process.env.STREAM_API_KEY as string;
 const secretKey = process.env.STREAM_SECRET_KEY as string;
@@ -11,22 +10,11 @@ const createCallSlackHookAPI = async (
   req: NextApiRequest,
   res: NextApiResponse,
 ) => {
-  const token = createToken('pronto-hook', secretKey);
-  const client = new StreamVideoClient(apiKey, {
+  const client = new StreamVideoServerClient(apiKey, {
     browser: false,
     secret: secretKey,
-    allowServerSideConnect: true,
     logLevel: 'info',
   });
-  await client.connectUser(
-    {
-      id: 'pronto-hook',
-      name: 'Pronto Slack Hook',
-      role: 'bot',
-      teams: ['@stream-io/pronto'],
-    },
-    token,
-  );
 
   console.log(`Received input`, req.body);
   const initiator = req.body.user_name || 'Stream Pronto Bot';
@@ -48,6 +36,14 @@ const createCallSlackHookAPI = async (
     const call = client.call(type || 'default', id || meetingId());
     await call.getOrCreate({
       ring: false,
+      data: {
+        created_by: {
+          id: 'pronto-hook',
+          name: 'Pronto Slack Hook',
+          role: 'bot',
+          teams: ['@stream-io/pronto'],
+        },
+      },
     });
     if (call) {
       const protocol = req.headers['x-forwarded-proto']
@@ -111,7 +107,7 @@ const notifyError = (message: string) => {
   };
 };
 
-const listAvailableEdges = async (client: StreamVideoClient) => {
+const listAvailableEdges = async (client: StreamVideoServerClient) => {
   const { edges } = await client.edges();
   const message = edges
     .map((edge) => {
