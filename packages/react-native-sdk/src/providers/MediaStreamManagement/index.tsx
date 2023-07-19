@@ -92,13 +92,23 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] =
     useState(true);
 
-  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
-    isMicPermissionGranted$.getValue(),
-  );
+  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
+    const hasPermission = isMicPermissionGranted$.getValue();
+    const metaDataSettings = call?.data?.settings?.audio.mic_default_on;
+    if (metaDataSettings !== undefined) {
+      return hasPermission && metaDataSettings;
+    }
+    return hasPermission;
+  });
 
-  const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(
-    isCameraPermissionGranted$.getValue(),
-  );
+  const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(() => {
+    const hasPermission = isCameraPermissionGranted$.getValue();
+    const metaDataSettings = call?.data?.settings?.video.camera_default_on;
+    if (metaDataSettings !== undefined) {
+      return hasPermission && metaDataSettings;
+    }
+    return hasPermission;
+  });
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initVideoEnabled,
