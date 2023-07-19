@@ -43,15 +43,13 @@ export interface LocalParticipantViewProps {
    * @defaultValue 'floating'
    */
   layout?: 'floating' | 'fullscreen';
-
-  zOrder?: number;
 }
 
 /**
  * A component to render the local participant's video.
  */
 export const LocalParticipantView = (props: LocalParticipantViewProps) => {
-  const { layout = 'floating', zOrder = Z_INDEX.IN_MIDDLE } = props;
+  const { layout = 'floating' } = props;
   const containerStyle =
     layout === 'floating'
       ? styles.floatingContainer
@@ -111,7 +109,6 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
             mirror={debouncedCameraOnFrontFacingMode}
             mediaStream={localParticipant.videoStream}
             style={styles.videoStreamFullScreen}
-            zOrder={zOrder}
           />
         )}
       </View>
@@ -146,7 +143,6 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
             mirror={debouncedCameraOnFrontFacingMode}
             mediaStream={localParticipant.videoStream}
             style={styles.videoStream}
-            zOrder={zOrder}
           />
         )}
       </View>
