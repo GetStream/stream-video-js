@@ -59,7 +59,7 @@ describe('StreamVideoServerClient - docs snippets', () => {
     });
 
     it('read', async () => {
-      const readResponse = await client.listCallTypes();
+      const readResponse = await client.getCallTypes();
 
       expect(readResponse.call_types[callTypeName]).toContain({
         name: callTypeName,
