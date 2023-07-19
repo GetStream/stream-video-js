@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.317](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.316...@stream-io/video-react-native-sdk-0.0.1-alpha.317) (2023-07-19)
+
+
+### Features
+
+* **react-native:** add/improve existing deep linking guide ([#796](https://github.com/GetStream/stream-video-js/issues/796)) ([467ba23](https://github.com/GetStream/stream-video-js/commit/467ba233c02e8f6cdef0bff88e887506a1909275))
+
+
+
 ## [0.0.1-alpha.316](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.315...@stream-io/video-react-native-sdk-0.0.1-alpha.316) (2023-07-19)
 
 
