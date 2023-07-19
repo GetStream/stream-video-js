@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.315](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.314...@stream-io/video-react-native-sdk-0.0.1-alpha.315) (2023-07-19)
+
+
+### Bug Fixes
+
+* **react-native:** remove unnecessary polyfills ([#816](https://github.com/GetStream/stream-video-js/issues/816)) ([2694dd3](https://github.com/GetStream/stream-video-js/commit/2694dd35b9af5904d22e5d8f62adb7a29796daff))
+
+
+
 ## [0.0.1-alpha.314](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.313...@stream-io/video-react-native-sdk-0.0.1-alpha.314) (2023-07-18)
 
 
