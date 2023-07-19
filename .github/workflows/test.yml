@@ -2,6 +2,8 @@ name: Test
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  STREAM_API_KEY: ${{ vars.CLIENT_TEST_API_KEY }}
+  STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
 
 on:
   # Trigger flow when pushing in main or pull requests, and when creating
