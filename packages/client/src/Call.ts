@@ -123,6 +123,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { runWithRetry } from './helpers/runWithRetry';
 
 /**
  * An object representation of a `Call`.
@@ -280,7 +281,27 @@ export class Call {
           debounce((v) => timer(v.type)),
           map((v) => v.data),
         ),
-        (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
+        (subscriptions) => {
+          if (!this.sfuClient) return;
+          runWithRetry(this.sfuClient.updateSubscriptions, {
+            runs: 30,
+            delayBetweenRetries: retryInterval,
+            cancelOnUpdate: (ac) => {
+              this.trackSubscriptionsSubject
+                .pipe(
+                  debounce((v) => timer(v.type)),
+                  map((v) => v.data),
+                )
+                .subscribe((s) => {
+                  if (s !== subscriptions) ac.abort();
+                });
+            },
+            evaluateError: (error) => {
+              // decide whether to do a re-run
+              return true;
+            },
+          })(subscriptions);
+        },
       ),
     );
 
