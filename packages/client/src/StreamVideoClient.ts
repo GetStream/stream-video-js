@@ -6,19 +6,13 @@ import {
 } from './store';
 import type {
   ConnectedEvent,
-  CreateCallTypeRequest,
-  CreateCallTypeResponse,
   CreateDeviceRequest,
   CreateGuestRequest,
   CreateGuestResponse,
-  GetCallTypeResponse,
   GetEdgesResponse,
-  ListCallTypeResponse,
   ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
-  UpdateCallTypeRequest,
-  UpdateCallTypeResponse,
 } from './gen/coordinator';
 import type {
   ConnectionChangedEvent,
