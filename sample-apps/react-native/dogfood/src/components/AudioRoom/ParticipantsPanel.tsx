@@ -19,7 +19,7 @@ export function ParticipantsPanel() {
           style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
         >
           <Avatar size={80} image={participantItem.image} />
-          <Text>{participantItem.name}</Text>
+          <Text style={styles.text}>{participantItem.name}</Text>
         </View>
       );
     }, []);
@@ -36,6 +36,9 @@ export function ParticipantsPanel() {
 }
 
 const styles = StyleSheet.create({
+  text: {
+    color: 'black',
+  },
   speakerListContainer: {
     flex: 1,
     padding: 4,
