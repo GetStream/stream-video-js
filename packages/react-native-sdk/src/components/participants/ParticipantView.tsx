@@ -11,7 +11,6 @@ import { RTCView } from 'react-native-webrtc';
 import {
   CallingState,
   SfuModels,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
@@ -34,7 +33,7 @@ interface ParticipantViewProps {
   /**
    * The participant that will be displayed
    */
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  participant: StreamVideoParticipant;
   /**
    * The video kind that will be displayed
    */
