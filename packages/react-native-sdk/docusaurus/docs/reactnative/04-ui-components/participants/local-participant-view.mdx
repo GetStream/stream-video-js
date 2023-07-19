@@ -3,8 +3,40 @@ id: local-participant-view
 title: LocalParticipantView
 ---
 
+LocalParticipantView displays the local video stream of the local participant if the video is unmuted. It can be used as both floating or fullscreen view.
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
+When the video is muted, the avatar of the local participant is shown, while when the view is floating, the video disabled icon is shown, both with a disabled background.
+
+:::note
+By default, the `LocalParticipantView` renders in a floating mode.
 :::
+
+## General Usage
+
+In order to use the `LocalParticipantView` as a standalone component, you should use the following code:
+
+```tsx
+import { LocalParticipantView } from '@stream-io/video-react-native-sdk';
+
+const App = () => {
+  return <LocalParticipantView />;
+};
+```
+
+### Props
+
+### `layout`
+
+| Type                       | Default Value |
+| -------------------------- | ------------- |
+| `floating` \| `fullscreen` | `floating`    |
+
+Allows configuring the view to render in either a floating or a fullscreen mode.
+
+### `style`
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+This allows overriding the styles of the floating or the fullscreen view container.
