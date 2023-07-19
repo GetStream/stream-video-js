@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.318](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.317...@stream-io/video-react-native-sdk-0.0.1-alpha.318) (2023-07-19)
+
+
+### Bug Fixes
+
+* **react-native:** CallContentView UI when there is no remote participants in spotlight mode ([#818](https://github.com/GetStream/stream-video-js/issues/818)) ([f64f9a0](https://github.com/GetStream/stream-video-js/commit/f64f9a0789df8040e72921ad85cb165350c96d36))
+
+
+
 ## [0.0.1-alpha.317](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.316...@stream-io/video-react-native-sdk-0.0.1-alpha.317) (2023-07-19)
 
 
