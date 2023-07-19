@@ -30,6 +30,8 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 
+const logger: Logger = getLogger(['Publisher']);
+
 export type PublisherOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -90,9 +92,10 @@ export class Publisher {
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
   private readonly preferredVideoCodec?: string;
-  private logger: Logger = getLogger(['Publisher']);
 
   private readonly unsubscribeOnIceRestart: () => void;
+
+  private isIceRestarting = false;
 
   /**
    * The SFU client instance to use for publishing and signaling.
@@ -211,7 +214,7 @@ export class Publisher {
      * Once the track has ended, it will notify the SFU and update the state.
      */
     const handleTrackEnded = async () => {
-      this.logger(
+      logger(
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
@@ -252,12 +255,12 @@ export class Publisher {
         sendEncodings: videoEncodings,
       });
 
-      this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
+      logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
-        this.logger(
+        logger(
           'info',
           `Setting ${TrackType[trackType]} codec preferences`,
           codecPreferences,
@@ -355,7 +358,7 @@ export class Publisher {
    * Stops publishing all tracks and stop all tracks.
    */
   stopPublishing = () => {
-    this.logger('debug', 'Stopping publishing all tracks');
+    logger('debug', 'Stopping publishing all tracks');
     this.pc.getSenders().forEach((s) => {
       s.track?.stop();
       if (this.pc.signalingState !== 'closed') {
@@ -365,7 +368,7 @@ export class Publisher {
   };
 
   updateVideoPublishQuality = async (enabledRids: string[]) => {
-    this.logger(
+    logger(
       'info',
       'Update publish quality, requested rids by SFU:',
       enabledRids,
@@ -373,13 +376,13 @@ export class Publisher {
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
     if (!videoSender) {
-      this.logger('warn', 'Update publish quality, no video sender found.');
+      logger('warn', 'Update publish quality, no video sender found.');
       return;
     }
 
     const params = videoSender.getParameters();
     if (params.encodings.length === 0) {
-      this.logger(
+      logger(
         'warn',
         'Update publish quality, No suitable video encoding quality found',
       );
@@ -402,12 +405,9 @@ export class Publisher {
       .join(', ');
     if (changed) {
       await videoSender.setParameters(params);
-      this.logger(
-        'info',
-        `Update publish quality, enabled rids: ${activeRids}`,
-      );
+      logger('info', `Update publish quality, enabled rids: ${activeRids}`);
     } else {
-      this.logger('info', `Update publish quality, no change: ${activeRids}`);
+      logger('info', `Update publish quality, no change: ${activeRids}`);
     }
   };
 
@@ -441,7 +441,7 @@ export class Publisher {
   private onIceCandidate = async (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      this.logger('debug', 'null ice candidate');
+      logger('debug', 'null ice candidate');
       return;
     }
     await this.sfuClient.iceTrickle({
@@ -476,7 +476,12 @@ export class Publisher {
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async () => {
-    this.logger('debug', 'Restarting ICE connection');
+    logger('debug', 'Restarting ICE connection');
+    const signalingState = this.pc.signalingState;
+    if (this.isIceRestarting || signalingState === 'have-local-offer') {
+      logger('debug', 'ICE restart is already in progress');
+      return;
+    }
     await this.negotiate({ iceRestart: true });
   };
 
@@ -490,6 +495,8 @@ export class Publisher {
    * @param options the optional offer options to use.
    */
   private negotiate = async (options?: RTCOfferOptions) => {
+    this.isIceRestarting = options?.iceRestart ?? false;
+
     const offer = await this.pc.createOffer(options);
     offer.sdp = this.mungeCodecs(offer.sdp);
 
@@ -513,11 +520,13 @@ export class Publisher {
         sdp: response.sdp,
       });
     } catch (e) {
-      this.logger('error', `setRemoteDescription error`, {
+      logger('error', `setRemoteDescription error`, {
         sdp: response.sdp,
         error: e,
       });
     }
+
+    this.isIceRestarting = false;
 
     this.sfuClient.iceTrickleBuffer.publisherCandidates.subscribe(
       async (candidate) => {
@@ -525,7 +534,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          this.logger('error', `ICE candidate error`, {
+          logger('error', `ICE candidate error`, {
             error: e,
             candidate,
           });
@@ -563,11 +572,11 @@ export class Publisher {
     ): string => {
       if (defaultMid) return defaultMid;
       if (!sdp) {
-        this.logger('warn', 'No SDP found. Returning empty mid');
+        logger('warn', 'No SDP found. Returning empty mid');
         return '';
       }
 
-      this.logger(
+      logger(
         'debug',
         `No 'mid' found for track. Trying to find it from the Offer SDP`,
       );
@@ -581,7 +590,7 @@ export class Publisher {
         );
       });
       if (typeof media?.mid === 'undefined') {
-        this.logger(
+        logger(
           'debug',
           `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
         );
@@ -591,7 +600,7 @@ export class Publisher {
           return String(heuristicMid);
         }
 
-        this.logger('debug', 'No heuristic mid found. Returning empty mid');
+        logger('debug', 'No heuristic mid found. Returning empty mid');
         return '';
       }
       return String(media.mid);
@@ -622,7 +631,7 @@ export class Publisher {
         } else {
           // we report the last known optimal layers for ended tracks
           optimalLayers = this.trackLayersCache[trackType] || [];
-          this.logger(
+          logger(
             'debug',
             `Track ${TrackType[trackType]} is ended. Announcing last known optimal layers`,
             optimalLayers,
@@ -658,22 +667,22 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    this.logger('error', `ICE Candidate error`, errorMessage);
+    logger('error', `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE Connection state changed to`, state);
+    logger('debug', `ICE Connection state changed to`, state);
 
     if (state === 'failed') {
-      this.logger('warn', `Attempting to restart ICE`);
+      logger('warn', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
-        this.logger('error', `ICE restart error`, e);
+        logger('error', `ICE restart error`, e);
       });
     } else if (state === 'disconnected') {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
-      this.logger('warn', `Scheduling ICE restart in 5 seconds`);
+      logger('warn', `Scheduling ICE restart in 5 seconds`);
       setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
@@ -682,7 +691,7 @@ export class Publisher {
           this.pc.iceConnectionState === 'failed'
         ) {
           this.restartIce().catch((e) => {
-            this.logger('error', `ICE restart error`, e);
+            logger('error', `ICE restart error`, e);
           });
         }
       }, 5000);
@@ -690,11 +699,11 @@ export class Publisher {
   };
 
   private onIceGatheringStateChange = () => {
-    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
+    logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   private onSignalingStateChange = () => {
-    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
+    logger('debug', `Signaling state changed`, this.pc.signalingState);
   };
 
   private ridToVideoQuality = (rid: string): VideoQuality => {
