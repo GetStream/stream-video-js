@@ -1,7 +1,17 @@
 import { ComponentProps, PropsWithChildren } from 'react';
+import clsx from 'clsx';
 
-export const GenericMenu = ({ children }: PropsWithChildren) => {
-  return <ul className="str-video__generic-menu">{children}</ul>;
+export type GenericMenuProps = {
+  className?: string;
+};
+
+export const GenericMenu = ({
+  className,
+  children,
+}: PropsWithChildren<GenericMenuProps>) => {
+  return (
+    <ul className={clsx('str-video__generic-menu', className)}>{children}</ul>
+  );
 };
 
 export const GenericMenuButtonItem = ({

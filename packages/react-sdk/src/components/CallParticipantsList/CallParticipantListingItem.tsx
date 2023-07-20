@@ -16,6 +16,7 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { AudioOutputLevelSlider } from '../CallControls';
 import { IconButton } from '../Button';
 import {
   GenericMenu,
@@ -25,6 +26,7 @@ import {
 } from '../Menu';
 import { WithTooltip } from '../Tooltip';
 import { Icon } from '../Icon';
+import { useMediaDevices } from '../../core';
 
 type CallParticipantListingItemProps = {
   /** Participant object be rendered */
@@ -139,6 +141,7 @@ export const ParticipantActionsContextMenu = ({
     document.pictureInPictureElement,
   );
   const activeCall = useCall();
+  const { isAudioOutputChangeSupported } = useMediaDevices();
 
   const blockUser = () => {
     activeCall?.blockUser(participant.userId);
@@ -235,7 +238,7 @@ export const ParticipantActionsContextMenu = ({
   };
 
   return (
-    <GenericMenu>
+    <GenericMenu className="str-video__participant-actions-context-menu">
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
         <Icon icon="pin" />
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
@@ -276,7 +279,7 @@ export const ParticipantActionsContextMenu = ({
           }
           onClick={muteAudio}
         >
-          <Icon icon="no-audio" />
+          <Icon icon="mic-off" />
           Mute audio
         </GenericMenuButtonItem>
       </Restricted>
@@ -324,6 +327,9 @@ export const ParticipantActionsContextMenu = ({
           Disable screen sharing
         </GenericMenuButtonItem>
       </Restricted>
+      {isAudioOutputChangeSupported && (
+        <AudioOutputLevelSlider participant={participant} />
+      )}
     </GenericMenu>
   );
 };
