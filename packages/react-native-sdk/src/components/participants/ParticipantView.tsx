@@ -294,7 +294,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
             </View>
             <Text style={styles.userNameLabel} numberOfLines={1}>
               {t('{{ userName }} is sharing their screen', {
-                username: participantLabel,
+                userName: participantLabel,
               })}
             </Text>
           </View>
