@@ -16,10 +16,12 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
+  ToggleAudioOutputButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
   useCallCallingState,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 import { Lobby } from './Lobby';
@@ -37,6 +39,7 @@ import { useKeyboardShortcuts, useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
+import { AudioOutputMenu } from './AudioOutputMenu';
 
 const contents = {
   'error-join': {
@@ -58,6 +61,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const router = useRouter();
   const activeCall = useCall();
   const callState = useCallCallingState();
+  const { isAudioOutputChangeSupported } = useMediaDevices();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
@@ -192,6 +196,9 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
+              {isAudioOutputChangeSupported && (
+                <ToggleAudioOutputButton Menu={AudioOutputMenu} />
+              )}
               <CancelCallButton onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group">
