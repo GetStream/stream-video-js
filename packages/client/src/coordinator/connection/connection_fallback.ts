@@ -94,6 +94,7 @@ export class WSConnectionFallback {
         {
           config: { ...config, cancelToken: this.cancelToken?.token },
           params,
+          publicEndpoint: true,
         },
       );
 
@@ -196,14 +197,14 @@ export class WSConnectionFallback {
 
       this._setState(ConnectionState.Connected);
       this.connectionID = event.connection_id;
-      this.client.resolveConnectionId();
+      this.client.resolveConnectionId?.();
       // @ts-expect-error
       this.client.dispatchEvent(event);
       this._poll();
       return event;
     } catch (err) {
       this._setState(ConnectionState.Closed);
-      this.client.rejectConnectionId();
+      this.client.rejectConnectionId?.();
       throw err;
     }
   };
