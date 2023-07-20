@@ -56,16 +56,17 @@ Here are some of the features we support:
 ### 0.2 milestone
 
 - [ ] Fast-reconnects
+- [ ] ICE restarts
 - [ ] SFU retries
 - [ ] Enhanced SDK build system
 - [ ] Hardware-accelerated video encoding on supported platforms
-- [ ] React hooks for permissions management
-- [ ] E2E testing platform
+- [X] React hooks for permissions management
 - [ ] Increase test coverage
 
 ### 0.3 milestone
 
 - [ ] Performance and bundle-size optimizations
+- [ ] E2E testing platform
 - [ ] Typescript generics enhancements
 - [ ] Video and audio filters
 - [ ] Dynascale: turn off incoming video when the browser is in the background
