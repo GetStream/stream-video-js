@@ -310,6 +310,7 @@ In this step, we show a list of audio rooms. By clicking on a room, the user can
 Create a new file `src/RoomList.tsx` and replace it with this code:
 
 ```tsx title="src/RoomList.tsx"
+import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
@@ -322,7 +323,6 @@ import {
   View,
 } from 'react-native';
 import CreateRoomModal from './CreateRoomModal';
-import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 type RoomFlatList = FlatListProps<Call>;
 
@@ -888,9 +888,9 @@ In this component we do the following:
 - If the user doesn't have the above permissions he is showed the join button if the call is live.
 - If the call was joined, the user is also shown a button to leave quietly.
 
-#### Muting and Unmuting the audio track
+#### Muting and Un-muting the audio track
 
-While we're at it, let's also add a button that allows to mute/unmute the local audio track:
+While we're at it, let's also add a button that allows to mute/un-mute the local audio track:
 
 ```tsx title=src/ToggleAudioButton.tsx
 import {
@@ -1111,10 +1111,10 @@ To recap what we've learned:
 - You set up a call with `const call = client.call('audio_room', '123')`
 - The call type `audio_room` controls which features are enabled and how permissions are set up
 - The `audio_room` by default enables `backstage` mode, and only allows admins and the creator of the call to join before the call goes live
-- When you join a call, realtime communication is set up for audio & video calling: `await call.join()`
+- When you join a call, real-time communication is set up for audio & video calling: `await call.join()`
 - Call state `call.state` and helper state access hooks make it easy to build your own UI
 - Calls run on Stream's global edge network of video servers. Being closer to your users improves the latency and reliability of calls. For audio rooms we use Opus RED and Opus DTX for optimal audio quality.
 
-The SDKs enable you to build audio rooms, video calling and livestreaming in days.
+The SDKs enable you to build audio rooms, video calling and live-streaming in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
