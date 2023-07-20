@@ -264,7 +264,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
                 <MicOff color={theme.light.error} />
               </View>
             )}
-            {isVideoMuted && (
+            {call?.type !== 'audio_room' && isVideoMuted && (
               <View style={[styles.svgContainerStyle, theme.icon.xs]}>
                 <VideoSlash color={theme.light.error} />
               </View>
