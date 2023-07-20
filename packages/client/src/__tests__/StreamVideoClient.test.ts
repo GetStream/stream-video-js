@@ -40,30 +40,6 @@ describe('StreamVideoClient', () => {
     expect(response).toBeDefined();
   });
 
-  // TODO: should this work?
-  // it('API calls are hold until connection is done - WS fallback', async () => {
-  //   const user = {
-  //     id: 'jane',
-  //   };
-
-  //   // force WS fallback
-  //   client.streamClient.wsFallback = new WSConnectionFallback(
-  //     client.streamClient,
-  //   );
-
-  //   client.connectUser(user, tokenProvider(user.id));
-  //   const spy = vi.spyOn(client.streamClient.axiosInstance, 'post');
-  //   const response = await client.queryCalls({});
-
-  //   expect(response).toBeDefined();
-
-  //   const requestConfig: any = spy.mock.calls[spy.mock.calls.length - 1][2];
-  //   const params = requestConfig.params;
-  //   expect(client.streamClient._getConnectionID()).toBeDefined();
-  //   // connection id isn't sent for WS fallback
-  //   expect(params['connection_id']).toBeUndefined();
-  // });
-
   it('API calls are hold until connection is done - anonymous users', async () => {
     client.connectUser({ type: 'anonymous' });
     const response = await client.queryCalls({
