@@ -131,3 +131,14 @@ export const useCallStartedAt = () => {
   const { startedAt$ } = useCallState();
   return useObservableValue(startedAt$);
 };
+
+/**
+ * Utility hook providing the default audio output level in a given call
+ * Should be used to determine audio output level if the call is not joined yet.
+ *
+ * @category Call State
+ */
+export const useDefaultAudioOutputLevel = () => {
+  const { defaultAudioOutputLevel$ } = useCallState();
+  return useObservableValue(defaultAudioOutputLevel$);
+};
