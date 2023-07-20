@@ -11,6 +11,7 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   state: CallState;
   connectionConfig?: RTCConfiguration;
+  iceRestartDelay?: number;
 };
 
 const logger = getLogger(['Subscriber']);
@@ -28,6 +29,7 @@ export class Subscriber {
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
 
+  private readonly iceRestartDelay: number;
   private isIceRestarting = false;
 
   /**
@@ -37,16 +39,19 @@ export class Subscriber {
    * @param dispatcher the dispatcher to use.
    * @param state the state of the call.
    * @param connectionConfig the connection configuration to use.
+   * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
    */
   constructor({
     sfuClient,
     dispatcher,
     state,
     connectionConfig,
+    iceRestartDelay = 5000,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.dispatcher = dispatcher;
     this.state = state;
+    this.iceRestartDelay = iceRestartDelay;
 
     this.pc = this.createPeerConnection(connectionConfig);
 
@@ -340,7 +345,7 @@ export class Subscriber {
     } else if (state === 'disconnected') {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
-      logger('warn', `Scheduling ICE restart in 5 seconds`);
+      logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
       setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime

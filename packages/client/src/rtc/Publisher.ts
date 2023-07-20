@@ -40,6 +40,7 @@ export type PublisherOpts = {
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
   preferredVideoCodec?: string;
+  iceRestartDelay?: number;
 };
 
 /**
@@ -95,6 +96,7 @@ export class Publisher {
 
   private readonly unsubscribeOnIceRestart: () => void;
 
+  private readonly iceRestartDelay: number;
   private isIceRestarting = false;
 
   /**
@@ -112,6 +114,7 @@ export class Publisher {
    * @param isDtxEnabled whether DTX is enabled.
    * @param isRedEnabled whether RED is enabled.
    * @param preferredVideoCodec the preferred video codec.
+   * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
    */
   constructor({
     connectionConfig,
@@ -121,6 +124,7 @@ export class Publisher {
     isDtxEnabled,
     isRedEnabled,
     preferredVideoCodec,
+    iceRestartDelay = 5000,
   }: PublisherOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
@@ -129,6 +133,7 @@ export class Publisher {
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
     this.preferredVideoCodec = preferredVideoCodec;
+    this.iceRestartDelay = iceRestartDelay;
 
     this.unsubscribeOnIceRestart = dispatcher.on(
       'iceRestart',
@@ -679,7 +684,7 @@ export class Publisher {
     } else if (state === 'disconnected') {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
-      logger('warn', `Scheduling ICE restart in 5 seconds`);
+      logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
       setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
@@ -696,7 +701,7 @@ export class Publisher {
             `Scheduled ICE restart: connection recovered, canceled.`,
           );
         }
-      }, 5000);
+      }, this.iceRestartDelay);
     }
   };
 

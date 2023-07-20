@@ -58,6 +58,7 @@ describe('Publisher', () => {
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
+      iceRestartDelay: 100,
     });
   });
 
@@ -215,7 +216,7 @@ describe('Publisher', () => {
   });
 
   describe('Publisher ICE Restart', () => {
-    it('should perform ICE restart when iceRestart event is received', async () => {
+    it('should perform ICE restart when iceRestart event is received', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       dispatcher.dispatch(
         SfuEvent.create({
@@ -230,7 +231,7 @@ describe('Publisher', () => {
       expect(publisher.restartIce).toHaveBeenCalled();
     });
 
-    it('should not perform ICE restart when iceRestart event is received for a different peer type', async () => {
+    it('should not perform ICE restart when iceRestart event is received for a different peer type', () => {
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       dispatcher.dispatch(
         SfuEvent.create({
@@ -242,6 +243,49 @@ describe('Publisher', () => {
           },
         }),
       );
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+    });
+
+    it(`should drop consequent ICE restart requests`, async () => {
+      // @ts-ignore
+      publisher['pc'].signalingState = 'have-local-offer';
+      // @ts-ignore
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.restartIce();
+      expect(publisher['negotiate']).not.toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      vi.runAllTimers();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'connected';
+
+      vi.runAllTimers();
       expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });

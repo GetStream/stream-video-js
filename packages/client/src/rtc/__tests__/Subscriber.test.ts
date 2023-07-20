@@ -38,6 +38,7 @@ describe('Subscriber', () => {
       dispatcher,
       state,
       connectionConfig: { iceServers: [] },
+      iceRestartDelay: 100,
     });
   });
 
@@ -156,6 +157,48 @@ describe('Subscriber', () => {
       );
 
       expect(sfuClient.iceRestart).not.toHaveBeenCalled();
+    });
+
+    it(`should drop consequent ICE restart requests`, async () => {
+      sfuClient.iceRestart = vi.fn();
+      // @ts-ignore
+      subscriber['pc'].signalingState = 'have-remote-offer';
+
+      await subscriber.restartIce();
+      expect(sfuClient.iceRestart).not.toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      // @ts-ignore
+      subscriber['pc'].iceConnectionState = 'failed';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      subscriber['onIceConnectionStateChange']();
+      vi.runAllTimers();
+      expect(subscriber.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      subscriber['onIceConnectionStateChange']();
+      // @ts-ignore
+      subscriber['pc'].iceConnectionState = 'connected';
+
+      vi.runAllTimers();
+      expect(subscriber.restartIce).not.toHaveBeenCalled();
     });
   });
 });
