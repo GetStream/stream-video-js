@@ -6,6 +6,10 @@ import 'react-native-url-polyfill/auto';
 import 'intl-pluralrules';
 /** Added 'react-native-gesture-handler' for Chat SDK */
 import 'react-native-gesture-handler';
+/** Used for generating random meeting ID. Specific to DF app.
+ *  crypto.getRandomValues polyfill for uuid
+ **/
+import 'react-native-get-random-values';
 
 import { registerGlobals } from 'react-native-webrtc';
 
