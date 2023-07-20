@@ -39,6 +39,6 @@
 
 .body {
   grid-area: body;
-  @apply flex justify-center items-center;
+  @apply flex justify-center;
   pointer-events: none;
 }
