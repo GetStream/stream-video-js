@@ -283,21 +283,18 @@ export class Call {
         ),
         (subscriptions) => {
           if (!this.sfuClient) return;
+
           runWithRetry(this.sfuClient.updateSubscriptions, {
-            runs: 30,
+            retryAttempts: 30,
             delayBetweenRetries: retryInterval,
-            cancelOnUpdate: (ac) => {
-              this.trackSubscriptionsSubject
-                .pipe(
-                  debounce((v) => timer(v.type)),
-                  map((v) => v.data),
-                )
-                .subscribe((s) => {
-                  if (s !== subscriptions) ac.abort();
-                });
+            didValueChange: (initialSubscriptions) => {
+              return (
+                initialSubscriptions !==
+                this.trackSubscriptionsSubject.getValue().data
+              );
             },
-            evaluateError: (error) => {
-              // decide whether to do a re-run
+            isRetryable: (error) => {
+              // decide whether to retry execution
               return true;
             },
           })(subscriptions);
