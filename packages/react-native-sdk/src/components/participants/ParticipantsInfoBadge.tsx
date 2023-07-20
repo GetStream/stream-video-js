@@ -44,8 +44,8 @@ export const ParticipantsInfoBadge = ({
         <Participants color={theme.light.static_white} />
       </View>
       <ParticipantsInfoListView
-        isCallParticipantsViewVisible={isCallParticipantsViewVisible}
-        setIsCallParticipantsViewVisible={setIsCallParticipantsViewVisible}
+        isCallParticipantsInfoViewVisible={isCallParticipantsViewVisible}
+        setIsCallParticipantsInfoViewVisible={setIsCallParticipantsViewVisible}
       />
     </Pressable>
   );
