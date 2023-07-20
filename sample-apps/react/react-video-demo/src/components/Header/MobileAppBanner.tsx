@@ -21,7 +21,9 @@ export const MobileAppBanner = (props: {
       <div className="flex flex-wrap flex-col xs:flex-row justify-center gap-2 w-full">
         <a
           className={styles.nativeAppLink + ' flex-1'}
-          href={`https://play.google.com/store/apps/details?id=io.getstream.video.android&referrer=${call?.id}`}
+          href={`https://play.google.com/store/apps/details?id=io.getstream.video.android&referrer=${encodeURIComponent(
+            `call_id=${call?.id}`,
+          )}`}
           target="_blank"
           rel="noreferrer"
         >
