@@ -125,6 +125,11 @@
     -webkit-mask-image: var(--str-video__icon--speaker);
   }
 
+  &--speaker-off {
+    mask-image: var(--str-video__icon--speaker-off);
+    -webkit-mask-image: var(--str-video__icon--speaker-off);
+  }
+
   &--ellipsis {
     mask-image: var(--str-video__icon--ellipsis);
     -webkit-mask-image: var(--str-video__icon--ellipsis);
