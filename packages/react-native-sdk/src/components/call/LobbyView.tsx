@@ -133,7 +133,7 @@ export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
         )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            {t('You are about to join a call with id {{ callId }} at Stream.', {
+            {t('You are about to join a call with id {{ callId }}.', {
               callId: call?.id,
             }) +
               ' ' +

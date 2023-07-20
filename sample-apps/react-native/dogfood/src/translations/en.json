@@ -35,5 +35,5 @@
   "Join Call": "Join Call",
   "Hello, {{ userName }}": "Hello, {{ userName }}",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
-  "You are about to join a call with id {{ callId }} at Stream.": "You are about to join a call with id {{ callId }} at Stream."
+  "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}."
 }
