@@ -83,6 +83,10 @@ export enum CallingState {
  */
 export class CallState {
   /**
+   * The speaker volume level that is set, if `StreamVideoParticipant.defaultAudioOutputLevelSubject` is undefined.
+   */
+  private defaultAudioOutputLevelSubject = new BehaviorSubject<number>(1);
+  /**
    * The raw call metadata object, as defined on the backend.
    *
    * @internal
@@ -165,8 +169,13 @@ export class CallState {
    */
   private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
-  // Derived state
+  /**
+   * Emits the default audio output level value in form of decimal number in range of 0-1.
+   * The default value is assigned to each newly joined StreamVideoParticipant's audioOutputLevel property.
+   */
+  defaultAudioOutputLevel$: Observable<number>;
 
+  // Derived state
   /**
    * The time the call session actually started.
    * Useful for displaying the call duration.
@@ -303,6 +312,8 @@ export class CallState {
       distinctUntilChanged(),
     );
 
+    this.defaultAudioOutputLevel$ =
+      this.defaultAudioOutputLevelSubject.asObservable();
     this.startedAt$ = this.startedAtSubject.asObservable();
     this.participantCount$ = this.participantCountSubject.asObservable();
     this.anonymousParticipantCount$ =
@@ -471,6 +482,24 @@ export class CallState {
    */
   setCallingState = (state: Patch<CallingState>) => {
     return this.setCurrentValue(this.callingStateSubject, state);
+  };
+
+  /**
+   * Retrieves the current value of the default audio output level.
+   *
+   * @internal
+   */
+  get defaultAudioOutputLevel() {
+    return this.getCurrentValue(this.defaultAudioOutputLevel$);
+  }
+
+  /**
+   * Sets the current value of the default audio output level.
+   *
+   * @internal
+   */
+  setDefaultAudioOutputLevel = (level: number) => {
+    return this.setCurrentValue(this.defaultAudioOutputLevelSubject, level);
   };
 
   /**

@@ -1166,6 +1166,34 @@ export class Call {
   };
 
   /**
+   * Updates the audio output level for a given participant or for all the participants and the default call audio output level.
+   * @param level
+   * @param participant
+   */
+  setAudioOutputLevel(level: number, participant?: StreamVideoParticipant) {
+    if (participant) {
+      this.state.updateParticipant(participant.sessionId, {
+        audioOutputLevel: level,
+      });
+    } else if (this.sfuClient?.sessionId) {
+      this.state.updateParticipants(
+        this.state.participants.reduce<StreamVideoParticipantPatches>(
+          (acc, p) => {
+            acc[p.sessionId] = {
+              audioOutputLevel: level,
+            };
+            return acc;
+          },
+          {},
+        ),
+      );
+    }
+    if (!participant) {
+      this.state.setDefaultAudioOutputLevel(level);
+    }
+  }
+
+  /**
    * Sets the `audioDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
    *
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishAudioStream` method](#publishaudiostream) that will set `audioDeviceId` as well.

@@ -34,7 +34,13 @@ export enum DebounceType {
 
 export interface StreamVideoParticipant extends Participant {
   /**
-   * The participant's audio stream, if they are publishing audio and
+   * The speaker volume in range 0 - 1 set by the participant.
+   * If not set, then CallState.defaultAudioOutputLevel should be reflected.
+   */
+  audioOutputLevel?: number;
+
+  /**
+   * The participant's audio stream, if they are publishing audio, and
    * we have subscribed to it.
    */
   audioStream?: MediaStream;
