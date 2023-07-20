@@ -15,6 +15,7 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
+import { useI18n } from '@stream-io/video-react-native-sdk';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -35,6 +36,7 @@ const generateValidUserId = (userId: string) => {
 const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const [loader, setLoader] = useState(false);
+  const { t } = useI18n();
 
   const setState = useAppGlobalStoreSetState();
 
@@ -83,16 +85,18 @@ const LoginScreen = () => {
     >
       <Image source={require('../assets/Logo.png')} style={styles.logo} />
       <View>
-        <Text style={styles.title}>Stream DogFood App</Text>
+        <Text style={styles.title}>{t('Stream DogFood App')}</Text>
         <Text style={styles.subTitle}>
-          Please sign in with your Google Stream account or a Custom user id.
+          {t(
+            'Please sign in with your Google Stream account or a Custom user id.',
+          )}
         </Text>
       </View>
 
       <View style={styles.bottomView}>
         <View style={styles.customUser}>
           <TextInput
-            placeholder="Enter custom user"
+            placeholder={t('Enter custom user')}
             value={localUserId}
             onChangeText={(text) => {
               setLocalUserId(text);
@@ -101,15 +105,15 @@ const LoginScreen = () => {
             autoCorrect={false}
           />
           <Button
-            title="Login"
+            title={t('Login')}
             disabled={!localUserId}
             onPress={loginHandler}
             buttonStyle={styles.loginButton}
           />
         </View>
-        <Text style={styles.orText}>OR</Text>
+        <Text style={styles.orText}>{t('OR')}</Text>
         <Button
-          title="Google Sign In"
+          title={t('Google Sign In')}
           onPress={signInViaGoogle}
           disabled={loader}
           buttonStyle={styles.googleSignin}

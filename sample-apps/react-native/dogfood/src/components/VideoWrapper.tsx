@@ -46,7 +46,12 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} translationsOverrides={translations}>
+    <StreamVideo
+      client={videoClient}
+      // By default we keep English(en) for now, unless we start supporting switching of language in the application
+      language={'en'}
+      translationsOverrides={translations}
+    >
       {children}
     </StreamVideo>
   );
