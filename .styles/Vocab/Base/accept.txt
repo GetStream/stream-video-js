@@ -64,3 +64,4 @@ combineComparators
 unmute
 (?i)boolean
 onPress
+useRef

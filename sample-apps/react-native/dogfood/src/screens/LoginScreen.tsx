@@ -15,6 +15,7 @@ import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
+import { KnownUsers } from '../constants/KnownUsers';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -41,7 +42,12 @@ const LoginScreen = () => {
   const loginHandler = async () => {
     try {
       const _userId = generateValidUserId(localUserId);
-      const _userImageUrl = `https://getstream.io/random_png/?id=${_userId}&name=${_userId}`;
+      let _userImageUrl = `https://getstream.io/random_png/?id=${_userId}&name=${_userId}`;
+      const _user = KnownUsers.find((u) => u.id === _userId);
+      if (_user) {
+        _userImageUrl = _user.image;
+      }
+
       setState({
         userId: _userId,
         userName: _userId,

@@ -6,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { CallingState, SfuModels } from '@stream-io/video-client';
+import {
+  CallingState,
+  OwnCapability,
+  SfuModels,
+} from '@stream-io/video-client';
 import {
   useCall,
   useCallCallingState,
@@ -92,6 +96,16 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] =
     useState(true);
 
+  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
+    isMicPermissionGranted$.getValue() &&
+      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_AUDIO),
+  );
+
+  const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(
+    isCameraPermissionGranted$.getValue() &&
+      call?.type !== 'audio_room' &&
+      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_VIDEO),
+  );
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
     const hasPermission = isMicPermissionGranted$.getValue();
     const metaDataSettings = call?.data?.settings?.audio.mic_default_on;

@@ -1,3 +1,4 @@
+import React from 'react';
 import Svg, { Mask, Path } from 'react-native-svg';
 import { A11yIcons } from '../constants/A11yLabels';
 

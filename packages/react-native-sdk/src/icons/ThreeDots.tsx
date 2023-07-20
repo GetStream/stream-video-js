@@ -1,3 +1,4 @@
+import React from 'react';
 import { Svg, Circle } from 'react-native-svg';
 
 type Props = {

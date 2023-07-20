@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.321](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.320...@stream-io/video-react-native-sdk-0.0.1-alpha.321) (2023-07-20)
+
+
+### Features
+
+* **react-native:** add audio rooms in dogfood and related docs ([#810](https://github.com/GetStream/stream-video-js/issues/810)) ([2346d8f](https://github.com/GetStream/stream-video-js/commit/2346d8f265bec51f7e9425fcec266aefe033405d))
+
+
+
+## [0.0.1-alpha.320](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.319...@stream-io/video-react-native-sdk-0.0.1-alpha.320) (2023-07-20)
+
+
+
+## [0.0.1-alpha.319](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.318...@stream-io/video-react-native-sdk-0.0.1-alpha.319) (2023-07-20)
+
+
+### Bug Fixes
+
+* server side user connect + add tests ([#825](https://github.com/GetStream/stream-video-js/issues/825)) ([95ea24d](https://github.com/GetStream/stream-video-js/commit/95ea24d03306d1b25c3c5af042a202a7b551d865))
+
+
+### Features
+
+* **react-native:** add docs for keeping call alive ([#817](https://github.com/GetStream/stream-video-js/issues/817)) ([1da5c38](https://github.com/GetStream/stream-video-js/commit/1da5c385fad8529bba5ac407915a3b09fbaaceec))
+
+
+
+## [0.0.1-alpha.318](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.317...@stream-io/video-react-native-sdk-0.0.1-alpha.318) (2023-07-19)
+
+
+### Bug Fixes
+
+* **react-native:** CallContentView UI when there is no remote participants in spotlight mode ([#818](https://github.com/GetStream/stream-video-js/issues/818)) ([f64f9a0](https://github.com/GetStream/stream-video-js/commit/f64f9a0789df8040e72921ad85cb165350c96d36))
+
+
+
 ## [0.0.1-alpha.317](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.316...@stream-io/video-react-native-sdk-0.0.1-alpha.317) (2023-07-19)
 
 

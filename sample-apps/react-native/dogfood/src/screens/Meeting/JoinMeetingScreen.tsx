@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { meetingId } from '../../modules/helpers/meetingId';
+import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
 import { appTheme } from '../../theme';
@@ -89,7 +89,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
       </View>
       <Button
         onPress={() => {
-          const randomCallID = meetingId();
+          const randomCallID = randomId();
           startNewCallHandler(randomCallID);
         }}
         title="Start a New Call"
