@@ -96,32 +96,31 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] =
     useState(true);
 
-  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(
-    isMicPermissionGranted$.getValue() &&
-      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_AUDIO),
-  );
-
-  const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(
-    isCameraPermissionGranted$.getValue() &&
-      call?.type !== 'audio_room' &&
-      !!call?.permissionsContext?.hasPermission(OwnCapability.SEND_VIDEO),
-  );
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
-    const hasPermission = isMicPermissionGranted$.getValue();
+    const hasNativePermission = isMicPermissionGranted$.getValue();
+    const hasUserPermission = !!call?.permissionsContext?.hasPermission(
+      OwnCapability.SEND_AUDIO,
+    );
     const metaDataSettings = call?.data?.settings?.audio.mic_default_on;
     if (metaDataSettings !== undefined) {
-      return hasPermission && metaDataSettings;
+      return hasNativePermission && hasUserPermission && metaDataSettings;
     }
-    return hasPermission;
+    return hasNativePermission && hasUserPermission;
   });
 
   const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(() => {
-    const hasPermission = isCameraPermissionGranted$.getValue();
+    if (call?.type === 'audio_room') {
+      return false;
+    }
+    const hasNativePermission = isCameraPermissionGranted$.getValue();
+    const hasUserPermission = !!call?.permissionsContext?.hasPermission(
+      OwnCapability.SEND_VIDEO,
+    );
     const metaDataSettings = call?.data?.settings?.video.camera_default_on;
     if (metaDataSettings !== undefined) {
-      return hasPermission && metaDataSettings;
+      return hasNativePermission && hasUserPermission && metaDataSettings;
     }
-    return hasPermission;
+    return hasNativePermission && hasUserPermission;
   });
 
   const publishVideoStream = useVideoPublisher({
