@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.321](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.320...@stream-io/video-react-native-sdk-0.0.1-alpha.321) (2023-07-20)
+
+
+### Features
+
+* **react-native:** add audio rooms in dogfood and related docs ([#810](https://github.com/GetStream/stream-video-js/issues/810)) ([2346d8f](https://github.com/GetStream/stream-video-js/commit/2346d8f265bec51f7e9425fcec266aefe033405d))
+
+
+
 ## [0.0.1-alpha.320](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.319...@stream-io/video-react-native-sdk-0.0.1-alpha.320) (2023-07-20)
 
 
