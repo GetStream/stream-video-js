@@ -118,6 +118,7 @@ export const PaginatedGridLayout = ({
           muted={false}
           key={participant.sessionId}
           audioStream={participant.audioStream}
+          volume={participant?.audioOutputLevel}
         />
       ))}
       <div className="str-video__paginated-grid-layout__wrapper">

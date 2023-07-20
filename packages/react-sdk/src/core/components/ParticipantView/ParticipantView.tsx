@@ -165,6 +165,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             muted={isLocalParticipant || muteAudio}
             sinkId={localParticipant?.audioOutputDeviceId}
             audioStream={audioStream}
+            volume={participant?.audioOutputLevel}
           />
           <Video
             VideoPlaceholder={VideoPlaceholder}
