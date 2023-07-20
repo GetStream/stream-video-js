@@ -1,21 +1,22 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
-  checkIfAudioOutputChangeSupported,
   DeviceSelectorAudioInput,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   useI18n,
+  useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LobbyHeader } from './LobbyHeader';
 import { ParticipantsPreview } from './ParticipantsPreview';
+import { AudioOutputMenu } from './AudioOutputMenu';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -33,9 +34,7 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const [isAudioOutputChangeSupported] = useState(() =>
-    checkIfAudioOutputChangeSupported(),
-  );
+  const { isAudioOutputChangeSupported } = useMediaDevices();
   const { t } = useI18n();
 
   const router = useRouter();
@@ -100,7 +99,9 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               >
                 <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
                 <ToggleVideoPreviewButton />
-                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
+                {isAudioOutputChangeSupported && (
+                  <ToggleAudioOutputButton Menu={AudioOutputMenu} />
+                )}
               </div>
             )}
           </Box>
