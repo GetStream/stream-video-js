@@ -62,8 +62,5 @@ codecs
 noopComparator
 combineComparators
 unmute
-useRef
-Unmuting
-realtime
 (?i)boolean
 onPress
