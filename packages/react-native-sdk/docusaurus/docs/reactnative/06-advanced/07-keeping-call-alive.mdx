@@ -1,9 +1,63 @@
 ---
 id: keeping-call-alive
-title: Keeping The Call Alive
+title: Keeping The Call Alive In Background
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+One of the crucial functionalities of a video or audio calling application is to keep the call alive in the background. On this page, we focus on what must be added to your app to support this. After enabling, the user of your app will notice that the call is kept alive even if the app goes to the background as they will still hear the remote audio streams while the app is kept in the background.
+
+## Android Setup
+
+In Android, we use a [foreground service](https://developer.android.com/guide/components/foreground-services) to keep the call alive. The SDK will manage the foreground service. But in order to be able to use the foreground service, some declarations need to be added in the `AndroidManifest.xml`:
+
+```xml
+<!-- We declare the permissions to for using foreground service -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+<!-- We specify to notifee that we will use microphone in the background -->
+<service
+    android:name="app.notifee.core.ForegroundService"
+    android:stopWithTask="true"
+    android:foregroundServiceType="microphone" />
+```
+
+### Optional: override the default configuration of the notifications
+
+You can also optionally override the default configuration of the notification used by the SDK. Below we give an example of that:
+
+```ts
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+import { AndroidImportance } from '@notifee/react-native';
+
+StreamVideoRN.updateConfig({
+  foregroundService: {
+    android: {
+      // see https://notifee.app/react-native/reference/nativeandroidchannel
+      // for the various properties that can be used
+      channel: {
+        id: 'stream_call_foreground_service',
+        name: 'Service to keep call alive',
+        lights: false,
+        vibration: false,
+        importance: AndroidImportance.DEFAULT,
+      },
+      // you can edit the title and body of the notification here
+      notificationTexts: {
+        title: 'Video call is in progress',
+        body: 'Tap to return to the call',
+      },
+    },
+  },
+});
+```
+
+## iOS Setup
+
+The way to keep audio alive in the background is to enable the Voice over IP background mode. When you enable this capability, your app's audio playback will continue to play when users lock their iOS device or switch to another app. In Xcode: Open the `Info.plist` file and add `Voice over IP` in `UIBackgroundModes`. By editing this file with a text editor, you should see:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>voip</string>
+</array>
+```

@@ -3,7 +3,30 @@ id: participant-info-badge
 title: ParticipantInfoBadge
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+ParticipantsInfoBadge is a [Pressable](https://reactnative.dev/docs/pressable) View that shows the count of the participants in the form of a badge, currently in the call.
+
+This, when pressed, opens up the [ParticipantsInfoListView](../participants-info-list-view.mdx) in the form of a [Modal View](https://reactnative.dev/docs/modal).
+
+![Preview of the ParticipantsInfoBadge component.](../../assets/04-ui-components/participants-info-badge.png)
+
+## General Usage
+
+In order to use the `ParticipantsInfoBadge` as a standalone component, you should use the following code:
+
+```tsx
+import { ParticipantsInfoBadge } from '@stream-io/video-react-native-sdk';
+
+const App = () => {
+  return <ParticipantsInfoBadge />;
+};
+```
+
+## Props
+
+### `style`
+
+| Type                                                      |
+| --------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/pressable#style) |
+
+This allows overriding the styles of the container wrapping the participant icon and the badge.

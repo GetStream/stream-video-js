@@ -1,5 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, ViewProps } from 'react-native';
+import {
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Participants } from '../../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
@@ -7,14 +13,16 @@ import { A11yButtons } from '../../constants/A11yLabels';
 import { Z_INDEX } from '../../constants';
 import { ParticipantsInfoListView } from './ParticipantsInfoListView';
 
-export interface IParticipantsInfoBadge extends Pick<ViewProps, 'style'> {}
+export type ParticipantsInfoBadgeProps = Pick<PressableProps, 'style'>;
 
 /**
  * Badge that shows the number of participants in the call.
  * When pressed, it opens the ParticipantsInfoListView.
  * @param style
  */
-export const ParticipantsInfoBadge = ({ style }: IParticipantsInfoBadge) => {
+export const ParticipantsInfoBadge = ({
+  style,
+}: ParticipantsInfoBadgeProps) => {
   const participantCount = useParticipantCount();
   const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =
     useState<boolean>(false);

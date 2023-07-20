@@ -67,9 +67,9 @@ export class StreamClient {
   insightMetrics: InsightMetrics;
   defaultWSTimeoutWithFallback: number;
   defaultWSTimeout: number;
-  resolveConnectionId!: Function;
-  rejectConnectionId!: Function;
-  connectionIdPromise: Promise<string | undefined>;
+  resolveConnectionId?: Function;
+  rejectConnectionId?: Function;
+  connectionIdPromise?: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
   private waitForConnectPromise?: Promise<void>;
   private resolveConnectPromise?: Function;
@@ -124,13 +124,6 @@ export class StreamClient {
         keepAliveMsecs: 3000,
       });
     }
-
-    this.connectionIdPromise = new Promise<string | undefined>(
-      (resolve, reject) => {
-        this.resolveConnectionId = resolve;
-        this.rejectConnectionId = reject;
-      },
-    );
 
     this.setBaseURL(
       this.options.baseURL || 'https://video.stream-io-api.com/video',
@@ -375,6 +368,13 @@ export class StreamClient {
       return Promise.resolve();
     }
 
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
+
     this.clientID = `${this.userID}--${randomId()}`;
     this.wsPromise = this.connect();
     return this.wsPromise;
@@ -413,6 +413,10 @@ export class StreamClient {
     await this.closeConnection(timeout);
 
     this.tokenManager.reset();
+
+    this.connectionIdPromise = undefined;
+    this.rejectConnectionId = undefined;
+    this.resolveConnectionId = undefined;
   };
 
   /**
@@ -422,6 +426,13 @@ export class StreamClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
+
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
 
@@ -434,7 +445,7 @@ export class StreamClient {
     // some endpoints require a connection_id to be resolved.
     // as anonymous users aren't allowed to open WS connections, we just
     // resolve the connection_id here.
-    this.resolveConnectionId();
+    this.resolveConnectionId?.();
   };
 
   /**
@@ -535,7 +546,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
-    if (!options.publicEndpoint || this.user) {
+    if (!options.publicEndpoint) {
       if (this.waitForConnectPromise) {
         await this.waitForConnectPromise;
       }

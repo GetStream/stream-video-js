@@ -48,9 +48,6 @@ jobs:
       - name: Build packages
         run: NODE_ENV=production yarn build:react:deps
 
-      - name: Test packages
-        run: yarn test:ci:all
-
       - name: Build React Demo staging
         if: ${{ github.ref_name != 'main' }}
         run: yarn build:react:video-demo --mode staging
