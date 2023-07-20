@@ -25,7 +25,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     const user = {
       id: userId,
       name: userName,
-      imageUrl: userImageUrl,
+      image: userImageUrl,
     };
     const _videoClient = new StreamVideoClient({
       apiKey: STREAM_API_KEY,

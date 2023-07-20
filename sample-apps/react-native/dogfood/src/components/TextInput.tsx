@@ -7,16 +7,14 @@ import {
 import { appTheme } from '../theme';
 import { INPUT_HEIGHT } from '../constants';
 
-type TextInputPropsType = TextInputProps & {
-  textInputStyle?: TextInputProps['style'];
-};
-
-export const TextInput = ({ textInputStyle, ...rest }: TextInputPropsType) => {
+export const TextInput = (
+  props: Omit<TextInputProps, 'placeholderTextColor'>,
+) => {
   return (
     <NativeTextInput
-      {...rest}
       placeholderTextColor={'#8C8C8CFF'}
-      style={[styles.input, textInputStyle]}
+      {...props}
+      style={[styles.input, props.style]}
     />
   );
 };

@@ -11,7 +11,7 @@ import {
 import { appTheme } from '../theme';
 import { BUTTON_HEIGHT } from '../constants';
 
-type ButtonPropTypes = PressableProps & {
+type ButtonPropTypes = Omit<PressableProps, 'style'> & {
   title: string;
   buttonStyle?: StyleProp<ViewStyle>;
   titleStyle?: StyleProp<TextStyle>;

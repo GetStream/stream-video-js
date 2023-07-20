@@ -22,7 +22,7 @@ import { useMediaStreamManagement } from '../../providers/MediaStreamManagement'
 /**
  * The props for the Join Button in the LobbyView.
  */
-type JoinButton = {
+type JoinCallButton = {
   /**
    * Handler called when the join button is clicked in the LobbyView.
    * @returns void
@@ -37,10 +37,10 @@ type LobbyViewType = {
   /**
    * Join button props to be passed as an object
    */
-  joinButton: JoinButton;
+  joinCallButton: JoinCallButton;
 };
 
-export const LobbyView = ({ joinButton }: LobbyViewType) => {
+export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const {
@@ -136,7 +136,7 @@ export const LobbyView = ({ joinButton }: LobbyViewType) => {
           </Text>
           <Pressable
             style={styles.joinButton}
-            onPress={joinButton.onPressHandler}
+            onPress={joinCallButton.onPressHandler}
           >
             <Text style={styles.joinButtonText}>Join</Text>
           </Pressable>

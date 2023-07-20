@@ -57,7 +57,9 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   };
 
   const showChooseModeButton =
-    route.name === 'JoinMeetingScreen' || route.name === 'JoinCallScreen';
+    route.name === 'JoinMeetingScreen' ||
+    route.name === 'JoinCallScreen' ||
+    route.name === 'AudioRoom';
 
   return (
     <SafeAreaView style={styles.header} edges={['top']}>
@@ -93,6 +95,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: appTheme.spacing.lg,
     paddingVertical: appTheme.spacing.lg,
     backgroundColor: appTheme.colors.static_grey,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+
+    elevation: 4,
   },
   headerText: {
     flexShrink: 1,
