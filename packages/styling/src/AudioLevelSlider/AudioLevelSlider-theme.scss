@@ -1,0 +1,19 @@
+.str-video__audio-level-slider {
+  cursor: pointer;
+
+  &.str-video__audio-level-slider--mute {
+    .str-video__audio-level-slider__track,
+    .str-video__icon  {
+      background-color: var(--str-video__background-color7);
+    }
+  }
+
+  .str-video__audio-level-slider__track {
+    background: var(--str-video__text-color1);
+    border-radius: 4px;
+
+    .str-video__audio-level-slider__level {
+      background: var(--str-video__primary-color);
+    }
+  }
+}
