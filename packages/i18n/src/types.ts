@@ -17,4 +17,7 @@ export type TranslationsRegistry = Record<
   TranslationsForLanguage
 >;
 
-export type TranslatorFunction = (key: string) => string;
+export type TranslatorFunction = (
+  key: string,
+  options?: Record<string, unknown>,
+) => string;

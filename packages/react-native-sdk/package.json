@@ -1,15 +1,17 @@
 {
   "name": "@stream-io/video-react-native-sdk",
+  "version": "0.0.1-alpha.319",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
+    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
-    "build": "yarn clean && tsc --project tsconfig.json",
+    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
+    "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json",
     "test": "jest --coverage",
-    "copy-version": "echo \"export const version = '$1';\" > ./version.ts && yarn build"
+    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "files": [
     "dist",
@@ -77,13 +79,9 @@
     "react-native-voip-push-notification": "3.3.1",
     "react-native-webrtc": "~106.0.4",
     "react-test-renderer": "^18.2.0",
-    "replace-in-file": "^6.3.5",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
-    "typedoc": "^0.24.7",
-    "typedoc-plugin-markdown": "^3.15.3",
     "typescript": "^4.9.5"
-  },
-  "version": "0.0.1-alpha.294"
+  }
 }

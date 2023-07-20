@@ -6,7 +6,6 @@ const simulateUserConnection = (
   user: OwnUserResponse,
 ) => {
   client.streamClient._setUser(user);
-  client.streamClient.resolveConnectionId();
 };
 
 export const mockClientWithUser = (

@@ -2,6 +2,65 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.3...@stream-io/video-react-bindings-0.1.4) (2023-07-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.2...@stream-io/video-react-bindings-0.1.3) (2023-07-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.1...@stream-io/video-react-bindings-0.1.2) (2023-07-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.0...@stream-io/video-react-bindings-0.1.1) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.54...@stream-io/video-react-bindings-0.1.0) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.1`
+
+### ⚠ BREAKING CHANGES
+
+* Trigger breaking change to react-sdk
+
+### Features
+
+* Trigger breaking change to react-sdk ([1e1f21f](https://github.com/GetStream/stream-video-js/commit/1e1f21f212be370fbd54a36371d1a7a485e6cec4))
+
+### [0.0.54](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.53...@stream-io/video-react-bindings-0.0.54) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.0`
+### [0.0.53](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.52...@stream-io/video-react-bindings-0.0.53) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+### [0.0.52](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.51...@stream-io/video-react-bindings-0.0.52) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+### [0.0.51](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.50...@stream-io/video-react-bindings-0.0.51) (2023-07-17)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.0.1`
+
+### Bug Fixes
+
+* promote prop-types to a 'dependency' in react-sdk ([#805](https://github.com/GetStream/stream-video-js/issues/805)) ([7109c9b](https://github.com/GetStream/stream-video-js/commit/7109c9b6d4087789f44ab8beb539bca495ba8f76))
+
 ### [0.0.50](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.0.49...@stream-io/video-react-bindings-0.0.50) (2023-07-14)
 
 ### Dependency Updates

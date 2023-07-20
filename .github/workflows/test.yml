@@ -1,0 +1,64 @@
+name: Test
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  STREAM_API_KEY: ${{ vars.CLIENT_TEST_API_KEY }}
+  STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
+  TOKEN_PROVIDER_URL: ${{ vars.CLIENT_TEST_TOKEN_PROVIDER_URL }}
+
+on:
+  # Trigger flow when pushing in main or pull requests, and when creating
+  # a pull request.
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
+
+jobs:
+  test-and-build:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: ESLint Cache
+        uses: actions/cache@v3
+        with:
+          path: './.eslintcache'
+          key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
+      - name: Lint Packages
+        run: yarn lint:ci:all
+
+      - name: Test packages
+        run: yarn test:ci:all
+
+      - name: Test RN SDK
+        run: yarn test:react-native:sdk
+
+      - name: Build packages
+        run: NODE_ENV=production yarn build:all
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master

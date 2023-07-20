@@ -25,15 +25,15 @@
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci"],
-        "postTargets": ["@stream-io/video-react-native-sdk:copy-version", "@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
+        "postTargets": ["@stream-io/video-react-native-sdk:update-version", "@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
       }
     },
-    "copy-version": {
+    "update-version": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
           {
-            "command": "yarn copy-version:react-native-sdk ${version}",
+            "command": "yarn build:react-native:sdk",
             "forwardAllArgs": false
           }
         ]

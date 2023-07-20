@@ -6,19 +6,13 @@ import {
 } from './store';
 import type {
   ConnectedEvent,
-  CreateCallTypeRequest,
-  CreateCallTypeResponse,
   CreateDeviceRequest,
   CreateGuestRequest,
   CreateGuestResponse,
-  GetCallTypeResponse,
   GetEdgesResponse,
-  ListCallTypeResponse,
   ListDevicesResponse,
   QueryCallsRequest,
   QueryCallsResponse,
-  UpdateCallTypeRequest,
-  UpdateCallTypeResponse,
 } from './gen/coordinator';
 import type {
   ConnectionChangedEvent,
@@ -48,12 +42,12 @@ export class StreamVideoClient {
   readonly token?: TokenOrProvider;
   readonly logger: Logger;
 
-  private readonly writeableStateStore: StreamVideoWriteableStateStore;
+  protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
 
-  private eventHandlersToUnregister: Array<() => void> = [];
-  private connectionPromise: Promise<void | ConnectedEvent> | undefined;
-  private disconnectionPromise: Promise<void> | undefined;
+  protected eventHandlersToUnregister: Array<() => void> = [];
+  protected connectionPromise: Promise<void | ConnectedEvent> | undefined;
+  protected disconnectionPromise: Promise<void> | undefined;
 
   /**
    * You should create only one instance of `StreamVideoClient`.
@@ -379,30 +373,6 @@ export class StreamVideoClient {
     return this.streamClient.get<GetEdgesResponse>(`/edges`);
   };
 
-  // server-side only endpoints
-  createCallType = async (data: CreateCallTypeRequest) => {
-    return this.streamClient.post<CreateCallTypeResponse>(`/calltypes`, data);
-  };
-
-  getCallType = async (name: string) => {
-    return this.streamClient.get<GetCallTypeResponse>(`/calltypes/${name}`);
-  };
-
-  updateCallType = async (name: string, data: UpdateCallTypeRequest) => {
-    return this.streamClient.put<UpdateCallTypeResponse>(
-      `/calltypes/${name}`,
-      data,
-    );
-  };
-
-  deleteCallType = async (name: string) => {
-    return this.streamClient.delete(`/calltypes/${name}`);
-  };
-
-  listCallTypes = async () => {
-    return this.streamClient.get<ListCallTypeResponse>(`/calltypes`);
-  };
-
   /**
    * addDevice - Adds a push device for a user.
    *
@@ -477,26 +447,6 @@ export class StreamVideoClient {
   };
 
   /**
-   * createToken - Creates a token to authenticate this user. This function is used server side.
-   * The resulting token should be passed to the client side when the users register or logs in.
-   *
-   * @param {string} userID The User ID
-   * @param {number} [exp] The expiration time for the token expressed in the number of seconds since the epoch
-   * @param {number} [iat] The timestamp when a token has been issued
-   * @param call_cids for anonymous tokens you have to provide the call cids the use can join
-   *
-   * @return {string} Returns a token
-   */
-  createToken(
-    userID: string,
-    exp?: number,
-    iat?: number,
-    call_cids?: string[],
-  ) {
-    return this.streamClient.createToken(userID, exp, iat, call_cids);
-  }
-
-  /**
    * A callback that can be used to create ringing calls from push notifications. If the call already exists, it will do nothing.
    * @param call_cid
    * @returns
@@ -529,7 +479,7 @@ export class StreamVideoClient {
    * @param user the user to connect.
    * @param tokenOrProvider a token or a function that returns a token.
    */
-  private connectAnonymousUser = async (
+  protected connectAnonymousUser = async (
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {

@@ -1,3 +1,3 @@
 # @stream-io/video-react-bindings
 
-🚧 **WARNING** This package is not yet stable, it is for internal use only. For more information check out our [video product page](https://getstream.io/video/).
+Internal library for [video](https://getstream.io/video/). No need to install it as a standalone library.

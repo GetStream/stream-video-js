@@ -1,11 +1,17 @@
 name: Version and release
 env:
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  STREAM_API_KEY: ${{ vars.CLIENT_TEST_API_KEY }}
+  STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
+  TOKEN_PROVIDER_URL: ${{ vars.CLIENT_TEST_TOKEN_PROVIDER_URL }}
 
 on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'packages/react-native-sdk/docusaurus/**'
+      - 'packages/react-sdk/docusaurus/**'
+      - 'sample-apps/**'
 
 concurrency:
   group: version-and-release-${{ github.ref }}
