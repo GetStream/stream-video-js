@@ -310,7 +310,6 @@ In this step, we show a list of audio rooms. By clicking on a room, the user can
 Create a new file `src/RoomList.tsx` and replace it with this code:
 
 ```tsx title="src/RoomList.tsx"
-import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SafeAreaView,
@@ -323,6 +322,7 @@ import {
   View,
 } from 'react-native';
 import CreateRoomModal from './CreateRoomModal';
+  import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 type RoomFlatList = FlatListProps<Call>;
 
