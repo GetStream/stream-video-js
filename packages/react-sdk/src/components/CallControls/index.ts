@@ -1,3 +1,4 @@
+export * from './AudioOutputLevelSlider';
 export * from './AcceptCallButton';
 export * from './CallControls';
 export * from './CallStatsButton';
