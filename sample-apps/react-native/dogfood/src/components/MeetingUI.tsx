@@ -27,8 +27,8 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useI18n();
-  // const channelWatched = useChannelWatch();
-  // const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
+  const channelWatched = useChannelWatch();
+  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
 
   const call = useCall();
   const callingState = useCallCallingState();
@@ -110,7 +110,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           onPressHandler: () => {
             navigation.navigate('ChatScreen', { callId });
           },
-          // unreadBadgeCountIndicator,
+          unreadBadgeCountIndicator,
         }}
         hangUpCallButton={{
           onPressHandler: onCallHangupHandler,
