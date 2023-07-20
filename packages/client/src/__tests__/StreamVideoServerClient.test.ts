@@ -86,3 +86,25 @@ describe('StreamVideoServerClient - docs snippets', () => {
     });
   });
 });
+
+describe('StreamVideoServerClient - server side user connect', () => {
+  let client: StreamVideoServerClient;
+
+  beforeEach(() => {
+    client = new StreamVideoServerClient(apiKey, {
+      browser: false,
+      secret,
+      allowServerSideConnect: true,
+    });
+  });
+
+  it('hold up API requests until connect is ready', async () => {
+    const userId = 'server-side-test';
+    const token = client.createToken(userId);
+    client.connectUser({ id: userId }, token);
+
+    const response = await client.queryCalls({});
+
+    expect(response).toBeDefined();
+  });
+});
