@@ -28,6 +28,8 @@ export class Subscriber {
   private readonly unregisterOnSubscriberOffer: () => void;
   private readonly unregisterOnIceRestart: () => void;
 
+  private isIceRestarting = false;
+
   /**
    * Constructs a new `Subscriber` instance.
    *
@@ -192,9 +194,21 @@ export class Subscriber {
    */
   restartIce = async () => {
     logger('debug', 'Restarting ICE connection');
-    await this.sfuClient.iceRestart({
-      peerType: PeerType.SUBSCRIBER,
-    });
+    if (this.pc.signalingState === 'have-remote-offer') {
+      logger('debug', 'ICE restart is already in progress');
+      return;
+    }
+    const previosIsIceRestarting = this.isIceRestarting;
+    try {
+      this.isIceRestarting = true;
+      await this.sfuClient.iceRestart({
+        peerType: PeerType.SUBSCRIBER,
+      });
+    } catch (e) {
+      // restore the previous state, as our intent for restarting ICE failed
+      this.isIceRestarting = previosIsIceRestarting;
+      throw e;
+    }
   };
 
   private handleOnTrack = (e: RTCTrackEvent) => {
@@ -295,12 +309,11 @@ export class Subscriber {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('error', `ICE candidate error`, [e, candidate]);
+          logger('warn', `ICE candidate error`, [e, candidate]);
         }
       },
     );
 
-    // apply ice candidates
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
 
@@ -308,11 +321,16 @@ export class Subscriber {
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
     });
+
+    this.isIceRestarting = false;
   };
 
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE connection state changed`, state);
+
+    // do nothing when ICE is restarting
+    if (this.isIceRestarting) return;
 
     if (state === 'failed') {
       logger('warn', `Attempting to restart ICE`);
@@ -333,6 +351,11 @@ export class Subscriber {
           this.restartIce().catch((e) => {
             logger('error', `ICE restart failed`, e);
           });
+        } else {
+          logger(
+            'debug',
+            `Scheduled ICE restart: connection recovered, canceled.`,
+          );
         }
       }, 5000);
     }

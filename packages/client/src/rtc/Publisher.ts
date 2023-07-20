@@ -534,10 +534,7 @@ export class Publisher {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('error', `ICE candidate error`, {
-            error: e,
-            candidate,
-          });
+          logger('warn', `ICE candidate error`, [e, candidate]);
         }
       },
     );
@@ -693,6 +690,11 @@ export class Publisher {
           this.restartIce().catch((e) => {
             logger('error', `ICE restart error`, e);
           });
+        } else {
+          logger(
+            'debug',
+            `Scheduled ICE restart: connection recovered, canceled.`,
+          );
         }
       }, 5000);
     }
