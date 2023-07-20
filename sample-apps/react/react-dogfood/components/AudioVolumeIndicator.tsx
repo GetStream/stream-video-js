@@ -37,8 +37,6 @@ export const AudioVolumeIndicator = () => {
     };
   }, [initialAudioEnabled, getAudioStream, selectedAudioInputDeviceId]);
 
-  if (!initialAudioEnabled) return null;
-
   return (
     <div
       style={{
@@ -49,11 +47,11 @@ export const AudioVolumeIndicator = () => {
         padding: '0 1.25rem 1rem',
       }}
     >
-      <Icon icon="mic" />
+      <Icon icon={initialAudioEnabled ? 'mic' : 'mic-off'} />
       <div
         style={{
           flex: '1',
-          background: '#fff',
+          background: initialAudioEnabled ? '#fff' : '#777',
           height: '5px',
           borderRadius: '4px',
         }}
