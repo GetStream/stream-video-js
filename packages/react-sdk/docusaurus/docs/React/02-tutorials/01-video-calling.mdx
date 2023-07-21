@@ -110,6 +110,10 @@ export default function App() {
     };
   }, [client]);
 
+  if (!client || !call) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
