@@ -46,7 +46,7 @@ export class Subscriber {
     dispatcher,
     state,
     connectionConfig,
-    iceRestartDelay = 5000,
+    iceRestartDelay = 2500,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.dispatcher = dispatcher;
