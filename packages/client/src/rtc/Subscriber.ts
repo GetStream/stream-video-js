@@ -203,7 +203,7 @@ export class Subscriber {
       logger('debug', 'ICE restart is already in progress');
       return;
     }
-    const previosIsIceRestarting = this.isIceRestarting;
+    const previousIsIceRestarting = this.isIceRestarting;
     try {
       this.isIceRestarting = true;
       await this.sfuClient.iceRestart({
@@ -211,7 +211,7 @@ export class Subscriber {
       });
     } catch (e) {
       // restore the previous state, as our intent for restarting ICE failed
-      this.isIceRestarting = previosIsIceRestarting;
+      this.isIceRestarting = previousIsIceRestarting;
       throw e;
     }
   };
