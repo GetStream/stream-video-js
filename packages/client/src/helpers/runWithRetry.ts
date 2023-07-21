@@ -34,7 +34,7 @@ export class RetryError extends Error {
  * holds error data, if it does, it throws `RpcError` to prevent false positives for `runWithRetry` retry handler.
  */
 export const handleFalsePositiveResponse = <
-  // TODO: fix type inference
+  // TODO: fix type inference?
   T extends (...functionArguments: any[]) => any,
 >(
   f: T,
@@ -42,7 +42,7 @@ export const handleFalsePositiveResponse = <
   async function falsePositiveHandler(...functionArguments: Parameters<T>) {
     // await or throw if "f" fails
     const data = (await f(...functionArguments)) as FinishedUnaryCall<
-      {},
+      object,
       SfuResponseWithError
     >;
 
@@ -51,7 +51,8 @@ export const handleFalsePositiveResponse = <
       throw new RpcError(
         data.response.error.message,
         TwirpErrorCode.unknown.toString(),
-        // @ts-ignore - RpcError only allows for values to be string (it parses meta data for logging) though boolean parses to string so it's fine
+        // @ts-ignore - RpcError only allows for values to be string (it parses these metadata for logging)
+        // though boolean parses to string so it's fine to ignore
         { shouldRetry: data.response.error.shouldRetry },
       );
     }
@@ -65,7 +66,9 @@ export type RunWithRetryOptions<
   retryAttempts?: number;
   delayBetweenRetries?: number | ((attempt: number) => number);
   isRetryable?: (error: unknown) => boolean;
-  didValueChange?: (...functionArguments: Parameters<T>) => boolean;
+  didValueChange?: (
+    ...functionArguments: Parameters<T>
+  ) => Promise<boolean> | boolean;
 };
 
 /**
@@ -102,7 +105,7 @@ export const runWithRetry = <
       const isLastRun = retryAttempts === retryAttempt + 1;
       const isInitialRun = retryAttempt === -1;
 
-      if (didValueChange?.(...functionArguments)) {
+      if (await didValueChange?.(...functionArguments)) {
         throw new RetryError({ type: 'abort' });
       }
 
@@ -112,7 +115,7 @@ export const runWithRetry = <
         error = e;
       }
 
-      if (didValueChange?.(...functionArguments)) {
+      if (await didValueChange?.(...functionArguments)) {
         throw new RetryError({ type: 'abort' });
       }
 
