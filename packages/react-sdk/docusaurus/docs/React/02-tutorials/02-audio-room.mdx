@@ -36,6 +36,8 @@ Open up `src/App.tsx` and replace it with this code:
 ```tsx title="src/App.tsx"
 import { useEffect, useState } from 'react';
 import {
+  Call,
+  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -59,9 +61,9 @@ const user: User = {
 const client = new StreamVideoClient({ apiKey, user, token });
 
 export default function App() {
-  // initialize the call object
-  const [call] = useState(() => client.call('audio_room', callId));
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
+    const call = client.call('audio_room', callId);
     call
       .join({
         create: true,
@@ -79,7 +81,19 @@ export default function App() {
       .then(() => {
         console.log(`Successfully joined the call`);
       });
-  }, [call]);
+    setCall(call);
+
+    return () => {
+      if (call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+      setCall(undefined);
+    };
+  }, []);
+
+  if (!call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -124,15 +138,16 @@ const client = new StreamVideoClient({ apiKey, user, token });
 After the user and client are created, we create a call like this:
 
 ```tsx
-const [call] = useState(() => client.call('audio_room', callId));
+const [call, setCall] = useState<Call>();
 useEffect(() => {
+  const call = client.call('audio_room', callId);
   call
     .join({
       create: true,
       data: {
         members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
         custom: {
-          title: 'React Heads',
+          title: 'React Rooms',
           description: 'Talking about React',
         },
       },
@@ -143,7 +158,15 @@ useEffect(() => {
     .then(() => {
       console.log(`Successfully joined the call`);
     });
-}, [call]);
+  setCall(call);
+
+  return () => {
+    if (call.state.callingState !== CallingState.LEFT) {
+      call.leave();
+    }
+    setCall(undefined);
+  };
+}, []);
 ```
 
 - This joins and creates a call with the type: `audio_room` and the specified `callId`
