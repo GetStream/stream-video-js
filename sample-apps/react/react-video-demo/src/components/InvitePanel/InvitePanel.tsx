@@ -1,8 +1,8 @@
-import { FC, useCallback, useState, useRef, useEffect } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import classnames from 'classnames';
 
-import { Copy, UserChecked, Reload } from '../Icons';
+import { Copy, Reload, UserChecked } from '../Icons';
 import Panel from '../Panel';
 import Button from '../Button';
 
@@ -127,6 +127,10 @@ export const InvitePanel: FC<Props> = ({
     [styles.transform]: showQr === false,
   });
 
+  const qrCodeContent = new URL(window.location.toString());
+  qrCodeContent.searchParams.set('id', callId);
+  qrCodeContent.searchParams.set('qr', qr || 'true');
+
   return (
     <Panel
       className={rootClassname}
@@ -146,7 +150,7 @@ export const InvitePanel: FC<Props> = ({
             <div className={qrClassNames}>
               <QRCodeSVG
                 className={styles.code}
-                value={`${window.location.href}?id=${callId}`}
+                value={qrCodeContent.toString()}
               />
             </div>
           </>
