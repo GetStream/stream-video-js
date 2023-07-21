@@ -5,8 +5,9 @@ import { Publisher } from '../Publisher';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { Dispatcher } from '../Dispatcher';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { SfuEvent } from '../../gen/video/sfu/event/events';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -33,9 +34,10 @@ describe('Publisher', () => {
   let publisher: Publisher;
   let sfuClient: StreamSfuClient;
   let state: CallState;
+  let dispatcher: Dispatcher;
 
   beforeEach(() => {
-    const dispatcher = new Dispatcher();
+    dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
       sfuServer: {
@@ -52,15 +54,18 @@ describe('Publisher', () => {
     state = new CallState();
     publisher = new Publisher({
       sfuClient,
+      dispatcher,
       state,
       isDtxEnabled: true,
       isRedEnabled: true,
+      iceRestartDelay: 100,
     });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    dispatcher.offAll();
   });
 
   it('can publish, re-publish and un-publish a stream', async () => {
@@ -207,6 +212,81 @@ describe('Publisher', () => {
         sdp: 'new-sdp',
       });
       expect(sfuClient.setPublisher).toHaveBeenCalled();
+    });
+  });
+
+  describe('Publisher ICE Restart', () => {
+    it('should perform ICE restart when iceRestart event is received', () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.PUBLISHER_UNSPECIFIED,
+            },
+          },
+        }),
+      );
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it('should not perform ICE restart when iceRestart event is received for a different peer type', () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'iceRestart',
+            iceRestart: {
+              peerType: PeerType.SUBSCRIBER,
+            },
+          },
+        }),
+      );
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+    });
+
+    it(`should drop consequent ICE restart requests`, async () => {
+      // @ts-ignore
+      publisher['pc'].signalingState = 'have-local-offer';
+      // @ts-ignore
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.restartIce();
+      expect(publisher['negotiate']).not.toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      vi.runAllTimers();
+      expect(publisher.restartIce).toHaveBeenCalled();
+    });
+
+    it(`should bail-out from ICE restart once connection recovers before timeout`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      vi.useFakeTimers();
+
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // @ts-ignore
+      publisher['pc'].iceConnectionState = 'connected';
+
+      vi.runAllTimers();
+      expect(publisher.restartIce).not.toHaveBeenCalled();
     });
   });
 });

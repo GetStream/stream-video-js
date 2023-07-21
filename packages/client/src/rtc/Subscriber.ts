@@ -11,6 +11,7 @@ export type SubscriberOpts = {
   dispatcher: Dispatcher;
   state: CallState;
   connectionConfig?: RTCConfiguration;
+  iceRestartDelay?: number;
 };
 
 const logger = getLogger(['Subscriber']);
@@ -21,10 +22,15 @@ const logger = getLogger(['Subscriber']);
  */
 export class Subscriber {
   private pc: RTCPeerConnection;
-  private readonly unregisterOnSubscriberOffer: () => void;
   private sfuClient: StreamSfuClient;
   private dispatcher: Dispatcher;
   private state: CallState;
+
+  private readonly unregisterOnSubscriberOffer: () => void;
+  private readonly unregisterOnIceRestart: () => void;
+
+  private readonly iceRestartDelay: number;
+  private isIceRestarting = false;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -33,16 +39,19 @@ export class Subscriber {
    * @param dispatcher the dispatcher to use.
    * @param state the state of the call.
    * @param connectionConfig the connection configuration to use.
+   * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE when connection goes to `disconnected` state.
    */
   constructor({
     sfuClient,
     dispatcher,
     state,
     connectionConfig,
+    iceRestartDelay = 5000,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
     this.dispatcher = dispatcher;
     this.state = state;
+    this.iceRestartDelay = iceRestartDelay;
 
     this.pc = this.createPeerConnection(connectionConfig);
 
@@ -52,6 +61,16 @@ export class Subscriber {
         if (message.eventPayload.oneofKind !== 'subscriberOffer') return;
         const { subscriberOffer } = message.eventPayload;
         await this.negotiate(subscriberOffer);
+      },
+    );
+
+    this.unregisterOnIceRestart = dispatcher.on(
+      'iceRestart',
+      async (message) => {
+        if (message.eventPayload.oneofKind !== 'iceRestart') return;
+        const { iceRestart } = message.eventPayload;
+        if (iceRestart.peerType !== PeerType.SUBSCRIBER) return;
+        await this.restartIce();
       },
     );
   }
@@ -84,6 +103,7 @@ export class Subscriber {
    */
   close = () => {
     this.unregisterOnSubscriberOffer();
+    this.unregisterOnIceRestart();
     this.pc.close();
   };
 
@@ -177,9 +197,23 @@ export class Subscriber {
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
-  restartIce = () => {
+  restartIce = async () => {
     logger('debug', 'Restarting ICE connection');
-    this.pc.restartIce();
+    if (this.pc.signalingState === 'have-remote-offer') {
+      logger('debug', 'ICE restart is already in progress');
+      return;
+    }
+    const previousIsIceRestarting = this.isIceRestarting;
+    try {
+      this.isIceRestarting = true;
+      await this.sfuClient.iceRestart({
+        peerType: PeerType.SUBSCRIBER,
+      });
+    } catch (e) {
+      // restore the previous state, as our intent for restarting ICE failed
+      this.isIceRestarting = previousIsIceRestarting;
+      throw e;
+    }
   };
 
   private handleOnTrack = (e: RTCTrackEvent) => {
@@ -280,12 +314,11 @@ export class Subscriber {
           const iceCandidate = JSON.parse(candidate.iceCandidate);
           await this.pc.addIceCandidate(iceCandidate);
         } catch (e) {
-          logger('error', `ICE candidate error`, [e, candidate]);
+          logger('warn', `ICE candidate error`, [e, candidate]);
         }
       },
     );
 
-    // apply ice candidates
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
 
@@ -293,14 +326,48 @@ export class Subscriber {
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
     });
+
+    this.isIceRestarting = false;
   };
 
   private onIceConnectionStateChange = () => {
-    logger('info', `ICE connection state changed`, this.pc.iceConnectionState);
+    const state = this.pc.iceConnectionState;
+    logger('debug', `ICE connection state changed`, state);
+
+    // do nothing when ICE is restarting
+    if (this.isIceRestarting) return;
+
+    if (state === 'failed') {
+      logger('warn', `Attempting to restart ICE`);
+      this.restartIce().catch((e) => {
+        logger('error', `ICE restart failed`, e);
+      });
+    } else if (state === 'disconnected') {
+      // when in `disconnected` state, the browser may recover automatically,
+      // hence, we delay the ICE restart
+      logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
+      setTimeout(() => {
+        // check if the state is still `disconnected` or `failed`
+        // as the connection may have recovered (or failed) in the meantime
+        if (
+          this.pc.iceConnectionState === 'disconnected' ||
+          this.pc.iceConnectionState === 'failed'
+        ) {
+          this.restartIce().catch((e) => {
+            logger('error', `ICE restart failed`, e);
+          });
+        } else {
+          logger(
+            'debug',
+            `Scheduled ICE restart: connection recovered, canceled.`,
+          );
+        }
+      }, 5000);
+    }
   };
 
   private onIceGatheringStateChange = () => {
-    logger('info', `ICE gathering state changed`, this.pc.iceGatheringState);
+    logger('debug', `ICE gathering state changed`, this.pc.iceGatheringState);
   };
 
   private onIceCandidateError = (e: Event) => {
