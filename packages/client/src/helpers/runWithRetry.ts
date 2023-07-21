@@ -1,7 +1,4 @@
-const sleep = (time: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, time);
-  });
+import { sleep } from '../coordinator/connection/utils';
 
 export class RetryError extends Error {
   public name = 'RetryError';
@@ -21,30 +18,31 @@ export class RetryError extends Error {
  * function pre-defined number of times until it resolves, rejects or the retry mechanism runs out of available attempts.
  *
  * #### Available options:
- *  - `didValueChange` - check function with initial argument value to check against new values, return true to abort next attempt
+ *  - `didValueChange` - check function with initial argument value to check against new values, return `true` to abort next attempt
  *
  *  - `isRetryable` - error evaluation function which determines whether to retry the execution
  *
- *  - `delayBetweenRetries` - accepts either fixed value or function which provides retry attempt as the argument, expects number as return value
+ *  - `delayBetweenRetries` - accepts either fixed numeric value or function which provides retry attempt as the argument, expects number as return value
  *
  *  - `retryAttempts` - number of attempts to try out before rejecting the promise
  */
-export const runWithRetry =
-  <T extends (...functionArguments: any[]) => Promise<any>>(
-    f: T,
-    {
-      retryAttempts = 3,
-      delayBetweenRetries,
-      isRetryable,
-      didValueChange,
-    }: {
-      retryAttempts?: number;
-      delayBetweenRetries?: number | ((attempt: number) => number);
-      isRetryable: (error: unknown) => boolean;
-      didValueChange?: (...functionArguments: Parameters<T>) => boolean;
-    },
-  ) =>
-  async (...functionArguments: Parameters<T>) => {
+export const runWithRetry = <
+  T extends (...functionArguments: any[]) => Promise<any>,
+>(
+  f: T,
+  {
+    retryAttempts = 3,
+    delayBetweenRetries,
+    isRetryable,
+    didValueChange,
+  }: {
+    retryAttempts?: number;
+    delayBetweenRetries?: number | ((attempt: number) => number);
+    isRetryable?: (error: unknown) => boolean;
+    didValueChange?: (...functionArguments: Parameters<T>) => boolean;
+  } = {},
+) =>
+  async function retryable(...functionArguments: Parameters<T>) {
     // starting with -1 as first attempt is not considered a retry
     let retryAttempt = -1;
 
@@ -54,8 +52,9 @@ export const runWithRetry =
       const isLastRun = retryAttempts === retryAttempt + 1;
       const isInitialRun = retryAttempt === -1;
 
-      if (didValueChange?.(...functionArguments))
+      if (didValueChange?.(...functionArguments)) {
         throw new RetryError({ type: 'abort' });
+      }
 
       try {
         data = await f(...functionArguments);
@@ -63,15 +62,15 @@ export const runWithRetry =
         error = e;
       }
 
-      if (didValueChange?.(...functionArguments))
+      if (didValueChange?.(...functionArguments)) {
         throw new RetryError({ type: 'abort' });
+      }
 
       if (data) return data;
 
-      const runRetry = isRetryable?.(error) ?? false;
+      const runRetry = isRetryable?.(error) ?? true;
       if (!runRetry) throw error;
 
-      // TODO: maybe remove isInitialRun check?
       if (delayBetweenRetries && !isLastRun && !isInitialRun) {
         await sleep(
           typeof delayBetweenRetries === 'function'
