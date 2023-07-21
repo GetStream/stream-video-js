@@ -1183,18 +1183,6 @@ export class Call {
       this.state.updateParticipant(sessionId, {
         audioOutputLevel: level,
       });
-    } else if (this.sfuClient?.sessionId) {
-      this.state.updateParticipants(
-        this.state.participants.reduce<StreamVideoParticipantPatches>(
-          (acc, p) => {
-            acc[p.sessionId] = {
-              audioOutputLevel: level,
-            };
-            return acc;
-          },
-          {},
-        ),
-      );
     } else {
       this.state.setDefaultAudioOutputLevel(level);
     }

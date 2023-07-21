@@ -23,7 +23,6 @@ export const watchParticipantJoined = (state: CallState) => {
       Object.assign<StreamVideoParticipant, Partial<StreamVideoParticipant>>(
         participant,
         {
-          audioOutputLevel: state.defaultAudioOutputLevel,
           viewportVisibilityState: VisibilityState.UNKNOWN,
         },
       ),
@@ -62,15 +61,7 @@ export const watchTrackPublished = (state: CallState) => {
     // events, and instead, it would only provide the participant's information
     // once they start publishing a track.
     if (participant) {
-      state.updateOrAddParticipant(
-        sessionId,
-        Object.assign<StreamVideoParticipant, Partial<StreamVideoParticipant>>(
-          participant,
-          {
-            audioOutputLevel: state.defaultAudioOutputLevel,
-          },
-        ),
-      );
+      state.updateOrAddParticipant(sessionId, participant);
     } else {
       state.updateParticipant(sessionId, (p) => ({
         publishedTracks: [...p.publishedTracks, type].filter(unique),
