@@ -100,10 +100,10 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [ ] Write docs:
   - [ ] UI Components
   - [ ] Tutorials
-    - [ ] Video Rooms Tutorial
-    - [ ] Audio Rooms Tutorial
+    - [x] Video Rooms Tutorial
+    - [x] Audio Rooms Tutorial
   - [ ] Core
-    - [ ] Camera & Microphone
+    - [x] Camera & Microphone
   - [ ] Advanced
     - [ ] Chat Integration
     - [ ] Internationalization
