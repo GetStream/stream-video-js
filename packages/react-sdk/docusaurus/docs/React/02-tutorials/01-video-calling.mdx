@@ -449,7 +449,7 @@ import {
 import './index.css';
 
 export default function App() {
-  const[(client, setClient)] = useState<StreamVideoClient | undefined>();
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
   const [call, setCall] = useState<Call | undefined>();
 
   useEffect(() => {
