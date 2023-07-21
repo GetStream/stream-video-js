@@ -1184,7 +1184,7 @@ export class Call {
         audioOutputLevel: level,
       });
     } else {
-      this.state.setDefaultAudioOutputLevel(level);
+      this.state.setMasterAudioOutputLevel(level);
     }
   }
 

@@ -2,7 +2,7 @@ import { CompositeButton, IconButton } from '../Button';
 import { DeviceSelectorAudioOutput } from '../DeviceSettings';
 import {
   useCall,
-  useDefaultAudioOutputLevel,
+  useMasterAudioOutputLevel,
   useI18n,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
@@ -17,12 +17,12 @@ export const ToggleAudioOutputButton = (
   props: ToggleAudioOutputButtonProps,
 ) => {
   const call = useCall();
-  const defaultAudioOutputLevel = useDefaultAudioOutputLevel();
+  const masterAudioOutputLevel = useMasterAudioOutputLevel();
   const localParticipant = useLocalParticipant();
   const { t } = useI18n();
   const { caption = t('Speakers'), Menu = DeviceSelectorAudioOutput } = props;
   const enabled =
-    (localParticipant?.audioOutputLevel ?? defaultAudioOutputLevel) > 0;
+    (localParticipant?.audioOutputLevel ?? masterAudioOutputLevel) > 0;
 
   return (
     <CompositeButton Menu={Menu} active={!enabled} caption={caption}>

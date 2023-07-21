@@ -138,7 +138,7 @@ export const useCallStartedAt = () => {
  *
  * @category Call State
  */
-export const useDefaultAudioOutputLevel = () => {
-  const { defaultAudioOutputLevel$ } = useCallState();
-  return useObservableValue(defaultAudioOutputLevel$);
+export const useMasterAudioOutputLevel = () => {
+  const { masterAudioOutputLevel$ } = useCallState();
+  return useObservableValue(masterAudioOutputLevel$);
 };

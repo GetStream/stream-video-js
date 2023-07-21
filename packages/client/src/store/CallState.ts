@@ -83,9 +83,9 @@ export enum CallingState {
  */
 export class CallState {
   /**
-   * The speaker volume level that is set, if `StreamVideoParticipant.defaultAudioOutputLevelSubject` is undefined.
+   * The speaker volume level that is set, if `StreamVideoParticipant.audioOutputLevel` is undefined.
    */
-  private defaultAudioOutputLevelSubject = new BehaviorSubject<number>(1);
+  private masterAudioOutputLevelSubject = new BehaviorSubject<number>(1);
   /**
    * The raw call metadata object, as defined on the backend.
    *
@@ -173,7 +173,7 @@ export class CallState {
    * Emits the default audio output level value in form of decimal number in range of 0-1.
    * The default value is assigned to each newly joined StreamVideoParticipant's audioOutputLevel property.
    */
-  defaultAudioOutputLevel$: Observable<number>;
+  masterAudioOutputLevel$: Observable<number>;
 
   // Derived state
   /**
@@ -312,8 +312,8 @@ export class CallState {
       distinctUntilChanged(),
     );
 
-    this.defaultAudioOutputLevel$ =
-      this.defaultAudioOutputLevelSubject.asObservable();
+    this.masterAudioOutputLevel$ =
+      this.masterAudioOutputLevelSubject.asObservable();
     this.startedAt$ = this.startedAtSubject.asObservable();
     this.participantCount$ = this.participantCountSubject.asObservable();
     this.anonymousParticipantCount$ =
@@ -489,8 +489,8 @@ export class CallState {
    *
    * @internal
    */
-  get defaultAudioOutputLevel() {
-    return this.getCurrentValue(this.defaultAudioOutputLevel$);
+  get masterAudioOutputLevel() {
+    return this.getCurrentValue(this.masterAudioOutputLevel$);
   }
 
   /**
@@ -498,11 +498,11 @@ export class CallState {
    *
    * @internal
    */
-  setDefaultAudioOutputLevel = (level: number) => {
+  setMasterAudioOutputLevel = (level: number) => {
     if (level < 0 || level > 1) {
       throw new Error(`Audio output level must be in the [0-1] range`);
     }
-    return this.setCurrentValue(this.defaultAudioOutputLevelSubject, level);
+    return this.setCurrentValue(this.masterAudioOutputLevelSubject, level);
   };
 
   /**

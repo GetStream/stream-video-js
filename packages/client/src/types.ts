@@ -35,7 +35,7 @@ export enum DebounceType {
 export interface StreamVideoParticipant extends Participant {
   /**
    * The speaker volume in range 0 - 1 set by the participant.
-   * If not set, then CallState.defaultAudioOutputLevel should be reflected.
+   * If not set, then CallState.masterAudioOutputLevel should be reflected.
    */
   audioOutputLevel?: number;
 

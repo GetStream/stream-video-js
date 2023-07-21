@@ -14,7 +14,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import {
-  useDefaultAudioOutputLevel,
+  useMasterAudioOutputLevel,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
@@ -97,7 +97,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       sessionId,
     } = participant;
     const localParticipant = useLocalParticipant();
-    const defaultAudioOutputLevel = useDefaultAudioOutputLevel();
+    const masterAudioOutputLevel = useMasterAudioOutputLevel();
 
     const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
     const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -169,7 +169,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
             muted={isLocalParticipant || muteAudio}
             sinkId={localParticipant?.audioOutputDeviceId}
             audioStream={audioStream}
-            volume={participant?.audioOutputLevel ?? defaultAudioOutputLevel}
+            volume={participant?.audioOutputLevel ?? masterAudioOutputLevel}
           />
           <Video
             VideoPlaceholder={VideoPlaceholder}

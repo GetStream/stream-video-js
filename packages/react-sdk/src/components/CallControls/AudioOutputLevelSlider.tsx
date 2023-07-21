@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import {
   useCall,
-  useDefaultAudioOutputLevel,
+  useMasterAudioOutputLevel,
 } from '@stream-io/video-react-bindings';
 import { MouseEventHandler, useCallback } from 'react';
 import { Icon } from '../Icon';
@@ -15,9 +15,9 @@ export const AudioOutputLevelSlider = ({
   participant,
 }: AudioLevelControlProps) => {
   const call = useCall();
-  const defaultAudioOutputLevel = useDefaultAudioOutputLevel();
+  const masterAudioOutputLevel = useMasterAudioOutputLevel();
 
-  const audioLevel = participant?.audioOutputLevel ?? defaultAudioOutputLevel;
+  const audioLevel = participant?.audioOutputLevel ?? masterAudioOutputLevel;
 
   const handleClick: MouseEventHandler = useCallback(
     (event) => {
