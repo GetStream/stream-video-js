@@ -38,8 +38,7 @@ export class StreamVideoClient {
    * A reactive store that exposes all the state variables in a reactive manner - you can subscribe to changes of the different state variables. Our library is built in a way that all state changes are exposed in this store, so all UI changes in your application should be handled by subscribing to these variables.
    */
   readonly readOnlyStateStore: StreamVideoReadOnlyStateStore;
-  readonly user?: User;
-  readonly token?: TokenOrProvider;
+  readonly logLevel: LogLevel = 'warn';
   readonly logger: Logger;
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
@@ -109,17 +108,20 @@ export class StreamVideoClient {
             }.${sdkInfo.minor}.${sdkInfo.patch}`,
         );
       }
-      this.user = apiKeyOrArgs.user;
-      this.token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
-      if (this.user) {
-        this.streamClient.startWaitingForConnection();
-      }
     }
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
       this.writeableStateStore,
     );
+
+    if (typeof apiKeyOrArgs !== 'string') {
+      const user = apiKeyOrArgs.user;
+      const token = apiKeyOrArgs.token || apiKeyOrArgs.tokenProvider;
+      if (user) {
+        this.connectUser(user, token);
+      }
+    }
   }
 
   /**
@@ -131,30 +133,30 @@ export class StreamVideoClient {
    * @param token a token or a function that returns a token.
    */
   async connectUser(
-    user?: User,
+    user: User,
     token?: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
-    const userToConnect = user || this.user;
-    const tokenToUse = token || this.token;
-    if (!userToConnect) {
-      throw new Error('Connect user is called without user');
+    if (user.type === 'anonymous') {
+      user.id = '!anon';
+      return this.connectAnonymousUser(user as UserWithId, token);
     }
-    if (userToConnect.type === 'anonymous') {
-      userToConnect.id = '!anon';
-      return this.connectAnonymousUser(userToConnect as UserWithId, tokenToUse);
-    }
-    if (userToConnect.type === 'guest') {
-      const response = await this.createGuestUser({
-        user: {
-          ...userToConnect,
-          role: 'guest',
-        },
-      });
-      return this.connectUser(response.user, response.access_token);
-    }
-    const connectUser = () => {
-      return this.streamClient.connectUser(userToConnect, tokenToUse);
+    let connectUser = () => {
+      return this.streamClient.connectUser(user, token);
     };
+    if (user.type === 'guest') {
+      connectUser = async () => {
+        const response = await this.createGuestUser({
+          user: {
+            ...user,
+            role: 'guest',
+          },
+        });
+        return this.streamClient.connectUser(
+          response.user,
+          response.access_token,
+        );
+      };
+    }
     this.connectionPromise = this.disconnectionPromise
       ? this.disconnectionPromise.then(() => connectUser())
       : connectUser();
@@ -199,7 +201,7 @@ export class StreamVideoClient {
       this.on('call.created', (event) => {
         if (event.type !== 'call.created') return;
         const { call, members } = event;
-        if (userToConnect.id === call.created_by.id) {
+        if (user.id === call.created_by.id) {
           this.logger(
             'warn',
             'Received `call.created` sent by the current user',
@@ -225,7 +227,7 @@ export class StreamVideoClient {
       this.on('call.ring', async (event) => {
         if (event.type !== 'call.ring') return;
         const { call, members } = event;
-        if (userToConnect.id === call.created_by.id) {
+        if (user.id === call.created_by.id) {
           this.logger(
             'debug',
             'Received `call.ring` sent by the current user so ignoring the event',
@@ -267,7 +269,7 @@ export class StreamVideoClient {
    *                https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
    */
   disconnectUser = async (timeout?: number) => {
-    if (!this.streamClient.user) {
+    if (!this.streamClient.user && !this.connectionPromise) {
       return;
     }
     const disconnectUser = () => this.streamClient.disconnectUser(timeout);

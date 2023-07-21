@@ -12,6 +12,7 @@ import { Backstage } from './hosts/Backstage';
 import { Viewers } from './viewers/Viewers';
 import { HLSLivestreamUI } from './viewers/HLSLivestream';
 import { WebRTCLivestream } from './viewers/WebRTCLivestream';
+import React from 'react';
 
 const theme = createTheme({
   palette: {
@@ -55,9 +56,11 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <StreamTheme as="main" className="livestream-app">
-    <ThemeProvider theme={theme}>
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  </StreamTheme>,
+  <React.StrictMode>
+    <StreamTheme as="main" className="livestream-app">
+      <ThemeProvider theme={theme}>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </StreamTheme>
+  </React.StrictMode>,
 );

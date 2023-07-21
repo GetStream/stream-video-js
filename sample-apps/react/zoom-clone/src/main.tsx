@@ -19,6 +19,7 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './index.css';
 
 import { UserContextProvider } from './contexts/UserContext';
+import React from 'react';
 
 const router = createBrowserRouter([
   {
@@ -85,7 +86,9 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <UserContextProvider>
-    <RouterProvider router={router} />
-  </UserContextProvider>,
+  <React.StrictMode>
+    <UserContextProvider>
+      <RouterProvider router={router} />
+    </UserContextProvider>
+  </React.StrictMode>,
 );
