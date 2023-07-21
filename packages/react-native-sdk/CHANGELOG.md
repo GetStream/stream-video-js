@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.324](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.323...@stream-io/video-react-native-sdk-0.0.1-alpha.324) (2023-07-21)
+
+
+### Bug Fixes
+
+* strict mode issue ([#740](https://github.com/GetStream/stream-video-js/issues/740)) ([c39e4e4](https://github.com/GetStream/stream-video-js/commit/c39e4e4041a2326393478ad808b2aa791d50f8ce))
+
+
+
 ## [0.0.1-alpha.323](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.322...@stream-io/video-react-native-sdk-0.0.1-alpha.323) (2023-07-21)
 
 
