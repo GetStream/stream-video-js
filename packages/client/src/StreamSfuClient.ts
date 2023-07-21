@@ -22,11 +22,7 @@ import {
   TrackSubscriptionDetails,
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
-import {
-  Error as SfuError,
-  ICETrickle,
-  TrackType,
-} from './gen/video/sfu/models/models';
+import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
 import {
   generateUUIDv4,
   retryInterval,
@@ -35,6 +31,12 @@ import {
 import { SFUResponse } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger } from './logger';
+import {
+  SfuResponseWithError,
+  handleFalsePositiveResponse,
+  isRetryablePreset,
+  runWithRetry,
+} from './helpers/runWithRetry';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -225,58 +227,48 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    return retryable(
-      () =>
-        this.rpc.updateSubscriptions({
-          sessionId: this.sessionId,
-          tracks: subscriptions,
-        }),
-      this.logger,
-    );
+    // TODO: retry handler lifted to Call so the state is reachable (?)
+    return this.rpc.updateSubscriptions({
+      sessionId: this.sessionId,
+      tracks: subscriptions,
+    });
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    return retryable(
-      () =>
-        this.rpc.setPublisher({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-    );
+    // FIXME: needs to compare values to abort
+    return runWithRetry(handleFalsePositiveResponse(this.rpc.setPublisher), {
+      isRetryable: isRetryablePreset,
+    })({
+      ...data,
+      sessionId: this.sessionId,
+    });
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return retryable(
-      () =>
-        this.rpc.sendAnswer({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-    );
+    return runWithRetry(handleFalsePositiveResponse(this.rpc.sendAnswer), {
+      isRetryable: isRetryablePreset,
+    })({
+      ...data,
+      sessionId: this.sessionId,
+    });
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return retryable(
-      () =>
-        this.rpc.iceTrickle({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-    );
+    return runWithRetry(handleFalsePositiveResponse(this.rpc.iceTrickle), {
+      isRetryable: isRetryablePreset,
+    })({
+      ...data,
+      sessionId: this.sessionId,
+    });
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
-    return retryable(
-      () =>
-        this.rpc.iceRestart({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-    );
+    return runWithRetry(handleFalsePositiveResponse(this.rpc.iceRestart), {
+      isRetryable: isRetryablePreset,
+    })({
+      ...data,
+      sessionId: this.sessionId,
+    });
   };
 
   updateMuteState = async (trackType: TrackType, muted: boolean) => {
@@ -293,14 +285,15 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    return retryable(
-      () =>
-        this.rpc.updateMuteStates({
-          ...data,
-          sessionId: this.sessionId,
-        }),
-      this.logger,
-    );
+    return runWithRetry(
+      handleFalsePositiveResponse(this.rpc.updateMuteStates),
+      {
+        isRetryable: isRetryablePreset,
+      },
+    )({
+      ...data,
+      sessionId: this.sessionId,
+    });
   };
 
   join = async (data: Omit<JoinRequest, 'sessionId' | 'token'>) => {
@@ -363,18 +356,6 @@ export class StreamSfuClient {
       }
     }, this.unhealthyTimeoutInMs);
   };
-}
-
-/**
- * An internal interface which asserts that "retryable" SFU responses
- * contain a field called "error".
- * Ideally, this should be coming from the Protobuf definitions.
- */
-interface SfuResponseWithError {
-  /**
-   * An optional error field which should be present in all SFU responses.
-   */
-  error?: SfuError;
 }
 
 const MAX_RETRIES = 5;
