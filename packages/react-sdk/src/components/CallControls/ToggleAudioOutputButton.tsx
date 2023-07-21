@@ -4,7 +4,6 @@ import {
   useCall,
   useMasterAudioOutputLevel,
   useI18n,
-  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { ComponentType } from 'react';
 
@@ -18,11 +17,9 @@ export const ToggleAudioOutputButton = (
 ) => {
   const call = useCall();
   const masterAudioOutputLevel = useMasterAudioOutputLevel();
-  const localParticipant = useLocalParticipant();
   const { t } = useI18n();
   const { caption = t('Speakers'), Menu = DeviceSelectorAudioOutput } = props;
-  const enabled =
-    (localParticipant?.audioOutputLevel ?? masterAudioOutputLevel) > 0;
+  const enabled = masterAudioOutputLevel > 0;
 
   return (
     <CompositeButton Menu={Menu} active={!enabled} caption={caption}>
