@@ -1186,7 +1186,7 @@ export class Call {
     } else {
       this.state.setMasterAudioOutputLevel(level);
     }
-  }
+  };
 
   /**
    * Sets the `audioDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
