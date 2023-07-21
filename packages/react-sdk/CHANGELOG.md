@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.8...@stream-io/video-react-sdk-0.1.9) (2023-07-21)
+
+
+### Documentation
+
+* Fix code snippet in video calling tutorial ([dc8f8cc](https://github.com/GetStream/stream-video-js/commit/dc8f8cc58d13b32eda2c7624152470c5909698e7))
+
 ### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.7...@stream-io/video-react-sdk-0.1.8) (2023-07-21)
 
 ### Dependency Updates
