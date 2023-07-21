@@ -1,4 +1,4 @@
-import { useCallMetadata } from '@stream-io/video-react-native-sdk';
+import { useCallMetadata, useI18n } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,15 +6,18 @@ export const DescriptionPanel = () => {
   const metadata = useCallMetadata();
   const custom = metadata?.custom;
   const participantsCount = metadata?.session?.participants?.length ?? 0;
+  const { t } = useI18n();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{custom?.title ?? '<Title>'}</Text>
+      <Text style={styles.title}>{custom?.title ?? `<${t('Title')}>`}</Text>
       <Text style={styles.subtitle}>
-        {custom?.description ?? '<Description>'}
+        {custom?.description ?? `<${t('Description')}>`}
       </Text>
       <Text style={styles.participantsCount}>
-        {participantsCount} joined participants
+        {t('{{ numberOfParticipants }} participant(s) are in the call.', {
+          numberOfParticipants: participantsCount,
+        })}
       </Text>
     </View>
   );

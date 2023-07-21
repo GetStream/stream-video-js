@@ -36,7 +36,7 @@ export const ChooseAppModeScreen = () => {
           buttonStyle={styles.callButton}
         />
         <Button
-          title="Audio Room"
+          title={t('Audio Rooms')}
           onPress={onAudioRoomSelect}
           buttonStyle={styles.callButton}
         />

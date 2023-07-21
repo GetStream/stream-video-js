@@ -33,7 +33,21 @@
   "Join As Guest": "Join As Guest",
   "Continue Anonymously": "Continue Anonymously",
   "Join Call": "Join Call",
+  "Title": "Title",
+  "Description": "Description",
+  "Stop Live and Leave": "Stop Live and Leave",
+  "Join the Live Call": "Join the Live Call",
+  "Start Live and Join": "Start Live and Join",
+  "Leave quietly": "Leave quietly",
+  "Approve": "Approve",
+  "Deny": "Deny",
+  "Create": "Create",
+  "Audio Rooms": "Audio Rooms",
+  "Load more": "Load more",
+  "Type the title of the room": "Type the title of the room",
+  "Type the description of the room": "Type the description of the room",
   "Hello, {{ userName }}": "Hello, {{ userName }}",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
-  "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}."
+  "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}.",
+  "{{ user }} requested to {{ permissions }}": "{{ user }} requested to {{ permissions }}"
 }

@@ -10,7 +10,11 @@ import {
   RefreshControl,
 } from 'react-native';
 import { appTheme } from '../../theme';
-import { Call, useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  Call,
+  useI18n,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import CreateRoomModal from './CreateRoomModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,6 +31,7 @@ const RoomList = (props: Props) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loadingCalls, setLoadingCalls] = useState(true);
   const [loadingError, setLoadingError] = useState<Error>();
+  const { t } = useI18n();
   // state for the pull to refresh
   const [refreshing, setRefreshing] = React.useState(false);
   // holds the cursor to the next page of calls
@@ -139,8 +144,9 @@ const RoomList = (props: Props) => {
     return loadingCalls ? (
       <ActivityIndicator size={'small'} style={styles.activityIndicator} />
     ) : (
-      <Button onPress={queryLiveCalls} title="Load more" />
+      <Button onPress={queryLiveCalls} title={t('Load more')} />
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingCalls, queryLiveCalls]);
 
   const renderEmpty: RoomFlatList['ListEmptyComponent'] = useCallback(() => {

@@ -99,7 +99,7 @@ const JoinCallScreen = () => {
             </Pressable>
           );
         })}
-        <Text style={styles.orText}>Or</Text>
+        <Text style={styles.orText}>{t('OR')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
