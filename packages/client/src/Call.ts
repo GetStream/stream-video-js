@@ -1168,13 +1168,13 @@ export class Call {
   };
 
   /**
-   * Updates the audio output level for a given sessionId (participant session)
-   * or for all the participants in an active call
-   * of the default call audio output level outside the active call scenarion (e.g. lobby).
-   * @param level
-   * @param sessionId
+   * Updates the audio output level for a given sessionId (participant session) or,
+   * the master volume if `sessionId` is omitted.
+   *
+   * @param level the audio level [0 - 1].
+   * @param sessionId an optional session id.
    */
-  setAudioOutputLevel(level: number, sessionId?: string) {
+  setAudioOutputLevel = (level: number, sessionId?: string) => {
     if (level < 0 || level > 1) {
       throw new Error(`Audio output level must be in the [0-1] range`);
     }

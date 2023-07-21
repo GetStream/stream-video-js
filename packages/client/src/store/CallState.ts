@@ -171,7 +171,6 @@ export class CallState {
 
   /**
    * Emits the default audio output level value in form of decimal number in range of 0-1.
-   * The default value is assigned to each newly joined StreamVideoParticipant's audioOutputLevel property.
    */
   masterAudioOutputLevel$: Observable<number>;
 
