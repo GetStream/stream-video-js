@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   useCall,
   useDefaultAudioOutputLevel,
+  useLocalParticipant,
   useParticipants,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
@@ -88,6 +89,7 @@ export const PaginatedGridLayout = ({
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
   const defaultAudioOutputLevel = useDefaultAudioOutputLevel();
 
   // only used to render video elements
@@ -118,6 +120,7 @@ export const PaginatedGridLayout = ({
       {remoteParticipants.map((participant) => (
         <Audio
           muted={false}
+          sinkId={localParticipant?.audioOutputDeviceId}
           key={participant.sessionId}
           audioStream={participant.audioStream}
           volume={participant?.audioOutputLevel ?? defaultAudioOutputLevel}

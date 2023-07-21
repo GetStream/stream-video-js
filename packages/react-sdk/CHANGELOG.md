@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.5...@stream-io/video-react-sdk-0.1.6) (2023-07-20)
+
+
+### Bug Fixes
+
+* Apply sinkId settings in paginated grid layout ([#829](https://github.com/GetStream/stream-video-js/issues/829)) ([017996b](https://github.com/GetStream/stream-video-js/commit/017996b42c3df3faaff40c15999880e65b3e097a))
+
 ### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.4...@stream-io/video-react-sdk-0.1.5) (2023-07-20)
 
 ### Dependency Updates
