@@ -71,7 +71,7 @@ import {
   CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
@@ -128,7 +128,7 @@ export default function App() {
 
 ### Styling
 
-Let's see the content of the `styles.css`:
+Let's see the content of the `index.css`:
 
 - It imports the `@stream-io/video-react-sdk` stylesheet
 - It provides a very basic layout for the video call UI
@@ -234,6 +234,7 @@ This is the full code after this step:
 import { useEffect, useState } from 'react';
 import {
   Call,
+  CallingState,
   ParticipantView,
   StreamCall,
   StreamTheme,
@@ -245,7 +246,7 @@ import {
   useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
@@ -356,7 +357,7 @@ import {
   CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
@@ -447,7 +448,7 @@ import {
   CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
   const[(client, setClient)] = useState<StreamVideoClient | undefined>();
