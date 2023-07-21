@@ -134,7 +134,7 @@ export class StreamVideoClient {
    */
   async connectUser(
     user: User,
-    token: TokenOrProvider,
+    token?: TokenOrProvider,
   ): Promise<void | ConnectedEvent> {
     if (user.type === 'anonymous') {
       user.id = '!anon';
