@@ -499,6 +499,9 @@ export class CallState {
    * @internal
    */
   setDefaultAudioOutputLevel = (level: number) => {
+    if (level < 0 || level > 1) {
+      throw new Error(`Audio output level must be in the [0-1] range`);
+    }
     return this.setCurrentValue(this.defaultAudioOutputLevelSubject, level);
   };
 
