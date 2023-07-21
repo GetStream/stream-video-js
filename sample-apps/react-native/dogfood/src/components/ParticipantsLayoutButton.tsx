@@ -29,15 +29,24 @@ const LayoutSelectionItem = ({
       }}
       style={styles.modalButton}
     >
-      <Text style={styles.modalText}>
-        {selectedLayout === layout ? '• ' : '  '}
+      <Text
+        style={[
+          styles.modalText,
+          {
+            color:
+              selectedLayout === layout
+                ? appTheme.colors.primary
+                : appTheme.colors.static_white,
+          },
+        ]}
+      >
         {layout[0].toUpperCase() + layout.substring(1)}
       </Text>
     </Pressable>
   );
 };
 
-export const ParticipantsLayoutButtons = ({
+export const ParticipantsLayoutSwitchButton = ({
   selectedLayout,
   setSelectedLayout,
 }: {
@@ -95,10 +104,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    margin: appTheme.spacing.xl,
-    backgroundColor: appTheme.colors.static_white,
+    backgroundColor: appTheme.colors.static_grey,
     borderRadius: 20,
-    padding: appTheme.spacing.lg,
+    padding: appTheme.spacing.md,
     alignItems: 'flex-start',
     shadowColor: '#000',
     shadowOffset: {
@@ -113,21 +121,14 @@ const styles = StyleSheet.create({
     height: 30,
     width: 30,
   },
-  selectedModeText: {
-    minWidth: 10,
-  },
   modalButton: {
     padding: appTheme.spacing.lg,
-    flexDirection: 'row',
   },
   modalText: {
-    fontSize: 18,
-    color: 'black',
+    fontSize: 20,
     fontWeight: 'bold',
   },
   buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
     paddingHorizontal: appTheme.spacing.sm,
   },
 });
