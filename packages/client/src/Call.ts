@@ -1166,13 +1166,17 @@ export class Call {
   };
 
   /**
-   * Updates the audio output level for a given participant or for all the participants and the default call audio output level.
+   * Updates the audio output level for a given sessionId (participant session) or for all the participants and the default call audio output level.
    * @param level
-   * @param participant
+   * @param sessionId
    */
-  setAudioOutputLevel(level: number, participant?: StreamVideoParticipant) {
-    if (participant) {
-      this.state.updateParticipant(participant.sessionId, {
+  setAudioOutputLevel(level: number, sessionId?: string) {
+    if (level < 0 || level > 1) {
+      throw new Error(`Audio output level must be in the [0-1] range`);
+    }
+
+    if (sessionId) {
+      this.state.updateParticipant(sessionId, {
         audioOutputLevel: level,
       });
     } else if (this.sfuClient?.sessionId) {
@@ -1188,7 +1192,7 @@ export class Call {
         ),
       );
     }
-    if (!participant) {
+    if (!sessionId) {
       this.state.setDefaultAudioOutputLevel(level);
     }
   }

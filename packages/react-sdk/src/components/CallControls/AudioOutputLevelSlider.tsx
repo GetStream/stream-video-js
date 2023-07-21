@@ -3,7 +3,7 @@ import {
   useCall,
   useDefaultAudioOutputLevel,
 } from '@stream-io/video-react-bindings';
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, useCallback } from 'react';
 import { Icon } from '../Icon';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
@@ -19,13 +19,16 @@ export const AudioOutputLevelSlider = ({
 
   const audioLevel = participant?.audioOutputLevel ?? defaultAudioOutputLevel;
 
-  const handleClick: MouseEventHandler = (event) => {
-    const { width, x } = event.currentTarget.getBoundingClientRect();
+  const handleClick: MouseEventHandler = useCallback(
+    (event) => {
+      const { width, x } = event.currentTarget.getBoundingClientRect();
 
-    const volume = +((event.clientX - x) / width).toFixed(2);
-
-    call?.setAudioOutputLevel(volume > 0 ? volume : 0);
-  };
+      const volume = +((event.clientX - x) / width).toFixed(2);
+      const validatedVolume = volume < 0 ? 0 : volume > 1 ? 1 : volume;
+      call?.setAudioOutputLevel(validatedVolume, participant?.sessionId);
+    },
+    [call, participant],
+  );
 
   return (
     <div
