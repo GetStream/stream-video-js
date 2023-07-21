@@ -1,7 +1,10 @@
 import React from 'react';
 import { CallParticipantsGridView } from './internal/CallParticipantsGridView';
 import { CallParticipantsSpotlightView } from './internal/CallParticipantsSpotlightView';
-import { useHasOngoingScreenShare } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useHasOngoingScreenShare,
+} from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 
 export type CallContentViewProps = {
@@ -19,8 +22,10 @@ export type CallContentViewProps = {
  */
 export const CallContentView = ({ mode }: CallContentViewProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
+  const callType = useCall()?.type;
 
-  const showSpotLightModeView = mode === 'spotlight' || hasScreenShare;
+  const showSpotLightModeView =
+    callType !== 'audio_room' && (mode === 'spotlight' || hasScreenShare);
 
   return (
     <View style={styles.container}>

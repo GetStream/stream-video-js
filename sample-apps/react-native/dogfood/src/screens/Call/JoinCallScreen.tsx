@@ -16,40 +16,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
+import { KnownUsers } from '../../constants/KnownUsers';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
-
-  const users = [
-    {
-      id: 'steve',
-      name: 'Steve Galilli',
-      image: 'https://ca.slack-edge.com/T02RM6X6B-U039J798FJ7-894cf1f07326-512',
-    },
-    {
-      id: 'khushal',
-      name: 'Khushal Agarwal',
-      image: 'https://ca.slack-edge.com/T02RM6X6B-U02DTREQ2KX-5d600c87d3bc-512',
-    },
-    {
-      id: 'santhosh',
-      name: 'Santhosh Vaiyapuri',
-      image: 'https://ca.slack-edge.com/T02RM6X6B-U0359AX2TUY-dc7dbec0bb88-512',
-    },
-    {
-      id: 'oliver',
-      name: 'Oliver Lazoroski',
-      image: 'https://ca.slack-edge.com/T02RM6X6B-U03HJKTMSQZ-cdf636547793-512',
-    },
-    {
-      id: 'zita',
-      name: 'Zita Szupera',
-      image: 'https://ca.slack-edge.com/T02RM6X6B-U02CA8MV9D1-8631020b96bf-512',
-    },
-  ];
 
   const startCallHandler = useCallback(async () => {
     let ringingUserIds = !ringingUserIdsText
@@ -101,29 +74,27 @@ const JoinCallScreen = () => {
     >
       <View>
         <Text style={styles.headerText}>Select Participants</Text>
-        {users
-          .filter((user) => user.id !== userId)
-          .map((user) => {
-            return (
-              <Pressable
-                style={styles.participant}
-                key={user.id}
-                onPress={() => ringingUsersSetHandler(user.id)}
+        {KnownUsers.filter((user) => user.id !== userId).map((user) => {
+          return (
+            <Pressable
+              style={styles.participant}
+              key={user.id}
+              onPress={() => ringingUsersSetHandler(user.id)}
+            >
+              <Image source={{ uri: user.image }} style={styles.avatar} />
+              <Text
+                style={[
+                  styles.text,
+                  isRingingUserSelected(user.id)
+                    ? styles.selectedParticipant
+                    : null,
+                ]}
               >
-                <Image source={{ uri: user.image }} style={styles.avatar} />
-                <Text
-                  style={[
-                    styles.text,
-                    isRingingUserSelected(user.id)
-                      ? styles.selectedParticipant
-                      : null,
-                  ]}
-                >
-                  {user.name + ' - id: ' + user.id}
-                </Text>
-              </Pressable>
-            );
-          })}
+                {user.name + ' - id: ' + user.id}
+              </Text>
+            </Pressable>
+          );
+        })}
         <Text style={styles.orText}>Or</Text>
         <TextInput
           autoCapitalize="none"
@@ -133,7 +104,7 @@ const JoinCallScreen = () => {
           onChangeText={(value) => {
             setRingingUserIdsText(value);
           }}
-          textInputStyle={styles.textInputStyle}
+          style={styles.textInputStyle}
         />
       </View>
       <Button

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   useCall,
+  useLocalParticipant,
   useParticipants,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
@@ -87,6 +88,7 @@ export const PaginatedGridLayout = ({
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
 
   // only used to render video elements
   const participantGroups = useMemo(
@@ -116,6 +118,7 @@ export const PaginatedGridLayout = ({
       {remoteParticipants.map((participant) => (
         <Audio
           muted={false}
+          sinkId={localParticipant?.audioOutputDeviceId}
           key={participant.sessionId}
           audioStream={participant.audioStream}
         />
