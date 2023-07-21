@@ -8,7 +8,13 @@ import {
 import { ComponentType } from 'react';
 
 export type ToggleAudioOutputButtonProps = {
+  /**
+   * The explanatory text displayed under the control button.
+   */
   caption?: string;
+  /**
+   * A custom component to render the list of available audio output devices.
+   */
   Menu?: ComponentType;
 };
 

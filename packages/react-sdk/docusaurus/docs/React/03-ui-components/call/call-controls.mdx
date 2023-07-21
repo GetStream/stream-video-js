@@ -59,6 +59,20 @@ This component is used in the [ringing call component](../ringing-call) to accep
 | `onClick`  | Event handler to override the default click behavior   | `MouseEventHandler<HTMLButtonElement>` \| `undefined` |
 | `onAccept` | Custom event handler to call after the call was joined | `() => void` \| `undefined`                           |
 
+### AudioOutputLevelSlider
+
+The component allows to set the audio output level. This can be
+
+- the master level applied to control the sound volume for all audio streams arriving from remote participants (if no `participant` is specified in props)
+- the audio level for a specific participant (to lower the volume of a participant that speaks too loud or increase for those inaudible)
+
+#### Props
+
+
+| Name       | Description                                          | Type                                                  |
+| ---------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| `participant` | Participant whose sound volume is to be adjusted.                     | `StreamVideoParticipant` \| `undefined`                              |
+
 ### `CancelCallButton`
 
 This component can be used to leave a call or to reject an incoming/outgoing call.
@@ -114,6 +128,7 @@ This component can be used to toggle the [initial audio state](../../../guides/c
 | Name      | Description                                             | Type                    |
 | --------- | ------------------------------------------------------- | ----------------------- |
 | `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+| `Menu`    | A custom component to render the list of available audio input devices. | `ComponentType` \| `undefined` |
 
 ### `ToggleAudioPublishingButton`
 
@@ -127,16 +142,21 @@ This component can be used to
 | Name      | Description                                             | Type                    |
 | --------- | ------------------------------------------------------- | ----------------------- |
 | `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+| `Menu`    | A custom component to render the list of available audio input devices. | `ComponentType` \| `undefined` |
 
 ### `ToggleAudioOutputButton`
 
-This component can be used to select the audio output device (if the currently used browser [supports audio output selection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId)).
+The component should be rendered only if the currently used browser [supports audio output selection](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId). It can be used to:
+
+- toggle the master audio output level on / off
+- invoke a menu to select the audio output device.
 
 #### Props
 
-| Name      | Description                                             | Type                    |
-| --------- | ------------------------------------------------------- | ----------------------- |
-| `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+| Name      | Description                                                   | Type              |
+|-----------|---------------------------------------------------------------|-------------------|
+| `caption` | The explanatory text displayed under the control button.       | `string` \| `undefined` |
+| `Menu`    | A custom component to render the list of available audio output devices. | `ComponentType` \| `undefined` |
 
 ### `ToggleVideoPreviewButton`
 
@@ -147,6 +167,7 @@ This component can be used to toggle the [initial video state](../../../guides/c
 | Name      | Description                                             | Type                    |
 | --------- | ------------------------------------------------------- | ----------------------- |
 | `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+| `Menu`    | A custom component to render the list of available video input (camera) devices. | `ComponentType` \| `undefined` |
 
 ### `ToggleVideoPublishingButton`
 
@@ -160,6 +181,7 @@ This component can be used to
 | Name      | Description                                             | Type                    |
 | --------- | ------------------------------------------------------- | ----------------------- |
 | `caption` | The explanatory text displayed under the control button | `string` \| `undefined` |
+| `Menu`    | A custom component to render the list of available video input (camera) devices. | `ComponentType` \| `undefined` |
 
 ### `CallStatsButton`
 

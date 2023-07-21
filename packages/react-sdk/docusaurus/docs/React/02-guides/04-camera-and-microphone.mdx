@@ -181,6 +181,36 @@ console.log('Audio output devices: ', audioOutputDevices);
 switchDevice('audiooutput', '<device id>');
 ```
 
+### Speaker device volume
+
+The speaker device volume can be set on the master level for all the participants as well as for a selected participant. The master audio output level is stored in `Call` state and can be retrieved using the `useMasterAudioOutputLevel` hook. The level for a specific participant should be retrieved per `StreamVideoParticipant.audioOutputLevel`.
+
+The volume can then be set to SDK's `Audio` component:
+
+```tsx
+const CustomComponent = ({participant}: {participant: StreamVideoParticipant}) => {
+  const masterAudioOutputLevel = useMasterAudioOutputLevel();
+  const localParticipant = useLocalParticipant();
+
+  return (
+    <Audio
+          muted={participant.isLocalParticipant}
+          sinkId={localParticipant?.audioOutputDeviceId}
+          key={participant.sessionId}
+          audioStream={participant.audioStream}
+          volume={participant?.audioOutputLevel ?? masterAudioOutputLevel}
+        />
+    );
+}
+```
+
+There are two components bundled with the SDK, that allow us to control the audio output level:
+
+1. [`ToggleAudioOutputButton`](../../ui-components/call/call-controls#toggleaudiooutputbutton) - toggles the value between 0 and 1
+2. [`AudioOutputLevelSlider`](../../ui-components/call/call-controls#audiooutputlevelslider) - sets the decimal value in range 0 - 1
+
+
+
 ### Client-side settings
 
 It's possible to preselect the speaker device. A potential use-case would be to apply the user's previous choices loaded from `localStorage`.

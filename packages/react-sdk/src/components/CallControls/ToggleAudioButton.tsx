@@ -13,7 +13,13 @@ import { PermissionNotification } from '../Notification';
 import { useToggleAudioMuteState } from '../../hooks';
 
 export type ToggleAudioPreviewButtonProps = {
+  /**
+   * The explanatory text displayed under the control button.
+   */
   caption?: string;
+  /**
+   * A custom component to render the list of available audio input devices.
+   */
   Menu?: ComponentType;
 };
 
@@ -40,7 +46,13 @@ export const ToggleAudioPreviewButton = (
 };
 
 export type ToggleAudioPublishingButtonProps = {
+  /**
+   * The explanatory text displayed under the control button.
+   */
   caption?: string;
+  /**
+   * A custom component to render the list of available audio input devices.
+   */
   Menu?: ComponentType;
 };
 

@@ -13,7 +13,13 @@ import { PermissionNotification } from '../Notification';
 import { useToggleVideoMuteState } from '../../hooks';
 
 export type ToggleVideoPreviewButtonProps = {
+  /**
+   * The explanatory text displayed under the control button.
+   */
   caption?: string;
+  /**
+   * A custom component to render the list of available video input (camera) devices.
+   */
   Menu?: ComponentType;
 };
 
@@ -39,7 +45,13 @@ export const ToggleVideoPreviewButton = (
 };
 
 type ToggleVideoPublishingButtonProps = {
+  /**
+   * The explanatory text displayed under the control button.
+   */
   caption?: string;
+  /**
+   * A custom component to render the list of video input (camera) devices.
+   */
   Menu?: ComponentType;
 };
 

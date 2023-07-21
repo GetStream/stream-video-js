@@ -8,6 +8,9 @@ import { Icon } from '../Icon';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type AudioLevelControlProps = {
+  /**
+   * Participant whose sound volume is to be adjusted.
+   */
   participant?: StreamVideoParticipant;
 };
 
