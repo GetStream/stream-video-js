@@ -51,13 +51,13 @@ export const GuestModeScreen = ({
           placeholder={t('Meeting Id')}
           value={callId}
           onChangeText={(value) => setCallId(value)}
-          textInputStyle={styles.textInputStyle}
+          style={styles.textInputStyle}
         />
         <TextInput
           placeholder={t('Your name')}
           value={username}
           onChangeText={(value) => setUsername(value)}
-          textInputStyle={styles.textInputStyle}
+          style={styles.textInputStyle}
         />
       </View>
       <View>

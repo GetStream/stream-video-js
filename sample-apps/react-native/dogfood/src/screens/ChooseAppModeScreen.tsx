@@ -13,6 +13,10 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'Meeting' });
   };
 
+  const onAudioRoomSelect = () => {
+    setState({ appMode: 'Audio-Room' });
+  };
+
   const onRingingSelect = () => {
     setState({ appMode: 'Call' });
   };
@@ -29,6 +33,11 @@ export const ChooseAppModeScreen = () => {
         <Button
           title={t('Call')}
           onPress={onRingingSelect}
+          buttonStyle={styles.callButton}
+        />
+        <Button
+          title="Audio Room"
+          onPress={onAudioRoomSelect}
           buttonStyle={styles.callButton}
         />
       </View>
