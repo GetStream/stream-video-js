@@ -7,7 +7,7 @@ import {
 } from '../../contexts';
 
 export type StreamCallProps = {
-  call: Call | undefined;
+  call: Call;
 
   /**
    * An optional props to pass to the `MediaDevicesProvider`.
@@ -20,9 +20,6 @@ export const StreamCall = ({
   call,
   mediaDevicesProviderProps,
 }: PropsWithChildren<StreamCallProps>) => {
-  if (!call) {
-    return null;
-  }
   return (
     <StreamCallProvider call={call}>
       <MediaDevicesProvider {...mediaDevicesProviderProps}>

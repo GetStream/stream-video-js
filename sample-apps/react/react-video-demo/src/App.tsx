@@ -163,6 +163,10 @@ const Init = () => {
     return <EndCallView />;
   }
 
+  if (!client || !activeCall) {
+    return null;
+  }
+
   if (storedDeviceSettings) {
     return (
       <StreamVideo client={client}>

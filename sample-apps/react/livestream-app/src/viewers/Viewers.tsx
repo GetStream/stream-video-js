@@ -13,6 +13,11 @@ import { ErrorPanel, LoadingPanel } from '../LoadingState';
 export const Viewers = () => {
   const { callId } = useParams<{ callId?: string }>();
   const client = useInitVideoClient({ role: 'user' });
+
+  if (!client) {
+    return;
+  }
+
   return (
     <StreamVideo client={client}>
       {!callId ? <SetupForm /> : <ViewerLivestream />}

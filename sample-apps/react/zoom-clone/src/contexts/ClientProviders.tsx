@@ -35,7 +35,7 @@ export const ClientProviders = ({
     };
   }, [user]);
 
-  if (!chatClient) return null;
+  if (!chatClient || !videoClient) return null;
 
   return (
     <Chat theme="str-chat__theme-dark" client={chatClient}>

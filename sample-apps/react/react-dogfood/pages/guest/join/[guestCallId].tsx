@@ -80,6 +80,10 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   }, [call]);
 
   useGleap(gleapApiKey, client, user);
+
+  if (!client || !call) {
+    return null;
+  }
   return (
     <>
       <Head>

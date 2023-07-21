@@ -43,6 +43,10 @@ export const CallRecordingsPage = ({
     };
   }, []);
 
+  if (!videoClient) {
+    return null;
+  }
+
   return (
     <StreamVideo client={videoClient} language={language}>
       <LobbyHeader />

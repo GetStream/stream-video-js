@@ -35,7 +35,7 @@ export const ClientProviders = ({
     };
   }, [user]);
 
-  if (!chatClient) return null;
+  if (!chatClient || !videoClient) return null;
 
   return (
     <Chat client={chatClient}>

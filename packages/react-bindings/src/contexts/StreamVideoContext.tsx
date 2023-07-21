@@ -1,10 +1,4 @@
-import {
-  createContext,
-  PropsWithChildren,
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { StreamVideoClient } from '@stream-io/video-client';
 import {
   StreamI18nProvider,
@@ -20,7 +14,7 @@ const StreamVideoContext = createContext<StreamVideoClient | undefined>(
  * @internal
  */
 export type StreamVideoProps = StreamI18nProviderProps & {
-  client: StreamVideoClient | undefined;
+  client: StreamVideoClient;
 };
 
 /**
@@ -36,9 +30,6 @@ export const StreamVideo = ({
   language,
   translationsOverrides,
 }: PropsWithChildren<StreamVideoProps>) => {
-  if (!client) {
-    return null;
-  }
   return (
     <StreamVideoContext.Provider value={client}>
       <StreamI18nProvider

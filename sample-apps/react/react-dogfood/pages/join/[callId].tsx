@@ -94,6 +94,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   useGleap(gleapApiKey, client, user);
 
   const settings = getDeviceSettings();
+
+  if (!client || !call) {
+    return null;
+  }
+
   return (
     <>
       <Head>
