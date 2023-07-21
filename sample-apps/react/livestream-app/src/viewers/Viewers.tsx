@@ -15,7 +15,7 @@ export const Viewers = () => {
   const client = useInitVideoClient({ role: 'user' });
 
   if (!client) {
-    return;
+    return null;
   }
 
   return (
