@@ -3,8 +3,6 @@ title: Video Call Tutorial
 description: How to build a video call similar to Zoom or facebook messenger
 ---
 
-import ImageShowcase from '@site/src/components/ImageShowcase';
-
 import FinishedTutorial from '../assets/01-basics/01-tutorial/finished-tutorial.png';
 import TutorialInProgress from '../assets/01-basics/01-tutorial/tutorial-in-progress.png';
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
@@ -455,12 +453,15 @@ Please do let us know if you ran into any issues while building an video calling
 
 To recap what we've learned about Stream video calling:
 
-- You set up a call: (`const call = client.call("default", "123")`)
+- You set up a call: `const call = client.call("default", "123")`
 - The call type ("default" in the above case) controls which features are enabled and how permissions are setup
-- When you join a call, real-time communication is set up for audio & video calling: (`call.join()`)
+- When you join a call, real-time communication is set up for audio & video calling: `call.join()`
 - State-related hooks such as `useLocalParticipant` make it easy to build your own UI
 - `ParticipantView` is the low-level component that renders audio and video
 
-We've used [Stream's Video Calling API](https://getstream.io/video/), which means calls run on a global edge network of video servers. By being closer to your users the latency and reliability of calls are better. The React SDK enables you to build in-app video calling, audio rooms and livestreaming in days.
+We've used [Stream's Video Calling API](https://getstream.io/video/video-calling/),
+which means calls run on a global edge network of video servers.
+By being closer to your users the latency and reliability of calls are better.
+The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
