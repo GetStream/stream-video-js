@@ -36,7 +36,16 @@ export const AudioOutputLevelSlider = ({
         'str-video__audio-level-slider--mute': !audioLevel,
       })}
     >
-      <Icon icon={audioLevel ? 'speaker' : 'speaker-off'} />
+      <span
+        onClick={() =>
+          call?.setAudioOutputLevel(
+            !audioLevel ? masterAudioOutputLevel : 0,
+            participant?.sessionId,
+          )
+        }
+      >
+        <Icon icon={audioLevel ? 'speaker' : 'speaker-off'} />
+      </span>
       <div
         className="str-video__audio-level-slider__track"
         onClick={handleClick}
