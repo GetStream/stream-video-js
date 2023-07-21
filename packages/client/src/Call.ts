@@ -1166,7 +1166,9 @@ export class Call {
   };
 
   /**
-   * Updates the audio output level for a given sessionId (participant session) or for all the participants and the default call audio output level.
+   * Updates the audio output level for a given sessionId (participant session)
+   * or for all the participants in an active call
+   * of the default call audio output level outside the active call scenarion (e.g. lobby).
    * @param level
    * @param sessionId
    */
@@ -1191,8 +1193,7 @@ export class Call {
           {},
         ),
       );
-    }
-    if (!sessionId) {
+    } else {
       this.state.setDefaultAudioOutputLevel(level);
     }
   }
