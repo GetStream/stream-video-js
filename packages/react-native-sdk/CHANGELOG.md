@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.326](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.325...@stream-io/video-react-native-sdk-0.0.1-alpha.326) (2023-07-21)
+
+
+### Features
+
+* **react-native:** add permissions to docs ([#842](https://github.com/GetStream/stream-video-js/issues/842)) ([1ec9c4d](https://github.com/GetStream/stream-video-js/commit/1ec9c4d3e2b48c35d6dfcf6efd4460aac8a1e9e5))
+
+
+
 ## [0.0.1-alpha.325](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.324...@stream-io/video-react-native-sdk-0.0.1-alpha.325) (2023-07-21)
 
 
