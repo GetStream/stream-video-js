@@ -19,7 +19,6 @@ export const processCallFromPushInBackground = async (
     if (!videoClient) {
       return;
     }
-    await videoClient.connectUser();
   } catch (e) {
     console.log('failed to create video client and connect user', e);
     return;

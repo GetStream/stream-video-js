@@ -61,7 +61,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/rn-bootstrap
-        timeout-minutes: 15
+        timeout-minutes: 20
         env:
           INSTALL_NODE: true
           INSTALL_PODS: true
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: ./.github/actions/rn-bootstrap
-        timeout-minutes: 15
+        timeout-minutes: 20
         env:
           INSTALL_NODE: true
           INSTALL_PODS: true
@@ -178,26 +178,45 @@ jobs:
           INSTALL_FFMPEG: true
           INSTALL_MAESTRO: true
           INSTALL_VIDEO_BUDDY: true
+          INSTALL_ANDROID_EMULATOR: true
 
       - name: Download .apk
         uses: actions/download-artifact@v3
         with:
           name: apk
 
-      - name: Test
+      - name: Create AVD Snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
-        env:
-          ANDROID_API_LEVEL: 32
         with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          profile: pixel
+          api-level: 28
           arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          disable-animations: false
           force-avd-creation: false
           avd-name: test
-          target: google_apis
-          emulator-options: -no-window -no-boot-anim -no-audio -no-snapshot-load -gpu swiftshader_indirect
+          ram-size: 8192M
+          disk-size: 2048M
           emulator-boot-timeout: 1000
+          emulator-options: -no-window -no-boot-anim -no-audio -no-snapshot-load -gpu swiftshader_indirect
+          working-directory: sample-apps/react-native/dogfood
+          script: echo 'AVD snapshot is generated and will be cached for the future runs.'
+
+      - name: Test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
           disable-animations: true
+          force-avd-creation: false
+          avd-name: test
+          ram-size: 8192M
+          disk-size: 2048M
+          emulator-boot-timeout: 1000
+          emulator-options: -no-window -no-boot-anim -no-audio -no-snapshot-load -gpu swiftshader_indirect
           working-directory: sample-apps/react-native/dogfood
           script: bundle exec fastlane test_android
 

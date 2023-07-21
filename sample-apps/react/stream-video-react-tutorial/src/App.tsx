@@ -7,31 +7,49 @@ import {
   StreamVideoClient,
   PaginatedGridLayout,
   CallControls,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 
 import './style.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
     });
-  });
+    setClient(client);
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+    return () => {
+      client?.disconnectUser();
+    };
+  }, []);
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>

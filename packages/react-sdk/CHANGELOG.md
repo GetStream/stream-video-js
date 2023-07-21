@@ -2,6 +2,35 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.8...@stream-io/video-react-sdk-0.1.9) (2023-07-21)
+
+
+### Documentation
+
+* Fix code snippet in video calling tutorial ([dc8f8cc](https://github.com/GetStream/stream-video-js/commit/dc8f8cc58d13b32eda2c7624152470c5909698e7))
+
+### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.7...@stream-io/video-react-sdk-0.1.8) (2023-07-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.6`
+
+### Bug Fixes
+
+* strict mode issue ([#740](https://github.com/GetStream/stream-video-js/issues/740)) ([c39e4e4](https://github.com/GetStream/stream-video-js/commit/c39e4e4041a2326393478ad808b2aa791d50f8ce))
+
+
+### Documentation
+
+* add backlinks to the main marketing pages ([#838](https://github.com/GetStream/stream-video-js/issues/838)) ([7374972](https://github.com/GetStream/stream-video-js/commit/7374972a93e6a6052b384a11e5883b7ccbb559ff))
+
+### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.6...@stream-io/video-react-sdk-0.1.7) (2023-07-21)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.5`
 ### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.5...@stream-io/video-react-sdk-0.1.6) (2023-07-20)
 
 

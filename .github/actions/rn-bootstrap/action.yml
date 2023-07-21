@@ -50,7 +50,7 @@ runs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('sample-apps/react-native/dogfood/*.gradle*', 'sample-apps/react-native/dogfood/gradle-wrapper.properties') }}
+        key: ${{ env.IMAGE }}-gradle-${{ hashFiles('sample-apps/react-native/dogfood/*.gradle*', 'sample-apps/react-native/dogfood/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
 
@@ -66,6 +66,16 @@ runs:
       working-directory: sample-apps/react-native/dogfood
       run: bundle exec fastlane pod_install
       shell: bash
+
+    # Retrieve the cached emulator snapshot
+    - uses: actions/cache@v3
+      if: ${{ env.INSTALL_ANDROID_EMULATOR == 'true' }}
+      id: avd-cache
+      with:
+        path: |
+          ~/.android/avd/*
+          ~/.android/adb*
+        key: ${{ env.IMAGE }}-android-emulator
 
     # Required for Maestro on iOS
     - uses: actions/setup-python@v4.3.0
