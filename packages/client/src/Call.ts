@@ -804,6 +804,7 @@ export class Call {
     if (!this.publisher) {
       this.publisher = new Publisher({
         sfuClient,
+        dispatcher: this.dispatcher,
         state: this.state,
         connectionConfig,
         isDtxEnabled,
@@ -848,6 +849,7 @@ export class Call {
             subscriberSdp: sdp || '',
             clientDetails: getClientDetails(),
             migration,
+            fastReconnect: false,
           });
         });
 
