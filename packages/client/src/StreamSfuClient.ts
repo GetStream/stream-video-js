@@ -236,36 +236,48 @@ export class StreamSfuClient {
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
     // FIXME: needs to compare values to abort
-    return runWithRetry(handleFalsePositiveResponse(this.rpc.setPublisher), {
-      isRetryable: isRetryablePreset,
-    })({
+    return runWithRetry(
+      handleFalsePositiveResponse(this.rpc.setPublisher.bind(this.rpc)),
+      {
+        isRetryable: isRetryablePreset,
+      },
+    )({
       ...data,
       sessionId: this.sessionId,
     });
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return runWithRetry(handleFalsePositiveResponse(this.rpc.sendAnswer), {
-      isRetryable: isRetryablePreset,
-    })({
+    return runWithRetry(
+      handleFalsePositiveResponse(this.rpc.sendAnswer.bind(this.rpc)),
+      {
+        isRetryable: isRetryablePreset,
+      },
+    )({
       ...data,
       sessionId: this.sessionId,
     });
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return runWithRetry(handleFalsePositiveResponse(this.rpc.iceTrickle), {
-      isRetryable: isRetryablePreset,
-    })({
+    return runWithRetry(
+      handleFalsePositiveResponse(this.rpc.iceTrickle.bind(this.rpc)),
+      {
+        isRetryable: isRetryablePreset,
+      },
+    )({
       ...data,
       sessionId: this.sessionId,
     });
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
-    return runWithRetry(handleFalsePositiveResponse(this.rpc.iceRestart), {
-      isRetryable: isRetryablePreset,
-    })({
+    return runWithRetry(
+      handleFalsePositiveResponse(this.rpc.iceRestart.bind(this.rpc)),
+      {
+        isRetryable: isRetryablePreset,
+      },
+    )({
       ...data,
       sessionId: this.sessionId,
     });
@@ -286,7 +298,7 @@ export class StreamSfuClient {
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
     return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.updateMuteStates),
+      handleFalsePositiveResponse(this.rpc.updateMuteStates.bind(this.rpc)),
       {
         isRetryable: isRetryablePreset,
       },
