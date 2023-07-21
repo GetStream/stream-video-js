@@ -124,7 +124,7 @@ export class Publisher {
     isDtxEnabled,
     isRedEnabled,
     preferredVideoCodec,
-    iceRestartDelay = 5000,
+    iceRestartDelay = 2500,
   }: PublisherOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
