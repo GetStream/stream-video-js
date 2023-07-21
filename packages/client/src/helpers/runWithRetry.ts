@@ -1,4 +1,4 @@
-import { RpcError, UnaryCall } from '@protobuf-ts/runtime-rpc';
+import { FinishedUnaryCall, RpcError } from '@protobuf-ts/runtime-rpc';
 import { TwirpErrorCode } from '@protobuf-ts/twirp-transport';
 
 import { sleep } from '../coordinator/connection/utils';
@@ -34,15 +34,17 @@ export class RetryError extends Error {
  * holds error data, if it does, it throws `RpcError` to prevent false positives for `runWithRetry` retry handler.
  */
 export const handleFalsePositiveResponse = <
-  I extends object,
-  O extends SfuResponseWithError,
-  T extends (...functionArguments: any[]) => UnaryCall<I, O>,
+  // TODO: fix type inference
+  T extends (...functionArguments: any[]) => any,
 >(
   f: T,
 ) =>
   async function falsePositiveHandler(...functionArguments: Parameters<T>) {
     // await or throw if "f" fails
-    const data = await f(...functionArguments);
+    const data = (await f(...functionArguments)) as FinishedUnaryCall<
+      {},
+      SfuResponseWithError
+    >;
 
     // check for error data, throw if exist
     if (data.response.error) {
@@ -54,7 +56,7 @@ export const handleFalsePositiveResponse = <
       );
     }
 
-    return data;
+    return data as Awaited<ReturnType<T>>;
   };
 
 export type RunWithRetryOptions<
