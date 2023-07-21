@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   useCall,
+  useDefaultAudioOutputLevel,
   useParticipants,
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
@@ -87,6 +88,7 @@ export const PaginatedGridLayout = ({
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
+  const defaultAudioOutputLevel = useDefaultAudioOutputLevel();
 
   // only used to render video elements
   const participantGroups = useMemo(
@@ -118,7 +120,7 @@ export const PaginatedGridLayout = ({
           muted={false}
           key={participant.sessionId}
           audioStream={participant.audioStream}
-          volume={participant?.audioOutputLevel}
+          volume={participant?.audioOutputLevel ?? defaultAudioOutputLevel}
         />
       ))}
       <div className="str-video__paginated-grid-layout__wrapper">
