@@ -125,7 +125,7 @@ describe('Subscriber', () => {
   });
 
   describe('Subscriber ICE restart', () => {
-    it('should perform ICE restart when iceRestart event is received', async () => {
+    it('should perform ICE restart when iceRestart event is received', () => {
       sfuClient.iceRestart = vi.fn();
       dispatcher.dispatch(
         SfuEvent.create({
@@ -143,7 +143,7 @@ describe('Subscriber', () => {
       });
     });
 
-    it('should not perform ICE restart when iceRestart event is received for a different peer type', async () => {
+    it('should not perform ICE restart when iceRestart event is received for a different peer type', () => {
       sfuClient.iceRestart = vi.fn();
       dispatcher.dispatch(
         SfuEvent.create({
