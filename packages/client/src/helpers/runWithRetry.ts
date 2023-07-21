@@ -1,4 +1,20 @@
+import { RpcError, UnaryCall } from '@protobuf-ts/runtime-rpc';
+import { TwirpErrorCode } from '@protobuf-ts/twirp-transport';
+
 import { sleep } from '../coordinator/connection/utils';
+import { Error as SfuError } from '../gen/video/sfu/models/models';
+
+/**
+ * An internal interface which asserts that "retryable" SFU responses
+ * contain a field called "error".
+ * Ideally, this should be coming from the Protobuf definitions.
+ */
+export interface SfuResponseWithError {
+  /**
+   * An optional error field which should be present in all SFU responses.
+   */
+  error?: SfuError;
+}
 
 export class RetryError extends Error {
   public name = 'RetryError';
@@ -12,6 +28,43 @@ export class RetryError extends Error {
     super(RetryError.errorMap[type]);
   }
 }
+
+/**
+ * Function which wraps asynchronous functions with error handler which checks whether response with code `200`
+ * holds error data, if it does, it throws `RpcError` to prevent false positives for `runWithRetry` retry handler.
+ */
+export const handleFalsePositiveResponse = <
+  I extends object,
+  O extends SfuResponseWithError,
+  T extends (...functionArguments: any[]) => UnaryCall<I, O>,
+>(
+  f: T,
+) =>
+  async function falsePositiveHandler(...functionArguments: Parameters<T>) {
+    // await or throw if "f" fails
+    const data = await f(...functionArguments);
+
+    // check for error data, throw if exist
+    if (data.response.error) {
+      throw new RpcError(
+        data.response.error.message,
+        TwirpErrorCode.unknown.toString(),
+        // @ts-ignore - RpcError only allows for values to be string (it parses meta data for logging) though boolean parses to string so it's fine
+        { shouldRetry: data.response.error.shouldRetry },
+      );
+    }
+
+    return data;
+  };
+
+export type RunWithRetryOptions<
+  T extends (...functionArguments: any[]) => Promise<any>,
+> = {
+  retryAttempts?: number;
+  delayBetweenRetries?: number | ((attempt: number) => number);
+  isRetryable?: (error: unknown) => boolean;
+  didValueChange?: (...functionArguments: Parameters<T>) => boolean;
+};
 
 /**
  * Function which wraps asynchronous functions with retry mechanism which'll keep executing said
@@ -35,12 +88,7 @@ export const runWithRetry = <
     delayBetweenRetries,
     isRetryable,
     didValueChange,
-  }: {
-    retryAttempts?: number;
-    delayBetweenRetries?: number | ((attempt: number) => number);
-    isRetryable?: (error: unknown) => boolean;
-    didValueChange?: (...functionArguments: Parameters<T>) => boolean;
-  } = {},
+  }: RunWithRetryOptions<T> = {},
 ) =>
   async function retryable(...functionArguments: Parameters<T>) {
     // starting with -1 as first attempt is not considered a retry
@@ -84,3 +132,11 @@ export const runWithRetry = <
 
     throw new RetryError({ type: 'finished' });
   };
+
+// TODO: better presets
+export const isRetryablePreset: RunWithRetryOptions<any>['isRetryable'] = (
+  error,
+) => {
+  // @ts-ignore
+  return error instanceof RpcError && (error.meta.shouldRetry as boolean);
+};
