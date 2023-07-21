@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.325](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.324...@stream-io/video-react-native-sdk-0.0.1-alpha.325) (2023-07-21)
+
+
+### Features
+
+* **react-native:** add camera mic documentation ([#834](https://github.com/GetStream/stream-video-js/issues/834)) ([ffd564f](https://github.com/GetStream/stream-video-js/commit/ffd564f18b0d3179580fc4e3a6cb308220a6ca53))
+
+
+
 ## [0.0.1-alpha.324](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.323...@stream-io/video-react-native-sdk-0.0.1-alpha.324) (2023-07-21)
 
 
