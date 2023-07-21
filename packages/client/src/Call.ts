@@ -123,7 +123,11 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
-import { runWithRetry } from './helpers/runWithRetry';
+import {
+  handleFalsePositiveResponse,
+  isRetryablePreset,
+  runWithRetry,
+} from './helpers/runWithRetry';
 
 /**
  * An object representation of a `Call`.
@@ -284,20 +288,20 @@ export class Call {
         (subscriptions) => {
           if (!this.sfuClient) return;
 
-          runWithRetry(this.sfuClient.updateSubscriptions, {
-            retryAttempts: 30,
-            delayBetweenRetries: retryInterval,
-            didValueChange: (initialSubscriptions) => {
-              return (
-                initialSubscriptions !==
-                this.trackSubscriptionsSubject.getValue().data
-              );
+          runWithRetry(
+            handleFalsePositiveResponse(this.sfuClient.updateSubscriptions),
+            {
+              retryAttempts: 30,
+              delayBetweenRetries: retryInterval,
+              didValueChange: (initialSubscriptions) => {
+                return (
+                  initialSubscriptions !==
+                  this.trackSubscriptionsSubject.getValue().data
+                );
+              },
+              isRetryable: isRetryablePreset,
             },
-            isRetryable: (error) => {
-              // decide whether to retry execution
-              return true;
-            },
-          })(subscriptions);
+          )(subscriptions);
         },
       ),
     );
