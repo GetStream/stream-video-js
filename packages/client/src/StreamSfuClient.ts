@@ -227,7 +227,6 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (subscriptions: TrackSubscriptionDetails[]) => {
-    // TODO: retry handler lifted to Call so the state is reachable (?)
     return this.rpc.updateSubscriptions({
       sessionId: this.sessionId,
       tracks: subscriptions,
@@ -235,25 +234,14 @@ export class StreamSfuClient {
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    // FIXME: needs to compare values to abort
-    return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.setPublisher.bind(this.rpc)),
-      {
-        isRetryable: isRetryablePreset,
-      },
-    )({
+    return this.rpc.setPublisher({
       ...data,
       sessionId: this.sessionId,
     });
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.sendAnswer.bind(this.rpc)),
-      {
-        isRetryable: isRetryablePreset,
-      },
-    )({
+    return this.rpc.sendAnswer({
       ...data,
       sessionId: this.sessionId,
     });
