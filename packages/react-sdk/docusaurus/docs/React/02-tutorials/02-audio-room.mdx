@@ -57,12 +57,27 @@ const user: User = {
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-// initialize the StreamVideoClient
-const client = new StreamVideoClient({ apiKey, user, token });
-
 export default function App() {
+  const [client, setClient] = useState<StreamVideoClient>();
   const [call, setCall] = useState<Call>();
   useEffect(() => {
+    const client = new StreamVideoClient({
+      apiKey,
+      token,
+      user,
+    });
+    setClient(client);
+
+    return () => {
+      client.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
     const call = client.call('audio_room', callId);
     call
       .join({
@@ -89,9 +104,9 @@ export default function App() {
       }
       setCall(undefined);
     };
-  }, []);
+  }, [client]);
 
-  if (!call) {
+  if (!client || !call) {
     return null;
   }
 
@@ -130,7 +145,21 @@ Next, we initialize the client by passing the API Key, user and user token.
 ```ts
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
-const client = new StreamVideoClient({ apiKey, user, token });
+const [client, setClient] = useState<StreamVideoClient>();
+
+useEffect(() => {
+  const client = new StreamVideoClient({
+    apiKey,
+    token,
+    user,
+  });
+  setClient(client);
+
+  return () => {
+    client.disconnectUser();
+    setClient(undefined);
+  };
+}, []);
 ```
 
 #### Create and join call
@@ -140,6 +169,9 @@ After the user and client are created, we create a call like this:
 ```tsx
 const [call, setCall] = useState<Call>();
 useEffect(() => {
+  if (!client) {
+    return;
+  }
   const call = client.call('audio_room', callId);
   call
     .join({
@@ -166,7 +198,7 @@ useEffect(() => {
     }
     setCall(undefined);
   };
-}, []);
+}, [client]);
 ```
 
 - This joins and creates a call with the type: `audio_room` and the specified `callId`
