@@ -18,7 +18,7 @@ jobs:
           reporter: github-pr-check
           # Set fail_on_error to true to make sure builds fail.
           fail_on_error: true
-          files: '["packages/angular-sdk/README.md","packages/angular-sdk/docusaurus","packages/angular-sdk/projects/video-angular-sdk/src","packages/react-native-sdk/README.md","packages/react-native-sdk/docusaurus","packages/react-native-sdk/src","packages/react-sdk/README.md","packages/react-sdk/src"]'
+          files: '["packages/react-native-sdk/README.md","packages/react-native-sdk/docusaurus","packages/react-native-sdk/src","packages/react-sdk/README.md","packages/react-sdk/src"]'
     env:
       # Required, set by GitHub actions automatically:
       # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret

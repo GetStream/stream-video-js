@@ -36,10 +36,6 @@ If you want to connect to the SFU and the coordinator running locally, you have 
 
 Then recompile the app - step (3) in [Setup](#setup) section here and then `yarn start:react:app`.
 
-### Angular
-
-See [Angular SDK's Readme](./packages/angular-sdk/README.md)
-
 ### React Native
 
 Run the application by following these [steps](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-dogfood/README.md)

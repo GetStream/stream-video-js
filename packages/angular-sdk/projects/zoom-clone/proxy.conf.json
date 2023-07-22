@@ -1,6 +1,0 @@
-{
-  "/rpc": {
-    "target": "http://localhost:26991",
-    "secure": false
-  }
-}
