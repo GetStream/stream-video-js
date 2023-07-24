@@ -35,9 +35,20 @@ If applicable, add screenshots to help explain your problem.
 
 **Env:**
 
-- OS: [e.g. iOS, linux...]
+Fill out what's applicable
+
+**React / JS client**
+
 - Browser [e.g. chrome, safari]
-- Emulator [e.g. android emulator, real phone...]
+
+**React Native**
+
+- OS: [e.g. iOS, linux...]
+- Device or emulator [e.g. android emulator, real iPhone X...]
+
+**Node JS client**
+
+- Node version
 
 **Additional context**
 Add any other context about the problem here.
