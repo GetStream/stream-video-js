@@ -77,7 +77,7 @@ export const CustomRejectCallButton = () => {
 };
 ```
 
-### Button to toogle audio
+### Button to toggle audio
 
 Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
 
@@ -121,7 +121,7 @@ export const ToggleAudioButton = () => {
 We check the audio mute status by checking if `SfuModels.TrackType.AUDIO` exists in the array of types of tracks published by `localParticipant`.
 To mute and unmute the local participant's audio, we use `publishAudioStream` and `stopPublishingAudio` functions provided by the `useMediaStreamManagement` hook from the SDK.
 
-### Button to toogle video
+### Button to toggle video
 
 Toggling video in an active call turns around publishing video input streams and enabling the video state. The bare-bones button to toggle video in an active call could look like the following:
 
@@ -169,7 +169,7 @@ To mute and unmute the local participant's video, we use `publishVideoStream` an
 
 Toggling camera face for mobile devices is an important feature. So, to built it from scratch you can use `isCameraOnFrontFacingMode` and `toggleCameraFacingMode` from `useMediaStreamManagement`.
 
-The `isCameraOnFrontFacingMode` is a boolean that tracks if the the camera is `front` facing. The `toggleCameraFacingMode` is used to toggle camera between `front` and `back`/`environment` facing modes.
+The `isCameraOnFrontFacingMode` is a boolean that tracks if the camera is `front` facing. The `toggleCameraFacingMode` is used to toggle camera between `front` and `back`/`environment` facing modes.
 
 ```tsx
 import { useCallback } from 'react';
