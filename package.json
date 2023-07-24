@@ -27,7 +27,6 @@
     "start:client": "yarn workspace @stream-io/video-client run start",
     "start:i18n": "yarn workspace @stream-io/i18n start",
     "build:i18n": "yarn workspace @stream-io/i18n build",
-    "build:angular:deps": "yarn build:client && yarn build:styling",
     "build:react:deps": "yarn build:client && yarn build:i18n && yarn build:styling && yarn build:react:bindings && yarn build:react:sdk",
     "build:react-native:deps": "yarn build:client && yarn build:i18n && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
