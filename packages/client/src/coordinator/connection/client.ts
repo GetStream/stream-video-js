@@ -504,9 +504,6 @@ export class StreamClient {
         response,
       },
     );
-    this.logger('trace', `client:${type} - Response payload`, {
-      response,
-    });
   };
 
   _logApiError = (type: string, url: string, error: unknown) => {
