@@ -71,8 +71,6 @@ export class StreamClient {
   rejectConnectionId?: Function;
   connectionIdPromise?: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
-  private waitForConnectPromise?: Promise<void>;
-  private resolveConnectPromise?: Function;
 
   /**
    * Initialize a client.
@@ -202,15 +200,6 @@ export class StreamClient {
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
   /**
-   * This will start a promise to hold API calls until `connectUser` is called, useful when user is set in `StreamVideoClient constructor`
-   */
-  startWaitingForConnection = () => {
-    this.waitForConnectPromise = new Promise((resolve) => {
-      this.resolveConnectPromise = resolve;
-    });
-  };
-
-  /**
    * connectUser - Set the current user and open a WebSocket connection
    *
    * @param user Data about this user. IE {name: "john"}
@@ -270,12 +259,6 @@ export class StreamClient {
     this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
       (result) => result[1], // We only return connection promise;
     );
-
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
 
     try {
       return await this.setUserPromise;
@@ -436,11 +419,6 @@ export class StreamClient {
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
 
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
     // as anonymous users aren't allowed to open WS connections, we just
@@ -547,9 +525,6 @@ export class StreamClient {
     } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
     if (!options.publicEndpoint) {
-      if (this.waitForConnectPromise) {
-        await this.waitForConnectPromise;
-      }
       await Promise.all([
         this.tokenManager.tokenReady(),
         this.connectionIdPromise,

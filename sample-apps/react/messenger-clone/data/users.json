@@ -2,31 +2,37 @@
   {
     "id": "alice",
     "name": "Alice",
-    "image": "https://randomuser.me/api/portraits/women/47.jpg"
+    "image": "https://randomuser.me/api/portraits/women/47.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWxpY2UiLCJleHAiOjE2OTI1MzAyNzh9.ccWd_Y3TEwtQDMpt77jZO5OA9_8wSptOrwNkd-peA-U"
   },
   {
     "id": "mark",
     "name": "Mark",
-    "image": "https://randomuser.me/api/portraits/men/38.jpg"
+    "image": "https://randomuser.me/api/portraits/men/38.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoibWFyayIsImV4cCI6MTY5MjUzMDI3OH0.gK2TJVML1n_QJh6PxEZtCX1YNz4dXUWCHfB0cYUR9jk"
   },
   {
     "id": "bob",
     "name": "Bob",
-    "image": "https://randomuser.me/api/portraits/men/42.jpg"
+    "image": "https://randomuser.me/api/portraits/men/42.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYm9iIiwiZXhwIjoxNjkyNTMwMjc4fQ.0pOs785Jxv_kQtKe-giTCxRILFSVlITT7_C3-qaI_3g"
   },
   {
     "id": "jane",
     "name": "Jane",
-    "image": "https://randomuser.me/api/portraits/women/60.jpg"
+    "image": "https://randomuser.me/api/portraits/women/60.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiamFuZSIsImV4cCI6MTY5MjUzMDI3OH0.bGU2_YelYTlM1tVEnfpfoBq4BnxMaeP8eZlgay0MTe4"
   },
   {
     "id": "tamara",
     "name": "Tamara",
-    "image": "https://randomuser.me/api/portraits/women/40.jpg"
+    "image": "https://randomuser.me/api/portraits/women/40.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidGFtYXJhIiwiZXhwIjoxNjkyNTMwMjc4fQ.3YQ46yFxY1rlvWt6eKyrlh3XQwiteK4Sgs1pGab5Ro0"
   },
   {
     "id": "john",
     "name": "John",
-    "image": "https://randomuser.me/api/portraits/men/54.jpg"
+    "image": "https://randomuser.me/api/portraits/men/54.jpg",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiam9obiIsImV4cCI6MTY5MjUzMDI3OH0.YvtbiWYfoX8efSQRTY6gkunJA4JvbDBrrNxFHw9VVHw"
   }
 ]

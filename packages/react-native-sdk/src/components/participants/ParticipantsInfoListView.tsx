@@ -38,13 +38,13 @@ import { palette } from '../../theme/constants';
 
 export interface ParticipantsInfoListViewProps {
   /**
-   * Boolean that decided whether the CallPartcipantsInfoView modal should be open or not.
+   * Boolean that decides whether the CallParticipantsInfoView modal should be open or not.
    */
-  isCallParticipantsViewVisible: boolean;
+  isCallParticipantsInfoViewVisible: boolean;
   /**
-   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallPartcipantsInfoView modal should be open or not.
+   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallParticipantsInfoView modal should be open or not.
    */
-  setIsCallParticipantsViewVisible: React.Dispatch<
+  setIsCallParticipantsInfoViewVisible: React.Dispatch<
     React.SetStateAction<boolean>
   >;
 }
@@ -55,8 +55,8 @@ export interface ParticipantsInfoListViewProps {
  * Mute all participants, invite participants, etc.
  **/
 export const ParticipantsInfoListView = ({
-  isCallParticipantsViewVisible,
-  setIsCallParticipantsViewVisible,
+  isCallParticipantsInfoViewVisible,
+  setIsCallParticipantsInfoViewVisible,
 }: ParticipantsInfoListViewProps) => {
   const participants = useParticipants();
   const [selectedParticipant, setSelectedParticipant] = useState<
@@ -85,7 +85,7 @@ export const ParticipantsInfoListView = ({
   };
 
   const onCloseCallParticipantsViewVisible = () => {
-    setIsCallParticipantsViewVisible(false);
+    setIsCallParticipantsInfoViewVisible(false);
   };
 
   const renderItem = useCallback(
@@ -106,7 +106,7 @@ export const ParticipantsInfoListView = ({
       accessibilityLabel={A11yComponents.PARTICIPANTS_INFO_VIEW}
       animationType="fade"
       transparent
-      visible={isCallParticipantsViewVisible}
+      visible={isCallParticipantsInfoViewVisible}
       onRequestClose={onCloseCallParticipantsViewVisible}
     >
       <>

@@ -29,7 +29,7 @@ appId: io.getstream.rnvideosample
 - extendedWaitUntil:
     visible: ${output.assertions.participantsInfo.participantsCountIs6}
     timeout: 80000
-- tapOn: ${output.pages.participantsInfo.exitButton}
+- longPressOn: ${output.pages.participantsInfo.exitButton}
 #- Leave the call
 - tapOn: ${output.pages.activeCall.hangupButton}
 #- Log out

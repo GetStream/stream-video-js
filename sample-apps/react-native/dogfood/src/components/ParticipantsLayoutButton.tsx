@@ -1,79 +1,11 @@
----
-id: runtime-layout-switching
-title: Runtime layout switching
----
-
-Runtime Layout Switching is basically switching the participant's layout from the app. We currently support switching between grid and spotlight layout modes through our SDK.
-
-### Switching the layout from the App
-
-To switch the layout from the app we can take the help of the [`mode`](../../ui-components/call/call-content-view/#mode) prop of the [CallContentView](../../ui-components/call/call-content-view) component.
-
-We will create a state variable in the app to track the state of the current layout and pass the state to the [`mode`](../../ui-components/call/call-content-view/#mode) prop of the [CallContentView](../../ui-components/call/call-content-view) component.. This is done below:
-
-```tsx
-import React from 'react';
-import {
-  CallContentView,
-  CallControlsView,
-  ParticipantsInfoBadge,
-} from '@stream-io/video-react-native-sdk';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
-
-export const VideoCallUI = () => {
-  // highlight-next-line
-  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.icons}>
-        <ParticipantsInfoBadge />
-        // highlight-next-line
-        <ParticipantsLayoutSwitchButton
-          // highlight-next-line
-          selectedLayout={selectedLayout}
-          // highlight-next-line
-          setSelectedLayout={setSelectedLayout}
-          // highlight-next-line
-        />
-      </View>
-      // highlight-next-line
-      <CallContentView mode={selectedLayout} />
-      <CallControlsView />
-    </SafeAreaView>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#272A30',
-  },
-  icons: {
-    position: 'absolute',
-    right: 16,
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 2,
-  },
-});
-```
-
-### Creating the Layout switching Modal/Component
-
-We will create a component that renders the Button which on press opens up a Modal to switch the Layout. Clicking on the layout item will switch the layout and set the state for the `selectedLayout` state in the `VideoCallUI` component that we created above.
-
-![Preview of the Layout Switch Modal and Button](../assets/05-ui-cookbook/runtime-layout-switching-modal.png)
-
-```tsx
 import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
+import { appTheme } from '../theme';
 import { CallContentViewProps } from '@stream-io/video-react-native-sdk';
 
 type Layout = CallContentViewProps['mode'];
 
-// Component for Individual Layout Item
 const LayoutSelectionItem = ({
   layout,
   selectedLayout,
@@ -101,7 +33,10 @@ const LayoutSelectionItem = ({
         style={[
           styles.modalText,
           {
-            color: selectedLayout === layout ? '#005FFF' : '#ffffff',
+            color:
+              selectedLayout === layout
+                ? appTheme.colors.primary
+                : appTheme.colors.static_white,
           },
         ]}
       >
@@ -111,7 +46,6 @@ const LayoutSelectionItem = ({
   );
 };
 
-// The Component that renders a Button which on click opens up the Modal with options to choose the Layout
 export const ParticipantsLayoutSwitchButton = ({
   selectedLayout,
   setSelectedLayout,
@@ -150,7 +84,6 @@ export const ParticipantsLayoutSwitchButton = ({
           </View>
         </Pressable>
       </Modal>
-
       <View style={styles.buttonsContainer}>
         <Pressable
           onPress={() => setModalVisible(true)}
@@ -171,11 +104,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalView: {
-    backgroundColor: '#272A30',
+    backgroundColor: appTheme.colors.static_grey,
     borderRadius: 20,
-    padding: 12,
+    padding: appTheme.spacing.md,
     alignItems: 'flex-start',
-    shadowColor: '#000000',
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -189,14 +122,13 @@ const styles = StyleSheet.create({
     width: 30,
   },
   modalButton: {
-    padding: 16,
+    padding: appTheme.spacing.lg,
   },
   modalText: {
     fontSize: 20,
     fontWeight: 'bold',
   },
   buttonsContainer: {
-    paddingHorizontal: 8,
+    paddingHorizontal: appTheme.spacing.sm,
   },
 });
-```

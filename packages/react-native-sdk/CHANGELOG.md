@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.329](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.328...@stream-io/video-react-native-sdk-0.0.1-alpha.329) (2023-07-24)
+
+
+
+## [0.0.1-alpha.328](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.327...@stream-io/video-react-native-sdk-0.0.1-alpha.328) (2023-07-24)
+
+
+
+## [0.0.1-alpha.327](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.326...@stream-io/video-react-native-sdk-0.0.1-alpha.327) (2023-07-22)
+
+
+
+## [0.0.1-alpha.326](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.325...@stream-io/video-react-native-sdk-0.0.1-alpha.326) (2023-07-21)
+
+
+### Features
+
+* **react-native:** add permissions to docs ([#842](https://github.com/GetStream/stream-video-js/issues/842)) ([1ec9c4d](https://github.com/GetStream/stream-video-js/commit/1ec9c4d3e2b48c35d6dfcf6efd4460aac8a1e9e5))
+
+
+
+## [0.0.1-alpha.325](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.324...@stream-io/video-react-native-sdk-0.0.1-alpha.325) (2023-07-21)
+
+
+### Features
+
+* **react-native:** add camera mic documentation ([#834](https://github.com/GetStream/stream-video-js/issues/834)) ([ffd564f](https://github.com/GetStream/stream-video-js/commit/ffd564f18b0d3179580fc4e3a6cb308220a6ca53))
+
+
+
+## [0.0.1-alpha.324](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.323...@stream-io/video-react-native-sdk-0.0.1-alpha.324) (2023-07-21)
+
+
+### Bug Fixes
+
+* strict mode issue ([#740](https://github.com/GetStream/stream-video-js/issues/740)) ([c39e4e4](https://github.com/GetStream/stream-video-js/commit/c39e4e4041a2326393478ad808b2aa791d50f8ce))
+
+
+
+## [0.0.1-alpha.323](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.322...@stream-io/video-react-native-sdk-0.0.1-alpha.323) (2023-07-21)
+
+
+
 ## [0.0.1-alpha.322](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.321...@stream-io/video-react-native-sdk-0.0.1-alpha.322) (2023-07-21)
 
 

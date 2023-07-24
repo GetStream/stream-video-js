@@ -1,4 +1,4 @@
-import { PropsWithChildren, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { Chat } from 'stream-chat-react';
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
@@ -16,11 +16,26 @@ export const ClientProviders = ({
     tokenOrProvider: token || tokenProvider,
     user,
   });
-  const [videoClient] = useState<StreamVideoClient>(
-    () => new StreamVideoClient({ apiKey, user, token, tokenProvider }),
-  );
+  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
 
-  if (!chatClient) return null;
+  useEffect(() => {
+    const client = new StreamVideoClient({
+      apiKey,
+      user,
+      token,
+      tokenProvider,
+    });
+    setVideoClient(client);
+
+    return () => {
+      client
+        .disconnectUser()
+        .catch((error) => console.error(`Couldn't disconnect user`, error));
+      setVideoClient(undefined);
+    };
+  }, [user]);
+
+  if (!chatClient || !videoClient) return null;
 
   return (
     <Chat theme="str-chat__theme-dark" client={chatClient}>

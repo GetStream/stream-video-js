@@ -33,7 +33,7 @@ const RoomList = (props: Props) => {
   const nextPage = useRef<string>();
 
   const queryLiveCalls = useCallback(async () => {
-    if (!client || client.user?.id === undefined) {
+    if (!client) {
       return;
     }
     setLoadingCalls(true);

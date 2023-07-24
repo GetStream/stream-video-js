@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Call,
+  CallingState,
   StreamCallProvider,
   StreamClientOptions,
   StreamTheme,
@@ -50,7 +51,9 @@ export const CompositeApp = () => {
     return () => {
       joinInterrupted = true;
       currentCall.then((theCall) => {
-        theCall?.leave();
+        if (theCall && theCall.state.callingState !== CallingState.LEFT) {
+          theCall.leave();
+        }
         setActiveCall(undefined);
       });
     };

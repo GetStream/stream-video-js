@@ -72,6 +72,7 @@ import {
 import {
   BehaviorSubject,
   debounce,
+  filter,
   map,
   pairwise,
   Subject,
@@ -371,10 +372,13 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
-    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
+    }
+
+    if (callingState === CallingState.JOINING) {
+      await this.assertCallJoined();
     }
 
     if (this.ringing) {
@@ -930,14 +934,6 @@ export class Call {
     });
   };
 
-  private assertCallJoined = () => {
-    return new Promise<void>((resolve) => {
-      this.state.callingState$
-        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-        .subscribe(() => resolve());
-    });
-  };
-
   /**
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
@@ -1242,6 +1238,17 @@ export class Call {
    */
   updatePublishQuality = async (enabledRids: string[]) => {
     return this.publisher?.updateVideoPublishQuality(enabledRids);
+  };
+
+  private assertCallJoined = () => {
+    return new Promise<void>((resolve) => {
+      this.state.callingState$
+        .pipe(
+          takeWhile((state) => state !== CallingState.JOINED, true),
+          filter((s) => s === CallingState.JOINED),
+        )
+        .subscribe(() => resolve());
+    });
   };
 
   /**

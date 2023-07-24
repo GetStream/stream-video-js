@@ -3,8 +3,6 @@ title: Video Call Tutorial
 description: How to build a video call similar to Zoom or facebook messenger
 ---
 
-import ImageShowcase from '@site/src/components/ImageShowcase';
-
 import FinishedTutorial from '../assets/01-basics/01-tutorial/finished-tutorial.png';
 import TutorialInProgress from '../assets/01-basics/01-tutorial/tutorial-in-progress.png';
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
@@ -68,34 +66,51 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
-      options: {
-        logLevel: 'warn',
-      },
     });
-  });
+    setClient(client);
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+    return () => {
+      // Cleanup
+      client?.disconnectUser();
+    };
+  }, []);
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      // Cleanup
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -111,7 +126,7 @@ export default function App() {
 
 ### Styling
 
-Let's see the content of the `styles.css`:
+Let's see the content of the `index.css`:
 
 - It imports the `@stream-io/video-react-sdk` stylesheet
 - It provides a very basic layout for the video call UI
@@ -217,6 +232,7 @@ This is the full code after this step:
 import { useEffect, useState } from 'react';
 import {
   Call,
+  CallingState,
   ParticipantView,
   StreamCall,
   StreamTheme,
@@ -228,29 +244,48 @@ import {
   useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
     });
-  });
+    setClient(client);
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+    return () => {
+      // Cleanup
+      client?.disconnectUser();
+    };
+  }, []);
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      // Cleanup
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -317,31 +352,51 @@ import {
   StreamVideoClient,
   PaginatedGridLayout,
   CallControls,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
     });
-  });
+    setClient(client);
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+    return () => {
+      // Cleanup
+      client?.disconnectUser();
+    };
+  }, []);
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      // Cleanup
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -388,31 +443,51 @@ import {
   CallControls,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
+  CallingState,
 } from '@stream-io/video-react-sdk';
 
-import './style.css';
+import './index.css';
 
 export default function App() {
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient | undefined>();
+  const [call, setCall] = useState<Call | undefined>();
+
+  useEffect(() => {
     const user = {
       id: import.meta.env.VITE_STREAM_USER_ID,
     };
     const token = import.meta.env.VITE_STREAM_USER_TOKEN;
 
-    return new StreamVideoClient({
+    const client = new StreamVideoClient({
       apiKey: import.meta.env.VITE_STREAM_API_KEY,
       user,
       token,
     });
-  });
+    setClient(client);
 
-  const [call] = useState<Call>(() =>
-    client.call('default', import.meta.env.VITE_STREAM_CALL_ID),
-  );
+    return () => {
+      // Cleanup
+      client?.disconnectUser();
+    };
+  }, []);
 
   useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
+    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
+    call?.join({ create: true });
+    setCall(call);
+
+    return () => {
+      // Cleanup
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -455,12 +530,15 @@ Please do let us know if you ran into any issues while building an video calling
 
 To recap what we've learned about Stream video calling:
 
-- You set up a call: (`const call = client.call("default", "123")`)
+- You set up a call: `const call = client.call("default", "123")`
 - The call type ("default" in the above case) controls which features are enabled and how permissions are setup
-- When you join a call, real-time communication is set up for audio & video calling: (`call.join()`)
+- When you join a call, real-time communication is set up for audio & video calling: `call.join()`
 - State-related hooks such as `useLocalParticipant` make it easy to build your own UI
 - `ParticipantView` is the low-level component that renders audio and video
 
-We've used [Stream's Video Calling API](https://getstream.io/video/), which means calls run on a global edge network of video servers. By being closer to your users the latency and reliability of calls are better. The React SDK enables you to build in-app video calling, audio rooms and livestreaming in days.
+We've used [Stream's Video Calling API](https://getstream.io/video/video-calling/),
+which means calls run on a global edge network of video servers.
+By being closer to your users the latency and reliability of calls are better.
+The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
