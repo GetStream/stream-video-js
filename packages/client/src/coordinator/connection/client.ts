@@ -590,16 +590,28 @@ export class StreamClient {
     });
   };
 
-  put = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('put', url, data);
+  put = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('put', url, data, { params });
   };
 
-  post = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('post', url, data);
+  post = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('post', url, data, { params });
   };
 
-  patch = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('patch', url, data);
+  patch = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('patch', url, data, { params });
   };
 
   delete = <T>(url: string, params?: AxiosRequestConfig['params']) => {

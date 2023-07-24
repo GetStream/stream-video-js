@@ -1437,8 +1437,9 @@ export class Call {
    */
   goLive = async (notify?: boolean) => {
     return this.streamClient.post<GoLiveResponse>(
-      `${this.streamClientBasePath}/go_live${notify ? '?notify=true' : ''}`,
+      `${this.streamClientBasePath}/go_live`,
       {},
+      { notify },
     );
   };
 
