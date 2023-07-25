@@ -50,6 +50,7 @@ Let us create our root component. Open up `src/App.tsx`, and replace it with thi
 ```tsx title="src/App.tsx"
 import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { apiKey, user, token } from "./constants"
+import { useSyncPermissions } from "./useSyncPermissions"
 import AudioRoom from './AudioRoom'; // We will introduce the <AudioRoom /> component shortly later
 
 // initialize the StreamVideoClient
@@ -63,6 +64,10 @@ export default function App() {
   );
 }
 ```
+
+:::note
+For this tutorial, we have used the hook as (`useSyncPermissions`) as in the [Manage Native Permissions](../../core/native-permissions) guide.
+:::
 
 Let's review the code above and go over the details.
 
