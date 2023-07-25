@@ -1,6 +1,5 @@
 import {
   StreamVideoProvider,
-  StreamI18nProvider,
   StreamVideoProps,
   StreamI18nProviderProps,
 } from '@stream-io/video-react-bindings';
@@ -45,18 +44,17 @@ export const StreamVideo = (
   }, [client]);
 
   return (
-    <StreamVideoProvider client={client}>
-      <StreamI18nProvider
-        language={language}
-        translationsOverrides={translationsOverrides}
-        i18nInstance={i18nInstance}
-      >
-        <StreamVideoStoreProvider>
-          <MediaDevices />
-          <PushRegister />
-          {children}
-        </StreamVideoStoreProvider>
-      </StreamI18nProvider>
+    <StreamVideoProvider
+      client={client}
+      language={language}
+      translationsOverrides={translationsOverrides}
+      i18nInstance={i18nInstance}
+    >
+      <StreamVideoStoreProvider>
+        <MediaDevices />
+        <PushRegister />
+        {children}
+      </StreamVideoStoreProvider>
     </StreamVideoProvider>
   );
 };
