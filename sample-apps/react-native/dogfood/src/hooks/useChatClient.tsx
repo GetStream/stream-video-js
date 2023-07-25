@@ -30,7 +30,6 @@ export const useChatClient = <
     const connectUser = async () => {
       await disconnectRef.current;
       try {
-        console.log(userData, tokenProvider);
         await client.connectUser(userData, tokenProvider);
         console.log(`[Chat client]: Connected user: ${userData.id}`);
       } catch (e) {
