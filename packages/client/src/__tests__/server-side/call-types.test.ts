@@ -24,9 +24,14 @@ describe('call types CRUD API', () => {
   it('create', async () => {
     const createResponse = await client.createCallType({
       name: callTypeName,
+      settings: {
+        audio: { mic_default_on: true, default_device: 'speaker' },
+      },
     });
 
     expect(createResponse.name).toBe(callTypeName);
+    expect(createResponse.settings.audio.mic_default_on).toBe(true);
+    expect(createResponse.settings.audio.default_device).toBe('speaker');
   });
 
   it('read', async () => {
