@@ -6,11 +6,7 @@ import { PropsWithChildren } from 'react';
 import { translations } from '../../../translations';
 
 export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
-  const { children } = props;
-
   return (
-    <StreamVideoProvider translationsOverrides={translations} {...props}>
-      {children}
-    </StreamVideoProvider>
+    <StreamVideoProvider translationsOverrides={translations} {...props} />
   );
 };
