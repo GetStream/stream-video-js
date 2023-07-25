@@ -23,16 +23,16 @@ describe('Avatar', () => {
     );
   });
 
-  it('should apply the radius prop to the avatar', async () => {
+  it('should apply the size prop to the avatar', async () => {
     const testParticipant = mockParticipant();
-    const radius = 200;
-    render(<Avatar participant={testParticipant} radius={radius} />);
+    const size = 200;
+    render(<Avatar participant={testParticipant} size={size} />);
     expect(
       await screen.findByLabelText(A11yComponents.PARTICIPANT_AVATAR),
     ).toHaveStyle({
-      borderRadius: radius / 2,
-      height: radius,
-      width: radius,
+      borderRadius: size / 2,
+      height: size,
+      width: size,
     });
   });
 });

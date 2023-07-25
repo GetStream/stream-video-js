@@ -196,7 +196,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
       <View style={styles.modalContainer}>
         <View style={styles.participantInfo}>
           <View style={styles.userInfo}>
-            <Avatar radius={theme.avatar.xs} participant={participant} />
+            <Avatar size={theme.avatar.xs} participant={participant} />
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
                 (showYouLabel ? ` ${t('You')}` : '')}

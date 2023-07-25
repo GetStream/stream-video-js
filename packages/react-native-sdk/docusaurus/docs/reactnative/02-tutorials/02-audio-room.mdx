@@ -600,7 +600,7 @@ export default function ParticipantsPanel() {
           key={participantItem.sessionId}
           style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
         >
-          <Avatar participant={participantItem} />
+          <Avatar size={80} participant={participantItem} />
           <Text style={styles.text}>{participantItem.name}</Text>
         </View>
       );
