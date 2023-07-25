@@ -39,15 +39,15 @@ describe('call members API', () => {
       update_members: [
         { user_id: 'sara' },
         { user_id: 'jane', role: 'admin' },
-        { user_id: 'jack', role: 'admin' },
+        { user_id: 'john', role: 'user' },
       ],
     });
 
     expect(response.members[0].user_id).toBe('sara');
     expect(response.members[1].user_id).toBe('jane');
     expect(response.members[1].role).toBe('admin');
-    expect(response.members[2].user_id).toBe('jack');
-    expect(response.members[2].role).toBe('admin');
+    expect(response.members[2].user_id).toBe('john');
+    expect(response.members[2].role).toBe('user');
   });
 
   it('remove members', async () => {
@@ -85,5 +85,9 @@ describe('call members API', () => {
     response = await call.queryMembers({
       filter_conditions: { role: { $eq: 'admin' } },
     });
+    members = response.members;
+
+    expect(members.length).toBe(1);
+    members.forEach((m) => expect(m.role).toBe('admin'));
   });
 });
