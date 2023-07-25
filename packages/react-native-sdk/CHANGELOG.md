@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.336](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.335...@stream-io/video-react-native-sdk-0.0.1-alpha.336) (2023-07-25)
+
+
+### Features
+
+* **react-native:** add translations to SDK and DF app ([#828](https://github.com/GetStream/stream-video-js/issues/828)) ([c7a7f73](https://github.com/GetStream/stream-video-js/commit/c7a7f73b5cfd9222101e4c44b6c9ec42006bcac2))
+
+
+
 ## [0.0.1-alpha.335](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.334...@stream-io/video-react-native-sdk-0.0.1-alpha.335) (2023-07-25)
 
 
