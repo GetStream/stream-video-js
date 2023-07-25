@@ -10,7 +10,7 @@ const secret = process.env.STREAM_SECRET!;
 const tokenProvider = (userId: string) => {
   const serverClient = new StreamVideoServerClient(apiKey, { secret });
   return async () => {
-    return new Promise((resolve) => {
+    return new Promise<string>((resolve) => {
       setTimeout(() => {
         const token = serverClient.createToken(userId);
         resolve(token);
