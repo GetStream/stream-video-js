@@ -1,6 +1,7 @@
 import {
   Call,
   GetOrCreateCallRequest,
+  useI18n,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import React, { useState } from 'react';
@@ -47,6 +48,7 @@ type Props = {
 
 export default function CreateRoomModal(props: Props) {
   const client = useStreamVideoClient();
+  const { t } = useI18n();
 
   const [title, setTitle] = useState<string>();
   const [description, setDescription] = useState<string>();
@@ -78,7 +80,7 @@ export default function CreateRoomModal(props: Props) {
       <Pressable style={styles.centeredView} onPress={props.onClose}>
         <View style={styles.modalView}>
           <TextInput
-            placeholder={'Type the title of the room'}
+            placeholder={t('Type the title of the room')}
             value={title}
             style={styles.textInputTitle}
             autoCorrect={false}
@@ -88,7 +90,7 @@ export default function CreateRoomModal(props: Props) {
             onChangeText={setTitle}
           />
           <TextInput
-            placeholder={'Type the description of the room'}
+            placeholder={t('Type the description of the room')}
             value={description}
             multiline={true}
             autoCorrect={false}
@@ -98,7 +100,7 @@ export default function CreateRoomModal(props: Props) {
             style={styles.textInputDescription}
             onChangeText={setDescription}
           />
-          <Button onPress={createRoom} title="Create" />
+          <Button onPress={createRoom} title={t('Create')} />
         </View>
       </Pressable>
     </Modal>

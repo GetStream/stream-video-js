@@ -3,9 +3,11 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
+import { useI18n } from '@stream-io/video-react-native-sdk';
 
 export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
+  const { t } = useI18n();
 
   const onMeetingSelect = () => {
     setState({ appMode: 'Meeting' });
@@ -23,18 +25,18 @@ export const ChooseAppModeScreen = () => {
     <View style={styles.container}>
       <Image source={require('../assets/Logo.png')} style={styles.logo} />
       <View>
-        <Text style={styles.title}>Stream DogFood App</Text>
-        <Text style={styles.subTitle}>Choose the Mode</Text>
+        <Text style={styles.title}>{t('Stream DogFood App')}</Text>
+        <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
       </View>
       <View>
-        <Button title="Meeting" onPress={onMeetingSelect} />
+        <Button title={t('Meeting')} onPress={onMeetingSelect} />
         <Button
-          title="Call"
+          title={t('Call')}
           onPress={onRingingSelect}
           buttonStyle={styles.callButton}
         />
         <Button
-          title="Audio Room"
+          title={t('Audio Rooms')}
           onPress={onAudioRoomSelect}
           buttonStyle={styles.callButton}
         />

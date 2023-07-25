@@ -10,7 +10,10 @@ import {
   View,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
-import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  useI18n,
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
@@ -23,6 +26,7 @@ const JoinCallScreen = () => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
+  const { t } = useI18n();
 
   const startCallHandler = useCallback(async () => {
     let ringingUserIds = !ringingUserIdsText
@@ -73,7 +77,7 @@ const JoinCallScreen = () => {
       behavior={Platform.OS === 'ios' ? 'position' : 'padding'}
     >
       <View>
-        <Text style={styles.headerText}>Select Participants</Text>
+        <Text style={styles.headerText}>{t('Select Participants')}</Text>
         {KnownUsers.filter((user) => user.id !== userId).map((user) => {
           return (
             <Pressable
@@ -95,11 +99,11 @@ const JoinCallScreen = () => {
             </Pressable>
           );
         })}
-        <Text style={styles.orText}>Or</Text>
+        <Text style={styles.orText}>{t('OR')}</Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
-          placeholder="Enter comma separated User ids"
+          placeholder={t('Enter comma separated User ids')}
           value={ringingUserIdsText}
           onChangeText={(value) => {
             setRingingUserIdsText(value);
@@ -108,7 +112,7 @@ const JoinCallScreen = () => {
         />
       </View>
       <Button
-        title="Start a New Call"
+        title={t('Start a New Call')}
         disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
         onPress={startCallHandler}
       />

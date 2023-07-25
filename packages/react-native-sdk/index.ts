@@ -8,6 +8,7 @@ export * from './src/contexts';
 export * from './src/hooks';
 export * from './src/theme';
 export * from './src/utils';
+export * from './src/translations';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.

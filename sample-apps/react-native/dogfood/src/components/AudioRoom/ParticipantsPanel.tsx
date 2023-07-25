@@ -18,7 +18,7 @@ export function ParticipantsPanel() {
           key={participantItem.sessionId}
           style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
         >
-          <Avatar radius={80} participant={participantItem} />
+          <Avatar participant={participantItem} />
           <Text style={styles.text}>{participantItem.name}</Text>
         </View>
       );
