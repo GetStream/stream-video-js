@@ -17,7 +17,7 @@ import {
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
-import translations from '../../translations';
+import appTranslations from '../../translations';
 import {
   DeviceSettingsCaptor,
   getDeviceSettings,
@@ -108,7 +108,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       <StreamVideo
         client={client}
         language={language}
-        translationsOverrides={translations}
+        translationsOverrides={appTranslations}
       >
         <StreamCall
           call={call}

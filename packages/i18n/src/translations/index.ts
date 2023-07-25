@@ -1,4 +1,2 @@
-import en from './en.json';
-
-const translations = { en };
+const translations = {};
 export default translations;

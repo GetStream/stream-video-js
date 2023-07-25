@@ -1,6 +1,8 @@
 import {
-  StreamVideo as StreamVideoProvider,
+  StreamVideoProvider,
+  StreamI18nProvider,
   StreamVideoProps,
+  StreamI18nProviderProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
@@ -15,7 +17,9 @@ import { usePushRegisterEffect } from '../hooks';
  *
  * @category Client State
  */
-export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
+export const StreamVideo = (
+  props: PropsWithChildren<StreamVideoProps & StreamI18nProviderProps>,
+) => {
   const { client, children, translationsOverrides, i18nInstance, language } =
     props;
 
@@ -41,17 +45,18 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   }, [client]);
 
   return (
-    <StreamVideoProvider
-      client={client}
-      translationsOverrides={translationsOverrides}
-      i18nInstance={i18nInstance}
-      language={language}
-    >
-      <StreamVideoStoreProvider>
-        <MediaDevices />
-        <PushRegister />
-        {children}
-      </StreamVideoStoreProvider>
+    <StreamVideoProvider client={client}>
+      <StreamI18nProvider
+        language={language}
+        translationsOverrides={translationsOverrides}
+        i18nInstance={i18nInstance}
+      >
+        <StreamVideoStoreProvider>
+          <MediaDevices />
+          <PushRegister />
+          {children}
+        </StreamVideoStoreProvider>
+      </StreamI18nProvider>
     </StreamVideoProvider>
   );
 };

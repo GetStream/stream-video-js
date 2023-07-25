@@ -1,12 +1,8 @@
-import defaultTranslations from './translations';
-
 export type TranslationLanguage = 'en' | 'es' | string;
 
 export type Namespace = string;
 
-export type TranslationSheet =
-  | typeof defaultTranslations.en
-  | Record<string, string>;
+export type TranslationSheet = Record<string, string>;
 
 export type TranslationsForLanguage = Record<Namespace, TranslationSheet>;
 
