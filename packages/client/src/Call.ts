@@ -1517,11 +1517,11 @@ export class Call {
    * @param request
    * @returns
    */
-  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+  queryMembers = (request?: Omit<QueryMembersRequest, 'type' | 'id'>) => {
     return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
       '/call/members',
       {
-        ...request,
+        ...(request || {}),
         id: this.id,
         type: this.type,
       },

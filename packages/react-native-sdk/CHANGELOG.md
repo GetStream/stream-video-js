@@ -2,6 +2,43 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.334](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.333...@stream-io/video-react-native-sdk-0.0.1-alpha.334) (2023-07-25)
+
+
+
+## [0.0.1-alpha.333](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.332...@stream-io/video-react-native-sdk-0.0.1-alpha.333) (2023-07-25)
+
+
+
+## [0.0.1-alpha.332](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.331...@stream-io/video-react-native-sdk-0.0.1-alpha.332) (2023-07-25)
+
+
+### Bug Fixes
+
+* **react-native:** wrong import in audio room ([14f4e6b](https://github.com/GetStream/stream-video-js/commit/14f4e6bfa3547849a9a7555d4fae50405ffb1a3f))
+
+
+
+## [0.0.1-alpha.331](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.330...@stream-io/video-react-native-sdk-0.0.1-alpha.331) (2023-07-25)
+
+
+
+## [0.0.1-alpha.330](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.329...@stream-io/video-react-native-sdk-0.0.1-alpha.330) (2023-07-24)
+
+
+
+## [0.0.1-alpha.329](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.328...@stream-io/video-react-native-sdk-0.0.1-alpha.329) (2023-07-24)
+
+
+
+## [0.0.1-alpha.328](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.327...@stream-io/video-react-native-sdk-0.0.1-alpha.328) (2023-07-24)
+
+
+
+## [0.0.1-alpha.327](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.326...@stream-io/video-react-native-sdk-0.0.1-alpha.327) (2023-07-22)
+
+
+
 ## [0.0.1-alpha.326](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.325...@stream-io/video-react-native-sdk-0.0.1-alpha.326) (2023-07-21)
 
 

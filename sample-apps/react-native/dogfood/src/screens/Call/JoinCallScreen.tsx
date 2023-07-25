@@ -15,11 +15,11 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
-import { v4 as uuidv4 } from 'uuid';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
+import { randomId } from '../../modules/helpers/randomId';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -37,7 +37,7 @@ const JoinCallScreen = () => {
     ringingUserIds = [...new Set([...ringingUserIds, userId])];
 
     try {
-      const call = videoClient?.call('default', uuidv4().toLowerCase());
+      const call = videoClient?.call('default', randomId());
       await call?.getOrCreate({
         ring: true,
         data: {
