@@ -3,7 +3,31 @@ id: stream-call
 title: StreamCall
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+The `<StreamCall />` component is a declarative component wrapper around `Call` objects. It utilizes the `StreamCallProvider` to make the [call and its state](../../core/call-and-participant-state/) available to all child components.
+
+## General usage
+
+```tsx
+import {
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+export const App = () => {
+  const call = /* ... */;
+
+  return (
+    // highlight-next-line
+    <StreamCall call={call}>
+      <MyUI />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `call`
+
+| Type   |
+| ------ |
+| `Call` |
