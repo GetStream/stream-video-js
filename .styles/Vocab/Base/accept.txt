@@ -65,6 +65,5 @@ unmute
 (?i)boolean
 onPress
 useRef
-<<<<<<< HEAD
 apiKey
 SDK's
