@@ -2,20 +2,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { WSConnectionFallback } from '../coordinator/connection/connection_fallback';
+import { StreamVideoServerClient } from '../StreamVideoServerClient';
 
 const apiKey = process.env.STREAM_API_KEY!;
-const tokenUrl = process.env.TOKEN_PROVIDER_URL!;
+const secret = process.env.STREAM_SECRET!;
 
 const tokenProvider = (userId: string) => {
+  const serverClient = new StreamVideoServerClient(apiKey, { secret });
   return async () => {
-    const url = new URL(tokenUrl);
-    url.searchParams.set('api_key', apiKey);
-    url.searchParams.set('user_id', userId);
-
-    const response = await fetch(url.toString());
-    const data = await response.json();
-    return data.token;
+    return new Promise<string>((resolve) => {
+      setTimeout(() => {
+        const token = serverClient.createToken(userId);
+        resolve(token);
+      }, 100);
+    });
   };
 };
 
