@@ -34,12 +34,56 @@ describe('call members API', () => {
     expect(response.members[1].role).toBe('admin');
   });
 
-  it('update members', async () => {
+  it('add or update members', async () => {
     const response = await call.updateCallMembers({
-      update_members: [{ user_id: 'sara', role: 'admin' }],
+      update_members: [
+        { user_id: 'sara' },
+        { user_id: 'jane', role: 'admin' },
+        { user_id: 'jack', role: 'admin' },
+      ],
     });
 
     expect(response.members[0].user_id).toBe('sara');
-    expect(response.members[0].role).toBe('admin');
+    expect(response.members[1].user_id).toBe('jane');
+    expect(response.members[1].role).toBe('admin');
+    expect(response.members[2].user_id).toBe('jack');
+    expect(response.members[2].role).toBe('admin');
+  });
+
+  it('remove members', async () => {
+    const response = await call.updateCallMembers({
+      remove_members: ['sara'],
+    });
+
+    expect(response.duration).toBeDefined();
+  });
+
+  it('query members', async () => {
+    let response = await call.queryMembers();
+
+    let members = response.members;
+    expect(members.length).toBe(3);
+
+    const queryMembersReq = {
+      sort: [{ field: 'user_id', direction: 1 }],
+      limit: 2,
+    };
+    response = await call.queryMembers(queryMembersReq);
+
+    members = response.members;
+    expect(members.length).toBe(2);
+    expect(members[0].user_id).toBe('jack');
+    expect(members[1].user_id).toBe('jane');
+
+    response = await call.queryMembers({
+      ...queryMembersReq,
+      next: response.next,
+    });
+
+    expect(response.members.length).toBe(1);
+
+    response = await call.queryMembers({
+      filter_conditions: { role: { $eq: 'admin' } },
+    });
   });
 });
