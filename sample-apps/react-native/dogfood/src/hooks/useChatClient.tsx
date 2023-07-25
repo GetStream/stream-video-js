@@ -26,7 +26,7 @@ export const useChatClient = <
       return;
     }
 
-    const client = new StreamChat<SCG>('6nv2d7gtd67u');
+    const client = new StreamChat<SCG>(apiKey);
     const connectUser = async () => {
       await disconnectRef.current;
       try {
@@ -45,7 +45,6 @@ export const useChatClient = <
     const connectPromise = connectUser();
 
     const cleanUp = async () => {
-      setChatClient(null);
       didUserConnectInterrupt = true;
       await connectPromise;
       try {
@@ -54,6 +53,7 @@ export const useChatClient = <
       } catch (e) {
         console.error('[Chat client]: Failed to disconnect', e);
       }
+      setChatClient(null);
     };
 
     return () => {
