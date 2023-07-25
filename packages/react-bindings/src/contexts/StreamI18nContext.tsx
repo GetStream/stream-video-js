@@ -20,6 +20,12 @@ const StreamI18nContext = createContext<StreamI18nContextValue>({
   t: defaultTranslationFunction,
 });
 
+type CreateI18nParams = {
+  i18nInstance?: StreamI18n;
+  language?: string;
+  translationsOverrides?: TranslationsMap;
+};
+
 export type StreamI18nProviderProps = CreateI18nParams;
 
 export const StreamI18nProvider = ({
@@ -33,12 +39,6 @@ export const StreamI18nProvider = ({
       {children}
     </StreamI18nContext.Provider>
   );
-};
-
-type CreateI18nParams = {
-  i18nInstance?: StreamI18n;
-  language?: string;
-  translationsOverrides?: TranslationsMap;
 };
 
 export const useCreateI18n = ({

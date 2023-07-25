@@ -1,4 +1,4 @@
-export type TranslationLanguage = 'en' | 'es' | string;
+export type TranslationLanguage = 'en' | string;
 
 export type Namespace = string;
 
