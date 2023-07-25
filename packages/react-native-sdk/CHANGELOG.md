@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.332](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.331...@stream-io/video-react-native-sdk-0.0.1-alpha.332) (2023-07-25)
+
+
+### Bug Fixes
+
+* **react-native:** wrong import in audio room ([14f4e6b](https://github.com/GetStream/stream-video-js/commit/14f4e6bfa3547849a9a7555d4fae50405ffb1a3f))
+
+
+
 ## [0.0.1-alpha.331](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.330...@stream-io/video-react-native-sdk-0.0.1-alpha.331) (2023-07-25)
 
 
