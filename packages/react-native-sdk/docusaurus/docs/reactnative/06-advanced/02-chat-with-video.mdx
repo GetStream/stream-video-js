@@ -27,8 +27,7 @@ To wrap our Chat initiation and client logic we will create a `ChatWrapper` comp
 import React, { PropsWithChildren, useCallback, useMemo } from 'react';
 import { Chat, OverlayProvider, Streami18n } from 'stream-chat-react-native';
 import { useChatClient } from '../hooks/useChatClient';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { SafeAreaView, ActivityIndicator } from 'react-native';
 
 const streami18n = new Streami18n({
   language: 'en',
@@ -57,15 +56,48 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <OverlayProvider i18nInstance={streami18n}>
-        <Chat client={chatClient} i18nInstance={streami18n}>
-          {children}
-        </Chat>
-      </OverlayProvider>
-    </GestureHandlerRootView>
+    <OverlayProvider i18nInstance={streami18n}>
+      <Chat client={chatClient} i18nInstance={streami18n}>
+        {children}
+      </Chat>
+    </OverlayProvider>
   );
 };
+```
+
+:::note
+It is essential for you to wrap the [`GestureHandlerRootView`](https://getstream.io/chat/docs/sdk/reactnative/basics/troubleshooting/#touchables-not-working), [`OverlayProvider`](https://getstream.io/chat/docs/sdk/reactnative/core-components/overlay-provider/) and [`Chat`](https://getstream.io/chat/docs/sdk/reactnative/core-components/chat/) component on the root of your chat integration hierarchy.
+
+`GestureHandlerRootView` should be wrapped into the root of your application as follows:
+
+```tsx title="App.tsx"
+import React, { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import { VideoCallUI } from './components/VideoCallUI';
+import { ChatWrapper } from './src/components/ChatWrapper';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+export default function App() {
+  // ...
+
+  return (
+    // highlight-next-line
+    <GestureHandlerRootView style={styles.container}>
+      <StreamVideo client={client}>
+        <StreamCall call={call}>
+          <VideoCallUI />
+        </StreamCall>
+      </StreamVideo>
+      // highlight-next-line
+    </GestureHandlerRootView>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -74,8 +106,6 @@ const styles = StyleSheet.create({
 });
 ```
 
-:::note
-It is essential for you to wrap the [`GestureHandlerRootView`](https://getstream.io/chat/docs/sdk/reactnative/basics/troubleshooting/#touchables-not-working), [`OverlayProvider`](https://getstream.io/chat/docs/sdk/reactnative/core-components/overlay-provider/) and [`Chat`](https://getstream.io/chat/docs/sdk/reactnative/core-components/chat/) component on the root of your chat integration hierarchy.
 :::
 
 ### Creating the Chat Client
