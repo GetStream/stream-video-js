@@ -82,7 +82,7 @@ Alternatively you can use the following script `cd stream-video-js/packages/clie
 ## PRs
 
 - CI checks are running on PRs, please pay attention to them, and fix issues in case an action fails
-- Many sample applications are deployed to a preview environment, you can check your changes there as well, check the relevant action's output for links (some application are internal, and only available to Stream developers)
+- Many sample applications are deployed to a preview environment, you can check your changes there as well, check the relevant action's output for links (some applications are internal, and only available to Stream developers)
 - (internal) documentation is deployed to the [staging docs site](https://staging.getstream.io/video/docs/), you can check your changes there as well
 
 ## Release flow (internal)
@@ -94,5 +94,5 @@ Commits to `main` will trigger the following CI steps:
   - The release configuration for each public package can be found in the `packages/<package name>/project.json` file
   - For more information checkout the documentation of the [release tool](https://github.com/jscutlery/semver) we are using
   - [Known issue about the release process](https://getstream.slack.com/archives/C04ATV49DU3/p1687161389232829)
-- Documentation is deployed to the [production site](https://getstream.io/video/docs/). An exception is the Node.js documentation, which needs to be deployed separately ([see above](#client) for more details).
-- All relevant sample apps will be deployed
+- Documentation is deployed to the [production site](https://getstream.io/video/docs/). An exception is the Node.js documentation, which needs to be deployed separately ([see Client section](#client) for more details).
+- All relevant sample apps are deployed
