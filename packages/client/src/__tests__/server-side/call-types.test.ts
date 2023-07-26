@@ -96,6 +96,12 @@ describe('call types CRUD API', () => {
         recording: {
           mode: RecordSettingsModeEnum.DISABLED,
         },
+        backstage: {
+          enabled: true,
+        },
+      },
+      grants: {
+        host: [OwnCapability.JOIN_BACKSTAGE],
       },
     });
 
@@ -104,6 +110,8 @@ describe('call types CRUD API', () => {
     expect(updateResponse.settings.recording.mode).toBe(
       RecordSettingsModeEnum.DISABLED,
     );
+    expect(updateResponse.settings.backstage.enabled).toBe(true);
+    expect(updateResponse.grants.host).toContain(OwnCapability.JOIN_BACKSTAGE);
   });
 
   it('delete', async () => {

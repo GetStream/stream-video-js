@@ -156,4 +156,33 @@ describe('call API', () => {
       expect(response.recordings).toBeDefined();
     });
   });
+
+  describe('streaming', () => {
+    it('enable backstage mode', async () => {
+      const response = await call.update({
+        settings_override: {
+          backstage: {
+            enabled: true,
+          },
+        },
+      });
+
+      expect(response.call.settings.backstage.enabled).toBe(true);
+      expect(response.call.backstage).toBe(true);
+    });
+
+    it('go live', async () => {
+      console.log(call.state.metadata?.settings.backstage.enabled);
+      const response = await call.goLive();
+
+      expect(response.call.egress.broadcasting).toBe(true);
+      expect(response.call.egress.hls).toBeDefined();
+    });
+
+    it('stop live', async () => {
+      const response = await call.stopLive();
+
+      expect(response.call.egress.broadcasting).toBe(false);
+    });
+  });
 });
