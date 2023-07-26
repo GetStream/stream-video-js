@@ -430,15 +430,15 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
 };
 ```
 
-Here, To get the unread count, we listen to three main events, i.e., `message.new`, `message.updated`, and `message.deleted` and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
+Here, To get the unread count, we listen to three main events, that is, `message.new`, `message.updated`, and `message.deleted` and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
 
 We set the unread count to 0 when the `notification.mark_read` event is triggered.
 
 :::note
-Make sure to clean up/unsubscribe to all the events when the hook unmounts.
+Make sure to clean up/unsubscribe to all the events when the hook un-mounts.
 :::
 
-Finally, we will pass the unreadCount to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of [`CallControlsView`](../../ui-components/call/call-controls-view) component.
+Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of [`CallControlsView`](../../ui-components/call/call-controls-view) component.
 
 ```tsx
 import React from 'react';
