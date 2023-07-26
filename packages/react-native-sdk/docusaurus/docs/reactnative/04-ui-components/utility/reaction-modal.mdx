@@ -3,9 +3,9 @@ id: reaction-modal
 title: ReactionModal
 ---
 
-The ReactionModal is a modal designed to show all the available reactions that are allowed in the application and also allows sending a reaction by tapping on them.
+The `ReactionModal` is a [modal](https://reactnative.dev/docs/modal) designed to show all the available reactions in the application and allows sending the reaction when tapped.
 
-The ReactionModal component internally lists all the reactions that are supported through the `StreamVideoRN` config. By default we support '👍', '✋' and '🎉' reactions on our SDK. But this is fully customizable from app. To do that you can call the following from your application:
+The `ReactionModal` component internally lists all the reactions that are supported through the `StreamVideoRN` config. By default, we support '👍', '✋', and '🎉' reactions on our SDK. But this is fully customizable from the app. To do that, you can call the following from your application:
 
 ```tsx
 StreamVideoRN.updateConfig({
