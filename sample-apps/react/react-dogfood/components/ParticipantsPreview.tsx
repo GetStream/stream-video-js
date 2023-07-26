@@ -24,17 +24,17 @@ export const ParticipantsPreview = () => {
           overflowY: 'auto',
         }}
       >
-        {callMetadata.session.participants.map((participant) => (
-          <Stack alignItems="center" key={participant.user_session_id}>
-            <Avatar
-              name={participant.user.name}
-              imageSrc={participant.user.image}
-            />
-            {participant.user.name && (
-              <Typography variant="caption">{participant.user.name}</Typography>
-            )}
-          </Stack>
-        ))}
+        {callMetadata.session.participants.map((participant) => {
+          const displayName =
+            participant.user.name ?? participant.user.id ?? 'Unknown user';
+          return (
+            <Stack alignItems="center" key={participant.user_session_id}>
+              <Avatar name={displayName} imageSrc={participant.user.image} />
+
+              <Typography variant="caption">{displayName}</Typography>
+            </Stack>
+          );
+        })}
       </Stack>
     </Stack>
   );

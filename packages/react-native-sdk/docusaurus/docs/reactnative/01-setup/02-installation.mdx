@@ -3,6 +3,8 @@ title: Installation
 description: Install the SDK for video calling
 ---
 
+Installation and usage of our React Native SDK is simple and involves the following steps:
+
 ### Prerequisites
 
 First things first, make sure you have set up the development environment for React Native.
@@ -10,10 +12,16 @@ You can find the official guide [here](https://reactnative.dev/docs/environment-
 
 ### Add Stream's Video SDK and its peer dependencies
 
-In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
+In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
 ```bash
-yarn add @stream-io/video-react-native-sdk react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
+yarn add @stream-io/video-react-native-sdk
+```
+
+Stream Video React Native SDK requires installing some peer dependencies to provide you with a great calling experience. You can run the following command to install them:
+
+```bash
+yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
 ```
 
 The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
@@ -82,6 +90,10 @@ Add the following keys and values to `Info.plist` file at a minimum:
 
 - `Privacy - Camera Usage Description` - "`<Your_app_name>` requires camera access to capture and transmit video"
 - `Privacy - Microphone Usage Description` - "`<Your_app_name>` requires microphone access to capture and transmit audio"
+
+:::note
+You should replace `<Your_app_name>` (or also use your custom strings instead).
+:::
 
 #### Android
 

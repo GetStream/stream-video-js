@@ -340,7 +340,7 @@ export class StreamVideoClient {
    *
    * @param data the query data.
    */
-  queryCalls = async (data: QueryCallsRequest) => {
+  queryCalls = async (data: QueryCallsRequest = {}) => {
     const response = await this.streamClient.post<
       QueryCallsResponse,
       QueryCallsRequest

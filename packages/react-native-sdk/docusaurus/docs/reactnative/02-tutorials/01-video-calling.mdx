@@ -98,10 +98,10 @@ export default function App() {
 ### Step 5 - Adding Native Permissions
 
 :::note
-Start using your camera and microphone by learning how to manage your Native Permissions. See the [Manage Native Permissions](../../advanced/native-permissions) guide.
+Start using your camera and microphone by learning how to manage your Native Permissions. See the [Manage Native Permissions](../../core/native-permissions) guide.
 :::
 
-For this tutorial, we can create the same hook as (`useSyncPermissions`) as in the [Manage Native Permissions](../../advanced/native-permissions) guide and use it as below:
+For this tutorial, we can create the same hook as (`useSyncPermissions`) as in the [Manage Native Permissions](../../core/native-permissions) guide and use it as below:
 
 ```tsx title="App.tsx"
 import React, { useEffect, useState } from 'react';
@@ -111,6 +111,7 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
+import { useSyncPermissions } from "./useSyncPermissions"
 import { VideoCallUI } from './components/VideoCallUI';
 
 export default function App() {

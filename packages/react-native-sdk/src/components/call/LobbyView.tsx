@@ -5,6 +5,7 @@ import {
   useCall,
   useCallMetadata,
   useConnectedUser,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
@@ -53,6 +54,7 @@ export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
   const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
   const call = useCall();
   const callMetadata = useCallMetadata();
+  const { t } = useI18n();
   const participantsCount = callMetadata?.session?.participants.length;
 
   const MicIcon = !initialAudioEnabled ? (
@@ -81,8 +83,10 @@ export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
       <View style={styles.content}>
         {connectedUser && (
           <>
-            <Text style={styles.heading}>Before Joining</Text>
-            <Text style={styles.subHeading}>Setup your audio and video</Text>
+            <Text style={styles.heading}>{t('Before Joining')}</Text>
+            <Text style={styles.subHeading}>
+              {t('Setup your audio and video')}
+            </Text>
             <View style={styles.videoView}>
               <View style={styles.topView} />
               {isVideoAvailable ? (
@@ -129,16 +133,22 @@ export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
         )}
         <View style={styles.info}>
           <Text style={styles.infoText}>
-            You are about to join a call with id {call?.id} at Stream.{' '}
-            {participantsCount
-              ? `${participantsCount} participant(s) are in the call.`
-              : 'You are first to Join the call.'}
+            {t('You are about to join a call with id {{ callId }}.', {
+              callId: call?.id,
+            }) +
+              ' ' +
+              (participantsCount
+                ? t(
+                    '{{ numberOfParticipants }} participant(s) are in the call.',
+                    { numberOfParticipants: participantsCount },
+                  )
+                : t('You are first to Join the call.'))}
           </Text>
           <Pressable
             style={styles.joinButton}
             onPress={joinCallButton.onPressHandler}
           >
-            <Text style={styles.joinButtonText}>Join</Text>
+            <Text style={styles.joinButtonText}>{t('Join')}</Text>
           </Pressable>
         </View>
       </View>

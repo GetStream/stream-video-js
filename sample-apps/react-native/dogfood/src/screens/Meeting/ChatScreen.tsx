@@ -10,7 +10,7 @@ import { AuthenticationProgress } from '../../components/AuthenticatingProgress'
 import { Channel as ChannelType } from 'stream-chat';
 import { MeetingStackParamList, StreamChatGenerics } from '../../../types';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { theme } from '@stream-io/video-react-native-sdk';
+import { theme, useI18n } from '@stream-io/video-react-native-sdk';
 import {
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
@@ -25,6 +25,7 @@ const ChannelHeader = () => {
   const chatLabelNoted = useAppGlobalStoreValue(
     (store) => store.chatLabelNoted,
   );
+  const { t } = useI18n();
   const appStoreSetState = useAppGlobalStoreSetState();
   const [isNoted, setIsNoted] = useState<boolean>(!!chatLabelNoted);
 
@@ -35,8 +36,10 @@ const ChannelHeader = () => {
   return (
     <View style={styles.header}>
       <Text style={styles.headerText}>
-        ℹ️ Messages are currently visible to anyone with the link and valid
-        session.
+        ℹ️{' '}
+        {t(
+          'Messages are currently visible to anyone with the link and valid session.',
+        )}
       </Text>
       <Pressable
         style={styles.notedButton}
@@ -45,7 +48,7 @@ const ChannelHeader = () => {
           appStoreSetState({ chatLabelNoted: true });
         }}
       >
-        <Text style={styles.notedButtonText}>Noted</Text>
+        <Text style={styles.notedButtonText}>{t('Noted')}</Text>
       </Pressable>
     </View>
   );

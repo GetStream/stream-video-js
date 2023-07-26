@@ -1,12 +1,14 @@
 import {
-  StreamVideo as StreamVideoProvider,
+  StreamVideoProvider,
   StreamVideoProps,
+  StreamI18nProviderProps,
 } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { MediaDevices } from './MediaDevices';
 import { usePushRegisterEffect } from '../hooks';
+import { translations } from '../translations';
 
 /**
  *
@@ -15,9 +17,16 @@ import { usePushRegisterEffect } from '../hooks';
  *
  * @category Client State
  */
-export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
-  const { client, children, translationsOverrides, i18nInstance, language } =
-    props;
+export const StreamVideo = (
+  props: PropsWithChildren<StreamVideoProps & StreamI18nProviderProps>,
+) => {
+  const {
+    client,
+    children,
+    translationsOverrides = translations,
+    i18nInstance,
+    language,
+  } = props;
 
   /**
    * Effect to inform the coordinator about the online status of the app
@@ -43,9 +52,9 @@ export const StreamVideo = (props: PropsWithChildren<StreamVideoProps>) => {
   return (
     <StreamVideoProvider
       client={client}
+      language={language}
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
-      language={language}
     >
       <StreamVideoStoreProvider>
         <MediaDevices />

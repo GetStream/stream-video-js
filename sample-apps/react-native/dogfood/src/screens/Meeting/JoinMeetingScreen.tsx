@@ -15,6 +15,7 @@ import { appTheme } from '../../theme';
 import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
+import { useI18n } from '@stream-io/video-react-native-sdk';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -24,6 +25,7 @@ type JoinMeetingScreenProps = NativeStackScreenProps<
 const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
   const [linking, setLinking] = useState<boolean>(false);
+  const { t } = useI18n();
 
   const { navigation } = props;
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
@@ -64,15 +66,17 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     >
       <Image source={{ uri: userImageUrl }} style={styles.logo} />
       <View>
-        <Text style={styles.title}>Hello, {userName || userId}</Text>
+        <Text style={styles.title}>
+          {t('Hello, {{ userName }}', { userName: userName || userId })}
+        </Text>
         <Text style={styles.subTitle}>
-          Start or join a meeting by entering the call ID.
+          {t('Start or join a meeting by entering the call ID.')}
         </Text>
       </View>
 
       <View style={styles.createCall}>
         <TextInput
-          placeholder={'Type your Call ID'}
+          placeholder={t('Type your Call ID')}
           value={callId}
           autoCapitalize="none"
           autoCorrect={false}
@@ -82,7 +86,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
         />
         <Button
           onPress={joinCallHandler}
-          title="Join Call"
+          title={t('Join Call')}
           disabled={!callId}
           buttonStyle={styles.joinCallButton}
         />
@@ -92,7 +96,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           const randomCallID = randomId();
           startNewCallHandler(randomCallID);
         }}
-        title="Start a New Call"
+        title={t('Start a New Call')}
         buttonStyle={styles.startNewCallButton}
       />
     </KeyboardAvoidingView>

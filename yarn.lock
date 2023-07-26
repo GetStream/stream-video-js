@@ -7015,7 +7015,6 @@ __metadata:
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-native-video": ^5
     "@types/react-test-renderer": ^18.0.0
-    "@types/uuid": ^9.0.0
     babel-jest: ^29.2.1
     eslint: ^8.19.0
     intl-pluralrules: ^2.0.0
@@ -7049,7 +7048,6 @@ __metadata:
     stream-chat-react-native: ^5.15.1
     text-encoding-polyfill: ^0.6.7
     typescript: ^4.9.5
-    uuid: ^9.0.0
   languageName: unknown
   linkType: soft
 
@@ -7968,13 +7966,6 @@ __metadata:
   version: 8.3.4
   resolution: "@types/uuid@npm:8.3.4"
   checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:^9.0.0":
-  version: 9.0.1
-  resolution: "@types/uuid@npm:9.0.1"
-  checksum: c472b8a77cbeded4bc529220b8611afa39bd64677f507838f8083d8aac8033b1f88cb9ddaa2f8589e0dcd2317291d0f6e1379f82d5ceebd6f74f3b4825288e00
   languageName: node
   linkType: hard
 

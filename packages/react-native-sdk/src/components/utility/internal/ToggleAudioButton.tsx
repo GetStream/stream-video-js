@@ -4,6 +4,7 @@ import {
   Restricted,
   useCall,
   useHasPermissions,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { useCallControls, usePermissionNotification } from '../../../hooks';
@@ -18,13 +19,14 @@ export const ToggleAudioButton = () => {
   const userHasSendAudioCapability = useHasPermissions(
     OwnCapability.SEND_AUDIO,
   );
+  const { t } = useI18n();
 
   const isAudioMuted = !isAudioPublished;
 
   usePermissionNotification({
     permission: OwnCapability.SEND_AUDIO,
-    messageApproved: 'You can now speak.',
-    messageRevoked: 'You can no longer speak.',
+    messageApproved: t('You can now speak.'),
+    messageRevoked: t('You can no longer speak.'),
   });
 
   const call = useCall();

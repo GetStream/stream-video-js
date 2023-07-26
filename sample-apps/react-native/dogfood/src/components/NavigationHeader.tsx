@@ -69,7 +69,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
       {!showChooseModeButton ? (
         <Button
           onPress={logoutHandler}
-          title="Logout"
+          title={t('Logout')}
           accessibilityLabel={A11yButtons.LOG_OUT}
         />
       ) : (
@@ -77,7 +77,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           onPress={() => {
             appStoreSetState({ appMode: 'None' });
           }}
-          title="Choose Mode"
+          title={t('Choose Mode')}
           titleStyle={styles.buttonText}
           accessibilityLabel={A11yButtons.CHOOSE_MODE}
         />
