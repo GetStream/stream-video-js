@@ -49,13 +49,9 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     handleEvent();
 
     client.on('message.new', handleEvent);
-    client.on('message.updated', handleEvent);
-    client.on('message.deleted', handleEvent);
 
     return () => {
       client.off('message.new', handleEvent);
-      client.off('message.updated', handleEvent);
-      client.off('message.deleted', handleEvent);
     };
   }, [client, channelWatched, cid]);
 

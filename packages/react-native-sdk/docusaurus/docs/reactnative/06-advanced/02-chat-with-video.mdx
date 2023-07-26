@@ -23,13 +23,12 @@ To create the Chat Client we will mainly follow [this tutorial](https://getstrea
 
 To wrap our Chat initiation and client logic we will create a `ChatWrapper` component that can be wrapped at the root of the application, so that the client will be available to all the child components.
 
-```tsx title="ChatWrapper.tsx"
+```tsx title="src/components/ChatWrapper.tsx"
 import React, { PropsWithChildren, useCallback, useMemo } from 'react';
 import { Chat, OverlayProvider, Streami18n } from 'stream-chat-react-native';
 import { useChatClient } from '../hooks/useChatClient';
-import { AuthenticationProgress } from './AuthenticatingProgress';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
 
 const streami18n = new Streami18n({
   language: 'en',
@@ -50,7 +49,11 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   if (!chatClient) {
     // Show a loader until the Chat client loads
-    return <AuthenticationProgress />;
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -79,7 +82,7 @@ It is essential for you to wrap the [`GestureHandlerRootView`](https://getstream
 
 Firstly, we will create types for the Chat Client as our setup is focused on Typescript. This can be done as follows:
 
-```ts title="types.ts"
+```ts title="src/types.ts"
 export type LocalAttachmentType = Record<string, unknown>;
 export type LocalChannelType = Record<string, unknown>;
 export type LocalCommandType = string;
@@ -101,7 +104,7 @@ export type StreamChatGenerics = {
 
 Now, we will focus on creating the `useChatClient` hook that is responsible for creating the Chat client. This is fairly simple:
 
-```tsx title="useChatClient.tsx"
+```tsx title="src/hooks/useChatClient.tsx"
 import { useEffect, useRef, useState } from 'react';
 import {
   StreamChat,
@@ -178,7 +181,7 @@ The `apiKey`, `userData` and the `tokenProvider` comes up from the `ChatWrapper`
 
 If we extend our [Video Calling Tutorial](../../tutorials/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
 
-```tsx
+```tsx title="App.tsx"
 import React, { useEffect, useState } from 'react';
 import {
   Call,
@@ -218,16 +221,15 @@ While creating a channel, please make sure the channel type is `videocall`. This
 
 An example of the same is shown below:
 
-```tsx
+```tsx title="src/ChatScreen.tsx"
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
 import {
   Channel,
   MessageInput,
   MessageList,
   useChatContext,
 } from 'stream-chat-react-native';
-import { AuthenticationProgress } from '../../components/AuthenticatingProgress';
 import { Channel as ChannelType } from 'stream-chat';
 import { StreamChatGenerics } from '../../../types';
 
@@ -249,7 +251,11 @@ export const ChatScreen = () => {
   }, [client, callId]);
 
   if (!channel) {
-    return <AuthenticationProgress />;
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -261,6 +267,12 @@ export const ChatScreen = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 ```
 
 ### Open the chat window
@@ -271,7 +283,7 @@ The `chatButton` prop is an object that takes up an `onPressHandler`, which is r
 
 In the VideoCallUI component of our [Video Calling Tutorial](../../tutorials/video-calling/), we will add the above:
 
-```tsx title="VideoCallUI.tsx"
+```tsx title="src/components/VideoCallUI.tsx"
 import React from 'react';
 import {
   CallContentView,
@@ -313,7 +325,7 @@ const styles = StyleSheet.create({
 
 To get the unread count of the Channel we need to focus primarily on watching the channel. So, to do it we will create a hook, that can be used easily:
 
-```tsx title="useChannelWatch.tsx"
+```tsx title="src/hooks/useChannelWatch.tsx"
 import { useCall } from '@stream-io/video-react-native-sdk';
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
@@ -364,7 +376,7 @@ We listen to the `user.watching.start` event to set the channel watched state to
 
 Now we will create a hook to get the unread count value for a channel.
 
-```tsx title="useUnreadCount.tsx"
+```tsx title="src/hooks/useUnreadCount.tsx"
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
 import { Event } from 'stream-chat';
@@ -416,13 +428,9 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     handleEvent();
 
     client.on('message.new', handleEvent);
-    client.on('message.updated', handleEvent);
-    client.on('message.deleted', handleEvent);
 
     return () => {
       client.off('message.new', handleEvent);
-      client.off('message.updated', handleEvent);
-      client.off('message.deleted', handleEvent);
     };
   }, [client, channelWatched, cid]);
 
@@ -430,7 +438,7 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
 };
 ```
 
-Here, To get the unread count, we listen to three main events, that is, `message.new`, `message.updated`, and `message.deleted` and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
+Here, To get the unread count, we listen to three main events, that is, `message.new` and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
 
 We set the unread count to 0 when the `notification.mark_read` event is triggered.
 
@@ -440,7 +448,7 @@ Make sure to clean up/unsubscribe to all the events when the hook un-mounts.
 
 Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of [`CallControlsView`](../../ui-components/call/call-controls-view) component.
 
-```tsx
+```tsx title="src/components/VideoCallUI.tsx"
 import React from 'react';
 import {
   CallContentView,
