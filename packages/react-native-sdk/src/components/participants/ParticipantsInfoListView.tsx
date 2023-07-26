@@ -201,7 +201,7 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
   return (
     <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <View style={styles.participantInfo}>
-        <Avatar radius={theme.avatar.xs} participant={participant} />
+        <Avatar size={theme.avatar.xs} participant={participant} />
 
         <Text style={styles.name} numberOfLines={1}>
           {(participant.name || generateParticipantTitle(participant.userId)) +
