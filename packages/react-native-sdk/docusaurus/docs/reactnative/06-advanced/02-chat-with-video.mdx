@@ -278,7 +278,7 @@ export const ChatScreen = () => {
       setChannel(newChannel);
     };
     createChannel();
-  }, [client, callId]);
+  }, [client]);
 
   if (!channel) {
     return (
@@ -359,7 +359,8 @@ To get the unread count of the Channel we need to focus primarily on watching th
 import { useCall } from '@stream-io/video-react-native-sdk';
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import type { Event } from 'stream-chat';
+import type { Event, Channel as ChannelType } from 'stream-chat';
+import { StreamChatGenerics } from '../types';
 
 /**
  * This hook is responsible for creating the channel and watching it.
@@ -375,8 +376,13 @@ export const useChannelWatch = () => {
   const cid = `${CHANNEL_TYPE}:${call?.id}`;
 
   useEffect(() => {
-    const channel = client.channel(CHANNEL_TYPE, call?.id);
-    channel.watch();
+   let channel: ChannelType<StreamChatGenerics>;
+    const watchChannel = async () => {
+      channel = client.channel(CHANNEL_TYPE, call?.id);
+      await channel.watch();
+    };
+
+    watchChannel();
 
     return () => {
       channel.stopWatching();
@@ -468,7 +474,7 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
 };
 ```
 
-Here, To get the unread count, we listen to three main events, that is, `message.new` and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
+Here, To get the unread count, we listen mainly to the `message.new` event and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
 
 We set the unread count to 0 when the `notification.mark_read` event is triggered.
 

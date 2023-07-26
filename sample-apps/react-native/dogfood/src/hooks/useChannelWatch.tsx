@@ -1,7 +1,8 @@
 import { useCall } from '@stream-io/video-react-native-sdk';
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import type { Event } from 'stream-chat';
+import type { Event, Channel as ChannelType } from 'stream-chat';
+import { StreamChatGenerics } from '../../types';
 
 /**
  * This hook is responsible for creating the channel and watching it.
@@ -16,8 +17,13 @@ export const useChannelWatch = () => {
   const cid = `${CHANNEL_TYPE}:${call?.id}`;
 
   useEffect(() => {
-    const channel = client.channel(CHANNEL_TYPE, call?.id);
-    channel.watch();
+    let channel: ChannelType<StreamChatGenerics>;
+    const watchChannel = async () => {
+      channel = client.channel(CHANNEL_TYPE, call?.id);
+      await channel.watch();
+    };
+
+    watchChannel();
 
     return () => {
       channel.stopWatching();
