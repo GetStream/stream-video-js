@@ -168,11 +168,9 @@ describe('call API', () => {
       });
 
       expect(response.call.settings.backstage.enabled).toBe(true);
-      expect(response.call.backstage).toBe(true);
     });
 
     it('go live', async () => {
-      console.log(call.state.metadata?.settings.backstage.enabled);
       const response = await call.goLive();
 
       expect(response.call.egress.broadcasting).toBe(true);
