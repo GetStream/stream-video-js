@@ -559,9 +559,9 @@ export class StreamClient {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
-      this._logApiError(type, url, e);
       this.consecutiveFailures += 1;
       if (e.response) {
+        this._logApiError(type, url, e.response);
         /** connection_fallback depends on this token expiration logic */
         if (
           e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
@@ -575,6 +575,7 @@ export class StreamClient {
         }
         return this.handleResponse(e.response);
       } else {
+        this._logApiError(type, url, e);
         // eslint-disable-next-line no-throw-literal
         throw e as AxiosError<APIErrorResponse>;
       }

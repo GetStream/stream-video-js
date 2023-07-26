@@ -3,6 +3,10 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { StreamVideoServerClient } from '../../StreamVideoServerClient';
 import { generateUUIDv4 } from '../../coordinator/connection/utils';
 import { Call } from '../../Call';
+import {
+  RecordSettingsRequestModeEnum,
+  RecordSettingsRequestQualityEnum,
+} from '../../gen/coordinator';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -75,5 +79,69 @@ describe('call API', () => {
     });
 
     expect(response.calls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  describe('recording', () => {
+    it('enable call recording', async () => {
+      let response = await call.update({
+        settings_override: {
+          recording: {
+            mode: RecordSettingsRequestModeEnum.DISABLED,
+          },
+        },
+      });
+      let settings = response.call.settings.recording;
+
+      expect(settings.mode).toBe(RecordSettingsRequestModeEnum.DISABLED);
+
+      response = await call.update({
+        settings_override: {
+          recording: {
+            mode: RecordSettingsRequestModeEnum.AVAILABLE,
+          },
+        },
+      });
+
+      settings = response.call.settings.recording;
+      expect(settings.mode).toBe(RecordSettingsRequestModeEnum.AVAILABLE);
+
+      response = await call.update({
+        settings_override: {
+          recording: {
+            audio_only: false,
+            quality: RecordSettingsRequestQualityEnum._1080P,
+          },
+        },
+      });
+
+      settings = response.call.settings.recording;
+      expect(settings.audio_only).toBe(false);
+      expect(settings.quality).toBe(RecordSettingsRequestQualityEnum._1080P);
+    });
+
+    it('start recording', async () => {
+      // somewhat dummy test, we should do a proper test in the future where we join a call and start recording
+      await expect(() => call.startRecording()).rejects.toThrowError(
+        'Stream error code 4: StartRecording failed with error: "cannot record inactive call"',
+      );
+    });
+
+    it('stop recording', async () => {
+      // somewhat dummy test, we should do a proper test in the future
+      await expect(() => call.stopRecording()).rejects.toThrowError(
+        'Stream error code 4: StopRecording failed with error: "call is not being recorded"',
+      );
+    });
+
+    it('query recordings', async () => {
+      // somewhat dummy test, we should do a proper test in the future
+      let response = await call.queryRecordings();
+
+      expect(response.recordings).toBeDefined();
+
+      response = await call.queryRecordings('session123');
+
+      expect(response.recordings).toBeDefined();
+    });
   });
 });
