@@ -8,6 +8,7 @@ import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
 import { MediaDevices } from './MediaDevices';
 import { usePushRegisterEffect } from '../hooks';
+import { translations } from '../translations';
 
 /**
  *
@@ -19,8 +20,13 @@ import { usePushRegisterEffect } from '../hooks';
 export const StreamVideo = (
   props: PropsWithChildren<StreamVideoProps & StreamI18nProviderProps>,
 ) => {
-  const { client, children, translationsOverrides, i18nInstance, language } =
-    props;
+  const {
+    client,
+    children,
+    translationsOverrides = translations,
+    i18nInstance,
+    language,
+  } = props;
 
   /**
    * Effect to inform the coordinator about the online status of the app
