@@ -27,6 +27,25 @@ describe('call types CRUD API', () => {
       name: callTypeName,
       settings: {
         audio: { mic_default_on: true, default_device: 'speaker' },
+        screensharing: {
+          access_request_enabled: false,
+          enabled: true,
+        },
+        geofencing: {
+          names: ['european_union'],
+        },
+      },
+      notification_settings: {
+        enabled: true,
+        call_notification: {
+          apns: {
+            title: '{{ user.display_name }} invites you to a call',
+          },
+          enabled: true,
+        },
+        session_started: {
+          enabled: false,
+        },
       },
       grants: {
         admin: [
@@ -43,6 +62,23 @@ describe('call types CRUD API', () => {
     expect(createResponse.settings.audio.default_device).toBe('speaker');
     expect(createResponse.grants.admin).toBeDefined();
     expect(createResponse.grants.user).toBeDefined();
+    expect(createResponse.settings.geofencing.names).toEqual([
+      'european_union',
+    ]);
+    expect(createResponse.settings.screensharing.access_request_enabled).toBe(
+      false,
+    );
+    expect(createResponse.settings.screensharing.enabled).toBe(true);
+    expect(createResponse.notification_settings.enabled).toBe(true);
+    expect(createResponse.notification_settings.session_started.enabled).toBe(
+      false,
+    );
+    expect(createResponse.notification_settings.call_notification.enabled).toBe(
+      true,
+    );
+    expect(
+      createResponse.notification_settings.call_notification.apns.title,
+    ).toBe('{{ user.display_name }} invites you to a call');
   });
 
   it('read', async () => {
