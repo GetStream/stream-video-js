@@ -3,7 +3,88 @@ id: connection-quality-indicator
 title: Connection Quality Indicator
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default [`ParticipantView`](../../ui-components/participants/participant-view/) component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
+
+- UNSPECIFIED
+- POOR
+- GOOD
+- EXCELLENT
+
+![Preview of the Connection quality indicator](../assets/06-advanced/10-connection-quality-indicator/connection-quality-indicator.png)
+
+In this guide we'll learn how to build and implement our own primitive connection quality indicator.
+
+## How to reach the state
+
+Each [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enum. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enum:
+
+```tsx
+import { SfuModels } from '@stream-io/video-react-native-sdk';
+
+const readableConnectionQuality =
+  SfuModels.ConnectionQuality[participant.connectionQuality];
+
+console.log(readableConnectionQuality); // -> EXCELLENT
+```
+
+## Connection quality indicator component
+
+You'll most likely be displaying this indicator component inside each participant view ([ParticipantView](../../ui-components/core/participant-view)) within a call layout, you can learn more about `ParticipantView` customizations in [the participant view customizations guide](../participant-view-customizations).
+
+```tsx
+import { Text, View } from 'react-native';
+import {
+  SfuModels,
+  StreamVideoParticipant,
+  StreamVideoLocalParticipant,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
+import participant from '@stream-io/video-react-native-sdk/dist/__tests__/mocks/participant';
+
+const ConnectionQualityIndicator = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+}) => {
+  const readableConnectionQuality =
+    SfuModels.ConnectionQuality[participant.connectionQuality];
+
+  return (
+    <Text>
+      {`${readableConnectionQuality} -
+      ${'⭐️'.repeat(participant.connectionQuality)}`}
+    </Text>
+  );
+};
+
+const CustomParticipantViewUI = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+}) => {
+  return (
+    <>
+      <ConnectionQualityIndicator participant={participant} />
+      {/* your other custom UI elements */}
+    </>
+  );
+};
+
+const ParticipantView = () => {
+  const participants = useParticipants();
+
+  return (
+    <View>
+      {participants.map((participant) => {
+        // Code for your custom participant view
+        return (
+          <View>
+            {/* ParticipantLabel is rendered as a sub component here */}
+            <CustomParticipantViewUI participant={participant} />
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+```
