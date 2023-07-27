@@ -3,13 +3,28 @@ id: call-content-view
 title: CallContentView
 ---
 
-CallContentView is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CallContentViewGrid from '../../assets/04-ui-components/call-content-view-grid.png';
+import CallContentViewSpotlight from '../../assets/04-ui-components/call-content-view-spotlight.png';
 
-![Preview of the CallContentView component.](../../assets/04-ui-components/call-content-view-grid.png)
+CallContentView is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
 
 The CallContentView has two modes(`grid` or `spotlight`). The grid mode lists the participants vertically, one after the other. In contrast, the spotlight mode shows the screen sharing view, or a single dominant speaker, or a pinned participant in an elongated view, while other participants are in a horizontal view.
 
-![Preview of the CallContentView component in spotlight mode](../../assets/04-ui-components/call-content-view-spotlight.png)
+<ImageShowcase
+  items={[
+    {
+      image: CallContentViewGrid,
+      caption: 'Call Content View Grid',
+      alt: 'Call Content View Grid',
+    },
+    {
+      image: CallContentViewSpotlight,
+      caption: 'Call Content View Spotlight',
+      alt: 'Call Content View Spotlight',
+    },
+  ]}
+/>
 
 ## General usage
 
