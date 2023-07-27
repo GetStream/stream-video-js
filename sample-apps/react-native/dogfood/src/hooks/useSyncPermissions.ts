@@ -57,10 +57,12 @@ const checkAndUpdatePermissions = async () => {
   }
 };
 
-// The extracted type of the return value of `requestMultiple`
-type Results = Awaited<ReturnType<typeof requestMultiple>>;
-
-const androidProcessResultsAndSetToConfig = (results: Results) =>
+const androidProcessResultsAndSetToConfig = (
+  results: Record<
+    'android.permission.CAMERA' | 'android.permission.RECORD_AUDIO',
+    PermissionStatus
+  >,
+) =>
   StreamVideoRN.setPermissions({
     isCameraPermissionGranted:
       results[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED,
@@ -69,7 +71,10 @@ const androidProcessResultsAndSetToConfig = (results: Results) =>
   });
 
 const iOSProcessResultsAndSetToConfig = (
-  results: Awaited<ReturnType<typeof requestMultiple>>,
+  results: Record<
+    'ios.permission.CAMERA' | 'ios.permission.MICROPHONE',
+    PermissionStatus
+  >,
 ) =>
   StreamVideoRN.setPermissions({
     isCameraPermissionGranted:

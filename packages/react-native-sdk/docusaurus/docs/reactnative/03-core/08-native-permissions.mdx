@@ -57,14 +57,19 @@ npx pod-install
 In this step, we create two functions called `androidProcessPermissions` and `iOSProcessPermissions`. These functions are responsible for informing the status of the permission grants to the SDK. 
 
 ```ts title=src/utils/updatePermissions.ts
-import { PERMISSIONS, RESULTS, requestMultiple } from 'react-native-permissions';
+import { PERMISSIONS, RESULTS, PermissionStatus } from 'react-native-permissions';
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
 
 // The extracted type of the return value of `requestMultiple`
 type Results = Awaited<ReturnType<typeof requestMultiple>>;
 
-export const androidProcessPermissions = (results: Results) =>
+export const androidProcessPermissions = (
+  results: Record<
+    'android.permission.CAMERA' | 'android.permission.RECORD_AUDIO',
+    PermissionStatus
+  >,
+) =>
   StreamVideoRN.setPermissions({
     isCameraPermissionGranted:
       results[PERMISSIONS.ANDROID.CAMERA] === RESULTS.GRANTED,
@@ -73,7 +78,10 @@ export const androidProcessPermissions = (results: Results) =>
   });
 
 export const iosProcessPermissions = (
-  results: Results,
+  results: Record<
+    'ios.permission.CAMERA' | 'ios.permission.MICROPHONE',
+    PermissionStatus
+  >,
 ) =>
   StreamVideoRN.setPermissions({
     isCameraPermissionGranted:
