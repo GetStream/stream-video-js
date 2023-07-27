@@ -1,139 +1,336 @@
 ---
-title: Video Call Tutorial
-description: How to build a video call similar to Zoom or facebook messenger
+title: Video Calling
+description: How to Build a React Video Calling App
 ---
 
-import FinishedTutorial from '../assets/01-basics/01-tutorial/finished-tutorial.png';
-import TutorialInProgress from '../assets/01-basics/01-tutorial/tutorial-in-progress.png';
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
-This tutorial teaches you how to build Zoom/Whatsapp style video calling for your app.
+This tutorial teaches you how to build Zoom/Whatsapp style video calling experience for your app.
 
 - Calls run on Stream's global edge network for optimal latency & reliability.
-- Permissions give you fine-grained control over who can do what.
+- Permissions give you fine grained control over who can do what.
 - Video quality and codecs are automatically optimized.
+- Powered by Stream's [Video Calling API](https://getstream.io/video/video-calling/).
 
-## Source code
+### Step 1 - Setup an app and install React Video SDK
 
-This tutorial replicates a creation of an existing sample application. We have made <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial" target="_blank">the source code</a> available for your convenience. Feel free to take a look at the project for a complete overview.
+In this step, we will create a new React application using the [Vite CLI](https://vitejs.dev/), and install Stream's React Video SDK.
+We recommend using Vite because it's fast and easy to use.
 
-## Create project
-
-There are plenty of tools that allow you to set up a React project. We recommend to use <a href="https://vitejs.dev/guide/why.html" target="_blank">Vite</a> because of the excellent developer experience it provides. In this tutorial we will use Vite's react-ts template:
-
-```bash
-yarn create vite stream-video-react-tutorial --template react-ts
-```
-
-The only dependency we need to install is Stream's React SDK `@stream-io/video-react-sdk`:
-
-```bash
+```bash title="Terminal"
+yarn create vite video-call --template react-ts
+cd video-call
 yarn add @stream-io/video-react-sdk
 ```
 
-## Get the credentials
+### Step 2 - Create & Join a call
 
-In order to be able to communicate with Stream's back-end video service, you will need to gather the following values and store them in a `.env` file in the root of the project:
+Open up `src/App.tsx` and replace it with this code:
 
-```bash
-VITE_STREAM_API_KEY=<api_key>
-VITE_STREAM_USER_TOKEN=<token>
-VITE_STREAM_USER_ID=<user_id>
-VITE_STREAM_CALL_ID=<call_id>
-```
-
-You can copy the credentials from the box below:
-
-<TokenSnippet sampleApp="meeting" />
-
-## Building the app
-
-### Create & Join a call
-
-The <a href="https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial/src/App.tsx" target="_blank">`App` component</a> takes care of the following:
-
-1. Creates a `StreamVideoClient` instance and establishes a WS connection
-2. Provides the `StreamVideoClient` instance to children through `StreamVideo` provider
-3. Creates a call instance and provides it to children (by `StreamCall`). The call type ("default" in the below case) controls which features are enabled and how permissions are setup
-4. Joins the call
-5. Sets up theming by importing the stylesheet and using the `StreamTheme` component
-
-```tsx
+```tsx title="src/App.tsx"
 import { useEffect, useState } from 'react';
 import {
   Call,
+  CallingState,
   StreamCall,
-  StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  CallingState,
+  useCall,
+  useCallCallingState,
+  useParticipantCount,
+  User,
 } from '@stream-io/video-react-sdk';
 
-import './index.css';
+const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
+const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
+const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
+const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
+
+// set up the user object
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+
+const client = new StreamVideoClient({ apiKey, user, token });
 
 export default function App() {
-  const [client, setClient] = useState<StreamVideoClient | undefined>();
-  const [call, setCall] = useState<Call | undefined>();
-
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const user = {
-      id: import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-
-    const client = new StreamVideoClient({
-      apiKey: import.meta.env.VITE_STREAM_API_KEY,
-      user,
-      token,
+    const myCall = client.call('default', callId);
+    myCall.join({ create: true }).catch((err) => {
+      console.error(`Failed to join the call`, err);
     });
-    setClient(client);
+
+    setCall(myCall);
 
     return () => {
-      // Cleanup
-      client?.disconnectUser();
+      setCall(undefined);
+      myCall.leave().catch((err) => {
+        console.error(`Failed to leave the call`, err);
+      });
     };
   }, []);
 
-  useEffect(() => {
-    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
-    call?.join({ create: true });
-    setCall(call);
-
-    return () => {
-      // Cleanup
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
-      setCall(undefined);
-    };
-  }, [client]);
-
-  if (!client || !call) {
-    return null;
-  }
+  if (!call) return null;
 
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
+        <UILayout />
       </StreamCall>
     </StreamVideo>
   );
 }
+
+export const UILayout = () => {
+  const call = useCall();
+  const callingState = useCallCallingState();
+  const participantCount = useParticipantCount();
+
+  if (callingState !== CallingState.JOINED) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      Call "{call.id}" has {participantCount} participants
+    </div>
+  );
+};
 ```
 
-### Styling
+To actually run this sample we need a valid user token. The user token is typically generated by your server side API.
+When a user logs in to your app you return the user token that gives them access to the call.
+To make this tutorial easier to follow we'll generate a user token for you:
 
-Let's see the content of the `index.css`:
+Please update **REPLACE_WITH_USER_ID**, **REPLACE_WITH_TOKEN** and **REPLACE_WITH_CALL_ID** with the actual values shown below:
 
-- It imports the `@stream-io/video-react-sdk` stylesheet
-- It provides a very basic layout for the video call UI
+<TokenSnippet sampleApp="meeting" />
 
-```css
-@import '@stream-io/video-react-sdk/dist/css/styles.css';
+Now when you run the sample app it will connect successfully. The text will say "Call ... has 1 participant" (yourself).
 
+![Preview of the step](../assets/02-tutorials/video-calling-first-step.png)
+
+Let's review what we did in the above code.
+
+#### User setup
+
+First we create a user object. You typically sync these users via a server side integration from your own backend. Alternatively, you can also use guest or anonymous users.
+
+```ts
+import type { User } from '@stream-io/video-react-sdk';
+
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+```
+
+#### Client setup
+
+Next we initialize the client by passing the API Key, user and user token.
+
+```ts
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
+const client = new StreamVideoClient({ apiKey, user, token });
+```
+
+#### Create and join call
+
+After the user and client are created, we create a call like this:
+
+```ts
+const [call, setCall] = useState<Call>();
+useEffect(() => {
+  const myCall = client.call('default', callId);
+  myCall.join({ create: true }).catch((err) => {
+    console.error(`Failed to join the call`, err);
+  });
+
+  setCall(myCall);
+
+  return () => {
+    setCall(undefined);
+    myCall.leave().catch((err) => {
+      console.error(`Failed to leave the call`, err);
+    });
+  };
+}, []);
+```
+
+As soon as you use `call.join()` the connection for video & audio is setup.
+
+Lastly, the UI is rendered by observing the call state through the state hooks (participants and connection states):
+
+```tsx
+import {
+  useCallCallingState,
+  useParticipantCount,
+} from '@stream-io/video-react-sdk';
+
+const callingState = useCallCallingState();
+const participantCount = useParticipantCount();
+```
+
+You'll find all relevant state for the call in `call.state` also exposed through a set of SDK provided hooks.
+The documentation on [Call and Participant state](../../guides/call-and-participant-state/) explains this in further detail.
+
+### Step 3 - Joining from the web
+
+To make this a little more interactive, let's join the call from your browser.
+
+<TokenSnippet sampleApp="meeting" displayStyle="join" />
+
+In your browser, you'll see the text update to 2 participants. Let's keep the browser tab open as you go through the tutorial.
+
+### Step 4 - Rendering Video
+
+In this next step we're going to render your local & remote participants video.
+
+Let's update our `UILayout` component to load the predefined SDK stylesheet, apply the default theme and render the video.
+
+```tsx title="src/App.tsx"
+import {
+  CallingState,
+  StreamTheme,
+  useCallCallingState,
+  useLocalParticipant,
+  useRemoteParticipants,
+} from '@stream-io/video-react-sdk';
+
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+
+export const UILayout = () => {
+  const callingState = useCallCallingState();
+  const localParticipant = useLocalParticipant();
+  const remoteParticipants = useRemoteParticipants();
+
+  if (callingState !== CallingState.JOINED) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <StreamTheme>
+      <ParticipantList participants={remoteParticipants} />
+      <FloatingLocalParticipant participant={localParticipant} />
+    </StreamTheme>
+  );
+};
+```
+
+We will now create a `ParticipantList` component that will render the remote participants video.
+
+```tsx title="src/App.tsx"
+import {
+  ParticipantView,
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
+
+export const ParticipantList = (props: {
+  participants: StreamVideoParticipant[];
+}) => {
+  const { participants } = props;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+      {participants.map((participant) => (
+        <ParticipantView
+          participant={participant}
+          key={participant.sessionId}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+```tsx title=src/App.tsx
+import {
+  ParticipantView,
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
+
+export const FloatingLocalParticipant = (props: {
+  participant?: StreamVideoParticipant;
+}) => {
+  const { participant } = props;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '15px',
+        left: '15px',
+        width: '240px',
+        height: '135px',
+        boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 10px 3px',
+        borderRadius: '12px',
+      }}
+    >
+      <ParticipantView participant={participant} />
+    </div>
+  );
+};
+```
+
+Now when you run the app, you'll see your local video in a floating video element and the video from your other browser tab.
+The end result should look somewhat like this:
+
+![Preview of a call running with the local video floating at the top left.](../assets/02-tutorials/video-calling-preview.png)
+
+Let's review the changes we made.
+
+[ParticipantView](../../ui-components/core/participant-view/) is one of our primary low-level components.
+
+```tsx
+import { ParticipantView } from '@stream-io/video-react-sdk';
+
+<ParticipantView participant={participant} key={participant.sessionId} />;
+```
+
+It only displays the video comes with some default UI elements, such as participant's name.
+The video is lazily loaded, and only requested from the video infrastructure if you're actually displaying it.
+So if you have a video call with 200 participants, and you show only 10 of them, you'll only receive video for 10 participants.
+This is how software like Zoom and Google Meet make large calls work.
+
+`FloatingLocalParticipant` renders a display of your own video.
+
+```tsx
+const localParticipant = useLocalParticipant();
+
+<FloatingLocalParticipant participant={useLocalParticipant} />;
+```
+
+`ParticipantList` renders a list of remote participants.
+
+```tsx
+const remoteParticipants = useRemoteParticipants();
+
+<ParticipantList participants={remoteParticipants} />;
+```
+
+### Step 5 - A Full Video Calling UI
+
+The above example showed how to use the call state and React to build a basic video UI.
+For a production version app, you'd want a few more UI elements:
+
+- Indicators of when someone is speaking
+- Quality of their network connection
+- Layout support for more than two participants
+- Labels for the participant names
+- Call controls
+
+Stream React Video SDK ships with several React components to make this easy.
+You can customize the components with theming, arguments and swapping parts of them.
+This is convenient if you want to quickly build a production ready calling experience for you app. (and if you need more flexibility, many customers use the above low level approach to build a UI from scratch).
+
+To render a full calling UI, we'll leverage the [SpeakerLayout](../../ui-components/core/call-layout/) component for arranging the video elements,
+and the [CallControls](../../ui-components/call/call-controls/) component for rendering the call controls.
+Also, we are going to introduce a minimalistic CSS file to make the UI look a bit nicer.
+
+```css title="src/style.css"
 body,
 html {
   height: 100%;
@@ -142,403 +339,136 @@ html {
   font-family: sans-serif;
 }
 
-#root {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
+.str-video {
+  background-color: #272a30;
+  color: #ffffff;
+  height: 100dvh;
   width: 100%;
-  background-color: black;
-}
-
-.video__call {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  height: 100%;
-  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 ```
 
-### Joining with a different participant
-
-To make this a little more interactive let's join the call with a different participant.
-
-<TokenSnippet sampleApp="meeting" displayStyle="join" />
-
-### Rendering Video
-
-In this next step we're going to:
-
-1. Display a button to turn on and off the camera
-2. Render your local & remote participant video
-
-To turn on and off the camera, we can use the `toggleVideoMuteState` function, which hides all WebRTC-related complexities. To display the current state of the camera, we use the `useLocalParticipant` hook that provides all relevant information about the local participant.
-
-```tsx
-export const UI = () => {
-  const localParticipant = useLocalParticipant();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
-
-  const isVideoTurnedOn =
-    localParticipant?.publishedTracks.indexOf(SfuModels.TrackType.VIDEO) !== -1;
-
-  return (
-    <button onClick={toggleVideoMuteState}>{`Turn camera ${
-      isVideoTurnedOn ? 'off' : 'on'
-    }`}</button>
-  );
-};
-```
-
-More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
-
-The `useParticipants` hook will return all remote participants and the local one. For each participant, we display the `ParticipantView` component that plays the video and audio streams.
-
-```tsx
-export const UI = () => {
-  const localParticipant = useLocalParticipant();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
-  const participiants = useParticipants();
-
-  const isVideoTurnedOn =
-    localParticipant?.publishedTracks.indexOf(TrackType.VIDEO) !== -1;
-
-  return (
-    {participiants.map((participant) => (
-      <ParticipantView
-        participant={participant}
-        key={participant.sessionId}
-      ></ParticipantView>
-    ))}
-    <button onClick={toggleVideoMuteState}>{`Turn camera ${
-      isVideoTurnedOn ? 'off' : 'on'
-    }`}</button>
-  );
-};
-```
-
-The video is lazily loaded, and only requested from the video infrastructure if you're actually displaying it. So if you have a video call with 200 participants, and you show only 10 of them, you'll only receive video for 10 participants. This is how software like Zoom and Google Meet make large calls work.
-
-The `ParticipantView` is a [highly customizable UI component](../../ui-cookbook/participant-view-customizations) that lets you achieve any custom design you might have.
-
-More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
-
-This is the full code after this step:
-
-```tsx
+```tsx title=src/App.tsx
 import { useEffect, useState } from 'react';
 import {
   Call,
-  CallingState,
-  ParticipantView,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-  StreamVideoClient,
-  SfuModels,
-  useLocalParticipant,
-  useParticipants,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
-
-import './index.css';
-
-export default function App() {
-  const [client, setClient] = useState<StreamVideoClient | undefined>();
-  const [call, setCall] = useState<Call | undefined>();
-
-  useEffect(() => {
-    const user = {
-      id: import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-
-    const client = new StreamVideoClient({
-      apiKey: import.meta.env.VITE_STREAM_API_KEY,
-      user,
-      token,
-    });
-    setClient(client);
-
-    return () => {
-      // Cleanup
-      client?.disconnectUser();
-    };
-  }, []);
-
-  useEffect(() => {
-    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
-    call?.join({ create: true });
-    setCall(call);
-
-    return () => {
-      // Cleanup
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
-      setCall(undefined);
-    };
-  }, [client]);
-
-  if (!client || !call) {
-    return null;
-  }
-
-  return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
-      </StreamCall>
-    </StreamVideo>
-  );
-}
-
-export const UI = () => {
-  const localParticipant = useLocalParticipant();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
-  const participiants = useParticipants();
-
-  const isVideoTurnedOn =
-    localParticipant?.publishedTracks.indexOf(SfuModels.TrackType.VIDEO) !== -1;
-
-  return (
-    <>
-      {participiants.map((participant) => (
-        <ParticipantView
-          participant={participant}
-          key={participant.sessionId}
-        ></ParticipantView>
-      ))}
-      <button onClick={toggleVideoMuteState}>{`Turn camera ${
-        isVideoTurnedOn ? 'off' : 'on'
-      }`}</button>
-    </>
-  );
-};
-```
-
-<img src={TutorialInProgress} height={500} />
-
-### Full video calling UI
-
-The above example showed how to use the call state object to build a basic video UI. For a production version of calling you'd want a few more UI elements:
-
-- Indicators of when someone is speaking
-- Quality of their network
-- Layout support for >2 participants
-- Labels for the participant names
-- Call controls
-
-Stream ships with several UI components to make this easy. You can customize the components with theming, arguments and swapping parts of them. This is convenient if you want to quickly build a production-ready calling experience for your app. (and if you need more flexibility, many customers use the above low-level approach to build a UI from scratch)
-
-Here is what the `App` component looks like if we rely on the built-in components. The `PaginatedGridLayout` component will display participants in a grid which is paginated. The `CallControls` will display all actions the user is authorized to do.
-
-- You can see the different layouts provided by the SDK in the [Call layout guide](../../ui-components/core/call-layout/).
-- You can see the available call controls in the [Call Controls guide](../../ui-components/call/call-controls/).
-- If you want to read more about Stream's flexible permission system head to the [Permissions guide](../../guides/permissions-and-moderation/).
-
-```tsx
-import { useEffect, useState } from 'react';
-import {
-  Call,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-  StreamVideoClient,
-  PaginatedGridLayout,
   CallControls,
   CallingState,
+  SpeakerLayout,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+  StreamVideoClient,
+  useCallCallingState,
+  User,
 } from '@stream-io/video-react-sdk';
 
-import './index.css';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+import './style.css';
+
+const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
+const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
+const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
+const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
+
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+
+const client = new StreamVideoClient({ apiKey, user, token });
 
 export default function App() {
-  const [client, setClient] = useState<StreamVideoClient | undefined>();
-  const [call, setCall] = useState<Call | undefined>();
-
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const user = {
-      id: import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-
-    const client = new StreamVideoClient({
-      apiKey: import.meta.env.VITE_STREAM_API_KEY,
-      user,
-      token,
+    const myCall = client.call('default', callId);
+    myCall.join({ create: true }).catch((err) => {
+      console.error(`Failed to join the call`, err);
     });
-    setClient(client);
+
+    setCall(myCall);
 
     return () => {
-      // Cleanup
-      client?.disconnectUser();
+      setCall(undefined);
+      myCall.leave().catch((err) => {
+        console.error(`Failed to leave the call`, err);
+      });
     };
   }, []);
 
-  useEffect(() => {
-    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
-    call?.join({ create: true });
-    setCall(call);
-
-    return () => {
-      // Cleanup
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
-      setCall(undefined);
-    };
-  }, [client]);
-
-  if (!client || !call) {
-    return null;
-  }
+  if (!call) return null;
 
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
+        <UILayout />
       </StreamCall>
     </StreamVideo>
   );
 }
 
-export const UI = () => {
+export const UILayout = () => {
+  const callingState = useCallCallingState();
+  if (callingState !== CallingState.JOINED) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <>
-      <PaginatedGridLayout />
+    <StreamTheme>
+      <SpeakerLayout participantsBarPosition="bottom" />
       <CallControls />
-    </>
+    </StreamTheme>
   );
 };
 ```
 
-<img src={FinishedTutorial} height={500} />
+The final UI should look like this:
 
-### Customizing the UI
+![Final result](../assets/02-tutorials/video-calling-final.png)
+
+When you now run your app, you'll see a more polished video UI.
+It supports reactions, screensharing, active speaker detection, network quality indicators etc. The most commonly used UI components are:
+
+- [ParticipantView](../../ui-components/core/participant-view/): For rendering video and automatically requesting video tracks when needed. Most of the Video components are built on top of this.
+- [DefaultParticipantViewUI](../../ui-components/core/participant-view/#participantviewui): The participant's video + some UI elements for network quality, reactions, speaking etc. `ParticipantView` uses this UI by default.
+- [PaginatedGridLayout](../../ui-components/core/call-layout/): A grid of participants. Support pagination out of the box.
+- [SpeakerLayout](../../ui-components/core/call-layout/): A layout that shows the active speaker in a large video, and the rest of the participants a scrollable bar.
+- [CallControls](../../ui-components/call/call-controls/): A set of buttons for controlling your call, such as changing audio and video mute state, switching mic or a camera.
+
+The full list of [UI components](../../ui-components/overview) is available in the docs.
+
+### Step 6 - Customizing the UI
 
 You can customize the UI by:
 
 - Building your own UI components (the most flexibility, build anything).
-- Mixing and matching with Stream's UI Components (speeds up how quickly you can build common video UIs).
+- Mixing and matching with Stream's UI Components (speeds up how quickly you can build custom video UIs).
 - Theming (basic customization of colors, fonts etc).
 
-The example below shows how to swap out the call controls for your own controls:
-
-```tsx
-import { useEffect, useState } from 'react';
-import {
-  Call,
-  StreamCall,
-  StreamTheme,
-  StreamVideo,
-  StreamVideoClient,
-  PaginatedGridLayout,
-  CallControls,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
-  CallingState,
-} from '@stream-io/video-react-sdk';
-
-import './index.css';
-
-export default function App() {
-  const [client, setClient] = useState<StreamVideoClient | undefined>();
-  const [call, setCall] = useState<Call | undefined>();
-
-  useEffect(() => {
-    const user = {
-      id: import.meta.env.VITE_STREAM_USER_ID,
-    };
-    const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-
-    const client = new StreamVideoClient({
-      apiKey: import.meta.env.VITE_STREAM_API_KEY,
-      user,
-      token,
-    });
-    setClient(client);
-
-    return () => {
-      // Cleanup
-      client?.disconnectUser();
-    };
-  }, []);
-
-  useEffect(() => {
-    const call = client?.call('default', import.meta.env.VITE_STREAM_CALL_ID);
-    call?.join({ create: true });
-    setCall(call);
-
-    return () => {
-      // Cleanup
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
-      setCall(undefined);
-    };
-  }, [client]);
-
-  if (!client || !call) {
-    return null;
-  }
-
-  return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <StreamTheme className="video__call">
-          <UI />
-        </StreamTheme>
-      </StreamCall>
-    </StreamVideo>
-  );
-}
-
-export const UI = () => {
-  return (
-    <>
-      <PaginatedGridLayout />
-      <div style={{ display: 'flex' }}>
-        <ToggleAudioPublishingButton />
-        <ToggleVideoPublishingButton />
-      </div>
-    </>
-  );
-};
-```
-
-[Theming](../../ui-components/video-theme) gives you control over the colors, border-radius settings, and icons used by the built-in UI components:
-
-```css
-.str-video {
-  --str-video__primary-color: #036c5f;
-  --str-video__secondary-color: #4fb9af;
-  --str-video__border-radius-xs: 5px;
-  --str-video__icon--camera: url('base64 encoded SVG');
-}
-```
+You can find many examples on how to build your own custom UI components in our [UI Cookbook docs](../../ui-cookbook/overview/).
 
 ### Recap
 
-Please do let us know if you ran into any issues while building an video calling app with React. Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
+Please do let us know if you ran into any issues while building an video calling app with React Video SDK.
+Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
 
-To recap what we've learned about Stream video calling:
+To recap what we've learned:
 
-- You set up a call: `const call = client.call("default", "123")`
-- The call type ("default" in the above case) controls which features are enabled and how permissions are setup
-- When you join a call, real-time communication is set up for audio & video calling: `call.join()`
-- State-related hooks such as `useLocalParticipant` make it easy to build your own UI
-- `ParticipantView` is the low-level component that renders audio and video
+- You setup a call: `const call = client.call('default', '123');`.
+- The call type (`'default'` in the above case) controls which features are enabled and how permissions are setup.
+- When you join a call, realtime communication is setup for audio & video calling: `call.join()`.
+- Call state `call.state` and helper state access hooks as `useLocalParticipant` make it easy to build your own UI
+- `ParticipantView` is the low level component that renders video, plays audio and by default, it utilizes `DefaultParticipantViewUI` that adds UI elements as participant name, network quality, etc...
 
 We've used [Stream's Video Calling API](https://getstream.io/video/video-calling/),
 which means calls run on a global edge network of video servers.
 By being closer to your users the latency and reliability of calls are better.
 The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
+
+The source code for the final app can be found in our [GitHub repository](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/stream-video-react-tutorial).
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
