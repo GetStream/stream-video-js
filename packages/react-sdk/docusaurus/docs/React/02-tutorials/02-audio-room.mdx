@@ -36,6 +36,8 @@ Open up `src/App.tsx` and replace it with this code:
 ```tsx title="src/App.tsx"
 import { useEffect, useState } from 'react';
 import {
+  Call,
+  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -55,13 +57,28 @@ const user: User = {
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-// initialize the StreamVideoClient
-const client = new StreamVideoClient({ apiKey, user, token });
-
 export default function App() {
-  // initialize the call object
-  const [call] = useState(() => client.call('audio_room', callId));
+  const [client, setClient] = useState<StreamVideoClient>();
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
+    const client = new StreamVideoClient({
+      apiKey,
+      token,
+      user,
+    });
+    setClient(client);
+
+    return () => {
+      client.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+    const call = client.call('audio_room', callId);
     call
       .join({
         create: true,
@@ -79,7 +96,19 @@ export default function App() {
       .then(() => {
         console.log(`Successfully joined the call`);
       });
-  }, [call]);
+    setCall(call);
+
+    return () => {
+      if (call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+      setCall(undefined);
+    };
+  }, [client]);
+
+  if (!client || !call) {
+    return null;
+  }
 
   return (
     <StreamVideo client={client}>
@@ -116,7 +145,21 @@ Next, we initialize the client by passing the API Key, user and user token.
 ```ts
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
-const client = new StreamVideoClient({ apiKey, user, token });
+const [client, setClient] = useState<StreamVideoClient>();
+
+useEffect(() => {
+  const client = new StreamVideoClient({
+    apiKey,
+    token,
+    user,
+  });
+  setClient(client);
+
+  return () => {
+    client.disconnectUser();
+    setClient(undefined);
+  };
+}, []);
 ```
 
 #### Create and join call
@@ -124,15 +167,19 @@ const client = new StreamVideoClient({ apiKey, user, token });
 After the user and client are created, we create a call like this:
 
 ```tsx
-const [call] = useState(() => client.call('audio_room', callId));
+const [call, setCall] = useState<Call>();
 useEffect(() => {
+  if (!client) {
+    return;
+  }
+  const call = client.call('audio_room', callId);
   call
     .join({
       create: true,
       data: {
         members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
         custom: {
-          title: 'React Heads',
+          title: 'React Rooms',
           description: 'Talking about React',
         },
       },
@@ -143,7 +190,15 @@ useEffect(() => {
     .then(() => {
       console.log(`Successfully joined the call`);
     });
-}, [call]);
+  setCall(call);
+
+  return () => {
+    if (call.state.callingState !== CallingState.LEFT) {
+      call.leave();
+    }
+    setCall(undefined);
+  };
+}, [client]);
 ```
 
 - This joins and creates a call with the type: `audio_room` and the specified `callId`
