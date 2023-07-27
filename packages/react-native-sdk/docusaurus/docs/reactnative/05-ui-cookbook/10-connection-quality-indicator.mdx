@@ -16,7 +16,7 @@ In this guide we'll learn how to build and implement our own primitive connectio
 
 ## How to reach the state
 
-Each [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enumerator. To get a readable format out of it we'll just pass the `connectionQuality` variable as a key to said enumerator:
+Each [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) has a `connectionQuality` property which by itself is just a numeric representation of values in a `SfuModels.ConnectionQuality` enumerator. To get a readable format out of it you can just pass the `connectionQuality` variable as a key to said enumerator:
 
 ```tsx
 import { SfuModels } from '@stream-io/video-react-native-sdk';
@@ -34,7 +34,6 @@ You'll most likely be displaying this indicator component inside each participan
 ```tsx
 import { Text, View } from 'react-native';
 import {
-  SfuModels,
   StreamVideoParticipant,
   StreamVideoLocalParticipant,
   useParticipants,
@@ -46,13 +45,9 @@ const ConnectionQualityIndicator = ({
 }: {
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 }) => {
-  const readableConnectionQuality =
-    SfuModels.ConnectionQuality[participant.connectionQuality];
-
   return (
     <Text>
-      {`${readableConnectionQuality} -
-      ${'⭐️'.repeat(participant.connectionQuality)}`}
+      {'⭐️'.repeat(participant.connectionQuality)}
     </Text>
   );
 };
