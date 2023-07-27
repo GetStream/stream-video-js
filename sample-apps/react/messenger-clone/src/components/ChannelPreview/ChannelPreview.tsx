@@ -4,7 +4,7 @@ import {
   Avatar as DefaultAvatar,
   ChannelPreviewUIComponentProps,
 } from 'stream-chat-react';
-import { StreamCallProvider, useCalls } from '@stream-io/video-react-sdk';
+import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 import { ChannelPreviewCallControls } from './ChannelPreviewCallControls';
 
 const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
@@ -66,9 +66,9 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
             <span>{displayTitle}</span>
           </div>
           {callToChannel && (
-            <StreamCallProvider call={callToChannel}>
+            <StreamCall call={callToChannel}>
               <ChannelPreviewCallControls />
-            </StreamCallProvider>
+            </StreamCall>
           )}
           {!!unread && (
             <div

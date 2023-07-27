@@ -33,5 +33,6 @@ video-buddy-session.json
 video-buddy-log.txt
 **/fastlane/*.log
 **/fastlane/*.mp4
+**/fastlane/*.json
 
 version.ts

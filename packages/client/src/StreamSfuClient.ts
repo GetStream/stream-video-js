@@ -16,6 +16,7 @@ import {
 } from './rtc';
 import { JoinRequest, SfuRequest } from './gen/video/sfu/event/events';
 import {
+  ICERestartRequest,
   SendAnswerRequest,
   SetPublisherRequest,
   TrackSubscriptionDetails,
@@ -131,15 +132,14 @@ export class StreamSfuClient {
     this.edgeName = sfuServer.edge_name;
     this.token = token;
     this.logger = getLogger(['sfu-client']);
-    const logger = this.logger;
     const logInterceptor: RpcInterceptor = {
-      interceptUnary(
+      interceptUnary: (
         next: NextUnaryFn,
         method: MethodInfo,
         input: object,
         options: RpcOptions,
-      ): UnaryCall {
-        logger('trace', `Calling SFU RPC method ${method.name}`, {
+      ): UnaryCall => {
+        this.logger('trace', `Calling SFU RPC method ${method.name}`, {
           input,
           options,
         });
@@ -190,6 +190,7 @@ export class StreamSfuClient {
     code: number = 1000,
     reason: string = 'Requested signal connection close',
   ) => {
+    this.logger('debug', 'Closing SFU WS connection', code, reason);
     this.signalWs.close(code, reason);
 
     this.unsubscribeIceTrickle();
@@ -234,6 +235,17 @@ export class StreamSfuClient {
     return retryable(
       () =>
         this.rpc.iceTrickle({
+          ...data,
+          sessionId: this.sessionId,
+        }),
+      this.logger,
+    );
+  };
+
+  iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
+    return retryable(
+      () =>
+        this.rpc.iceRestart({
           ...data,
           sessionId: this.sessionId,
         }),
@@ -319,7 +331,6 @@ export class StreamSfuClient {
           new Date().getTime() - this.lastMessageTimestamp.getTime();
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
-          this.logger('debug', 'SFU connection unhealthy, closing');
           this.close(
             4001,
             `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,

@@ -3,7 +3,193 @@ title: Call Controls
 description: A guide on how to add/remove or replace call controls
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
+The Stream Video React Native SDK allows building your own Call controls view/layout. Call Controls View generally comprises several buttons that control the call. Each button controls its area of responsibility. Our task, as integrators, is to create a component that puts these buttons together as we wish. In this example, we intend to show how to do just that.
+
+:::note
+The React Native SDK exports a pre-built component [CallControlsView](../../ui-components/call/call-controls-view) that we encourage to use if at all there is no customization needs.
 :::
+
+## Building Custom Controls Buttons
+
+It is very easy to build custom buttons making use of the hooks provided by the SDK. In the next few sections, we will demonstrate how custom call controls buttons can be built.
+
+:::note
+Implementing call controls buttons will often be in reality associated with handling permissions to perform the given action. To learn about permission handling, take a look at our [permissions and moderation guide](../../core/permissions-and-moderation).
+:::
+
+### Button to accept a call
+
+We will need a call accept button when building an app that makes use of [ring call workflow](../../advanced/ringing). To accept a call we just invoke `call.join()`. So the minimal call accept button could look like this:
+
+```tsx
+import { useCall } from '@stream-io/video-react-native-sdk';
+
+export const CustomAcceptCallButton = () => {
+  const call = useCall();
+
+  const onCallAcceptHandler = async () => {
+    await call?.join();
+  };
+
+  return (
+    <Button onClick={onCallAcceptHandler}>{/* Your Icon component */}</Button>
+  );
+};
+```
+
+### Button to hangup a call
+
+We will need a call hangup button when hanging up a call or to leave the ongoing call. To accept a call we just invoke `call.leave()`. So the minimal call hang up button could look like this:
+
+```tsx
+import { useCall } from '@stream-io/video-react-native-sdk';
+
+export const CustomHangupCallButton = () => {
+  const call = useCall();
+
+  const onCallHangupHandler = async () => {
+    await call?.leave();
+  };
+
+  return (
+    <Button onClick={onCallHangupHandler}>{/* Your Icon component */}</Button>
+  );
+};
+```
+
+### Button to reject a call
+
+We will need a call reject button when building an app that makes use of [ring call workflow](../../advanced/ringing). To reject a call we just invoke `call.leave()` function with an object parameter having key as `reject` and value of it being `true`. So the minimal call reject button could look like this:
+
+```tsx
+import { useCall } from '@stream-io/video-react-native-sdk';
+
+export const CustomRejectCallButton = () => {
+  const call = useCall();
+
+  const onCallRejectHandler = async () => {
+    await call?.leave({ reject: true });
+  };
+
+  return (
+    <Button onClick={onCallRejectHandler}>{/* Your Icon component */}</Button>
+  );
+};
+```
+
+### Button to toggle audio
+
+Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
+
+```tsx
+import { useCallback } from 'react';
+import {
+  SfuModels,
+  useLocalParticipant,
+  useMediaStreamManagement,
+} from '@stream-io/video-react-native-sdk';
+
+export const ToggleAudioButton = () => {
+  const localParticipant = useLocalParticipant();
+  const isAudioPublished = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+
+  const { publishAudioStream, stopPublishingAudio } =
+    useMediaStreamManagement();
+
+  const toggleAudioMuted = useCallback(async () => {
+    if (isAudioPublished) {
+      stopPublishingAudio();
+    } else {
+      publishAudioStream();
+    }
+  }, [isAudioPublished, publishAudioStream, stopPublishingAudio]);
+
+  return (
+    <Button onClick={toggleAudioMuted}>
+      {isAudioPublished ? (
+        <>{/* Show Audio enabled Icon component */}</>
+      ) : (
+        <>{/* Show Audio disabled Icon component */}</>
+      )}
+    </Button>
+  );
+};
+```
+
+We check the audio mute status by checking if `SfuModels.TrackType.AUDIO` exists in the array of types of tracks published by `localParticipant`.
+To mute and unmute the local participant's audio, we use `publishAudioStream` and `stopPublishingAudio` functions provided by the `useMediaStreamManagement` hook from the SDK.
+
+### Button to toggle video
+
+Toggling video in an active call turns around publishing video input streams and enabling the video state. The bare-bones button to toggle video in an active call could look like the following:
+
+```tsx
+import { useCallback } from 'react';
+import {
+  SfuModels,
+  useLocalParticipant,
+  useMediaStreamManagement,
+} from '@stream-io/video-react-native-sdk';
+
+export const ToggleAudioButton = () => {
+  const localParticipant = useLocalParticipant();
+  const isVideoPublished = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.Video,
+  );
+
+  const { publishVideoStream, stopPublishingVideo } =
+    useMediaStreamManagement();
+
+  const toggleVideoMuted = useCallback(async () => {
+    if (isVideoPublished) {
+      stopPublishingVideo();
+    } else {
+      publishVideoStream();
+    }
+  }, [isVideoPublished, publishVideoStream, stopPublishingVideo]);
+
+  return (
+    <Button onClick={toggleVideoMuted}>
+      {isVideoPublished ? (
+        <>{/* Show Video enabled Icon component */}</>
+      ) : (
+        <>{/* Show Video disabled Icon component */}</>
+      )}
+    </Button>
+  );
+};
+```
+
+We check the video mute status by checking if `SfuModels.TrackType.VIDEO` exists in the array of types of tracks published by `localParticipant`.
+To mute and unmute the local participant's video, we use `publishVideoStream` and `stopPublishingVideo` functions provided by the `useMediaStreamManagement` hook from the SDK.
+
+### Button to toggle Camera Face
+
+Toggling camera face for mobile devices is an important feature. So, to built it from scratch you can use `isCameraOnFrontFacingMode` and `toggleCameraFacingMode` from `useMediaStreamManagement`.
+
+The `isCameraOnFrontFacingMode` is a boolean that tracks if the camera is `front` facing. The `toggleCameraFacingMode` is used to toggle camera between `front` and `back`/`environment` facing modes.
+
+```tsx
+import { useCallback } from 'react';
+import {
+  SfuModels,
+  useMediaStreamManagement,
+} from '@stream-io/video-react-native-sdk';
+
+export const ToggleAudioButton = () => {
+  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+    useMediaStreamManagement();
+
+  return (
+    <Button onClick={toggleCameraFacingMode}>
+      {isCameraOnFrontFacingMode ? (
+        <>{/* Show Front Facing Feedback Icon component */}</>
+      ) : (
+        <>{/* Show Back Facing Feedback Icon component */}</>
+      )}
+    </Button>
+  );
+};
+```

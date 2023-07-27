@@ -67,12 +67,10 @@ export class StreamClient {
   insightMetrics: InsightMetrics;
   defaultWSTimeoutWithFallback: number;
   defaultWSTimeout: number;
-  resolveConnectionId!: Function;
-  rejectConnectionId!: Function;
+  resolveConnectionId?: Function;
+  rejectConnectionId?: Function;
   connectionIdPromise?: Promise<string | undefined>;
   private nextRequestAbortController: AbortController | null = null;
-  private waitForConnectPromise?: Promise<void>;
-  private resolveConnectPromise?: Function;
 
   /**
    * Initialize a client.
@@ -124,13 +122,6 @@ export class StreamClient {
         keepAliveMsecs: 3000,
       });
     }
-
-    this.connectionIdPromise = this.secret
-      ? undefined
-      : new Promise<string | undefined>((resolve, reject) => {
-          this.resolveConnectionId = resolve;
-          this.rejectConnectionId = reject;
-        });
 
     this.setBaseURL(
       this.options.baseURL || 'https://video.stream-io-api.com/video',
@@ -209,15 +200,6 @@ export class StreamClient {
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
   /**
-   * This will start a promise to hold API calls until `connectUser` is called, useful when user is set in `StreamVideoClient constructor`
-   */
-  startWaitingForConnection = () => {
-    this.waitForConnectPromise = new Promise((resolve) => {
-      this.resolveConnectPromise = resolve;
-    });
-  };
-
-  /**
    * connectUser - Set the current user and open a WebSocket connection
    *
    * @param user Data about this user. IE {name: "john"}
@@ -277,12 +259,6 @@ export class StreamClient {
     this.setUserPromise = Promise.all([setTokenPromise, wsPromise]).then(
       (result) => result[1], // We only return connection promise;
     );
-
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
 
     try {
       return await this.setUserPromise;
@@ -375,6 +351,13 @@ export class StreamClient {
       return Promise.resolve();
     }
 
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
+
     this.clientID = `${this.userID}--${randomId()}`;
     this.wsPromise = this.connect();
     return this.wsPromise;
@@ -413,6 +396,10 @@ export class StreamClient {
     await this.closeConnection(timeout);
 
     this.tokenManager.reset();
+
+    this.connectionIdPromise = undefined;
+    this.rejectConnectionId = undefined;
+    this.resolveConnectionId = undefined;
   };
 
   /**
@@ -422,19 +409,21 @@ export class StreamClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
+    this.connectionIdPromise = new Promise<string | undefined>(
+      (resolve, reject) => {
+        this.resolveConnectionId = resolve;
+        this.rejectConnectionId = reject;
+      },
+    );
+
     this.anonymous = true;
     await this._setToken(user, tokenOrProvider, this.anonymous);
 
-    if (this.resolveConnectPromise) {
-      this.resolveConnectPromise();
-      this.waitForConnectPromise = undefined;
-      this.resolveConnectPromise = undefined;
-    }
     this._setUser(user);
     // some endpoints require a connection_id to be resolved.
     // as anonymous users aren't allowed to open WS connections, we just
     // resolve the connection_id here.
-    this.resolveConnectionId();
+    this.resolveConnectionId?.();
   };
 
   /**
@@ -515,9 +504,6 @@ export class StreamClient {
         response,
       },
     );
-    this.logger('trace', `client:${type} - Response payload`, {
-      response,
-    });
   };
 
   _logApiError = (type: string, url: string, error: unknown) => {
@@ -535,10 +521,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
     } & { publicEndpoint?: boolean } = {},
   ): Promise<T> => {
-    if (!options.publicEndpoint || this.user) {
-      if (this.waitForConnectPromise) {
-        await this.waitForConnectPromise;
-      }
+    if (!options.publicEndpoint) {
       await Promise.all([
         this.tokenManager.tokenReady(),
         this.connectionIdPromise,
@@ -576,9 +559,9 @@ export class StreamClient {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
-      this._logApiError(type, url, e);
       this.consecutiveFailures += 1;
       if (e.response) {
+        this._logApiError(type, url, e.response);
         /** connection_fallback depends on this token expiration logic */
         if (
           e.response.data.code === KnownCodes.TOKEN_EXPIRED &&
@@ -592,6 +575,7 @@ export class StreamClient {
         }
         return this.handleResponse(e.response);
       } else {
+        this._logApiError(type, url, e);
         // eslint-disable-next-line no-throw-literal
         throw e as AxiosError<APIErrorResponse>;
       }
@@ -604,16 +588,28 @@ export class StreamClient {
     });
   };
 
-  put = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('put', url, data);
+  put = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('put', url, data, { params });
   };
 
-  post = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('post', url, data);
+  post = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('post', url, data, { params });
   };
 
-  patch = <T, D = unknown>(url: string, data?: D) => {
-    return this.doAxiosRequest<T, D>('patch', url, data);
+  patch = <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    return this.doAxiosRequest<T, D>('patch', url, data, { params });
   };
 
   delete = <T>(url: string, params?: AxiosRequestConfig['params']) => {

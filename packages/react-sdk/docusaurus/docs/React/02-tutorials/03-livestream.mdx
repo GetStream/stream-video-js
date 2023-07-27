@@ -375,3 +375,24 @@ check this Livestreaming sample app:
 - [Livestream App live preview](https://video-react-livestream-app.vercel.app/)
 
 :::
+
+## Recap
+
+It was fun to see just how quickly you can build a live-stream app for your hosts and viewers.
+Please do let us know if you ran into any issues.
+Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
+
+To recap what we've learned:
+
+- You set up a call with `const call = client.call('livestream', '123')`
+- The call type `livestream` controls which features are enabled and how permissions are set up
+- The `livestream` by default enables `backstage` mode, and only allows admins and the creator of the call to join before the call goes live
+- When you join a call, realtime communication is set up for audio & video streaming: `await call.join()`
+- Call state `call.state` and helper state access hooks make it easy to build your own UI
+
+We've used [Stream's Livestreaming API](https://getstream.io/video/livestreaming/),
+which means calls run on a global edge network of video servers.
+By being closer to your users the latency and reliability of calls are better.
+The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
+
+We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.

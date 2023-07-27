@@ -4,6 +4,7 @@ import {
   Restricted,
   useCall,
   useHasPermissions,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
@@ -15,6 +16,7 @@ import { useCallControls, usePermissionNotification } from '../../../hooks';
 export const ToggleVideoButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const { toggleVideoMuted, isVideoPublished } = useCallControls();
+  const { t } = useI18n();
 
   const isVideoMuted = !isVideoPublished;
 
@@ -51,8 +53,8 @@ export const ToggleVideoButton = () => {
 
   usePermissionNotification({
     permission: OwnCapability.SEND_VIDEO,
-    messageApproved: 'You can now share your video.',
-    messageRevoked: 'You can no longer share your video.',
+    messageApproved: t('You can now share your video.'),
+    messageRevoked: t('You can no longer share your video.'),
   });
 
   const handleToggleVideoButton = async () => {

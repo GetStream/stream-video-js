@@ -18,7 +18,11 @@ import { generateParticipantTitle } from '../../../utils';
 import React, { useCallback } from 'react';
 import { Avatar } from '../../utility/Avatar';
 import { theme } from '../../../theme';
-import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useHasPermissions,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { palette } from '../../../theme/constants';
 
 type CallParticipantOptionType = {
@@ -37,6 +41,7 @@ type ParticipantActionsType = {
 export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
+  const { t } = useI18n();
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
   );
@@ -191,10 +196,10 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
       <View style={styles.modalContainer}>
         <View style={styles.participantInfo}>
           <View style={styles.userInfo}>
-            <Avatar radius={theme.avatar.xs} participant={participant} />
+            <Avatar size={theme.avatar.xs} participant={participant} />
             <Text style={styles.name}>
               {generateParticipantTitle(participant.userId) +
-                (showYouLabel ? ' (You)' : '')}
+                (showYouLabel ? ` ${t('You')}` : '')}
             </Text>
           </View>
           <Pressable

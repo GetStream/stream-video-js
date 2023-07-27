@@ -74,16 +74,23 @@ const Root = ({
     tokenOrProvider: userToken,
     userData: user,
   });
-  const [videoClient] = useState(
-    () =>
-      new StreamVideoClient({
-        apiKey,
-        user: userData,
-        token: userToken,
-      }),
-  );
+  const [videoClient, setVideoClient] = useState<StreamVideoClient>();
 
-  if (!chatClient) return null;
+  useEffect(() => {
+    const _client = new StreamVideoClient({
+      apiKey,
+      user: userData,
+      token: userToken,
+    });
+    setVideoClient(_client);
+
+    return () => {
+      _client.disconnectUser();
+      setVideoClient(undefined);
+    };
+  }, []);
+
+  if (!chatClient || !videoClient) return null;
 
   return (
     <Chat client={chatClient}>
@@ -105,7 +112,6 @@ In the ring call scenario we recommend to first create a call without immediatel
 import { useCallback } from 'react';
 import {
   MemberRequest,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useChannelStateContext, useChatContext } from 'stream-chat-react';
 import { LocalPhone } from '@mui/icons-material';
@@ -113,7 +119,7 @@ import { meetingId } from '../../utils/meetingId';
 import type { StreamChatType } from '../../types/chat';
 
 export const CreateCallButton = () => {
-  const videoClient = useStreamVideoClient();
+  const videoClient = /* ... */
   const { client } = useChatContext<StreamChatType>();
   const { channel } = useChannelStateContext<StreamChatType>();
 

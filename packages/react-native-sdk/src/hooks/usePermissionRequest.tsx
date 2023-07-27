@@ -45,6 +45,11 @@ export const usePermissionRequest = () => {
     if (!call || !userHasUpdateCallPermissionsCapability) {
       return;
     }
+    // do not show permission requests as dialogs for audio rooms
+    // in the tutorial, we show a custom list UI for permission requests
+    if (call.type === 'audio_room') {
+      return;
+    }
     return call.on('call.permission_request', (event) => {
       if (event.type !== 'call.permission_request') {
         return;

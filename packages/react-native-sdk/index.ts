@@ -8,9 +8,15 @@ export * from './src/contexts';
 export * from './src/hooks';
 export * from './src/theme';
 export * from './src/utils';
+export * from './src/translations';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
-export { StreamVideo, StreamCall } from './src/providers';
+export {
+  StreamVideo,
+  StreamCall,
+  MediaStreamManagement,
+  useMediaStreamManagement,
+} from './src/providers';
 
 setClientDetails();

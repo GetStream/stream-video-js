@@ -4,6 +4,11 @@ import { useInitVideoClient } from '../hooks/useInitVideoClient';
 
 export const Hosts = () => {
   const client = useInitVideoClient({ role: 'host' });
+
+  if (!client) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       <Outlet />
