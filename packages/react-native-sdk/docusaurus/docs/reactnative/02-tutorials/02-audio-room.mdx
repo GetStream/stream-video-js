@@ -29,6 +29,9 @@ cd StreamAudioRoomExample
 
 Please follow through the **[SDK installation](../../setup/installation)** steps to properly setup the SDK and its prerequisites.
 
+:::note
+For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
+:::
 ### Step 2 - Create the root component
 
 Let us first add our constants that will be reused in multiple files later. Create a new file `src/constants.ts` and add the following code:
@@ -54,7 +57,6 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { apiKey, user, token } from './constants';
-import { useSyncPermissions } from './useSyncPermissions';
 import AudioRoom from './AudioRoom'; // We will introduce the <AudioRoom /> component shortly later
 
 // initialize the StreamVideoClient
@@ -68,10 +70,6 @@ export default function App() {
   );
 }
 ```
-
-:::note
-For this tutorial, we have used the hook as (`useSyncPermissions`) as in the [Manage Native Permissions](../../core/native-permissions) guide.
-:::
 
 Let's review the code above and go over the details.
 
