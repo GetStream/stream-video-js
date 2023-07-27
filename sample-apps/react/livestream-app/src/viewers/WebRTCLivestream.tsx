@@ -26,6 +26,10 @@ export const WebRTCLivestream = () => {
     call.join();
   }, [call, autoJoin]);
 
+  if (!client) {
+    return null;
+  }
+
   return (
     <StreamVideo client={client}>
       {(!autoJoin || !isLive) && (

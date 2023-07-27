@@ -22,10 +22,12 @@ import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
 import { VideoWrapper } from './src/components/VideoWrapper';
 import LoginScreen from './src/screens/LoginScreen';
+import AudioRoomScreen from './src/screens/AudioRoom';
 import { ChatWrapper } from './src/components/ChatWrapper';
 import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
+import { NavigationHeader } from './src/components/NavigationHeader';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -63,6 +65,15 @@ const StackNavigator = () => {
           name="Call"
           component={Call}
           options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'Audio-Room':
+      mode = (
+        <Stack.Screen
+          name="AudioRoom"
+          component={AudioRoomScreen}
+          options={{ header: NavigationHeader }}
         />
       );
       break;

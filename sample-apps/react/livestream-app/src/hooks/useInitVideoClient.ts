@@ -1,5 +1,5 @@
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
-import { PropsWithChildren, useMemo, useState } from 'react';
+import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { getUser } from '../utils/getUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
 import { useParams } from 'react-router-dom';
@@ -22,7 +22,9 @@ export const useInitVideoClient = ({
   const user = useMemo(getUser, []);
   const apiKey = api_key ?? envApiKey;
 
-  const [client] = useState<StreamVideoClient>(() => {
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
     const tokenProvider = async () => {
       const endpoint = new URL(tokenProviderUrl);
       endpoint.searchParams.set('api_key', apiKey);
@@ -37,13 +39,21 @@ export const useInitVideoClient = ({
       const response = await fetch(endpoint).then((res) => res.json());
       return response.token as string;
     };
-    return new StreamVideoClient({
+    const _client = new StreamVideoClient({
       apiKey,
       tokenProvider,
       token,
       user: isAnon ? { type: 'anonymous' } : role ? { ...user, role } : user,
     });
-  });
+    setClient(_client);
+
+    return () => {
+      _client
+        .disconnectUser()
+        .catch((error) => console.error(`Unable to disconnect user`, error));
+      setClient(undefined);
+    };
+  }, []);
 
   return client;
 };

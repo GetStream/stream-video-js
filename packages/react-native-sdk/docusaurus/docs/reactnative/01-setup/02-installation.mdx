@@ -3,6 +3,8 @@ title: Installation
 description: Install the SDK for video calling
 ---
 
+Installation and usage of our React Native SDK is simple and involves the following steps:
+
 ### Prerequisites
 
 First things first, make sure you have set up the development environment for React Native.
@@ -10,10 +12,16 @@ You can find the official guide [here](https://reactnative.dev/docs/environment-
 
 ### Add Stream's Video SDK and its peer dependencies
 
-In order to install the Stream Video SDK and all its peer dependencies run the following command in your terminal of choice:
+In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
 ```bash
-yarn add @stream-io/video-react-native-sdk react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
+yarn add @stream-io/video-react-native-sdk
+```
+
+Stream Video React Native SDK requires installing some peer dependencies to provide you with a great calling experience. You can run the following command to install them:
+
+```bash
+yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
 ```
 
 The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
@@ -21,7 +29,6 @@ Please follow the links below to complete the installation process:
 
 - `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md).
 - `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps.
-- `react-native-incall-manager` installation on [Android](https://github.com/react-native-webrtc/react-native-incall-manager#android) and [iOS](https://github.com/react-native-webrtc/react-native-incall-manager#ios).
 
 So what did we install precisely?
 
@@ -72,3 +79,58 @@ if (Platform.OS !== 'web') {
   registerGlobals();
 }
 ```
+
+### Declaring Permissions
+
+Making video or audio calls requires the usage of the device's camera and microphone accordingly. Therefore, before you can make and answer calls, you need to request permission to use them within your application. First, in both platforms we must declare the permissions.
+
+#### iOS
+
+Add the following keys and values to `Info.plist` file at a minimum:
+
+- `Privacy - Camera Usage Description` - "`<Your_app_name>` requires camera access to capture and transmit video"
+- `Privacy - Microphone Usage Description` - "`<Your_app_name>` requires microphone access to capture and transmit audio"
+
+:::note
+You should replace `<Your_app_name>` (or also use your custom strings instead).
+:::
+
+#### Android
+
+In `AndroidManifest.xml` add the following permissions before the `<application>` section.
+
+```xml
+<uses-feature android:name="android.hardware.camera" />
+<uses-feature android:name="android.hardware.camera.autofocus" />
+<uses-feature android:name="android.hardware.audio.output" />
+<uses-feature android:name="android.hardware.microphone" />
+
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+If you plan to also support Bluetooth devices then also add the following.
+
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+```
+
+
+:::note
+The SDK needs to know to the state of camera and microphone permissions to get video and audio streams. We can inform the states to the SDK through the following:
+
+```ts
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+
+StreamVideoRN.setPermissions({
+  isCameraPermissionGranted: true,
+  isMicPermissionGranted: true,
+});
+```
+:::

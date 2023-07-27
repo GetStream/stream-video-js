@@ -5,7 +5,9 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/copy-react-demo-s3.yml'
       - 'sample-apps/react/react-video-demo/**'
+      - '!packages/**' # avoid duplicated deployment if react-sdk also changed
   pull_request:
     types:
       - opened
@@ -72,3 +74,13 @@ jobs:
         if: ${{ github.ref_name == 'main' }}
         run: |
           aws s3 sync sample-apps/react/react-video-demo/dist s3://${{secrets.S3_BUCKET_NAME_PRODUCTION}}/video/demos --delete
+
+      - name: Invalidate Cloudfront cache (staging)
+        if: ${{ github.ref_name != 'main' }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{secrets.AWS_DISTRIBUTION_ID_STAGING}} --paths "/video/demos/*"
+
+      - name: Invalidate Cloudfront cache (production)
+        if: ${{ github.ref_name == 'main' }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{secrets.AWS_DISTRIBUTION_ID_PRODUCTION}} --paths "/video/demos/*"

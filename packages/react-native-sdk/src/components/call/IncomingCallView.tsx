@@ -6,6 +6,7 @@ import {
   useCallCallingState,
   useCallMembers,
   useConnectedUser,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import { UserInfoView } from './internal/UserInfoView';
 import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
@@ -61,6 +62,7 @@ export const IncomingCallView = ({
     useMediaStreamManagement();
   const call = useCall();
   const callingState = useCallCallingState();
+  const { t } = useI18n();
 
   const acceptCallHandler = useCallback(async () => {
     if (acceptCallButton?.onPressHandler) {
@@ -95,7 +97,7 @@ export const IncomingCallView = ({
     <Background>
       <View style={styles.content}>
         <UserInfoView />
-        <Text style={styles.incomingCallText}>Incoming Call...</Text>
+        <Text style={styles.incomingCallText}>{t('Incoming Call...')}</Text>
       </View>
 
       <View style={styles.buttonGroup}>

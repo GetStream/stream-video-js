@@ -14,14 +14,12 @@ export interface AvatarProps {
    */
   participant: StreamVideoParticipant;
   /**
-   * The radius of the avatar
+   * The size of the avatar
    * @defaultValue
    * The default value is `100`
    */
-  radius?: number;
+  size?: number;
 }
-
-const DEFAULT_AVATAR_RADIUS = theme.avatar.sm;
 
 /**
  * Shows either user's image or initials based on the user state and existence of
@@ -30,7 +28,7 @@ const DEFAULT_AVATAR_RADIUS = theme.avatar.sm;
 export const Avatar = (props: AvatarProps) => {
   const {
     participant: { userId, image, name },
-    radius = DEFAULT_AVATAR_RADIUS,
+    size = theme.avatar.sm,
   } = props;
 
   const userDetails = name || userId;
@@ -42,9 +40,9 @@ export const Avatar = (props: AvatarProps) => {
       accessibilityLabel={A11yComponents.PARTICIPANT_AVATAR}
       style={{
         ...styles.container,
-        borderRadius: radius / 2,
-        height: radius,
-        width: radius,
+        borderRadius: size / 2,
+        height: size,
+        width: size,
       }}
     >
       {imageUrl ? (
@@ -56,10 +54,7 @@ export const Avatar = (props: AvatarProps) => {
           style={styles.image}
         />
       ) : (
-        <Text
-          style={{ ...styles.text, fontSize: radius / 2 }}
-          numberOfLines={1}
-        >
+        <Text style={{ ...styles.text, fontSize: size / 2 }} numberOfLines={1}>
           {userLabel}
         </Text>
       )}

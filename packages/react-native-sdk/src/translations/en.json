@@ -1,0 +1,10 @@
+{
+  "Incoming Call...": "Incoming Call...",
+  "Calling...": "Calling...",
+  "Mute All": "Mute All",
+  "Invite": "Invite",
+  "Join": "Join",
+  "You": "You",
+  "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
+  "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen"
+}

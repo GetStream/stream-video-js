@@ -12,6 +12,7 @@ import {
   HangUpCallButton,
   HangUpCallButtonType,
 } from '../utility/internal/HangupCallButton';
+import { useI18n } from '@stream-io/video-react-bindings';
 
 /**
  * Props for the OutgoingCallView Component.
@@ -36,6 +37,7 @@ export const OutgoingCallView = ({
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
   } = useMediaStreamManagement();
+  const { t } = useI18n();
   const muteStatusColor = (status: boolean) => {
     return status ? theme.light.overlay_dark : theme.light.static_white;
   };
@@ -45,7 +47,7 @@ export const OutgoingCallView = ({
       <View style={[StyleSheet.absoluteFill, styles.container]}>
         <View style={styles.content}>
           <UserInfoView />
-          <Text style={styles.callingText}>Calling...</Text>
+          <Text style={styles.callingText}>{t('Calling...')}</Text>
         </View>
         <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>

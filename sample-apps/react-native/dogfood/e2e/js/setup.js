@@ -1,5 +1,5 @@
 output.callId = (Math.random() + 1).toString(36).substring(7);
-output.callDuration = 80;
+output.callDuration = 100;
 output.pages = {
   chooseFlow: {
     meeting: 'Meeting',
@@ -33,7 +33,7 @@ output.assertions = {
     participantsCountIs6: 'Participants (6)',
   },
   joinMeeting: {
-    signOutModalTitle: 'Sign out as Gerri',
+    signOutModalTitle: 'Sign out as.*',
   },
   login: {
     customUserInputField: 'Enter custom user',

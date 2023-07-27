@@ -56,7 +56,7 @@ Here are some of the features we support:
 ### 0.2 milestone
 
 - [ ] Fast-reconnects
-- [ ] ICE restarts
+- [X] ICE restarts
 - [ ] SFU retries
 - [ ] Enhanced SDK build system
 - [ ] Hardware-accelerated video encoding on supported platforms

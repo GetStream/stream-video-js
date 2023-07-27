@@ -15,7 +15,11 @@ import {
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
 import { A11yComponents } from '../../constants/A11yLabels';
 import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
@@ -67,6 +71,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
   const call = useCall();
   const callingState = useCallCallingState();
+  const { t } = useI18n();
   const hasJoinedCall = callingState === CallingState.JOINED;
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -264,7 +269,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
                 <MicOff color={theme.light.error} />
               </View>
             )}
-            {isVideoMuted && (
+            {call?.type !== 'audio_room' && isVideoMuted && (
               <View style={[styles.svgContainerStyle, theme.icon.xs]}>
                 <VideoSlash color={theme.light.error} />
               </View>
@@ -288,7 +293,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
               <ScreenShare color={theme.light.static_white} />
             </View>
             <Text style={styles.userNameLabel} numberOfLines={1}>
-              {participantLabel} is sharing their screen.
+              {t('{{ userName }} is sharing their screen', {
+                userName: participantLabel,
+              })}
             </Text>
           </View>
         )}

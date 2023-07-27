@@ -10,6 +10,7 @@ import { Login, Room, RoomList } from './pages';
 import { AppShell } from './components/AppShell';
 import { UserContextProvider } from './contexts';
 import { getSelectedUser } from './utils/user';
+import React from 'react';
 
 const Root = () => <Outlet />;
 
@@ -52,9 +53,11 @@ const router = createBrowserRouter([
 
 const App = () => {
   return (
-    <UserContextProvider>
-      <RouterProvider router={router} />
-    </UserContextProvider>
+    <React.StrictMode>
+      <UserContextProvider>
+        <RouterProvider router={router} />
+      </UserContextProvider>
+    </React.StrictMode>
   );
 };
 

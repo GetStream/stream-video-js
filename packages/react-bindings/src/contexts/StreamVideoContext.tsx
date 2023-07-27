@@ -1,10 +1,4 @@
-import {
-  createContext,
-  PropsWithChildren,
-  useContext,
-  useEffect,
-  useRef,
-} from 'react';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { StreamVideoClient } from '@stream-io/video-client';
 import {
   StreamI18nProvider,
@@ -29,33 +23,13 @@ export type StreamVideoProps = StreamI18nProviderProps & {
  *  @param PropsWithChildren<StreamVideoProps>
  *  @category Client State
  */
-export const StreamVideo = ({
+export const StreamVideoProvider = ({
   children,
   client,
   i18nInstance,
   language,
   translationsOverrides,
 }: PropsWithChildren<StreamVideoProps>) => {
-  const prevClient = useRef<StreamVideoClient | undefined>(undefined);
-
-  useEffect(() => {
-    if (client.user) {
-      client
-        .connectUser()
-        .catch((error) =>
-          console.error('Failed to establish connection', error),
-        );
-    }
-
-    prevClient.current = client;
-
-    return () => {
-      prevClient.current
-        ?.disconnectUser()
-        .catch((error) => console.error(`Failed to disconnect`, error));
-    };
-  }, [client]);
-
   return (
     <StreamVideoContext.Provider value={client}>
       <StreamI18nProvider

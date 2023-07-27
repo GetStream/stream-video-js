@@ -7,6 +7,7 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useI18n,
   useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
@@ -38,13 +39,13 @@ import { palette } from '../../theme/constants';
 
 export interface ParticipantsInfoListViewProps {
   /**
-   * Boolean that decided whether the CallPartcipantsInfoView modal should be open or not.
+   * Boolean that decides whether the CallParticipantsInfoView modal should be open or not.
    */
-  isCallParticipantsViewVisible: boolean;
+  isCallParticipantsInfoViewVisible: boolean;
   /**
-   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallPartcipantsInfoView modal should be open or not.
+   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallParticipantsInfoView modal should be open or not.
    */
-  setIsCallParticipantsViewVisible: React.Dispatch<
+  setIsCallParticipantsInfoViewVisible: React.Dispatch<
     React.SetStateAction<boolean>
   >;
 }
@@ -55,10 +56,11 @@ export interface ParticipantsInfoListViewProps {
  * Mute all participants, invite participants, etc.
  **/
 export const ParticipantsInfoListView = ({
-  isCallParticipantsViewVisible,
-  setIsCallParticipantsViewVisible,
+  isCallParticipantsInfoViewVisible,
+  setIsCallParticipantsInfoViewVisible,
 }: ParticipantsInfoListViewProps) => {
   const participants = useParticipants();
+  const { t } = useI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<
     StreamVideoParticipant | undefined
   >(undefined);
@@ -85,7 +87,7 @@ export const ParticipantsInfoListView = ({
   };
 
   const onCloseCallParticipantsViewVisible = () => {
-    setIsCallParticipantsViewVisible(false);
+    setIsCallParticipantsInfoViewVisible(false);
   };
 
   const renderItem = useCallback(
@@ -106,7 +108,7 @@ export const ParticipantsInfoListView = ({
       accessibilityLabel={A11yComponents.PARTICIPANTS_INFO_VIEW}
       animationType="fade"
       transparent
-      visible={isCallParticipantsViewVisible}
+      visible={isCallParticipantsInfoViewVisible}
       onRequestClose={onCloseCallParticipantsViewVisible}
     >
       <>
@@ -117,7 +119,9 @@ export const ParticipantsInfoListView = ({
             <View style={styles.header}>
               <View style={styles.leftHeaderElement} />
               <Text style={styles.headerText}>
-                Participants ({participants.length})
+                {t('Participants ({{ numberOfParticipants }})', {
+                  numberOfParticipants: participants.length,
+                })}
               </Text>
               <Pressable
                 onPress={onCloseCallParticipantsViewVisible}
@@ -130,14 +134,14 @@ export const ParticipantsInfoListView = ({
             <FlatList data={participants} renderItem={renderItem} />
             <View style={styles.buttonGroup}>
               <Pressable style={styles.button} onPress={inviteHandler}>
-                <Text style={styles.buttonText}>Invite</Text>
+                <Text style={styles.buttonText}>{t('Invite')}</Text>
               </Pressable>
               <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
                 <Pressable
                   style={styles.button}
                   onPress={muteAllParticipantsHandler}
                 >
-                  <Text style={styles.buttonText}>Mute All</Text>
+                  <Text style={styles.buttonText}>{t('Mute All')}</Text>
                 </Pressable>
               </Restricted>
             </View>
@@ -197,7 +201,7 @@ const ParticipantInfoItem = (props: ParticipantInfoType) => {
   return (
     <Pressable style={styles.participant} onPress={optionsOpenHandler}>
       <View style={styles.participantInfo}>
-        <Avatar radius={theme.avatar.xs} participant={participant} />
+        <Avatar size={theme.avatar.xs} participant={participant} />
 
         <Text style={styles.name} numberOfLines={1}>
           {(participant.name || generateParticipantTitle(participant.userId)) +

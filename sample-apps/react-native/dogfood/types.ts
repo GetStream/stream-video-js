@@ -143,6 +143,7 @@ export type AppModeParamList = {
 export type RootStackParamList = {
   Meeting: undefined;
   Call: undefined;
+  AudioRoom: undefined;
   ChooseAppMode: undefined;
 };
 

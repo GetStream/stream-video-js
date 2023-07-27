@@ -8,6 +8,7 @@ import Menu from '@mui/material/Menu';
 import Divider from '@mui/material/Divider';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
+import LanIcon from '@mui/icons-material/Lan';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
@@ -44,6 +45,10 @@ export const DevMenu = () => {
           {/*<Divider />*/}
           <RestartPublisher />
           <RestartSubscriber />
+          <Divider />
+          <ConnectToLocalSfu sfuId="SFU-1" port={3031} />
+          <ConnectToLocalSfu sfuId="SFU-2" port={3033} />
+          <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
           <Divider />
           <LogPublisherStats />
           <LogSubscriberStats />
@@ -83,25 +88,25 @@ export const DevMenu = () => {
 //   );
 // };
 //
-// const FastReconnect = () => {
-//   const call = useCall();
-//   return (
-//     <MenuItem
-//       onClick={() => {
-//         if (!call) return;
-//         const sfuClient = call['sfuClient'] as StreamSfuClient | undefined;
-//         if (!sfuClient) return;
-//         sfuClient.isReconnecting = true;
-//         call['joinInternal']();
-//       }}
-//     >
-//       <ListItemIcon>
-//         <AutoModeIcon fontSize="small" />
-//       </ListItemIcon>
-//       <ListItemText>Fast-reconnect</ListItemText>
-//     </MenuItem>
-//   );
-// };
+
+const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
+  const { port = 3031, sfuId = 'SFU-1' } = props;
+  const params = new URLSearchParams(window.location.search);
+  return (
+    <MenuItem
+      onClick={() => {
+        params.set('sfuUrl', `http://127.0.0.1:${port}/twirp`);
+        params.set('sfuWsUrl', `ws://127.0.0.1:${port}/ws`);
+        window.location.search = params.toString();
+      }}
+    >
+      <ListItemIcon>
+        <LanIcon />
+      </ListItemIcon>
+      <ListItemText>Connect to local {sfuId}</ListItemText>
+    </MenuItem>
+  );
+};
 
 const RestartPublisher = () => {
   const call = useCall();

@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LobbyView, theme } from '@stream-io/video-react-native-sdk';
+import { LobbyView, theme, useI18n } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
@@ -19,6 +19,7 @@ export const LobbyViewComponent = ({
   route,
   onCallJoinHandler,
 }: LobbyViewComponentType) => {
+  const { t } = useI18n();
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
       <LobbyView joinCallButton={{ onPressHandler: onCallJoinHandler }} />
@@ -30,7 +31,7 @@ export const LobbyViewComponent = ({
           }}
         >
           <Text style={styles.anonymousButtonText}>
-            Join as Guest or Anonymously
+            {t('Join as Guest or Anonymously')}
           </Text>
         </Pressable>
       ) : (
@@ -41,7 +42,7 @@ export const LobbyViewComponent = ({
           }}
         >
           <Text style={styles.anonymousButtonText}>
-            Join with your Stream Account
+            {t('Join with your Stream Account')}
           </Text>
         </Pressable>
       )}

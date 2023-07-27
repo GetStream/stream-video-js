@@ -64,3 +64,6 @@ combineComparators
 unmute
 (?i)boolean
 onPress
+useRef
+apiKey
+SDK's
