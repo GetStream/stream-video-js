@@ -65,5 +65,6 @@ unmute
 (?i)boolean
 onPress
 useRef
+requestMultiple
 apiKey
 SDK's
