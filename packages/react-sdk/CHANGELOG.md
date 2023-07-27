@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.13...@stream-io/video-react-sdk-0.1.14) (2023-07-27)
+
+
+### Documentation
+
+* Update audio room tutorial to support strict mode ([#840](https://github.com/GetStream/stream-video-js/issues/840)) ([9aec392](https://github.com/GetStream/stream-video-js/commit/9aec392ec4a44fb0c1eaee00c19568f01d7b3da9))
+
 ### [0.1.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.12...@stream-io/video-react-sdk-0.1.13) (2023-07-27)
 
 ### Dependency Updates
