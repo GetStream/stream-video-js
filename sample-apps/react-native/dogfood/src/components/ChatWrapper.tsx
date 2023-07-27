@@ -6,8 +6,6 @@ import { StreamChatGenerics } from '../../types';
 import { STREAM_API_KEY } from 'react-native-dotenv';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
 import { useStreamChatTheme } from '../hooks/useTheme';
 
 const streami18n = new Streami18n({
@@ -44,21 +42,13 @@ export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <OverlayProvider<StreamChatGenerics>
-        i18nInstance={streami18n}
-        value={{ style: theme }}
-      >
-        <Chat client={chatClient} i18nInstance={streami18n}>
-          {children}
-        </Chat>
-      </OverlayProvider>
-    </GestureHandlerRootView>
+    <OverlayProvider<StreamChatGenerics>
+      i18nInstance={streami18n}
+      value={{ style: theme }}
+    >
+      <Chat client={chatClient} i18nInstance={streami18n}>
+        {children}
+      </Chat>
+    </OverlayProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

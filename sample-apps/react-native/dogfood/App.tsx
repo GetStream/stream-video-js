@@ -28,6 +28,8 @@ import { AppMode } from './src/navigators/AppMode';
 import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 
 // @ts-expect-error
 Logger.enable(false);
@@ -116,11 +118,13 @@ const StackNavigator = () => {
   }
 
   return (
-    <VideoWrapper>
-      <ChatWrapper>
-        <Stack.Navigator>{mode}</Stack.Navigator>
-      </ChatWrapper>
-    </VideoWrapper>
+    <GestureHandlerRootView style={styles.container}>
+      <VideoWrapper>
+        <ChatWrapper>
+          <Stack.Navigator>{mode}</Stack.Navigator>
+        </ChatWrapper>
+      </VideoWrapper>
+    </GestureHandlerRootView>
   );
 };
 
@@ -135,3 +139,9 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

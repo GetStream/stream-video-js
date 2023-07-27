@@ -12,7 +12,6 @@ import { ActiveCall } from './ActiveCall';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
-import { useChannelWatch } from '../hooks/useChannelWatch';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
 type Props = NativeStackScreenProps<
@@ -27,8 +26,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useI18n();
-  const channelWatched = useChannelWatch();
-  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
+  const unreadBadgeCountIndicator = useUnreadCount();
 
   const call = useCall();
   const callingState = useCallCallingState();
