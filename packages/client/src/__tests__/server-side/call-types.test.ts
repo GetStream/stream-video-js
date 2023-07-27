@@ -71,7 +71,17 @@ describe('call types CRUD API', () => {
   });
 
   it('delete', async () => {
-    await client.deleteCallType(callTypeName);
+    try {
+      await client.deleteCallType(callTypeName);
+    } catch (e) {
+      // the first request fails on backend sometimes
+      // retry it
+      await new Promise<void>((resolve) => {
+        setTimeout(() => resolve(), 2000);
+      });
+
+      await client.deleteCallType(callTypeName);
+    }
 
     await expect(() => client.getCallType(callTypeName)).rejects.toThrowError();
   });

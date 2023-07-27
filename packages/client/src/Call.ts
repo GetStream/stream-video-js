@@ -504,6 +504,15 @@ export class Call {
   };
 
   /**
+   * Creates a call
+   *
+   * @param data the data to create the call with.
+   */
+  create = async (data?: GetOrCreateCallRequest) => {
+    return this.getOrCreate(data);
+  };
+
+  /**
    * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
    * Will send a `call.ring` event to the call members.
    */
