@@ -26,7 +26,7 @@ describe('call API', () => {
   });
 
   it('create', async () => {
-    const response = await call.getOrCreate({
+    const response = await call.create({
       data: { created_by_id: 'john' },
     });
 
