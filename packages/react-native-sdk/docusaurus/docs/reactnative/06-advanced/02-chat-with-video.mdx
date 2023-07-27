@@ -352,30 +352,33 @@ const styles = StyleSheet.create({
 
 ### Showing unread count indicator for new chats
 
-To get the unread count of the Channel we need to focus primarily on watching the channel. So, to do it we will create a hook, that can be used easily:
+To get the unread count of the Channel we need to focus primarily on watching the channel and then listen to relevant events such as `message.new` to update the unread count state variable. The unread count is set to 0 when the message is marked as read, this is done by listening to the `notification.mark_read` event.
 
-```tsx title="src/hooks/useChannelWatch.tsx"
-import { useCall } from '@stream-io/video-react-native-sdk';
+This is demonstrated and can be done in a hook as created below:
+
+```tsx title="src/hooks/useUnreadCount.tsx"
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import type { Event, Channel as ChannelType } from 'stream-chat';
-import { StreamChatGenerics } from '../types';
+import { Event, Channel as ChannelType } from 'stream-chat';
+import { useCall } from '@stream-io/video-react-native-sdk';
+import { StreamChatGenerics } from 'src/types';
 
 /**
- * This hook is responsible for creating the channel and watching it.
- * It also makes sure to return the state whether the channel is being watched or not.
- * @returns boolean
+ * This hook is responsible for returning the unread count of the channel.
+ * This is done through listening to multiple events.
+ * @returns number
  */
-export const useChannelWatch = () => {
+export const useUnreadCount = () => {
+  const [unreadCount, setUnreadCount] = useState(0);
   const CHANNEL_TYPE = 'videocall';
-  const call = useCall();
-  const [channelWatched, setChannelWatched] = useState(false);
   const { client } = useChatContext();
-  // The channel id is the same as the call id
+  const call = useCall();
+
   const cid = `${CHANNEL_TYPE}:${call?.id}`;
 
+  // Effect to watch the channel
   useEffect(() => {
-   let channel: ChannelType<StreamChatGenerics>;
+    let channel: ChannelType<StreamChatGenerics>;
     const watchChannel = async () => {
       channel = client.channel(CHANNEL_TYPE, call?.id);
       await channel.watch();
@@ -388,52 +391,7 @@ export const useChannelWatch = () => {
     };
   }, [call?.id, client]);
 
-  useEffect(() => {
-    const handleEvent = (event: Event) => {
-      if (event?.cid === cid) {
-        setChannelWatched(true);
-      }
-    };
-
-    client.on('user.watching.start', handleEvent);
-
-    return () => {
-      client.off('user.watching.start', handleEvent);
-    };
-  }, [client, cid]);
-
-  return channelWatched;
-};
-```
-
-Here, we initially get the channel using the `client.channel` API and then, watch it using the `channel.watch()` function. To stop watching the channel, we use `channel.,stopWatching()` function.
-We listen to the `user.watching.start` event to set the channel watched state to `true` or `false`.
-
-Now we will create a hook to get the unread count value for a channel.
-
-```tsx title="src/hooks/useUnreadCount.tsx"
-import { useEffect, useState } from 'react';
-import { useChatContext } from 'stream-chat-react-native';
-import { Event } from 'stream-chat';
-import { useCall } from '@stream-io/video-react-native-sdk';
-
-type UseUnreadCountProps = {
-  channelWatched: boolean;
-};
-
-/**
- * This hook is responsible for returning the unread count of the channel.
- * This is done through listening to multiple events.
- * @returns number
- */
-export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const CHANNEL_TYPE = 'videocall';
-  const { client } = useChatContext();
-  const call = useCall();
-
-  const cid = `${CHANNEL_TYPE}:${call?.id}`;
-
+  // Effect to set the unreadCount to 0 when the `notification.mark_read` event is received
   useEffect(() => {
     if (!client) {
       return;
@@ -449,8 +407,9 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     return () => client.off('notification.mark_read', handleEvent);
   }, [client, cid]);
 
+  // Effect to update the unread count when the 'message.new' is received
   useEffect(() => {
-    if (!client || !channelWatched) {
+    if (!client) {
       return;
     }
 
@@ -467,15 +426,11 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     return () => {
       client.off('message.new', handleEvent);
     };
-  }, [client, channelWatched, cid]);
+  }, [client, cid]);
 
   return unreadCount;
 };
 ```
-
-Here, To get the unread count, we listen mainly to the `message.new` event and update our state variable `unreadCount`. The `channelWatched` value is passed from the `useChannelWatch` took that we created.
-
-We set the unread count to 0 when the `notification.mark_read` event is triggered.
 
 :::note
 Make sure to clean up/unsubscribe to all the events when the hook un-mounts.

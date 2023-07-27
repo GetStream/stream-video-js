@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useChatContext } from 'stream-chat-react-native';
-import { Event } from 'stream-chat';
+import { Event, Channel as ChannelType } from 'stream-chat';
 import { useCall } from '@stream-io/video-react-native-sdk';
-
-type UseUnreadCountProps = {
-  channelWatched: boolean;
-};
+import { StreamChatGenerics } from '../../types';
 
 /**
  * This hook is responsible for returning the unread count of the channel.
  * This is done through listening to multiple events.
  * @returns number
  */
-export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
+export const useUnreadCount = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const CHANNEL_TYPE = 'videocall';
   const { client } = useChatContext();
@@ -20,6 +17,22 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
 
   const cid = `${CHANNEL_TYPE}:${call?.id}`;
 
+  // Effect to watch the channel
+  useEffect(() => {
+    let channel: ChannelType<StreamChatGenerics>;
+    const watchChannel = async () => {
+      channel = client.channel(CHANNEL_TYPE, call?.id);
+      await channel.watch();
+    };
+
+    watchChannel();
+
+    return () => {
+      channel.stopWatching();
+    };
+  }, [call?.id, client]);
+
+  // Effect to set the unreadCount to 0 when the `notification.mark_read` event is received
   useEffect(() => {
     if (!client) {
       return;
@@ -35,8 +48,9 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     return () => client.off('notification.mark_read', handleEvent);
   }, [client, cid]);
 
+  // Effect to update the unread count when the 'message.new' is received
   useEffect(() => {
-    if (!client || !channelWatched) {
+    if (!client) {
       return;
     }
 
@@ -53,7 +67,7 @@ export const useUnreadCount = ({ channelWatched }: UseUnreadCountProps) => {
     return () => {
       client.off('message.new', handleEvent);
     };
-  }, [client, channelWatched, cid]);
+  }, [client, cid]);
 
   return unreadCount;
 };
