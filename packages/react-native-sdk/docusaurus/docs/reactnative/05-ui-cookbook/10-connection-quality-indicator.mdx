@@ -10,7 +10,7 @@ Network conditions are not always perfect so instead of playing guessing games a
 - GOOD
 - EXCELLENT
 
-![Preview of the Default Connection quality indicator](../assets/05-ui-cookbook/connection-quality-indicator.png)
+![Preview of the Default Connection quality indicator](../assets/05-ui-cookbook/connection-quality-indicator-default.png)
 
 In this guide we'll learn how to build and implement our own primitive connection quality indicator.
 
@@ -31,6 +31,8 @@ console.log(readableConnectionQuality); // -> EXCELLENT
 
 You'll most likely be displaying this indicator component inside each participant view ([ParticipantView](../../ui-components/core/participant-view)) within a call layout, you can learn more about `ParticipantView` customizations in [the participant view customizations guide](../participant-view-customizations).
 
+![Preview of the Custom Connection quality indicator](../assets/05-ui-cookbook/connection-quality-indicator-custom.png)
+
 ```tsx
 import { Text, View } from 'react-native';
 import {
@@ -46,9 +48,9 @@ const ConnectionQualityIndicator = ({
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
 }) => {
   return (
-    <Text>
-      {'⭐️'.repeat(participant.connectionQuality)}
-    </Text>
+    <View style={styles.container}>
+      <Text>{'⭐️'.repeat(participant.connectionQuality)}</Text>
+    </View>
   );
 };
 
@@ -74,7 +76,7 @@ const ParticipantView = () => {
         // Code for your custom participant view
         return (
           <View>
-            {/* ParticipantLabel is rendered as a sub component here */}
+            {/* ParticipantLabel is rendered as a sub-component here */}
             <CustomParticipantViewUI participant={participant} />
           </View>
         );
@@ -82,4 +84,14 @@ const ParticipantView = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'gray',
+    padding: 10,
+    margin: 20,
+    borderRadius: 5,
+    alignSelf: 'center',
+  },
+});
 ```
