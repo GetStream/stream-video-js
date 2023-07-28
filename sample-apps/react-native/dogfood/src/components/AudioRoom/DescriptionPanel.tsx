@@ -1,8 +1,8 @@
 import { useCallMetadata, useI18n } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
 
-export const DescriptionPanel = () => {
+export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
   const metadata = useCallMetadata();
   const custom = metadata?.custom;
   const participantsCount = metadata?.session?.participants?.length ?? 0;
@@ -19,6 +19,16 @@ export const DescriptionPanel = () => {
           numberOfParticipants: participantsCount,
         })}
       </Text>
+      <Pressable
+        onPress={onClose}
+        style={(state) =>
+          state.pressed
+            ? [styles.closeButton, { opacity: 0.2 }]
+            : styles.closeButton
+        }
+      >
+        <Text style={styles.closeText}>X</Text>
+      </Pressable>
     </View>
   );
 };
@@ -26,7 +36,7 @@ export const DescriptionPanel = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 4,
-    marginHorizontal: 32,
+    paddingHorizontal: 32,
     alignItems: 'center',
   },
   title: {
@@ -42,5 +52,14 @@ const styles = StyleSheet.create({
   participantsCount: {
     color: 'black',
     fontSize: 12,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 4,
+    right: 16,
+  },
+  closeText: {
+    fontSize: 24,
+    color: 'black',
   },
 });
