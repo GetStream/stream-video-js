@@ -27,10 +27,22 @@ describe('call API', () => {
 
   it('create', async () => {
     const response = await call.create({
-      data: { created_by_id: 'john' },
+      data: {
+        created_by_id: 'john',
+        settings_override: {
+          geofencing: {
+            names: ['canada'],
+          },
+          screensharing: {
+            enabled: false,
+          },
+        },
+      },
     });
 
     expect(response.call.created_by.id).toBe('john');
+    expect(response.call.settings.geofencing.names).toEqual(['canada']);
+    expect(response.call.settings.screensharing.enabled).toBe(false);
   });
 
   it('update', async () => {
