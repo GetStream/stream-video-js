@@ -21,14 +21,8 @@ yarn add @stream-io/video-react-native-sdk
 Stream Video React Native SDK requires installing some peer dependencies to provide you with a great calling experience. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg text-encoding-polyfill react-native-url-polyfill intl-pluralrules @react-native-community/netinfo @notifee/react-native
+yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg @react-native-community/netinfo @notifee/react-native
 ```
-
-The following dependencies require additional configuration steps for the installation to be successful and all their functionalities to be available.
-Please follow the links below to complete the installation process:
-
-- `react-native-webrtc` installation on [Android](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/AndroidInstallation.md) and [iOS](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/Documentation/iOSInstallation.md).
-- `react-native-svg` be aware of [compatibility](https://github.com/software-mansion/react-native-svg#supported-react-native-versions) with RN versions and [troubleshooting](https://github.com/software-mansion/react-native-svg#troubleshooting) steps.
 
 So what did we install precisely?
 
@@ -37,47 +31,39 @@ So what did we install precisely?
 - `react-native-device-info` is responsible for retrieving device info and sending it to the Stream Video servers.
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
-- `text-encoding-polyfill` a polyfill for the `Encoding Living Standard` API, allowing encoding and decoding of textual data to and from Typed Array buffers for binary data in React Native.
-- `react-native-url-polyfill` is an implementation of the `WHATWG URL` Standard optimized for React Native.
-- `intl-pluralrules` - allows i18n with support for pluralization based on [`Intl.Plurales`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/PluralRules).
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
 
-### Optional peer dependencies
+### Android Specific installation
 
-Some of the optional features we provide require additional dependencies to be installed in order to work properly.
+#### Enable Java 8 Support
 
-#### Ringing flow
+In `android/app/build.gradle` add the following inside the android section:
 
-The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
-To enable this feature you need to install the following dependencies:
-
-- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
-- `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
-- `@react-native-voip-push-notification` to receive notifications on iOS.
-
-More about how to enable this feature can be found [in our push notification guide](../../advanced/push-notifications/).
-
-### Initial app setup: register polyfills
-
-Add the following imports and statements to your `index.js` file in the project's root.
-
-```tsx
-/** Initialize text encoder/decoder polyfill */
-import 'text-encoding-polyfill';
-/** Initialize URL polyfill */
-import 'react-native-url-polyfill/auto';
-/** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
-import 'intl-pluralrules';
-import { registerGlobals } from 'react-native-webrtc';
-...
-
-// We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
-// This will result in creation of 2 global objects: `window` and `navigator`
-// Further [reading](https://github.com/react-native-webrtc/react-native-webrtc/blob/16cff1523da457dbcc27bb0744ee2bad3a987c41/Documentation/BasicUsage.md#registering-globals) about this process
-if (Platform.OS !== 'web') {
-  registerGlobals();
+```
+compileOptions {
+	sourceCompatibility JavaVersion.VERSION_1_8
+	targetCompatibility JavaVersion.VERSION_1_8
 }
+```
+
+#### Disable desugaring
+
+In `android/gradle.properties` add the following:
+
+```
+# This one fixes a weird WebRTC runtime problem on some devices.
+# https://github.com/jitsi/jitsi-meet/issues/7911#issuecomment-714323255
+
+android.enableDexingArtifactTransform.desugaring=false
+```
+
+#### Optional: R8/ProGuard Support
+
+If you require R8/ProGuard support then in `android/app/proguard-rules.pro` add the following on a new line:
+
+```
+-keep class org.webrtc.** { *; }
 ```
 
 ### Declaring Permissions
@@ -124,7 +110,6 @@ If you plan to also support Bluetooth devices then also add the following.
 
 :::note
 The SDK needs to know to the state of camera and microphone permissions to get video and audio streams. We can inform the states to the SDK through the following:
-
 ```ts
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
@@ -133,4 +118,21 @@ StreamVideoRN.setPermissions({
   isMicPermissionGranted: true,
 });
 ```
+ We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
 :::
+
+### Optional peer dependencies
+
+Some of the optional features we provide require additional dependencies to be installed in order to work properly.
+
+#### Ringing flow
+
+The ringing flow is a feature that allows you to render a native ringer when the app is in background/dead mode.
+To enable this feature you need to install the following dependencies:
+
+- `react-native-callkeep` utilises CallKit (iOS) and ConnectionService (Android). SVRN's uses this dependency to render native ringers and handle accepting/declining a call when the app is in background/dead mode.
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` to receive notifications on Android.
+- `@react-native-voip-push-notification` to receive notifications on iOS.
+
+More about how to enable this feature can be found [in our push notification guide](../../advanced/push-notifications/).
+
