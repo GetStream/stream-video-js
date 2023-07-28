@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.344](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.343...@stream-io/video-react-native-sdk-0.0.1-alpha.344) (2023-07-28)
+
+
+### Bug Fixes
+
+* **react-native:** reduce installation steps ([#868](https://github.com/GetStream/stream-video-js/issues/868)) ([a67f2c3](https://github.com/GetStream/stream-video-js/commit/a67f2c39e3aa28b2d2ed7a7cd919589325c2189a))
+
+
+### Features
+
+* **react-native:** refactor docs about native permissions ([#865](https://github.com/GetStream/stream-video-js/issues/865)) ([49b9fd8](https://github.com/GetStream/stream-video-js/commit/49b9fd83deb3e5ab54c23bc274b069e17c8fb3ce))
+
+
+
 ## [0.0.1-alpha.343](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.342...@stream-io/video-react-native-sdk-0.0.1-alpha.343) (2023-07-27)
 
 
