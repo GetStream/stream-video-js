@@ -16,7 +16,7 @@ StreamVideoRN.setPermissions({
 
 In this guide, we will create a hook named `useSyncPermissions` to manage the native permissions required for the app. This hook will be used to request the app's permissions and inform them to the SDK.
 
-The hook will request for the relevant permissions when the screen is mounted and also informs the permission state to the SDK when the app state changes to the foreground. This ensures the latest permissions are synced with the SDK, that way the SDK can get video and audio streams for a call.
+The hook will request the relevant permissions when the screen is mounted and also informs the permission state to the SDK when the app state changes to the foreground. This ensures the latest permissions are synced with the SDK. That way the SDK can get video and audio streams for a call.
 
 Once the component using this hook is mounted, we should see permissions being requested like below:
 
@@ -93,7 +93,7 @@ export const iosProcessPermissions = (
 
 ## Step 2 - Add a function to request permissions in the app and update the SDK
 
-In this step, we create a function called `requestAndUpdatePermissions`. This function will be responsible for requesting permissions and also updating the status to the SDK using the functions created in step-1.
+In this step, we create a function called `requestAndUpdatePermissions`. This function will be responsible for requesting permissions and also informing about the status to the SDK using the functions created in step-1.
 
 ```ts title=src/utils/requestAndUpdatePermissions.ts
 import { Platform } from 'react-native';
@@ -123,7 +123,7 @@ export const requestAndUpdatePermissions = async () => {
 
 ## Step 3 - Add a function to check permissions in the app and update the SDK
 
-In this step, we create a function called `checkAndUpdatePermissions`. This function will be responsible for checking permissions and also updating the status to the SDK using the functions created in step-1. This function will be used later to check permissions when the app moves to foreground from the background.
+In this step, we create a function called `checkAndUpdatePermissions`. This function will be responsible for checking permissions and also informing about the status to the SDK using the functions created in step-1. This function will be used later to check permissions when the app moves to the foreground from the background.
 
 ```ts title=src/utils/checkAndUpdatePermissions.ts
 import { Platform } from 'react-native';
@@ -155,7 +155,7 @@ export const checkAndUpdatePermissions = async () => {
 
 In the step, we create the `useSyncPermissions` hook. As mentioned earlier, this hook will be used to request the app's permissions and inform them to the SDK. 
 
-Additional to updating permissions after requesting them, it is also necessary to check the status of permissions when app comes to foreground. This will ensure that the permissions are updated when the user comes back to the app from the background after changing the permissions in the native settings screen. In order to do this, we will also add a listener to the app state change event in this hook.
+In addition to updating permissions after requesting them, it is also necessary to check the status of permissions when the app comes to the foreground. This will ensure that the permissions are updated when the user comes back to the app from the background after changing the permissions in the native settings screen. In order to do this, we will also add a listener to the app state change event in this hook.
 
 ```tsx
 import { useEffect, useRef } from 'react';
