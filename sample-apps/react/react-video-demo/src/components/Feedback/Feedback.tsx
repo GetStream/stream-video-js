@@ -14,6 +14,7 @@ import { Star, Close } from '../Icons';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './Feedback.module.css';
+import { getCookie } from 'src/utils/getCookie';
 
 export type Props = {
   className?: string;
@@ -71,7 +72,11 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({ className, callId, inMeeting }: Props) => {
+export const Feedback: FC<Props> = ({
+  className,
+  callId,
+  inMeeting,
+}: Props) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
@@ -102,10 +107,13 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }: Props) => 
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
         },
         body: JSON.stringify({
           ...values,
-          page_url: `${endpointUrl}?meeting=${inMeeting ? 'true' : 'false'}${callId ? `&id=${callId}` : ''}`
+          page_url: `${endpointUrl}?meeting=${inMeeting ? 'true' : 'false'}${
+            callId ? `&id=${callId}` : ''
+          }`,
         }),
       });
 
