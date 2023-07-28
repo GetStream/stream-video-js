@@ -71,7 +71,7 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
+export const Feedback: FC<Props> = ({ className, callId, inMeeting }: Props) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
@@ -105,10 +105,7 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
         },
         body: JSON.stringify({
           ...values,
-          page_url:
-            callId && inMeeting
-              ? `${endpointUrl}?id=${callId}&meeting=true`
-              : `${endpointUrl}?id=${callId}&meeting=false`,
+          page_url: `${endpointUrl}?meeting=${inMeeting ? 'true' : 'false'}${callId ? `&id=${callId}` : ''}`
         }),
       });
 
