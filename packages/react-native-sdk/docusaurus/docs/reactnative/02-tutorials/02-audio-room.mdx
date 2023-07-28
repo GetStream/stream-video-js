@@ -39,6 +39,7 @@ The SDK requires installing some peer dependencies. You can run the following co
 
 ```bash title=Terminal
 yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg @react-native-community/netinfo @notifee/react-native
+npx pod-install
 ```
 
 #### Declare permissions
@@ -80,7 +81,7 @@ For simplicity, in this tutorial, we do not cover about managing native runtime 
 
 #### Android Specific installation
 
-In `android/app/build.gradle` add the following inside the android section:
+In `android/app/build.gradle` add the following inside the `android` section:
 
 ```
 compileOptions {
@@ -304,7 +305,7 @@ export default function App() {
     <StreamVideo client={client}>
       <StreamCall call={call}>
         // highlight-next-line
-        <AudioRoom onClose={() => setCall(undefined)}/>
+        <AudioRoom />
       </StreamCall>
     </StreamVideo>
   );
@@ -315,23 +316,10 @@ You would have noticed that we haven't created the `AudioRoom` component. Let us
 
 ```tsx title=src/AudioRoom.tsx
 import React, { useEffect } from 'react';
-import {
-  CallingState,
-  useCallCallingState,
-} from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import DescriptionPanel from './DescriptionPanel';
 
-export default function AudioRoom({ onClose }: { onClose: () => void }) {
-  const callingState = useCallCallingState();
-
-  // when the call is left, close the room component
-  useEffect(() => {
-    if (callingState === CallingState.LEFT) {
-      onClose();
-    }
-  }, [callingState, onClose]);
-
+export default function AudioRoom() {
   return (
     <SafeAreaView style={styles.container}>
       <DescriptionPanel />
@@ -348,7 +336,7 @@ export default function AudioRoom({ onClose }: { onClose: () => void }) {
     },
   });
 
-  // except for DescriptionPanel component we will put every other panels in todo
+  // except for DescriptionPanel component we will put every other panels in TODO for now
   const ParticipantsPanel = () => (
     <Text style={{ fontSize: 20 }}>ParticipantsPanel TODO</Text>
   );
@@ -362,10 +350,6 @@ export default function AudioRoom({ onClose }: { onClose: () => void }) {
 }
 ```
 
-:::note
-All state for a call is available in `call.state`. In the example above, we observe if the call has been left using the `useCallCallingState` hook and if so, close the active room component. The [Call & Participant State](../../core/call-and-participant-state/) guide explains the available state objects in detail.
-:::
-
 Let us add the component to show the call descriptions:
 
 ```tsx title=src/DescriptionPanel.tsx
@@ -373,7 +357,7 @@ import { useCallMetadata } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 
-export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
+export const DescriptionPanel = () => {
   const metadata = useCallMetadata();
   const custom = metadata?.custom;
   const participantsCount = metadata?.session?.participants?.length ?? 0;
@@ -387,16 +371,6 @@ export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
       <Text style={styles.participantsCount}>
         {`${participantsCount} Participants`}
       </Text>
-      <Pressable
-        onPress={onClose}
-        style={(state) =>
-          state.pressed
-            ? [styles.closeButton, { opacity: 0.2 }]
-            : styles.closeButton
-        }
-      >
-        <Text style={styles.closeText}>X</Text>
-      </Pressable>
     </View>
   );
 };
@@ -421,19 +395,10 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 12,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 4,
-    right: 16,
-  },
-  closeText: {
-    fontSize: 24,
-    color: 'black',
-  },
 });
 ```
 
-In this component, we showed the title, description and the number of participants by using the metadata inside the call object. It also contains a close button for the component.
+In this component, we showed the title, description and the number of participants by using the metadata inside the call object.
 
 That's it for the basics. Now when you run your app, you'll see the following UI:
 
