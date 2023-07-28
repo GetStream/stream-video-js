@@ -12,6 +12,8 @@ import {
 } from 'rxjs';
 import { getLogger } from '../logger';
 
+const logger = getLogger(['devices']);
+
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
     navigator.mediaDevices
@@ -22,15 +24,12 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
         navigator.mediaDevices.enumerateDevices().then((devices) => {
           subscriber.next(devices);
           // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-          media.getTracks().forEach((t) => t.stop());
+          disposeOfMediaStream(media);
           subscriber.complete();
         });
       })
       .catch((error) => {
-        const logger = getLogger(['devices']);
-        if (logger) {
-          logger('error', 'Failed to get devices', error);
-        }
+        logger('error', 'Failed to get devices', error);
         subscriber.error(error);
       });
   });
@@ -138,7 +137,7 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
-    getLogger(['devices'])?.('error', `Failed get user media`, {
+    logger('error', `Failed get user media`, {
       error: e,
       constraints: constraints,
     });
@@ -206,7 +205,7 @@ export const getScreenShareStream = async (
       ...options,
     });
   } catch (e) {
-    getLogger(['devices'])?.('error', 'Failed to get screen share stream', e);
+    logger('error', 'Failed to get screen share stream', e);
     throw e;
   }
 };
