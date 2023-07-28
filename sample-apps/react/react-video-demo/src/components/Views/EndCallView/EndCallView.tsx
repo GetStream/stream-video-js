@@ -8,9 +8,10 @@ import styles from './EndCallView.module.css';
 
 export type Props = {
   className?: string;
+  callId: string;
 };
 
-export const EndCallView: FC<Props> = ({ className }) => {
+export const EndCallView: FC<Props> = ({ className, callId }: Props) => {
   const rootClassName = classnames(styles.root, className);
 
   return (
@@ -47,7 +48,7 @@ export const EndCallView: FC<Props> = ({ className }) => {
             SDK Tutorials
           </Button>
         </div>
-        <Feedback className={styles.feedback} inMeeting={false} />
+        <Feedback className={styles.feedback} callId={callId} inMeeting={false} />
       </div>
     </div>
   );

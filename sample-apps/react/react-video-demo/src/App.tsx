@@ -160,7 +160,7 @@ const Init = () => {
   }, [activeCall]);
 
   if (callHasEnded) {
-    return <EndCallView />;
+    return <EndCallView callId={callId} />;
   }
 
   if (!client || !activeCall) {
