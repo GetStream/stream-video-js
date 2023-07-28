@@ -14,7 +14,7 @@ The end result will look like the image below and will support the following fea
 - Listeners can raise their hand, and be invited to speak by the host
 - Audio tracks are sent multiple times for optimal reliability
 
-![Preview of the final result](../assets/02-tutorials/02-audio-room/audio-room-target.png)
+![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-final.png)
 
 Time to get started building an audio room for your app.
 
@@ -27,11 +27,73 @@ npx react-native@latest init StreamAudioRoomExample
 cd StreamAudioRoomExample
 ```
 
+### Step 2 - Install the SDK and declare permissions
+
+In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
+
+```bash title=Terminal
+yarn add @stream-io/video-react-native-sdk
+```
+
+The SDK requires installing some peer dependencies. You can run the following command to install them:
+
+```bash title=Terminal
+yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg @react-native-community/netinfo @notifee/react-native
+```
+
+#### Declare permissions
+
+#### iOS
+
+Add the following keys and values to `Info.plist` file:
+
+- `Privacy - Microphone Usage Description` - "StreamAudioRoomExample app requires microphone access to capture and transmit audio"
+
+#### Android
+
+In `AndroidManifest.xml` add the following permissions before the `<application>` section.
+
+```xml
+<uses-feature android:name="android.hardware.audio.output" />
+<uses-feature android:name="android.hardware.microphone" />
+
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+If you plan to also support Bluetooth devices then also add the following.
+
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+```
+
 Please follow through the **[SDK installation](../../setup/installation)** steps to properly setup the SDK and its prerequisites.
 
 :::note
 For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
 :::
+
+#### Android Specific installation
+
+In `android/app/build.gradle` add the following inside the android section:
+
+```
+compileOptions {
+	sourceCompatibility JavaVersion.VERSION_1_8
+	targetCompatibility JavaVersion.VERSION_1_8
+}
+```
+
+In `android/gradle.properties` add the following:
+
+```
+android.enableDexingArtifactTransform.desugaring=false
+```
 ### Step 2 - Create the root component
 
 Let us first add our constants that will be reused in multiple files later. Create a new file `src/constants.ts` and add the following code:
@@ -282,10 +344,6 @@ const styles = StyleSheet.create({
 });
 ```
 
-This is how the modal should look like:
-
-![Preview of the create room](../assets/02-tutorials/02-audio-room/create-room.png)
-
 Let's review the code above and go over the details.
 
 #### Create an audio room call
@@ -482,10 +540,6 @@ const styles = StyleSheet.create({
 ```
 
 In this component, we show a list of the audio room calls. We show a button to open the `CreateRoomModal` component that was added in the previous section to be able to create a new audio room. We also show a button to load more calls at the bottom of the list.
-
-This is how the list should look like:
-
-![Preview of the room list](../assets/02-tutorials/02-audio-room/room-list.png)
 
 Let's review the component above and go over the details.
 
@@ -1081,7 +1135,7 @@ In the above component, we show a list of permission requests along with button 
 
 Finally once all the dependent components for the `Room` component are added. This is how the `Room` component would look like:
 
-![Preview of the room list](../assets/02-tutorials/02-audio-room/active-room.png)
+![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-final.png)
 
 ## Other built-in features
 
