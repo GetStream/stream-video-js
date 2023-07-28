@@ -65,6 +65,7 @@ unmute
 (?i)boolean
 onPress
 useRef
+desugaring
 requestMultiple
 checkMultiple
 apiKey
