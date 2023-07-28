@@ -35,7 +35,7 @@ export const App = () => {
 |--------|
 | `Call` |
 
-This props internally provides the call instance to the [`StreamCallProvider`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/contexts/StreamCallContext.tsx#L24) and thereby having it passed in the `StreamCall` component makes the call instance available to all of its child components.
+Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
 
 ### `mediaDevicesProviderProps`
 
