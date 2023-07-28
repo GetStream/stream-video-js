@@ -21,6 +21,7 @@
   },
   "include": [
     "./src",
-    "index.ts"
-, "version.ts"  ]
+    "index.ts",
+    "version.ts"
+  ]
 }
