@@ -133,11 +133,11 @@ export type MediaDevicesContextAPI = {
   /**
    * Stops publishing audio stream for currently selected audio input (microphone) device to other call participants.
    */
-  stopPublishingAudio: () => void;
+  stopPublishingAudio: () => Promise<void>;
   /**
    * Stops publishing video stream for currently selected video input (camera) device to other call participants.
    */
-  stopPublishingVideo: () => void;
+  stopPublishingVideo: () => Promise<void>;
   /**
    * Sets the initialAudioEnabled flag to a given boolean value.
    * The latest value set will be used to decide, whether audio stream will be published when joining a call.
@@ -272,12 +272,7 @@ export const MediaDevicesProvider = ({
 
   const settings = metadata?.settings;
   useEffect(() => {
-    if (
-      !settings ||
-      ![CallingState.IDLE, CallingState.RINGING].includes(callingState)
-    ) {
-      return;
-    }
+    if (!settings) return;
     const { audio, video } = settings;
     if (typeof initialAudioEnabled === 'undefined' && audio.mic_default_on) {
       setInitialAudioEnabled(audio.mic_default_on);
@@ -285,7 +280,7 @@ export const MediaDevicesProvider = ({
     if (typeof initialVideoEnabled === 'undefined' && video.camera_default_on) {
       setInitialVideoState(DEVICE_STATE.starting);
     }
-  }, [callingState, initialAudioEnabled, initialVideoEnabled, settings]);
+  }, [initialAudioEnabled, initialVideoEnabled, settings]);
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initialVideoState.enabled,
@@ -296,7 +291,7 @@ export const MediaDevicesProvider = ({
     audioDeviceId: selectedAudioInputDeviceId,
   });
 
-  const stopPublishingAudio = useCallback(() => {
+  const stopPublishingAudio = useCallback(async () => {
     if (
       callingState === CallingState.IDLE ||
       callingState === CallingState.RINGING
@@ -307,7 +302,7 @@ export const MediaDevicesProvider = ({
     }
   }, [call, callingState]);
 
-  const stopPublishingVideo = useCallback(() => {
+  const stopPublishingVideo = useCallback(async () => {
     if (
       callingState === CallingState.IDLE ||
       callingState === CallingState.RINGING

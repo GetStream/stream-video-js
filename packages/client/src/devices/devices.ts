@@ -22,15 +22,12 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
         navigator.mediaDevices.enumerateDevices().then((devices) => {
           subscriber.next(devices);
           // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-          media.getTracks().forEach((t) => t.stop());
+          disposeOfMediaStream(media);
           subscriber.complete();
         });
       })
       .catch((error) => {
-        const logger = getLogger(['devices']);
-        if (logger) {
-          logger('error', 'Failed to get devices', error);
-        }
+        getLogger(['devices'])('error', 'Failed to get devices', error);
         subscriber.error(error);
       });
   });
@@ -138,7 +135,7 @@ const getStream = async (constraints: MediaStreamConstraints) => {
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (e) {
-    getLogger(['devices'])?.('error', `Failed get user media`, {
+    getLogger(['devices'])('error', `Failed get user media`, {
       error: e,
       constraints: constraints,
     });
@@ -206,7 +203,7 @@ export const getScreenShareStream = async (
       ...options,
     });
   } catch (e) {
-    getLogger(['devices'])?.('error', 'Failed to get screen share stream', e);
+    getLogger(['devices'])('error', 'Failed to get screen share stream', e);
     throw e;
   }
 };
