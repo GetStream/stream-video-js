@@ -60,10 +60,6 @@ In this step, we create two functions called `androidProcessPermissions` and `iO
 import { PERMISSIONS, RESULTS, PermissionStatus } from 'react-native-permissions';
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
-
-// The extracted type of the return value of `requestMultiple`
-type Results = Awaited<ReturnType<typeof requestMultiple>>;
-
 export const androidProcessPermissions = (
   results: Record<
     'android.permission.CAMERA' | 'android.permission.RECORD_AUDIO',
@@ -174,13 +170,13 @@ export const useSyncPermissions = () => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (
-        appState.current.match(/inactive|background/) &&
+        appStateRef.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
         checkAndUpdatePermissions();;
       }
 
-      appState.current = nextAppState;
+      appStateRef.current = nextAppState;
     });
 
     return () => {
