@@ -15,5 +15,11 @@
     .str-video__audio-level-slider__level {
       background: var(--str-video__primary-color);
     }
+
+    .str-video_audio-level-slider__thumb {
+      border-radius: var(--str-video__border-radius-circle);
+      background-color: inherit;
+      box-shadow: 0 0 20px var(--str-video__background-color2);
+    }
   }
 }

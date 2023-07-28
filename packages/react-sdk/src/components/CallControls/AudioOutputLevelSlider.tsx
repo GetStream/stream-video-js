@@ -3,9 +3,10 @@ import {
   useCall,
   useMasterAudioOutputLevel,
 } from '@stream-io/video-react-bindings';
-import { MouseEventHandler, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Icon } from '../Icon';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { useDraggable } from '../../hooks/useDraggable';
 
 export type AudioLevelControlProps = {
   /**
@@ -19,19 +20,38 @@ export const AudioOutputLevelSlider = ({
 }: AudioLevelControlProps) => {
   const call = useCall();
   const masterAudioOutputLevel = useMasterAudioOutputLevel();
+  const [thumb, setThumb] = useState<HTMLDivElement | null>(null);
+  const [track, setTrack] = useState<HTMLDivElement | null>(null);
 
   const audioLevel = participant?.audioOutputLevel ?? masterAudioOutputLevel;
 
-  const handleClick: MouseEventHandler = useCallback(
-    (event) => {
-      const { width, x } = event.currentTarget.getBoundingClientRect();
-
-      const volume = +((event.clientX - x) / width).toFixed(2);
+  const handleSetAudioOutput = useCallback(
+    (event: MouseEvent) => {
+      if (!track) return;
+      const { left: trackLeft, width } = track.getBoundingClientRect();
+      const volume = +((event.clientX - trackLeft) / width).toFixed(2);
       const validatedVolume = volume < 0 ? 0 : volume > 1 ? 1 : volume;
       call?.setAudioOutputLevel(validatedVolume, participant?.sessionId);
     },
-    [call, participant],
+    [call, participant, track],
   );
+
+  useEffect(() => {
+    if (!track) return;
+
+    track.addEventListener('click', handleSetAudioOutput);
+
+    return () => {
+      track?.removeEventListener('click', handleSetAudioOutput);
+    };
+  }, [handleSetAudioOutput, track]);
+
+  useDraggable({
+    axis: 'x',
+    containerElement: track,
+    element: thumb,
+    onMouseMove: handleSetAudioOutput,
+  });
 
   return (
     <div
@@ -49,13 +69,15 @@ export const AudioOutputLevelSlider = ({
       >
         <Icon icon={audioLevel ? 'speaker' : 'speaker-off'} />
       </span>
-      <div
-        className="str-video__audio-level-slider__track"
-        onClick={handleClick}
-      >
+      <div className="str-video__audio-level-slider__track" ref={setTrack}>
         <div
           className="str-video__audio-level-slider__level"
           style={{ transform: `scaleX(${audioLevel})` }}
+        />
+        <div
+          className="str-video_audio-level-slider__thumb"
+          ref={setThumb}
+          style={{ left: `${audioLevel * 100}%` }}
         />
       </div>
     </div>
