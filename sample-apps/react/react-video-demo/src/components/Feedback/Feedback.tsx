@@ -109,7 +109,7 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }: Props) => 
         }),
       });
 
-      if (response.status === 500) {
+      if (response.status >= 400) {
         setError('Something went wrong, please try again.');
       } else {
         setFeedbackSent(true);
