@@ -1,10 +1,16 @@
 import React, { useCallback } from 'react';
 import {
-  Avatar,
   StreamVideoParticipant,
   useParticipants,
 } from '@stream-io/video-react-native-sdk';
-import { FlatList, FlatListProps, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  FlatListProps,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+} from 'react-native';
 
 type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
 
@@ -18,7 +24,7 @@ export function ParticipantsPanel() {
           key={participantItem.sessionId}
           style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
         >
-          <Avatar size={80} participant={participantItem} />
+          <Image style={styles.image} source={{ uri: participantItem.image }} />
           <Text style={styles.text}>{participantItem.name}</Text>
         </View>
       );
@@ -46,6 +52,11 @@ const styles = StyleSheet.create({
   avatar: {
     flex: 1,
     alignItems: 'center',
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   speakingAvatar: {
     borderWidth: 1,
