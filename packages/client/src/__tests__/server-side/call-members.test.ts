@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { StreamVideoServerClient } from '../../StreamVideoServerClient';
 import { generateUUIDv4 } from '../../coordinator/connection/utils';
 import { Call } from '../../Call';
