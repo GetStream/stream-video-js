@@ -3,6 +3,481 @@ title: Chat Integration
 description: How to integrate chat & video
 ---
 
+It's common for calling apps to have chat, as well as the opposite - chat apps to have a calling functionality. Stream's Chat and Video SDKs are perfectly compatible between each other, and can easily be integrated into an app.
+
+Before starting with this guide on how to integrate chat and video together, we will initially focus on installation of the Chat SDK.
+
+## Installation
+
+To install Stream Chat SDK, you can go through our [Getting Started](https://getstream.io/chat/docs/sdk/reactnative/) guide and follow the installation steps and install all the relevant dependencies as well as optional dependencies according to your application's needs.
+
+:::note
+Do not forget through the [Additional Steps](https://getstream.io/chat/docs/sdk/reactnative/#additional-steps) guide while installing the dependencies.
+:::
+
+## Creating and Passing Chat Client
+
+To create the Chat Client we will mainly follow [this tutorial](https://getstream.io/chat/react-native-chat/tutorial/#add-stream-chat-to-the-application).
+
+### Wrapping the chat client
+
+To wrap our Chat initiation and client logic we will create a `ChatWrapper` component that can be wrapped at the root of the application, so that the client will be available to all the child components.
+
+```tsx title="src/components/ChatWrapper.tsx"
+import React, { PropsWithChildren, useCallback, useMemo } from 'react';
+import { Chat, OverlayProvider, Streami18n } from 'stream-chat-react-native';
+import { useChatClient } from '../hooks/useChatClient';
+import { SafeAreaView, ActivityIndicator } from 'react-native';
+
+const streami18n = new Streami18n({
+  language: 'en',
+});
+
+export const ChatWrapper = ({ children }: PropsWithChildren<{}>) => {
+  const user = {
+    id: 'your-user-id',
+    name: 'your-user-name',
+  };
+  const token = 'your-user-token';
+
+  const chatClient = useChatClient({
+    apiKey: STREAM_API_KEY,
+    userData: user,
+    tokenProvider: token,
+  });
+
+  if (!chatClient) {
+    // Show a loader until the Chat client loads
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <OverlayProvider i18nInstance={streami18n}>
+      <Chat client={chatClient} i18nInstance={streami18n}>
+        {children}
+      </Chat>
+    </OverlayProvider>
+  );
+};
+```
+
+:::note
+It is essential for you to wrap the [`GestureHandlerRootView`](https://getstream.io/chat/docs/sdk/reactnative/basics/troubleshooting/#touchables-not-working), [`OverlayProvider`](https://getstream.io/chat/docs/sdk/reactnative/core-components/overlay-provider/) and [`Chat`](https://getstream.io/chat/docs/sdk/reactnative/core-components/chat/) component on the root of your chat integration hierarchy.
+
+`GestureHandlerRootView` should be wrapped into the root of your application as follows:
+
+```tsx title="App.tsx"
+import React, { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import { VideoCallUI } from 'src/components/VideoCallUI';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+export default function App() {
+  // ...
+
+  return (
+    // highlight-next-line
+    <GestureHandlerRootView style={styles.container}>
+      <StreamVideo client={client}>
+        <StreamCall call={call}>
+          <VideoCallUI />
+        </StreamCall>
+      </StreamVideo>
+      // highlight-next-line
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+```
+
+:::
+
+### Creating the Chat Client
+
+Firstly, we will create types for the Chat Client as our setup is focused on Typescript. This can be done as follows:
+
+```ts title="src/types.ts"
+export type LocalAttachmentType = Record<string, unknown>;
+export type LocalChannelType = Record<string, unknown>;
+export type LocalCommandType = string;
+export type LocalEventType = Record<string, unknown>;
+export type LocalMessageType = Record<string, unknown>;
+export type LocalReactionType = Record<string, unknown>;
+export type LocalUserType = Record<string, unknown>;
+
+export type StreamChatGenerics = {
+  attachmentType: LocalAttachmentType;
+  channelType: LocalChannelType;
+  commandType: LocalCommandType;
+  eventType: LocalEventType;
+  messageType: LocalMessageType;
+  reactionType: LocalReactionType;
+  userType: LocalUserType;
+};
+```
+
+Now, we will focus on creating the `useChatClient` hook that is responsible for creating the Chat client. This is fairly simple:
+
+```tsx title="src/hooks/useChatClient.tsx"
+import { useEffect, useRef, useState } from 'react';
+import {
+  StreamChat,
+  OwnUserResponse,
+  UserResponse,
+  TokenOrProvider,
+} from 'stream-chat';
+import { StreamChatGenerics } from '../../types';
+
+export const useChatClient = <
+  SCG extends StreamChatGenerics = StreamChatGenerics,
+>({
+  apiKey,
+  userData,
+  tokenProvider,
+}: {
+  apiKey: string;
+  userData?: OwnUserResponse<SCG> | UserResponse<SCG>;
+  tokenProvider?: TokenOrProvider;
+}) => {
+  const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
+  const disconnectRef = useRef(Promise.resolve());
+
+  useEffect(() => {
+    if (!userData) {
+      return;
+    }
+
+    const client = new StreamChat<SCG>(apiKey);
+    const connectUser = async () => {
+      await disconnectRef.current;
+      try {
+        await client.connectUser(userData, tokenProvider);
+        console.log(`[Chat client]: Connected user: ${userData.id}`);
+      } catch (e) {
+        console.error('[Chat client]: Failed to establish connection', e);
+      }
+      if (!didUserConnectInterrupt) {
+        setChatClient(client);
+      }
+    };
+
+    let didUserConnectInterrupt = false;
+    const connectPromise = connectUser();
+
+    const cleanUp = async () => {
+      didUserConnectInterrupt = true;
+      await connectPromise;
+      try {
+        await client.disconnectUser();
+        console.log(`[Chat client]: Disconnected user: ${userData.id}`);
+      } catch (e) {
+        console.error('[Chat client]: Failed to disconnect', e);
+      }
+      setChatClient(null);
+    };
+
+    return () => {
+      disconnectRef.current = cleanUp();
+    };
+  }, [apiKey, userData, tokenProvider]);
+
+  return chatClient;
+};
+```
+
+:::note
+The `apiKey`, `userData` and the `tokenProvider` comes up from the `ChatWrapper` created above.
+:::
+
+## Adding Chat into Video
+
+### Passing the `ChatWrapper`
+
+If we extend our [Video Calling Tutorial](../../tutorials/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
+
+```tsx title="App.tsx"
+import React, { useEffect, useState } from 'react';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+import { VideoCallUI } from './components/VideoCallUI';
+import { ChatWrapper } from './src/components/ChatWrapper';
+
+export default function App() {
+  // ...
+
+  return (
+    // highlight-next-line
+    <ChatWrapper>
+      <StreamVideo client={client}>
+        <StreamCall call={call}>
+          <VideoCallUI />
+        </StreamCall>
+      </StreamVideo>
+      // highlight-next-line
+    </ChatWrapper>
+  );
+}
+```
+
+### Creating the Chat window/screen
+
+After the chat client is wrapped to the application, we can focus on creating the chat window/screen. We will take the help of the [`Channel`](https://getstream.io/chat/docs/sdk/reactnative/core-components/channel/), [`MessageList`](https://getstream.io/chat/docs/sdk/reactnative/ui-components/message-list/) and the [`MessageInput`](https://getstream.io/chat/docs/sdk/reactnative/ui-components/message-input/) component to do so.
+
+We will also create a channel with the same id as the call id to make it distinct.
+
+:::note
+While creating a channel, please make sure the channel type is `videocall`. This will add the appropriate permissions/capabilities to the channel for video call by default.
+:::
+
+An example of the same is shown below:
+
+```tsx title="src/ChatScreen.tsx"
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  Channel,
+  MessageInput,
+  MessageList,
+  useChatContext,
+} from 'stream-chat-react-native';
+import { Channel as ChannelType } from 'stream-chat';
+import { StreamChatGenerics } from '../../../types';
+
+export const ChatScreen = () => {
+  const [channel, setChannel] = useState<
+    ChannelType<StreamChatGenerics> | undefined
+  >(undefined);
+  const { client } = useChatContext();
+
+  const CHANNEL_TYPE = 'videocall';
+  const CHANNEL_ID = 'your-call-id'; // You can get the call id through sharing params while routing through navigation.
+
+  useEffect(() => {
+    const createChannel = async () => {
+      const newChannel = await client.channel(CHANNEL_TYPE, CHANNEL_ID);
+      setChannel(newChannel);
+    };
+    createChannel();
+  }, [client]);
+
+  if (!channel) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView>
+      <Channel channel={channel}>
+        <MessageList />
+        <MessageInput />
+      </Channel>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
+```
+
+### Open the chat window
+
+To do this, we will take use of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of the [`CallControlsView`](../../ui-components/call/call-controls-view) component.
+
+The `chatButton` prop is an object that takes up an `onPressHandler`, which is responsible to perform an action when the button is pressed. In our case, it's the opening of the `ChatScreen`.
+
+In the VideoCallUI component of our [Video Calling Tutorial](../../tutorials/video-calling/), we will add the above:
+
+```tsx title="src/components/VideoCallUI.tsx"
+import React from 'react';
+import {
+  CallContentView,
+  CallControlsView,
+} from '@stream-io/video-react-native-sdk';
+import { SafeAreaView, StyleSheet } from 'react-native';
+
+export const VideoCallUI = () => {
+  // highlight-next-line
+  const openChatWindow = () => {
+    // handle how to open the Chat window/screen. You can use this to navigate to the chat screen, open a modal, etc.
+    // highlight-next-line
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <CallContentView />
+      <CallControlsView
+        // highlight-next-line
+        chatButton={{
+          // highlight-next-line
+          onPressHandler: openChatWindow,
+          // highlight-next-line
+        }}
+      />
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#272A30',
+  },
+});
+```
+
+### Showing unread count indicator for new chats
+
+To get the unread count of the Channel we need to focus primarily on watching the channel and then listen to relevant events such as `message.new` to update the unread count state variable. The unread count is set to 0 when the message is marked as read, this is done by listening to the `notification.mark_read` event.
+
+This is demonstrated and can be done in a hook as created below:
+
+```tsx title="src/hooks/useUnreadCount.tsx"
+import { useEffect, useState } from 'react';
+import { useChatContext } from 'stream-chat-react-native';
+import { Event, Channel as ChannelType } from 'stream-chat';
+import { useCall } from '@stream-io/video-react-native-sdk';
+import { StreamChatGenerics } from 'src/types';
+
+/**
+ * This hook is responsible for returning the unread count of the channel.
+ * This is done through listening to multiple events.
+ * @returns number
+ */
+export const useUnreadCount = () => {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const CHANNEL_TYPE = 'videocall';
+  const { client } = useChatContext();
+  const call = useCall();
+
+  const cid = `${CHANNEL_TYPE}:${call?.id}`;
+
+  // Effect to watch the channel
+  useEffect(() => {
+    let channel: ChannelType<StreamChatGenerics>;
+    const watchChannel = async () => {
+      channel = client.channel(CHANNEL_TYPE, call?.id);
+      await channel.watch();
+    };
+
+    watchChannel();
+
+    return () => {
+      channel.stopWatching();
+    };
+  }, [call?.id, client]);
+
+  // Effect to set the unreadCount to 0 when the `notification.mark_read` event is received
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+
+    const handleEvent = (event: Event) => {
+      if (event?.cid === cid) {
+        setUnreadCount(0);
+      }
+    };
+
+    client.on('notification.mark_read', handleEvent);
+    return () => client.off('notification.mark_read', handleEvent);
+  }, [client, cid]);
+
+  // Effect to update the unread count when the 'message.new' is received
+  useEffect(() => {
+    if (!client) {
+      return;
+    }
+
+    const handleEvent = () => {
+      const channel = client.activeChannels[cid];
+
+      setUnreadCount(channel?.countUnread() ?? 0);
+    };
+
+    handleEvent();
+
+    client.on('message.new', handleEvent);
+
+    return () => {
+      client.off('message.new', handleEvent);
+    };
+  }, [client, cid]);
+
+  return unreadCount;
+};
+```
+
+:::note
+Make sure to clean up/unsubscribe to all the events when the hook un-mounts.
+:::
+
+Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of [`CallControlsView`](../../ui-components/call/call-controls-view) component.
+
+```tsx title="src/components/VideoCallUI.tsx"
+import React from 'react';
+import {
+  CallContentView,
+  CallControlsView,
+} from '@stream-io/video-react-native-sdk';
+import { SafeAreaView, StyleSheet } from 'react-native';
+import { useChannelWatch } from '../hooks/useChannelWatch';
+import { useUnreadCount } from '../hooks/useUnreadCount';
+
+export const VideoCallUI = () => {
+  // ...
+  // highlight-next-line
+  const channelWatched = useChannelWatch();
+  // highlight-next-line
+  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <CallContentView />
+      <CallControlsView
+        chatButton={{
+          // highlight-next-line
+          unreadBadgeCountIndicator,
+        }}
+      />
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#272A30',
+  },
+});
+```
+
+## Adding Video into Chat
+
 :::info
 This guide is still in progress and will be updated soon.
 If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).

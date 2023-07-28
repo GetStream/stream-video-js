@@ -4,6 +4,7 @@ import {
   CallingState,
   useCall,
   useCallCallingState,
+  useI18n,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
 import { LobbyViewComponent } from './LobbyViewComponent';
@@ -11,7 +12,6 @@ import { ActiveCall } from './ActiveCall';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { CallErrorComponent } from './CallErrorComponent';
-import { useChannelWatch } from '../hooks/useChannelWatch';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
 type Props = NativeStackScreenProps<
@@ -25,9 +25,8 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
-
-  const channelWatched = useChannelWatch();
-  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
+  const { t } = useI18n();
+  const unreadBadgeCountIndicator = useUnreadCount();
 
   const call = useCall();
   const callingState = useCallCallingState();
@@ -76,7 +75,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   if (show === 'error-join' || show === 'error-leave') {
     return (
       <CallErrorComponent
-        title="Error Joining/Leaving Call"
+        title={t('Error Joining/Leaving Call')}
         message={errorMessage}
         backToLobbyHandler={backToLobbyHandler}
         returnToHomeHandler={returnToHomeHandler}
@@ -96,7 +95,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   } else if (!call) {
     return (
       <CallErrorComponent
-        title="Lost Active Call Connection"
+        title={t('Lost Active Call Connection')}
         message={errorMessage}
         backToLobbyHandler={backToLobbyHandler}
         returnToHomeHandler={returnToHomeHandler}

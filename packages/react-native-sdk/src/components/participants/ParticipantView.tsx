@@ -11,11 +11,14 @@ import { RTCView } from 'react-native-webrtc';
 import {
   CallingState,
   SfuModels,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallCallingState,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
 import { A11yComponents } from '../../constants/A11yLabels';
 import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
@@ -34,7 +37,7 @@ interface ParticipantViewProps {
   /**
    * The participant that will be displayed
    */
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  participant: StreamVideoParticipant;
   /**
    * The video kind that will be displayed
    */
@@ -67,6 +70,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
   const call = useCall();
   const callingState = useCallCallingState();
+  const { t } = useI18n();
   const hasJoinedCall = callingState === CallingState.JOINED;
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
@@ -288,7 +292,9 @@ export const ParticipantView = (props: ParticipantViewProps) => {
               <ScreenShare color={theme.light.static_white} />
             </View>
             <Text style={styles.userNameLabel} numberOfLines={1}>
-              {participantLabel} is sharing their screen.
+              {t('{{ userName }} is sharing their screen', {
+                userName: participantLabel,
+              })}
             </Text>
           </View>
         )}

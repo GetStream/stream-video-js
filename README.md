@@ -1,10 +1,8 @@
-
 # Stream Video for JavaScript
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GetStream_stream-video-js&metric=alert_status&token=fdc1439303911957da9c7ff2ce505f94c3c14d36)](https://sonarcloud.io/summary/new_code?id=GetStream_stream-video-js)
 
 <img src=".readme-assets/Github-Graphic-JS.jpg" alt="Stream Video for Javascript Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
-
 
 ## **Quick Links**
 
@@ -57,16 +55,16 @@ Here are some of the features we support:
 
 ## Repo Overview 😎
 
-This repo contains projects and samples developed by the team and Stream community. Projects are broken up into directories containing the source code for each project. 
+This repo contains projects and samples developed by the team and Stream community. Projects are broken up into directories containing the source code for each project.
 
 ## **Projects/Packages 🚀**
 
 - `packages`: contains all packages our customers can install and use in their apps.
-- `packages/client`: our low-level client. It manages the lifecycle of a call, connects to our platform, and maintains the call state. The core part of our SDKs.
+- `packages/client`: our low-level client. It manages the lifecycle of a call, connects to our platform, and maintains the call state. The core part of our SDKs. Runs in browser and Node.js environments.
 - `packages/react-bindings`: a set of React utilities and hooks that make it easy to work with the call state exposed by the `client` in React and React Native Apps.
 - `packages/react-sdk`: the place where our React SDK lives.
 - `packages/react-native-sdk`: the place where our React Native SDK lives.
-- `packages/styling`: our theme stylesheets live here.
+- `packages/styling`: our theme stylesheets live here for web SDKs.
 - `packages/i18n`: a utility package that takes care of internationalization support for our SDKs.
 - `sample-apps/react/*`: contains a few sample apps that we have built to showcase our SDK and platform capabilities
 - `sample-apps/react-native/*`: a collection of React Native sample apps for showcasing our SDK and platform
@@ -74,6 +72,6 @@ This repo contains projects and samples developed by the team and Stream communi
 ## Contributing
 
 - How can I submit a sample app?
-    - Apps submissions are always welcomed! 🥳 Open a pr with a proper description and we'll review it as soon as possible
+  - Apps submissions are always welcomed! 🥳 Open a pr with a proper description and we'll review it as soon as possible
 - Spot a bug 🕷 ?
-    - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
+  - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.

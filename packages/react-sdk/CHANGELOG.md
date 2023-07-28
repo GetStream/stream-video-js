@@ -2,6 +2,54 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.14...@stream-io/video-react-sdk-0.1.15) (2023-07-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.10`
+
+### Bug Fixes
+
+* set initial device state regardless of call state ([#869](https://github.com/GetStream/stream-video-js/issues/869)) ([3c3cb29](https://github.com/GetStream/stream-video-js/commit/3c3cb29e5585e30b0eacc4b0ecb7bab2e075c111))
+
+
+### Documentation
+
+* **react-native:** UI Cookbook - Connection Quality Indicator ([#861](https://github.com/GetStream/stream-video-js/issues/861)) ([f9fc8fc](https://github.com/GetStream/stream-video-js/commit/f9fc8fc9653f29721989a52fd888b3db99b41cea))
+
+### [0.1.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.13...@stream-io/video-react-sdk-0.1.14) (2023-07-27)
+
+
+### Documentation
+
+* Update audio room tutorial to support strict mode ([#840](https://github.com/GetStream/stream-video-js/issues/840)) ([9aec392](https://github.com/GetStream/stream-video-js/commit/9aec392ec4a44fb0c1eaee00c19568f01d7b3da9))
+
+### [0.1.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.12...@stream-io/video-react-sdk-0.1.13) (2023-07-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.9`
+### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.11...@stream-io/video-react-sdk-0.1.12) (2023-07-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.8`
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.10...@stream-io/video-react-sdk-0.1.11) (2023-07-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.7`
+### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.9...@stream-io/video-react-sdk-0.1.10) (2023-07-25)
+
+
+### Features
+
+* **react-native:** add translations to SDK and DF app ([#828](https://github.com/GetStream/stream-video-js/issues/828)) ([c7a7f73](https://github.com/GetStream/stream-video-js/commit/c7a7f73b5cfd9222101e4c44b6c9ec42006bcac2))
+
 ### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.8...@stream-io/video-react-sdk-0.1.9) (2023-07-21)
 
 

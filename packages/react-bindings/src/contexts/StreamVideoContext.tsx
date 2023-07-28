@@ -23,7 +23,7 @@ export type StreamVideoProps = StreamI18nProviderProps & {
  *  @param PropsWithChildren<StreamVideoProps>
  *  @category Client State
  */
-export const StreamVideo = ({
+export const StreamVideoProvider = ({
   children,
   client,
   i18nInstance,

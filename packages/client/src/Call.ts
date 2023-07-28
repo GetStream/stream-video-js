@@ -504,6 +504,15 @@ export class Call {
   };
 
   /**
+   * Creates a call
+   *
+   * @param data the data to create the call with.
+   */
+  create = async (data?: GetOrCreateCallRequest) => {
+    return this.getOrCreate(data);
+  };
+
+  /**
    * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
    * Will send a `call.ring` event to the call members.
    */
@@ -1456,10 +1465,11 @@ export class Call {
   /**
    * Starts the livestreaming of the call.
    */
-  goLive = async () => {
+  goLive = async (params?: { notify?: boolean }) => {
     return this.streamClient.post<GoLiveResponse>(
       `${this.streamClientBasePath}/go_live`,
       {},
+      params,
     );
   };
 
@@ -1538,11 +1548,11 @@ export class Call {
    * @param request
    * @returns
    */
-  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+  queryMembers = (request?: Omit<QueryMembersRequest, 'type' | 'id'>) => {
     return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
       '/call/members',
       {
-        ...request,
+        ...(request || {}),
         id: this.id,
         type: this.type,
       },
