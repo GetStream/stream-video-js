@@ -27,13 +27,16 @@ export const App = () => {
 ### `client`
 
 | Type                |
-| ------------------- |
+|---------------------|
 | `StreamVideoClient` |
+
+
+This props internally provides the call instance to the [`StreamVideoProvider`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/contexts/StreamVideoContext.tsx#L26) and thereby having it passed in the `StreamVideo` component makes the client instance available to all of its child components.
 
 ### `i18nInstance`
 
 | Type                        |
-| --------------------------- |
+|-----------------------------|
 | `StreamI18n` \| `undefined` |
 
 The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).

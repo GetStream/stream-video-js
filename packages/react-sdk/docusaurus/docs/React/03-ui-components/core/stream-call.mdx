@@ -32,13 +32,15 @@ export const App = () => {
 ### `call`
 
 | Type   |
-| ------ |
+|--------|
 | `Call` |
+
+This props internally provides the call instance to the [`StreamCallProvider`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/contexts/StreamCallContext.tsx#L24) and thereby having it passed in the `StreamCall` component makes the call instance available to all of its child components.
 
 ### `mediaDevicesProviderProps`
 
 | Type                                       |
-| ------------------------------------------ |
+|--------------------------------------------|
 | `MediaDevicesProviderProps` \| `undefined` |
 
 An optional props to pass to the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).
