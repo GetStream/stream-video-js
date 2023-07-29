@@ -34,18 +34,17 @@ export class RetryError extends Error {
  * holds error data, if it does, it throws `RpcError` to prevent false positives for `runWithRetry` retry handler.
  */
 export const handleFalsePositiveResponse = <
-  // TODO: fix type inference?
-  T extends (...functionArguments: any[]) => any,
+  I extends object,
+  O extends SfuResponseWithError,
+  T extends (
+    ...functionArguments: any[]
+  ) => PromiseLike<FinishedUnaryCall<I, O>>,
 >(
   f: T,
 ) =>
   async function falsePositiveHandler(...functionArguments: Parameters<T>) {
     // await or throw if "f" fails
-    const data = (await f(...functionArguments)) as FinishedUnaryCall<
-      object,
-      SfuResponseWithError
-    >;
-
+    const data = (await f(...functionArguments)) as Awaited<ReturnType<T>>;
     // check for error data, throw if exist
     if (data.response.error) {
       throw new RpcError(
@@ -57,11 +56,11 @@ export const handleFalsePositiveResponse = <
       );
     }
 
-    return data as Awaited<ReturnType<T>>;
+    return data;
   };
 
 export type RunWithRetryOptions<
-  T extends (...functionArguments: any[]) => Promise<any>,
+  T extends (...functionArguments: any[]) => PromiseLike<any>,
 > = {
   retryAttempts?: number;
   delayBetweenRetries?: number | ((attempt: number) => number);
@@ -85,7 +84,7 @@ export type RunWithRetryOptions<
  *  - `retryAttempts` - number of attempts to try out before rejecting the promise
  */
 export const runWithRetry = <
-  T extends (...functionArguments: any[]) => Promise<any>,
+  T extends (...functionArguments: any[]) => PromiseLike<any>,
 >(
   f: T,
   {
