@@ -56,11 +56,12 @@ Here are some of the features we support:
 ### 0.2 milestone
 
 - [ ] Fast-reconnects
-- [X] ICE restarts
+- [x] ICE restarts
 - [ ] SFU retries
 - [ ] Enhanced SDK build system
 - [ ] Hardware-accelerated video encoding on supported platforms
-- [X] React hooks for permissions management
+- [x] React hooks for permissions management
+- [x] Server-side participant pinning
 - [ ] Increase test coverage
 
 ### 0.3 milestone

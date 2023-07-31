@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import { CallState } from '../store';
 import { StreamVideoParticipantPatches } from '../types';
 import { getLogger } from '../logger';
+import { SfuEvent } from '../gen/video/sfu/event/events';
 import { ErrorCode } from '../gen/video/sfu/models/models';
 import { OwnCapability } from '../gen/coordinator';
 
@@ -97,4 +98,16 @@ export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
       shouldRetry: error.shouldRetry,
     });
   });
+};
+
+/**
+ * Watches for `pinsUpdated` events and updates the pinned state of participants
+ * in the call.
+ */
+export const watchPinsUpdated = (state: CallState) => {
+  return function onPinsUpdated(e: SfuEvent) {
+    if (e.eventPayload.oneofKind !== 'pinsUpdated') return;
+    const { pins } = e.eventPayload.pinsUpdated;
+    state.setPins(pins);
+  };
 };

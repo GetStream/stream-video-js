@@ -175,7 +175,7 @@ export const ParticipantDetails = ({
           // TODO: remove this monstrosity once we have a proper design
           <span
             title="Unpin"
-            onClick={() => call?.setParticipantPinnedAt(sessionId)}
+            onClick={() => call?.unpin(sessionId)}
             style={{ cursor: 'pointer' }}
             className="str-video__participant-details__name--pinned"
           />

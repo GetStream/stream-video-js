@@ -90,10 +90,11 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   };
 
   const toggleParticipantPinnedAt = () => {
-    call?.setParticipantPinnedAt(
-      participant.sessionId,
-      participant.pinnedAt ? undefined : Date.now(),
-    );
+    if (participant.pinnedAt) {
+      call?.unpin(participant.sessionId);
+    } else {
+      call?.pin(participant.sessionId);
+    }
   };
 
   const participantPublishesVideo = participant.publishedTracks.includes(

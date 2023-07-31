@@ -102,4 +102,113 @@ describe('CallState', () => {
     state.setParticipants([Z, B, C, D]);
     expect(state.participants).toEqual([B, C, D, Z]);
   });
+
+  describe('pinning', () => {
+    it('should update the pinned state of participants in the call', () => {
+      const state = new CallState();
+      // @ts-ignore
+      state.setParticipants([{ sessionId: '123' }, { sessionId: '456' }]);
+
+      state.setPins([{ sessionId: '123', userId: 'user-id' }]);
+
+      expect(state.participants).toEqual([
+        { sessionId: '123', pinnedAt: 1 },
+        { sessionId: '456' },
+      ]);
+    });
+
+    it('should unpin participants that are no longer pinned', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      state.setParticipants([
+        // @ts-ignore
+        { sessionId: '123', pinnedAt: Date.now() },
+        // @ts-ignore
+        { sessionId: '456' },
+      ]);
+
+      state.setPins([]);
+
+      expect(state.participants).toEqual([
+        { sessionId: '123', pinnedAt: undefined },
+        { sessionId: '456' },
+      ]);
+    });
+
+    it('should not pin participants if the local user has overridden the pinning', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      state.setParticipants([
+        // @ts-ignore
+        {
+          sessionId: '123',
+          pinnedAt: undefined,
+          isPinningSetByLocalUser: true,
+        },
+        // @ts-ignore
+        { sessionId: '456' },
+      ]);
+
+      state.setPins([{ sessionId: '123', userId: 'user-id' }]);
+
+      expect(state.participants).toEqual([
+        {
+          sessionId: '123',
+          pinnedAt: undefined,
+          isPinningSetByLocalUser: true,
+        },
+        { sessionId: '456' },
+      ]);
+    });
+
+    it('should not unpin participants if the local user has overridden the pinning', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      state.setParticipants([
+        // @ts-ignore
+        {
+          sessionId: '123',
+          pinnedAt: 1000,
+          isPinningSetByLocalUser: true,
+        },
+        // @ts-ignore
+        { sessionId: '456' },
+      ]);
+
+      state.setPins([]);
+
+      expect(state.participants).toEqual([
+        {
+          sessionId: '123',
+          pinnedAt: 1000,
+          isPinningSetByLocalUser: true,
+        },
+        { sessionId: '456' },
+      ]);
+    });
+
+    it('should maintain server-side pin order', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+      state.setParticipants([
+        // @ts-ignore
+        { sessionId: '123' },
+        // @ts-ignore
+        { sessionId: '456' },
+        // @ts-ignore
+        { sessionId: '789' },
+      ]);
+
+      state.setPins([
+        { sessionId: '789', userId: 'user-id' },
+        { sessionId: '123', userId: 'user-id' },
+      ]);
+
+      expect(state.participants).toEqual([
+        { sessionId: '123', pinnedAt: 2 },
+        { sessionId: '456' },
+        { sessionId: '789', pinnedAt: 1 },
+      ]);
+    });
+  });
 });

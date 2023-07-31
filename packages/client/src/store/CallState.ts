@@ -16,7 +16,7 @@ import {
   MemberResponse,
   OwnCapability,
 } from '../gen/coordinator';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { Pin, TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
 import * as SortingPreset from '../sorting/presets';
 import { getLogger } from '../logger';
@@ -675,6 +675,35 @@ export class CallState {
           };
         }
         return p;
+      }),
+    );
+  };
+
+  /**
+   * Updates the participant pinned state with server side pinning data.
+   *
+   * @param pins the latest pins from the server.
+   */
+  setPins = (pins: Pin[]) => {
+    const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
+      (lookup, pin, pinIndex) => {
+        lookup[pin.sessionId] = pinIndex + 1; // avoid setting to 0
+        return lookup;
+      },
+      {},
+    );
+
+    this.setParticipants((participants) =>
+      participants.map((participant, currentIndex) => {
+        // the local user might have overridden the pinning, skip updating
+        if (participant.isPinningSetByLocalUser) return participant;
+        // unpinned participants will have `undefined` as they are
+        // excluded from the lookup table
+        const pinningOrder = pinsLookup[participant.sessionId];
+        return {
+          ...participant,
+          pinnedAt: pinningOrder,
+        };
       }),
     );
   };

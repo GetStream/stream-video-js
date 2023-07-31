@@ -178,10 +178,33 @@ export const ParticipantActionsContextMenu = ({
   };
 
   const toggleParticipantPinnedAt = () => {
-    activeCall?.setParticipantPinnedAt(
-      participant.sessionId,
-      participant.pinnedAt ? undefined : Date.now(),
-    );
+    if (participant.pinnedAt) {
+      activeCall?.unpin(participant.sessionId);
+    } else {
+      activeCall?.pin(participant.sessionId);
+    }
+  };
+
+  const pinParticipantForEveryone = () => {
+    activeCall
+      ?.pinForEveryone({
+        user_id: participant.userId,
+        session_id: participant.sessionId,
+      })
+      .catch((err) => {
+        console.error(`Failed to pin participant ${participant.userId}`, err);
+      });
+  };
+
+  const unpinnedParticipantForEveryone = () => {
+    activeCall
+      ?.unpinForEveryone({
+        user_id: participant.userId,
+        session_id: participant.sessionId,
+      })
+      .catch((err) => {
+        console.error(`Failed to unpin participant ${participant.userId}`, err);
+      });
   };
 
   const toggleFullscreenMode = () => {
@@ -240,6 +263,18 @@ export const ParticipantActionsContextMenu = ({
         <Icon icon="pin" />
         {participant.pinnedAt ? 'Unpin' : 'Pin'}
       </GenericMenuButtonItem>
+      <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
+        <GenericMenuButtonItem
+          onClick={
+            participant.pinnedAt
+              ? unpinnedParticipantForEveryone
+              : pinParticipantForEveryone
+          }
+        >
+          <Icon icon="pin" />
+          {participant.pinnedAt ? 'Unpin for everyone' : 'Pin for everyone'}
+        </GenericMenuButtonItem>
+      </Restricted>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />

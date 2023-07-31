@@ -74,6 +74,12 @@ export interface StreamVideoParticipant extends Participant {
   pinnedAt?: number;
 
   /**
+   * True if the participant is pinned or unpinned by the local user.
+   * Pins can be set locally by the user, or they can be set by the call moderator.
+   */
+  isPinningSetByLocalUser?: boolean;
+
+  /**
    * The last reaction this user has sent to this call.
    * Integrators can batch/collect past reactions and show them to the UI.
    */

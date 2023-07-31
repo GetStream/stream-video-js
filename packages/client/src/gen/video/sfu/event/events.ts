@@ -28,6 +28,7 @@ import {
   Participant,
   ParticipantCount,
   PeerType,
+  Pin,
   TrackInfo,
   TrackType,
   TrackUnpublishReason,
@@ -219,8 +220,29 @@ export interface SfuEvent {
         iceRestart: ICERestart;
       }
     | {
+        oneofKind: 'pinsUpdated';
+        /**
+         * PinsChanged is sent the list of pins in the call changes. This event contains the entire list of pins.
+         *
+         * @generated from protobuf field: stream.video.sfu.event.PinsChanged pins_updated = 22;
+         */
+        pinsUpdated: PinsChanged;
+      }
+    | {
         oneofKind: undefined;
       };
+}
+/**
+ * @generated from protobuf message stream.video.sfu.event.PinsChanged
+ */
+export interface PinsChanged {
+  /**
+   * the list of pins in the call.
+   * Pins are ordered in descending order (most important first).
+   *
+   * @generated from protobuf field: repeated stream.video.sfu.models.Pin pins = 1;
+   */
+  pins: Pin[];
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.Error
@@ -844,6 +866,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         oneof: 'eventPayload',
         T: () => ICERestart,
       },
+      {
+        no: 22,
+        name: 'pins_updated',
+        kind: 'message',
+        oneof: 'eventPayload',
+        T: () => PinsChanged,
+      },
     ]);
   }
   create(value?: PartialMessage<SfuEvent>): SfuEvent {
@@ -1055,6 +1084,17 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
             ),
           };
           break;
+        case /* stream.video.sfu.event.PinsChanged pins_updated */ 22:
+          message.eventPayload = {
+            oneofKind: 'pinsUpdated',
+            pinsUpdated: PinsChanged.internalBinaryRead(
+              reader,
+              reader.uint32(),
+              options,
+              (message.eventPayload as any).pinsUpdated,
+            ),
+          };
+          break;
         default:
           let u = options.readUnknownField;
           if (u === 'throw')
@@ -1198,6 +1238,13 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
         writer.tag(21, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* stream.video.sfu.event.PinsChanged pins_updated = 22; */
+    if (message.eventPayload.oneofKind === 'pinsUpdated')
+      PinsChanged.internalBinaryWrite(
+        message.eventPayload.pinsUpdated,
+        writer.tag(22, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(
@@ -1212,6 +1259,90 @@ class SfuEvent$Type extends MessageType<SfuEvent> {
  * @generated MessageType for protobuf message stream.video.sfu.event.SfuEvent
  */
 export const SfuEvent = new SfuEvent$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class PinsChanged$Type extends MessageType<PinsChanged> {
+  constructor() {
+    super('stream.video.sfu.event.PinsChanged', [
+      {
+        no: 1,
+        name: 'pins',
+        kind: 'message',
+        repeat: 1 /*RepeatType.PACKED*/,
+        T: () => Pin,
+      },
+    ]);
+  }
+  create(value?: PartialMessage<PinsChanged>): PinsChanged {
+    const message = { pins: [] };
+    globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
+      enumerable: false,
+      value: this,
+    });
+    if (value !== undefined)
+      reflectionMergePartial<PinsChanged>(this, message, value);
+    return message;
+  }
+  internalBinaryRead(
+    reader: IBinaryReader,
+    length: number,
+    options: BinaryReadOptions,
+    target?: PinsChanged,
+  ): PinsChanged {
+    let message = target ?? this.create(),
+      end = reader.pos + length;
+    while (reader.pos < end) {
+      let [fieldNo, wireType] = reader.tag();
+      switch (fieldNo) {
+        case /* repeated stream.video.sfu.models.Pin pins */ 1:
+          message.pins.push(
+            Pin.internalBinaryRead(reader, reader.uint32(), options),
+          );
+          break;
+        default:
+          let u = options.readUnknownField;
+          if (u === 'throw')
+            throw new globalThis.Error(
+              `Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`,
+            );
+          let d = reader.skip(wireType);
+          if (u !== false)
+            (u === true ? UnknownFieldHandler.onRead : u)(
+              this.typeName,
+              message,
+              fieldNo,
+              wireType,
+              d,
+            );
+      }
+    }
+    return message;
+  }
+  internalBinaryWrite(
+    message: PinsChanged,
+    writer: IBinaryWriter,
+    options: BinaryWriteOptions,
+  ): IBinaryWriter {
+    /* repeated stream.video.sfu.models.Pin pins = 1; */
+    for (let i = 0; i < message.pins.length; i++)
+      Pin.internalBinaryWrite(
+        message.pins[i],
+        writer.tag(1, WireType.LengthDelimited).fork(),
+        options,
+      ).join();
+    let u = options.writeUnknownFields;
+    if (u !== false)
+      (u == true ? UnknownFieldHandler.onWrite : u)(
+        this.typeName,
+        message,
+        writer,
+      );
+    return writer;
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.event.PinsChanged
+ */
+export const PinsChanged = new PinsChanged$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Error$Type extends MessageType<Error> {
   constructor() {
