@@ -60,10 +60,7 @@ To create a ring call, we need to set the `ring` flag to `true` and provide the 
 It is important to note that the caller should also be included in the list of members.
 
 ```typescript
-import 'react-native-get-random-values';
-import { v4 as uuid } from 'uuid';
-
-client.call('default', uuid()).getOrCreate({
+client.call('default', 'test-outgoing-call').getOrCreate({
   // highlight-next-line
   ring: true,
   data: {
@@ -86,10 +83,6 @@ The calling will automatically stop if all callee rejects the call.
 
 :::note
 When ring is true, a push notification will be sent to the members, provided their app have the required setup. For more details around push notifications, please check [this page](../../advanced/push-notifications/).
-:::
-
-:::info UUID is required
-When ring is true, the call-id has to be a [UUID](https://developer.mozilla.org/en-US/docs/Glossary/UUID). This is because the [`iOS CallKit`](https://developer.apple.com/documentation/callkit) framework requires it. In react-native, we use [uuid](https://github.com/uuidjs/uuid) library to generate the uuid. This library depends on the polyfill from [react-native-get-random-values](https://github.com/LinusU/react-native-get-random-values) to be added.
 :::
 
 ### Watch for incoming and outgoing calls
