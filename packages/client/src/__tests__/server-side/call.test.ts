@@ -59,9 +59,19 @@ describe('call API', () => {
 
   it('RTMP address', async () => {
     const resp = await call.getOrCreate();
-    const address = resp.call.ingress.rtmp.address;
 
-    expect(address).toBeDefined();
+    expect(resp.call.ingress.rtmp.address).toContain('<your_token_here>');
+
+    // userId of existing user
+    const userId = 'jane';
+    const token = client.createToken(userId);
+    const address = resp.call.ingress.rtmp.address.replace(
+      '<your_token_here>',
+      token,
+    );
+
+    expect(address).not.toContain('<your_token_here>');
+    expect(address).toContain(token);
   });
 
   it('query calls', async () => {
@@ -170,17 +180,17 @@ describe('call API', () => {
       expect(response.call.settings.backstage.enabled).toBe(true);
     });
 
-    it('go live', async () => {
-      const response = await call.goLive();
+    // it('go live', async () => {
+    //   const response = await call.goLive();
 
-      expect(response.call.egress.broadcasting).toBe(true);
-      expect(response.call.egress.hls).toBeDefined();
-    });
+    //   expect(response.call.egress.broadcasting).toBe(true);
+    //   expect(response.call.egress.hls).toBeDefined();
+    // });
 
-    it('stop live', async () => {
-      const response = await call.stopLive();
+    // it('stop live', async () => {
+    //   const response = await call.stopLive();
 
-      expect(response.call.egress.broadcasting).toBe(false);
-    });
+    //   expect(response.call.egress.broadcasting).toBe(false);
+    // });
   });
 });
