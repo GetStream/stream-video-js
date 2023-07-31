@@ -14,6 +14,7 @@ import { Star, Close } from '../Icons';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './Feedback.module.css';
+import { getCookie } from '../../utils/getCookie';
 
 export type Props = {
   className?: string;
@@ -71,7 +72,11 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
+export const Feedback: FC<Props> = ({
+  className,
+  callId,
+  inMeeting,
+}: Props) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
@@ -102,17 +107,17 @@ export const Feedback: FC<Props> = ({ className, callId, inMeeting }) => {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || '',
         },
         body: JSON.stringify({
           ...values,
-          page_url:
-            callId && inMeeting
-              ? `${endpointUrl}?id=${callId}&meeting=true`
-              : `${endpointUrl}?id=${callId}&meeting=false`,
+          page_url: `${endpointUrl}?meeting=${inMeeting ? 'true' : 'false'}${
+            callId ? `&id=${callId}` : ''
+          }`,
         }),
       });
 
-      if (response.status === 500) {
+      if (response.status >= 400) {
         setError('Something went wrong, please try again.');
       } else {
         setFeedbackSent(true);

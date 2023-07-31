@@ -55,7 +55,6 @@ export default function Room({ onClose }: { onClose: () => void }) {
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
-      <DescriptionPanel />
       <DescriptionPanel onClose={onClose} />
       <ParticipantsPanel />
       <PermissionRequestsPanel />
