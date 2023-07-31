@@ -1,8 +1,10 @@
 import { FinishedUnaryCall, RpcError } from '@protobuf-ts/runtime-rpc';
 import { TwirpErrorCode } from '@protobuf-ts/twirp-transport';
 
-import { sleep } from '../coordinator/connection/utils';
+import { retryInterval, sleep } from '../coordinator/connection/utils';
 import { Error as SfuError } from '../gen/video/sfu/models/models';
+
+type FunctionToRetry<T = any> = (...functionArguments: any[]) => PromiseLike<T>;
 
 /**
  * An internal interface which asserts that "retryable" SFU responses
@@ -36,9 +38,7 @@ export class RetryError extends Error {
 export const handleFalsePositiveResponse = <
   I extends object,
   O extends SfuResponseWithError,
-  T extends (
-    ...functionArguments: any[]
-  ) => PromiseLike<FinishedUnaryCall<I, O>>,
+  T extends FunctionToRetry<FinishedUnaryCall<I, O>>,
 >(
   f: T,
 ) =>
@@ -59,9 +59,7 @@ export const handleFalsePositiveResponse = <
     return data;
   };
 
-export type RunWithRetryOptions<
-  T extends (...functionArguments: any[]) => PromiseLike<any>,
-> = {
+export type RunWithRetryOptions<T extends FunctionToRetry> = {
   retryAttempts?: number;
   delayBetweenRetries?: number | ((attempt: number) => number);
   isRetryable?: (error: unknown) => boolean;
@@ -83,9 +81,7 @@ export type RunWithRetryOptions<
  *
  *  - `retryAttempts` - number of attempts to try out before rejecting the promise
  */
-export const runWithRetry = <
-  T extends (...functionArguments: any[]) => PromiseLike<any>,
->(
+export const runWithRetry = <T extends FunctionToRetry>(
   f: T,
   {
     retryAttempts = 3,
@@ -137,10 +133,46 @@ export const runWithRetry = <
     throw new RetryError({ type: 'finished' });
   };
 
-// TODO: better presets
-export const isRetryablePreset: RunWithRetryOptions<any>['isRetryable'] = (
-  error,
+export const shouldRetryErrorHandler = (error: unknown) => {
+  return (
+    error instanceof RpcError && (error.meta.shouldRetry as unknown as boolean)
+  );
+};
+
+export const RetryPreset = {
+  FastAndSimple: { retryAttempts: 3, isRetryable: shouldRetryErrorHandler },
+  FastCheckValue: <T extends FunctionToRetry>(
+    didValueChange: RunWithRetryOptions<T>['didValueChange'],
+  ) => ({
+    retryAttempts: 3,
+    didValueChange,
+    isRetryable: shouldRetryErrorHandler,
+  }),
+  NeverGonnaGiveYouUp: <T extends FunctionToRetry>(
+    didValueChange: RunWithRetryOptions<T>['didValueChange'],
+  ) => ({
+    retryAttempts: 30,
+    delayBetweenRetries: retryInterval,
+    didValueChange,
+    isRetryable: shouldRetryErrorHandler,
+  }),
+} as const;
+
+export const retryable = <
+  T extends FunctionToRetry,
+  E extends keyof typeof RetryPreset,
+>(
+  f: T,
+  strategy: E,
+  didValueChange?: E extends 'FastAndSimple'
+    ? never
+    : RunWithRetryOptions<T>['didValueChange'],
 ) => {
-  // @ts-ignore
-  return error instanceof RpcError && (error.meta.shouldRetry as boolean);
+  const preset = RetryPreset[strategy];
+
+  return runWithRetry(
+    // @ts-expect-error
+    handleFalsePositiveResponse(f),
+    typeof preset === 'function' ? preset(didValueChange) : preset,
+  );
 };

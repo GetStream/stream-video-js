@@ -23,20 +23,11 @@ import {
   UpdateMuteStatesRequest,
 } from './gen/video/sfu/signal_rpc/signal';
 import { ICETrickle, TrackType } from './gen/video/sfu/models/models';
-import {
-  generateUUIDv4,
-  retryInterval,
-  sleep,
-} from './coordinator/connection/utils';
+import { generateUUIDv4 } from './coordinator/connection/utils';
 import { SFUResponse } from './gen/coordinator';
 import { Logger } from './coordinator/connection/types';
 import { getLogger } from './logger';
-import {
-  SfuResponseWithError,
-  handleFalsePositiveResponse,
-  isRetryablePreset,
-  runWithRetry,
-} from './helpers/runWithRetry';
+import { retryable } from './helpers/runWithRetry';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -248,11 +239,9 @@ export class StreamSfuClient {
   };
 
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
-    return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.iceTrickle.bind(this.rpc)),
-      {
-        isRetryable: isRetryablePreset,
-      },
+    return retryable(
+      this.rpc.iceTrickle.bind(this.rpc),
+      'FastAndSimple',
     )({
       ...data,
       sessionId: this.sessionId,
@@ -260,11 +249,9 @@ export class StreamSfuClient {
   };
 
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
-    return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.iceRestart.bind(this.rpc)),
-      {
-        isRetryable: isRetryablePreset,
-      },
+    return retryable(
+      this.rpc.iceRestart.bind(this.rpc),
+      'FastAndSimple',
     )({
       ...data,
       sessionId: this.sessionId,
@@ -285,11 +272,9 @@ export class StreamSfuClient {
   updateMuteStates = async (
     data: Omit<UpdateMuteStatesRequest, 'sessionId'>,
   ) => {
-    return runWithRetry(
-      handleFalsePositiveResponse(this.rpc.updateMuteStates.bind(this.rpc)),
-      {
-        isRetryable: isRetryablePreset,
-      },
+    return retryable(
+      this.rpc.updateMuteStates.bind(this.rpc),
+      'FastAndSimple',
     )({
       ...data,
       sessionId: this.sessionId,
@@ -357,57 +342,3 @@ export class StreamSfuClient {
     }, this.unhealthyTimeoutInMs);
   };
 }
-
-const MAX_RETRIES = 5;
-
-/**
- * Creates a closure which wraps the given RPC call and retries invoking
- * the RPC until it succeeds or the maximum number of retries is reached.
- *
- * Between each retry, there would be a random delay in order to avoid
- * request bursts towards the SFU.
- *
- * @param rpc the closure around the RPC call to execute.
- * @param logger a logger instance to use.
- * @param <I> the type of the request object.
- * @param <O> the type of the response object.
- */
-const retryable = async <I extends object, O extends SfuResponseWithError>(
-  rpc: () => UnaryCall<I, O>,
-  logger: Logger,
-) => {
-  let retryAttempt = 0;
-  let rpcCallResult: FinishedUnaryCall<I, O>;
-  do {
-    // don't delay the first invocation
-    if (retryAttempt > 0) {
-      await sleep(retryInterval(retryAttempt));
-    }
-
-    rpcCallResult = await rpc();
-    logger(
-      'trace',
-      `SFU RPC response received for ${rpcCallResult.method.name}`,
-      rpcCallResult,
-    );
-
-    // if the RPC call failed, log the error and retry
-    if (rpcCallResult.response.error) {
-      logger(
-        'error',
-        `SFU RPC Error (${rpcCallResult.method.name}):`,
-        rpcCallResult.response.error,
-      );
-    }
-    retryAttempt++;
-  } while (
-    rpcCallResult.response.error?.shouldRetry &&
-    retryAttempt < MAX_RETRIES
-  );
-
-  if (rpcCallResult.response.error) {
-    throw rpcCallResult.response.error;
-  }
-
-  return rpcCallResult;
-};
