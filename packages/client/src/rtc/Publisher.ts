@@ -24,6 +24,7 @@ import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { getOSInfo } from '../client-details';
 import { VideoLayerSetting } from '../gen/video/sfu/event/events';
+import { retryable } from '../helpers/runWithRetry';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -619,10 +620,19 @@ export class Publisher {
 
     await this.pc.setLocalDescription(offer);
 
-    const { response } = await this.sfuClient.setPublisher({
+    const { response } = await retryable(
+      this.sfuClient.setPublisher,
+      'FastCheckValue',
+      async ({ tracks, sdp }) => {
+        // TODO: check values properly - maybe specific attributes? trackInfos would change its reference each time we'd call getCurrentTrackInfos (can't use Object.is)
+        const condition = await false;
+        return condition;
+      },
+    )({
       sdp: offer.sdp || '',
       tracks: trackInfos,
     });
+    // TODO: on setPublisherFail do ICE restart
 
     try {
       await this.pc.setRemoteDescription({
