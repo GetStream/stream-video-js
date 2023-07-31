@@ -116,21 +116,22 @@ const CallUI = () => {
 
 The `StreamVideoParticipant` object contains the following information:
 
-| Name                 | Description                                                                 |
-| -------------------- | --------------------------------------------------------------------------- |
-| `user`               | The user object for this participant.                                       |
-| `publishedTracks`    | The track types the participant is currently publishing                     |
-| `joinedAt`           | The time the participant joined the call.                                   |
-| `connectionQuality`  | The participant's connection quality.                                       |
-| `isSpeaking`         | It's `true` if the participant is currently speaking.                       |
-| `isDominantSpeaker`  | It's `true` if the participant is the current dominant speaker in the call. |
-| `audioLevel`         | The audio level of the participant.                                         |
-| `audioStream`        | The published audio `MediaStream`.                                          |
-| `videoStream`        | The published video `MediaStream`.                                          |
-| `screenShareStream`  | The published screen share `MediaStream`.                                   |
-| `isLocalParticipant` | It's `true` if the participant is the local participant.                    |
-| `pinnedAt`           | The time the participant was pinned.                                        |
-| `reaction`           | The last reaction this user has sent to this call.                          |
+| Name                      | Description                                                                 |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `user`                    | The user object for this participant.                                       |
+| `publishedTracks`         | The track types the participant is currently publishing                     |
+| `joinedAt`                | The time the participant joined the call.                                   |
+| `connectionQuality`       | The participant's connection quality.                                       |
+| `isSpeaking`              | It's `true` if the participant is currently speaking.                       |
+| `isDominantSpeaker`       | It's `true` if the participant is the current dominant speaker in the call. |
+| `audioLevel`              | The audio level of the participant.                                         |
+| `audioStream`             | The published audio `MediaStream`.                                          |
+| `videoStream`             | The published video `MediaStream`.                                          |
+| `screenShareStream`       | The published screen share `MediaStream`.                                   |
+| `isLocalParticipant`      | It's `true` if the participant is the local participant.                    |
+| `pinnedAt`                | The time the participant was pinned.                                        |
+| `isPinningSetByLocalUser` | Indicates whether the participant was pinned or unpinned by the local user  |
+| `reaction`                | The last reaction this user has sent to this call.                          |
 
 The `StreamVideoLocalParticipant` has these additional properties:
 
