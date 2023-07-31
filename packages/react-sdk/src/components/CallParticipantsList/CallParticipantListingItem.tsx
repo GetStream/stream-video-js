@@ -10,6 +10,7 @@ import {
   Restricted,
   useCall,
   useConnectedUser,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import {
   OwnCapability,
@@ -139,6 +140,7 @@ export const ParticipantActionsContextMenu = ({
     document.pictureInPictureElement,
   );
   const activeCall = useCall();
+  const { t } = useI18n();
 
   const blockUser = () => {
     activeCall?.blockUser(participant.userId);
@@ -261,24 +263,24 @@ export const ParticipantActionsContextMenu = ({
     <GenericMenu>
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
         <Icon icon="pin" />
-        {participant.pinnedAt ? 'Unpin' : 'Pin'}
+        {participant.pinnedAt ? t('Unpin') : t('Pin')}
       </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
-        <GenericMenuButtonItem
-          onClick={
-            participant.pinnedAt
-              ? unpinnedParticipantForEveryone
-              : pinParticipantForEveryone
-          }
-        >
+        <GenericMenuButtonItem onClick={pinParticipantForEveryone}>
           <Icon icon="pin" />
-          {participant.pinnedAt ? 'Unpin for everyone' : 'Pin for everyone'}
+          {t('Pin for everyone')}
+        </GenericMenuButtonItem>
+      </Restricted>
+      <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
+        <GenericMenuButtonItem onClick={unpinnedParticipantForEveryone}>
+          <Icon icon="pin" />
+          {t('Unpin for everyone')}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
         <GenericMenuButtonItem onClick={blockUser}>
           <Icon icon="not-allowed" />
-          Block
+          {t('Block')}
         </GenericMenuButtonItem>
       </Restricted>
       {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
@@ -292,7 +294,7 @@ export const ParticipantActionsContextMenu = ({
           onClick={muteVideo}
         >
           <Icon icon="camera-off-outline" />
-          Turn off video
+          {t('Turn off video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           disabled={
@@ -303,7 +305,7 @@ export const ParticipantActionsContextMenu = ({
           onClick={muteScreenShare}
         >
           <Icon icon="screen-share-off" />
-          Turn off screen share
+          {t('Turn off screen share')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           disabled={
@@ -312,7 +314,7 @@ export const ParticipantActionsContextMenu = ({
           onClick={muteAudio}
         >
           <Icon icon="no-audio" />
-          Mute audio
+          {t('Mute audio')}
         </GenericMenuButtonItem>
       </Restricted>
       {participantViewElement && (
@@ -330,33 +332,33 @@ export const ParticipantActionsContextMenu = ({
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_AUDIO)}
         >
-          Allow audio
+          {t('Allow audio')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SEND_VIDEO)}
         >
-          Allow video
+          {t('Allow video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={grantPermission(OwnCapability.SCREENSHARE)}
         >
-          Allow screen sharing
+          {t('Allow screen sharing')}
         </GenericMenuButtonItem>
 
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SEND_AUDIO)}
         >
-          Disable audio
+          {t('Disable audio')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SEND_VIDEO)}
         >
-          Disable video
+          {t('Disable video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
           onClick={revokePermission(OwnCapability.SCREENSHARE)}
         >
-          Disable screen sharing
+          {t('Disable screen sharing')}
         </GenericMenuButtonItem>
       </Restricted>
     </GenericMenu>
