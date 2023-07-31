@@ -15,11 +15,12 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { MemberRequest } from '@stream-io/video-client';
+import 'react-native-get-random-values';
+import { v4 as uuid } from 'uuid';
 import { appTheme } from '../../theme';
 import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
-import { randomId } from '../../modules/helpers/randomId';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -37,7 +38,8 @@ const JoinCallScreen = () => {
     ringingUserIds = [...new Set([...ringingUserIds, userId])];
 
     try {
-      const call = videoClient?.call('default', randomId());
+      // callkeep requires uuid
+      const call = videoClient?.call('default', uuid());
       await call?.getOrCreate({
         ring: true,
         data: {
