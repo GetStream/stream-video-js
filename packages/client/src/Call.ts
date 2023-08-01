@@ -883,7 +883,7 @@ export class Call {
       const startedAt = callState?.startedAt
         ? Timestamp.toDate(callState.startedAt)
         : new Date();
-      const pins = callState?.pins || [];
+      const pins = callState?.pins ?? [];
       this.state.setParticipants(() => {
         const participantLookup = this.state.getParticipantLookupBySessionId();
         return currentParticipants.map((p) => {
