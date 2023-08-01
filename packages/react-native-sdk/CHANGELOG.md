@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.347](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.346...@stream-io/video-react-native-sdk-0.0.1-alpha.347) (2023-08-01)
+
+
+### Bug Fixes
+
+* **react-native:** minor quirks in tutorials ([b9f0a85](https://github.com/GetStream/stream-video-js/commit/b9f0a85c0605644c4728ef1e43e49792aa926d95))
+
+
+
 ## [0.0.1-alpha.346](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.345...@stream-io/video-react-native-sdk-0.0.1-alpha.346) (2023-08-01)
 
 
