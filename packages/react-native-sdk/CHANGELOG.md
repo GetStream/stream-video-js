@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.346](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.345...@stream-io/video-react-native-sdk-0.0.1-alpha.346) (2023-08-01)
+
+
+### Features
+
+* **react-native:** video call tutorial aligned with android ([#886](https://github.com/GetStream/stream-video-js/issues/886)) ([22bd193](https://github.com/GetStream/stream-video-js/commit/22bd19372379215481bdc67075bbc75b3772c990))
+
+
+
 ## [0.0.1-alpha.345](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.344...@stream-io/video-react-native-sdk-0.0.1-alpha.345) (2023-08-01)
 
 
