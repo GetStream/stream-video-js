@@ -135,6 +135,7 @@ export default function App() {
   const [call] = useState<Call>(() => client.call('default', callId));
 
   // Added this hook to manage native permissions
+  // highlight-next-line
   useSyncPermissions();
 
   useEffect(() => {
@@ -206,7 +207,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-![Video Call Video View](../assets/02-tutorials/video-call-video-view.png)
+![Video Call Video View](../assets/02-tutorials/01-video-calling/video-call-video-view.png)
 
 ### Step 8 - Full Video Calling UI
 
@@ -216,7 +217,7 @@ Next, we will add the `ParticipantsInfoBadge`, to make our UI complete. It is re
 - Show the info about the participants in a list view with the name, and status of media streaming.
 - Show available options within the call like pinning a participant, enabling/disabling audio/video, etc.
 
-![Video Call ParticipantView Info View](../assets/02-tutorials/video-call-participants-info-view.png)
+![Video Call ParticipantView Info View](../assets/02-tutorials/01-video-calling/video-call-participants-info-view.png)
 
 This is how you can add the same on the existing component:
 
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-![Video Call Finished View](../assets/02-tutorials/video-call-finished-view.png)
+![Video Call Finished View](../assets/02-tutorials/01-video-calling/video-call-finished-view.png)
 
 ### Step 9 - Customizing the UI
 
