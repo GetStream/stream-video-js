@@ -29,9 +29,27 @@ export const useIosCallKeepEventsSetupEffect = () => {
       iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
     });
 
+    callkeep.addEventListener(
+      'didDisplayIncomingCall',
+      ({
+        error,
+        callUUID,
+        handle,
+        localizedCallerName,
+        hasVideo,
+        fromPushKit,
+        payload,
+      }) => {
+        // you might want to do following things when receiving this event:
+        // - Start playing ringback if it is an outgoing call
+        console.log('[didDisplayIncomingCall] ', { callUUID, payload });
+      },
+    );
+
     return () => {
       callkeep.removeEventListener('answerCall');
       callkeep.removeEventListener('endCall');
+      callkeep.removeEventListener('didDisplayIncomingCall');
     };
   }, []);
 };

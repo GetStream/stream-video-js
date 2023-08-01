@@ -3,6 +3,7 @@ import {
   pushAcceptedIncomingCallCId$,
   voipPushNotificationCallCId$,
   pushRejectedIncomingCallCId$,
+  voipAcceptedCallUUID$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
 
@@ -17,6 +18,7 @@ export const iosCallkeepAcceptCall = (
   }
   pushAcceptedIncomingCallCId$.next(call_cid);
   voipPushNotificationCallCId$.next(undefined);
+  voipAcceptedCallUUID$.next(callUUIDFromCallkeep);
 };
 
 export const iosCallkeepRejectCall = async (

@@ -50,11 +50,10 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
-  NSString* callId = cidArray[1];
+  NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
   
-  [RNCallKeep reportNewIncomingCall: callId
+  [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName
                          handleType: @"generic"
                            hasVideo: YES
