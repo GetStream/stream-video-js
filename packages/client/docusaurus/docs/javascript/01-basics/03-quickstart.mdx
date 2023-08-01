@@ -1,0 +1,174 @@
+---
+title: Quickstart
+description: For when you're in a hurry and want to quickly get up and running
+---
+
+This quickstart gives you a quick overview of how Stream's video SDKs work.
+
+## Client setup & Calls
+
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
+
+```tsx
+import { useEffect, useState } from 'react';
+import {
+  Call,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
+
+const apiKey = 'your-api-key';
+const userId = 'user-id';
+const token = 'authentication-token';
+const user: User = { id: userId };
+
+export default function App() {
+  const [client, setClient] = useState<StreamVideoClient>();
+  const [call, setCall] = useState<Call>();
+
+  useEffect(() => {
+    const myClient = new StreamVideoClient({ apiKey, user, token });
+    setClient(myClient);
+    return () => {
+      myClient.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!client) return;
+    const myCall = client.call('default', 'my-first-call');
+    myCall.join({ create: true }).catch((err) => {
+      console.error(`Failed to join the call`, err);
+    });
+
+    setCall(myCall);
+
+    return () => {
+      setCall(undefined);
+      myCall.leave().catch((err) => {
+        console.error(`Failed to leave the call`, err);
+      });
+    };
+  }, [client]);
+
+  if (!client || !call) return null;
+
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>/* Video UI */</StreamCall>
+    </StreamVideo>
+  );
+}
+```
+
+`default` is a call type. There are 4 built-in [call types](../../guides/configuring-call-types/) and you can also create your own. The call type controls the permissions and which features are enabled.
+
+The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+
+## Rendering video
+
+The call's state can be accessed using hooks, you'll often work with `useParticipants`. Have a look below for a basic example of how to render the video of all participants:
+
+```tsx
+import { useParticipants, ParticipantView } from '@stream-io/video-react-sdk';
+
+function VideoUI() {
+  const participants = useParticipants();
+  return (
+    <>
+      {participants.map((p) => (
+        <ParticipantView participant={p} key={p.sessionId} />
+      ))}
+    </>
+  );
+}
+```
+
+The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+
+More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
+
+## Camera & Microphone
+
+Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera:
+
+```tsx
+import {
+  SfuModels,
+  useLocalParticipant,
+  useToggleVideoMuteState,
+} from '@stream-io/video-react-sdk';
+
+function VideoButton() {
+  const localParticipant = useLocalParticipant();
+  const isVideoMute = !localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+  const { toggleVideoMuteState } = useToggleVideoMuteState();
+
+  return (
+    <button onClick={toggleVideoMuteState}>
+      {isVideoMute ? 'Turn on camera' : 'Turn off camera'}
+    </button>
+  );
+}
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## UI Components
+
+The goal of this library is to make it easy to build any type of video/calling experience. You have a few options for the UI:
+
+- Build your own UI components using the state as shown above.
+- Use our library of built-in components.
+- Mix & Match between your own and built-in components.
+
+The built-in components you can customize using [theming](../../ui-components/video-theme) and props. If you decide to build your own components we have a [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
+
+Let's see an example where we set up the UI using built-in components:
+
+- Set up theming using the `StreamTheme` provider
+- Choose a [UI layout](../../ui-components/core/call-layout) from the SDK-provided ones, such as `<SpeakerLayout>`, which provides a layout suitable for speaker-focused video calls.
+- Additionally, hook in the default `<CallControls />` component to enable call control functionalities (such as mute, hang up, etc.).
+
+```tsx
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+
+const MyApp = () => {
+  // Assuming you have the 'client' and 'call' created
+  return (
+    <StreamVideo client={client}>
+      <StreamTheme>
+        <StreamCall call={call}>
+          <SpeakerLayout />
+          <CallControls />
+        </StreamCall>
+      </StreamTheme>
+    </StreamVideo>
+  );
+};
+```
+
+## See it in action
+
+We have prepared a [CodeSandbox example](https://codesandbox.io/embed/stream-video-quickstart-y0wo3m)
+that demonstrates the above steps in action.
+Feel free to play around with it and explore the SDK's features.
+
+<iframe
+  src="https://codesandbox.io/embed/stream-video-quickstart-y0wo3m?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
+  style={{
+    width: '100%',
+    height: '500px',
+    border: 0,
+    borderRadius: '4px',
+    overflow: 'hidden',
+  }}
+  title="stream-video-quickstart"
+  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+></iframe>
