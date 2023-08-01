@@ -1,6 +1,5 @@
 import type { WebSocket } from 'ws';
 import type {
-  FinishedUnaryCall,
   MethodInfo,
   NextUnaryFn,
   RpcInterceptor,
@@ -225,14 +224,20 @@ export class StreamSfuClient {
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
-    return this.rpc.setPublisher({
+    return retryable(
+      this.rpc.setPublisher.bind(this.rpc),
+      'FastAndSimple',
+    )({
       ...data,
       sessionId: this.sessionId,
     });
   };
 
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
-    return this.rpc.sendAnswer({
+    return retryable(
+      this.rpc.sendAnswer.bind(this.rpc),
+      'FastAndSimple',
+    )({
       ...data,
       sessionId: this.sessionId,
     });

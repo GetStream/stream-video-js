@@ -5,7 +5,6 @@ import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
 import { CallingState, CallState } from '../store';
-import { retryable } from '../helpers/runWithRetry';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -333,20 +332,9 @@ export class Subscriber {
     const answer = await this.pc.createAnswer();
     await this.pc.setLocalDescription(answer);
 
-    await retryable(
-      this.sfuClient.sendAnswer,
-      'FastCheckValue',
-      async ({ sdp }) => {
-        // TODO: needs double check - not sure if this is correct approach
-        const newAnswer = await this.pc.createAnswer();
-        return sdp !== newAnswer.sdp;
-      },
-    )({
+    await this.sfuClient.sendAnswer({
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
-    }).catch((error) => {
-      logger('error', 'SendAnswer failed', error);
-      // TODO: according to documentation fail of this call requires ICE restart
     });
 
     this.isIceRestarting = false;
