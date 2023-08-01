@@ -38,7 +38,9 @@ yarn add @stream-io/video-react-native-sdk
 The SDK requires installing some peer dependencies. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg @react-native-community/netinfo @notifee/react-native
+yarn add react-native-webrtc react-native-device-info \
+   react-native-incall-manager react-native-svg \
+   @react-native-community/netinfo @notifee/react-native
 npx pod-install
 ```
 
@@ -461,6 +463,8 @@ const styles = StyleSheet.create({
   avatar: {
     flex: 1,
     alignItems: 'center',
+    borderWidth: 4,
+    borderColor: 'transparent',
   },
   image: {
     width: 80,
@@ -468,7 +472,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   speakingAvatar: {
-    borderWidth: 1,
     borderColor: 'green',
   },
 });

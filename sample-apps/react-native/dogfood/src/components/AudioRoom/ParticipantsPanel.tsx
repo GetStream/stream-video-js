@@ -52,6 +52,8 @@ const styles = StyleSheet.create({
   avatar: {
     flex: 1,
     alignItems: 'center',
+    borderWidth: 4,
+    borderColor: 'transparent',
   },
   image: {
     width: 80,
@@ -59,7 +61,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   speakingAvatar: {
-    borderWidth: 1,
     borderColor: 'green',
   },
 });
