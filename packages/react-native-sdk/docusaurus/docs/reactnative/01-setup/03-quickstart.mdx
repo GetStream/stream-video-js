@@ -3,8 +3,6 @@ title: Quickstart
 description: For when you're in a hurry and want to quickly get up and running
 ---
 
-import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
-
 In this guide, we will cover the basics of making your first call using Stream Video.
 If you haven't already, we recommend starting with the **[introduction](../../)** and **[installation](../installation)** steps first, as this guide will build on the material covered in those sections.
 
@@ -52,15 +50,9 @@ The call type controls the permissions and which features are enabled.
 
 The second argument is the call id. Call ids can be reused, meaning it's possible to join a call with the same id multiple times (for example, for recurring meetings).
 
-:::info
-Don't forget to fill in the constants mentioned earlier (`apiKey`, `userId`, `token`, `callId`) with the values below.
-:::
-
-<TokenSnippet sampleApp="meeting" />
-
 ## Rendering video
 
-The call's state can be accessed using hooks, you'll often work with `useParticipants`. Have a look below for a basic example of how to render the videos of all participants:
+The call participant's state can be accessed using hooks like `useParticipants`. Have a look below for a basic example of how to render the videos of all participants:
 
 ```tsx
 import {
@@ -79,7 +71,7 @@ function VideoUI() {
 }
 ```
 
-The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled status, etc.
 
 More information about state management can be found in the [Call & Participant State guide](../../core/call-and-participant-state).
 
@@ -92,11 +84,11 @@ import { useCallControls } from '@stream-io/video-react-native-sdk';
 import { Pressable, Text } from 'react-native';
 
 function VideoButton() {
-  const { isVideoPublished, toggleVideoMuted } = useCallControls();
+  const { isVideoPublished, toggleVideoMuted, } = useCallControls();
 
   return (
     <Pressable
-      style={{ padding: 8, backgroundColor: '###010101' }}
+      style={{ padding: 8, backgroundColor: '#010101' }}
       onPress={toggleVideoMuted}
     >
       <Text>{isVideoPublished ? 'Turn on camera' : 'Turn off camera'}</Text>
@@ -120,7 +112,7 @@ The goal of this library is to make it easy to build any type of video/calling e
 - Use our library of built-in components.
 - Mix & Match between your own and built-in components.
 
-The built-in components you can customize using [theming](../../ui-components/video-theme) and props.
+The [built-in components](../../ui-components/overview) that you can use and customize.
 If you decide to build your own components we have a dedicated [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
 
 Let's see an example where we set up the UI using Stream's built-in components:
@@ -148,12 +140,4 @@ const MyApp = () => {
 };
 ```
 
-import QuickStartFinishedState from '../assets/01-setup/quickstart-finished-state.png';
-
 ![Finished State](../assets/01-setup/quickstart-finished-state.png)
-
-## Next steps
-
-- Start using your camera and microphone by learning how to manage your native permissions. See the [Manage Native Permissions](../../advanced/native-permissions) guide.
-- Tweak an [Customize the UI](../../ui-cookbook/overview).
-- Discover and [Configure Call Types](../../core/configuring-call-types).
