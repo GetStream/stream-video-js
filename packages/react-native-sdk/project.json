@@ -13,7 +13,7 @@
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
             {"type": "chore", "hidden": true},
-            {"type": "docs", "section": "Documentation"},
+            {"type": "docs", "hidden": true},
             {"type": "style", "hidden": true},
             {"type": "refactor", "hidden": true},
             {"type": "perf", "section": "Features"},
@@ -24,7 +24,7 @@
         "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["chore", "ci"],
+        "skipCommitTypes": ["chore", "ci", "docs"],
         "postTargets": ["@stream-io/video-react-native-sdk:update-version", "@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
       }
     },
