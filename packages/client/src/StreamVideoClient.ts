@@ -125,6 +125,13 @@ export class StreamVideoClient {
   }
 
   /**
+   * Return the reactive state store, use this if you want to be notified about changes to the client state
+   */
+  get state() {
+    return this.readOnlyStateStore;
+  }
+
+  /**
    * Connects the given user to the client.
    * Only one user can connect at a time, if you want to change users, call `disconnectUser` before connecting a new user.
    * If the connection is successful, the connected user [state variable](#readonlystatestore) will be updated accordingly.
