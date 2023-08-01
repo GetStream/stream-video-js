@@ -694,11 +694,11 @@ export class CallState {
     );
 
     this.setParticipants((participants) =>
-      participants.map((participant, currentIndex) => {
+      participants.map((participant) => {
         // the local user might have overridden the pinning, skip updating
         if (participant.isPinningSetByLocalUser) return participant;
-        // unpinned participants will have `undefined` as they are
-        // excluded from the lookup table
+        // unpinned participants will have `undefined` pinning order
+        // as they don't exist in the lookup table
         const pinningOrder = pinsLookup[participant.sessionId];
         return {
           ...participant,
