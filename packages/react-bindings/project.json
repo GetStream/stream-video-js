@@ -13,7 +13,7 @@
             {"type": "feat", "section": "Features"},
             {"type": "fix", "section": "Bug Fixes"},
             {"type": "chore", "hidden": true},
-            {"type": "docs", "section": "Documentation"},
+            {"type": "docs", "hidden": true},
             {"type": "style", "hidden": true},
             {"type": "refactor", "hidden": true},
             {"type": "perf", "section": "Features"},
@@ -22,7 +22,7 @@
         },
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["chore", "ci", "refactor", "test"],
+        "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
         "postTargets": ["@stream-io/video-react-bindings:github", "@stream-io/video-react-bindings:publish"]
       }
     },
