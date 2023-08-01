@@ -16,7 +16,7 @@ export const CookbookCard = ({ title, link, img }) => (
     <h4 style={{ margin: '0px' }}>{title}</h4>
     <a href={link}>
       <p style={{ margin: '0', padding: '0' }}>
-        <img src={img} />
+        <img src={img} alt={title} />
       </p>
     </a>
   </div>
@@ -27,6 +27,7 @@ import ParticipantLabel from '../assets/05-ui-cookbook/participant-label-custom.
 import ConnectionQualityIndicator from '../assets/05-ui-cookbook/connection-quality-indicator-custom.png'
 import IncomingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view.png';
 import OutgoingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view.png';
+import LobbyView from '../assets/05-ui-cookbook/06-lobby-preview/lobby-view.png'
 import RuntimeLayoutSwitching from '../assets/05-ui-cookbook/runtime-layout-switching-modal.png';
 
 Stream Video React Native UI components are highly customizable and allow you to fully customize/remake the components with ease according to your design requirements.
@@ -60,6 +61,11 @@ This UI Cookbook will walk you through how to customize each component in your v
     title="Outgoing Call View"
     link="../../ui-cookbook/incoming-and-outgoing-call"
     img={OutgoingCallView}
+  ></CookbookCard>
+  <CookbookCard
+    title="Lobby View"
+    link="../../ui-cookbook/lobby-preview"
+    img={LobbyView}
   ></CookbookCard>
   <CookbookCard
     title="Runtime Layout Switching"
