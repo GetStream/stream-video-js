@@ -63,11 +63,7 @@ import {
 function VideoUI() {
   const participants = useParticipants();
 
-  return (
-    <>
-      <CallParticipantsListView participants={participants} />
-    </>
-  );
+  return <CallParticipantsListView participants={participants} />;
 }
 ```
 
@@ -77,30 +73,27 @@ More information about state management can be found in the [Call & Participant 
 
 ## Camera & Microphone
 
-Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera:
+Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera and microphone:
 
 ```tsx
-import { useCallControls } from '@stream-io/video-react-native-sdk';
-import { Pressable, Text } from 'react-native';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
-function VideoButton() {
-  const { isVideoPublished, toggleVideoMuted, } = useCallControls();
-
-  return (
-    <Pressable
-      style={{ padding: 8, backgroundColor: '#010101' }}
-      onPress={toggleVideoMuted}
-    >
-      <Text>{isVideoPublished ? 'Turn on camera' : 'Turn off camera'}</Text>
-    </Pressable>
-  );
-}
+// You can use this hook inside your component
+const {
+  publishAudioStream,
+  publishVideoStream,
+  stopPublishingAudio,
+  stopPublishingVideo,
+  isCameraOnFrontFacingMode,
+  toggleCameraFacingMode,
+} = useMediaStreamManagement();
 ```
 
-With the help of the `useCallControls` hook, you can access the call controls state and its functions.
+With the help of the `useMediaStreamManagement` hook, you can manage the camera and audio of the device.
 
-- `isVideoPublished` is a boolean that indicates whether the local video is published/muted or not.
-- `toggleVideoMuted` is a function that toggles the local video mute state and publishes/unpublishes the video track.
+- `publishAudioStream`/` stopPublishingAudio` can be used to publish/un-publish the audio stream.
+- `publishVideoStream`/` stopPublishingVideo` can be used to publish/un-publish the video stream.
+- `isCameraOnFrontFacingMode`/`toggleCameraFacingMode` is a function that flips the camera and gives the status of the current face of the camera.
 
 More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
 
@@ -112,30 +105,5 @@ The goal of this library is to make it easy to build any type of video/calling e
 - Use our library of built-in components.
 - Mix & Match between your own and built-in components.
 
-The [built-in components](../../ui-components/overview) that you can use and customize.
+You can use and customize the [built-in components](../../ui-components/overview).
 If you decide to build your own components we have a dedicated [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
-
-Let's see an example where we set up the UI using Stream's built-in components:
-
-- Use the [`<CallContentView/>`](../../ui-components/call/call-content-view/) in order to render the call UI (video/audio and screen share of all its participants).
-- Additionally, hook in the default [`<CallControlsView />`](../../ui-components/call/call-controls-view/) component to enable call control functionalities (such as mute, hang up, etc.).
-
-```tsx
-import {
-  CallContentView,
-  CallControlsView,
-} from '@stream-io/video-react-native-sdk';
-
-const MyApp = () => {
-  // ...
-  // Assuming you have the 'client' and 'call' created from previous steps
-  return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        <CallContentView />
-        <CallControlsView />
-      </StreamCall>
-    </StreamVideo>
-  );
-};
-```
