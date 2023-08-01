@@ -45,12 +45,14 @@ export const CallParticipantListingItem = ({
   );
   const isPinned = !!participant.pinnedAt;
 
+  const { t } = useI18n();
+
   return (
     <div className="str-video__participant-listing-item">
       <DisplayName participant={participant} />
       <div className="str-video__participant-listing-item__media-indicator-group">
         <MediaIndicator
-          title={isAudioOn ? 'Microphone on' : 'Microphone off'}
+          title={isAudioOn ? t('Microphone on') : t('Microphone off')}
           className={clsx(
             'str-video__participant-listing-item__icon',
             `str-video__participant-listing-item__icon-${
@@ -59,7 +61,7 @@ export const CallParticipantListingItem = ({
           )}
         />
         <MediaIndicator
-          title={isVideoOn ? 'Camera on' : 'Camera off'}
+          title={isVideoOn ? t('Camera on') : t('Camera off')}
           className={clsx(
             'str-video__participant-listing-item__icon',
             `str-video__participant-listing-item__icon-${
@@ -69,7 +71,7 @@ export const CallParticipantListingItem = ({
         />
         {isPinned && (
           <MediaIndicator
-            title={'Pinned'}
+            title={t('Pinned')}
             className={clsx(
               'str-video__participant-listing-item__icon',
               'str-video__participant-listing-item__icon-pinned',
@@ -96,12 +98,13 @@ type DisplayNameProps = {
 // todo: implement display device flag
 const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
   const connectedUser = useConnectedUser();
+  const { t } = useI18n();
 
-  const meFlag = participant.userId === connectedUser?.id ? 'Me' : '';
-  const nameOrId = participant.name || participant.userId || 'Unknown';
+  const meFlag = participant.userId === connectedUser?.id ? t('Me') : '';
+  const nameOrId = participant.name || participant.userId || t('Unknown');
   let displayName;
   if (!participant.name) {
-    displayName = meFlag || nameOrId || 'Unknown';
+    displayName = meFlag || nameOrId || t('Unknown');
   } else if (meFlag) {
     displayName = `${nameOrId} (${meFlag})`;
   } else {
@@ -142,70 +145,68 @@ export const ParticipantActionsContextMenu = ({
   const activeCall = useCall();
   const { t } = useI18n();
 
+  const { pinnedAt, publishedTracks, sessionId, userId } = participant;
+
+  const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const hasScreenShare = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
   const blockUser = () => {
-    activeCall?.blockUser(participant.userId);
+    activeCall?.blockUser(userId);
   };
-
-  // FIXME: soft kicking does not work this way
-  // also needs to be session-based
-  // const kickUserClickHandler = () => {
-  //   getCall()?.updateCallMembers({
-  //     remove_members: [participant.userId],
-  //     disconnectRemovedMembers: true,
-  //   });
-  // };
-
   const muteAudio = () => {
-    activeCall?.muteUser(participant.userId, 'audio');
+    activeCall?.muteUser(userId, 'audio');
   };
   const muteVideo = () => {
-    activeCall?.muteUser(participant.userId, 'video');
+    activeCall?.muteUser(userId, 'video');
   };
   const muteScreenShare = () => {
-    activeCall?.muteUser(participant.userId, 'screenshare');
+    activeCall?.muteUser(userId, 'screenshare');
   };
 
   const grantPermission = (permission: string) => () => {
     activeCall?.updateUserPermissions({
-      user_id: participant.userId,
+      user_id: userId,
       grant_permissions: [permission],
     });
   };
 
   const revokePermission = (permission: string) => () => {
     activeCall?.updateUserPermissions({
-      user_id: participant.userId,
+      user_id: userId,
       revoke_permissions: [permission],
     });
   };
 
   const toggleParticipantPinnedAt = () => {
-    if (participant.pinnedAt) {
-      activeCall?.unpin(participant.sessionId);
+    if (pinnedAt) {
+      activeCall?.unpin(sessionId);
     } else {
-      activeCall?.pin(participant.sessionId);
+      activeCall?.pin(sessionId);
     }
   };
 
-  const pinParticipantForEveryone = () => {
+  const pinForEveryone = () => {
     activeCall
       ?.pinForEveryone({
-        user_id: participant.userId,
-        session_id: participant.sessionId,
+        user_id: userId,
+        session_id: sessionId,
       })
       .catch((err) => {
-        console.error(`Failed to pin participant ${participant.userId}`, err);
+        console.error(`Failed to pin participant ${userId}`, err);
       });
   };
 
-  const unpinnedParticipantForEveryone = () => {
+  const unpinForEveryone = () => {
     activeCall
       ?.unpinForEveryone({
-        user_id: participant.userId,
-        session_id: participant.sessionId,
+        user_id: userId,
+        session_id: sessionId,
       })
       .catch((err) => {
-        console.error(`Failed to unpin participant ${participant.userId}`, err);
+        console.error(`Failed to unpin participant ${userId}`, err);
       });
   };
 
@@ -263,16 +264,16 @@ export const ParticipantActionsContextMenu = ({
     <GenericMenu>
       <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
         <Icon icon="pin" />
-        {participant.pinnedAt ? t('Unpin') : t('Pin')}
+        {pinnedAt ? t('Unpin') : t('Pin')}
       </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
-        <GenericMenuButtonItem onClick={pinParticipantForEveryone}>
+        <GenericMenuButtonItem onClick={pinForEveryone}>
           <Icon icon="pin" />
           {t('Pin for everyone')}
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
-        <GenericMenuButtonItem onClick={unpinnedParticipantForEveryone}>
+        <GenericMenuButtonItem onClick={unpinForEveryone}>
           <Icon icon="pin" />
           {t('Unpin for everyone')}
         </GenericMenuButtonItem>
@@ -283,49 +284,38 @@ export const ParticipantActionsContextMenu = ({
           {t('Block')}
         </GenericMenuButtonItem>
       </Restricted>
-      {/* <GenericMenuButtonItem disabled onClick={kickUserClickHandler}>
-        Kick
-      </GenericMenuButtonItem> */}
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-        <GenericMenuButtonItem
-          disabled={
-            !participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)
-          }
-          onClick={muteVideo}
-        >
+        <GenericMenuButtonItem disabled={!hasVideo} onClick={muteVideo}>
           <Icon icon="camera-off-outline" />
           {t('Turn off video')}
         </GenericMenuButtonItem>
         <GenericMenuButtonItem
-          disabled={
-            !participant.publishedTracks.includes(
-              SfuModels.TrackType.SCREEN_SHARE,
-            )
-          }
+          disabled={!hasScreenShare}
           onClick={muteScreenShare}
         >
           <Icon icon="screen-share-off" />
           {t('Turn off screen share')}
         </GenericMenuButtonItem>
-        <GenericMenuButtonItem
-          disabled={
-            !participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)
-          }
-          onClick={muteAudio}
-        >
+        <GenericMenuButtonItem disabled={!hasAudio} onClick={muteAudio}>
           <Icon icon="no-audio" />
           {t('Mute audio')}
         </GenericMenuButtonItem>
       </Restricted>
       {participantViewElement && (
         <GenericMenuButtonItem onClick={toggleFullscreenMode}>
-          {fullscreenModeOn ? 'Leave' : 'Enter'} fullscreen
+          {t('{{ direction }} fullscreen', {
+            direction: fullscreenModeOn ? t('Leave') : t('Enter'),
+          })}
         </GenericMenuButtonItem>
       )}
       {videoElement && document.pictureInPictureEnabled && (
         <GenericMenuButtonItem onClick={togglePictureInPicture}>
-          {pictureInPictureElement === videoElement ? 'Leave' : 'Enter'}{' '}
-          picture-in-picture
+          {t('{{ direction }} picture-in-picture', {
+            direction:
+              pictureInPictureElement === videoElement
+                ? t('Leave')
+                : t('Enter'),
+          })}
         </GenericMenuButtonItem>
       )}
       <Restricted requiredGrants={[OwnCapability.UPDATE_CALL_PERMISSIONS]}>
