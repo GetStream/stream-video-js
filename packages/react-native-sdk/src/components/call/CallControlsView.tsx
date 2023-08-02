@@ -129,7 +129,7 @@ export const CallControlsView = ({
       {showReactionsPopup && (
         <ReactionsPopup
           reactions={StreamVideoRN.getConfig().supportedReactions}
-          reactionsButtonLayoutReactangle={reactionsButtonLayoutRectangle}
+          reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
           onRequestedClose={onCloseReactionsPopupHandler}
         />
       )}
