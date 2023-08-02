@@ -1,6 +1,8 @@
 /* eslint-disable */
 const tailwindGradients = require('tailwindcss-plugins/gradients');
 const colors = require('tailwindcss/colors');
+const defaultTheme = require('tailwindcss/defaultTheme')
+
 
 const baseFallbackFonts = [
   '-apple-system',
@@ -88,6 +90,10 @@ module.exports = {
       main: '0px 0px 30px 12px rgb(238 238 238)',
       card: '0px 0px 3px 0px rgba(0,0,0,0.06)',
       cardActive: '0px 0px 20px 0px rgba(0,0,0,0.06)',
+    },
+    screens: {
+      xs: '480px',
+      ...defaultTheme.screens,
     },
 
     extend: {
