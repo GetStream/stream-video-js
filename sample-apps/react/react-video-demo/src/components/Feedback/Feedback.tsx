@@ -14,7 +14,7 @@ import { Star, Close } from '../Icons';
 import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './Feedback.module.css';
-import { getCookie } from 'src/utils/getCookie';
+import { getCookie } from '../../utils/getCookie';
 
 export type Props = {
   className?: string;
@@ -107,7 +107,7 @@ export const Feedback: FC<Props> = ({
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
+          'X-CSRFToken': getCookie('csrftoken') || '',
         },
         body: JSON.stringify({
           ...values,

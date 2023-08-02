@@ -1,0 +1,145 @@
+---
+id: joining-and-creating-calls
+title: Joining & Creating Calls
+description: An overview of how to create calls and join them
+---
+
+This guide shows how to create, join, leave, and end call rooms and ring calls.
+
+## Call room
+
+### Create and join a call
+
+You create a call by specifying a call type and a call id.
+
+```ts
+const callType = 'default';
+const callId = 'test-call';
+await videoClient.call(callType, callId).join({ create: true });
+```
+
+The [call type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
+
+One of the flags you can provide there is `create`. Set this to `true` if you want to enable creating new calls. Set it to `false` if you only want to allow joining existing calls.
+
+See all possible options at the [Call creation options section](#call-creation-options)
+
+If you don't want to join a call, just create one, you can use the `getOrCreate` method:
+
+```typescript
+const callType = 'default';
+const callId = 'test-call';
+await videoClient.call(callType, callId).getOrCreate();
+```
+
+See all possible options at the [Call creation options section](#call-creation-options)
+
+### Leave call
+
+To leave a call, you can use the `leave` method:
+
+```typescript
+call.leave();
+```
+
+### End call
+
+Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+
+```typescript
+call.endCall();
+```
+
+Only users with special permission can join an ended call.
+
+## Ring call
+
+### Create call
+
+To create a ring call, we need to set the `ring` flag to `true` and provide the list of members we want to call.
+It is important to note that the caller should also be included in the list of members.
+
+```typescript
+client.call('default', 'test-outgoing-call').getOrCreate({
+  // highlight-next-line
+  ring: true,
+  data: {
+    members: [
+      // highlight-next-line
+      { user_id: 'myself' },
+      { user_id: 'my friend' },
+    ],
+  },
+});
+```
+
+See all possible options at the [Call creation options section](#call-creation-options)
+
+This step will start the signaling flow.
+
+The caller will automatically join the call once the first callee accepts the call.
+
+The calling will automatically stop if all callee rejects the call.
+
+### Watch for incoming and outgoing calls
+
+The easiest way to watch for incoming and outgoing calls is to use the `useCalls` hook.
+
+Let's see how the cancel, accept and reject operations work:
+
+### Canceling a call
+
+A caller can cancel an outgoing call until the first callee accepts the call. Canceling a call will stop the signaling flow.
+
+```typescript
+call.leave();
+```
+
+Please note that calling `call.leave()` after joining the call won't stop the signaling flow.
+
+### Accepting a call
+
+A callee can accept or reject an incoming call. To accept and join the call:
+
+```typescript
+call.join();
+```
+
+Please note that it's possible to join multiple calls. If you only want to allow one active call, you must leave joined calls before accepting an incoming call.
+
+### Rejecting a call
+
+A callee can accept or reject an incoming call. To reject the call:
+
+```typescript
+call.leave({ reject: true });
+```
+
+### Leave call
+
+To leave a joined call, you can use the `leave` method:
+
+```typescript
+call.leave();
+```
+
+### End call
+
+Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
+
+```typescript
+call.endCall();
+```
+
+## Call creation options
+
+The following options are supported when creating a call:
+
+| Option     | Description                                                                                                     | Default |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | ------- |
+| `members`  | A list of members to add to this call. You can specify the role and custom data on these members                | -       |
+| `custom`   | Any custom data you want to store                                                                               | -       |
+| `settings` | You can overwrite certain call settings for this specific call. This overwrites the call type standard settings | -       |
+| `startsAt` | When the call will start. Used for calls scheduled in the future, livestreams, audio rooms etc                  | -       |
+| `team`     | Restrict the access to this call to a specific team                                                             | -       |
+| `ring`     | If you want the call to ring for each member                                                                    | false   |

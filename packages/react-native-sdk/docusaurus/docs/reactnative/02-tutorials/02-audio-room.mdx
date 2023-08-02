@@ -23,8 +23,8 @@ Time to get started building an audio room for your app.
 Create a new React Native app using the official template,
 
 ```bash title=Terminal
-npx react-native@latest init StreamAudioRoomExample
-cd StreamAudioRoomExample
+npx react-native@latest init AudioRoomExample
+cd AudioRoomExample
 ```
 
 ### Step 2 - Install the SDK and declare permissions
@@ -38,7 +38,9 @@ yarn add @stream-io/video-react-native-sdk
 The SDK requires installing some peer dependencies. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add react-native-webrtc react-native-device-info react-native-incall-manager react-native-svg @react-native-community/netinfo @notifee/react-native
+yarn add react-native-webrtc react-native-device-info \
+   react-native-incall-manager react-native-svg \
+   @react-native-community/netinfo @notifee/react-native
 npx pod-install
 ```
 
@@ -48,7 +50,7 @@ npx pod-install
 
 Add the following keys and values to `Info.plist` file:
 
-- `Privacy - Microphone Usage Description` - "`StreamAudioRoomExample` app requires microphone access to capture and transmit audio"
+- `Privacy - Microphone Usage Description` - "`AudioRoomExample` requires microphone access to capture and transmit audio"
 
 #### Android
 
@@ -72,8 +74,6 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
-
-Please follow through the **[SDK installation](../../setup/installation)** steps to properly setup the SDK and its prerequisites.
 
 :::note
 For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
@@ -185,7 +185,7 @@ export default function App() {
     <StreamVideo client={client} language="en">
       <StreamCall call={call}>
         <SafeAreaView>
-          <Text style={{ fontSize: 30 }}>Ready to render Audio room</Text>
+          <Text style={{ fontSize: 30, color: 'black' }}>Ready to render Audio room</Text>
         </SafeAreaView>
       </StreamCall>
     </StreamVideo>
@@ -338,14 +338,14 @@ export default function AudioRoom() {
 
   // except for DescriptionPanel component we will put every other panels in TODO for now
   const ParticipantsPanel = () => (
-    <Text style={{ fontSize: 20 }}>ParticipantsPanel TODO</Text>
+    <Text style={{ fontSize: 20, color: 'black' }}>ParticipantsPanel TODO</Text>
   );
 
   const ControlsPanel = () => (
-    <Text style={{ fontSize: 20 }}>ControlsPanel TODO</Text>
+    <Text style={{ fontSize: 20, color: 'black' }}>ControlsPanel TODO</Text>
   );
   const PermissionRequestsPanel = () => (
-    <Text style={{ fontSize: 20 }}>PermissionRequestsPanel TODO</Text>
+    <Text style={{ fontSize: 20, color: 'black' }}>PermissionRequestsPanel TODO</Text>
   );
 }
 ```
@@ -463,6 +463,8 @@ const styles = StyleSheet.create({
   avatar: {
     flex: 1,
     alignItems: 'center',
+    borderWidth: 4,
+    borderColor: 'transparent',
   },
   image: {
     width: 80,
@@ -470,7 +472,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   speakingAvatar: {
-    borderWidth: 1,
     borderColor: 'green',
   },
 });

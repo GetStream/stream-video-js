@@ -70,3 +70,6 @@ requestMultiple
 checkMultiple
 apiKey
 SDK's
+const
+img
+APNs

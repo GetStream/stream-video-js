@@ -27,13 +27,16 @@ export const App = () => {
 ### `client`
 
 | Type                |
-| ------------------- |
+|---------------------|
 | `StreamVideoClient` |
+
+
+`StreamVideoClient` instance propagated to the component's children as a part of `StreamVideoContext`. Children can access it with `useStreamVideoClient()` hook.
 
 ### `i18nInstance`
 
 | Type                        |
-| --------------------------- |
+|-----------------------------|
 | `StreamI18n` \| `undefined` |
 
 The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).

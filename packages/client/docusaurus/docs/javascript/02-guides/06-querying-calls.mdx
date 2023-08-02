@@ -1,0 +1,163 @@
+---
+id: querying-calls
+title: Querying Calls
+description: How to query calls
+---
+
+For many video calling, live stream, or audio rooms apps, you'll want to show:
+
+- Upcoming calls
+- Calls that are currently live
+- Popular live streams / audio rooms with a link to the recording
+
+The SDK makes it easy to query calls.
+
+## Sorting
+
+Sorting is supported on these fields below:
+
+- `starts_at`
+- `created_at`
+- `updated_at`
+- `ended_at`
+- `type`
+- `id`
+- `cid`
+
+```typescript
+let client: StreamVideoClient;
+
+client.queryCalls({
+  sort: [{ field: 'starts_at', direction: -1 }],
+  limit: 10,
+  watch: true,
+});
+```
+
+It's possible to provide multiple sort parameters:
+
+```typescript
+let client: StreamVideoClient;
+
+client.queryCalls({
+  sort: [
+    { field: 'starts_at', direction: -1 },
+    { field: 'created_at', direction: 1 },
+  ],
+  limit: 10,
+  watch: true,
+});
+```
+
+## Filters
+
+You can filter on the following fields
+
+| Option               | Description                                                 |
+| -------------------- | ----------------------------------------------------------- |
+| `type`               | The call type. Typically default, livestream etc            |
+| `id`                 | The id for this call                                        |
+| `cid`                | The cid for this call. IE default:123                       |
+| `created_by_user_id` | The user id who created the call                            |
+| `created_at`         | When the call was created                                   |
+| `updated_at`         | When the call was updated                                   |
+| `starts_at`          | When the call starts at                                     |
+| `ended_at`           | When the call ended                                         |
+| `backstage`          | If the call is in backstage mode or not                     |
+| `members`            | Check if you are a member of this call                      |
+| `custom`             | You can query custom data using the "custom.myfield" syntax |
+
+Filter expressions support multiple match criteria and it's also possible to combine filters. For more information visit the [filter operators guide](https://getstream.io/chat/docs/ios-swift/query_syntax_operators/?language=swift&q=filter).
+
+Here are some example filters:
+
+**Calls that are about to start**
+
+```typescript
+let client: StreamVideoClient;
+
+const inNext30mins = 1000 * 60 * 60 * 30;
+client.queryCalls({
+  filter_conditions: {
+    starts_at: {
+      $gt: new Date(Date.now() + inNext30mins).toISOString(),
+    },
+  },
+  sort: [{ field: 'starts_at', direction: -1 }],
+  limit: 10,
+  watch: true,
+});
+```
+
+**Call filters on a custom property**
+
+```typescript
+let client: StreamVideoClient;
+
+client.queryCalls({
+  filter_conditions: {
+    'custom.color': 'red',
+  },
+  limit: 10,
+  watch: true,
+});
+```
+
+**Calls that live / currently have participants**
+
+```typescript
+TODO;
+```
+
+** Calls the user has created or is a member of **
+
+```typescript
+let client: StreamVideoClient;
+
+client.queryCalls({
+  filter_conditions: {
+    $or: [
+      {
+        created_by_user_id: '<user id>',
+      },
+      {
+        members: { $in: ['<user id>'] },
+      },
+    ],
+  },
+  limit: 10,
+  watch: true,
+});
+```
+
+## Watching calls
+
+If you specify `watch: true` the SDK will automatically keep the data about these calls updated.
+This allows you to show a live preview of who's in the call.
+
+## Pagination
+
+You can specify the page size using the `limit` option. The API response will include links to the previous/next pages. The following code example shows how pagination works:
+
+```typescript
+let client: StreamVideoClient;
+
+const inNext30mins = 1000 * 60 * 60 * 30;
+const callQuery = {
+  filter_conditions: {
+    starts_at: {
+      $gt: new Date(Date.now() + inNext30mins).toISOString(),
+    },
+  },
+  sort: [{ field: 'starts_at', direction: -1 }],
+  limit: 10,
+  watch: true,
+};
+const response = await client.queryCalls(callQuery);
+
+// Go to next page
+client.queryCalls({ ...callQuery, next: response.next });
+
+// Go to prev page
+client.queryCalls({ ...callQuery, prev: response.prev });
+```
