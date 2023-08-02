@@ -1,29 +1,18 @@
-@import '@stream-io/video-react-sdk/dist/css/styles.css';
-
-body, html {
+body,
+html {
   height: 100%;
   width: 100%;
   margin: 0;
   font-family: sans-serif;
 }
 
-#root {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100%;
+.str-video {
+  background-color: #272a30;
+  color: #ffffff;
+  height: 100dvh;
   width: 100%;
-  background-color: black;
-
-}
-
-.video__call {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  height: 100%;
-  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
-

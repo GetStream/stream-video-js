@@ -81,6 +81,10 @@ The caller will automatically join the call once the first callee accepts the ca
 
 The calling will automatically stop if all callee rejects the call.
 
+:::note
+When ring is true, a push notification will be sent to the members, provided their app have the required setup. For more details around push notifications, please check [this page](../../advanced/push-notifications/setup).
+:::
+
 ### Watch for incoming and outgoing calls
 
 The easiest way to watch for incoming and outgoing calls is to use the `useCalls` hook.

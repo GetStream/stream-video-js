@@ -20,6 +20,7 @@ dist
 .env
 !packages/angular-sdk/docusaurus/.env
 !packages/react-sdk/docusaurus/.env
+!packages/client/docusaurus/.env
 
 .eslintcache
 coverage
@@ -33,5 +34,6 @@ video-buddy-session.json
 video-buddy-log.txt
 **/fastlane/*.log
 **/fastlane/*.mp4
+**/fastlane/*.json
 
 version.ts

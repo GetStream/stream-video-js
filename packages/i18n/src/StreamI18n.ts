@@ -1,5 +1,4 @@
 import i18next from 'i18next';
-import defaultTranslations from './translations';
 import { mapToRegistry } from './utils';
 import {
   TranslationLanguage,
@@ -15,10 +14,7 @@ const DEFAULT_CONFIG = {
   currentLanguage: DEFAULT_LANGUAGE,
 };
 
-const DEFAULT_TRANSLATIONS_REGISTRY = mapToRegistry(
-  defaultTranslations,
-  DEFAULT_NAMESPACE,
-);
+const DEFAULT_TRANSLATIONS_REGISTRY = mapToRegistry({}, DEFAULT_NAMESPACE);
 
 export const defaultTranslationFunction = (key: string) => key;
 

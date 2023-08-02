@@ -4,7 +4,110 @@ title: Camera & Microphone
 description: Docs on the media manager
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+Handling audio and video devices in a your application means working with `MediaStream`, `MediaDeviceInfo` and other WebRTC API objects. To make this simpler, we hide all the complexity inside the SDK and export utility functions and states. In this guide we shall go over their usage.
+
+## Camera management
+
+### Call settings
+
+The default state of the camera is determined by the settings in the call object. The settings can be retrieved using the hook `useCallMetadata`:
+
+```ts
+const metadata = useCallMetadata();
+
+metadata?.settings?.video.camera_default_on;
+```
+
+### Manage the camera facing mode
+
+We can get the facing mode state of the camera and the function to toggle the state using the hook `useMediaStreamManagement`:
+
+```ts
+const { toggleCameraFacingMode, isCameraOnFrontFacingMode } = useMediaStreamManagement();;
+
+console.log(`Camera facingMode ${isCameraOnFrontFacingMode ? 'user' : 'environment'}`);
+toggleCameraFacingMode();
+```
+
+### Manage video publishing
+
+We can use functions from the hook `useMediaStreamManagement` for publishing and un-publishing our video stream:
+
+```ts
+const { publishVideoStream, stopPublishingVideo } = useMediaStreamManagement();;
+
+publishVideoStream(); 
+// or
+stopPublishingVideo();
+```
+
+### Video mute state
+We can get the mute state of our video stream bu checking if our tracks are being published:
+
+```ts
+const localParticipant = useLocalParticipant();
+
+const isVideoMute = !localParticipant?.publishedTracks.includes(
+  SfuModels.TrackType.VIDEO,
+);
+```
+## Microphone management
+
+### Call settings
+The default state of the microphone is determined by the settings in the call object. The settings can be retrieved using the hook `useCallMetadata`:
+
+```ts
+const metadata = useCallMetadata();
+
+metadata?.settings?.audio.mic_default_on;
+```
+### Manage audio publishing
+We can use functions from the hook `useMediaStreamManagement` for publishing and un-publishing our audio stream:
+
+```ts
+const { publishAudioStream, stopPublishingAudio } = useMediaStreamManagement();
+
+publishAudioStream(); 
+// or
+stopPublishingAudio();
+```
+
+### Audio mute state
+
+We can get the mute state of our video stream bu checking if our tracks are being published:
+
+```ts
+const localParticipant = useLocalParticipant();
+
+const isAudioMute = !localParticipant?.publishedTracks.includes(
+  SfuModels.TrackType.AUDIO,
+);
+```
+
+## Previewing and manage states before joining a call
+
+Before joining a call, user may need to preview their streams and decide their mute status. We provide utility functions in the hook `useMediaStreamManagement` for this.
+
+### Initial mute states
+
+The following state variables and toggle functions can be used to determine the mute status of the streams before joining a call:
+
+```ts
+const { initialAudioEnabled, initialVideoEnabled, toggleInitialAudioMuteState, toggleInitialVideoMuteState } = useMediaStreamManagement();
+```
+
+### Show Video Preview
+
+We can get the video stream from the camera using the utility hook `useLocalVideoStream` and show it using the `RTCView` component from `react-native-webrtc` library:
+
+```tsx
+import { RTCView } from 'react-native-webrtc';
+
+const localVideoStream = useLocalVideoStream();
+
+return (
+  <RTCView
+    streamURL={localVideoStream?.toURL()}
+  />
+);
+```

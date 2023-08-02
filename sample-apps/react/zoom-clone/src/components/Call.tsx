@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StreamCall } from '@stream-io/video-react-sdk';
+import { CallingState, StreamCall } from '@stream-io/video-react-sdk';
 
 import { MeetingUI } from './MeetingUI';
 import { ChatSidebar } from './ChatSidebar';
@@ -18,6 +18,13 @@ export const CallUI = () => {
 
     call.join({ create: true });
     setJoinedCall(call);
+
+    return () => {
+      if (call.state.callingState !== CallingState.LEFT) {
+        call.leave();
+      }
+      setJoinedCall(undefined);
+    };
   }, [call, setJoinedCall]);
 
   return (

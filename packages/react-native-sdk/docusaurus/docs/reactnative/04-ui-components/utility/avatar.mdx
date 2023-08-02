@@ -3,7 +3,43 @@ id: avatar
 title: Avatar
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+![Preview of the Avatar component.](../../assets/04-ui-components/avatar.png)
+
+The `Avatar` component is generally used to show the image and/or name of participants of a video call. If no image is provided it will display the name of the user.
+
+Of course, it can also be used in any other circumstances that you like, for example, in user lists, profiles, and much more.
+
+## General usage
+
+The way you can use the `Avatar` element in a react component is like this:
+
+```tsx
+import { Avatar, useLocalParticipant } from '@stream-io/video-react-native-sdk';
+
+export function AvatarExample() {
+  const localParticipant = useLocalParticipant();
+  return (
+    // highlight-start
+    <Avatar size={80} participant={localParticipant} />
+    // highlight-end
+  );
+}
+```
+
+## Props
+
+### `participant`
+
+| Type                     |
+| ------------------------ |
+| `StreamVideoParticipant` |
+
+The `StreamVideoParticipant` object.
+
+### `size`
+
+| Type                    | Default Value |
+| ----------------------- | ------------- |
+| `number` \| `undefined` | 100           |
+
+The size of the avatar. The width and height is set to this number.

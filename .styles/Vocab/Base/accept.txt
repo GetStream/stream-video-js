@@ -65,3 +65,11 @@ unmute
 (?i)boolean
 onPress
 useRef
+desugaring
+requestMultiple
+checkMultiple
+apiKey
+SDK's
+const
+img
+APNs

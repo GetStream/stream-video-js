@@ -17,7 +17,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { ActiveCallNotification } from './ActiveCallNotification';
-import { ParticipantsLayoutButtons } from './ParticipantLayoutButton';
+import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
 
 type ActiveCallProps = CallControlsViewType;
 
@@ -55,7 +55,7 @@ export const ActiveCall = ({
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ActiveCallNotification />
       <View style={[styles.icons, { top }]}>
-        <ParticipantsLayoutButtons
+        <ParticipantsLayoutSwitchButton
           selectedLayout={selectedLayout}
           setSelectedLayout={setSelectedLayout}
         />

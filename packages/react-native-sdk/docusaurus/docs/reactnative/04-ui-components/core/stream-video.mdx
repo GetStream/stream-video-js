@@ -3,7 +3,55 @@ id: stream-video
 title: StreamVideo
 ---
 
-:::info
-This guide is still in progress and will be updated soon.
-If you have any questions, please reach out to us on our [website](https://getstream.io/video/#contact).
-:::
+The `<StreamVideo />` provider makes the [client and its state](../../../core/call-and-participant-state) available to all child components and initializes [internationalization](../../../advanced/i18n/)
+
+## General usage
+
+```tsx
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-native-sdk';
+
+export const App = () => {
+  const client = new StreamVideoClient(/* ... */);
+
+  return (
+    // highlight-next-line
+    <StreamVideo client={client}>
+      <MyUI />
+    </StreamVideo>
+  );
+};
+```
+
+## Props
+
+### `client`
+
+| Type                |
+|---------------------|
+| `StreamVideoClient` |
+
+`StreamVideoClient` instance propagated to the component's children as a part of `StreamVideoContext`. Children can access it with `useStreamVideoClient()` hook.
+
+### `i18nInstance`
+
+| Type                        |
+| --------------------------- |
+| `StreamI18n` \| `undefined` |
+
+The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).
+
+### `language`
+
+| Type                    | Default |
+| ----------------------- | ------- |
+| `string` \| `undefined` | en      |
+
+The language to translate UI labels. For more information, see our [Internationalization guide](../../../advanced/i18n/).
+
+### `translationsOverrides`
+
+| Type                             |
+| -------------------------------- |
+| `TranslationsMap` \| `undefined` |
+
+Custom translations that will be merged with the defaults provided by the library. For more information, see our [Internationalization guide](../../../advanced/i18n/).

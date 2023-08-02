@@ -3,12 +3,73 @@ title: Overview
 description: Overview of the UI cookbook
 ---
 
-:::warning
-Write React Native Specifics
+export const CookbookCard = ({ title, link, img }) => (
+  <div
+    style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'start',
+      alignItems: 'center',
+      gap: '0.5rem',
+    }}
+  >
+    <h4 style={{ margin: '0px' }}>{title}</h4>
+    <a href={link}>
+      <p style={{ margin: '0', padding: '0' }}>
+        <img src={img} alt={title} />
+      </p>
+    </a>
+  </div>
+);
 
-This documentation is for the beta version of the Stream Video SDK.
-The SDK is subject to change.
-:::
+import CallControlsView from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls-view.png';
+import ParticipantLabel from '../assets/05-ui-cookbook/participant-label-custom.png';
+import ConnectionQualityIndicator from '../assets/05-ui-cookbook/connection-quality-indicator-custom.png'
+import IncomingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view.png';
+import OutgoingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view.png';
+import LobbyView from '../assets/05-ui-cookbook/06-lobby-preview/lobby-view.png'
+import RuntimeLayoutSwitching from '../assets/05-ui-cookbook/runtime-layout-switching-modal.png';
 
-[//]: # ()
-[//]: # (Stream UI components are highly customizable and allow you to fully customize styles to your taste. This UI Cookbook will walk you through how to customize each component in your video call.)
+Stream Video React Native UI components are highly customizable and allow you to fully customize/remake the components with ease according to your design requirements.
+
+This UI Cookbook will walk you through how to customize each component in your video call:
+
+<div
+  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.2rem' }}
+>
+  <CookbookCard
+    title="Call Controls"
+    link="../../ui-cookbook/replacing-call-controls"
+    img={CallControlsView}
+  ></CookbookCard>
+  <CookbookCard
+    title="Participants Label"
+    link="../../ui-cookbook/participant-label"
+    img={ParticipantLabel}
+  ></CookbookCard>
+  <CookbookCard
+    title="Connection Quality Indicator"
+    link="../../ui-cookbook/connection-quality-indicator"
+    img={ConnectionQualityIndicator}
+  ></CookbookCard>
+  <CookbookCard
+    title="Incoming Call View"
+    link="../../ui-cookbook/incoming-and-outgoing-call"
+    img={IncomingCallView}
+  ></CookbookCard>
+  <CookbookCard
+    title="Outgoing Call View"
+    link="../../ui-cookbook/incoming-and-outgoing-call"
+    img={OutgoingCallView}
+  ></CookbookCard>
+  <CookbookCard
+    title="Lobby View"
+    link="../../ui-cookbook/lobby-preview"
+    img={LobbyView}
+  ></CookbookCard>
+  <CookbookCard
+    title="Runtime Layout Switching"
+    link="../../ui-cookbook/runtime-layout-switching"
+    img={RuntimeLayoutSwitching}
+  ></CookbookCard>
+</div>

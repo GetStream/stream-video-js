@@ -1,0 +1,360 @@
+---
+id: setup
+title: Setup
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import iosCallkitLibrariesLinkImage from '../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png';
+import iosSearchPaths from '../../assets/06-advanced/04-push-notifications/ios-search-paths.png';
+import iosInfoPlist from '../../assets/06-advanced/04-push-notifications/ios-info-plist.png';
+
+This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps
+
+The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive.
+
+## Add push provider credentials to Stream
+
+Please follow the below guides for adding appropriate push providers to Stream:
+
+- Android - [Firebase Cloud Messaging](../push-providers/firebase/)
+- iOS - [VoIP using Apple Push Notification service (APNs)](../push-providers/apn-voip/)
+
+## Install Dependencies
+
+The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package for interacting with VoIP push notifications on iOS. And finally, you need to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to report incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
+
+<Tabs groupId="package-manager">
+  <TabItem value="Yarn" default>
+
+    ```bash
+    yarn add @react-native-firebase/app @react-native-firebase/messaging react-native-callkeep react-native-voip-push-notification && npx pod-install
+    ```
+
+  </TabItem>
+  <TabItem value="npm">
+
+    ```bash
+    npm install @react-native-firebase/app @react-native-firebase/messaging react-native-voip-push-notification react-native-callkeep && npx pod-install
+    ```
+
+  </TabItem>
+</Tabs>
+
+So what did we install precisely?
+
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
+- `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
+
+## Android-specific setup
+
+The only setup required for Android is to configure the Firebase library. Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#2-android-setup) to generate credentials for your Android app and configure Firebase.
+
+## iOS-specific setup
+
+### Configure Firebase
+
+Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#3-ios-setup) to generate credentials for your iOS app and configure Firebase.
+
+:::note
+
+We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-firebase` library will throw an error if iOS credentials are not added.
+
+:::
+
+### Link required libraries for react native callkeep library
+
+1. In Xcode: Click on `Build Phases` tab, then open `Link Binary With Libraries`.
+2. Add `CallKit.framework` and `Intents.framework` (and mark it Optional).
+
+<ImageShowcase
+  items={[
+    {
+      image: iosCallkitLibrariesLinkImage,
+      caption: (
+        <span>
+          Add <code>CallKit.framework</code> and <code>Intents.framework</code>{' '}
+          (and mark it Optional).
+        </span>
+      ),
+      alt: 'Example of how to use link libraries required for callkeep library',
+    },
+  ]}
+/>
+
+### Add header search path for react native callkeep library
+
+1. In Xcode: Click on `Build Settings` tab, then search for `Header Search Paths`.
+
+2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
+
+<ImageShowcase
+  items={[
+    {
+      image: iosSearchPaths,
+      caption: (
+        <span>
+          Add{' '}
+          <code>
+            $(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep
+          </code>
+        </span>
+      ),
+      alt: 'Example of how to add header search paths that are required for callkeep library',
+    },
+  ]}
+/>
+
+### Allow VoIP background
+
+1. In Xcode: Open `Info.plist` file and add `voip` in `UIBackgroundModes`. As shown below:
+
+<ImageShowcase
+  items={[
+    {
+      image: iosInfoPlist,
+      alt: 'Example of how to add voip in Info.plist',
+    },
+  ]}
+/>
+
+By editing this file with a text editor, you should see:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>voip</string>
+</array>
+```
+
+### Enable push notifications
+
+To receive push notifications, enable the Push Notifications capability in the Xcode Project > Signing & Capabilities pane.
+
+### Update AppDelegate
+
+Update `AppDelegate.m` or `AppDelegate.mm` in Xcode with the following parts for iOS support.
+
+#### Add headers
+
+At the top of the file, right after '#import "AppDelegate.h"', add the following headers to import and invoke the methods for the required libraries.
+
+```c
+// highlight-start
+#import <Firebase.h>
+#import "RNCallKeep.h"
+#import <PushKit/PushKit.h>
+#import "RNVoipPushNotificationManager.h"
+// highlight-end
+```
+
+#### Initialize on app launch
+
+We need to configure the Firebase library, set up the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
+
+```c
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // highlight-next-line
+  [FIRApp configure];
+
+  // add your app name here
+  // highlight-start
+  [RNCallKeep setup:@{
+    @"appName": @"My awesome app"
+    @"supportsVideo": @YES,
+    // pass @YES here if you want the call to be shown in calls history in the built-in dialer app
+    @"includesCallsInRecents": @NO,
+  }];
+  // highlight-end
+
+  // highlight-next-line
+  [RNVoipPushNotificationManager voipRegistration];
+
+  // the rest
+}
+```
+
+#### Add PushKit methods
+
+Add the following method to process the VoIP token from iOS and send it to the `react-native-voip-push-notification` library.
+
+```c
+// handle updated push credentials
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+```
+
+The final method to add is the one that gets invoked when there is a VoIP push notification from Stream. When there is a push notification and if the app is in the background, we want to display an incoming call notification. Add the following method to achieve this,
+
+```c
+// handle incoming pushes
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
+
+  UIApplicationState state = [[UIApplication sharedApplication] applicationState];
+  if (state == UIApplicationStateActive) {
+    // app in foreground, no need to display incoming call through callkeep
+    completion();
+    return;
+  }
+
+  // send event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+
+  // process the payload
+  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+  NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
+  NSString* callId = cidArray[1];
+  NSString *createdCallerName = stream[@"created_by_display_name"];
+
+  // display the incoming call notification
+  [RNCallKeep reportNewIncomingCall: callId
+                             handle: createdCallerName
+                         handleType: @"generic"
+                           hasVideo: YES
+                localizedCallerName: createdCallerName
+                    supportsHolding: YES
+                       supportsDTMF: YES
+                   supportsGrouping: YES
+                 supportsUngrouping: YES
+                        fromPushKit: YES
+                            payload: stream
+              withCompletionHandler: completion];
+}
+```
+
+## Setup the push config for the SDK
+
+The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
+
+### Add the ability to statically navigate to screens in your app
+
+When a user taps on the push notification and the JS engine is not ready, they should still be able to navigate to the screen that shows the active call. You can achieve this by adding the ability to [navigate without the navigation property in the react-navigation library](https://reactnavigation.org/docs/navigating-without-navigation-prop/).
+
+The following is an example implementation of a utility file that has helpers to statically navigate in the app:
+
+```ts title="src/utils/staticNavigation.ts"
+import { createNavigationContainerRef } from '@react-navigation/native';
+
+import { RootStackParamList } from '../navigation/types';
+
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+/**
+ * This is used to run the navigation logic from root level even before the navigation is ready
+ */
+export const staticNavigate = (
+  ...navigationArgs: Parameters<typeof navigationRef.navigate>
+) => {
+  // note the use of setInterval, it is responsible for constantly checking if requirements are met and then navigating
+  const intervalId = setInterval(async () => {
+    // run only when the navigation is ready and add any other requirements (like authentication)
+    if (navigationRef.isReady() && GlobalState.hasAuthentication) {
+      clearInterval(intervalId);
+      navigationRef.navigate(...navigationArgs);
+    }
+  }, 300);
+};
+```
+
+When doing this it is _very important_ to set the `navigationRef` in your navigation container as shown below:
+
+```ts
+import { navigationRef } from './src/utils/staticNavigationUtils';
+
+// highlight-next-line
+<NavigationContainer ref={navigationRef}>
+  <MyAppNavigator />
+</NavigationContainer>;
+```
+
+### Setup the push config
+
+Once we have set up the methods to navigate the app from a static method we are ready to call the `StreamVideoRN.setPushConfig` method. Below is an example of how this method can be called,
+
+```ts title="src/utils/setPushConfig.ts"
+import {
+  StreamVideoClient,
+  StreamVideoRN,
+} from '@stream-io/video-react-native-sdk';
+import { AndroidImportance } from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STREAM_API_KEY } from '../../constants';
+import { staticNavigate } from './staticNavigationUtils';
+
+export function setPushConfig() {
+  StreamVideoRN.setPushConfig({
+    ios: {
+      // add your push_provider_name for iOS that you have setup in Stream dashboard
+      pushProviderName: __DEV__ ? 'apn-video-staging' : 'apn-video-production',
+    },
+    android: {
+      // add your push_provider_name for Android that you have setup in Stream dashboard
+      pushProviderName: __DEV__
+        ? 'firebase-video-staging'
+        : 'firebase-video-production',
+      // configure the notification channel to be used for incoming calls for Android.
+      incomingCallChannel: {
+        id: 'stream_incoming_call',
+        name: 'Incoming call notifications',
+        // This is the advised importance of receiving incoming call notifications.
+        // This will ensure that the notification will appear on-top-of applications.
+        importance: AndroidImportance.HIGH,
+      },
+      // configure the functions to create the texts shown in the notification
+      // for incoming calls in Android.
+      incomingCallNotificationTextGetters: {
+        getTitle: (createdUserName: string) =>
+          `Incoming call from ${createdUserName}`,
+        getBody: (_createdUserName: string) => 'Tap to answer the call',
+      },
+    },
+    // add the callback to be executed a call is accepted, used for navigation
+    navigateAcceptCall: () => {
+      staticNavigate({ name: 'ActiveCallScreen', params: undefined });
+    },
+    // add the callback to be executed when a notification is tapped,
+    // but the user did not press accept or decline, used for navigation
+    navigateToIncomingCall: () => {
+      staticNavigate({ name: 'IncomingCallScreen', params: undefined });
+    },
+    // add the async callback to create a video client
+    // for incoming calls in the background on a push notification
+    createStreamVideoClient: async () => {
+      // note that since the method is async,
+      // you can call your server to get the user data or token or retrieve from offline storage.
+      const userId = await AsyncStorage.getItem('@userId');
+      const userName = await AsyncStorage.getItem('@userName');
+      const token = await AsyncStorage.getItem('@userToken');
+      if (!username || !userToken) return undefined;
+      const user = { id: userId, name: userName, token };
+      return new StreamVideoClient({
+        apiKey: STREAM_API_KEY, // pass your stream api key
+        user,
+        token,
+      });
+    },
+  });
+}
+```
+
+Now, call the method outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+
+```js title="index.js"
+import { AppRegistry } from 'react-native';
+import { setPushConfig } from 'src/utils/setPushConfig';
+import App from './App';
+
+// Set push config
+setPushConfig();
+AppRegistry.registerComponent('app', () => App);
+```
+
+## Troubleshooting
+
+- You can check the "Webhook & Push Logs" section in the Dashboard to see if Notifications were sent by Stream.
+- If you are still having trouble with Push Notifications, please contact support@getstream.io.

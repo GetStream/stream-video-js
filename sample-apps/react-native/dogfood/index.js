@@ -1,22 +1,10 @@
-/** Initialize text encoder/decoder polyfill */
-import 'text-encoding-polyfill';
-/** Initialize URL polyfill */
-import 'react-native-url-polyfill/auto';
-/** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
-import 'intl-pluralrules';
 /** Added 'react-native-gesture-handler' for Chat SDK */
 import 'react-native-gesture-handler';
 
-import { registerGlobals } from 'react-native-webrtc';
-
-import { AppRegistry, Platform } from 'react-native';
+import { AppRegistry } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import App from './App';
 import { name as appName } from './app.json';
-
-if (Platform.OS !== 'web') {
-  registerGlobals();
-}
 
 AppRegistry.registerHeadlessTask(
   'RNCallKeepBackgroundMessage',

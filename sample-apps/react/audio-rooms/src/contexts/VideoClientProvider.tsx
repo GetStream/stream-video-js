@@ -16,18 +16,24 @@ export const VideoClientProvider = ({ children }: ChildrenOnly) => {
     }
 
     if (!user) return;
-    setClient(
-      new StreamVideoClient({
-        apiKey,
-        tokenProvider,
-        token,
-        user: {
-          id: user.id,
-          image: user.imageUrl,
-          name: user.name,
-        },
-      }),
-    );
+    const _client = new StreamVideoClient({
+      apiKey,
+      tokenProvider,
+      token,
+      user: {
+        id: user.id,
+        image: user.imageUrl,
+        name: user.name,
+      },
+    });
+    setClient(_client);
+
+    return () => {
+      _client
+        ?.disconnectUser()
+        .catch((error) => console.log(`Couldn't disconnect user`, error));
+      setClient(undefined);
+    };
   }, [apiKey, token, tokenProvider, user]);
 
   if (!client) return null;

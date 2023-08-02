@@ -1,6 +1,6 @@
-import de from './de.json';
 import en from './en.json';
-import es from './es.json';
 
-const translations = { de, en, es };
-export default translations;
+import { translations as sdkTranslations } from '@stream-io/video-react-native-sdk';
+
+const appTranslations = { en: { ...sdkTranslations.en, ...en } };
+export default appTranslations;

@@ -8,6 +8,8 @@ import {
 } from 'unique-names-generator';
 
 import {
+  Call,
+  CallingState,
   GetEdgesResponse,
   StreamCall,
   StreamVideo,
@@ -63,9 +65,21 @@ const Init = () => {
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
 
-  const [client] = useState(
-    () => new StreamVideoClient({ apiKey, user, token, tokenProvider }),
-  );
+  const [client, setClient] = useState<StreamVideoClient>();
+
+  useEffect(() => {
+    const _client = new StreamVideoClient({
+      apiKey,
+      user,
+      token,
+      tokenProvider,
+    });
+    setClient(_client);
+
+    return () => {
+      _client?.disconnectUser();
+    };
+  }, []);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -84,7 +98,19 @@ const Init = () => {
     window.location.search = `?id=${id}`;
     return id;
   });
-  const [activeCall] = useState(() => client.call(callType, callId));
+  const [activeCall, setActiveCall] = useState<Call>();
+
+  useEffect(() => {
+    const call = client?.call(callType, callId);
+    setActiveCall(call);
+
+    return () => {
+      if (call?.state?.callingState !== CallingState.LEFT) {
+        call?.leave();
+      }
+      setActiveCall(undefined);
+    };
+  }, [client]);
 
   useEffect(() => {
     setSteps(tour);
@@ -103,6 +129,9 @@ const Init = () => {
     let markerTimer: ReturnType<typeof setTimeout>;
 
     async function fetchEdges() {
+      if (!client) {
+        return;
+      }
       const response: GetEdgesResponse = await client.edges();
 
       if (!edges) {
@@ -121,7 +150,7 @@ const Init = () => {
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
     try {
-      await activeCall.join({ create: true });
+      await activeCall?.join({ create: true });
 
       setIsCallActive(true);
       setIsJoiningCall(false);
@@ -131,7 +160,11 @@ const Init = () => {
   }, [activeCall]);
 
   if (callHasEnded) {
-    return <EndCallView />;
+    return <EndCallView callId={callId} />;
+  }
+
+  if (!client || !activeCall) {
+    return null;
   }
 
   if (storedDeviceSettings) {
@@ -155,15 +188,17 @@ const Init = () => {
               <NotificationProvider>
                 <PanelProvider>
                   <TourProvider>
-                    <MeetingView
-                      logo={logo}
-                      call={activeCall}
-                      callId={callId}
-                      callType={callType}
-                      isCallActive={isCallActive}
-                      setCallHasEnded={setCallHasEnded}
-                      chatClient={chatClient}
-                    />
+                    {activeCall && (
+                      <MeetingView
+                        logo={logo}
+                        call={activeCall}
+                        callId={callId}
+                        callType={callType}
+                        isCallActive={isCallActive}
+                        setCallHasEnded={setCallHasEnded}
+                        chatClient={chatClient}
+                      />
+                    )}
                   </TourProvider>
                 </PanelProvider>
               </NotificationProvider>

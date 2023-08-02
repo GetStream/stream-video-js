@@ -4,6 +4,7 @@ import {
   Restricted,
   useCall,
   useCallCallingState,
+  useI18n,
   useIsCallLive,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
@@ -16,6 +17,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
   // and it will emit a new value whenever the call goes live or stops being live.
   // we can use it to update the button text or adjust any other UI elements
   const isLive = useIsCallLive();
+  const { t } = useI18n();
 
   const callingState = useCallCallingState();
 
@@ -40,7 +42,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
             requiredGrants={[OwnCapability.END_CALL]}
           >
             <Button
-              title={'Stop Live and Leave'}
+              title={t('Stop Live and Leave')}
               onPress={async () => {
                 try {
                   await call.stopLive();
@@ -53,7 +55,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
           </Restricted>
           {canJoin && (
             <Button
-              title={'Join the live call'}
+              title={t('Join the live call')}
               onPress={async () => {
                 try {
                   await call.join();
@@ -72,7 +74,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
           requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
         >
           <Button
-            title={'Start Live and Join'}
+            title={t('Start Live and Join')}
             onPress={async () => {
               try {
                 await call.goLive();
@@ -87,7 +89,7 @@ export default function LiveButtons({ onJoined }: { onJoined: () => void }) {
       )}
       {hasJoined && (
         <Button
-          title={'Leave quietly'}
+          title={t('Leave quietly')}
           onPress={async () => {
             try {
               await call.leave();

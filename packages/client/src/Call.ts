@@ -72,6 +72,7 @@ import {
 import {
   BehaviorSubject,
   debounce,
+  filter,
   map,
   pairwise,
   Subject,
@@ -371,10 +372,13 @@ export class Call {
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
-    // TODO: handle case when leave is called during JOINING
     const callingState = this.state.callingState;
     if (callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
+    }
+
+    if (callingState === CallingState.JOINING) {
+      await this.assertCallJoined();
     }
 
     if (this.ringing) {
@@ -497,6 +501,15 @@ export class Call {
     }
 
     return response;
+  };
+
+  /**
+   * Creates a call
+   *
+   * @param data the data to create the call with.
+   */
+  create = async (data?: GetOrCreateCallRequest) => {
+    return this.getOrCreate(data);
   };
 
   /**
@@ -930,14 +943,6 @@ export class Call {
     });
   };
 
-  private assertCallJoined = () => {
-    return new Promise<void>((resolve) => {
-      this.state.callingState$
-        .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-        .subscribe(() => resolve());
-    });
-  };
-
   /**
    * Starts publishing the given video stream to the call.
    * The stream will be stopped if the user changes an input device, or if the user leaves the call.
@@ -1223,6 +1228,17 @@ export class Call {
     return this.publisher?.updateVideoPublishQuality(enabledRids);
   };
 
+  private assertCallJoined = () => {
+    return new Promise<void>((resolve) => {
+      this.state.callingState$
+        .pipe(
+          takeWhile((state) => state !== CallingState.JOINED, true),
+          filter((s) => s === CallingState.JOINED),
+        )
+        .subscribe(() => resolve());
+    });
+  };
+
   /**
    * Sends a reaction to the other call participants.
    *
@@ -1428,10 +1444,11 @@ export class Call {
   /**
    * Starts the livestreaming of the call.
    */
-  goLive = async () => {
+  goLive = async (params?: { notify?: boolean }) => {
     return this.streamClient.post<GoLiveResponse>(
       `${this.streamClientBasePath}/go_live`,
       {},
+      params,
     );
   };
 
@@ -1510,11 +1527,11 @@ export class Call {
    * @param request
    * @returns
    */
-  queryMembers = (request: Omit<QueryMembersRequest, 'type' | 'id'>) => {
+  queryMembers = (request?: Omit<QueryMembersRequest, 'type' | 'id'>) => {
     return this.streamClient.post<QueryMembersResponse, QueryMembersRequest>(
       '/call/members',
       {
-        ...request,
+        ...(request || {}),
         id: this.id,
         type: this.type,
       },

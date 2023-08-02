@@ -52,7 +52,7 @@ export const getGenericSdp = async (
   preferredVideoCodec: string | undefined,
 ) => {
   const tempPc = new RTCPeerConnection();
-  const videoTransceiver = tempPc.addTransceiver('video', { direction });
+  tempPc.addTransceiver('video', { direction });
 
   // if ('setCodecPreferences' in videoTransceiver) {
   //   const videoCodecPreferences = getPreferredCodecs(
@@ -62,7 +62,7 @@ export const getGenericSdp = async (
   //   videoTransceiver.setCodecPreferences([...(videoCodecPreferences ?? [])]);
   // }
 
-  const audioTransceiver = tempPc.addTransceiver('audio', { direction });
+  tempPc.addTransceiver('audio', { direction });
   const preferredAudioCodec = isRedEnabled ? 'red' : 'opus';
   const audioCodecToRemove = !isRedEnabled ? 'red' : undefined;
 

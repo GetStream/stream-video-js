@@ -17,7 +17,6 @@ on:
       - '.github/workflows/deploy-sample-apps.yml'
       - 'sample-apps/react/**'
       - 'packages/**'
-      - '!packages/angular-sdk/**'
       - '!packages/react-native-sdk/**'
       - '!packages/react-sdk/docusaurus/**'
   workflow_dispatch:
@@ -38,8 +37,6 @@ jobs:
             populate-tokens: true
           - name: egress-composite
             project-id: prj_y9JDolEfVxWC50c4h71UxIL7XNXz
-          - name: react-video-demo
-            project-id: prj_8vo9hxdzh9FnRjO950qpt1fwUuPl
           - name: livestream-app-react
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
@@ -54,10 +51,6 @@ jobs:
       VITE_STREAM_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
       VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
-      VITE_VIDEO_USER_ID: ${{vars.VIDEO_DEMO_USER_ID}}
-      VITE_VIDEO_USER_NAME: ${{vars.VIDEO_DEMO_USER_NAME}}
-      VITE_VIDEO_USER_TOKEN: ${{secrets.VIDEO_DEMO_USER_TOKEN}}
-      VITE_MAPBOX_GL_TOKEN: ${{secrets.VIDEO_DEMO_MAPBOX_GL_TOKEN}}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

@@ -5,8 +5,8 @@
 ## **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
-- [React Video Tutorial](/sample-apps/react/stream-video-react-tutorial)
-- [Sample application](../../sample-apps/react/stream-video-react-tutorial)
+- [React Video Tutorial](https://getstream.io/video/docs/react/tutorials/video-calling/)
+- [Sample application](https://getstream.io/video/demos/)
 
 ## What is Stream?
 
@@ -56,7 +56,7 @@ Here are some of the features we support:
 ### 0.2 milestone
 
 - [ ] Fast-reconnects
-- [ ] ICE restarts
+- [X] ICE restarts
 - [ ] SFU retries
 - [ ] Enhanced SDK build system
 - [ ] Hardware-accelerated video encoding on supported platforms

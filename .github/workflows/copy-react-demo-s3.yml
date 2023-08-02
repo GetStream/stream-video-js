@@ -5,7 +5,9 @@ on:
     branches:
       - main
     paths:
+      - '.github/workflows/copy-react-demo-s3.yml'
       - 'sample-apps/react/react-video-demo/**'
+      - '!packages/**' # avoid duplicated deployment if react-sdk also changed
   pull_request:
     types:
       - opened
