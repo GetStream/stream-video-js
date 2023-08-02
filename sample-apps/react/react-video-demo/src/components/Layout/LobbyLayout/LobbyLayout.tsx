@@ -7,6 +7,7 @@ import LatencyMap from '../../LatencyMap';
 
 import styles from './LobbyLayout.module.css';
 import { MobileAppBanner } from '../../Header/MobileAppBanner';
+import { useUserContext } from '../../../contexts/UserContext';
 
 export type Props = {
   className?: string;
@@ -21,7 +22,8 @@ export const LobbyLayout: FC<Props> = ({
   children,
   edges,
 }) => {
-  const shouldRenderMobileAppBanner = isAndroid;
+  const { qr } = useUserContext();
+  const shouldRenderMobileAppBanner = isAndroid && qr;
   const [shouldCenterBody, setShouldCenterBody] = useState(
     !shouldRenderMobileAppBanner,
   );
