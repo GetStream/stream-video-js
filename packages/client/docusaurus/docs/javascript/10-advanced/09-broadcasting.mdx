@@ -4,6 +4,12 @@ title: Broadcasting
 description: Approaches to broadcasting
 ---
 
+:::warning
+
+Some of this is React specific
+
+:::
+
 Broadcasting serves as a means of transmitting live or pre-recorded content to a wide audience.
 
 We can choose from two approaches to broadcasting the media:
@@ -18,15 +24,18 @@ We have built a [livestream app tutorial](../../tutorials/livestream) that relie
 :::
 
 ## Call type for broadcasting
+
 Stream infrastructure recognizes few pre-built call types. Among them, the type [`livestream` type](../../guides/configuring-call-types#livestream) is the best suited for broadcasting events. When a `livestream` call is created, it is set to `backstage` mode by default.
 
 ## Starting and stopping the broadcasting
+
 We have the following `Call` methods at our disposal to start and stop the broadcasting:
 
 ```ts
-call.startBroadcasting()
-call.stopBroadcasting()
+call.startBroadcasting();
+call.stopBroadcasting();
 ```
+
 Once started broadcasting, the data source URL is available through `playlist_url` property accessible through the `Call` state:
 
 ```ts
@@ -39,8 +48,7 @@ const YourComponent = () => {
   const { playlist_url } = metadata.egress.hls;
 
   // omitted code ...
-}
-
+};
 ```
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
@@ -48,5 +56,3 @@ To play the video over HLS, a third-party library is required (for example [HLS.
 :::important
 In order the data to be broadcasted to the participants, the host side has to invoke `call.goLive()` alongisde `call.startBroadcasting()`.
 :::
-
-
