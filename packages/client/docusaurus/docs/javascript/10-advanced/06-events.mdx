@@ -27,7 +27,7 @@ These events are related to a specific call. Some of these events are only deliv
 1. Call the `queryCalls` method with the `watch` option set to `true`:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
@@ -40,7 +40,7 @@ client.queryCalls({
 2. Join a call:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
@@ -50,7 +50,7 @@ client.call('default', 'test-call').join();
 3. Watch a call:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
@@ -103,7 +103,7 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to all events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
@@ -119,7 +119,7 @@ unsubscribe();
 Subscribing to `call.created` events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
@@ -147,7 +147,7 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to `call.reaction_new` event.
 
 ```typescript
-import { Call } from '@stream-io/video-react-sdk';
+import { Call } from '@stream-io/video-client';
 
 let call: Call;
 
