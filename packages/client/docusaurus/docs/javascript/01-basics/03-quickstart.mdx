@@ -24,7 +24,7 @@ const client = new StreamVideoClient({
   user,
 });
 
-const call = client.call('default', 'my-first-call');
+const call = client.call('default', 'call-id');
 
 call.join({ create: true });
 ```
