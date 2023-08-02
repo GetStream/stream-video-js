@@ -3,6 +3,12 @@ title: Call & Participant State
 description: How the state is exposed
 ---
 
+:::warning
+
+This is React specific, the pure JS client uses [RxJS](https://rxjs.dev/) Observables defined in `client.state` and `call.state`.
+
+:::
+
 You can access call, participant and client state using hooks. These hooks are reactive (their value is updated on WebSocket events and API calls).
 
 ## Call state

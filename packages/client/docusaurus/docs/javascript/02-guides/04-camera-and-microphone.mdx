@@ -4,6 +4,12 @@ title: Camera & Microphone
 description: Docs on the media manager
 ---
 
+:::warning
+
+This is React specific, the pure JS client uses helpers defined here: https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/devices/devices.ts.
+
+:::
+
 Handling audio and video devices in a web application means working with [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream), [`MediaDeviceInfo`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo) and other WebRTC API objects. We did our best to hide this complexity inside the `MediaDevicesProvider`. The easiest way to set up the provider is by using the [`StreamCall`](../../ui-components/core/stream-call), but it's also possible to use the `MediaDevicesProvider` directly.
 
 ## Camera management
