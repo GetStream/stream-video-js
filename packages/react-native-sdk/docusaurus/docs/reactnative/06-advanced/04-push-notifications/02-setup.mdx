@@ -1,15 +1,14 @@
 ---
-id: push-notifications
-title: Push Notifications
+id: setup
+title: Setup
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import iosCallkitLibrariesLinkImage from '../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png';
-import iosSearchPaths from '../assets/06-advanced/04-push-notifications/ios-search-paths.png';
-import iosInfoPlist from '../assets/06-advanced/04-push-notifications/ios-info-plist.png';
-import DashboardFirebaseConfig from '../../../shared/_dashboard-firebase-config.md';
+import iosCallkitLibrariesLinkImage from '../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png';
+import iosSearchPaths from '../../assets/06-advanced/04-push-notifications/ios-search-paths.png';
+import iosInfoPlist from '../../assets/06-advanced/04-push-notifications/ios-info-plist.png';
 
 This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps
 
@@ -17,9 +16,10 @@ The normal user experience in a ringing app, when a user receives a call, is to 
 
 ## Add push provider credentials to Stream
 
-// TODO - below we refer to shared docs about adding Firebase credentials. But the docs still say chat and must be updated. Also, there are no shared docs yet about adding APN certificates to Stream. That must be added here once it is present.
+Please follow the below guides for adding appropriate push providers to Stream:
 
-<DashboardFirebaseConfig />
+- Android - [Firebase Cloud Messaging](../push-providers/firebase/)
+- iOS - [VoIP using Apple Push Notification service (APNs)](../push-providers/apn-voip/)
 
 ## Install Dependencies
 
