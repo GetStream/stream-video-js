@@ -24,8 +24,8 @@ jobs:
       - name: Push JavaScript documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: ${{ github.ref == 'refs/heads/main' && 'staging' || 'staging' }}
-          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'staging' || 'staging' }}
+          target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
+          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/client/docusaurus'
         env:
