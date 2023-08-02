@@ -273,7 +273,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
                 <VideoSlash color={theme.light.error} />
               </View>
             )}
-            {participant.pinnedAt && (
+            {participant.pin && participant.pin.isLocalPin && (
               <Pressable
                 style={[styles.svgContainerStyle, theme.icon.xs]}
                 onPress={unPinParticipantHandler}

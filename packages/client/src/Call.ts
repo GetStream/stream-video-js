@@ -904,7 +904,7 @@ export class Call {
       this.state.setParticipantCount(participantCount?.total || 0);
       this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
       this.state.setStartedAt(startedAt);
-      this.state.setPins(pins);
+      this.state.setServerSidePins(pins);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
@@ -1526,9 +1526,10 @@ export class Call {
    */
   pin = (sessionId: string) => {
     this.state.updateParticipant(sessionId, {
-      pinnedAt: Date.now(),
-      // set to true, as `pin` is user action
-      isPinningSetByLocalUser: true,
+      pin: {
+        isLocalPin: true,
+        pinnedAt: Date.now(),
+      },
     });
   };
 
@@ -1539,9 +1540,7 @@ export class Call {
    */
   unpin = (sessionId: string) => {
     this.state.updateParticipant(sessionId, {
-      pinnedAt: undefined,
-      // set to true, as `unpin` is user action
-      isPinningSetByLocalUser: true,
+      pin: undefined,
     });
   };
 

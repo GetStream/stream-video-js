@@ -90,7 +90,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   };
 
   const toggleParticipantPinnedAt = () => {
-    if (participant.pinnedAt) {
+    if (participant.pin) {
       call?.unpin(participant.sessionId);
     } else {
       call?.pin(participant.sessionId);
@@ -177,11 +177,14 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
         ]
       : [];
 
-  const pinParticipant: CallParticipantOptionType | null = {
-    icon: <Pin color={theme.dark.text_high_emphasis} />,
-    title: participant.pinnedAt ? 'Unpin' : 'Pin',
-    onPressHandler: toggleParticipantPinnedAt,
-  };
+  const pinParticipant: CallParticipantOptionType | null =
+    !participant.pin || participant.pin.isLocalPin
+      ? {
+          icon: <Pin color={theme.dark.text_high_emphasis} />,
+          title: participant.pin ? 'Unpin' : 'Pin',
+          onPressHandler: toggleParticipantPinnedAt,
+        }
+      : null;
 
   const options: (CallParticipantOptionType | null)[] = [
     pinParticipant,

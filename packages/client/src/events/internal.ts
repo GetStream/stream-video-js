@@ -108,6 +108,6 @@ export const watchPinsUpdated = (state: CallState) => {
   return function onPinsUpdated(e: SfuEvent) {
     if (e.eventPayload.oneofKind !== 'pinsUpdated') return;
     const { pins } = e.eventPayload.pinsUpdated;
-    state.setPins(pins);
+    state.setServerSidePins(pins);
   };
 };

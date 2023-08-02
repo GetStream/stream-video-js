@@ -43,7 +43,7 @@ export const CallParticipantListingItem = ({
   const isVideoOn = participant.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
-  const isPinned = !!participant.pinnedAt;
+  const isPinned = !!participant.pin;
 
   const { t } = useI18n();
 
@@ -145,7 +145,7 @@ export const ParticipantActionsContextMenu = ({
   const activeCall = useCall();
   const { t } = useI18n();
 
-  const { pinnedAt, publishedTracks, sessionId, userId } = participant;
+  const { pin, publishedTracks, sessionId, userId } = participant;
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -181,7 +181,7 @@ export const ParticipantActionsContextMenu = ({
   };
 
   const toggleParticipantPinnedAt = () => {
-    if (pinnedAt) {
+    if (pin) {
       activeCall?.unpin(sessionId);
     } else {
       activeCall?.pin(sessionId);
@@ -262,17 +262,17 @@ export const ParticipantActionsContextMenu = ({
 
   return (
     <GenericMenu>
-      <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
-        <Icon icon="pin" />
-        {pinnedAt ? t('Unpin') : t('Pin')}
-      </GenericMenuButtonItem>
+      {(!pin || pin.isLocalPin) && (
+        <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
+          <Icon icon="pin" />
+          {pin ? t('Unpin') : t('Pin')}
+        </GenericMenuButtonItem>
+      )}
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
         <GenericMenuButtonItem onClick={pinForEveryone}>
           <Icon icon="pin" />
           {t('Pin for everyone')}
         </GenericMenuButtonItem>
-      </Restricted>
-      <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
         <GenericMenuButtonItem onClick={unpinForEveryone}>
           <Icon icon="pin" />
           {t('Unpin for everyone')}

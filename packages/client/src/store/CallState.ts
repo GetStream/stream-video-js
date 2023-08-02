@@ -287,7 +287,7 @@ export class CallState {
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => p.pinnedAt)),
+      map((participants) => participants.filter((p) => !!p.pin)),
     );
 
     this.dominantSpeaker$ = this.participants$.pipe(
@@ -684,26 +684,38 @@ export class CallState {
    *
    * @param pins the latest pins from the server.
    */
-  setPins = (pins: Pin[]) => {
+  setServerSidePins = (pins: Pin[]) => {
     const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
-      (lookup, pin, pinIndex) => {
-        lookup[pin.sessionId] = pinIndex + 1; // avoid setting to 0
+      (lookup, pin) => {
+        lookup[pin.sessionId] = Date.now();
         return lookup;
       },
       {},
     );
 
-    this.setParticipants((participants) =>
+    return this.setParticipants((participants) =>
       participants.map((participant) => {
-        // the local user might have overridden the pinning, skip updating
-        if (participant.isPinningSetByLocalUser) return participant;
-        // unpinned participants will have `undefined` pinning order
-        // as they don't exist in the lookup table
-        const pinningOrder = pinsLookup[participant.sessionId];
-        return {
-          ...participant,
-          pinnedAt: pinningOrder,
-        };
+        const serverSidePinnedAt = pinsLookup[participant.sessionId];
+        // the participant is newly pinned
+        if (serverSidePinnedAt) {
+          return {
+            ...participant,
+            pin: {
+              isLocalPin: false,
+              pinnedAt: serverSidePinnedAt,
+            },
+          };
+        }
+        // the participant is no longer pinned server side
+        // we need to reset the pin
+        if (participant.pin && !participant.pin.isLocalPin) {
+          return {
+            ...participant,
+            pin: undefined,
+          };
+        }
+        // no changes to be applied
+        return participant;
       }),
     );
   };
