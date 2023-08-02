@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.348](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.347...@stream-io/video-react-native-sdk-0.0.1-alpha.348) (2023-08-02)
+
+
+### Features
+
+* **react-native:** add push provider setup docs ([#889](https://github.com/GetStream/stream-video-js/issues/889)) ([d196a9b](https://github.com/GetStream/stream-video-js/commit/d196a9b3905372277ce3df029f3b231f98d45838))
+
+
+
 ## [0.0.1-alpha.347](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.346...@stream-io/video-react-native-sdk-0.0.1-alpha.347) (2023-08-01)
 
 
