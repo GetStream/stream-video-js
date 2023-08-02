@@ -1,5 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, ViewProps } from 'react-native';
+import {
+  LayoutRectangle,
+  StyleSheet,
+  Text,
+  View,
+  ViewProps,
+} from 'react-native';
 import { Chat, Reaction } from '../../icons';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
@@ -15,6 +21,8 @@ import {
   HangUpCallButton,
   HangUpCallButtonType,
 } from '../utility/internal/HangupCallButton';
+import { ReactionsPopup } from './ReactionsPopup';
+import { StreamVideoRN } from '../../utils';
 
 /**
  * The props for the Chat Button in the Call Control View.
@@ -54,29 +62,50 @@ export const CallControlsView = ({
   hangUpCallButton,
   style,
 }: CallControlsViewType) => {
-  const [isReactionModalActive, setIsReactionModalActive] =
-    useState<boolean>(false);
+  const [showReactionsPopup, setShowReactionsPopup] = useState<boolean>(false);
 
-  const onOpenReactionsModalHandler = useCallback(() => {
-    setIsReactionModalActive(true);
-  }, [setIsReactionModalActive]);
+  const onOpenReactionsPopupHandler = useCallback(() => {
+    setShowReactionsPopup(true);
+  }, []);
+
+  const onCloseReactionsPopupHandler = useCallback(() => {
+    setShowReactionsPopup(false);
+  }, []);
+
+  const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
+    useState<LayoutRectangle>();
+
+  // This is to make sure that the reaction popup is always rendered above the reactions button
+  const onReactionsButtonLayout = (layout: LayoutRectangle) => {
+    setReactionsButtonLayoutRectangle((prev) => {
+      if (
+        prev &&
+        prev.width === layout.width &&
+        prev.height === layout.height &&
+        prev.x === layout.x &&
+        prev.y === layout.y
+      ) {
+        return prev;
+      }
+      return layout;
+    });
+  };
 
   return (
     <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           accessibilityLabel={A11yButtons.REACTION}
-          onPress={onOpenReactionsModalHandler}
+          onPress={onOpenReactionsPopupHandler}
           color={theme.light.static_white}
           style={styles.button}
+          onLayout={(event) =>
+            onReactionsButtonLayout(event.nativeEvent.layout)
+          }
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
       </Restricted>
-      <ReactionModal
-        isReactionModalActive={isReactionModalActive}
-        setIsReactionModalActive={setIsReactionModalActive}
-      />
       {chatButton && (
         <View>
           <CallControlsButton
@@ -96,6 +125,14 @@ export const CallControlsView = ({
       <ToggleAudioButton />
       <ToggleCameraFaceButton />
       <HangUpCallButton onPressHandler={hangUpCallButton?.onPressHandler} />
+
+      {showReactionsPopup && (
+        <ReactionsPopup
+          reactions={StreamVideoRN.getConfig().supportedReactions}
+          reactionsButtonLayoutReactangle={reactionsButtonLayoutRectangle}
+          onRequestedClose={onCloseReactionsPopupHandler}
+        />
+      )}
     </View>
   );
 };
@@ -157,5 +194,9 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     textAlign: 'center',
     ...theme.fonts.bodyBold,
+  },
+  reactionsPopup: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.9)',
   },
 });
