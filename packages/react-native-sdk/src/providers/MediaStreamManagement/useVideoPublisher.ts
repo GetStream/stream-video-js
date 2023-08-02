@@ -11,6 +11,7 @@ import {
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../../contexts/StreamVideoContext';
+import { useAppStateListener } from '../../utils/hooks';
 
 /**
  * @internal
@@ -56,6 +57,13 @@ export const useVideoPublisher = ({
       console.log('Failed to publish video stream', e);
     }
   }, [call, videoDeviceId]);
+
+  /** Attempt to republish video stream when app comes back to foreground */
+  useAppStateListener(() => {
+    if (isPublishingVideo) {
+      publishVideoStream();
+    }
+  }, undefined);
 
   const lastVideoDeviceId = useRef(videoDeviceId);
   useEffect(() => {
