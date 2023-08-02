@@ -4,12 +4,6 @@ title: Broadcasting
 description: Approaches to broadcasting
 ---
 
-:::warning
-
-Some of this is React specific
-
-:::
-
 Broadcasting serves as a means of transmitting live or pre-recorded content to a wide audience.
 
 We can choose from two approaches to broadcasting the media:
@@ -18,10 +12,6 @@ We can choose from two approaches to broadcasting the media:
 2. [WebRTC](https://webrtc.org/) - lower latency, less reliability
 
 It is up to the integrators to decide, what approach will be used in their apps for the audience to consume the streams.
-
-:::tip
-We have built a [livestream app tutorial](../../tutorials/livestream) that relies on the broadcasting feature. The demo expands on how to implement both, the HLS and the WebRTC approach to streaming.
-:::
 
 ## Call type for broadcasting
 
@@ -39,20 +29,11 @@ call.stopBroadcasting();
 Once started broadcasting, the data source URL is available through `playlist_url` property accessible through the `Call` state:
 
 ```ts
-import { useCallMetadata } from '@stream-io/video-react-sdk';
-
 // omitted code ...
-
-const YourComponent = () => {
-  const metadata = useCallMetadata();
-  const { playlist_url } = metadata.egress.hls;
-
-  // omitted code ...
-};
+const call: Call;
+const { playlist_url } = call.metadata.egress.hls;
 ```
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
 
-:::important
-In order the data to be broadcasted to the participants, the host side has to invoke `call.goLive()` alongisde `call.startBroadcasting()`.
-:::
+If you want to use WebRTC based streaming, your viewers would have to follow the [join steps](../../guides/joining-and-creating-calls) discussed previously.
