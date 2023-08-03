@@ -32,7 +32,7 @@ export class RetryError extends Error {
 }
 
 /**
- * Function which wraps asynchronous functions with error handler which checks whether response with code `200`
+ * Function which wraps asynchronous RPC methods with error handler which checks whether response with code `200`
  * holds error data, if it does, it throws `RpcError` to prevent false positives for `runWithRetry` retry handler.
  */
 export const handleFalsePositiveResponse = <
@@ -158,6 +158,9 @@ export const RetryPreset = {
   }),
 } as const;
 
+/**
+ * `runWithRetry` wrapper with pre-defined strategies (`RetryPreset`) and built in `handleFalsePositiveResponse` for RPC methods.
+ */
 export const retryable = <
   T extends FunctionToRetry,
   E extends keyof typeof RetryPreset,
