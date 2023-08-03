@@ -1,5 +1,12 @@
-import React from 'react';
-import { LayoutRectangle, Pressable, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  LayoutRectangle,
+  Pressable,
+  StyleSheet,
+  Text,
+  Animated,
+  Easing,
+} from 'react-native';
 import { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 
 interface Props {
@@ -7,6 +14,8 @@ interface Props {
   reactionsButtonLayoutRectangle?: LayoutRectangle;
   onRequestedClose: () => void;
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const TOP_PADDING = 4;
 const REACTION_MARGIN_BOTTOM = 4;
@@ -20,41 +29,66 @@ export const ReactionsPopup = ({
   const size = Math.max(48, reactionsButtonLayoutRectangle?.width ?? 0);
   const reactionItemSize = size * 0.9; // 90% of the size of the reactions button
   const popupHeight =
+    // the top padding
+    TOP_PADDING +
+    // take margins into account
     REACTION_MARGIN_BOTTOM * reactions.length +
+    // the size of the reaction icon items
     reactionItemSize * reactions.length +
-    size +
-    TOP_PADDING;
+    // the size of the reaction button (to show transparent background)
+    size;
   const reactionsPopupStyle = {
+    // we should show the popup right above the reactions button
     top: (reactionsButtonLayoutRectangle?.y ?? 0) - popupHeight + size,
+    // from the same side horizontal coordinate of the reactions button
     left: reactionsButtonLayoutRectangle?.x,
+    // the width of the popup should be the same as the reactions button
     width: size,
     height: popupHeight,
+    // the popup should be rounded as the reactions button
     borderRadius: size / 2,
   };
+
+  const elasticAnimRef = useRef(new Animated.Value(0.5)); // Initial value for scale: 0.5
+
+  useEffect(() => {
+    Animated.timing(elasticAnimRef.current, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+      easing: Easing.elastic(3),
+    }).start();
+  }, []);
+
   const reactionItemStyle = {
     height: reactionItemSize,
     width: reactionItemSize,
     borderRadius: reactionItemSize / 2,
+    transform: [
+      {
+        scaleY: elasticAnimRef.current,
+      },
+      {
+        scaleX: elasticAnimRef.current,
+      },
+    ],
   };
+
   return (
     <Pressable
       style={[styles.reactionsPopup, reactionsPopupStyle]}
       onPress={onRequestedClose}
     >
       {reactions.map((reaction) => (
-        <Pressable
+        <AnimatedPressable
           key={reaction.emoji_code}
-          style={(state) => [
-            styles.reactionItem,
-            reactionItemStyle,
-            state.pressed ? { opacity: 0.2 } : null,
-          ]}
+          style={[styles.reactionItem, reactionItemStyle]}
           onPress={() => {
             onRequestedClose();
           }}
         >
           <Text style={styles.reactionText}>{reaction.icon}</Text>
-        </Pressable>
+        </AnimatedPressable>
       ))}
     </Pressable>
   );
@@ -64,14 +98,10 @@ const styles = StyleSheet.create({
   reactionsPopup: {
     position: 'absolute',
     alignItems: 'center',
-    // justifyContent: 'space-evenly',
-    // justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.9)',
+    backgroundColor: '#000000E6',
     paddingTop: TOP_PADDING,
   },
   reactionItem: {
-    // backgroundColor: 'rgba(36,38,42)',
-    // backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: REACTION_MARGIN_BOTTOM,
