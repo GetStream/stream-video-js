@@ -262,18 +262,25 @@ export const ParticipantActionsContextMenu = ({
 
   return (
     <GenericMenu>
-      {(!pin || pin.isLocalPin) && (
-        <GenericMenuButtonItem onClick={toggleParticipantPinnedAt}>
-          <Icon icon="pin" />
-          {pin ? t('Unpin') : t('Pin')}
-        </GenericMenuButtonItem>
-      )}
+      <GenericMenuButtonItem
+        onClick={toggleParticipantPinnedAt}
+        disabled={pin && !pin.isLocalPin}
+      >
+        <Icon icon="pin" />
+        {pin ? t('Unpin') : t('Pin')}
+      </GenericMenuButtonItem>
       <Restricted requiredGrants={[OwnCapability.PIN_FOR_EVERYONE]}>
-        <GenericMenuButtonItem onClick={pinForEveryone}>
+        <GenericMenuButtonItem
+          onClick={pinForEveryone}
+          disabled={pin && !pin.isLocalPin}
+        >
           <Icon icon="pin" />
           {t('Pin for everyone')}
         </GenericMenuButtonItem>
-        <GenericMenuButtonItem onClick={unpinForEveryone}>
+        <GenericMenuButtonItem
+          onClick={unpinForEveryone}
+          disabled={!pin || pin.isLocalPin}
+        >
           <Icon icon="pin" />
           {t('Unpin for everyone')}
         </GenericMenuButtonItem>
