@@ -2,6 +2,11 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.10...@stream-io/video-react-bindings-0.1.11) (2023-08-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
 ### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.9...@stream-io/video-react-bindings-0.1.10) (2023-07-28)
 
 ### Dependency Updates

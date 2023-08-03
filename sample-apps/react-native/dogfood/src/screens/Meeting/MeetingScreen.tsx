@@ -25,9 +25,15 @@ export const MeetingScreen = (props: Props) => {
   }, [callId, callType, client]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
-      console.error('Failed to get or create call', err);
-    });
+    const getOrCreateCall = async () => {
+      try {
+        await call?.getOrCreate();
+      } catch (error) {
+        console.error('Failed to get or create call', error);
+      }
+    };
+
+    getOrCreateCall();
   }, [call]);
 
   if (!call) {

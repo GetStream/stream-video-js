@@ -1,0 +1,251 @@
+---
+title: Quickstart
+description: How to Build a Web Video Calling App
+---
+
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
+This tutorial gives you a quick overview of how Stream's video JavaScript client works.
+
+The code snippets use TypeScript, but you can use the library with JavaScript as well.
+
+## Client setup & Calls
+
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
+
+```typescript
+import { StreamVideoClient, User } from '@stream-io/video-client';
+
+const apiKey = 'your-api-key';
+const token = 'authentication-token';
+const user: User = { id: 'user-id' };
+
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+});
+
+const call = client.call('default', 'call-id');
+
+call.join({ create: true });
+```
+
+`default` is a call type. There are 4 built-in [call types](../../guides/configuring-call-types/) and you can also create your own. The call type controls the permissions and which features are enabled.
+
+The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+
+For an easy setup, you can copy the following credentials to use for the tutorial. It also helps with joining multiple participants:
+
+<TokenSnippet sampleApp="meeting" />
+
+## Publish audio and video
+
+Once we join a call, we can start publishing audio and video:
+
+```typescript
+import { getAudioStream, getVideoStream } from '@stream-io/video-client';
+
+call.join({ create: true }).then(async () => {
+  const audioStream = await getAudioStream();
+  const videoStream = await getVideoStream();
+
+  call.publishAudioStream(audioStream);
+  call.publishVideoStream(videoStream);
+});
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## Render video
+
+The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates. Let's see how we can render the video and audio of all participants:
+
+```typescript
+import { renderParticipant } from './participant';
+
+const parentContainer = document.getElementById('participants')!;
+
+call.state.participants$.subscribe((participants) => {
+  const participantElements = participants.map((participant) =>
+    renderParticipant(call, participant),
+  );
+
+  // Update UI
+  parentContainer.innerHTML = '';
+  participantElements
+    .flatMap((e) => [e.audioEl, e.videoEl])
+    .filter((el) => !!el)
+    .forEach((el) => {
+      parentContainer.appendChild(el!);
+    });
+});
+```
+
+Now let's see what happens in the `renderParticipant` method, because that's what does the heavy lifting:
+
+```typescript
+import {
+  StreamVideoParticipant,
+  Call,
+  SfuModels,
+} from '@stream-io/video-client';
+
+// The quickstart uses fixed video dimensions for simplification
+const videoDimension = {
+  width: 333,
+  height: 250,
+};
+
+const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
+  let videoEl = document.getElementById(
+    `video-${participant.sessionId}`,
+  ) as HTMLVideoElement | null;
+
+  if (!videoEl) {
+    videoEl = document.createElement('video');
+    videoEl.id = `video-${participant.sessionId}`;
+    videoEl.width = videoDimension.width;
+    videoEl.height = videoDimension.height;
+    videoEl.autoplay = true;
+  }
+  if (videoEl.srcObject !== participant.videoStream) {
+    videoEl.srcObject = participant.videoStream || null;
+  }
+  if (
+    !participant.isLocalParticipant &&
+    participant.publishedTracks.includes(SfuModels.TrackType.VIDEO) &&
+    !participant.videoDimension
+  ) {
+    // We need to subscribe to video tracks
+    // We provide the rendered video dimension to save bandwidth
+    call.updateSubscriptionsPartial('video', {
+      [participant.sessionId]: {
+        dimension: {
+          width: videoDimension.width,
+          height: videoDimension.height,
+        },
+      },
+    });
+  }
+
+  return videoEl;
+};
+
+const renderAudio = (participant: StreamVideoParticipant) => {
+  // We don't render audio for local participant
+  if (participant.isLocalParticipant) {
+    return null;
+  }
+
+  let audioEl = document.getElementById(
+    `audio-${participant.sessionId}`,
+  ) as HTMLAudioElement | null;
+
+  if (!audioEl) {
+    audioEl = document.createElement('audio');
+    audioEl.id = `audio-${participant.sessionId}`;
+    audioEl.autoplay = true;
+  }
+
+  if (audioEl.srcObject !== participant.audioStream) {
+    audioEl.srcObject = participant.audioStream || null;
+  }
+
+  return audioEl;
+};
+
+export const renderParticipant = (
+  call: Call,
+  participant: StreamVideoParticipant,
+) => {
+  return {
+    audioEl: renderAudio(participant),
+    videoEl: renderVideo(call, participant),
+  };
+};
+```
+
+The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+
+More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
+
+## Camera & Microphone
+
+Most video apps will show buttons to mute/unmute the audio or video.
+
+```tsx
+const controls = renderControls(call);
+const container = document.getElementById('call-controls')!;
+container.appendChild(controls.audioButton);
+container.appendChild(controls.videoButton);
+```
+
+This is how the `renderControls` method looks like:
+
+```typescript
+import {
+  Call,
+  getAudioStream,
+  getVideoStream,
+  SfuModels,
+} from '@stream-io/video-client';
+
+const renderAudioButton = (call: Call) => {
+  const audioButton = document.createElement('button');
+  audioButton.innerText = 'Turn off mic';
+
+  audioButton.addEventListener('click', async () => {
+    const participant = call.state.localParticipant;
+    if (!participant) {
+      return;
+    }
+    if (participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
+      await call.stopPublish(SfuModels.TrackType.AUDIO);
+      audioButton.innerText = 'Turn on mic';
+    } else {
+      const audioStream = await getAudioStream();
+      await call.publishAudioStream(audioStream);
+      audioButton.innerText = 'Turn off mic';
+    }
+  });
+
+  return audioButton;
+};
+
+const renderVideoButton = (call: Call) => {
+  const videoButton = document.createElement('button');
+  videoButton.innerText = 'Turn off camera';
+
+  videoButton.addEventListener('click', async () => {
+    const participant = call.state.localParticipant;
+    if (!participant) {
+      return;
+    }
+    if (participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
+      await call.stopPublish(SfuModels.TrackType.VIDEO);
+      videoButton.innerText = 'Turn on camera';
+    } else {
+      const videoStream = await getVideoStream();
+      await call.publishVideoStream(videoStream);
+      videoButton.innerText = 'Turn off camera';
+    }
+  });
+
+  return videoButton;
+};
+
+export const renderControls = (call: Call) => {
+  return {
+    audioButton: renderAudioButton(call),
+    videoButton: renderVideoButton(call),
+  };
+};
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## See it in action
+
+We have prepared a [CodeSandbox example](https://codesandbox.io/s/javascript-quickstart-99th3v)
+that demonstrates the above steps in action.

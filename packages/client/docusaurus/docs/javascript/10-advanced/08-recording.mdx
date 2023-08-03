@@ -1,0 +1,44 @@
+---
+id: recording
+title: Recording
+description: Recording
+---
+
+One highly sought-after feature in many communication applications is call recording. Whether it's for legal compliance, quality assurance, or simply for future reference, the ability to record calls is essential in numerous scenarios.
+
+This documentation article serves as a guide for implementing a call recording feature in your application. We will explore the technical aspects and best practices involved in capturing and storing recording data during calls.
+
+## Recording calls
+
+The `Call` objects exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
+To determine, whether a call recording is in progress, we use `call.state.metadata$` Observable. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
+
+```typescript
+TODO: example;
+```
+
+### Permissions
+
+To start and stop recording, the user has to have corresponding permissions.
+
+```typescript
+TODO: example;
+```
+
+To learn more about permissions, take a look at our [permissions guide](../../guides/permissions-and-moderation).
+
+## Acquiring call recordings data
+
+The call recording data can be retrieved by calling the `Call` method `queryRecordings()`. By default, it retrieves all the call recordings for a given call. However, it accepts a single argument `callSessionId` that allows us to retrieve only recordings done during a single call session. The method returns `ListRecordingsResponse` that carries an array of `CallRecording` objects accessible through `recordings` key.
+
+:::note
+Multiple recordings can be made during a single call session, but a single call CID can be reused for multiple sessions, too.
+:::
+
+With every call to `call.queryRecordings()`, the call state is set to contain latest array of `CallRecording` objects, which can be accessed using the `call.state.callRecordingList$` or `call.state.callRecordingList` properties.
+
+If we wanted to keep and up-to-date list of call recordings during an active call, we would need to query them at the start of the call as well as with every [`call.recording_stopped` event](../events).
+
+:::note
+The call recording is not immediately available when the `call.recording_stopped` event is delivered. It may take 30 or more seconds for a recording to be available. Therefore, polling mechanism has to be introduced to check, whether the latest list of call recordings returned from the query contains a new item.
+:::

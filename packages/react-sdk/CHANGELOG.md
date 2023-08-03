@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.16...@stream-io/video-react-sdk-0.1.17) (2023-08-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.11`
+### [0.1.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.15...@stream-io/video-react-sdk-0.1.16) (2023-08-01)
+
+
+### Documentation
+
+* add prop description to client and call prop of StreamVideo and StreamCall ([#873](https://github.com/GetStream/stream-video-js/issues/873)) ([4d4a2b8](https://github.com/GetStream/stream-video-js/commit/4d4a2b81506af9cf7e81a4925cabc4429f32b401))
+* adjust Quickstart ([#872](https://github.com/GetStream/stream-video-js/issues/872)) ([42637a0](https://github.com/GetStream/stream-video-js/commit/42637a06c1b828ebd9285296be5a32a509c6c624))
+* rewrite video-calling tutorial ([#866](https://github.com/GetStream/stream-video-js/issues/866)) ([c16d0a2](https://github.com/GetStream/stream-video-js/commit/c16d0a283b005a77dfbcbb3bb7c9946dcc501094))
+
 ### [0.1.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.14...@stream-io/video-react-sdk-0.1.15) (2023-07-28)
 
 ### Dependency Updates

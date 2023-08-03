@@ -1,0 +1,344 @@
+---
+id: incoming-and-outgoing-call
+title: Incoming & Outgoing Call Views
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import MediaStreamManagementButtonOn
+  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-on.png';
+import MediaStreamManagementButtonOff
+  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-off.png';
+import IncomingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view.png';
+import OutgoingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view.png';
+
+The incoming and outgoing call views are responsible for showing the call preview before the call is finally joined.
+
+Incoming call view is shown to participant who is being called, while the Outgoing call view is shown to participant who is calling someone.
+
+While showing an Incoming call view to the callee, the following UI elements ideally be present, but not necessarily the same:
+
+- User info of the participant calling them.
+- Accept and reject call button.
+
+Similarly, the Outgoing call view should show the following UI elements:
+
+- User info of the participants being called.
+- Hang up call button.
+- Optional: Audio/Video mute/unmute status button.
+
+<ImageShowcase
+  items={[
+    {
+      image: IncomingCallView,
+      caption: 'Incoming call view',
+      alt: 'Incoming call view',
+    },
+    {
+      image: OutgoingCallView,
+      caption: 'Outgoing call view',
+      alt: 'Outgoing call view',
+    },
+  ]}
+/>
+
+:::note
+The approach to visualise the components will differ from application to application. Therefore, in this guide, we will focus only on the principles of building components and plugging them with right data sources.
+:::
+
+### User Info
+
+We can show the user info such as image, name, or additional details of the user within the Incoming/Outgoing call view. To do so we can use the `useCallMembers` hook to get the list of members for whom the call was initiated.
+
+![Preview of the User Info View Example](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/user-info-view.png)
+
+:::note
+`useCallMembers` also includes the member info of the connected user. So, in most cases that needs to be extracted before showing it in the preview.
+:::
+
+```tsx title="UserInfoViewComponent.tsx"
+import React from 'react';
+import {
+  useCallMembers,
+  useConnectedUser,
+  UserResponse
+} from '@stream-io/video-react-native-sdk';
+import { Image, StyleSheet, Text, View } from 'react-native';
+
+export const UserInfoViewComponent = () => {
+  const connectedUser = useConnectedUser();
+  const members = useCallMembers();
+
+  const membersToShow: UserResponse[] = (members || [])
+    .map(({ user }) => user)
+    .filter((user) => user.id !== connectedUser?.id);
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.userInfo}>
+        {membersToShow.map((memberToShow) => {
+          return (
+            <View key={memberToShow.id}>
+              <Image
+                style={styles.avatar}
+                source={{
+                  uri: memberToShow.image,
+                }}
+              />
+              <Text style={styles.title}>{memberToShow.name}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  userInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  title: {
+    fontSize: 20,
+    color: 'white',
+    marginVertical: 20,
+    textAlign: 'center',
+  },
+  avatar: {
+    height: 100,
+    width: 100,
+    borderRadius: 50,
+  },
+});
+```
+
+### Media Stream Management
+
+To control audio or video mute status in the Incoming and Outgoing call view, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+
+<ImageShowcase
+  items={[
+    {
+      image: MediaStreamManagementButtonOn,
+      caption: 'Toggle Audio/Video Button On',
+      alt: 'Toggle Audio/Video Button On',
+    },
+    {
+      image: MediaStreamManagementButtonOff,
+      caption: 'Toggle Audio/Video Button Off',
+      alt: 'Toggle Audio/Video Button Off',
+    },
+  ]}
+/>
+
+We can go through the usage through the following example:
+
+```tsx title="MediaStreamButtonGroup.tsx"
+import React from 'react';
+import { Pressable, View, StyleSheet } from 'react-native';
+import {
+  useMediaStreamManagement
+} from '@stream-io/video-react-native-sdk';
+
+export const MediaStreamButtonGroup = () => {
+  const {
+    initialAudioEnabled,
+    initialVideoEnabled,
+    toggleInitialAudioMuteState,
+    toggleInitialVideoMuteState,
+  } = useMediaStreamManagement();
+
+  const audioButtonStyles = [
+    styles.button,
+    {
+      backgroundColor: !initialAudioEnabled ? '#080707dd' : 'white',
+    },
+  ];
+
+  const videoButtonStyles = [
+    styles.button,
+    {
+      backgroundColor: !initialVideoEnabled ? '#080707dd' : 'white',
+    },
+  ];
+
+  return (
+    <View style={styles.buttonGroup}>
+      <Pressable
+        onPress={toggleInitialAudioMuteState}
+        style={audioButtonStyles}
+      >
+        {initialAudioEnabled ? (
+          <>{/* Your Disable Audio Icon*/}</>
+        ) : (
+          <>{/* Your Enable Audio Icon*/}</>
+        )}
+      </Pressable>
+      <Pressable
+        onPress={toggleInitialVideoMuteState}
+        style={videoButtonStyles}
+      >
+        {initialVideoEnabled ? (
+          <>{/* Your Disable Video Icon*/}</>
+        ) : (
+          <>{/* Your Enable Video Icon*/}</>
+        )}
+      </Pressable>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  button: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+  },
+});
+```
+
+## Incoming Call View
+
+### Accept and Reject Call Button
+
+We already talked about [Accepting](../../core/joining-and-creating-calls/#accepting-a-call) and [Rejecting](../../core/joining-and-creating-calls/#rejecting-a-call) calls on our Core Concepts [Joining & Creating Calls](../../core/joining-and-creating-calls) guide.
+
+To build the buttons we would primarily need `useCall` hook, that gives us the call object that has all the necessary functions to accept or reject the call.
+
+![Preview of the Accept and Reject Call Button of Incoming Call view](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/accept-reject-call-button.png)
+
+```tsx title="IncomingCallButtonGroup.tsx"
+import React, { useCallback } from 'react';
+import { Pressable, View, StyleSheet } from 'react-native';
+import {
+  CallingState,
+  useCall,
+  useCallCallingState,
+} from '@stream-io/video-react-native-sdk';
+
+export const IncomingCallButtonGroup = () => {
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  const acceptCallHandler = useCallback(async () => {
+    try {
+      await call?.join();
+    } catch (error) {
+      console.log('Error accepting Call', error);
+    }
+  }, [call]);
+
+  const rejectCallHandler = useCallback(async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave({ reject: true });
+    } catch (error) {
+      console.log('Error rejecting Call', error);
+    }
+  }, [call, callingState]);
+
+  return (
+    <View style={styles.buttonGroup}>
+      <Pressable
+        style={[styles.button, styles.rejectButton]}
+        onPress={rejectCallHandler}
+      >
+        {/*Your Reject Call icon Here*/}
+      </Pressable>
+      <Pressable
+        style={[styles.button, styles.acceptButton]}
+        onPress={acceptCallHandler}
+      >
+        {/*Your Accept Call icon here*/}
+      </Pressable>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  button: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+  },
+  acceptButton: {
+    backgroundColor: '#20E070',
+  },
+  rejectButton: {
+    backgroundColor: '#FF3742',
+  },
+});
+```
+
+## Outgoing Call View
+
+### Hangup call button
+
+To hang up a call we can follow the [Leave call](../../core/joining-and-creating-calls/#leave-call-1) concept from our Core Concepts [Joining & Creating Calls](../../core/joining-and-creating-calls) guide.
+
+To build the buttons we would primarily need `useCall` hook, that gives us the call object that has all the necessary function to hang up the call.
+
+![Preview of the Hangup call button Example](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/hangup-call-button.png)
+
+```tsx title="OutgoingCallButtonGroup.tsx"
+import React, { useCallback } from 'react';
+import { Pressable, View, StyleSheet } from 'react-native';
+import {
+  CallingState,
+  useCall,
+  useCallCallingState,
+} from '@stream-io/video-react-native-sdk';
+
+export const OutgoingCallButtonGroup = () => {
+  const call = useCall();
+  const callingState = useCallCallingState();
+
+  const hangupCallHandler = useCallback(async () => {
+    try {
+      if (callingState === CallingState.LEFT) {
+        return;
+      }
+      await call?.leave();
+    } catch (error) {
+      console.log('Error rejecting Call', error);
+    }
+  }, [call, callingState]);
+
+  return (
+    <View style={styles.buttonGroup}>
+      <Pressable
+        style={[styles.button, styles.hangupButton]}
+        onPress={hangupCallHandler}
+      >
+        {/*Your Hangup Call icon Here*/}
+      </Pressable>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  buttonGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  button: {
+    height: 80,
+    width: 80,
+    borderRadius: 40,
+  },
+  hangupButton: {
+    backgroundColor: '#FF3742',
+  },
+});
+```
+

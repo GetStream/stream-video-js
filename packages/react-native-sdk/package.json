@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.0.1-alpha.344",
+  "version": "0.0.1-alpha.351",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -39,10 +39,10 @@
     "react-native": ">=0.67.0",
     "react-native-callkeep": ">=4.3.8",
     "react-native-device-info": ">=10.6.0",
-    "react-native-incall-manager": ">=4.0.0",
+    "react-native-incall-manager": ">=4.1.0",
     "react-native-svg": ">=13.6.0",
     "react-native-voip-push-notification": ">=3.3.1",
-    "react-native-webrtc": ">=111.0.1"
+    "react-native-webrtc": ">=111.0.3"
   },
   "peerDependenciesMeta": {
     "@react-native-firebase/app": {

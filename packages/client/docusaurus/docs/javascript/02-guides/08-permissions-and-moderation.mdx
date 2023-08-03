@@ -1,0 +1,165 @@
+---
+title: Permissions & Moderation
+description: Explanation of call permissions and moderation features
+---
+
+In many types of calls, there is a requirement for providing different users with certain permissions and capabilities.
+A typical example is a webinar where the host wants to control who can speak or who can share their video or screen.
+
+The Stream Video SDK provides a certain set of permissions and capabilities
+that can be used to control the behavior of participants in a call.
+
+## Conceptual overview
+
+### Roles
+
+The Stream Video API allows assigning roles to users. Each user has a global role, and they will also have a call-level role for each call they join. The Stream Video API provides a set of predefined roles, but it's also possible to create your own roles.
+
+### Call types
+
+[Call types](../../guides/configuring-call-types/) also allow for a more granular control system:
+
+- you can enable/disable certain features on a call type level
+- you can configure how each call-level role works on a call type level
+
+### Capabilities
+
+Based on a user's roles and the call type settings, we can determine which actions are allowed for a user joined to a specific call.
+
+## Permissions
+
+As soon as you join a call, the `Call` instance would allow you to check the permissions of the local user
+or perform some permission-related actions:
+
+### Check permissions
+
+```ts
+import { OwnCapability } from '@stream-io/video-client';
+
+const call = streamVideoClient.call(type, id);
+const canSendAudio = call.permissionsContext.hasPermission(
+  OwnCapability.SEND_AUDIO,
+);
+```
+
+### Request permissions
+
+Every user may request permission to perform certain actions depending on the call type and call settings.
+For example, in an audio-room call type, only the hosts have `send-audio` permission by default.
+Other users should request this permission before they can start sending audio if the call settings allow it.
+
+```ts
+import { OwnCapability } from '@stream-io/video-client';
+
+const call = streamVideoClient.call(type, id);
+if (!call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)) {
+  console.log('The host has disabled the ability to request this permission');
+  return;
+}
+await call.requestPermissions({
+  permissions: [OwnCapability.SEND_AUDIO],
+});
+```
+
+### Approving permission requests
+
+Call hosts and moderators can approve permission requests from other users.
+Whenever a user requests a certain permission, a `call.permission_request` event will be emitted on the `Call` instance.
+You can listen to this event and approve the request.
+
+```ts
+import {
+  PermissionRequestEvent,
+  StreamCallEvent,
+} from '@stream-io/video-client';
+
+const call = streamVideoClient.call(type, id);
+call.on('call.permission_request', async (event: StreamCallEvent) => {
+  const request = event as PermissionRequestEvent;
+  if (shouldApproveRequest(request)) {
+    await call.grantPermissions(request.user.id, request.permissions);
+  }
+});
+```
+
+### Moderation
+
+At any time, a moderator or host can decide to either grant or revoke certain permission to any participant.
+
+```ts
+import { OwnCapability } from '@stream-io/video-client';
+
+const call = streamVideoClient.call(type, id);
+await call.updateUserPermissions({
+  user_id: 'demo-user',
+  grant_permission: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
+  revoke_permissions: [OwnCapability.SCREENSHARE],
+});
+
+// alternate API for granting user permissions:
+await call.grantPermissions('demo-user', [
+  OwnCapability.SEND_AUDIO,
+  OwnCapability.SEND_VIDEO,
+]);
+
+// alternate API for revoking user permissions:
+await call.revokePermissions('demo-user', [OwnCapability.SCREENSHARE]);
+```
+
+The end user would get notified via a WebSocket event with a type: `call.permissions_updated`.
+In the case of revoked permissions, the client would automatically stop publishing the appropriate tracks.
+
+### Muting participants
+
+In addition to granting or revoking permissions, a moderator or host can also mute a participant.
+This is a common scenario as quite often, participants may be a source of unwanted noise or distraction.
+
+```ts
+const call = streamVideoClient.call(type, id);
+await call.muteUser('demo-user-id', 'audio');
+await call.muteUser('demo-user-id', 'video');
+await call.muteUser('demo-user-id', 'screenshare');
+
+// or, mute in bulk
+await call.muteUser(['demo-user-id', 'demo-user-id-2'], 'audio');
+
+// or, muting self
+await call.muteSelf('audio');
+
+// or, muting others
+await call.muteOthers('audio');
+
+// or, mute all, including self.
+await call.muteAllUsers('audio');
+```
+
+This operation doesn't revoke any permission, and the user would still be able to un-mute itself.
+
+### Ending call for everyone
+
+In some cases, a moderator or host may want to end the call for everyone.
+
+```ts
+const call = streamVideoClient.call(type, id);
+await call.endCall();
+```
+
+This operation will emit `call.ended` event to every participant in the call.
+The client would automatically stop publishing any tracks and leave the call.
+
+Ended calls can't be re-joined.
+
+## Capabilities
+
+Every user connecting to a Stream Call has a set of Capabilities.
+The capabilities of the local user live in the metadata of the `Call` instance.
+
+```tsx
+const call = streamVideoClient.call(type, id);
+const { own_capabilities } = call.state.metadata;
+
+// or if you want to subscribe to changes:
+call.state.metadata$.subscribe(/* ... */);
+```
+
+Capabilities will have the type [`OwnCapability`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/gen/coordinator/index.ts).
