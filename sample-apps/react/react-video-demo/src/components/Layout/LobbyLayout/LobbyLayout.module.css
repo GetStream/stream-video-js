@@ -11,6 +11,10 @@
   grid-template-areas: 'body';
 }
 
+.mobileBannerVisible {
+  height: calc(100vh - 80px);
+}
+
 @media screen(md) {
   .layoutContainer {
     @apply grid relative z-10 w-full;
