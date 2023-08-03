@@ -12,7 +12,8 @@
 }
 
 .mobileBannerVisible {
-  height: calc(100vh - 80px);
+  height: auto;
+  grid-template-rows: auto;
 }
 
 @media screen(md) {

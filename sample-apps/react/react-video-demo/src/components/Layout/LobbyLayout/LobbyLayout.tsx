@@ -26,11 +26,7 @@ export const LobbyLayout: FC<Props> = ({
   const shouldRenderMobileAppBanner = isAndroid && qr;
   const [isNativeAppsBannerDismissed, setIsNativeAppsBannerDismissed] =
     useState(!shouldRenderMobileAppBanner);
-  const rootClassName = classnames(
-    styles.root,
-    className,
-    !isNativeAppsBannerDismissed && 'h-auto overflow-y-scroll',
-  );
+  const rootClassName = classnames(styles.root, className, 'overflow-y-scroll');
   return (
     <section className={rootClassName}>
       <LatencyMap className={styles.latencyMap} sourceData={edges} />
