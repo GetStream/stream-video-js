@@ -3,12 +3,12 @@ title: Call & Participant State
 description: How the state is exposed
 ---
 
-The call, participant and client states are reactive. Their value is updated on WebSocket events and API calls. We use the [RxJS library](https://rxjs.dev/) for this, and the state variables are Observables.
+The call, participant and client states are reactive. Their value is updated on WebSocket events and API calls. We use the [RxJS library](https://rxjs.dev/) for this, each state property is an Observable.
 
 This is how you can subscribe to changes related to participants:
 
 ```typescript
-call.state.participants$.subscribe(console.log);
+call.state.participants$.subscribe((participants) => console.log(participants));
 ```
 
 The `console.log` method will be called each time there is a change to the list of participants in the call.
