@@ -39,19 +39,12 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   
-  UIApplicationState state = [[UIApplication sharedApplication] applicationState];
-  if (state == UIApplicationStateActive) {
-    // app in foreground, no need to display incoming call through callkeep
-    completion();
-    return;
-  }
-  
-  // --- Process the received push // fire 'notification' event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  
+  // --- Process the received push // fire 'notification' event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName

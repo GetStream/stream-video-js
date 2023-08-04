@@ -6,41 +6,38 @@ title: Setup
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import iosCallkitLibrariesLinkImage from '../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png';
-import iosSearchPaths from '../../assets/06-advanced/04-push-notifications/ios-search-paths.png';
-import iosInfoPlist from '../../assets/06-advanced/04-push-notifications/ios-info-plist.png';
+import iosPreview from '../../assets/06-advanced/04-push-notifications/ios-preview.png';
+import androidPreview from '../../assets/06-advanced/04-push-notifications/android-preview.png';
 
-This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps
+This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps.
 
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive.
+The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive. <ImageShowcase
+  border
+  items={[
+    { image: androidPreview, caption: "Android preview of the Firebase push notification" },
+    { image: iosPreview, caption: "iOS preview of VoIP notification using Apple Push Notification service (APNs)" },
+  ]}
+/>
 
 ## Add push provider credentials to Stream
 
 Please follow the below guides for adding appropriate push providers to Stream:
 
 - Android - [Firebase Cloud Messaging](../push-providers/firebase/)
-- iOS - [VoIP using Apple Push Notification service (APNs)](../push-providers/apn-voip/)
+- iOS - [VoIP using Apple Push Notification Service (APNs)](../push-providers/apn-voip/)
 
 ## Install Dependencies
 
 The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package for interacting with VoIP push notifications on iOS. And finally, you need to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to report incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
 
-<Tabs groupId="package-manager">
-  <TabItem value="Yarn" default>
-
-    ```bash
-    yarn add @react-native-firebase/app @react-native-firebase/messaging react-native-callkeep react-native-voip-push-notification && npx pod-install
-    ```
-
-  </TabItem>
-  <TabItem value="npm">
-
-    ```bash
-    npm install @react-native-firebase/app @react-native-firebase/messaging react-native-voip-push-notification react-native-callkeep && npx pod-install
-    ```
-
-  </TabItem>
-</Tabs>
+```bash title=Terminal
+yarn add \
+  @react-native-firebase/app \
+  @react-native-firebase/messaging \
+  react-native-callkeep \
+  react-native-voip-push-notification
+npx pod-install
+```
 
 So what did we install precisely?
 
@@ -67,22 +64,10 @@ We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-
 ### Link required libraries for react native callkeep library
 
 1. In Xcode: Click on `Build Phases` tab, then open `Link Binary With Libraries`.
-2. Add `CallKit.framework` and `Intents.framework` (and mark it Optional).
+2. Add `CallKit.framework`
+3. Add `Intents.framework` (and mark it Optional).
 
-<ImageShowcase
-  items={[
-    {
-      image: iosCallkitLibrariesLinkImage,
-      caption: (
-        <span>
-          Add <code>CallKit.framework</code> and <code>Intents.framework</code>{' '}
-          (and mark it Optional).
-        </span>
-      ),
-      alt: 'Example of how to use link libraries required for callkeep library',
-    },
-  ]}
-/>
+![Example of how to use link libraries required for callkeep library](../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png)
 
 ### Add header search path for react native callkeep library
 
@@ -90,48 +75,24 @@ We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-
 
 2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
 
-<ImageShowcase
-  items={[
-    {
-      image: iosSearchPaths,
-      caption: (
-        <span>
-          Add{' '}
-          <code>
-            $(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep
-          </code>
-        </span>
-      ),
-      alt: 'Example of how to add header search paths that are required for callkeep library',
-    },
-  ]}
-/>
+![Example of how to add header search paths that are required for callkeep library](../../assets/06-advanced/04-push-notifications/ios-search-paths.png)
 
-### Allow VoIP background
+### Add background modes
 
-1. In Xcode: Open `Info.plist` file and add `voip` in `UIBackgroundModes`. As shown below:
-
-<ImageShowcase
-  items={[
-    {
-      image: iosInfoPlist,
-      alt: 'Example of how to add voip in Info.plist',
-    },
-  ]}
-/>
-
-By editing this file with a text editor, you should see:
+In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. By editing this file with the text editor, you should see:
 
 ```xml
 <key>UIBackgroundModes</key>
 <array>
+  <string>processing</string>
+  <string>remote-notification</string>
   <string>voip</string>
 </array>
 ```
 
 ### Enable push notifications
 
-To receive push notifications, enable the Push Notifications capability in the Xcode Project > Signing & Capabilities pane.
+To receive push notifications, enable the Push Notifications capability in the Xcode `Project` > `Signing & Capabilities` pane.
 
 ### Update AppDelegate
 
@@ -194,25 +155,16 @@ The final method to add is the one that gets invoked when there is a VoIP push n
 ```c
 // handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
-
-  UIApplicationState state = [[UIApplication sharedApplication] applicationState];
-  if (state == UIApplicationStateActive) {
-    // app in foreground, no need to display incoming call through callkeep
-    completion();
-    return;
-  }
-
   // send event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
 
   // process the payload
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
-  NSString* callId = cidArray[1];
+  NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
 
   // display the incoming call notification
-  [RNCallKeep reportNewIncomingCall: callId
+  [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName
                          handleType: @"generic"
                            hasVideo: YES
@@ -251,6 +203,7 @@ export const staticNavigate = (
   ...navigationArgs: Parameters<typeof navigationRef.navigate>
 ) => {
   // note the use of setInterval, it is responsible for constantly checking if requirements are met and then navigating
+  // highlight-start
   const intervalId = setInterval(async () => {
     // run only when the navigation is ready and add any other requirements (like authentication)
     if (navigationRef.isReady() && GlobalState.hasAuthentication) {
@@ -258,6 +211,7 @@ export const staticNavigate = (
       navigationRef.navigate(...navigationArgs);
     }
   }, 300);
+  // highlight-end
 };
 ```
 
@@ -350,6 +304,7 @@ import { setPushConfig } from 'src/utils/setPushConfig';
 import App from './App';
 
 // Set push config
+// highlight-next-line
 setPushConfig();
 AppRegistry.registerComponent('app', () => App);
 ```
