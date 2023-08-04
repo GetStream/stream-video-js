@@ -111,6 +111,28 @@ describe('videoLayers', () => {
       expect(scaledBitrate).toBe(1333333);
     });
 
+    it('should scale target bitrate down for all simulcast tracks', () => {
+      const targetResolution = { width: 1920, height: 1080, bitrate: 3000000 };
+      let downscaleFactor = 1;
+      const targetBitrates = ['f', 'h', 'q'].map((rid) => {
+        const width = targetResolution.width / downscaleFactor;
+        const height = targetResolution.height / downscaleFactor;
+        const bitrate = getComputedMaxBitrate(targetResolution, width, height);
+        downscaleFactor *= 2;
+        return {
+          rid,
+          bitrate,
+          width,
+          height,
+        };
+      });
+      expect(targetBitrates).toEqual([
+        { rid: 'f', bitrate: 3000000, width: 1920, height: 1080 },
+        { rid: 'h', bitrate: 750000, width: 960, height: 540 },
+        { rid: 'q', bitrate: 187500, width: 480, height: 270 },
+      ]);
+    });
+
     it('should not scale target bitrate if resolution is larger than target resolution', () => {
       const targetResolution = { width: 1280, height: 720, bitrate: 1000000 };
       const scaledBitrate = getComputedMaxBitrate(targetResolution, 2560, 1440);

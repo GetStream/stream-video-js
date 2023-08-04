@@ -85,7 +85,7 @@ export const CallControlsView = ({
             svgContainerStyle={styles.svgContainerStyle}
             style={styles.button}
           >
-            <UnreadBadeCountIndicator
+            <UnreadBadgeCountIndicator
               count={chatButton.unreadBadgeCountIndicator}
             />
             <Chat color={theme.light.static_black} />
@@ -100,7 +100,7 @@ export const CallControlsView = ({
   );
 };
 
-const UnreadBadeCountIndicator = ({
+const UnreadBadgeCountIndicator = ({
   count,
 }: {
   count: ChatButtonType['unreadBadgeCountIndicator'];

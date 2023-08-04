@@ -1,7 +1,6 @@
 import { SfuModels } from '@stream-io/video-client';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { useCallback } from 'react';
-import { useAppStateListener } from '../utils/hooks/useAppStateListener';
 import { useMediaStreamManagement } from '../providers/MediaStreamManagement';
 
 /**
@@ -26,13 +25,6 @@ export const useCallControls = () => {
   const isVideoPublished = localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
-
-  /** Attempt to republish video stream when app comes back to foreground */
-  useAppStateListener(() => {
-    if (isVideoPublished) {
-      publishVideoStream();
-    }
-  }, undefined);
 
   const toggleVideoMuted = useCallback(async () => {
     if (isVideoPublished) {

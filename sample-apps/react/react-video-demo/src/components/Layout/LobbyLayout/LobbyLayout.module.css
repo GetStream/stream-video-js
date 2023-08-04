@@ -11,6 +11,11 @@
   grid-template-areas: 'body';
 }
 
+.mobileBannerVisible {
+  height: auto;
+  grid-template-rows: auto;
+}
+
 @media screen(md) {
   .layoutContainer {
     @apply grid relative z-10 w-full;
@@ -39,6 +44,6 @@
 
 .body {
   grid-area: body;
-  @apply flex justify-center items-center;
+  @apply flex justify-center;
   pointer-events: none;
 }

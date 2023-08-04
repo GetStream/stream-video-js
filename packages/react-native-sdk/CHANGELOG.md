@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.351](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.350...@stream-io/video-react-native-sdk-0.0.1-alpha.351) (2023-08-03)
+
+
+
+## [0.0.1-alpha.350](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.349...@stream-io/video-react-native-sdk-0.0.1-alpha.350) (2023-08-03)
+
+
+
+## [0.0.1-alpha.349](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.348...@stream-io/video-react-native-sdk-0.0.1-alpha.349) (2023-08-02)
+
+
+### Bug Fixes
+
+* **react-native:** UnreadBadeCountIndicator component name ([#892](https://github.com/GetStream/stream-video-js/issues/892)) ([88ce163](https://github.com/GetStream/stream-video-js/commit/88ce1631f7159a7cae8960b7a790e23746cb368d))
+
+
+
 ## [0.0.1-alpha.348](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.347...@stream-io/video-react-native-sdk-0.0.1-alpha.348) (2023-08-02)
 
 
