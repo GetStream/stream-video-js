@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
-import { voipPushNotificationCallCId$ } from '../../utils/push/rxSubjects';
+import {
+  voipCallkeepCallOnForegroundMap$,
+  voipPushNotificationCallCId$,
+} from '../../utils/push/rxSubjects';
 import { RxUtils } from '@stream-io/video-client';
 import {
   iosCallkeepAcceptCall,
@@ -20,36 +23,42 @@ export const useIosCallKeepEventsSetupEffect = () => {
     }
     const callkeep = getCallKeepLib();
 
-    callkeep.addEventListener('answerCall', ({ callUUID }) => {
-      const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
-      iosCallkeepAcceptCall(call_cid, callUUID);
-    });
-    callkeep.addEventListener('endCall', ({ callUUID }) => {
-      const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
-      iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
-    });
+    const { remove: removeAnswerCall } = callkeep.addEventListener(
+      'answerCall',
+      ({ callUUID }) => {
+        const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
+        iosCallkeepAcceptCall(call_cid, callUUID);
+      },
+    );
+    const { remove: removeEndCall } = callkeep.addEventListener(
+      'endCall',
+      ({ callUUID }) => {
+        const call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
+        iosCallkeepRejectCall(call_cid, callUUID, pushConfig);
+      },
+    );
 
-    callkeep.addEventListener(
+    const { remove: removeDisplayIncomingCall } = callkeep.addEventListener(
       'didDisplayIncomingCall',
-      ({
-        error,
-        callUUID,
-        handle,
-        localizedCallerName,
-        hasVideo,
-        fromPushKit,
-        payload,
-      }) => {
+      ({ callUUID, payload }) => {
         // you might want to do following things when receiving this event:
         // - Start playing ringback if it is an outgoing call
-        console.log('[didDisplayIncomingCall] ', { callUUID, payload });
+        // @ts-expect-error
+        const call_cid = payload?.call_cid as string | undefined;
+        if (!call_cid) {
+          return;
+        }
+        voipCallkeepCallOnForegroundMap$.next({
+          uuid: callUUID,
+          cid: call_cid,
+        });
       },
     );
 
     return () => {
-      callkeep.removeEventListener('answerCall');
-      callkeep.removeEventListener('endCall');
-      callkeep.removeEventListener('didDisplayIncomingCall');
+      removeAnswerCall();
+      removeEndCall();
+      removeDisplayIncomingCall();
     };
   }, []);
 };

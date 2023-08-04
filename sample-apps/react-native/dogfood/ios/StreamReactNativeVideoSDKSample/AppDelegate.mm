@@ -102,7 +102,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 /// @return: `true` if the `concurrentRoot` feature is enabled. Otherwise, it returns `false`.
 - (BOOL)concurrentRootEnabled
 {
-  return true;
+  return false;
 }
 
 @end
