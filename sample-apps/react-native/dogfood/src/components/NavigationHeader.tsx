@@ -14,7 +14,7 @@ import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
-import { ButtonTestIds } from '../constants/A11yLabels';
+import { ButtonTestIds } from '../constants/TestIds';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
