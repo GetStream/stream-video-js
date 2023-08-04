@@ -1,13 +1,13 @@
 import React from 'react';
 import { Path, Svg } from 'react-native-svg';
-import { A11yIcons } from '../constants/A11yLabels';
+import { IconTestIds } from '../constants/TestIds';
 
 type Props = {
   color: string;
 };
 
 export const PhoneDown = ({ color }: Props) => (
-  <Svg viewBox="0 0 42 17" accessibilityLabel={A11yIcons.HANG_UP_CALL}>
+  <Svg viewBox="0 0 42 17" testID={IconTestIds.HANG_UP_CALL}>
     <Path
       d="M20.983.96C13.406.977 6.372 2.536 2.863 6.045 1.287 7.621.473 9.537.575 11.876c.068 1.373.508 2.576 1.322 3.407.644.627 1.526 1 2.56.83l6.305-1.067c.983-.153 1.661-.458 2.102-.899.56-.559.729-1.373.729-2.474l.017-1.746c0-.272.118-.475.27-.644.187-.204.442-.306.645-.34 1.17-.27 3.56-.542 6.475-.542 2.899 0 5.289.204 6.458.543.187.05.44.152.627.339.153.17.255.372.271.627l.017 1.763c.017 1.101.187 1.915.746 2.474.441.441 1.119.746 2.102.899l6.238 1.05c1.068.187 1.966-.203 2.644-.88.814-.78 1.271-1.984 1.305-3.374.068-2.322-.813-4.238-2.373-5.797C35.527 2.536 28.577.96 20.983.96Z"
       fill={color}

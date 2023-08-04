@@ -2,10 +2,10 @@ import React from 'react';
 import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
 import {
-  A11yComponents,
-  A11yIcons,
-  A11yValues,
-} from '../../src/constants/A11yLabels';
+  ComponentTestIds,
+  ValueTestIds,
+  IconTestIds,
+} from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
 import { ParticipantView } from '../../src/components/participants/ParticipantView';
 
@@ -31,9 +31,9 @@ describe('ParticipantView', () => {
     );
 
     expect(
-      await screen.findByLabelText(A11yComponents.PARTICIPANT_AVATAR),
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText(A11yIcons.MUTED_VIDEO)).toBeOnTheScreen();
+    expect(screen.getByTestId(IconTestIds.MUTED_VIDEO)).toBeOnTheScreen();
     expect(screen.getByText(testParticipant.name)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
     expect(screen.getByText('🎉')).toBeOnTheScreen();
@@ -54,13 +54,13 @@ describe('ParticipantView', () => {
     render(<ParticipantView participant={testParticipant} kind={'screen'} />);
 
     expect(
-      await screen.findByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(/Testy van der Test is sharing their screen/i),
     ).toBeOnTheScreen();
     expect(
-      await screen.findByLabelText(A11yIcons.SCREEN_SHARE),
+      await screen.findByTestId(IconTestIds.SCREEN_SHARE),
     ).toBeOnTheScreen();
   });
 
@@ -72,8 +72,8 @@ describe('ParticipantView', () => {
     });
     render(<ParticipantView participant={testParticipant} kind={'video'} />);
 
-    const [VideoRTCView, AudioRTCView] = await screen.findAllByLabelText(
-      A11yComponents.PARTICIPANT_MEDIA_STREAM,
+    const [VideoRTCView, AudioRTCView] = await screen.findAllByTestId(
+      ComponentTestIds.PARTICIPANT_MEDIA_STREAM,
     );
     // Video and Audio streams are rendered
     // This is our best way to test if video and audio is on
@@ -85,7 +85,7 @@ describe('ParticipantView', () => {
     // Participant is speaking style is applied
     expect(
       screen.getByAccessibilityValue({
-        text: A11yValues.PARTICIPANTS_IS_SPEAKING,
+        text: ValueTestIds.PARTICIPANTS_IS_SPEAKING,
       }),
     ).toBeOnTheScreen();
   });

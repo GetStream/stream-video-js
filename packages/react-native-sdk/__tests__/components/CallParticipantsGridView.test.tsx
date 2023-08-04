@@ -2,7 +2,7 @@ import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
 import { SfuModels } from '@stream-io/video-client';
 import mockParticipant from '../mocks/participant';
-import { A11yComponents } from '../../src/constants/A11yLabels';
+import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
 import { CallParticipantsGridView } from '../../src/components/call/internal/CallParticipantsGridView';
@@ -33,7 +33,7 @@ describe('CallParticipantsGridView', () => {
     });
 
     expect(
-      await screen.findByLabelText(A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN),
+      await screen.findByTestId(ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN),
     ).toBeVisible();
   });
 });
