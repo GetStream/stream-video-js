@@ -2,7 +2,6 @@ import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   pushAcceptedIncomingCallCId$,
   voipPushNotificationCallCId$,
-  pushRejectedIncomingCallCId$,
   voipCallkeepCallOnForegroundMap$,
   voipCallkeepAcceptedCallOnNativeDialerMap$,
 } from './rxSubjects';
