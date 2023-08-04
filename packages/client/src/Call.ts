@@ -902,6 +902,15 @@ export class Call {
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
+
+      // 3. once we have the "joinResponse", and possibly reconciled the local state
+      // we schedule a fast subscription update for all remote participants
+      // that were visible before we reconnected or migrated to a new SFU.
+      const { remoteParticipants } = this.state;
+      if (remoteParticipants.length > 0) {
+        this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
+      }
+
       this.logger('info', `Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
