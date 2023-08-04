@@ -31,12 +31,16 @@
     min-width: 200px;
 
     .str-video__audio-level-slider__track {
-      height: 5px;
+      height: 6px;
     }
 
     .str-video__icon {
       width: 1rem;
       height: 1rem;
+    }
+
+    .str-video_audio-level-slider__thumb {
+      top: -5px;
     }
   }
 }

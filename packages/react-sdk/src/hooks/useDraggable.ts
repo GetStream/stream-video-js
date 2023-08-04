@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 
 const throttle = <T>(fn: (arg: T) => void, delay: number) => {
   let time = Date.now();
@@ -11,15 +11,49 @@ const throttle = <T>(fn: (arg: T) => void, delay: number) => {
   };
 };
 
+export type OffsetOnAxisDef = {
+  amount: number;
+  /**
+   * Can be any CSS compatible unit applied to CSS property `left` resp. `top`.
+   */
+  unit: string;
+};
+
+export type Position = {
+  /**
+   * Offset definition from the left side of the container.
+   */
+  left?: OffsetOnAxisDef;
+  /**
+   * Offset definition from the left side of the container
+   */
+  top?: OffsetOnAxisDef;
+};
+
+export type OnDragHandler = (
+  /**
+   * The mousemove event instance used to calculate the next position of the dragged element.
+   */
+  event: MouseEvent,
+  /**
+   * Next position applied to the dragged element.
+   */
+  nextPosition: Position,
+) => void;
+
 interface UseDraggableParams {
   /**
    * Element to be dragged
    */
-  element: HTMLElement | null;
+  dragElementRef: RefObject<HTMLElement | null>;
+  /**
+   * Restricts the dragging in either x or y axis
+   */
+  axis?: 'x' | 'y';
   /**
    * Nearest parent with position: relative, relative to which the element will be positioned
    */
-  containerElement?: HTMLElement | null;
+  containerElementRef?: RefObject<HTMLElement | null>;
   /**
    * Optional callback executed on mousedown
    */
@@ -27,28 +61,29 @@ interface UseDraggableParams {
   /**
    * Optional callback executed on mousemove
    */
-  onMouseMove?: (event: MouseEvent) => void;
+  onMouseMove?: OnDragHandler;
   /**
    * Optional callback executed on mouseup
    */
   onMouseUp?: (event: MouseEvent) => void;
   /**
-   * Restricts the dragging in either x or y axis
+   * Starting element position. Can be any CSS valid value assignable to left and top position.
    */
-  axis?: 'x' | 'y';
+  startPosition?: Position;
   /**
-   * Interval in which the element position is adjusted
+   * Interval in which the element position is adjusted.
    */
   throttleInterval?: number;
 }
 
 export const useDraggable = ({
-  containerElement,
-  element,
+  axis,
+  containerElementRef,
+  dragElementRef,
   onMouseDown,
   onMouseMove,
   onMouseUp,
-  axis,
+  startPosition,
   throttleInterval = 0,
 }: UseDraggableParams) => {
   const dragStart = useRef<{
@@ -57,14 +92,40 @@ export const useDraggable = ({
     clientX: number;
     clientY: number;
   } | null>(null);
+  const positionInitiated = useRef(false);
 
   useEffect(() => {
+    const element = dragElementRef.current;
+    if (!element || positionInitiated.current) return;
+
+    const leftCSS = startPosition?.left
+      ? startPosition.left.amount + startPosition.left.unit
+      : undefined;
+    const topCSS = startPosition?.top
+      ? startPosition.top.amount + startPosition.top.unit
+      : undefined;
+
+    if (typeof leftCSS !== 'undefined' && leftCSS !== element.style.left) {
+      element.style.left = leftCSS;
+      positionInitiated.current = true;
+    }
+    if (typeof topCSS !== 'undefined' && topCSS !== element.style.top) {
+      element.style.top = topCSS;
+      positionInitiated.current = true;
+    }
+  }, [dragElementRef, startPosition]);
+
+  useEffect(() => {
+    const element = dragElementRef.current;
+    const containerElement = containerElementRef?.current;
     if (!element) return;
 
     const handleDrag = (event: MouseEvent) => {
       if (!(dragStart.current && element)) return;
       const deltaX = event.clientX - dragStart.current.clientX;
       const deltaY = event.clientY - dragStart.current.clientY;
+      const { width: elementWidth, height: elementHeight } =
+        element.getBoundingClientRect();
 
       let newLeft = dragStart.current.left + deltaX;
       let newTop = dragStart.current.top + deltaY;
@@ -79,18 +140,18 @@ export const useDraggable = ({
 
         const leftRelativeToContainer = event.clientX - containerLeft;
         newLeft =
-          leftRelativeToContainer < 0
-            ? 0
-            : leftRelativeToContainer > containerWidth
-            ? containerWidth
+          leftRelativeToContainer <= 0
+            ? -(elementWidth / 2)
+            : leftRelativeToContainer >= containerWidth
+            ? containerWidth - elementWidth / 2
             : newLeft - containerLeft;
-        const topRelativeToContainer = event.clientY - containerTop;
 
+        const topRelativeToContainer = event.clientY - containerTop;
         newTop =
           topRelativeToContainer < 0
-            ? 0
-            : topRelativeToContainer > containerHeight
-            ? containerHeight
+            ? -(elementHeight / 2)
+            : topRelativeToContainer >= containerHeight
+            ? containerHeight - elementHeight / 2
             : newTop - containerTop;
       }
       if (!axis || axis === 'x') {
@@ -99,13 +160,16 @@ export const useDraggable = ({
       if (!axis || axis === 'y') {
         element.style.top = newTop + 'px';
       }
-      onMouseMove?.(event);
+      onMouseMove?.(event, {
+        left: { amount: newLeft, unit: 'px' },
+        top: { amount: newTop, unit: 'px' },
+      });
     };
 
     const handleDragStop = (event: MouseEvent) => {
       if (!dragStart.current) return;
       document.removeEventListener('mousemove', handleDrag);
-      document.removeEventListener('mousemove', handleDrag);
+      document.removeEventListener('mouseup', handleDragStop);
       dragStart.current = null;
       onMouseUp?.(event);
     };
@@ -137,8 +201,8 @@ export const useDraggable = ({
     };
   }, [
     axis,
-    containerElement,
-    element,
+    containerElementRef,
+    dragElementRef,
     onMouseDown,
     onMouseMove,
     onMouseUp,
