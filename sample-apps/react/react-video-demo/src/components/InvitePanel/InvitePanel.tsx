@@ -139,22 +139,14 @@ export const InvitePanel: FC<Props> = ({
     >
       <>
         <Invite callId={callId} canShare={false} />
+        <p className={styles.description} onClick={handleToggleDisplayQr}>
+          Or scan the QR code with your phone to test it yourself:
+          <span className={showQrIndicatorClassNames}>▼</span>
+        </p>
 
-        {Boolean(qr) ? (
-          <>
-            <p className={styles.description} onClick={handleToggleDisplayQr}>
-              Or scan the QR code with your phone to test it yourself:
-              <span className={showQrIndicatorClassNames}>▼</span>
-            </p>
-
-            <div className={qrClassNames}>
-              <QRCodeSVG
-                className={styles.code}
-                value={qrCodeContent.toString()}
-              />
-            </div>
-          </>
-        ) : null}
+        <div className={qrClassNames}>
+          <QRCodeSVG className={styles.code} value={qrCodeContent.toString()} />
+        </div>
       </>
     </Panel>
   );
