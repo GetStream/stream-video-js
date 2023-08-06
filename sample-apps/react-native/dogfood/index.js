@@ -3,7 +3,7 @@ import 'react-native-gesture-handler';
 
 import { AppRegistry } from 'react-native';
 import * as Sentry from '@sentry/react-native';
-import App from './App';
+import App from './AppTest';
 import { name as appName } from './app.json';
 
 AppRegistry.registerHeadlessTask(
