@@ -4,10 +4,8 @@ description: A guide on how to add/remove or replace call controls
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import CallControlsViewMediaButtonOn
-  from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls-button-media-on.png';
-import CallControlsViewMediaButtonOff
-  from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls-button-media-off.png';
+import CallControlsViewMediaButtonOn from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls-button-media-on.png';
+import CallControlsViewMediaButtonOff from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls-button-media-off.png';
 
 The Stream Video React Native SDK allows building your own Call controls view/layout. Call Controls View generally comprises several buttons that control the call. Each button controls its area of responsibility. Our task, as integrators, is to create a component that puts these buttons together as we wish. In this example, we intend to show how to do just that.
 
@@ -151,48 +149,28 @@ const styles = StyleSheet.create({
 Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
 
 ```tsx
-import { useCallback } from 'react';
-import { Pressable, Text } from 'react-native';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const ToggleAudioButton = () => {
-  const localParticipant = useLocalParticipant();
-  const isAudioPublished = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
-  const { publishAudioStream, stopPublishingAudio } =
-    useMediaStreamManagement();
-
-  const toggleAudioMuted = useCallback(async () => {
-    if (isAudioPublished) {
-      stopPublishingAudio();
-    } else {
-      await publishAudioStream();
-    }
-  }, [isAudioPublished, publishAudioStream, stopPublishingAudio]);
+  const { isAudioMuted, toggleAudioMuted } = useMediaStreamManagement();
 
   const audioButtonStyles = [
     styles.button,
     {
-      backgroundColor: !isAudioPublished ? '#080707dd' : 'white',
+      backgroundColor: !isAudioMuted ? '#080707dd' : 'white',
     },
   ];
 
   const audioButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !isAudioPublished ? 'white' : '#080707dd',
+      color: !isAudioMuted ? 'white' : '#080707dd',
     },
   ];
 
   return (
     <Pressable onPress={toggleAudioMuted} style={audioButtonStyles}>
-      {isAudioPublished ? (
+      {!isAudioMuted ? (
         <Text style={audioButtonTextStyles}>Audio On</Text>
       ) : (
         <Text style={audioButtonTextStyles}>Audio Off</Text>
@@ -214,7 +192,7 @@ const styles = StyleSheet.create({
   mediaButtonText: {
     textAlign: 'center',
   },
-})
+});
 ```
 
 We check the audio mute status by checking if `SfuModels.TrackType.AUDIO` exists in the array of types of tracks published by `localParticipant`.
@@ -225,48 +203,28 @@ To mute and unmute the local participant's audio, we use `publishAudioStream` an
 Toggling video in an active call turns around publishing video input streams and enabling the video state. The bare-bones button to toggle video in an active call could look like the following:
 
 ```tsx
-import { useCallback } from 'react';
-import { Pressable, Text } from 'react-native';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
-export const ToggleVideoButton = () => {
-  const localParticipant = useLocalParticipant();
-  const isVideoPublished = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-
-  const { publishVideoStream, stopPublishingVideo } =
-    useMediaStreamManagement();
-
-  const toggleVideoMuted = useCallback(async () => {
-    if (isVideoPublished) {
-      stopPublishingVideo();
-    } else {
-      await publishVideoStream();
-    }
-  }, [isVideoPublished, publishVideoStream, stopPublishingVideo]);
+export const ToggleAudioButton = () => {
+  const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
 
   const videoButtonStyles = [
     styles.button,
     {
-      backgroundColor: !isVideoPublished ? '#080707dd' : 'white',
+      backgroundColor: !isVideoMuted ? '#080707dd' : 'white',
     },
   ];
 
   const videoButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !isVideoPublished ? 'white' : '#080707dd',
+      color: !isVideoMuted ? 'white' : '#080707dd',
     },
   ];
 
   return (
     <Pressable onPress={toggleVideoMuted} style={videoButtonStyles}>
-      {isVideoPublished ? (
+      {!isVideoMuted ? (
         <Text style={videoButtonTextStyles}>Video On</Text>
       ) : (
         <Text style={videoButtonTextStyles}>Video Off</Text>
@@ -288,7 +246,7 @@ const styles = StyleSheet.create({
   mediaButtonText: {
     textAlign: 'center',
   },
-})
+});
 ```
 
 We check the video mute status by checking if `SfuModels.TrackType.VIDEO` exists in the array of types of tracks published by `localParticipant`.
@@ -301,10 +259,7 @@ Toggling camera face for mobile devices is an important feature. So, to built it
 The `isCameraOnFrontFacingMode` is a boolean that tracks if the camera is `front` facing. The `toggleCameraFacingMode` is used to toggle camera between `front` and `back`/`environment` facing modes.
 
 ```tsx
-import { Pressable, Text } from 'react-native';
-import {
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const ToggleCameraFaceButton = () => {
   const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
@@ -348,7 +303,7 @@ const styles = StyleSheet.create({
   mediaButtonText: {
     textAlign: 'center',
   },
-})
+});
 ```
 
 ### Assembling it all together
@@ -376,7 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     paddingVertical: 10,
   },
-})
+});
 ```
 
 #### Media Button
@@ -415,5 +370,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     paddingVertical: 10,
   },
-})
+});
 ```

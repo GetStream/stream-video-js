@@ -7,21 +7,20 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { useCallControls, usePermissionNotification } from '../../../hooks';
+import { usePermissionNotification } from '../../../hooks';
 import { theme } from '../../../theme';
 import { Mic, MicOff } from '../../../icons';
 import { Alert, StyleSheet } from 'react-native';
 import { muteStatusColor } from '../../../utils';
+import { useMediaStreamManagement } from '../../../providers';
 
 export const ToggleAudioButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
-  const { toggleAudioMuted, isAudioPublished } = useCallControls();
+  const { isAudioMuted, toggleAudioMuted } = useMediaStreamManagement();
   const userHasSendAudioCapability = useHasPermissions(
     OwnCapability.SEND_AUDIO,
   );
   const { t } = useI18n();
-
-  const isAudioMuted = !isAudioPublished;
 
   usePermissionNotification({
     permission: OwnCapability.SEND_AUDIO,
