@@ -31,6 +31,7 @@ import {
   watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
+  watchPinsUpdated,
   watchSfuErrorReports,
   watchTrackPublished,
   watchTrackUnpublished,
@@ -109,6 +110,7 @@ export const registerEventHandlers = (
     watchDominantSpeakerChanged(dispatcher, state),
 
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
+    call.on('pinsUpdated', watchPinsUpdated(state)),
   ];
 
   Object.keys(coordinatorEvents).forEach((event) => {

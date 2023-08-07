@@ -13,7 +13,12 @@ Let's see an example where we use the `useCall` and `useCallCallingState` hooks 
 
 ```tsx
 import { View, Text } from 'react-native';
-import { StreamCall, useCall, useCallCallingState, Call } from '@stream-io/video-react-native-sdk';
+import {
+  StreamCall,
+  useCall,
+  useCallCallingState,
+  Call,
+} from '@stream-io/video-react-native-sdk';
 
 export default function App() {
   let call: Call;
@@ -96,7 +101,12 @@ If you want to display information about the joined participants of the call you
 
 ```tsx
 import { View, Text } from 'react-native';
-import { useParticipantCount, useLocalParticipant, StreamCall, Call } from '@stream-io/video-react-native-sdk';
+import {
+  useParticipantCount,
+  useLocalParticipant,
+  StreamCall,
+  Call,
+} from '@stream-io/video-react-native-sdk';
 
 export default function App() {
   let call: Call;
@@ -136,7 +146,7 @@ The `StreamVideoParticipant` object contains the following information:
 | `videoStream`        | The published video `MediaStream`.                                          |
 | `screenShareStream`  | The published screen share `MediaStream`.                                   |
 | `isLocalParticipant` | It's `true` if the participant is the local participant.                    |
-| `pinnedAt`           | The time the participant was pinned.                                        |
+| `pin`                | Holds pinning information.                                                  |
 | `reaction`           | The last reaction this user has sent to this call.                          |
 
 The `StreamVideoLocalParticipant` has these additional properties:
@@ -156,9 +166,12 @@ Let's see an example:
 If you want to observe the connected user you can use the `useConnectedUser` hook.
 
 ```tsx
-import {Text, View} from 'react-native';
-import {StreamVideo, StreamVideoClient, useConnectedUser} from '@stream-io/video-react-native-sdk';
-
+import { Text, View } from 'react-native';
+import {
+  StreamVideo,
+  StreamVideoClient,
+  useConnectedUser,
+} from '@stream-io/video-react-native-sdk';
 
 export default function App() {
   let client: StreamVideoClient;
@@ -174,9 +187,7 @@ const Header = () => {
   const user = useConnectedUser();
   return (
     <View>
-      <Text>
-      {user ? `Logged in: ${user.name}` : 'Logged out'}
-      </Text>
+      <Text>{user ? `Logged in: ${user.name}` : 'Logged out'}</Text>
     </View>
   );
 };

@@ -2,14 +2,14 @@ import { FC, forwardRef, useEffect } from 'react';
 import classnames from 'classnames';
 import { v1 as uuid } from 'uuid';
 import {
-  StreamVideoParticipant,
   Call,
-  SfuModels,
-  ParticipantView,
-  StreamReaction,
-  VideoPlaceholderProps,
   CallingState,
+  ParticipantView,
+  SfuModels,
+  StreamReaction,
+  StreamVideoParticipant,
   useCallCallingState,
+  VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -120,7 +120,7 @@ export const Participant: FC<Props> = ({
     !!connectionQuality &&
     String(SfuModels.ConnectionQuality[connectionQuality]).toLowerCase();
 
-  const isPinned = !!participant.pinnedAt;
+  const isPinned = !!participant.pin;
 
   useEffect(() => {
     if (connectionQuality === SfuModels.ConnectionQuality.POOR) {
