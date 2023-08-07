@@ -21,7 +21,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
 import { A11yComponents } from '../../constants/A11yLabels';
-import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
+import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
@@ -221,10 +221,11 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     backgroundColor: theme.light.disabled,
   };
   const unPinParticipantHandler = () => {
-    call?.setParticipantPinnedAt(participant.sessionId, undefined);
+    call?.unpin(participant.sessionId);
   };
 
   const participantLabel = participant.name || participant.userId;
+  const isPinningEnabled = participant.pin && participant.pin.isLocalPin;
 
   return (
     <View
@@ -274,7 +275,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
                 <VideoSlash color={theme.light.error} />
               </View>
             )}
-            {participant.pinnedAt && (
+            {isPinningEnabled && (
               <Pressable
                 style={[styles.svgContainerStyle, theme.icon.xs]}
                 onPress={unPinParticipantHandler}

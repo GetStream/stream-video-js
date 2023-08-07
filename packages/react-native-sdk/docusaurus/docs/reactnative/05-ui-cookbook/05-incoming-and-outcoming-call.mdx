@@ -10,6 +10,10 @@ import MediaStreamManagementButtonOff
   from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-off.png';
 import IncomingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view.png';
 import OutgoingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view.png';
+import IncomingCallViewCompleted
+  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view-completed.png';
+import OutgoingCallViewCompleted
+  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view-completed.png';
 
 The incoming and outgoing call views are responsible for showing the call preview before the call is finally joined.
 
@@ -135,7 +139,7 @@ We can go through the usage through the following example:
 
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import {
   useMediaStreamManagement
 } from '@stream-io/video-react-native-sdk';
@@ -162,6 +166,20 @@ export const MediaStreamButtonGroup = () => {
     },
   ];
 
+  const audioButtonTextStyles = [
+    styles.mediaButtonText,
+    {
+      color: !initialAudioEnabled ? 'white' : '#080707dd',
+    },
+  ];
+
+  const videoButtonTextStyles = [
+    styles.mediaButtonText,
+    {
+      color: !initialVideoEnabled ? 'white' : '#080707dd',
+    },
+  ];
+
   return (
     <View style={styles.buttonGroup}>
       <Pressable
@@ -169,9 +187,9 @@ export const MediaStreamButtonGroup = () => {
         style={audioButtonStyles}
       >
         {initialAudioEnabled ? (
-          <>{/* Your Disable Audio Icon*/}</>
+          <Text style={audioButtonTextStyles}>Audio on</Text>
         ) : (
-          <>{/* Your Enable Audio Icon*/}</>
+          <Text style={audioButtonTextStyles}>Audio off</Text>
         )}
       </Pressable>
       <Pressable
@@ -179,9 +197,9 @@ export const MediaStreamButtonGroup = () => {
         style={videoButtonStyles}
       >
         {initialVideoEnabled ? (
-          <>{/* Your Disable Video Icon*/}</>
+          <Text style={videoButtonTextStyles}>Video on</Text>
         ) : (
-          <>{/* Your Enable Video Icon*/}</>
+          <Text style={videoButtonTextStyles}>Video off</Text>
         )}
       </Pressable>
     </View>
@@ -197,6 +215,10 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     borderRadius: 40,
+    justifyContent: "center"
+  },
+  mediaButtonText: {
+    textAlign: 'center',
   },
 });
 ```
@@ -213,7 +235,7 @@ To build the buttons we would primarily need `useCall` hook, that gives us the c
 
 ```tsx title="IncomingCallButtonGroup.tsx"
 import React, { useCallback } from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 import {
   CallingState,
   useCall,
@@ -249,13 +271,13 @@ export const IncomingCallButtonGroup = () => {
         style={[styles.button, styles.rejectButton]}
         onPress={rejectCallHandler}
       >
-        {/*Your Reject Call icon Here*/}
+        <Text style={styles.callButtonText}>Reject</Text>
       </Pressable>
       <Pressable
         style={[styles.button, styles.acceptButton]}
         onPress={acceptCallHandler}
       >
-        {/*Your Accept Call icon here*/}
+        <Text style={styles.callButtonText}>Accept</Text>
       </Pressable>
     </View>
   );
@@ -270,12 +292,17 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     borderRadius: 40,
+    justifyContent: 'center',
   },
   acceptButton: {
     backgroundColor: '#20E070',
   },
   rejectButton: {
     backgroundColor: '#FF3742',
+  },
+  callButtonText: {
+    color: 'white',
+    textAlign: 'center',
   },
 });
 ```
@@ -292,7 +319,7 @@ To build the buttons we would primarily need `useCall` hook, that gives us the c
 
 ```tsx title="OutgoingCallButtonGroup.tsx"
 import React, { useCallback } from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 import {
   CallingState,
   useCall,
@@ -320,7 +347,7 @@ export const OutgoingCallButtonGroup = () => {
         style={[styles.button, styles.hangupButton]}
         onPress={hangupCallHandler}
       >
-        {/*Your Hangup Call icon Here*/}
+        <Text style={styles.callButtonText}>Hang up</Text>
       </Pressable>
     </View>
   );
@@ -335,10 +362,62 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     borderRadius: 40,
+    justifyContent: 'center',
   },
   hangupButton: {
     backgroundColor: '#FF3742',
   },
+  callButtonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
 });
 ```
 
+## Assembling it all together
+
+<ImageShowcase
+  items={[
+    {
+      image: IncomingCallViewCompleted,
+      caption: 'Incoming call view',
+      alt: 'Incoming call view',
+    },
+    {
+      image: OutgoingCallViewCompleted,
+      caption: 'Outgoing call view',
+      alt: 'Outgoing call view',
+    },
+  ]}
+/>
+
+```tsx
+import { StyleSheet, View } from 'react-native';
+
+export const IncomingCallViewComponent = () => {
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.container]}>
+      <UserInfoViewComponent />
+      <IncomingCallButtonGroup />
+    </View>
+  );
+};
+
+export const OutgoingCallViewComponent = () => {
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.container]}>
+      <UserInfoViewComponent />
+      <MediaStreamButtonGroup />
+      <OutgoingCallButtonGroup />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#272A30",
+    justifyContent: 'space-evenly',
+  }
+})
+```
