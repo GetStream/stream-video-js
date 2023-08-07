@@ -177,14 +177,14 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
         ]
       : [];
 
-  const pinParticipant: CallParticipantOptionType | null =
-    !participant.pin || participant.pin.isLocalPin
-      ? {
-          icon: <Pin color={theme.dark.text_high_emphasis} />,
-          title: participant.pin ? 'Unpin' : 'Pin',
-          onPressHandler: toggleParticipantPinnedAt,
-        }
-      : null;
+  const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
+  const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
+    ? {
+        icon: <Pin color={theme.dark.text_high_emphasis} />,
+        title: participant.pin ? 'Unpin' : 'Pin',
+        onPressHandler: toggleParticipantPinnedAt,
+      }
+    : null;
 
   const options: (CallParticipantOptionType | null)[] = [
     pinParticipant,
