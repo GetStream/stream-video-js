@@ -19,7 +19,12 @@ export const useInitVideoClient = ({
 }: PropsWithChildren<VideoClientProviderProps>) => {
   const { callId } = useParams<{ callId: string }>();
   const { api_key, token, type } = getURLCredentials();
-  const user = useMemo(getUser, []);
+  const user = useMemo(() => {
+    if (isAnon) {
+      return { id: '!anon' };
+    }
+    return getUser();
+  }, [isAnon]);
   const apiKey = api_key ?? envApiKey;
 
   const [client, setClient] = useState<StreamVideoClient>();
@@ -41,8 +46,8 @@ export const useInitVideoClient = ({
     };
     const _client = new StreamVideoClient({
       apiKey,
-      tokenProvider,
-      token,
+      ...(isAnon && { tokenProvider }),
+      ...(!isAnon && { token }),
       user: isAnon ? { type: 'anonymous' } : role ? { ...user, role } : user,
     });
     setClient(_client);
