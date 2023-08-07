@@ -4,8 +4,6 @@ title: Camera & Microphone
 description: Managing audio and video
 ---
 
-The video client exports helper methods to make it easier to work with the [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) and [`MediaDeviceInfo`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo) APIs.
-
 ## Camera management
 
 ### Call settings
@@ -21,46 +19,64 @@ call.state.metadata$.subscribe((metadata) =>
 ### Start-stop camera
 
 ```typescript
-import { Call, getVideoStream, SfuModels } from '@stream-io/video-client';
-
 const toggleCamera = () => {
-  const participant = call.state.localParticipant;
-  if (!participant) {
-    return;
-  }
-  if (participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
-    // This will take care of disposing the media stream
-    await call.stopPublish(SfuModels.TrackType.VIDEO);
-  } else {
-    const videoStream = await getVideoStream();
-    await call.publishVideoStream(videoStream);
-  }
+  call.camera.toggle();
+
+  // or
+  call.camera.enable();
+  call.camera.disable();
 };
 ```
 
 ### List and select devices
 
 ```typescript
-import { getVideoStream, getVideoDevices } from '@stream-io/video-client';
-
 // List devices
 // The error handler is called if the user denies permission to use camera
-getVideoDevices().subscribe({ next: console.log, error: console.error });
+call.camera
+  .listDevices()
+  .subscribe({ next: console.log, error: console.error });
 
 // Select device
-// Store selected device for participant
-call.setVideoDevice('device Id');
-
-// Start video stream
-getVideoStream({ deviceId: 'device Id' });
+call.camera.select('device Id');
 ```
 
-### Lobby preview
-
-Here is how to setup a video preview displayed before joining the call:
+### Camera state
 
 ```typescript
-TODO example
+call.camera.state.status; // enabled or disabled
+call.camera.state.selectedDevice; // currently selected camera
+```
+
+### Render video
+
+#### In call
+
+This is how you can render video of a participant:
+
+```typescript
+const videoEl = document.createElement('video');
+videoEl.autoplay = true;
+
+if (videoEl.srcObject !== participant.videoStream) {
+  videoEl.srcObject = participant.videoStream || null;
+}
+```
+
+#### Lobby preview
+
+This is how you can show a preview video before joining the call:
+
+```typescript
+const call = client.call('default', '123');
+
+await call.camera.enable();
+const videoEl = document.createElement('video');
+videoEl.autoplay = true;
+
+if (videoEl.srcObject !== call.camera.state.mediaStream) {
+  videoEl.srcObject = call.camera.state.mediaStream || null;
+}
 ```
 
 ## Microphone management
@@ -79,38 +95,64 @@ call.state.metadata$.subscribe((metadata) =>
 
 ```typescript
 const toggleMicrophone = () => {
-  const participant = call.state.localParticipant;
-  if (!participant) {
-    return;
-  }
-  if (participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
-    // This will take care of disposing the media stream
-    await call.stopPublish(SfuModels.TrackType.AUDIO);
-  } else {
-    const audioStream = await getAudioStream();
-    await call.publishAudioStream(audioStream);
-  }
+  call.microphone.toggle();
+
+  // or
+  call.microphone.enable();
+  call.microphone.disable();
 };
 ```
 
 ### List and select devices
 
 ```typescript
-import { getAudioStream, getAudioDevices } from '@stream-io/video-client';
-
 // List devices
 // The error handler is called if the user denies permission to use microphone
-getAudioDevices().subscribe({ next: console.log, error: console.error });
+call.microphone
+  .listDevices()
+  .subscribe({ next: console.log, error: console.error });
 
 // Select device
-// Store selected device for participant
-call.setAudioDevice('device Id');
-
-// Start video stream
-getAudioStream({ deviceId: 'device Id' });
+call.microphone.select('device Id');
 ```
 
-For more information you can refer to [this codesandbox](https://codesandbox.io/s/javascript-device-management-forked-cv47gr?file=/src/index.ts) that shows how you can select audio and video devices.
+### Microphone state
+
+```typescript
+call.microphone.state.status; // enabled or disabled
+call.microphone.state.selectedDevice; // currently selected microphone
+```
+
+### Play audio
+
+#### In call
+
+This is how you can play audio of a participant:
+
+```typescript
+const audioEl = document.createElement('audio');
+audioEl.autoplay = true;
+
+if (audioEl.srcObject !== participant.audioStream) {
+  audioEl.srcObject = participant.audioStream || null;
+}
+```
+
+#### Lobby preview
+
+This is how you can show a visual representation about the sound level coming from the user's selected microphone:
+
+```typescript
+// Code example coming soon 🏗️
+```
+
+### Speaking while muted notification
+
+```typescript
+// This feature is coming soon 🏗️
+```
+
+For more information you can refer to [the sample app](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/client/ts-quickstart) that shows how you can select audio and video devices.
 
 ## Speaker management
 
@@ -119,60 +161,11 @@ For more information you can refer to [this codesandbox](https://codesandbox.io/
 Selecting audio output device for the call [isn't supported by all browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId), this is how you can check the availability:
 
 ```typescript
-import { checkIfAudioOutputChangeSupported } from '@stream-io/video-client';
-
-checkIfAudioOutputChangeSupported();
+// This feature is coming soon 🏗️
 ```
 
 ### List and select devices
 
 ```typescript
-import { getAudioOutputDevices } from '@stream-io/video-client';
-
-// List devices
-// The error handler is called if the user denies permission to use microphone
-getAudioOutputDevices().subscribe({ next: console.log, error: console.error });
-
-// Select device
-// Store selected device for participant
-call.setAudioOutputDevice('device Id');
+// This feature is coming soon 🏗️
 ```
-
-To apply the changes you need to set the [sinkId](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId) property of the `audio` elements to the selected audio output device.
-
-## Advanced
-
-### Device unavailability
-
-It may happen, that we would like to react to a situation, when there is no device of a given kind (audio, video) available. This can for example happen, when a laptop lid is closed. In that case we may want to disable the given device kind for the next time, when the lid is re-opened.
-
-```typescript
-import {
-  Call,
-  SfuModels,
-  watchForDisconnectedAudioDevice,
-  watchForDisconnectedVideoDevice,
-} from '@stream-io/video-client';
-
-const call: Call;
-
-watchForDisconnectedAudioDevice(
-  call.state.localParticipant$.map((p) => p?.audioDeviceId),
-).subscribe(() => {
-  call.stopPublish(SfuModels.TrackType.AUDIO);
-});
-
-watchForDisconnectedVideoDevice(
-  call.state.localParticipant$.map((p) => p?.videoDeviceId),
-).subscribe(() => {
-  call.stopPublish(SfuModels.TrackType.VIDEO);
-});
-```
-
-### Sound detection
-
-An important topic related to media devices management is sound detection. A feature often needed in a call scenario (volume detection, speaking-while-muted notification). We can start detecting the audio input level changes using the utility function [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts). The function requires an instance of [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) object of type `audioinput` and attaches sound analysers to it. The `MediaStream` can be retrieved by the client's `getAudioStream` utility function. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
-
-It is also possible to configure the data collection algorithm with the third [`options` parameter](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
-
-The return value of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) function is a clean-up function.
