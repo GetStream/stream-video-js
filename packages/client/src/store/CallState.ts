@@ -16,7 +16,7 @@ import {
   MemberResponse,
   OwnCapability,
 } from '../gen/coordinator';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { Pin, TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
 import * as SortingPreset from '../sorting/presets';
 import { getLogger } from '../logger';
@@ -287,7 +287,7 @@ export class CallState {
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => p.pinnedAt)),
+      map((participants) => participants.filter((p) => !!p.pin)),
     );
 
     this.dominantSpeaker$ = this.participants$.pipe(
@@ -675,6 +675,47 @@ export class CallState {
           };
         }
         return p;
+      }),
+    );
+  };
+
+  /**
+   * Updates the participant pinned state with server side pinning data.
+   *
+   * @param pins the latest pins from the server.
+   */
+  setServerSidePins = (pins: Pin[]) => {
+    const pinsLookup = pins.reduce<{ [sessionId: string]: number | undefined }>(
+      (lookup, pin) => {
+        lookup[pin.sessionId] = Date.now();
+        return lookup;
+      },
+      {},
+    );
+
+    return this.setParticipants((participants) =>
+      participants.map((participant) => {
+        const serverSidePinnedAt = pinsLookup[participant.sessionId];
+        // the participant is newly pinned
+        if (serverSidePinnedAt) {
+          return {
+            ...participant,
+            pin: {
+              isLocalPin: false,
+              pinnedAt: serverSidePinnedAt,
+            },
+          };
+        }
+        // the participant is no longer pinned server side
+        // we need to reset the pin
+        if (participant.pin && !participant.pin.isLocalPin) {
+          return {
+            ...participant,
+            pin: undefined,
+          };
+        }
+        // no changes to be applied
+        return participant;
       }),
     );
   };

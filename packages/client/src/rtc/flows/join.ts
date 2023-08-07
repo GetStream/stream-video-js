@@ -112,15 +112,9 @@ export const reconcileParticipantLocalState = (
 ) => {
   if (!source) return target;
 
-  target.audioStream = source.audioStream;
-  target.videoStream = source.videoStream;
-  target.screenShareStream = source.screenShareStream;
+  // copy everything from source to target
+  Object.assign(target, source);
 
-  target.videoDimension = source.videoDimension;
-  target.screenShareDimension = source.screenShareDimension;
-  target.pinnedAt = source.pinnedAt;
-  target.reaction = source.reaction;
-  target.viewportVisibilityState = source.viewportVisibilityState;
   if (
     isStreamVideoLocalParticipant(source) &&
     isStreamVideoLocalParticipant(target)
