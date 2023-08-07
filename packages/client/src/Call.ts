@@ -105,6 +105,7 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
+import { InputMediaDeviceManager } from './devices/InputMediaDeviceManager';
 
 /**
  * An object representation of a `Call`.
@@ -140,6 +141,16 @@ export class Call {
    * updates from the backend.
    */
   watching: boolean;
+
+  /**
+   * Device manager for the camera
+   */
+  readonly camera: InputMediaDeviceManager;
+
+  /**
+   * Device manager for the microhpone
+   */
+  readonly microphone: InputMediaDeviceManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -241,6 +252,9 @@ export class Call {
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
     );
+
+    this.camera = new InputMediaDeviceManager(this, 'videoinput');
+    this.microphone = new InputMediaDeviceManager(this, 'audioinput');
   }
 
   private registerEffects() {
@@ -902,6 +916,14 @@ export class Call {
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
+
+      if (this.camera.state.mediaStream) {
+        this.publishVideoStream(this.camera.state.mediaStream);
+      }
+
+      if (this.microphone.state.mediaStream) {
+        this.publishVideoStream(this.microphone.state.mediaStream);
+      }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
       // we schedule a fast subscription update for all remote participants
