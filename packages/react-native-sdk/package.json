@@ -56,13 +56,13 @@
     "react-native-callkeep": {
       "optional": true
     },
-    "react-native-voip-push-notification": {
-      "optional": true
-    },
     "react-native-gesture-handler": {
       "optional": true
     },
     "react-native-reanimated": {
+      "optional": true
+    },
+    "react-native-voip-push-notification": {
       "optional": true
     }
   },
