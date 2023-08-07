@@ -11,15 +11,12 @@ import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 
 import Reanimated, {
   withSpring,
   useAnimatedStyle,
   useSharedValue,
-  useAnimatedGestureHandler,
 } from 'react-native-reanimated';
 
 const enum FloatingViewAlignment {
@@ -98,14 +95,6 @@ function getClosestSnapAlignment({
 }
 
 const App = () => {
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <RootView />
-    </GestureHandlerRootView>
-    // </GestureHandlerRootView>
-  );
-};
-const RootView = () => {
   const [rectangle, setRectangle] = React.useState<LayoutRectangle>();
   return (
     <View
@@ -115,7 +104,7 @@ const RootView = () => {
       }}
     >
       {rectangle && (
-        <FloatingView
+        <ReanimatedFloatingView
           initialAlignment={FloatingViewAlignment.bottomRight}
           containerWidth={rectangle.width}
           containerHeight={rectangle.height}
@@ -330,7 +319,7 @@ const ReanimatedFloatingView = ({
         y: Math.max(
           0,
           Math.min(
-            translation.value.y,
+            e.translationY + start.value.y,
             snapAlignments[FloatingViewAlignment.bottomRight].y,
           ),
         ),
