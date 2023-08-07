@@ -90,10 +90,11 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   };
 
   const toggleParticipantPinnedAt = () => {
-    call?.setParticipantPinnedAt(
-      participant.sessionId,
-      participant.pinnedAt ? undefined : Date.now(),
-    );
+    if (participant.pin) {
+      call?.unpin(participant.sessionId);
+    } else {
+      call?.pin(participant.sessionId);
+    }
   };
 
   const participantPublishesVideo = participant.publishedTracks.includes(
@@ -176,11 +177,14 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
         ]
       : [];
 
-  const pinParticipant: CallParticipantOptionType | null = {
-    icon: <Pin color={theme.dark.text_high_emphasis} />,
-    title: participant.pinnedAt ? 'Unpin' : 'Pin',
-    onPressHandler: toggleParticipantPinnedAt,
-  };
+  const isLocalPinningAllowed = !participant.pin || participant.pin.isLocalPin;
+  const pinParticipant: CallParticipantOptionType | null = isLocalPinningAllowed
+    ? {
+        icon: <Pin color={theme.dark.text_high_emphasis} />,
+        title: participant.pin ? 'Unpin' : 'Pin',
+        onPressHandler: toggleParticipantPinnedAt,
+      }
+    : null;
 
   const options: (CallParticipantOptionType | null)[] = [
     pinParticipant,

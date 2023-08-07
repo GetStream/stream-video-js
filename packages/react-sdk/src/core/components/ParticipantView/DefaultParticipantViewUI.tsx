@@ -118,7 +118,7 @@ export const ParticipantDetails = ({
     isLocalParticipant,
     connectionQuality,
     publishedTracks,
-    pinnedAt,
+    pin,
     sessionId,
     name,
     userId,
@@ -132,7 +132,7 @@ export const ParticipantDetails = ({
 
   const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
-  const isPinned = !!pinnedAt;
+  const canUnpin = !!pin && pin.isLocalPin;
 
   const isDebugMode = useIsDebugMode();
 
@@ -171,11 +171,11 @@ export const ParticipantDetails = ({
         {indicatorsVisible && !hasVideo && (
           <span className="str-video__participant-details__name--video-muted" />
         )}
-        {indicatorsVisible && isPinned && (
+        {indicatorsVisible && canUnpin && (
           // TODO: remove this monstrosity once we have a proper design
           <span
             title="Unpin"
-            onClick={() => call?.setParticipantPinnedAt(sessionId)}
+            onClick={() => call?.unpin(sessionId)}
             style={{ cursor: 'pointer' }}
             className="str-video__participant-details__name--pinned"
           />

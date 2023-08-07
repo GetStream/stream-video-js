@@ -221,10 +221,11 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     backgroundColor: theme.light.disabled,
   };
   const unPinParticipantHandler = () => {
-    call?.setParticipantPinnedAt(participant.sessionId, undefined);
+    call?.unpin(participant.sessionId);
   };
 
   const participantLabel = participant.name || participant.userId;
+  const isPinningEnabled = participant.pin && participant.pin.isLocalPin;
 
   return (
     <View
@@ -273,7 +274,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
                 <VideoSlash color={theme.light.error} />
               </View>
             )}
-            {participant.pinnedAt && (
+            {isPinningEnabled && (
               <Pressable
                 style={[styles.svgContainerStyle, theme.icon.xs]}
                 onPress={unPinParticipantHandler}
