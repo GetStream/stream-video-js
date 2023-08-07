@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
-import { CallParticipantsGridView } from '../../src/components/call/internal/CallParticipantsGridView';
+import { CallParticipantsGrid } from '../../src/components/call/internal/CallParticipantsGrid';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -16,8 +16,8 @@ enum P_IDS {
   REMOTE_2 = 'remote-2',
 }
 
-describe('CallParticipantsGridView', () => {
-  it('should render an local video view when only 1 participant present in the call', async () => {
+describe('CallParticipantsGrid', () => {
+  it('should render an local video when only 1 participant present in the call', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -28,7 +28,7 @@ describe('CallParticipantsGridView', () => {
       }),
     ]);
 
-    render(<CallParticipantsGridView />, {
+    render(<CallParticipantsGrid />, {
       call,
     });
 

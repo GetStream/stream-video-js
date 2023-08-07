@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
-import { CallContentView } from '../../src/components';
+import { CallContent } from '../../src/components';
 import { ViewToken } from 'react-native';
 
 console.warn = jest.fn();
@@ -35,8 +35,8 @@ const simulateOnViewableItemsChanged = async (
   });
 };
 
-describe('CallParticipantsView', () => {
-  it('should render an call participants view with grid mode with 2 participants when no screen shared', async () => {
+describe('CallParticipants', () => {
+  it('should render an call participants with grid mode with 2 participants when no screen shared', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -50,12 +50,12 @@ describe('CallParticipantsView', () => {
       }),
     ]);
 
-    render(<CallContentView />, {
+    render(<CallContent />, {
       call,
     });
 
     expect(
-      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID_VIEW),
+      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID),
     ).toBeVisible();
 
     // Locating and verifying that all ParticipantViews are rendered
@@ -79,7 +79,7 @@ describe('CallParticipantsView', () => {
       screen.queryByLabelText(A11yComponents.CALL_PARTICIPANTS_LIST),
     ).toBeNull();
   });
-  it('should render an call participants view with spotlight mode with 2 participants', async () => {
+  it('should render call participants component with spotlight mode with 2 participants', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -100,14 +100,12 @@ describe('CallParticipantsView', () => {
       }),
     ]);
 
-    render(<CallContentView />, {
+    render(<CallContent />, {
       call,
     });
 
     expect(
-      await screen.findByLabelText(
-        A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
-      ),
+      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT),
     ).toBeVisible();
 
     // Since it has a screen share and thereby spotlight, we should render the flatlist even with 2 participants
@@ -143,7 +141,7 @@ describe('CallParticipantsView', () => {
       }),
     ]);
 
-    render(<CallContentView />, {
+    render(<CallContent />, {
       call,
     });
 

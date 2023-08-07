@@ -8,14 +8,14 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { UserInfoView } from './internal/UserInfoView';
+import { UserInfo } from './internal/UserInfo';
 import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { CallingState } from '@stream-io/video-client';
 
 /**
- * The props for the Accept Call button in the IncomingCallView component.
+ * The props for the Accept Call button in the IncomingCall component.
  */
 type AcceptCallButton = {
   /**
@@ -26,7 +26,7 @@ type AcceptCallButton = {
 };
 
 /**
- * The props for the Reject Call button in the IncomingCallView component.
+ * The props for the Reject Call button in the IncomingCall component.
  */
 type RejectCallButton = {
   /**
@@ -37,9 +37,9 @@ type RejectCallButton = {
 };
 
 /**
- * Props for the IncomingCallView Component.
+ * Props for the IncomingCall Component.
  */
-export type IncomingCallViewType = {
+export type IncomingCallType = {
   /**
    * Accept Call Button Props to be passed as an object
    */
@@ -51,13 +51,13 @@ export type IncomingCallViewType = {
 };
 
 /**
- * An incoming call view with the caller's avatar, name and accept/reject buttons.
+ * An incoming call with the caller's avatar, name and accept/reject buttons.
  * Used when the user is receiving a call.
  */
-export const IncomingCallView = ({
+export const IncomingCall = ({
   acceptCallButton,
   rejectCallButton,
-}: IncomingCallViewType) => {
+}: IncomingCallType) => {
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
   const call = useCall();
@@ -96,7 +96,7 @@ export const IncomingCallView = ({
   return (
     <Background>
       <View style={styles.content}>
-        <UserInfoView />
+        <UserInfo />
         <Text style={styles.incomingCallText}>{t('Incoming Call...')}</Text>
       </View>
 

@@ -1,27 +1,24 @@
 ---
-id: lobby-view
-title: LobbyView
+id: lobby
+title: Lobby
 ---
 
-LobbyView is a component that is designed to make your entrance and invite experience to a meeting call user-friendly. The purpose is to allow users to test their setup before entering the meeting call. This component mainly contains all the necessary information about the meeting, including:
+Lobby is a component that is designed to make your entrance and invite experience to a meeting call user-friendly. The purpose is to allow users to test their setup before entering the meeting call. This component mainly contains all the necessary information about the meeting, including:
 
 - The call details such as its id, etc.
 - Participants who are already in the meeting.
 - Controlling the audio/video mute status before joining the meeting.
 - Exposes a handler for the join meeting button.
 
-![Preview of the LobbyView component.](../../assets/04-ui-components/lobby-view.png)
+![Preview of the Lobby component.](../../assets/04-ui-components/lobby.png)
 
 ## General usage
 
 ```tsx
 import { useCallback } from 'react';
-import {
-  LobbyView,
-  useCall,
-} from '@stream-io/video-react-native-sdk';
+import { Lobby, useCall } from '@stream-io/video-react-native-sdk';
 
-const LobbyViewComponent = () => {
+const LobbyComponent = () => {
   let call = useCall();
 
   const onCallJoinHandler = useCallback(async () => {
@@ -35,7 +32,7 @@ const LobbyViewComponent = () => {
   }, [call]);
 
   // highlight-next-line
-  return <LobbyView joinCallButton={{ onPressHandler: onCallJoinHandler }} />;
+  return <Lobby joinCallButton={{ onPressHandler: onCallJoinHandler }} />;
 };
 ```
 

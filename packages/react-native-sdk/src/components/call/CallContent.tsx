@@ -1,13 +1,13 @@
 import React from 'react';
-import { CallParticipantsGridView } from './internal/CallParticipantsGridView';
-import { CallParticipantsSpotlightView } from './internal/CallParticipantsSpotlightView';
+import { CallParticipantsGrid } from './internal/CallParticipantsGrid';
+import { CallParticipantsSpotlight } from './internal/CallParticipantsSpotlight';
 import {
   useCall,
   useHasOngoingScreenShare,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 
-export type CallContentViewProps = {
+export type CallContentProps = {
   /**
    * The mode of the call view. Defaults to 'grid'.
    * Note: when there is atleast one screen share, the mode is automatically set to 'spotlight'.
@@ -16,23 +16,23 @@ export type CallContentViewProps = {
 };
 
 /**
- * The main view of an active call.
+ * The main view of an active call which lists the participants.
  * This view renders the participants in either grid or spotlight mode.
  * @param mode The mode of the call view. Defaults to 'grid'.
  */
-export const CallContentView = ({ mode }: CallContentViewProps) => {
+export const CallContent = ({ mode }: CallContentProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
   const callType = useCall()?.type;
 
-  const showSpotLightModeView =
+  const showSpotLightMode =
     callType !== 'audio_room' && (mode === 'spotlight' || hasScreenShare);
 
   return (
     <View style={styles.container}>
-      {showSpotLightModeView ? (
-        <CallParticipantsSpotlightView />
+      {showSpotLightMode ? (
+        <CallParticipantsSpotlight />
       ) : (
-        <CallParticipantsGridView />
+        <CallParticipantsGrid />
       )}
     </View>
   );

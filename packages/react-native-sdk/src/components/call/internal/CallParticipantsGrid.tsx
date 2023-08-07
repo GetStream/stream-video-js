@@ -7,10 +7,10 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { CallParticipantsListView } from '../../call/CallParticipantsListView';
+import { CallParticipantsList } from '../CallParticipantsList';
 import { A11yComponents } from '../../../constants/A11yLabels';
 
-export const CallParticipantsGridView = () => {
+export const CallParticipantsGrid = () => {
   const callType = useCall()?.type;
   const _remoteParticipants = useRemoteParticipants();
   const allParticipants = useParticipants();
@@ -28,10 +28,10 @@ export const CallParticipantsGridView = () => {
   return (
     <View
       style={styles.container}
-      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_GRID_VIEW}
+      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_GRID}
     >
       {showFloatingView && <LocalParticipantView layout={'floating'} />}
-      <CallParticipantsListView participants={participants} />
+      <CallParticipantsList participants={participants} />
     </View>
   );
 };

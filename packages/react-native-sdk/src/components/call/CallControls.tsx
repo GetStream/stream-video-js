@@ -17,7 +17,7 @@ import {
 } from '../utility/internal/HangupCallButton';
 
 /**
- * The props for the Chat Button in the Call Control View.
+ * The props for the Chat Button in the Call Controls.
  */
 type ChatButtonType = {
   /**
@@ -32,9 +32,9 @@ type ChatButtonType = {
 };
 
 /**
- * Props for the CallControlsView Component.
+ * Props for the CallControls Component.
  */
-export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
+export interface CallControlsType extends Pick<ViewProps, 'style'> {
   /**
    * Chat Button Props to be passed as an object
    */
@@ -49,11 +49,11 @@ export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
  * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
  */
-export const CallControlsView = ({
+export const CallControls = ({
   chatButton,
   hangUpCallButton,
   style,
-}: CallControlsViewType) => {
+}: CallControlsType) => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
 

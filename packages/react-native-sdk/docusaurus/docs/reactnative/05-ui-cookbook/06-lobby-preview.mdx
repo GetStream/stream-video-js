@@ -6,12 +6,10 @@ description: Lobby Preview
 import ImageShowcase from '@site/src/components/ImageShowcase';
 import LocalParticipantPreviewOn from '../assets/05-ui-cookbook/06-lobby-preview/local-participant-preview-on.png';
 import LocalParticipantPreviewOff from '../assets/05-ui-cookbook/06-lobby-preview/local-participant-preview-off.png';
-import MediaStreamManagementButtonOn
-  from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-on.png';
-import MediaStreamManagementButtonOff
-  from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-off.png';
-import LobbyViewCompletedOn from '../assets/05-ui-cookbook/06-lobby-preview/lobby-view-completed-on.png';
-import LobbyViewCompletedOff from '../assets/05-ui-cookbook/06-lobby-preview/lobby-view-completed-off.png';
+import MediaStreamManagementButtonOn from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-on.png';
+import MediaStreamManagementButtonOff from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-off.png';
+import LobbyCompletedOn from '../assets/05-ui-cookbook/06-lobby-preview/lobby-completed-on.png';
+import LobbyCompletedOff from '../assets/05-ui-cookbook/06-lobby-preview/lobby-completed-off.png';
 
 In this article, we will discuss key considerations for creating a user-friendly entrance to your call. We will delve into the various elements that can enhance the user experience and ensure a smooth transition from the lobby to the video call itself. By implementing effective lobby page design principles, you can elevate the overall user satisfaction.
 
@@ -20,7 +18,7 @@ We consider lobby to be place, where:
 - The user can see their own video preview before joining the call.
 - The user acquires information about the call to be joined.
 - The user can set their video/audio mute preferences before joining the call.
-- The user can use the Lobby view to show the participants who are already in the call.
+- The user can use the Lobby component to show the participants who are already in the call.
 
 :::note
 The approach to visualise the components will differ from application to application. Therefore, in this guide, we will focus only on the principles of building components and plugging them with right data sources
@@ -178,7 +176,7 @@ const styles = StyleSheet.create({
 
 ### Media Stream Management
 
-To control audio or video mute status in the Incoming and Outgoing call view, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+To control audio or video mute status in the Lobby, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
 
 <ImageShowcase
   items={[
@@ -299,11 +297,11 @@ We can retrieve the list of members, that already joined the call (participants)
 
 ![Preview of the already joined participants example](../assets/05-ui-cookbook/06-lobby-preview/already_joined_participants.png)
 
-```tsx title="LobbyViewParticipantsPreview.tsx"
+```tsx title="LobbyParticipantsPreview.tsx"
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useCallMetadata } from '@stream-io/video-react-native-sdk';
 
-export const LobbyViewParticipantsPreview = () => {
+export const LobbyParticipantsPreview = () => {
   const callMetadata = useCallMetadata();
 
   if (
@@ -408,14 +406,14 @@ const styles = StyleSheet.create({
 <ImageShowcase
   items={[
     {
-      image: LobbyViewCompletedOff,
-      caption: 'Lobby View Completed Camera and Mic off',
-      alt: 'Lobby View Completed Camera and Mic off',
+      image: LobbyCompletedOff,
+      caption: 'Lobby Completed Camera and Mic off',
+      alt: 'Lobby Completed Camera and Mic off',
     },
     {
-      image: LobbyViewCompletedOn,
-      caption: 'Lobby View Completed Camera and Mic on',
-      alt: 'Lobby View Completed Camera and Mic on',
+      image: LobbyCompletedOn,
+      caption: 'Lobby Completed Camera and Mic on',
+      alt: 'Lobby Completed Camera and Mic on',
     },
   ]}
 />
@@ -423,12 +421,12 @@ const styles = StyleSheet.create({
 ```tsx
 import { StyleSheet, View } from 'react-native';
 
-export const LobbyView = () => {
+export const Lobby = () => {
   return (
     <View style={styles.container}>
       <LocalVideoRenderer />
       <MediaStreamButtonGroup />
-      <LobbyViewParticipantsPreview />
+      <LobbyParticipantsPreview />
       <JoinCallButton />
     </View>
   );
@@ -437,8 +435,8 @@ export const LobbyView = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#272A30",
+    backgroundColor: '#272A30',
     justifyContent: 'space-evenly',
-  }
-})
+  },
+});
 ```

@@ -37,15 +37,15 @@ import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
 import { Z_INDEX } from '../../constants';
 import { palette } from '../../theme/constants';
 
-export interface ParticipantsInfoListViewProps {
+export interface ParticipantsInfoListProps {
   /**
-   * Boolean that decides whether the CallParticipantsInfoView modal should be open or not.
+   * Boolean that decides whether the CallParticipantsInfo modal should be open or not.
    */
-  isCallParticipantsInfoViewVisible: boolean;
+  isCallParticipantsInfoVisible: boolean;
   /**
-   * SetState function to set the value of the boolean field `isCallParticipantsViewVisible` depending upon whether the CallParticipantsInfoView modal should be open or not.
+   * SetState function to set the value of the boolean field `isCallParticipantsVisible` depending upon whether the CallParticipantsInfo modal should be open or not.
    */
-  setIsCallParticipantsInfoViewVisible: React.Dispatch<
+  setIsCallParticipantsInfoVisible: React.Dispatch<
     React.SetStateAction<boolean>
   >;
 }
@@ -55,10 +55,10 @@ export interface ParticipantsInfoListViewProps {
  * their mute states, video states, screen share states, etc.
  * Mute all participants, invite participants, etc.
  **/
-export const ParticipantsInfoListView = ({
-  isCallParticipantsInfoViewVisible,
-  setIsCallParticipantsInfoViewVisible,
-}: ParticipantsInfoListViewProps) => {
+export const ParticipantsInfoList = ({
+  isCallParticipantsInfoVisible,
+  setIsCallParticipantsInfoVisible,
+}: ParticipantsInfoListProps) => {
   const participants = useParticipants();
   const { t } = useI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<
@@ -86,8 +86,8 @@ export const ParticipantsInfoListView = ({
     }
   };
 
-  const onCloseCallParticipantsViewVisible = () => {
-    setIsCallParticipantsInfoViewVisible(false);
+  const onCloseCallParticipantsVisible = () => {
+    setIsCallParticipantsInfoVisible(false);
   };
 
   const renderItem = useCallback(
@@ -105,11 +105,11 @@ export const ParticipantsInfoListView = ({
 
   return (
     <Modal
-      accessibilityLabel={A11yComponents.PARTICIPANTS_INFO_VIEW}
+      accessibilityLabel={A11yComponents.PARTICIPANTS_INFO}
       animationType="fade"
       transparent
-      visible={isCallParticipantsInfoViewVisible}
-      onRequestClose={onCloseCallParticipantsViewVisible}
+      visible={isCallParticipantsInfoVisible}
+      onRequestClose={onCloseCallParticipantsVisible}
     >
       <>
         {/*independent background, needed due to desired opacity only
@@ -124,7 +124,7 @@ export const ParticipantsInfoListView = ({
                 })}
               </Text>
               <Pressable
-                onPress={onCloseCallParticipantsViewVisible}
+                onPress={onCloseCallParticipantsVisible}
                 accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
                 style={styles.closePressable}
               >

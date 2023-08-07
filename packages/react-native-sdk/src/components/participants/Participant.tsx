@@ -31,9 +31,9 @@ import { NetworkQualityIndicator } from './internal/NetworkQualityIndicator';
 import { ParticipantReaction } from './internal/ParticipantReaction';
 
 /**
- * Props to be passed for the ParticipantView component.
+ * Props to be passed for the Participant component.
  */
-interface ParticipantViewProps {
+interface ParticipantProps {
   /**
    * The participant that will be displayed
    */
@@ -65,7 +65,7 @@ interface ParticipantViewProps {
  * and additional info. By an absence of a video track or when disableVideo is truthy,
  * only an avatar and audio track will be rendered.
  */
-export const ParticipantView = (props: ParticipantViewProps) => {
+export const Participant = (props: ParticipantProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
 
   const call = useCall();
@@ -286,7 +286,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         {kind === 'screen' && (
           <View
             style={styles.screenViewStatus}
-            accessibilityLabel={A11yComponents.PARTICIPANT_VIEW_SCREEN_SHARING}
+            accessibilityLabel={A11yComponents.PARTICIPANT_SCREEN_SHARING}
           >
             <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
               <ScreenShare color={theme.light.static_white} />

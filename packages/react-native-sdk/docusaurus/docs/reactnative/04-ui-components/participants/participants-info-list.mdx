@@ -1,0 +1,63 @@
+---
+id: participants-info-list
+title: ParticipantsInfoList
+---
+
+ParticipantsInfoList shows the list of participants in the call and their information such as:
+
+- Name
+- Participant's Audio/Video mute/unmute status.
+- Whether screen is been shared by the participants or not.
+
+It also has an options menu, which opens up on tapping an individual participant and lists all the options for the participant, such as:
+
+- Disable/Enable audio/video/screen sharing.
+- Pin a participant.
+- Block a participant.
+
+:::note
+Some of the options are only visible to the creator of the call.
+:::
+
+The `ParticipantsInfoList` also allows muting all participants and inviting participants in the call.
+
+![Preview of the ParticipantsInfoList component.](../../assets/04-ui-components/participants-info-list.jpg)
+
+## General Usage
+
+In order to use the `ParticipantsInfoList` as a standalone component, you should use the following code:
+
+```tsx
+import { useState, useCallback } from 'react';
+import { ParticipantsInfoList } from '@stream-io/video-react-native-sdk';
+
+const App = () => {
+  const [isCallParticipantsInfoVisible, setIsCallParticipantsInfoVisible] =
+    useState<boolean>(false);
+
+  return (
+    <ParticipantsInfoList
+      isCallParticipantsInfoVisible={isCallParticipantsInfoVisible}
+      setIsCallParticipantsInfoVisible={setIsCallParticipantsInfoVisible}
+    />
+  );
+};
+```
+
+### Props
+
+### `isCallParticipantsInfoVisible`
+
+| Type      |
+| --------- |
+| `boolean` |
+
+Boolean that decides whether the CallParticipantsInfo modal should be open or not.
+
+### `setIsCallParticipantsInfoVisible`
+
+| Type                    |
+| ----------------------- |
+| React SetState function |
+
+SetState function to set the value of the boolean field [`isCallParticipantsVisible`](#iscallparticipantsinfovisible) depending upon whether the `CallParticipantsInfo` modal should be open or not.

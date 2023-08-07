@@ -8,7 +8,7 @@ import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 /**
- * The props for the Hang up call button in the Call Control View.
+ * The props for the Hang up call button in the Call Controls.
  */
 export type HangUpCallButtonType = {
   /**

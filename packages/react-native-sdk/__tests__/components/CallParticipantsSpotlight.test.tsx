@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { A11yComponents } from '../../src/constants/A11yLabels';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
-import { CallParticipantsSpotlightView } from '../../src/components/call/internal/CallParticipantsSpotlightView';
+import { CallParticipantsSpotlight } from '../../src/components/call/internal/CallParticipantsSpotlight';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -16,8 +16,8 @@ enum P_IDS {
   REMOTE_2 = 'remote-2',
 }
 
-describe('CallParticipantsSpotlightView', () => {
-  it('should render an local video view when only 1 participant present in the call', async () => {
+describe('CallParticipantsSpotlight', () => {
+  it('should render an local video when only 1 participant present in the call', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -38,14 +38,12 @@ describe('CallParticipantsSpotlightView', () => {
       }),
     ]);
 
-    render(<CallParticipantsSpotlightView />, {
+    render(<CallParticipantsSpotlight />, {
       call,
     });
 
     expect(
-      await screen.findByLabelText(
-        A11yComponents.PARTICIPANT_VIEW_SCREEN_SHARING,
-      ),
+      await screen.findByLabelText(A11yComponents.PARTICIPANT_SCREEN_SHARING),
     ).toBeVisible();
   });
 });

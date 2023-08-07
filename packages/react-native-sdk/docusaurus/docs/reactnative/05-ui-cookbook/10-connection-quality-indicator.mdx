@@ -3,7 +3,7 @@ id: connection-quality-indicator
 title: Connection Quality Indicator
 ---
 
-Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default [`ParticipantView`](../../ui-components/participants/participant-view/) component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
+Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default [`Participant`](../../ui-components/participants/participant/) component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
 
 - UNSPECIFIED
 - POOR
@@ -31,7 +31,7 @@ console.log(readableConnectionQuality); // -> EXCELLENT
 
 ## Custom Connection quality indicator component
 
-You'll most likely be displaying this indicator component inside each participant view ([ParticipantView](../../ui-components/core/participant-view)) within a call layout. To achieve the customization you can follow the snippet below:
+You'll most likely be displaying this indicator component inside each participant view ([Participant](../../ui-components/core/participant)) within a call layout. To achieve the customization you can follow the snippet below:
 
 ![Preview of the Custom Connection quality indicator](../assets/05-ui-cookbook/connection-quality-indicator-custom.png)
 
@@ -56,7 +56,7 @@ const ConnectionQualityIndicator = ({
   );
 };
 
-const CustomParticipantViewUI = ({
+const CustomParticipantUI = ({
   participant,
 }: {
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
@@ -69,17 +69,17 @@ const CustomParticipantViewUI = ({
   );
 };
 
-const ParticipantView = () => {
+const Participant = () => {
   const participants = useParticipants();
 
   return (
     <View>
       {participants.map((participant) => {
-        // Code for your custom participant view
+        // Code for your custom participant component
         return (
           <View>
             {/* ParticipantLabel is rendered as a sub-component here */}
-            <CustomParticipantViewUI participant={participant} />
+            <CustomParticipantUI participant={participant} />
           </View>
         );
       })}

@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { ParticipantView } from '../participants/ParticipantView';
+import { Participant } from '../participants/Participant';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -49,7 +49,7 @@ interface CallParticipantsListProps {
  * NOTE: this component depends on a flex container to calculate the width and height of the participant view,
  * hence it should be used only in a flex parent container
  */
-export const CallParticipantsListView = (props: CallParticipantsListProps) => {
+export const CallParticipantsList = (props: CallParticipantsListProps) => {
   const { numberOfColumns = 2, horizontal, participants } = props;
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
@@ -141,7 +141,7 @@ export const CallParticipantsListView = (props: CallParticipantsListProps) => {
         participant.sessionId,
       );
       return (
-        <ParticipantView
+        <Participant
           participant={participant}
           containerStyle={itemContainerStyle}
           kind="video"
@@ -160,7 +160,7 @@ export const CallParticipantsListView = (props: CallParticipantsListProps) => {
     return (
       <>
         {participants.map((participant, index) => (
-          <ParticipantView
+          <Participant
             participant={participant}
             containerStyle={styles.flexed}
             kind="video"

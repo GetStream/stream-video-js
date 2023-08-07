@@ -21,27 +21,27 @@ import { useMediaStreamManagement } from '../../providers/MediaStreamManagement'
  * This view allows the user to toggle their audio and video state before joining a call.
  */
 /**
- * The props for the Join Button in the LobbyView.
+ * The props for the Join Button in the Lobby.
  */
 type JoinCallButton = {
   /**
-   * Handler called when the join button is clicked in the LobbyView.
+   * Handler called when the join button is clicked in the Lobby.
    * @returns void
    */
   onPressHandler: () => void;
 };
 
 /**
- * Props for the Lobby View Component
+ * Props for the Lobby Component.
  */
-type LobbyViewType = {
+type LobbyType = {
   /**
    * Join button props to be passed as an object
    */
   joinCallButton: JoinCallButton;
 };
 
-export const LobbyView = ({ joinCallButton }: LobbyViewType) => {
+export const Lobby = ({ joinCallButton }: LobbyType) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const {
