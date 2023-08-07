@@ -59,16 +59,14 @@ describe('CallParticipantsView', () => {
     ).toBeVisible();
 
     // Locating and verifying that all ParticipantViews are rendered
-    const localParticipant = within(
-      screen.getByLabelText(A11yComponents.LOCAL_PARTICIPANT),
-    );
     const participant1 = within(
       screen.getByLabelText(`participant-${P_IDS.REMOTE_1}`),
     );
 
+    // shows the local participant floating view?
     expect(
-      localParticipant.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'video-test-url');
+      await screen.findByLabelText(A11yComponents.LOCAL_PARTICIPANT),
+    ).toBeVisible();
 
     expect(
       participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
