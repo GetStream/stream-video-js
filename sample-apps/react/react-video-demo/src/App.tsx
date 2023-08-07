@@ -126,26 +126,15 @@ const Init = () => {
   }, []);
 
   useEffect(() => {
-    let markerTimer: ReturnType<typeof setTimeout>;
-
     async function fetchEdges() {
-      if (!client) {
-        return;
-      }
+      if (!client) return;
       const response: GetEdgesResponse = await client.edges();
-
-      if (!edges) {
-        const features = createGeoJsonFeatures(response.edges);
-        setEdges(features);
-      }
+      const features = createGeoJsonFeatures(response.edges);
+      setEdges(features);
     }
 
     fetchEdges();
-
-    return () => {
-      clearTimeout(markerTimer);
-    };
-  }, [edges, isCallActive, client]);
+  }, [client]);
 
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);

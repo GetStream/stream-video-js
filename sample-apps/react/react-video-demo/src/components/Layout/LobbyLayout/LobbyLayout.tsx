@@ -24,10 +24,13 @@ export const LobbyLayout: FC<Props> = ({
 }) => {
   const { qr } = useUserContext();
   const shouldRenderMobileAppBanner = isAndroid && qr;
-  const [shouldCenterBody, setShouldCenterBody] = useState(
-    !shouldRenderMobileAppBanner,
+  const [isNativeAppsBannerDismissed, setIsNativeAppsBannerDismissed] =
+    useState(!shouldRenderMobileAppBanner);
+  const rootClassName = classnames(
+    styles.root,
+    className,
+    !isNativeAppsBannerDismissed && 'overflow-y-scroll',
   );
-  const rootClassName = classnames(styles.root, className);
   return (
     <section className={rootClassName}>
       <LatencyMap className={styles.latencyMap} sourceData={edges} />
@@ -35,15 +38,20 @@ export const LobbyLayout: FC<Props> = ({
         <MobileAppBanner
           className={styles.mobileBanner}
           onDismiss={() => {
-            setShouldCenterBody(true);
+            setIsNativeAppsBannerDismissed(true);
           }}
         />
       )}
-      <section className={styles.layoutContainer}>
+      <section
+        className={classnames(
+          styles.layoutContainer,
+          !isNativeAppsBannerDismissed && styles.mobileBannerVisible,
+        )}
+      >
         <div className={styles.header}>{header}</div>
         <div
           className={classnames(styles.body, {
-            'items-center': shouldCenterBody,
+            'items-center': isNativeAppsBannerDismissed,
           })}
         >
           {children}
