@@ -6,8 +6,8 @@ import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 
 import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
 import { mockAudioDevices, mockCall, mockVideoDevices } from './mocks';
-import { SfuModels } from '../../..';
 import { getVideoStream } from '../devices';
+import { TrackType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -87,9 +87,7 @@ describe('InputMediaDeviceManager', () => {
 
       await manager.disable();
 
-      expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-        SfuModels.TrackType.VIDEO,
-      );
+      expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
     });
 
     it('toggle camera', async () => {
@@ -130,9 +128,7 @@ describe('InputMediaDeviceManager', () => {
       const deviceId = mockVideoDevices[0].deviceId;
       await manager.select(deviceId);
 
-      expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-        SfuModels.TrackType.VIDEO,
-      );
+      expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
       expect(manager['call'].publishVideoStream).toHaveBeenCalledWith({});
     });
   });
@@ -190,9 +186,7 @@ describe('InputMediaDeviceManager', () => {
 
       await manager.disable();
 
-      expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-        SfuModels.TrackType.AUDIO,
-      );
+      expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
     });
 
     it('toggle microphone', async () => {
@@ -233,9 +227,7 @@ describe('InputMediaDeviceManager', () => {
       const deviceId = mockVideoDevices[0].deviceId;
       await manager.select(deviceId);
 
-      expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-        SfuModels.TrackType.AUDIO,
-      );
+      expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
       expect(manager['call'].publishAudioStream).toHaveBeenCalledWith({});
     });
   });
