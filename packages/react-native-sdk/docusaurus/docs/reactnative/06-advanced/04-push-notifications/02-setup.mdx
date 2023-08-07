@@ -311,6 +311,6 @@ AppRegistry.registerComponent('app', () => App);
 
 ## Troubleshooting
 
-- During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get deregistered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
+- During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
 - You can check the "Webhook & Push Logs" section in the [Stream Dashboard](https://dashboard.getstream.io/) to see if Notifications were sent by Stream.
 - If you are still having trouble with Push Notifications, please submit a ticket to us at [support](https://getstream.io/contact/support/).
