@@ -1,5 +1,5 @@
-import { SfuModels } from '../..';
 import { Call } from '../Call';
+import { TrackType } from '../gen/video/sfu/models/models';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import {
@@ -58,8 +58,8 @@ export class InputMediaDeviceManager {
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await (this.kind === 'videoinput'
-        ? this.call.stopPublish(SfuModels.TrackType.VIDEO)
-        : this.call.stopPublish(SfuModels.TrackType.AUDIO));
+        ? this.call.stopPublish(TrackType.VIDEO)
+        : this.call.stopPublish(TrackType.AUDIO));
     } else {
       disposeOfMediaStream(this.state.mediaStream);
     }
