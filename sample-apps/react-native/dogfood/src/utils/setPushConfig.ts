@@ -52,7 +52,7 @@ const createStreamVideoClient = async () => {
     name: userName,
     imageUrl: userImageUrl,
   };
-  return new StreamVideoClient({
+  const client = new StreamVideoClient({
     apiKey: STREAM_API_KEY,
     user,
     tokenProvider: async () => {
@@ -60,4 +60,5 @@ const createStreamVideoClient = async () => {
       return token;
     },
   });
+  return client;
 };

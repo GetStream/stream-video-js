@@ -39,22 +39,14 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   
-  UIApplicationState state = [[UIApplication sharedApplication] applicationState];
-  if (state == UIApplicationStateActive) {
-    // app in foreground, no need to display incoming call through callkeep
-    completion();
-    return;
-  }
+  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+  NSString *uuid = [[NSUUID UUID] UUIDString];
+  NSString *createdCallerName = stream[@"created_by_display_name"];
   
   // --- Process the received push // fire 'notification' event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
-  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSArray *cidArray = [stream[@"call_cid"] componentsSeparatedByString: @":"];
-  NSString* callId = cidArray[1];
-  NSString *createdCallerName = stream[@"created_by_display_name"];
-  
-  [RNCallKeep reportNewIncomingCall: callId
+  [RNCallKeep reportNewIncomingCall: uuid
                              handle: createdCallerName
                          handleType: @"generic"
                            hasVideo: YES
@@ -103,7 +95,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 /// @return: `true` if the `concurrentRoot` feature is enabled. Otherwise, it returns `false`.
 - (BOOL)concurrentRootEnabled
 {
-  return true;
+  return false;
 }
 
 @end

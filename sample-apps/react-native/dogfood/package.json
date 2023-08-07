@@ -32,7 +32,7 @@
     "@stream-io/video-react-native-sdk": "workspace:^",
     "react": "18.2.0",
     "react-native": "0.71.11",
-    "react-native-callkeep": "4.3.8",
+    "react-native-callkeep": "4.3.11",
     "react-native-device-info": "^10.6.0",
     "react-native-dotenv": "^3.4.7",
     "react-native-fs": "^2.20.0",
