@@ -83,32 +83,14 @@ Toggling microphone in an active call turns around publishing audio input stream
 
 ```tsx
 import { useCallback } from 'react';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const ToggleAudioButton = () => {
-  const localParticipant = useLocalParticipant();
-  const isAudioPublished = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
-  const { publishAudioStream, stopPublishingAudio } =
-    useMediaStreamManagement();
-
-  const toggleAudioMuted = useCallback(async () => {
-    if (isAudioPublished) {
-      stopPublishingAudio();
-    } else {
-      publishAudioStream();
-    }
-  }, [isAudioPublished, publishAudioStream, stopPublishingAudio]);
+  const { isAudioMuted, toggleAudioMuted } = useMediaStreamManagement();
 
   return (
     <Button onClick={toggleAudioMuted}>
-      {isAudioPublished ? (
+      {isAudioMuted ? (
         <>{/* Show Audio enabled Icon component */}</>
       ) : (
         <>{/* Show Audio disabled Icon component */}</>
@@ -127,32 +109,14 @@ Toggling video in an active call turns around publishing video input streams and
 
 ```tsx
 import { useCallback } from 'react';
-import {
-  SfuModels,
-  useLocalParticipant,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const ToggleAudioButton = () => {
-  const localParticipant = useLocalParticipant();
-  const isVideoPublished = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.Video,
-  );
-
-  const { publishVideoStream, stopPublishingVideo } =
-    useMediaStreamManagement();
-
-  const toggleVideoMuted = useCallback(async () => {
-    if (isVideoPublished) {
-      stopPublishingVideo();
-    } else {
-      publishVideoStream();
-    }
-  }, [isVideoPublished, publishVideoStream, stopPublishingVideo]);
+  const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
 
   return (
     <Button onClick={toggleVideoMuted}>
-      {isVideoPublished ? (
+      {isVideoMuted ? (
         <>{/* Show Video enabled Icon component */}</>
       ) : (
         <>{/* Show Video disabled Icon component */}</>
