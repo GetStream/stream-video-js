@@ -3,7 +3,8 @@ import { Call } from '@stream-io/video-client';
 export const renderAudioDeviceSelector = (call: Call) => {
   const element = document.createElement('select');
   element.addEventListener('change', (e) => {
-    call.microphone.select(e?.target?.value);
+    const target = e.target as HTMLSelectElement;
+    call.microphone.select(target.value);
   });
 
   call.microphone.listDevices().subscribe({
@@ -25,7 +26,8 @@ export const renderAudioDeviceSelector = (call: Call) => {
 export const renderVideoDeviceSelector = (call: Call) => {
   const element = document.createElement('select');
   element.addEventListener('change', (e) => {
-    call.camera.select(e?.target?.value);
+    const target = e.target as HTMLSelectElement;
+    call.camera.select(target.value);
   });
 
   call.camera.listDevices().subscribe({
