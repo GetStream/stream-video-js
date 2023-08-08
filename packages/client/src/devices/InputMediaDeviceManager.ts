@@ -1,22 +1,14 @@
+import { Observable } from 'rxjs';
 import { Call } from '../Call';
-import { TrackType } from '../gen/video/sfu/models/models';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
-import {
-  disposeOfMediaStream,
-  getAudioDevices,
-  getAudioStream,
-  getVideoDevices,
-  getVideoStream,
-} from './devices';
+import { disposeOfMediaStream } from './devices';
+import { isReactNative } from '../helpers/platforms';
 
-export class InputMediaDeviceManager {
-  readonly state = new InputMediaDeviceManagerState();
-
-  constructor(
-    private readonly call: Call,
-    private readonly kind: Omit<MediaDeviceKind, 'audiooutput'>,
-  ) {}
+export abstract class InputMediaDeviceManager<
+  T extends InputMediaDeviceManagerState,
+> {
+  constructor(protected readonly call: Call, public readonly state: T) {}
 
   /**
    * Lists the available audio/video devices
@@ -26,7 +18,7 @@ export class InputMediaDeviceManager {
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
   listDevices() {
-    return this.kind === 'videoinput' ? getVideoDevices() : getAudioDevices();
+    return this.getDevices();
   }
 
   /**
@@ -37,13 +29,9 @@ export class InputMediaDeviceManager {
       return;
     }
     const constraints = { deviceId: this.state.selectedDevice };
-    const stream = await (this.kind === 'videoinput'
-      ? getVideoStream(constraints)
-      : getAudioStream(constraints));
+    const stream = await this.getStream(constraints);
     if (this.call.state.callingState === CallingState.JOINED) {
-      await (this.kind === 'videoinput'
-        ? this.call.publishVideoStream(stream)
-        : this.call.publishAudioStream(stream));
+      await this.publishStream(stream);
     }
     this.state.setMediaStream(stream);
   }
@@ -57,9 +45,7 @@ export class InputMediaDeviceManager {
       return;
     }
     if (this.call.state.callingState === CallingState.JOINED) {
-      await (this.kind === 'videoinput'
-        ? this.call.stopPublish(TrackType.VIDEO)
-        : this.call.stopPublish(TrackType.AUDIO));
+      await this.stopPublishStream();
     } else {
       disposeOfMediaStream(this.state.mediaStream);
     }
@@ -80,13 +66,32 @@ export class InputMediaDeviceManager {
 
   /**
    * Select device
+   *
+   * Note: this method is not supported in React Native
+   *
    * @param deviceId
    */
   async select(deviceId: string | undefined) {
+    if (isReactNative()) {
+      throw new Error('This method is not supported in React Native');
+    }
+    if (deviceId === this.state.selectedDevice) {
+      return;
+    }
     this.state.setDevice(deviceId);
     if (this.state.status === 'enabled') {
       await this.disable();
-      return this.enable();
+      await this.enable();
     }
   }
+
+  protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
+
+  protected abstract getStream(
+    constraints: MediaTrackConstraints,
+  ): Promise<MediaStream>;
+
+  protected abstract publishStream(stream: MediaStream): Promise<void>;
+
+  protected abstract stopPublishStream(): Promise<void>;
 }

@@ -34,9 +34,24 @@ const renderVideoButton = (call: Call) => {
   return videoButton;
 };
 
+const renderFlipButton = (call: Call) => {
+  const flipButton = document.createElement('button');
+  flipButton.innerText =
+    call.camera.state.direction === 'front' ? 'Back camera' : 'Front camera';
+
+  flipButton.addEventListener('click', async () => {
+    await call.camera.flip();
+    flipButton.innerText =
+      call.camera.state.direction === 'front' ? 'Back camera' : 'Front camera';
+  });
+
+  return flipButton;
+};
+
 export const renderControls = (call: Call) => {
   return {
     audioButton: renderAudioButton(call),
     videoButton: renderVideoButton(call),
+    flipButton: renderFlipButton(call),
   };
 };

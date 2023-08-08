@@ -109,7 +109,8 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
-import { InputMediaDeviceManager } from './devices/InputMediaDeviceManager';
+import { CameraManager } from './devices/CameraManager';
+import { MicrophoneManager } from './devices/MicrophoneManager';
 
 /**
  * An object representation of a `Call`.
@@ -149,12 +150,12 @@ export class Call {
   /**
    * Device manager for the camera
    */
-  readonly camera: InputMediaDeviceManager;
+  readonly camera: CameraManager;
 
   /**
    * Device manager for the microhpone
    */
-  readonly microphone: InputMediaDeviceManager;
+  readonly microphone: MicrophoneManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -257,8 +258,8 @@ export class Call {
       ),
     );
 
-    this.camera = new InputMediaDeviceManager(this, 'videoinput');
-    this.microphone = new InputMediaDeviceManager(this, 'audioinput');
+    this.camera = new CameraManager(this);
+    this.microphone = new MicrophoneManager(this);
   }
 
   private registerEffects() {
@@ -923,12 +924,18 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      if (this.camera.state.mediaStream) {
+      if (
+        this.camera.state.mediaStream &&
+        !this.state.localParticipant?.videoStream
+      ) {
         this.publishVideoStream(this.camera.state.mediaStream);
       }
 
-      if (this.microphone.state.mediaStream) {
-        this.publishVideoStream(this.microphone.state.mediaStream);
+      if (
+        this.microphone.state.mediaStream &&
+        !this.state.localParticipant?.audioStream
+      ) {
+        this.publishAudioStream(this.microphone.state.mediaStream);
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1217,6 +1224,8 @@ export class Call {
    *
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.microphone.select
    */
   setAudioDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;
@@ -1231,6 +1240,8 @@ export class Call {
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.camera.select
    */
   setVideoDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;
