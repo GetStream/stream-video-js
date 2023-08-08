@@ -12,15 +12,23 @@ import PoweredBy from '../PoweredBy';
 import { usePanelContext } from '../../contexts/PanelContext';
 import { useTourContext, StepNames } from '../../contexts/TourContext';
 
+import type { ConnectionError } from 'src/hooks/useChatClient';
+
 import styles from './Sidebar.module.css';
 
 export type Props = {
   callId: string;
   chatClient?: StreamChat | null;
   participants: StreamVideoParticipant[];
+  chatConnectionError?: ConnectionError;
 };
 
-export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
+export const Sidebar: FC<Props> = ({
+  chatClient,
+  callId,
+  chatConnectionError,
+  participants,
+}) => {
   const { isChatVisible, isParticipantsVisible } = usePanelContext();
   const { current: currenTourStep } = useTourContext();
 
@@ -47,6 +55,7 @@ export const Sidebar: FC<Props> = ({ chatClient, callId, participants }) => {
       <ChatPanel
         channelId={callId}
         channelType="videocall"
+        chatConnectionError={chatConnectionError}
         client={chatClient}
         fulllHeight
         visible={isChatVisible}
