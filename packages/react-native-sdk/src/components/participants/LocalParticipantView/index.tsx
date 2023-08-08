@@ -73,7 +73,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   if (layout === 'fullscreen') {
     return (
       <View
-        accessibilityLabel={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
+        testID={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
         style={styles.fullScreenContainer}
       >
         <View style={styles.topView}>
@@ -99,7 +99,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
 
   return (
     <View
-      accessibilityLabel={ComponentTestIds.LOCAL_PARTICIPANT}
+      testID={ComponentTestIds.LOCAL_PARTICIPANT}
       style={styles.floatingContainer}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
