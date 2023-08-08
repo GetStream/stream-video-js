@@ -1217,6 +1217,8 @@ export class Call {
    *
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.microphone.select
    */
   setAudioDevice = (deviceId?: string) => {
     this.state.updateParticipant(this.sfuClient!.sessionId, {
@@ -1230,6 +1232,8 @@ export class Call {
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.camera.select
    */
   setVideoDevice = (deviceId?: string) => {
     this.state.updateParticipant(this.sfuClient!.sessionId, {
