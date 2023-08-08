@@ -12,16 +12,16 @@ try {
   reanimated = require('react-native-reanimated');
 } catch (e) {}
 
-export const getReanimatedLib = (onNotFound = () => {}) => {
+export const getReanimatedLib = (onPackageNotFound = () => {}) => {
   if (!reanimated) {
-    onNotFound();
+    onPackageNotFound();
   }
   return reanimated;
 };
 
-export const getGestureHandlerLib = (onNotFound = () => {}) => {
+export const getGestureHandlerLib = (onPackageNotFound = () => {}) => {
   if (!gestureHandler) {
-    onNotFound();
+    onPackageNotFound();
   }
   return gestureHandler;
 };
