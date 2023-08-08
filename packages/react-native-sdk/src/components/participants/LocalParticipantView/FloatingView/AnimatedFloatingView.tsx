@@ -113,6 +113,12 @@ const AnimatedFloatingView = ({
     }),
   ).current;
 
+  useEffect(() => {
+    console.info(
+      'react-native-reanimated and/or react-native-gesture-handler libraries are not installed. Please install them to get a more performant draggable local video component',
+    );
+  }, []);
+
   const containerStyle = {
     ...styles.animContainer,
     height: rectangle?.height,
