@@ -19,10 +19,10 @@ export enum ComponentTestIds {
 }
 
 export enum ButtonTestIds {
-  PARTICIPANTS_INFO = 'participants-info-button',
-  EXIT_PARTICIPANTS_INFO = 'exit-participants-info-button',
-  HANG_UP_CALL = 'hang-up-call-button',
-  REACTION = 'call-controls-reaction-button',
+  PARTICIPANTS_INFO = 'participants-info',
+  EXIT_PARTICIPANTS_INFO = 'exit-participants-info',
+  HANG_UP_CALL = 'hang-up-call',
+  REACTION = 'call-controls-reaction',
 }
 
 export enum ValueTestIds {
