@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.357](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.356...@stream-io/video-react-native-sdk-0.0.1-alpha.357) (2023-08-08)
+
+
+### Bug Fixes
+
+* **react-native:** change testing using A11y labels to testId ([#901](https://github.com/GetStream/stream-video-js/issues/901)) ([d342268](https://github.com/GetStream/stream-video-js/commit/d34226874adee872ee8d8242b4f7862486b5440c))
+
+
+
 ## [0.0.1-alpha.356](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.355...@stream-io/video-react-native-sdk-0.0.1-alpha.356) (2023-08-07)
 
 
