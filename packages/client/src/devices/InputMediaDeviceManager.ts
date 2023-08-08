@@ -3,6 +3,7 @@ import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { disposeOfMediaStream } from './devices';
+import { isReactNative } from '../helpers/platforms';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
@@ -65,9 +66,15 @@ export abstract class InputMediaDeviceManager<
 
   /**
    * Select device
+   *
+   * Note: this method is not supported in React Native
+   *
    * @param deviceId
    */
   async select(deviceId: string | undefined) {
+    if (isReactNative()) {
+      throw new Error('This method is not supported in React Native');
+    }
     if (deviceId === this.state.selectedDevice) {
       return;
     }
