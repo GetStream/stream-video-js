@@ -475,6 +475,12 @@ export interface CallCreatedEvent {
 export interface CallEndedEvent {
   /**
    *
+   * @type {CallResponse}
+   * @memberof CallEndedEvent
+   */
+  call: CallResponse;
+  /**
+   *
    * @type {string}
    * @memberof CallEndedEvent
    */
@@ -1279,6 +1285,18 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  live_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  live_started_at?: string;
   /**
    *
    * @type {Array<CallParticipantResponse>}
