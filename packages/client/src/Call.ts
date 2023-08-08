@@ -923,11 +923,17 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      if (this.camera.state.mediaStream) {
+      if (
+        this.camera.state.mediaStream &&
+        !this.state.localParticipant?.videoStream
+      ) {
         this.publishVideoStream(this.camera.state.mediaStream);
       }
 
-      if (this.microphone.state.mediaStream) {
+      if (
+        this.microphone.state.mediaStream &&
+        !this.state.localParticipant?.audioStream
+      ) {
         this.publishVideoStream(this.microphone.state.mediaStream);
       }
 
