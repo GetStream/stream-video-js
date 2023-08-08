@@ -96,7 +96,7 @@ const MediaStreamContext =
 /**
  *
  * Provides `MediaStreamManagementContextAPI` that allow the integrators to handle:
- * 1. the initial device state enablement (for example in a custom lobby view)
+ * 1. the initial device state enablement (for example in a custom lobby component)
  * 2. media stream publishing
  * @param params
  * @returns

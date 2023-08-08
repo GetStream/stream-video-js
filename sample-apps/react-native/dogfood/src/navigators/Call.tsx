@@ -3,8 +3,8 @@ import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
   CallingState,
-  IncomingCallView,
-  OutgoingCallView,
+  IncomingCall,
+  OutgoingCall,
   StreamCall,
   useCall,
   useCallCallingState,
@@ -30,10 +30,10 @@ const CallPanel = () => {
     case CallingState.RINGING:
       return isCallCreatedByMe ? (
         <View style={styles.container}>
-          <OutgoingCallView />
+          <OutgoingCall />
         </View>
       ) : (
-        <IncomingCallView />
+        <IncomingCall />
       );
     case CallingState.JOINED:
       return (

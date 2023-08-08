@@ -9,17 +9,17 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { ParticipantView } from '../../participants/ParticipantView';
+import { Participant } from '../../participants/Participant';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { CallParticipantsListView } from '../../call/CallParticipantsListView';
+import { CallParticipantsList } from '../../call/CallParticipantsList';
 import { LocalParticipantView } from '../../participants';
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
-export const CallParticipantsSpotlightView = () => {
+export const CallParticipantsSpotlight = () => {
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
@@ -35,18 +35,18 @@ export const CallParticipantsSpotlightView = () => {
 
   return (
     <View
-      testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT_VIEW}
+      testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={styles.container}
     >
       {participantInSpotlight && (
-        <ParticipantView
+        <Participant
           participant={participantInSpotlight}
           containerStyle={styles.participantView}
           kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
         />
       )}
       <View style={styles.participantVideoContainer}>
-        <CallParticipantsListView
+        <CallParticipantsList
           participants={
             isScreenShareOnSpotlight ? allParticipants : otherParticipants
           }

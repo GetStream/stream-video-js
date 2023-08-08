@@ -6,7 +6,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../../utils';
 import { ComponentTestIds } from '../../constants/TestIds';
 
-type ReactionModalType = {
+type ReactionModalProps = {
   isReactionModalActive: boolean;
   setIsReactionModalActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -14,7 +14,7 @@ type ReactionModalType = {
 /**
  * A component that shows a list of reactions that can be sent in a call.
  */
-export const ReactionModal = (props: ReactionModalType) => {
+export const ReactionModal = (props: ReactionModalProps) => {
   const { isReactionModalActive, setIsReactionModalActive } = props;
   const onCloseReactionsModal = useCallback(() => {
     setIsReactionModalActive(false);

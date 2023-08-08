@@ -32,7 +32,6 @@ export class StreamVideoRN {
    * Update the global config for StreamVideoRN except for push config.
    * To set push config use `StreamVideoRN.setPushConfig` instead.
    * This function accepts a partial config object that will be merged with the default config.
-   * @example StreamVideoRN.setConfig({ onOpenCallParticipantsInfoView: () => {} });
    */
   static updateConfig(updateConfig: Partial<Omit<StreamVideoConfig, 'push'>>) {
     this.config = {

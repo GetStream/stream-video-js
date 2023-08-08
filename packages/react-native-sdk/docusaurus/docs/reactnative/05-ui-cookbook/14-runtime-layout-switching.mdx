@@ -7,15 +7,15 @@ Runtime Layout Switching is basically switching the participant's layout from th
 
 ### Switching the layout from the App
 
-To switch the layout from the app we can take the help of the [`mode`](../../ui-components/call/call-content-view/#mode) prop of the [CallContentView](../../ui-components/call/call-content-view) component.
+To switch the layout from the app we can take the help of the [`mode`](../../ui-components/call/call-content/#mode) prop of the [CallContent](../../ui-components/call/call-content) component.
 
-We will create a state variable in the app to track the state of the current layout and pass the state to the [`mode`](../../ui-components/call/call-content-view/#mode) prop of the [CallContentView](../../ui-components/call/call-content-view) component.. This is done below:
+We will create a state variable in the app to track the state of the current layout and pass the state to the [`mode`](../../ui-components/call/call-content/#mode) prop of the [CallContent](../../ui-components/call/call-content) component.. This is done below:
 
 ```tsx
 import React from 'react';
 import {
-  CallContentView,
-  CallControlsView,
+  CallContent,
+  CallControls,
   ParticipantsInfoBadge,
 } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
@@ -27,18 +27,15 @@ export const VideoCallUI = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.icons}>
         <ParticipantsInfoBadge />
-        // highlight-next-line
+        // highlight-start
         <ParticipantsLayoutSwitchButton
-          // highlight-next-line
           selectedLayout={selectedLayout}
-          // highlight-next-line
           setSelectedLayout={setSelectedLayout}
-          // highlight-next-line
         />
+        // highlight-end
       </View>
-      // highlight-next-line
-      <CallContentView mode={selectedLayout} />
-      <CallControlsView />
+      <CallContent mode={selectedLayout} />
+      <CallControls />
     </SafeAreaView>
   );
 };
@@ -69,9 +66,9 @@ We will create a component that renders the Button which on press opens up a Mod
 import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
-import { CallContentViewProps } from '@stream-io/video-react-native-sdk';
+import { CallContentProps } from '@stream-io/video-react-native-sdk';
 
-type Layout = CallContentViewProps['mode'];
+type Layout = CallContentProps['mode'];
 
 // Component for Individual Layout Item
 const LayoutSelectionItem = ({

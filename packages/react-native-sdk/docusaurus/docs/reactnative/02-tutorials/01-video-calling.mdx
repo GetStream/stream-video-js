@@ -270,11 +270,11 @@ In your app, you'll see the text update to 2 participants. Let's keep the browse
 
 ### Step 5 - Rendering Video
 
-In this step, we are going to add the participant's view which displays the participants' video and audio stream and other related info. We also add a call controls view that allows the user to control their streaming settings of audio and video.
+In this step, we are going to add the participant's view which displays the participants' video and audio stream and other related info. We also add a call controls that allows the user to control their streaming settings of audio and video.
 
-To do this we use `CallContentView` and `CallControlsView`.
+To do this we use `CallContent` and `CallControls` components.
 
-The `CallContentView` adds the following things to the UI automatically:
+The `CallContent` adds the following things to the UI automatically:
 
 - Indicators of when someone is speaking.
 - Quality of their network.
@@ -282,16 +282,13 @@ The `CallContentView` adds the following things to the UI automatically:
 - Labels for the participant names, media stream on/off status.
 - A floating local video view.
 
-The `CallControlsView` adds the toggle audio/video button, switch camera button and the hang up call button automatically.
+The `CallControls` adds the toggle audio/video button, switch camera button and the hang up call button automatically.
 
 Update the `VideoCallUI` component as below:
 
 ```tsx title="src/App.tsx"
 // ... omitted imports
-import {
-  CallContentView,
-  CallControlsView,
-} from '@stream-io/video-react-native-sdk';
+import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
 
 // ... omitted code
 
@@ -299,9 +296,9 @@ const VideoCallUI = () => {
   return (
     <>
       // highlight-next-line
-      <CallContentView />
+      <CallContent />
       // highlight-next-line
-      <CallControlsView />
+      <CallControls />
     </>
   );
 };
@@ -309,14 +306,14 @@ const VideoCallUI = () => {
 
 Now when you run the app, you'll see your local video in a floating video element and the video from your other browser tab. You should also see the buttons to control the streaming settings. The end result should look like this:
 
-![Preview of the video view](../assets/02-tutorials/01-video-calling/video-call-video-view.png)
+![Preview of the video view](../assets/02-tutorials/01-video-calling/video-call.png)
 
 ### Step 6 - Full Video Calling UI
 
 Next, we will add the `ParticipantsInfoBadge`, to make our UI complete. It is responsible to handle the following:
 
 - Show the number of participants in the form of a badge.
-- Show the information about the participants in a list view with the name, and status of media streaming.
+- Show the information about the participants in a list with the name, and status of media streaming.
 - Show available options within the call like pinning a participant, enabling/disabling audio/video, etc.
 
 Update the `VideoCallUI` component as below:
@@ -325,8 +322,8 @@ Update the `VideoCallUI` component as below:
 // ... omitted imports
 import { View, StyleSheet } from 'react-native';
 import {
-  CallContentView,
-  CallControlsView,
+  CallContent,
+  CallControls,
   ParticipantsInfoBadge,
 } from '@stream-io/video-react-native-sdk';
 
@@ -340,8 +337,8 @@ const VideoCallUI = () => {
         <ParticipantsInfoBadge />
       </View>
       // highlight-end
-      <CallContentView />
-      <CallControlsView />
+      <CallContent />
+      <CallControls />
     </>
   );
 };
@@ -360,8 +357,7 @@ const styles = StyleSheet.create({
 
 Now when you run the app and tap the icon on the top right you should see the list of participants in the call. The end result should look like this:
 
-![Preview of the list of participants](../assets/02-tutorials/01-video-calling/video-call-participants-info-view.png)
-
+![Preview of the list of participants](../assets/02-tutorials/01-video-calling/video-call-participants-info.png)
 
 ### Step 7 - Customizing the UI
 
@@ -371,6 +367,7 @@ You can customize the UI by:
 - Mixing and matching with Stream's UI Components (speeds up how quickly you can build custom video UI).
 
 You can find many examples on how to build your own custom UI components in our [UI Cookbook docs](../../ui-cookbook/overview/).
+
 ### Recap
 
 Please do let us know if you ran into any issues while building an video calling app with React Native. Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
@@ -381,8 +378,8 @@ To recap what we've learned about Stream video calling:
 - The call type ("default" in the above case) controls which features are enabled and how permissions are setup
 - When you join a call, real-time communication is set up for audio & video calling: (`call.join()`)
 - State-related hooks such as `useCallCallingState` make it easy to build your own UI
-- `CallContentView` is the component that renders audio and video
-- `CallControlsView`is the component that renders buttons to control streaming options
+- `CallContent` is the component that renders audio and video
+- `CallControls`is the component that renders buttons to control streaming options
 - `ParticipantsInfoBadge` is the component that can be used to show the list of participants
 
 We've used [Stream's Video Calling API](https://getstream.io/video/), which means calls run on a global edge network of video servers. By being closer to your users the latency and reliability of calls are better. The React Native SDK enables you to build in-app video calling, audio rooms and livestreaming in days.

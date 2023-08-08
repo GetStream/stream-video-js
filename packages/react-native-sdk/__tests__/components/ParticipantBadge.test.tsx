@@ -30,7 +30,7 @@ describe('CallParticipantsBadge', () => {
     ).toHaveTextContent('1');
   });
 
-  it('should render call participants info view component when the badge is pressed', async () => {
+  it('should render call participants info component when the badge is pressed', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({ isLocalParticipant: true }),
     ]);
@@ -44,11 +44,11 @@ describe('CallParticipantsBadge', () => {
 
     fireEvent.press(badge);
     expect(
-      await screen.findByTestId(ComponentTestIds.PARTICIPANTS_INFO_VIEW),
+      await screen.findByTestId(ComponentTestIds.PARTICIPANTS_INFO),
     ).toBeVisible();
   });
 
-  it('should render an call participants badge component with 3 participants', async () => {
+  it('should render a call participants badge component with 3 participants', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,

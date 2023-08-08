@@ -1,4 +1,4 @@
 export * from './LocalParticipantView';
 export * from './ParticipantsInfoBadge';
-export * from './ParticipantView';
-export * from './ParticipantsInfoListView';
+export * from './Participant';
+export * from './ParticipantsInfoList';

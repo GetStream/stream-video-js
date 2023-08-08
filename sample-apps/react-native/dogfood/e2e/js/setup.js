@@ -20,7 +20,7 @@ output.pages = {
     joinButton: 'Join',
   },
   activeCall: {
-    participantsInfoButton: 'participants-info',
+    participantsInfoButton: 'participants-info-button',
     hangupButton: 'hang-up-call',
   },
   participantsInfo: {

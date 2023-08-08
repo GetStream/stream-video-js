@@ -1,30 +1,26 @@
 ---
 id: incoming-and-outgoing-call
-title: Incoming & Outgoing Call Views
+title: Incoming & Outgoing Call Component
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import MediaStreamManagementButtonOn
-  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-on.png';
-import MediaStreamManagementButtonOff
-  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-off.png';
-import IncomingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view.png';
-import OutgoingCallView from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view.png';
-import IncomingCallViewCompleted
-  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-view-completed.png';
-import OutgoingCallViewCompleted
-  from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-view-completed.png';
+import MediaStreamManagementButtonOn from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-on.png';
+import MediaStreamManagementButtonOff from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/media-stream-management-button-off.png';
+import IncomingCall from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call.png';
+import OutgoingCall from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call.png';
+import IncomingCallCompleted from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call-completed.png';
+import OutgoingCallCompleted from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call-completed.png';
 
-The incoming and outgoing call views are responsible for showing the call preview before the call is finally joined.
+The incoming and outgoing call components are responsible for showing the call preview before the call is finally joined.
 
-Incoming call view is shown to participant who is being called, while the Outgoing call view is shown to participant who is calling someone.
+Incoming call is shown to participant who is being called, while the Outgoing call is shown to participant who is calling someone.
 
-While showing an Incoming call view to the callee, the following UI elements ideally be present, but not necessarily the same:
+While showing an Incoming call component to the callee, the following UI elements ideally be present, but not necessarily the same:
 
 - User info of the participant calling them.
 - Accept and reject call button.
 
-Similarly, the Outgoing call view should show the following UI elements:
+Similarly, the Outgoing call component should show the following UI elements:
 
 - User info of the participants being called.
 - Hang up call button.
@@ -33,14 +29,14 @@ Similarly, the Outgoing call view should show the following UI elements:
 <ImageShowcase
   items={[
     {
-      image: IncomingCallView,
-      caption: 'Incoming call view',
-      alt: 'Incoming call view',
+      image: IncomingCall,
+      caption: 'Incoming call',
+      alt: 'Incoming call',
     },
     {
-      image: OutgoingCallView,
-      caption: 'Outgoing call view',
-      alt: 'Outgoing call view',
+      image: OutgoingCall,
+      caption: 'Outgoing call',
+      alt: 'Outgoing call',
     },
   ]}
 />
@@ -51,24 +47,24 @@ The approach to visualise the components will differ from application to applica
 
 ### User Info
 
-We can show the user info such as image, name, or additional details of the user within the Incoming/Outgoing call view. To do so we can use the `useCallMembers` hook to get the list of members for whom the call was initiated.
+We can show the user info such as image, name, or additional details of the user within the Incoming/Outgoing call component. To do so we can use the `useCallMembers` hook to get the list of members for whom the call was initiated.
 
-![Preview of the User Info View Example](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/user-info-view.png)
+![Preview of the User Info Example](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/user-info.png)
 
 :::note
 `useCallMembers` also includes the member info of the connected user. So, in most cases that needs to be extracted before showing it in the preview.
 :::
 
-```tsx title="UserInfoViewComponent.tsx"
+```tsx title="UserInfoComponent.tsx"
 import React from 'react';
 import {
   useCallMembers,
   useConnectedUser,
-  UserResponse
+  UserResponse,
 } from '@stream-io/video-react-native-sdk';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-export const UserInfoViewComponent = () => {
+export const UserInfoComponent = () => {
   const connectedUser = useConnectedUser();
   const members = useCallMembers();
 
@@ -118,7 +114,7 @@ const styles = StyleSheet.create({
 
 ### Media Stream Management
 
-To control audio or video mute status in the Incoming and Outgoing call view, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+To control audio or video mute status in the Incoming and Outgoing call component, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
 
 <ImageShowcase
   items={[
@@ -140,9 +136,7 @@ We can go through the usage through the following example:
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import {
-  useMediaStreamManagement
-} from '@stream-io/video-react-native-sdk';
+import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const MediaStreamButtonGroup = () => {
   const {
@@ -215,7 +209,7 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     borderRadius: 40,
-    justifyContent: "center"
+    justifyContent: 'center',
   },
   mediaButtonText: {
     textAlign: 'center',
@@ -223,7 +217,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-## Incoming Call View
+## Incoming Call Component
 
 ### Accept and Reject Call Button
 
@@ -231,7 +225,7 @@ We already talked about [Accepting](../../core/joining-and-creating-calls/#accep
 
 To build the buttons we would primarily need `useCall` hook, that gives us the call object that has all the necessary functions to accept or reject the call.
 
-![Preview of the Accept and Reject Call Button of Incoming Call view](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/accept-reject-call-button.png)
+![Preview of the Accept and Reject Call Button of Incoming Call](../assets/05-ui-cookbook/05-incoming-and-outgoing-call/accept-reject-call-button.png)
 
 ```tsx title="IncomingCallButtonGroup.tsx"
 import React, { useCallback } from 'react';
@@ -307,7 +301,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-## Outgoing Call View
+## Outgoing Call Component
 
 ### Hangup call button
 
@@ -379,14 +373,14 @@ const styles = StyleSheet.create({
 <ImageShowcase
   items={[
     {
-      image: IncomingCallViewCompleted,
-      caption: 'Incoming call view',
-      alt: 'Incoming call view',
+      image: IncomingCallCompleted,
+      caption: 'Incoming call',
+      alt: 'Incoming call',
     },
     {
-      image: OutgoingCallViewCompleted,
-      caption: 'Outgoing call view',
-      alt: 'Outgoing call view',
+      image: OutgoingCallCompleted,
+      caption: 'Outgoing call',
+      alt: 'Outgoing call',
     },
   ]}
 />
@@ -394,19 +388,19 @@ const styles = StyleSheet.create({
 ```tsx
 import { StyleSheet, View } from 'react-native';
 
-export const IncomingCallViewComponent = () => {
+export const IncomingCallComponent = () => {
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <UserInfoViewComponent />
+      <UserInfoComponent />
       <IncomingCallButtonGroup />
     </View>
   );
 };
 
-export const OutgoingCallViewComponent = () => {
+export const OutgoingCallComponent = () => {
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <UserInfoViewComponent />
+      <UserInfoComponent />
       <MediaStreamButtonGroup />
       <OutgoingCallButtonGroup />
     </View>
@@ -416,8 +410,8 @@ export const OutgoingCallViewComponent = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#272A30",
+    backgroundColor: '#272A30',
     justifyContent: 'space-evenly',
-  }
-})
+  },
+});
 ```

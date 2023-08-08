@@ -13,13 +13,13 @@ import { Z_INDEX } from '../../constants';
 import { ToggleCameraFaceButton } from '../utility/internal/ToggleCameraFaceButton';
 import {
   HangUpCallButton,
-  HangUpCallButtonType,
+  HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
 
 /**
- * The props for the Chat Button in the Call Control View.
+ * The props for the Chat Button in the Call Controls.
  */
-type ChatButtonType = {
+type ChatButtonProps = {
   /**
    * Handler to be called when the chat button is pressed.
    * @returns void
@@ -32,28 +32,28 @@ type ChatButtonType = {
 };
 
 /**
- * Props for the CallControlsView Component.
+ * Props for the CallControls Component.
  */
-export interface CallControlsViewType extends Pick<ViewProps, 'style'> {
+export interface CallControlsType extends Pick<ViewProps, 'style'> {
   /**
    * Chat Button Props to be passed as an object
    */
-  chatButton?: ChatButtonType;
+  chatButton?: ChatButtonProps;
   /**
    * Hang up call button props to be passed as an object
    */
-  hangUpCallButton?: HangUpCallButtonType;
+  hangUpCallButton?: HangUpCallButtonProps;
 }
 
 /**
  * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
  */
-export const CallControlsView = ({
+export const CallControls = ({
   chatButton,
   hangUpCallButton,
   style,
-}: CallControlsViewType) => {
+}: CallControlsType) => {
   const [isReactionModalActive, setIsReactionModalActive] =
     useState<boolean>(false);
 
@@ -103,7 +103,7 @@ export const CallControlsView = ({
 const UnreadBadgeCountIndicator = ({
   count,
 }: {
-  count: ChatButtonType['unreadBadgeCountIndicator'];
+  count: ChatButtonProps['unreadBadgeCountIndicator'];
 }) => {
   // Don't show badge if count is 0 or undefined
   if (!count) {

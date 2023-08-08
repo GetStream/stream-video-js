@@ -14,7 +14,7 @@ enum AvatarModes {
   large = 'lg',
 }
 
-export type UserInfoViewType = {
+export type UserInfoType = {
   /**
    * Whether to include the current user in the list of members to show.
    * @default false.
@@ -28,10 +28,10 @@ export type UserInfoViewType = {
   totalMembersToShow?: number;
 };
 
-export const UserInfoView = ({
+export const UserInfo = ({
   includeSelf = false,
   totalMembersToShow = 3,
-}: UserInfoViewType) => {
+}: UserInfoType) => {
   const connectedUser = useConnectedUser();
   const members = useCallMembers();
 
