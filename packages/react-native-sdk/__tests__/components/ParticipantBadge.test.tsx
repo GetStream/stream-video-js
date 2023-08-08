@@ -2,7 +2,7 @@ import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
 import { SfuModels } from '@stream-io/video-client';
 import mockParticipant from '../mocks/participant';
-import { A11yButtons, A11yComponents } from '../../src/constants/A11yLabels';
+import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen } from '../utils/RNTLTools';
 import { ParticipantsInfoBadge } from '../../src/components';
@@ -26,7 +26,7 @@ describe('CallParticipantsBadge', () => {
     });
 
     expect(
-      await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
+      await screen.findByTestId(ButtonTestIds.PARTICIPANTS_INFO),
     ).toHaveTextContent('1');
   });
 
@@ -39,12 +39,12 @@ describe('CallParticipantsBadge', () => {
       call,
     });
 
-    const badge = await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO);
+    const badge = await screen.findByTestId(ButtonTestIds.PARTICIPANTS_INFO);
     expect(badge).toHaveTextContent('1');
 
     fireEvent.press(badge);
     expect(
-      await screen.findByLabelText(A11yComponents.PARTICIPANTS_INFO_VIEW),
+      await screen.findByTestId(ComponentTestIds.PARTICIPANTS_INFO_VIEW),
     ).toBeVisible();
   });
 
@@ -74,7 +74,7 @@ describe('CallParticipantsBadge', () => {
     });
 
     expect(
-      await screen.findByLabelText(A11yButtons.PARTICIPANTS_INFO),
+      await screen.findByTestId(ButtonTestIds.PARTICIPANTS_INFO),
     ).toHaveTextContent('3');
   });
 });

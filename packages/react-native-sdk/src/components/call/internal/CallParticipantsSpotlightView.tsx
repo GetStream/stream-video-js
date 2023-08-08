@@ -12,7 +12,7 @@ import { StyleSheet, View } from 'react-native';
 import { ParticipantView } from '../../participants/ParticipantView';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { A11yComponents } from '../../../constants/A11yLabels';
+import { ComponentTestIds } from '../../../constants/TestIds';
 import { CallParticipantsListView } from '../../call/CallParticipantsListView';
 import { LocalParticipantView } from '../../participants';
 
@@ -35,7 +35,7 @@ export const CallParticipantsSpotlightView = () => {
 
   return (
     <View
-      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW}
+      testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT_VIEW}
       style={styles.container}
     >
       {participantInSpotlight && (

@@ -16,7 +16,7 @@ import {
 import { theme } from '../../theme';
 import { useDebouncedValue } from '../../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
-import { A11yComponents } from '../../constants/A11yLabels';
+import { ComponentTestIds } from '../../constants/TestIds';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -185,7 +185,7 @@ export const CallParticipantsListView = (props: CallParticipantsListProps) => {
       horizontal={horizontal}
       showsHorizontalScrollIndicator={false}
       extraData={`${forceUpdateValue}`} // this is important to force re-render when visibility changes
-      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_LIST}
+      testID={ComponentTestIds.CALL_PARTICIPANTS_LIST}
     />
   );
 };

@@ -12,7 +12,7 @@ import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { theme } from '../../theme';
 import { VideoSlash } from '../../icons';
-import { A11yComponents } from '../../constants/A11yLabels';
+import { ComponentTestIds } from '../../constants/TestIds';
 import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
 import { useDebouncedValue } from '../../utils/hooks';
@@ -91,7 +91,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   if (layout === 'fullscreen') {
     return (
       <View
-        accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN}
+        testID={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
         style={style}
       >
         <View style={styles.topView}>
@@ -117,7 +117,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
 
   return (
     <Animated.View
-      accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT}
+      testID={ComponentTestIds.LOCAL_PARTICIPANT}
       style={{
         // Needed to make the view is on top and draggable
         zIndex: Z_INDEX.IN_MIDDLE,
