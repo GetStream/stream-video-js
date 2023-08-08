@@ -12,8 +12,8 @@ output.pages = {
   joinMeeting: {
     callIdInputField: 'Type your Call ID',
     startCallButton: 'Join Call',
-    chooseFlowButton: 'choose-mode-button',
-    logOutButton: 'log-out-button',
+    chooseFlowButton: 'choose-mode',
+    logOutButton: 'log-out',
     confirmSignOutButton: 'OK',
   },
   lobby: {
@@ -21,10 +21,10 @@ output.pages = {
   },
   activeCall: {
     participantsInfoButton: 'participants-info-button',
-    hangupButton: 'hang-up-call-button',
+    hangupButton: 'hang-up-call',
   },
   participantsInfo: {
-    exitButton: 'exit-participants-info-button',
+    exitButton: 'exit-participants-info',
   },
 };
 output.assertions = {

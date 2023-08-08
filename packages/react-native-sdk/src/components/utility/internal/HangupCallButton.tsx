@@ -3,14 +3,14 @@ import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { PhoneDown } from '../../../icons';
-import { A11yButtons } from '../../../constants/A11yLabels';
+import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 /**
- * The props for the Hang up call button in the Call Control View.
+ * The props for the Hang up call button in the Call Controls.
  */
-export type HangUpCallButtonType = {
+export type HangUpCallButtonProps = {
   /**
    * Handler to override the hang up handler when the hangup button is pressed.
    * @returns void
@@ -26,7 +26,7 @@ export type HangUpCallButtonType = {
 export const HangUpCallButton = ({
   onPressHandler,
   style,
-}: HangUpCallButtonType) => {
+}: HangUpCallButtonProps) => {
   const call = useCall();
   const callingState = useCallCallingState();
 
@@ -51,7 +51,7 @@ export const HangUpCallButton = ({
       onPress={hangUpCallHandler}
       color={theme.light.error}
       style={[styles.button, { shadowColor: theme.light.error }, style]}
-      accessibilityLabel={A11yButtons.HANG_UP_CALL}
+      testID={ButtonTestIds.HANG_UP_CALL}
     >
       <PhoneDown color={theme.light.static_white} />
     </CallControlsButton>

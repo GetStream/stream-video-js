@@ -12,7 +12,7 @@ There may be a lot of designs for participant's label that can be displayed abov
 
 Preview of the Default Participant Label Component:
 
-![Preview of the Default LocalParticipantView component](../assets/05-ui-cookbook/participant-label-default.png)
+![Preview of the Default LocalParticipant component](../assets/05-ui-cookbook/participant-label-default.png)
 
 It is expected that the default component may not meet all the requirements of your design/app. Therefore, we will look into ways, how to customize/create a participant label in this tutorial.
 
@@ -24,7 +24,7 @@ To customize the Participant Label, you can use the following hooks:
 - `useRemoteParticipants` hook that provides all the details of the participants other than the local participant.
 - `useConnectedUser` or `useLocalParticipant` provides the details of the local or connected participant.
 
-![Preview of the Custom LocalParticipantView component](../assets/05-ui-cookbook/participant-label-custom.png)
+![Preview of the Custom LocalParticipant component](../assets/05-ui-cookbook/participant-label-custom.png)
 
 An example is shown below using `useParticipants`:
 
@@ -55,13 +55,13 @@ const ParticipantLabel = ({
   );
 };
 
-const ParticipantView = () => {
+const Participant = () => {
   const participants = useParticipants();
 
   return (
     <View>
       {participants.map((participant) => {
-        // Code for your custom participant view
+        // Code for your custom participant
         return (
           <View>
             {/* ParticipantLabel is rendered as a sub component here */}
@@ -74,7 +74,7 @@ const ParticipantView = () => {
 };
 ```
 
-An example using the `useConnectedUser` hook is shown below. This can be useful while designing the Participant label component for the Lobby View:
+An example using the `useConnectedUser` hook is shown below. This can be useful while designing the Participant label component for the Lobby component:
 
 ```tsx
 import { Text, View } from 'react-native';
@@ -86,9 +86,7 @@ const ParticipantLabel = () => {
 
   return (
     <View>
-      <Text numberOfLines={1}>
-        {participantLabel}
-      </Text>
+      <Text numberOfLines={1}>{participantLabel}</Text>
       {/* Add your custom component here */}
     </View>
   );

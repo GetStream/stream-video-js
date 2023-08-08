@@ -33,7 +33,7 @@ interface CallControlsButtonProps {
   /**
    * Accessibility label for the button.
    */
-  accessibilityLabel?: string;
+  testID?: string;
 }
 
 const DEFAULT_ICON_SIZE = theme.icon.md;
@@ -49,7 +49,7 @@ export const CallControlsButton = (
     disabled,
     style,
     svgContainerStyle,
-    accessibilityLabel,
+    testID,
   } = props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
@@ -68,7 +68,7 @@ export const CallControlsButton = (
       disabled={disabled}
       style={pressableStyle}
       onPress={onPress}
-      accessibilityLabel={accessibilityLabel}
+      testID={testID}
     >
       <View
         style={[

@@ -69,9 +69,9 @@ export interface StreamVideoParticipant extends Participant {
   isLocalParticipant?: boolean;
 
   /**
-   * Timestamp of when the participant is pinned
+   * The pin state of the participant.
    */
-  pinnedAt?: number;
+  pin?: ParticipantPin;
 
   /**
    * The last reaction this user has sent to this call.
@@ -105,6 +105,22 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    */
   audioOutputDeviceId?: string;
 }
+
+/**
+ * Represents a participant's pin state.
+ */
+export type ParticipantPin = {
+  /**
+   * Set to true if the participant is pinned by the local user.
+   * False if the participant is pinned server-side, by the call moderator.
+   */
+  isLocalPin: boolean;
+
+  /**
+   * Timestamp when the participant is pinned.
+   */
+  pinnedAt: number;
+};
 
 export const isStreamVideoLocalParticipant = (
   p: StreamVideoParticipant | StreamVideoLocalParticipant,

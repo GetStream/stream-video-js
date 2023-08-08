@@ -7,17 +7,15 @@ import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
 import { StyleSheet } from 'react-native';
-import { useCallControls } from '../../../hooks';
 
 export const ToggleCameraFaceButton = () => {
-  const { isVideoPublished } = useCallControls();
-  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+  const { isVideoMuted, isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useMediaStreamManagement();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
-        disabled={!isVideoPublished}
+        disabled={isVideoMuted}
         onPress={toggleCameraFacingMode}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
         style={isCameraOnFrontFacingMode ? styles.button : null}

@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.0...@stream-io/video-react-sdk-0.2.1) (2023-08-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.14`
+## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.18...@stream-io/video-react-sdk-0.2.0) (2023-08-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.13`
+
+### ⚠ BREAKING CHANGES
+
+* Server-side participant pinning (#881)
+
+### Features
+
+* Server-side participant pinning ([#881](https://github.com/GetStream/stream-video-js/issues/881)) ([72829f1](https://github.com/GetStream/stream-video-js/commit/72829f1caf5b9c719d063a7e5175b7aa7431cd71))
+
 ### [0.1.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.1.17...@stream-io/video-react-sdk-0.1.18) (2023-08-04)
 
 ### Dependency Updates
