@@ -33,7 +33,7 @@ import { generateParticipantTitle } from '../../utils';
 import { ParticipantActions } from './internal/ParticipantActions';
 import { Avatar } from '../utility/Avatar';
 import { theme } from '../../theme';
-import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
+import { ButtonTestIds, ComponentTestIds } from '../../constants/TestIds';
 import { Z_INDEX } from '../../constants';
 import { palette } from '../../theme/constants';
 
@@ -105,7 +105,7 @@ export const ParticipantsInfoList = ({
 
   return (
     <Modal
-      accessibilityLabel={A11yComponents.PARTICIPANTS_INFO}
+      testID={ComponentTestIds.PARTICIPANTS_INFO}
       animationType="fade"
       transparent
       visible={isCallParticipantsInfoVisible}
@@ -125,7 +125,7 @@ export const ParticipantsInfoList = ({
               </Text>
               <Pressable
                 onPress={onCloseCallParticipantsVisible}
-                accessibilityLabel={A11yButtons.EXIT_PARTICIPANTS_INFO}
+                testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
                 style={styles.closePressable}
               >
                 <Cross color={theme.dark.primary} style={theme.icon.xs} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Mask, Path } from 'react-native-svg';
-import { A11yIcons } from '../constants/A11yLabels';
+import { IconTestIds } from '../constants/TestIds';
 
 type Props = {
   color: string;
@@ -8,7 +8,7 @@ type Props = {
 
 export const ScreenShare = ({ color }: Props) => {
   return (
-    <Svg viewBox="0 0 24 24" accessibilityLabel={A11yIcons.SCREEN_SHARE}>
+    <Svg viewBox="0 0 24 24" testID={IconTestIds.SCREEN_SHARE}>
       <Mask id="path-1-inside-1_1396_84816">
         <Path
           fillRule="evenodd"

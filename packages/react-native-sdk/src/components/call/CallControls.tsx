@@ -8,7 +8,7 @@ import { Restricted } from '@stream-io/video-react-bindings';
 import { ReactionModal } from '../utility/ReactionsModal';
 import { ToggleAudioButton } from '../utility/internal/ToggleAudioButton';
 import { ToggleVideoButton } from '../utility/internal/ToggleVideoButton';
-import { A11yButtons, A11yComponents } from '../../constants/A11yLabels';
+import { ButtonTestIds, ComponentTestIds } from '../../constants/TestIds';
 import { Z_INDEX } from '../../constants';
 import { ToggleCameraFaceButton } from '../utility/internal/ToggleCameraFaceButton';
 import {
@@ -65,7 +65,7 @@ export const CallControls = ({
     <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
-          accessibilityLabel={A11yButtons.REACTION}
+          testID={ButtonTestIds.REACTION}
           onPress={onOpenReactionsModalHandler}
           color={theme.light.static_white}
           style={styles.button}
@@ -112,7 +112,7 @@ const UnreadBadgeCountIndicator = ({
 
   return (
     <View
-      accessibilityLabel={A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR}
+      testID={ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR}
       style={styles.chatBadge}
     >
       <Text style={styles.chatBadgeText}>{count}</Text>

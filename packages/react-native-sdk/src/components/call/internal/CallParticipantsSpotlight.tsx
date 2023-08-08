@@ -12,8 +12,8 @@ import { StyleSheet, View } from 'react-native';
 import { Participant } from '../../participants/Participant';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { A11yComponents } from '../../../constants/A11yLabels';
-import { CallParticipantsList } from '../CallParticipantsList';
+import { ComponentTestIds } from '../../../constants/TestIds';
+import { CallParticipantsList } from '../../call/CallParticipantsList';
 import { LocalParticipantView } from '../../participants';
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
@@ -35,7 +35,7 @@ export const CallParticipantsSpotlight = () => {
 
   return (
     <View
-      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT}
+      testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={styles.container}
     >
       {participantInSpotlight && (

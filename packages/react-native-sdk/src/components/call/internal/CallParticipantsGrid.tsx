@@ -7,8 +7,8 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { CallParticipantsList } from '../CallParticipantsList';
-import { A11yComponents } from '../../../constants/A11yLabels';
+import { CallParticipantsList } from '../../call/CallParticipantsList';
+import { ComponentTestIds } from '../../../constants/TestIds';
 
 export const CallParticipantsGrid = () => {
   const callType = useCall()?.type;
@@ -28,7 +28,7 @@ export const CallParticipantsGrid = () => {
   return (
     <View
       style={styles.container}
-      accessibilityLabel={A11yComponents.CALL_PARTICIPANTS_GRID}
+      testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
       {showFloatingView && <LocalParticipantView layout={'floating'} />}
       <CallParticipantsList participants={participants} />

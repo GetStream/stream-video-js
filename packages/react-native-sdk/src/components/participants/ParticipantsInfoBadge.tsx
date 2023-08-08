@@ -9,7 +9,7 @@ import {
 import { Participants } from '../../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
-import { A11yButtons } from '../../constants/A11yLabels';
+import { ButtonTestIds } from '../../constants/TestIds';
 import { Z_INDEX } from '../../constants';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 
@@ -34,7 +34,7 @@ export const ParticipantsInfoBadge = ({
   return (
     <Pressable
       onPress={onOpenCallParticipantsInfo}
-      accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
+      testID={ButtonTestIds.PARTICIPANTS_INFO}
       style={style}
     >
       <View style={styles.badge}>

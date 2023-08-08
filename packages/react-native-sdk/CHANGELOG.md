@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.356](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.355...@stream-io/video-react-native-sdk-0.0.1-alpha.356) (2023-08-07)
+
+
+### Bug Fixes
+
+* **react-native:** uuid for callkit must be generated from obj c side ([#880](https://github.com/GetStream/stream-video-js/issues/880)) ([06bd6e5](https://github.com/GetStream/stream-video-js/commit/06bd6e557e9674eb85e09cc1f23fbebec38ea86b))
+
+
+
+## [0.0.1-alpha.355](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.354...@stream-io/video-react-native-sdk-0.0.1-alpha.355) (2023-08-07)
+
+
+
 ## [0.0.1-alpha.354](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.353...@stream-io/video-react-native-sdk-0.0.1-alpha.354) (2023-08-07)
 
 

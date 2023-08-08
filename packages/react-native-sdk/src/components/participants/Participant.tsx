@@ -20,8 +20,8 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
-import { A11yComponents } from '../../constants/A11yLabels';
-import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
+import { ComponentTestIds } from '../../constants/TestIds';
+import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
@@ -235,7 +235,7 @@ export const Participant = (props: ParticipantProps) => {
         props.containerStyle,
         speakerStyle,
       ]}
-      accessibilityLabel={`participant-${participant.userId}`}
+      testID={`participant-${participant.userId}`}
       accessibilityValue={{
         text: isSpeaking
           ? 'participant-is-speaking'
@@ -287,7 +287,7 @@ export const Participant = (props: ParticipantProps) => {
         {kind === 'screen' && (
           <View
             style={styles.screenViewStatus}
-            accessibilityLabel={A11yComponents.PARTICIPANT_SCREEN_SHARING}
+            testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
           >
             <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
               <ScreenShare color={theme.light.static_white} />
