@@ -4,9 +4,9 @@ import { theme } from '../../theme';
 import React, { useCallback } from 'react';
 import { useCall } from '@stream-io/video-react-bindings';
 import { StreamVideoRN } from '../../utils';
-import { A11yComponents } from '../../constants/A11yLabels';
+import { ComponentTestIds } from '../../constants/TestIds';
 
-type ReactionModalType = {
+type ReactionModalProps = {
   isReactionModalActive: boolean;
   setIsReactionModalActive: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -14,7 +14,7 @@ type ReactionModalType = {
 /**
  * A component that shows a list of reactions that can be sent in a call.
  */
-export const ReactionModal = (props: ReactionModalType) => {
+export const ReactionModal = (props: ReactionModalProps) => {
   const { isReactionModalActive, setIsReactionModalActive } = props;
   const onCloseReactionsModal = useCallback(() => {
     setIsReactionModalActive(false);
@@ -29,7 +29,7 @@ export const ReactionModal = (props: ReactionModalType) => {
 
   return (
     <Modal
-      accessibilityLabel={A11yComponents.REACTIONS_MODAL}
+      testID={ComponentTestIds.REACTIONS_MODAL}
       animationType="slide"
       transparent={true}
       visible={isReactionModalActive}

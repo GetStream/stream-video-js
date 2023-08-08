@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  CallContentViewProps,
-  CallControlsView,
-  CallControlsViewType,
+  CallContentProps,
+  CallControls,
+  CallControlsType,
   CallingState,
   ParticipantsInfoBadge,
-  CallContentView,
+  CallContent,
   useCall,
   useIncallManager,
   theme,
@@ -19,9 +19,9 @@ import {
 import { ActiveCallNotification } from './ActiveCallNotification';
 import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
 
-type ActiveCallProps = CallControlsViewType;
+type ActiveCallProps = CallControlsType;
 
-type Layout = CallContentViewProps['mode'];
+type Layout = CallContentProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
@@ -61,8 +61,8 @@ export const ActiveCall = ({
         />
         <ParticipantsInfoBadge />
       </View>
-      <CallContentView mode={selectedLayout} />
-      <CallControlsView
+      <CallContent mode={selectedLayout} />
+      <CallControls
         chatButton={chatButton}
         hangUpCallButton={hangUpCallButton}
         style={[

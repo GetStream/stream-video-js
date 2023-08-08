@@ -1,0 +1,106 @@
+---
+id: participant
+title: Participant
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ParticipantCameraOn from '../../assets/04-ui-components/participant-camera-on.png';
+import ParticipantCameraOff from '../../assets/04-ui-components/participant-camera-off.png';
+
+The Participant component renders a participant's video and plays the participant's audio. It can also be used to display the screen sharing view.
+
+It displays the participant info such as
+
+- Name
+- Audio/video mute/unmute state
+- Reaction
+- Network quality indicator
+
+It can toggle between video and avatar based on the participant's video state. It also provides action buttons (for example, to unpin the participant).
+
+:::note
+It is used as a building block to render individual item of participants in [CallContent](../call/call-content.mdx) and [CallParticipantsList](../call/call-participants-list.mdx).
+:::
+
+<ImageShowcase
+  items={[
+    {
+      image: ParticipantCameraOn,
+      caption: 'Participant Camera On',
+      alt: 'Participant Camera On',
+    },
+    {
+      image: ParticipantCameraOff,
+      caption: 'Participant Camera Off',
+      alt: 'Participant Camera Off',
+    },
+  ]}
+/>
+
+## General Usage
+
+In order to use the `Participant` as a standalone component, you should use the following code:
+
+```tsx
+import {
+  Participant,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
+
+const App = () => {
+  const participants = useParticipants();
+
+  // Here to show the demo, we pass only first participant. You can pass any of the participant.
+  return <Participant participant={participants[0]} />;
+};
+```
+
+## Props
+
+### `participant`
+
+| Type                                                                                                            |
+| --------------------------------------------------------------------------------------------------------------- |
+| [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) |
+
+The participants to be rendered in the `Participant`.
+
+### `kind`
+
+| Type                |
+| ------------------- |
+| `video` \| `screen` |
+
+The type of the participant stream to be rendered. Eg: screen sharing or participant's video stream.
+
+### `containerStyle`
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+This prop is used to override the root container style of the component.
+
+### `videoRendererStyle`
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+This prop can be used to override the video stream renderer styles.
+
+### `isVisible`
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `true`        |
+
+When set to false, the video stream will not be shown even if it is available.
+
+### `disableAudio`
+
+| Type      |
+| --------- |
+| `boolean` |
+
+When set to true, the audio stream will not be played even if it is available.

@@ -28,6 +28,11 @@ jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );
 
+jest.mock('react-native-reanimated', () => {
+  const RNReanimatedmock = require('react-native-reanimated/mock');
+  return { ...RNReanimatedmock, runOnUI: (fn: any) => fn };
+});
+
 // When mocking we implement only the needed navigator APIs, hence the suppression rule
 // @ts-ignore
 global.navigator = {

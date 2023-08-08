@@ -11,14 +11,13 @@ import { muteStatusColor } from '../../../utils';
 import { Alert, StyleSheet } from 'react-native';
 import { theme } from '../../../theme';
 import { Video, VideoSlash } from '../../../icons';
-import { useCallControls, usePermissionNotification } from '../../../hooks';
+import { usePermissionNotification } from '../../../hooks';
+import { useMediaStreamManagement } from '../../../providers';
 
 export const ToggleVideoButton = () => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
-  const { toggleVideoMuted, isVideoPublished } = useCallControls();
+  const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
   const { t } = useI18n();
-
-  const isVideoMuted = !isVideoPublished;
 
   const userHasSendVideoCapability = useHasPermissions(
     OwnCapability.SEND_VIDEO,
