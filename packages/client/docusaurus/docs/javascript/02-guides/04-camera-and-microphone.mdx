@@ -45,7 +45,9 @@ call.camera.select('device Id');
 
 ```typescript
 call.camera.state.status; // enabled or disabled
+call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 call.camera.state.selectedDevice; // currently selected camera
+call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 ```
 
 ### Render video
@@ -120,7 +122,9 @@ call.microphone.select('device Id');
 
 ```typescript
 call.microphone.state.status; // enabled or disabled
+call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 call.microphone.state.selectedDevice; // currently selected microphone
+call.microphone.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 ```
 
 ### Play audio
