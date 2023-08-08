@@ -17,7 +17,7 @@ import { CallingState } from '@stream-io/video-client';
 /**
  * The props for the Accept Call button in the IncomingCall component.
  */
-type AcceptCallButton = {
+type AcceptCallButtonProps = {
   /**
    * Handler to be called when the accept call button is pressed.
    * @returns void
@@ -28,7 +28,7 @@ type AcceptCallButton = {
 /**
  * The props for the Reject Call button in the IncomingCall component.
  */
-type RejectCallButton = {
+type RejectCallButtonProps = {
   /**
    * Handler to be called when the reject call button is pressed.
    * @returns void
@@ -43,11 +43,11 @@ export type IncomingCallType = {
   /**
    * Accept Call Button Props to be passed as an object
    */
-  acceptCallButton?: AcceptCallButton;
+  acceptCallButton?: AcceptCallButtonProps;
   /**
    * Reject Call Button Props to be passed as an object
    */
-  rejectCallButton?: RejectCallButton;
+  rejectCallButton?: RejectCallButtonProps;
 };
 
 /**

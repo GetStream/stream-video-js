@@ -23,7 +23,7 @@ import { useMediaStreamManagement } from '../../providers/MediaStreamManagement'
 /**
  * The props for the Join Button in the Lobby.
  */
-type JoinCallButton = {
+type JoinCallButtonProps = {
   /**
    * Handler called when the join button is clicked in the Lobby.
    * @returns void
@@ -34,14 +34,14 @@ type JoinCallButton = {
 /**
  * Props for the Lobby Component.
  */
-type LobbyType = {
+type LobbyProps = {
   /**
    * Join button props to be passed as an object
    */
-  joinCallButton: JoinCallButton;
+  joinCallButton: JoinCallButtonProps;
 };
 
-export const Lobby = ({ joinCallButton }: LobbyType) => {
+export const Lobby = ({ joinCallButton }: LobbyProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const {

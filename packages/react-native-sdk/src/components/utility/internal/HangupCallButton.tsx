@@ -10,7 +10,7 @@ import { CallingState } from '@stream-io/video-client';
 /**
  * The props for the Hang up call button in the Call Controls.
  */
-export type HangUpCallButtonType = {
+export type HangUpCallButtonProps = {
   /**
    * Handler to override the hang up handler when the hangup button is pressed.
    * @returns void
@@ -26,7 +26,7 @@ export type HangUpCallButtonType = {
 export const HangUpCallButton = ({
   onPressHandler,
   style,
-}: HangUpCallButtonType) => {
+}: HangUpCallButtonProps) => {
   const call = useCall();
   const callingState = useCallCallingState();
 

@@ -13,13 +13,13 @@ import { Z_INDEX } from '../../constants';
 import { ToggleCameraFaceButton } from '../utility/internal/ToggleCameraFaceButton';
 import {
   HangUpCallButton,
-  HangUpCallButtonType,
+  HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
 
 /**
  * The props for the Chat Button in the Call Controls.
  */
-type ChatButtonType = {
+type ChatButtonProps = {
   /**
    * Handler to be called when the chat button is pressed.
    * @returns void
@@ -38,11 +38,11 @@ export interface CallControlsType extends Pick<ViewProps, 'style'> {
   /**
    * Chat Button Props to be passed as an object
    */
-  chatButton?: ChatButtonType;
+  chatButton?: ChatButtonProps;
   /**
    * Hang up call button props to be passed as an object
    */
-  hangUpCallButton?: HangUpCallButtonType;
+  hangUpCallButton?: HangUpCallButtonProps;
 }
 
 /**
@@ -103,7 +103,7 @@ export const CallControls = ({
 const UnreadBadgeCountIndicator = ({
   count,
 }: {
-  count: ChatButtonType['unreadBadgeCountIndicator'];
+  count: ChatButtonProps['unreadBadgeCountIndicator'];
 }) => {
   // Don't show badge if count is 0 or undefined
   if (!count) {

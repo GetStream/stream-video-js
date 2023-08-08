@@ -10,25 +10,25 @@ import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import {
   HangUpCallButton,
-  HangUpCallButtonType,
+  HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
 import { useI18n } from '@stream-io/video-react-bindings';
 
 /**
  * Props for the OutgoingCall Component.
  */
-export type OutgoingCallType = {
+export type OutgoingCallProps = {
   /**
    * HangUp Call Button Props to be passed as an object
    */
-  hangupCallButton?: HangUpCallButtonType;
+  hangupCallButton?: HangUpCallButtonProps;
 };
 
 /**
  * An outgoing call with the callee's avatar, name, caller's camera in background, reject and mute buttons.
  * Used after the user has initiated a call.
  */
-export const OutgoingCall = ({ hangupCallButton }: OutgoingCallType) => {
+export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
   const {
     initialAudioEnabled,
     initialVideoEnabled,
