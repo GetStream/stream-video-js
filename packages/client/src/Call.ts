@@ -105,7 +105,8 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
-import { InputMediaDeviceManager } from './devices/InputMediaDeviceManager';
+import { CameraManager } from './devices/CameraManager';
+import { MicrophoneManager } from './devices/MicrophoneManager';
 
 /**
  * An object representation of a `Call`.
@@ -145,12 +146,12 @@ export class Call {
   /**
    * Device manager for the camera
    */
-  readonly camera: InputMediaDeviceManager;
+  readonly camera: CameraManager;
 
   /**
    * Device manager for the microhpone
    */
-  readonly microphone: InputMediaDeviceManager;
+  readonly microphone: MicrophoneManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -253,8 +254,8 @@ export class Call {
       ),
     );
 
-    this.camera = new InputMediaDeviceManager(this, 'videoinput');
-    this.microphone = new InputMediaDeviceManager(this, 'audioinput');
+    this.camera = new CameraManager(this);
+    this.microphone = new MicrophoneManager(this);
   }
 
   private registerEffects() {

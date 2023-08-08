@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { CallingState } from '../../store';
+import { of } from 'rxjs';
 
 export const mockVideoDevices = [
   {
@@ -70,5 +71,29 @@ export const mockCall = () => {
     publishVideoStream: vi.fn(),
     publishAudioStream: vi.fn(),
     stopPublish: vi.fn(),
+  };
+};
+
+export const mockAudioStream = () => {
+  return {
+    getAudioTracks: () => [
+      {
+        getSettings: () => ({
+          deviceId: mockAudioDevices[0].deviceId,
+        }),
+      },
+    ],
+  };
+};
+
+export const mockVideoStream = () => {
+  return {
+    getVideoTracks: () => [
+      {
+        getSettings: () => ({
+          deviceId: mockVideoDevices[0].deviceId,
+        }),
+      },
+    ],
   };
 };
