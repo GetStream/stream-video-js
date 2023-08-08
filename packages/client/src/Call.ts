@@ -934,7 +934,7 @@ export class Call {
         this.microphone.state.mediaStream &&
         !this.state.localParticipant?.audioStream
       ) {
-        this.publishVideoStream(this.microphone.state.mediaStream);
+        this.publishAudioStream(this.microphone.state.mediaStream);
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
