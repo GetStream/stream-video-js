@@ -41,12 +41,12 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
       }`}
       onClick={async () => {
         if (isBroadcasting) {
-          call.stopBroadcasting().catch((err) => {
+          call.stopHLS().catch((err) => {
             console.error('Error stopping livestream', err);
           });
         } else {
           call.goLive();
-          call.startBroadcasting().catch((err) => {
+          call.startHLS().catch((err) => {
             console.error('Error starting livestream', err);
           });
         }

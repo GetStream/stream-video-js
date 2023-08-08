@@ -33,6 +33,8 @@ import {
   MuteUsersRequest,
   MuteUsersResponse,
   OwnCapability,
+  PinRequest,
+  PinResponse,
   QueryMembersRequest,
   QueryMembersResponse,
   RejectCallResponse,
@@ -50,6 +52,8 @@ import {
   StopRecordingResponse,
   UnblockUserRequest,
   UnblockUserResponse,
+  UnpinRequest,
+  UnpinResponse,
   UpdateCallMembersRequest,
   UpdateCallMembersResponse,
   UpdateCallRequest,
@@ -879,6 +883,7 @@ export class Call {
       const startedAt = callState?.startedAt
         ? Timestamp.toDate(callState.startedAt)
         : new Date();
+      const pins = callState?.pins ?? [];
       this.state.setParticipants(() => {
         const participantLookup = this.state.getParticipantLookupBySessionId();
         return currentParticipants.map((p) => {
@@ -886,7 +891,7 @@ export class Call {
             isLocalParticipant: p.sessionId === sfuClient.sessionId,
             viewportVisibilityState: VisibilityState.UNKNOWN,
           });
-          // We need to preserve some of the local state of the participant
+          // We need to preserve the local state of the participant
           // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
           // as it doesn't exist on the server.
           const existingParticipant = participantLookup[p.sessionId];
@@ -899,9 +904,19 @@ export class Call {
       this.state.setParticipantCount(participantCount?.total || 0);
       this.state.setAnonymousParticipantCount(participantCount?.anonymous || 0);
       this.state.setStartedAt(startedAt);
+      this.state.setServerSidePins(pins);
 
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
+
+      // 3. once we have the "joinResponse", and possibly reconciled the local state
+      // we schedule a fast subscription update for all remote participants
+      // that were visible before we reconnected or migrated to a new SFU.
+      const { remoteParticipants } = this.state;
+      if (remoteParticipants.length > 0) {
+        this.updateSubscriptions(remoteParticipants, DebounceType.FAST);
+      }
+
       this.logger('info', `Joined call ${this.cid}`);
     } catch (err) {
       // join failed, try to rejoin
@@ -1167,7 +1182,8 @@ export class Call {
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
    */
   setAudioOutputDevice = (deviceId?: string) => {
-    this.state.updateParticipant(this.sfuClient!.sessionId, {
+    if (!this.sfuClient) return;
+    this.state.updateParticipant(this.sfuClient.sessionId, {
       audioOutputDeviceId: deviceId,
     });
   };
@@ -1181,7 +1197,8 @@ export class Call {
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
   setAudioDevice = (deviceId?: string) => {
-    this.state.updateParticipant(this.sfuClient!.sessionId, {
+    if (!this.sfuClient) return;
+    this.state.updateParticipant(this.sfuClient.sessionId, {
       audioDeviceId: deviceId,
     });
   };
@@ -1194,7 +1211,8 @@ export class Call {
    * @param deviceId the selected device, pass `undefined` to clear the device selection
    */
   setVideoDevice = (deviceId?: string) => {
-    this.state.updateParticipant(this.sfuClient!.sessionId, {
+    if (!this.sfuClient) return;
+    this.state.updateParticipant(this.sfuClient.sessionId, {
       videoDeviceId: deviceId,
     });
   };
@@ -1465,7 +1483,7 @@ export class Call {
   /**
    * Starts the broadcasting of the call.
    */
-  startBroadcasting = async () => {
+  startHLS = async () => {
     return this.streamClient.post<StartBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
@@ -1475,7 +1493,7 @@ export class Call {
   /**
    * Stops the broadcasting of the call.
    */
-  stopBroadcasting = async () => {
+  stopHLS = async () => {
     return this.streamClient.post<StopBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
@@ -1511,15 +1529,56 @@ export class Call {
   };
 
   /**
-   * Sets the `participant.pinnedAt` value.
-   * @param sessionId the session id of the participant
-   * @param pinnedAt the value to set the participant.pinnedAt
-   * @returns
+   * Pins the given session to the top of the participants list.
+   *
+   * @param sessionId the sessionId to pin.
    */
-  setParticipantPinnedAt = (sessionId: string, pinnedAt?: number): void => {
+  pin = (sessionId: string) => {
     this.state.updateParticipant(sessionId, {
-      pinnedAt,
+      pin: {
+        isLocalPin: true,
+        pinnedAt: Date.now(),
+      },
     });
+  };
+
+  /**
+   * Unpins the given session from the top of the participants list.
+   *
+   * @param sessionId the sessionId to unpin.
+   */
+  unpin = (sessionId: string) => {
+    this.state.updateParticipant(sessionId, {
+      pin: undefined,
+    });
+  };
+
+  /**
+   * Pins the given session to the top of the participants list for everyone
+   * in the call.
+   * You can execute this method only if you have the `pin-for-everyone` capability.
+   *
+   * @param request the request object.
+   */
+  pinForEveryone = async (request: PinRequest) => {
+    return this.streamClient.post<PinResponse, PinRequest>(
+      `${this.streamClientBasePath}/pin`,
+      request,
+    );
+  };
+
+  /**
+   * Unpins the given session from the top of the participants list for everyone
+   * in the call.
+   * You can execute this method only if you have the `pin-for-everyone` capability.
+   *
+   * @param request the request object.
+   */
+  unpinForEveryone = async (request: UnpinRequest) => {
+    return this.streamClient.post<UnpinResponse, UnpinRequest>(
+      `${this.streamClientBasePath}/unpin`,
+      request,
+    );
   };
 
   /**

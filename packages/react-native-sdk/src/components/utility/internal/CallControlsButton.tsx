@@ -29,7 +29,7 @@ interface CallControlsButtonProps {
   /**
    * Accessibility label for the button.
    */
-  accessibilityLabel?: string;
+  testID?: string;
   onLayout?: View['props']['onLayout'];
 }
 
@@ -45,7 +45,7 @@ export const CallControlsButton = (
     color,
     style,
     svgContainerStyle,
-    accessibilityLabel,
+    testID,
     onLayout,
   } = props;
 
@@ -63,7 +63,7 @@ export const CallControlsButton = (
     <Pressable
       style={pressableStyle}
       onPress={onPress}
-      accessibilityLabel={accessibilityLabel}
+      testID={testID}
       onLayout={onLayout}
     >
       <View

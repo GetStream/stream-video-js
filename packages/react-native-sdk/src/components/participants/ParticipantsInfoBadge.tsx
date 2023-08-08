@@ -9,32 +9,32 @@ import {
 import { Participants } from '../../icons';
 import { useParticipantCount } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
-import { A11yButtons } from '../../constants/A11yLabels';
+import { ButtonTestIds } from '../../constants/TestIds';
 import { Z_INDEX } from '../../constants';
-import { ParticipantsInfoListView } from './ParticipantsInfoListView';
+import { ParticipantsInfoList } from './ParticipantsInfoList';
 
 export type ParticipantsInfoBadgeProps = Pick<PressableProps, 'style'>;
 
 /**
  * Badge that shows the number of participants in the call.
- * When pressed, it opens the ParticipantsInfoListView.
+ * When pressed, it opens the ParticipantsInfoList.
  * @param style
  */
 export const ParticipantsInfoBadge = ({
   style,
 }: ParticipantsInfoBadgeProps) => {
   const participantCount = useParticipantCount();
-  const [isCallParticipantsViewVisible, setIsCallParticipantsViewVisible] =
+  const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
 
-  const onOpenCallParticipantsInfoView = useCallback(() => {
-    setIsCallParticipantsViewVisible(true);
-  }, [setIsCallParticipantsViewVisible]);
+  const onOpenCallParticipantsInfo = useCallback(() => {
+    setIsCallParticipantsVisible(true);
+  }, [setIsCallParticipantsVisible]);
 
   return (
     <Pressable
-      onPress={onOpenCallParticipantsInfoView}
-      accessibilityLabel={A11yButtons.PARTICIPANTS_INFO}
+      onPress={onOpenCallParticipantsInfo}
+      testID={ButtonTestIds.PARTICIPANTS_INFO}
       style={style}
     >
       <View style={styles.badge}>
@@ -43,9 +43,9 @@ export const ParticipantsInfoBadge = ({
       <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />
       </View>
-      <ParticipantsInfoListView
-        isCallParticipantsInfoViewVisible={isCallParticipantsViewVisible}
-        setIsCallParticipantsInfoViewVisible={setIsCallParticipantsViewVisible}
+      <ParticipantsInfoList
+        isCallParticipantsInfoVisible={isCallParticipantsVisible}
+        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
       />
     </Pressable>
   );

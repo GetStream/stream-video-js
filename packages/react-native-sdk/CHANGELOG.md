@@ -2,6 +2,65 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.360](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.359...@stream-io/video-react-native-sdk-0.0.1-alpha.360) (2023-08-08)
+
+
+### Features
+
+* **react-native:** floating and a snapping animated local video view ([#906](https://github.com/GetStream/stream-video-js/issues/906)) ([aa683f6](https://github.com/GetStream/stream-video-js/commit/aa683f6908ee5b74575eb9f439c50c0d5cd83297))
+
+
+
+## [0.0.1-alpha.359](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.358...@stream-io/video-react-native-sdk-0.0.1-alpha.359) (2023-08-08)
+
+
+
+## [0.0.1-alpha.358](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.357...@stream-io/video-react-native-sdk-0.0.1-alpha.358) (2023-08-08)
+
+
+
+## [0.0.1-alpha.357](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.356...@stream-io/video-react-native-sdk-0.0.1-alpha.357) (2023-08-08)
+
+
+### Bug Fixes
+
+* **react-native:** change testing using A11y labels to testId ([#901](https://github.com/GetStream/stream-video-js/issues/901)) ([d342268](https://github.com/GetStream/stream-video-js/commit/d34226874adee872ee8d8242b4f7862486b5440c))
+
+
+
+## [0.0.1-alpha.356](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.355...@stream-io/video-react-native-sdk-0.0.1-alpha.356) (2023-08-07)
+
+
+### Bug Fixes
+
+* **react-native:** uuid for callkit must be generated from obj c side ([#880](https://github.com/GetStream/stream-video-js/issues/880)) ([06bd6e5](https://github.com/GetStream/stream-video-js/commit/06bd6e557e9674eb85e09cc1f23fbebec38ea86b))
+
+
+
+## [0.0.1-alpha.355](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.354...@stream-io/video-react-native-sdk-0.0.1-alpha.355) (2023-08-07)
+
+
+
+## [0.0.1-alpha.354](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.353...@stream-io/video-react-native-sdk-0.0.1-alpha.354) (2023-08-07)
+
+
+
+## [0.0.1-alpha.353](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.352...@stream-io/video-react-native-sdk-0.0.1-alpha.353) (2023-08-07)
+
+
+
+## [0.0.1-alpha.352](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.351...@stream-io/video-react-native-sdk-0.0.1-alpha.352) (2023-08-04)
+
+
+
+## [0.0.1-alpha.351](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.350...@stream-io/video-react-native-sdk-0.0.1-alpha.351) (2023-08-03)
+
+
+
+## [0.0.1-alpha.350](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.349...@stream-io/video-react-native-sdk-0.0.1-alpha.350) (2023-08-03)
+
+
+
 ## [0.0.1-alpha.349](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.348...@stream-io/video-react-native-sdk-0.0.1-alpha.349) (2023-08-02)
 
 

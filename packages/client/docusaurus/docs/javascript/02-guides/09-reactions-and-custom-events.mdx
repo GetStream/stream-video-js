@@ -9,12 +9,6 @@ Custom events let participants send and receive arbitrary WebSocket messages. Fo
 
 ## Reactions
 
-:::tip
-
-The [`ReactionsButton`](../../ui-components/call/call-controls/#reactionsbutton) and [`Reaction`](../../ui-components/utility/reaction/) components support reactions out-of-the-box, but for advanced use-cases you can also build your own reaction system.
-
-:::
-
 ### Sending reactions
 
 You can send a reaction using the `sendReaction` method of a `Call` instance.
@@ -50,20 +44,19 @@ Reactions are only delivered to clients that are [watching the call](../../advan
 The [participant state](../../guides/call-and-participant-state/#observe-participant-state) will contain the latest reaction of each participant:
 
 ```typescript
-const participants = useParticipants();
+const participants = call.state.participants;
+// or subscribe to call.state.participants$
 
 const reactions = participants.map((p) => p.reaction);
 ```
-
-You can also subscribe to the `call.reaction_new` WebSocket event to receive reactions. For more information, check out our [Events guide](../../advanced/events).
 
 ### Clearing reactions
 
 If you're using the [participant state](../../guides/call-and-participant-state/#observe-participant-state) for receiving reactions, you can also clear the latest reaction using the `resetReaction` method:
 
 ```typescript
-const call: Call;
-const participants = useParticipants();
+const participants = call.state.participants;
+// or subscribe to call.state.participants$
 
 call.resetReaction(participants[0].sessionId);
 ```

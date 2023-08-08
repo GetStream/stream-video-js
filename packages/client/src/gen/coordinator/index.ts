@@ -318,6 +318,25 @@ export interface BroadcastSettings {
   hls: HLSSettings;
 }
 /**
+ *
+ * @export
+ * @interface BroadcastSettingsRequest
+ */
+export interface BroadcastSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof BroadcastSettingsRequest
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {HLSSettingsRequest}
+   * @memberof BroadcastSettingsRequest
+   */
+  hls?: HLSSettingsRequest;
+}
+/**
  * This event is sent when a user accepts a notification to join a call.
  * @export
  * @interface CallAcceptedEvent
@@ -454,6 +473,12 @@ export interface CallCreatedEvent {
  * @interface CallEndedEvent
  */
 export interface CallEndedEvent {
+  /**
+   *
+   * @type {CallResponse}
+   * @memberof CallEndedEvent
+   */
+  call: CallResponse;
   /**
    *
    * @type {string}
@@ -1262,6 +1287,18 @@ export interface CallSessionResponse {
   id: string;
   /**
    *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  live_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  live_started_at?: string;
+  /**
+   *
    * @type {Array<CallParticipantResponse>}
    * @memberof CallSessionResponse
    */
@@ -1340,6 +1377,12 @@ export interface CallSettingsRequest {
    * @memberof CallSettingsRequest
    */
   backstage?: BackstageSettingsRequest;
+  /**
+   *
+   * @type {BroadcastSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  broadcasting?: BroadcastSettingsRequest;
   /**
    *
    * @type {GeofenceSettingsRequest}
@@ -2416,6 +2459,31 @@ export interface HLSSettings {
 /**
  *
  * @export
+ * @interface HLSSettingsRequest
+ */
+export interface HLSSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettingsRequest
+   */
+  auto_on?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettingsRequest
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof HLSSettingsRequest
+   */
+  quality_tracks?: Array<string>;
+}
+/**
+ *
+ * @export
  * @interface HealthCheckEvent
  */
 export interface HealthCheckEvent {
@@ -2836,6 +2904,7 @@ export const OwnCapability = {
   JOIN_CALL: 'join-call',
   JOIN_ENDED_CALL: 'join-ended-call',
   MUTE_USERS: 'mute-users',
+  PIN_FOR_EVERYONE: 'pin-for-everyone',
   READ_CALL: 'read-call',
   REMOVE_CALL_MEMBER: 'remove-call-member',
   SCREENSHARE: 'screenshare',
@@ -2958,6 +3027,38 @@ export interface PermissionRequestEvent {
    * @memberof PermissionRequestEvent
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface PinRequest
+ */
+export interface PinRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof PinRequest
+   */
+  session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PinRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface PinResponse
+ */
+export interface PinResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof PinResponse
+   */
+  duration: string;
 }
 /**
  *
@@ -3773,6 +3874,38 @@ export interface UnblockedUserEvent {
    * @memberof UnblockedUserEvent
    */
   user: UserResponse;
+}
+/**
+ *
+ * @export
+ * @interface UnpinRequest
+ */
+export interface UnpinRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof UnpinRequest
+   */
+  session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UnpinRequest
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface UnpinResponse
+ */
+export interface UnpinResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UnpinResponse
+   */
+  duration: string;
 }
 /**
  *

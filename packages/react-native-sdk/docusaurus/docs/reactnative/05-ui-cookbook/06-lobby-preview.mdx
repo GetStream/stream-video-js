@@ -6,10 +6,10 @@ description: Lobby Preview
 import ImageShowcase from '@site/src/components/ImageShowcase';
 import LocalParticipantPreviewOn from '../assets/05-ui-cookbook/06-lobby-preview/local-participant-preview-on.png';
 import LocalParticipantPreviewOff from '../assets/05-ui-cookbook/06-lobby-preview/local-participant-preview-off.png';
-import MediaStreamManagementButtonOn
-  from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-on.png';
-import MediaStreamManagementButtonOff
-  from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-off.png';
+import MediaStreamManagementButtonOn from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-on.png';
+import MediaStreamManagementButtonOff from '../assets/05-ui-cookbook/06-lobby-preview/media-stream-management-button-off.png';
+import LobbyCompletedOn from '../assets/05-ui-cookbook/06-lobby-preview/lobby-completed-on.png';
+import LobbyCompletedOff from '../assets/05-ui-cookbook/06-lobby-preview/lobby-completed-off.png';
 
 In this article, we will discuss key considerations for creating a user-friendly entrance to your call. We will delve into the various elements that can enhance the user experience and ensure a smooth transition from the lobby to the video call itself. By implementing effective lobby page design principles, you can elevate the overall user satisfaction.
 
@@ -18,7 +18,7 @@ We consider lobby to be place, where:
 - The user can see their own video preview before joining the call.
 - The user acquires information about the call to be joined.
 - The user can set their video/audio mute preferences before joining the call.
-- The user can use the Lobby view to show the participants who are already in the call.
+- The user can use the Lobby component to show the participants who are already in the call.
 
 :::note
 The approach to visualise the components will differ from application to application. Therefore, in this guide, we will focus only on the principles of building components and plugging them with right data sources
@@ -34,6 +34,7 @@ We would like to show some basic information about the call, when users arrive t
 To retrieve the basic details such as call id and type you can use the `useCall` hook.
 
 Then we can use the following hooks:
+
 - useCallMetadata
 
 :::note
@@ -42,10 +43,11 @@ The initial call information using `useCallMetadata` hook can only be retrieved 
 You can register an effect at the same place for the same, where you create the call(`client.call`).
 
 ```tsx
-const call = /* Created call */
+const call =
+  /* Created call */
 
-useEffect(() => {
-   const getOrCreateCall = async () => {
+  useEffect(() => {
+    const getOrCreateCall = async () => {
       try {
         await call?.getOrCreate();
       } catch (error) {
@@ -54,8 +56,9 @@ useEffect(() => {
     };
 
     getOrCreateCall();
-}, [call]);
+  }, [call]);
 ```
+
 :::
 
 These hooks make sure, that the information about call metadata or call members is updated in real time. The updates are made automatically in response to [Stream's WebSocket events](../../advanced/events) arriving from the backend.
@@ -107,19 +110,19 @@ export const LocalVideoRenderer = () => {
   } as StreamVideoParticipant;
 
   return (
-      <View style={styles.videoView}>
-        <View style={styles.topView} />
-        {isVideoAvailable ? (
-          <RTCView
-            streamURL={localVideoStream?.toURL()}
-            objectFit="cover"
-            style={StyleSheet.absoluteFillObject}
-          />
-        ) : (
-          <Avatar participant={connectedUserAsParticipant} />
-        )}
-        <ParticipantStatus />
-      </View>
+    <View style={styles.videoView}>
+      <View style={styles.topView} />
+      {isVideoAvailable ? (
+        <RTCView
+          streamURL={localVideoStream?.toURL()}
+          objectFit="cover"
+          style={StyleSheet.absoluteFillObject}
+        />
+      ) : (
+        <Avatar participant={connectedUserAsParticipant} />
+      )}
+      <ParticipantStatus />
+    </View>
   );
 };
 
@@ -135,7 +138,7 @@ const ParticipantStatus = () => {
       </Text>
       {!initialAudioEnabled && (
         <View style={styles.svgContainerStyle}>
-          {/* Mic off icon */}
+          <Text>(Mic off)</Text>
         </View>
       )}
     </View>
@@ -168,12 +171,12 @@ const styles = StyleSheet.create({
   svgContainerStyle: {
     marginLeft: 8,
   },
-})
+});
 ```
 
 ### Media Stream Management
 
-To control audio or video mute status in the Incoming and Outgoing call view, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+To control audio or video mute status in the Lobby, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
 
 <ImageShowcase
   items={[
@@ -196,18 +199,17 @@ The button's created will orchestrate the video preview in the [Video Input Prev
 You can add this in the code above:
 
 ```tsx
-const {
-    initialVideoEnabled,
-} = useMediaStreamManagement();
+const { initialVideoEnabled } = useMediaStreamManagement();
 const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
 ```
+
 :::
 
 We can go through the usage through the following example:
 
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
 
 export const MediaStreamButtonGroup = () => {
@@ -232,6 +234,20 @@ export const MediaStreamButtonGroup = () => {
     },
   ];
 
+  const audioButtonTextStyles = [
+    styles.mediaButtonText,
+    {
+      color: !initialAudioEnabled ? 'white' : '#080707dd',
+    },
+  ];
+
+  const videoButtonTextStyles = [
+    styles.mediaButtonText,
+    {
+      color: !initialVideoEnabled ? 'white' : '#080707dd',
+    },
+  ];
+
   return (
     <View style={styles.buttonGroup}>
       <Pressable
@@ -239,9 +255,9 @@ export const MediaStreamButtonGroup = () => {
         style={audioButtonStyles}
       >
         {initialAudioEnabled ? (
-          <>{/* Your Disable Audio Icon*/}</>
+          <Text style={audioButtonTextStyles}>Audio on</Text>
         ) : (
-          <>{/* Your Enable Audio Icon*/}</>
+          <Text style={audioButtonTextStyles}>Audio off</Text>
         )}
       </Pressable>
       <Pressable
@@ -249,9 +265,9 @@ export const MediaStreamButtonGroup = () => {
         style={videoButtonStyles}
       >
         {initialVideoEnabled ? (
-          <>{/* Your Disable Video Icon*/}</>
+          <Text style={videoButtonTextStyles}>Video on</Text>
         ) : (
-          <>{/* Your Enable Video Icon*/}</>
+          <Text style={videoButtonTextStyles}>Video off</Text>
         )}
       </Pressable>
     </View>
@@ -267,6 +283,10 @@ const styles = StyleSheet.create({
     height: 80,
     width: 80,
     borderRadius: 40,
+    justifyContent: 'center',
+  },
+  mediaButtonText: {
+    textAlign: 'center',
   },
 });
 ```
@@ -277,11 +297,11 @@ We can retrieve the list of members, that already joined the call (participants)
 
 ![Preview of the already joined participants example](../assets/05-ui-cookbook/06-lobby-preview/already_joined_participants.png)
 
-```tsx title="LobbyViewParticipantsPreview.tsx"
+```tsx title="LobbyParticipantsPreview.tsx"
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useCallMetadata } from '@stream-io/video-react-native-sdk';
 
-export const LobbyViewParticipantsPreview = () => {
+export const LobbyParticipantsPreview = () => {
   const callMetadata = useCallMetadata();
 
   if (
@@ -318,6 +338,7 @@ export const LobbyViewParticipantsPreview = () => {
 const styles = StyleSheet.create({
   infoText: {
     color: 'white',
+    textAlign: 'center',
   },
   userInfo: {
     flexDirection: 'row',
@@ -344,7 +365,7 @@ Lastly, to join a call we simply invoke call.join(). Learn more about the topic 
 
 ```tsx title="JoinCallButton.tsx"
 import React, { useCallback } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall } from '@stream-io/video-react-native-sdk';
 
 export const JoinCallButton = () => {
@@ -361,9 +382,61 @@ export const JoinCallButton = () => {
   }, [call]);
 
   return (
-    <Pressable onPress={onCallJoinHandler}>
-      <Text>Join Call</Text>
+    <Pressable onPress={onCallJoinHandler} style={styles.joinButton}>
+      <Text style={styles.joinButtonText}>Join Call</Text>
     </Pressable>
   );
 };
+
+const styles = StyleSheet.create({
+  joinButton: {
+    backgroundColor: 'blue',
+    paddingVertical: 10,
+  },
+  joinButtonText: {
+    textAlign: 'center',
+    fontSize: 25,
+    color: 'white',
+  },
+});
+```
+
+### Assembling it all together
+
+<ImageShowcase
+  items={[
+    {
+      image: LobbyCompletedOff,
+      caption: 'Lobby Completed Camera and Mic off',
+      alt: 'Lobby Completed Camera and Mic off',
+    },
+    {
+      image: LobbyCompletedOn,
+      caption: 'Lobby Completed Camera and Mic on',
+      alt: 'Lobby Completed Camera and Mic on',
+    },
+  ]}
+/>
+
+```tsx
+import { StyleSheet, View } from 'react-native';
+
+export const Lobby = () => {
+  return (
+    <View style={styles.container}>
+      <LocalVideoRenderer />
+      <MediaStreamButtonGroup />
+      <LobbyParticipantsPreview />
+      <JoinCallButton />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#272A30',
+    justifyContent: 'space-evenly',
+  },
+});
 ```

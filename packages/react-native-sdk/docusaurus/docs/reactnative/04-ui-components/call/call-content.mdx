@@ -1,0 +1,65 @@
+---
+id: call-content
+title: CallContent
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CallContentGrid from '../../assets/04-ui-components/call-content-grid.png';
+import CallContentSpotlight from '../../assets/04-ui-components/call-content-spotlight.png';
+
+CallContent is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
+
+The CallContent has two modes(`grid` or `spotlight`). The grid mode lists the participants vertically, one after the other. In contrast, the spotlight mode shows the screen sharing view, or a single dominant speaker, or a pinned participant in an elongated view, while other participants are in a horizontal view.
+
+<ImageShowcase
+  items={[
+    {
+      image: CallContentGrid,
+      caption: 'Call Content Grid',
+      alt: 'Call Content Grid',
+    },
+    {
+      image: CallContentSpotlight,
+      caption: 'Call Content Spotlight',
+      alt: 'Call Content Spotlight',
+    },
+  ]}
+/>
+
+## General usage
+
+The `CallContent` can be used to display the video stream of all the participants and also play their audio stream.
+
+```tsx
+import {
+  Call,
+  CallContent,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      // highlight-next-line
+      <CallContent />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `mode`
+
+| Type                  | Default Value |
+| --------------------- | ------------- |
+| `grid` \| `spotlight` | `grid`        |
+
+This switches the list between the grid and the spotlight mode.
+
+:::note
+When a screen is shared, the layout automatically changes to `spotlight` mode.
+:::

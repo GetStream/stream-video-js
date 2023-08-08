@@ -1,45 +1,58 @@
 ---
 id: camera-and-microphone
 title: Camera & Microphone
-description: Docs on the media manager
+description: Managing audio and video
 ---
 
-Handling audio and video devices in a web application means working with [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream), [`MediaDeviceInfo`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo) and other WebRTC API objects. We did our best to hide this complexity inside the `MediaDevicesProvider`. The easiest way to set up the provider is by using the [`StreamCall`](../../ui-components/core/stream-call), but it's also possible to use the `MediaDevicesProvider` directly.
+The video client exports helper methods to make it easier to work with the [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) and [`MediaDeviceInfo`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDeviceInfo) APIs.
 
 ## Camera management
 
 ### Call settings
 
-The default state of the camera is determined by the call settings:
+The call settings contain information about the default video state:
 
 ```typescript
-const metadata = useCallMetadata();
-
-metadata?.settings?.video.camera_default_on;
+call.state.metadata$.subscribe((metadata) =>
+  console.log(metadata?.settings.video.camera_default_on),
+);
 ```
 
 ### Start-stop camera
 
 ```typescript
-const localParticipant = useLocalParticipant();
-const isVideoMute = !localParticipant?.publishedTracks.includes(
-  SfuModels.TrackType.VIDEO,
-);
-const { toggleVideoMuteState } = useToggleVideoMuteState();
+import { Call, getVideoStream, SfuModels } from '@stream-io/video-client';
 
-console.log(`Camera is ${isVideoMute ? 'off' : 'on'}`);
-toggleVideoMuteState();
+const toggleCamera = () => {
+  const participant = call.state.localParticipant;
+  if (!participant) {
+    return;
+  }
+  if (participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
+    // This will take care of disposing the media stream
+    await call.stopPublish(SfuModels.TrackType.VIDEO);
+  } else {
+    const videoStream = await getVideoStream();
+    await call.publishVideoStream(videoStream);
+  }
+};
 ```
 
 ### List and select devices
 
 ```typescript
-const { selectedVideoDeviceId, switchDevice } = useMediaDevices();
-const videoDevices = useVideoDevices(); // This will prompt for camera access
+import { getVideoStream, getVideoDevices } from '@stream-io/video-client';
 
-console.log(`Current device: ${selectedVideoDeviceId}`);
-console.log('Video devices: ', videoDevices);
-switchDevice('videoinput', '<device id>');
+// List devices
+// The error handler is called if the user denies permission to use camera
+getVideoDevices().subscribe({ next: console.log, error: console.error });
+
+// Select device
+// Store selected device for participant
+call.setVideoDevice('device Id');
+
+// Start video stream
+getVideoStream({ deviceId: 'device Id' });
 ```
 
 ### Lobby preview
@@ -47,118 +60,57 @@ switchDevice('videoinput', '<device id>');
 Here is how to setup a video preview displayed before joining the call:
 
 ```typescript
-const [stream, setStream] = useState<MediaStream>();
-const {
-  selectedVideoDeviceId,
-  getVideoStream,
-  initialVideoState,
-  setInitialVideoState,
-} = useMediaDevices();
-
-const videoDevices = useVideoDevices();
-
-useEffect(() => {
-  if (!initialVideoState.enabled) return;
-
-  getVideoStream({ deviceId: selectedVideoDeviceId })
-    .then((s) => {
-      setStream((previousStream) => {
-        if (previousStream) {
-          disposeOfMediaStream(previousStream);
-        }
-        return s;
-      });
-    })
-    .catch((e) =>
-      setInitialVideoState({
-        ...DEVICE_STATE.error,
-        message: (e as Error).message,
-      }),
-    );
-  return () => {
-    setStream(undefined);
-  };
-}, [
-  initialVideoState,
-  getVideoStream,
-  selectedVideoDeviceId,
-  setInitialVideoState,
-  videoDevices.length,
-]);
-```
-
-### Client-side settings
-
-It's possible to preselect the camera device and its state. A potential use-case would be to apply the user's previous choices loaded from `localStorage`.
-
-```tsx
-export const App = () => {
-  const call = /* ... */;
-
-  return (
-    <StreamCall call={call} mediaDevicesProviderProps={{
-        initialVideoEnabled: true, // This will override the state from call settings
-        initialVideoInputDeviceId: '...'
-    }}>
-      <MyUI />
-    </StreamCall>
-  );
-};
+TODO example
 ```
 
 ## Microphone management
 
 ### Call settings
 
-The default state of the microphone is determined by the call settings:
+The call settings contain information about the default audio state:
 
 ```typescript
-const metadata = useCallMetadata();
-
-metadata?.settings?.audio.mic_default_on;
+call.state.metadata$.subscribe((metadata) =>
+  console.log(metadata?.settings.audio.mic_default_on),
+);
 ```
 
 ### Start-stop microphone
 
 ```typescript
-const localParticipant = useLocalParticipant();
-const isAudioMute = !localParticipant?.publishedTracks.includes(
-  SfuModels.TrackType.AUDIO,
-);
-
-console.log(`Mic is ${isAudioMute ? 'off' : 'on'}`);
-const { toggleAudioMuteState } = useToggleAudioMuteState();
+const toggleMicrophone = () => {
+  const participant = call.state.localParticipant;
+  if (!participant) {
+    return;
+  }
+  if (participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
+    // This will take care of disposing the media stream
+    await call.stopPublish(SfuModels.TrackType.AUDIO);
+  } else {
+    const audioStream = await getAudioStream();
+    await call.publishAudioStream(audioStream);
+  }
+};
 ```
 
 ### List and select devices
 
 ```typescript
-const { selectedAudioInputDeviceId, switchDevice } = useMediaDevices();
-const audioInputDevices = useAudioInputDevices(); // This will prompt for microphone access
+import { getAudioStream, getAudioDevices } from '@stream-io/video-client';
 
-console.log(`Current device: ${selectedAudioInputDeviceId}`);
-console.log('Audio devices: ', audioInputDevices);
-switchDevice('audioinput', '<device id>');
+// List devices
+// The error handler is called if the user denies permission to use microphone
+getAudioDevices().subscribe({ next: console.log, error: console.error });
+
+// Select device
+// Store selected device for participant
+call.setAudioDevice('device Id');
+
+// Start video stream
+getAudioStream({ deviceId: 'device Id' });
 ```
 
-### Client-side settings
-
-It's possible to preselect the microphone device and its state. A potential use-case would be to apply the user's previous choices loaded from `localStorage`.
-
-```tsx
-export const App = () => {
-  const call = /* ... */;
-
-  return (
-    <StreamCall call={call} mediaDevicesProviderProps={{
-        initialAudioEnabled: true, // This will override the state from call settings
-        initialAudioInputDeviceId: '...'
-    }}>
-      <MyUI />
-    </StreamCall>
-  );
-};
-```
+For more information you can refer to [this codesandbox](https://codesandbox.io/s/javascript-device-management-forked-cv47gr?file=/src/index.ts) that shows how you can select audio and video devices.
 
 ## Speaker management
 
@@ -167,56 +119,60 @@ export const App = () => {
 Selecting audio output device for the call [isn't supported by all browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId), this is how you can check the availability:
 
 ```typescript
-const { isAudioOutputChangeSupported } = useMediaDevices();
+import { checkIfAudioOutputChangeSupported } from '@stream-io/video-client';
+
+checkIfAudioOutputChangeSupported();
 ```
 
 ### List and select devices
 
 ```typescript
-const { selectedAudioOutputDeviceId, switchDevice } = useMediaDevices();
-const audioOutputDevices = useAudioOutputDevices(); // This will prompt for microphone access
+import { getAudioOutputDevices } from '@stream-io/video-client';
 
-console.log(`Current device: ${selectedAudioOutputDeviceId}`);
-console.log('Audio output devices: ', audioOutputDevices);
-switchDevice('audiooutput', '<device id>');
+// List devices
+// The error handler is called if the user denies permission to use microphone
+getAudioOutputDevices().subscribe({ next: console.log, error: console.error });
+
+// Select device
+// Store selected device for participant
+call.setAudioOutputDevice('device Id');
 ```
 
-### Client-side settings
-
-It's possible to preselect the speaker device. A potential use-case would be to apply the user's previous choices loaded from `localStorage`.
-
-```tsx
-export const App = () => {
-  const call = /* ... */;
-
-  return (
-    <StreamCall call={call} mediaDevicesProviderProps={{
-        initialAudioOutputDeviceId: '...'
-    }}>
-      <MyUI />
-    </StreamCall>
-  );
-};
-```
+To apply the changes you need to set the [sinkId](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId) property of the `audio` elements to the selected audio output device.
 
 ## Advanced
 
 ### Device unavailability
 
-It may happen, that we would like to react to a situation, when there is no device of a given kind (audio, video) available. This can for example happen, when a laptop lid is closed. In that case we may want to disable the given device kind for the next time, when the lid is re-opened. That would for example lead to respecting user privacy with video being turned-off, even though before closing the lid it was turned on. The SDK provides the following hooks that will execute a callback when all the devices of a given kind are disconnected:
+It may happen, that we would like to react to a situation, when there is no device of a given kind (audio, video) available. This can for example happen, when a laptop lid is closed. In that case we may want to disable the given device kind for the next time, when the lid is re-opened.
 
-- `useOnUnavailableVideoDevices`
-- `useOnUnavailableAudioInputDevices`
-- `useOnUnavailableAudioOutputDevices`
+```typescript
+import {
+  Call,
+  SfuModels,
+  watchForDisconnectedAudioDevice,
+  watchForDisconnectedVideoDevice,
+} from '@stream-io/video-client';
 
-:::info
-The `useOnUnavailableVideoDevices` hook is used in a pre-build component [`VideoPreview`](../../ui-components/participants/video-preview). Even after video device reconnection, the video preview is not restarted automatically and has to be enabled back manually by a user.
-:::
+const call: Call;
+
+watchForDisconnectedAudioDevice(
+  call.state.localParticipant$.map((p) => p?.audioDeviceId),
+).subscribe(() => {
+  call.stopPublish(SfuModels.TrackType.AUDIO);
+});
+
+watchForDisconnectedVideoDevice(
+  call.state.localParticipant$.map((p) => p?.videoDeviceId),
+).subscribe(() => {
+  call.stopPublish(SfuModels.TrackType.VIDEO);
+});
+```
 
 ### Sound detection
 
-An important topic related to media devices management is sound detection. A feature often needed in a call scenario (volume detection, speaking-while-muted notification). We can start detecting the audio input level changes using the utility function [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts). The function requires an instance of [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) object of type `audioinput` and attaches sound analysers to it. The `MediaStream` can be retrieved by the SDK's `getAudioStream` utility function. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
+An important topic related to media devices management is sound detection. A feature often needed in a call scenario (volume detection, speaking-while-muted notification). We can start detecting the audio input level changes using the utility function [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts). The function requires an instance of [`MediaStream`](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) object of type `audioinput` and attaches sound analysers to it. The `MediaStream` can be retrieved by the client's `getAudioStream` utility function. Then it periodically collects audio frequency data. We can access this data by providing the `onSoundDetectedStateChanged` callback function. The callback function will be passed and object of type [`SoundDetectorState`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) as argument. From the object we can extract the information about the audio level (`audioLevel`) or a more simplified general flag that tells us, whether sound was detected (`isSoundDetected`).
 
 It is also possible to configure the data collection algorithm with the third [`options` parameter](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts).
 
-The return value of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) function is a clean-up function that should be called, when a component, that uses sound detection is unmounted.
+The return value of [`createSoundDetector`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/helpers/sound-detector.ts) function is a clean-up function.

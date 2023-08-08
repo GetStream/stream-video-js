@@ -1,0 +1,32 @@
+name: Push JavaScript docusaurus documentation
+
+on:
+  push:
+    paths:
+      - 'packages/client/docusaurus/**'
+      - '.github/workflows/docusaurus-javascript-deploy.yml'
+
+jobs:
+  push_docusaurus:
+    name: Build and deploy the documentation
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Node Setup
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Push JavaScript documentation
+        uses: GetStream/push-stream-chat-docusaurus-action@main
+        with:
+          target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
+          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+          destination-repository-name: 'stream-video-docusaurus'
+          source-directory: 'packages/client/docusaurus'
+        env:
+          DOCUSAURUS_GH_TOKEN: ${{ secrets.DOCUSAURUS_GH_TOKEN }}

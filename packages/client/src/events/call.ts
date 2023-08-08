@@ -81,6 +81,7 @@ export const watchCallEnded = (call: Call) => {
       call.state.callingState === CallingState.JOINED ||
       call.state.callingState === CallingState.JOINING
     ) {
+      call.state.setMetadata(event.call);
       await call.leave();
     }
   };

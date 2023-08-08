@@ -1,398 +1,387 @@
 ---
 title: Livestream Tutorial
-description: How to build a live stream experience using Stream's React Video SDKs
+description: How to build a livestream experience using Stream's React Video SDK
 ---
 
-## Quickstart
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
-In this quickstart, we'll build a live-streaming experience that is similar to Twitch.
+In this tutorial we'll quickly build a low-latency in-app livestreaming experience.
+The livestream is broadcasted using Stream's edge network of servers around the world.
 
-- The live stream will run on Stream's Edge network of servers around the world
-- We can use ultra-low latency ([WebRTC](https://webrtc.org/)) based livestreaming or [HLS](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) (slight delay, but better buffering)
-- We will go through the process of publishing the live stream from the browser
-- Stream enables us to automatically scale to millions of viewers (no actions required from your side)
-- We even show how to have multiple active participants in the live stream
+We'll cover the following topics:
 
-The app that we are going to build will work in two modes: Host (presenter) and Viewer (audience).
+- Ultra low latency streaming
+- Multiple streams & co-hosts
+- RTMP in and WebRTC input
+- Exporting to HLS
+- Reactions, custom events and chat
+- Recording & Transcriptions
 
-The host will be able to publish the live stream and the viewers will be able to watch the live stream.
-If you want to see a full-blown example, check out this [sample app.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)
+Let's get started, if you have any questions or feedback be sure to let us know via the feedback button.
 
-Let's get started.
+### Step 1 - Create a new React app and install the React Video SDK
 
-## Step 1 - Preparations
+In this step, we will create a new React application using the [Vite CLI](https://vitejs.dev/),
+and install Stream's React Video SDK.
+We recommend using Vite because it's fast and easy to use.
 
-Before going into the code, let's make sure we have everything we need.
-
-1. [Registered Stream account](https://getstream.io/try-for-free/)
-2. Have an app created in the [Stream's dashboard](https://dashboard.getstream.io/) to obtain app API key and secret.
-3. Initiate the project (you can follow our [introductory tutorial setup guide](../../tutorials/video-calling#set-up-for-success))
-4. Have installed the Stream video and chat SDKs in the project:
-
-```shell
-npm install @stream-io/video-react-sdk
-```
-
-```shell
+```bash title="Terminal"
+yarn create vite livestream-app --template react-ts
+cd livestream-app
 yarn add @stream-io/video-react-sdk
 ```
 
-5. Have populated `.env` file in the project root
+### Step 2 - Broadcast a livestream from your device
 
-```shell
-VITE_STREAM_API_KEY=<your_api_key>
-# URL from which the JWT is requested
-VITE_TOKEN_PROVIDER_URL=<your_token_provider_url>
-```
+The following code shows how to publish from your device's camera.
+Let's open `App.tsx` and replace its contents with the following code:
 
-## Step 2 - Set up the host mode
-
-Hosts will communicate with each other in real-time.
-For that purpose, we will use the SDK-provided `<StreamCall /`> component to establish a WebRTC-based call for the hosts.
-
-:::note
-In this tutorial, we will skip the details on how a `StreamVideoClient` can be set up. You can read more about it on the following page:
-[Authenticating your Users](../../guides/client-auth/)
-:::
-
-In the code snippet provided, we establish a connection to the Stream Edge server as the live stream host. We then proceed to join the call and publish our audio and video content to the live stream.
-In this example, we use the predefined [`<PaginatedGridLayout>`](../../ui-components/core/call-layout/#paginatedgridlayout) for the live stream.
-
-If you prefer a more customized layout, you can build your own. See our article about [Building Custom Layouts.](../../ui-cookbook/video-layout/)
-
-```tsx
+```tsx title=App.tsx
 import { useEffect, useState } from 'react';
-import {
-  Call,
-  useCall,
-  useCallCallingState,
-  useMediaDevices,
-  CancelCallButton,
-  PaginatedGridLayout,
-  StreamCall,
-  StreamVideo,
-  ToggleAudioPublishingButton,
-  ToggleCameraPublishingButton,
-} from '@stream-io/video-react-sdk';
+import { Call, StreamVideoClient, User } from '@stream-io/video-react-sdk';
 
-// ... API key, provider, and user setup
+const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
+const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
+const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
+const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
 
-export const HostApp = () => {
-  const client = /* ... */;
-  const [call, setCall] = useState<Call | undefined>(undefined);
-
-  useEffect(() => {
-    if (!client) {
-      return;
-    }
-    setCall(client.call('livestream', callId));
-  }, [callId, client]);
-
-  useEffect(() => {
-    if (!call) {
-      return;
-    }
-    call.join({
-      create: true,
-      data: {
-        // optionally, invite other hosts to the live stream
-        members: [
-          {
-            user_id: connectedUser.id,
-            role: 'host',
-          },
-        ],
-      },
-    });
-  }, [call]);
-
-  return (
-    <StreamVideo client={client}>
-      {call && (
-        <StreamCall call={call}>
-          <BackstageUI />
-        </StreamCall>
-      )}
-    </StreamVideo>
-  )
-}
-
-const BackstageUI = () => {
-  const call = useCall();
-  const callState = useCallCallingState();
-  // useMediaDevices() hook provides you quick access to the Browser's MediaDevices API
-  // and a few helper methods to manage your audio and video streams.
-  const { publishVideoStream, publishAudioStream } = useMediaDevices();
-
-  useEffect(() => {
-    if (!call) return;
-    if (callState === CallingState.JOINED) {
-      // once the call is joined, publish the host's audio and video
-      publishVideoStream();
-      publishAudioStream();
-    }
-  }, [call, callState, publishAudioStream, publishVideoStream]);
-
-  return (
-    <>
-      <BackstageHeader />
-      // use a predefined layout from the SDK or build your own
-      <PaginatedGridLayout />
-      <BackstageControls />
-    </>
-  );
+// set up the user object
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-const BackstageControls = () => {
+export default function App() {
+  const [client, setClient] = useState<StreamVideoClient>();
+  const [call, setCall] = useState<Call>();
+
+  useEffect(() => {
+    const myClient = new StreamVideoClient({ apiKey, user, token });
+    setClient(myClient);
+    return () => {
+      myClient.disconnectUser();
+      setClient(undefined);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!client) return;
+    const myCall = client.call('livestream', callId);
+    myCall.join({ create: true }).catch((err) => {
+      console.error(`Failed to join the call`, err);
+    });
+
+    setCall(myCall);
+
+    return () => {
+      setCall(undefined);
+      myCall.leave().catch((err) => {
+        console.error(`Failed to leave the call`, err);
+      });
+    };
+  }, [client]);
+
+  if (!client || !call) return null;
+
+  return <LivestreamUI />;
+}
+
+export const LivestreamUI = () => {
+  return <div>TODO: render video</div>;
+};
+```
+
+If you run the app now, you'll see that the client fails to connect.
+In order to fix that, we need to provide valid credentials. They shall be set in the following varialbes:
+
+```ts
+const apiKey = 'REPLACE_WITH_API_KEY';
+const token = 'REPLACE_WITH_TOKEN';
+const userId = 'REPLACE_WITH_USER_ID';
+const callId = 'REPLACE_WITH_CALL_ID';
+```
+
+Replace them now with the appropriate values from the table below:
+
+<TokenSnippet sampleApp="livestream" displayStyle="credentials" />
+
+When you run the app now you'll see a text message saying: `TODO: render video`.
+
+Before we get around to rendering the video let's review the code above.
+
+#### User setup
+
+First we create a user object.
+You typically sync these users via a server side integration from your own backend.
+Alternatively, you can also use guest or anonymous users.
+
+```ts
+import type { User } from '@stream-io/video-react-sdk';
+
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+```
+
+#### Client setup
+
+Next, we initialize the client by passing the API Key, user and user token.
+Note that we're using the `useEffect` hook to initialize the client in a `React.StrictMode` compatible way.
+
+```ts
+import { useEffect, useState } from 'react';
+import { StreamVideoClient } from '@stream-io/video-react-sdk';
+
+const [client, setClient] = useState<StreamVideoClient>();
+useEffect(() => {
+  const myClient = new StreamVideoClient({ apiKey, user, token });
+  setClient(myClient);
+  return () => {
+    myClient.disconnectUser();
+    setClient(undefined);
+  };
+}, []);
+```
+
+#### Create and join call
+
+The most important step to review is how we create the call.
+Stream uses the same call object for livestreaming, audio rooms and video calling.
+Have a look at the code snippet below:
+
+```ts
+import { useEffect, useState } from 'react';
+import { Call, StreamVideoClient } from '@stream-io/video-react-sdk';
+
+// the client created in the previous step
+const [client, setClient] = useState<StreamVideoClient>();
+
+const [call, setCall] = useState<Call>();
+useEffect(() => {
+  if (!client) return;
+  const myCall = client.call('livestream', callId);
+  myCall.join({ create: true }).catch((err) => {
+    console.error(`Failed to join the call`, err);
+  });
+
+  setCall(myCall);
+
+  return () => {
+    setCall(undefined);
+    myCall.leave().catch((err) => {
+      console.error(`Failed to leave the call`, err);
+    });
+  };
+}, [client]);
+```
+
+To create the first call object, specify the call type as `livestream` and provide a unique `callId`.
+
+The **livestream** call type comes with default settings that are usually suitable for livestreams,
+but you can customize features, permissions, and settings in the dashboard.
+Additionally, the dashboard allows you to create new call types as required.
+For more information, check the [Call Types](../../guides/configuring-call-types/) docs.
+
+Finally, using `call.join({ create: true })` will not only create the call object on our servers but also initiate the real-time transport for audio and video.
+This allows for seamless and immediate engagement in the livestream.
+
+Note that you can also add members to a call and assign them different roles.
+For more information, see the [Joining & Creating Calls](../../guides/joining-and-creating-calls/).
+
+### Step 3 - Rendering the video
+
+In this step we're going to build a UI for showing your local video with a button to start the livestream.
+
+In `App.tsx` replace the `LivestreamUI` component with the following code:
+
+```tsx
+import {
+  useCall,
+  useLocalParticipant,
+  useParticipantCount,
+  useIsCallLive,
+  ParticipantView,
+} from '@stream-io/video-react-sdk';
+
+// add styles for the video UI
+import '@stream-io/video-react-sdk/dist/css/styles.css';
+
+export const LivestreamUI = () => {
+  const call = useCall();
+  const totalParticipants = useParticipantCount();
+  const localParticipant = useLocalParticipant();
+  const isCallLive = useIsCallLive();
   return (
-    <div className="backstage-controls">
-      <ToggleAudioPublishingButton />
-      <ToggleCameraPublishingButton />
-      <CancelCallButton />
-      // The implementation of this button is shown in the next step
-      <ToggleLivestreamButton />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      <div
+        style={{
+          alignSelf: 'flex-start',
+          color: 'white',
+          backgroundColor: 'blue',
+          borderRadius: '8px',
+          padding: '4px 6px',
+        }}
+      >
+        Live: {totalParticipants}
+      </div>
+      <div style={{ flex: 1 }}>
+        {localParticipant && (
+          <ParticipantView
+            participant={localParticipant}
+            // disables the extra UI elements as such:
+            // name, audio, video indicator, etc...
+            ParticipantViewUI={null}
+          />
+        )}
+      </div>
+      <div style={{ alignSelf: 'center' }}>
+        {isCallLive ? (
+          <button onClick={() => call?.stopLive()}>Stop Livestream</button>
+        ) : (
+          <button onClick={() => call?.goLive()}>Start Livestream</button>
+        )}
+      </div>
     </div>
   );
 };
-
 ```
 
-With this done, we have a fully functional livestream experience for the host.
-The hosts can join the live stream, publish their audio and video, and invite other hosts to the live stream.
+Upon running your app, you will be greeted with an interface that looks like this:
 
-:::note
-When the call is started, the livestreaming isn't enabled for the viewers yet.
-We will see how to enable it in the next step.
-:::
+![Preview of the UI](../assets/02-tutorials/livestream-first-preview.png)
 
-## Step 3 - Enable the live stream for the viewers
+Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world.
+This makes it possible to reach a large audience in realtime.
 
-For simplicity, we are going to implement an additional button in the `BackstageControls` component that will enable the live stream for the viewers.
+Now let's press **Start Livestream** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
 
-The button should be able to toggle the live stream on and off. For that purpose, we are going to use two utility hooks from the SDK:
+<TokenSnippet sampleApp="livestream" displayStyle="join" />
 
-- `useCall` and
-- `useIsCallBroadcastingInProgress`
+Let's take a moment to review the code above.
 
-The `useCall` hook provides us with the current call object. This is useful when we want to access the call object from a component that is deep in the component tree with the `<StreamCall />` component as a predecessor.
+You can see we use a few hooks to get the call state. The most important ones are:
 
-On the other hand, the `useIsCallBroadcastingInProgress` hook gives us the current broadcasting state of the call. This is helpful when we want to show the current state of the live stream or build custom UI components or flows based on this call state.
-
-The `call` instance itself provides two methods for starting and stopping the livestream:
-
-- `call.startBroadcasting()` and
-- `call.stopBroadcasting()`
-
-Knowing all of this, let's write the code for the button:
-
-```tsx
-const ToggleLivestreamButton = () => {
-  const call = useCall();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
-  return (
-    <Button
-      onClick={() => {
-        if (isBroadcasting) {
-          call.stopBroadcasting();
-        } else {
-          call.goLive();
-          call.startBroadcasting();
-        }
-      }}
-    >
-      {isBroadcasting ? 'Stop Stream' : 'Start Stream'}
-    </Button>
-  );
-};
+```ts
+const totalParticipants = useParticipantCount();
+const localParticipant = useLocalParticipant();
+const isCallLive = useIsCallLive();
 ```
 
-Remember to invoke `call.goLive()` to make the call active for all participants.
+The [Call & Participant state](../../guides/call-and-participant-state/) lists all available hoos you can use for accessing call and participant state.
 
-:::info
+The layout is built using standard React DOM elements.
+The [ParticipantView](../../ui-components/core/participant-view/) component is provided by Stream's React Video SDK.
+**ParticipantView** renders the video and a fallback. You can use it for rendering the local and remote video.
 
-Starting and stopping a live stream for the viewers is an operation that takes a few seconds to complete.
-It is a good practice to show a loading indicator while the operation is in progress.
+#### Backstage mode
 
-There are two ways how we can do that:
+In the example above you might have noticed the `call.goLive()` method and the `isCallLive` value.
+The backstage functionality is enabled by default on the livestream call type.
+It makes it easy to build a flow where you and your co-hosts can setup your camera and equipment before going live.
+Only after you call `call.goLive()` will regular users be allowed to join the livestream.
 
-- have a `useEffect` that would run whenever we have initiated a change in the broadcasting state of the call until the value of `isBroadcasting` toggles.
-- attach an event listener to the call object and follow the delivery of `call.broadcasting_started` and `call.broadcasting_stopped` events. Read more about events [here.](../../advanced/events)
+This is convenient for many livestreaming and audio-room use cases. If you want calls to start immediately when you join them that's also possible.
+Simply go the Stream dashboard, click the livestream call type and disable the backstage mode.
 
-:::
+### Step 4 - (Optional) Publishing RTMP using OBS
 
-## Step 4 - Set up the viewer mode
+The example above showed how to publish your device camera to the livestream.
+Almost all livestream software and hardware supports RTMPS.
+[OBS](https://obsproject.com/) is one of the most popular livestreaming software packages and we'll use it to explain how to import RTMPS.
+So let's see how to publish using RTMPs. Feel free to skip this step if you don't need to use RTMPs.
 
-The viewer mode is very similar to the host mode. The only difference is that the viewer doesn't have to publish their audio and video to the live stream.
+#### Log the URL & Stream Key
 
-A viewer can join a live stream in two ways:
+```ts
+import { useCallMetadata } from '@stream-io/video-react-sdk';
 
-- WebRTC-based livestreaming (ultra-low latency), by using Stream Edge servers
-- HLS-based livestreaming (slight delay, but better buffering), by using Stream CDN
+const metadata = useCallMetadata();
+const rtmpURL = metadata?.ingress?.rtmp.address;
+const streamKey = `${apiKey}/${token}`;
 
-### WebRTC-based livestreaming
-
-For the WebRTC, we are going to use the same `<StreamCall />` component as in the host mode. The only difference is that we are going to use an anonymous user for the viewer.
-
-:::caution
-
-Anonymous users can't establish a WebSocket connection to our backend, therefore they are unable to receive any events from the call.
-This means that the viewer won't know when the call starts or stops broadcasting.
-
-To circumvent this limitation, the Viewer app should be able to be notified by the Host app or some other backend service when the call starts or stops broadcasting.
-Alternatively, you can keep polling the backend for the current state of the call. For more details on this, see [Querying Calls.](../../guides/querying-calls)
-
-:::
-
-```tsx
-import {
-  Call,
-  useCallCallingState,
-  CallingState,
-  LoadingIndicator,
-  PaginatedGridLayout,
-  StreamCall,
-  StreamVideo,
-} from '@stream-io/video-react-sdk';
-
-// ... API key, provider, and user setup
-
-export const ViewerApp = (props) => {
-  const client = /* ... */;
-
-  // `callId` needs to be provided from some party.
-  // it is up to the developer to decide how to do that (prop, query param, etc.)
-  const callId = props.callId;
-  const [activeCall, setActiveCall] = useState<Call>();
-
-  useEffect(() => {
-    if (!callId) return;
-    const call = client.call('livestream', callId);
-    call.get().then(() => setActiveCall(call));
-  }, [client, callId]);
-
-  useEffect(() => {
-    if (!activeCall) {
-      return;
-    }
-    activeCall.join();
-  }, [activeCall]);
-
-  return (
-    <StreamVideo client={client}>
-      {call && (
-        <StreamCall call={call}>
-          <WebRTCLivestreamUI />
-        </StreamCall>
-      )}
-    </StreamVideo>
-  );
-};
-
-const WebRTCLivestreamUI = () => {
-  const isJoined = useCallCallingState() === CallingState.JOINED;
-  return (
-    <>
-      <ViewerHeader />
-      // use any layout from the SDK or build your own
-      <PaginatedGridLayout />
-      // show a loading indicator while the call is joining
-      {!isJoined && <LoadingIndicator />}
-      <ViewerControls />
-    </>
-  );
-};
+console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
 ```
 
-### HLS-based livestreaming
+#### Open OBS and go to settings -> stream
 
-For the HLS scenario, we are going to use one very popular library called `hls.js`.
-HLS.js is a JavaScript library that implements an HTTP Livestreaming client. It relies on HTML5 video and MediaSource Extensions for playback.
-You can read more about HLS.js [here.](https://github.com/video-dev/hls.js/)
+- Select "custom" service
+- Server: equal to the `rtmpURL` from the log
+- Stream key: equal to the `streamKey` from the log
 
-For the HLS-based livestreaming, we are going to use a few components from the Stream Video SDK for React. However, instead using a pre-built layout,
-we are going to set up the HLS.js library and use it to play the live stream.
+Press start streaming in OBS. The RTMP stream will now show up in your call just like a regular video participant.
 
-In the example below, you will get familiar with the `useCallMetadata` hook.
-This hook returns the metadata of the current call.
-In our case, the metadata will contain the HLS playlist URL that we are going to use to play the live stream.
+Now that we've learned to publish using WebRTC or RTMP let's talk about watching the livestream.
 
-Compared to the WebRTC example, we would just replace the "UI" component with the following:
+### Step 5 - Viewing a livestream (WebRTC)
 
-```tsx
-import { ... } from '@stream-io/video-react-sdk';
-import HLS from 'hls.js';
+Watching a livestream is even easier than broadcasting.
 
-export const ViewerApp = () => {
-  // pseudo-code for simplicity, see the previous example for the full code
-  const client = /* ... */;
-  const [activeCall] = client.queryCalls({...});
-  return (
-    <StreamVideo client={client}>
-      {activeCall && <StreamCall call={activeCall}>
-        <HLSLivestreamUI />
-      </StreamCall>}
-    </StreamVideo>
-  )
-}
+Compared to the current code in in `App.tsx` you:
 
-export const HLSLivestreamUI = () => {
-  // The HLS playlist URL is in call's metadata
-  // we'll use the `useCallMetadata()` hook to get it
-  const metadata = useCallMetadata();
-  const hls_playlist_url = metadata?.egress.hls?.playlist_url;
+- Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
+- Typically include some small UI elements like viewer count, a button to mute etc.
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    if (!call || !hls_playlist_url) return;
+### Step 6 - (Optional) Viewing a livestream with HLS
 
-    const hls = new HLS();
-    hls.loadSource(hls_playlist_url);
-    hls.attachMedia(videoRef.current);
-  }, [call]);
+Another way to watch a livestream is using HLS. HLS tends to have a 10 to 20 seconds delay, while the above WebRTC approach is realtime.
+The benefit that HLS offers is better buffering under poor network conditions.
+So HLS can be a good option when:
 
-  return (
-    <>
-      <ViewerHeader />
-      // this is the video that HLS.js would use to playback the stream.
-      <video autoPlay playsInline ref={videoRef} onPlay={() => setIsPlaying(true)} />
+- A 10-20 second delay is acceptable
+- Your users want to watch the Stream in poor network conditions
 
-      {!isPlaying && <LoadingIndicator />}
-      <ViewerControls />
-    </>
-  );
-};
+Let's show how to broadcast your call to HLS:
+
+```ts
+import { useCall, useCallMetadata } from '@stream-io/video-react-sdk';
+
+const call = useCall();
+await call.startHLS();
+
+// take the URL to the M3U8 playlist
+const metadata = useCallMetadata();
+const playlistUrl = metadata?.egress?.hls?.playlistUrl;
+console.log('HLS playlist url:', playlistUrl);
 ```
 
-Having done this, we now have a fully functional live-streaming experience for the viewers based on HLS.
+You can view the HLS video feed using any HLS capable video player.
 
-:::tip
+### Step 7 - Advanced Features
 
-For simplicity, a few things are omitted from the code snippet above. For the full-blown and working example,
-check this Livestreaming sample app:
+This tutorial covered broadcasting and watching a livestream.
+It also went into more details about HLS & RTMP-in.
 
-- [Livestream App source code](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)
-- [Livestream App live preview](https://video-react-livestream-app.vercel.app/)
+There are several advanced features that can improve the livestreaming experience:
 
-:::
+- ** [Co-hosts](../../guides/joining-and-creating-calls/) ** You can add members to your livestream with elevated permissions. So you can have co-hosts, moderators etc.
+- ** [Custom events](../../guides/reactions-and-custom-events/) ** You can use custom events on the call to share any additional data. Think about showing the score for a game, or any other realtime use case.
+- ** [Reactions & Chat](../../guides/reactions-and-custom-events/) ** Users can react to the livestream, and you can add chat. This makes for a more engaging experience.
+- ** [Recording](../../advanced/recording/) ** The call recording functionality allows you to record the call with various options and layouts
 
-## Recap
+### Recap
 
-It was fun to see just how quickly you can build a live-stream app for your hosts and viewers.
+It was fun to see just how quickly you can build in-app low latency livestreaming.
 Please do let us know if you ran into any issues.
 Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
 
 To recap what we've learned:
 
-- You set up a call with `const call = client.call('livestream', '123')`
-- The call type `livestream` controls which features are enabled and how permissions are set up
-- The `livestream` by default enables `backstage` mode, and only allows admins and the creator of the call to join before the call goes live
-- When you join a call, realtime communication is set up for audio & video streaming: `await call.join()`
+- WebRTC is optimal for latency, HLS is slower but buffers better for users with poor connections
+- You setup a call: `const call = client.call("livestream", callId)`
+- The call type `"livestream"` controls which features are enabled and how permissions are setup
+- The livestream by default enables "backstage" mode. This allows you and your co-hosts to setup your mic and camera before allowing people in
+- When you join a call, realtime communication is setup for audio & video: `await call.join()`
 - Call state `call.state` and helper state access hooks make it easy to build your own UI
 
-We've used [Stream's Livestreaming API](https://getstream.io/video/livestreaming/),
+We've used [Stream's Livestream API](https://getstream.io/video/livestreaming/),
 which means calls run on a global edge network of video servers.
 By being closer to your users the latency and reliability of calls are better.
 The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
+You can find the code for this tutorial in [this CodeSandbox](https://codesandbox.io/s/livestream-tutorial-mlqtrd).
+
+The source code for the companion Livestreaming App, together with all of its features, is available on [Github.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)

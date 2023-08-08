@@ -6,9 +6,9 @@ description: How to integrate chat & video
 import ImageShowcase from '@site/src/components/ImageShowcase';
 import ChannelListScreen from '../assets/06-advanced/02-chat-integration/channel-list-screen.png';
 import ChannelScreen from '../assets/06-advanced/02-chat-integration/channel-screen.png';
-import IncomingCallView from '../assets/06-advanced/02-chat-integration/incoming-call-view.png';
-import OutgoingCallView from '../assets/06-advanced/02-chat-integration/outgoing-call-view.png';
-import ActiveCallView from '../assets/06-advanced/02-chat-integration/active-call-view.png';
+import IncomingCall from '../assets/06-advanced/02-chat-integration/incoming-call.png';
+import OutgoingCall from '../assets/06-advanced/02-chat-integration/outgoing-call.png';
+import ActiveCall from '../assets/06-advanced/02-chat-integration/active-call.png';
 
 It's common for calling apps to have chat, as well as the opposite - chat apps to have a calling functionality. Stream's Chat and Video SDKs are perfectly compatible between each other, and can easily be integrated into an app.
 
@@ -318,20 +318,17 @@ const styles = StyleSheet.create({
 
 ### Step 3: Open the chat window
 
-To do this, we will take use of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of the [`CallControlsView`](../../ui-components/call/call-controls-view) component.
+To do this, we will take use of the [`chatButton`](../../ui-components/call/call-controls/#chatbutton) prop of the [`CallControls`](../../ui-components/call/call-controls) component.
 
 The `chatButton` prop is an object that takes up an `onPressHandler`, which is responsible to perform an action when the button is pressed. In our case, it's the opening of the `ChatScreen`.
 
-![Preview of the call controls view with chat button](../assets/06-advanced/02-chat-integration/call-controls-view-chat.png)
+![Preview of the call controls with chat button](../assets/06-advanced/02-chat-integration/call-controls-chat.png)
 
 In the VideoCallUI component of our [Video Calling Tutorial](../../tutorials/video-calling/), we will add the above:
 
 ```tsx title="src/components/VideoCallUI.tsx"
 import React from 'react';
-import {
-  CallContentView,
-  CallControlsView,
-} from '@stream-io/video-react-native-sdk';
+import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, StyleSheet } from 'react-native';
 
 export const VideoCallUI = () => {
@@ -343,14 +340,13 @@ export const VideoCallUI = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CallContentView />
-      <CallControlsView
-        // highlight-next-line
+      <CallContent />
+      <CallControls
+        // highlight-start
         chatButton={{
-          // highlight-next-line
           onPressHandler: openChatWindow,
-          // highlight-next-line
         }}
+        // highlight-end
       />
     </SafeAreaView>
   );
@@ -368,7 +364,7 @@ const styles = StyleSheet.create({
 
 To get the unread count of the Channel we need to focus primarily on watching the channel and then listen to relevant events such as `message.new` to update the unread count state variable. The unread count is set to 0 when the message is marked as read, this is done by listening to the `notification.mark_read` event.
 
-![Preview of the unread count in call controls view](../assets/06-advanced/02-chat-integration/call-controls-view-chat-unread-count.png)
+![Preview of the unread count in call controls](../assets/06-advanced/02-chat-integration/call-controls-chat-unread-count.png)
 
 This is demonstrated and can be done in a hook as created below:
 
@@ -452,14 +448,11 @@ export const useUnreadCount = () => {
 Make sure to clean up/unsubscribe to all the events when the hook un-mounts.
 :::
 
-Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls-view/#chatbutton) prop of [`CallControlsView`](../../ui-components/call/call-controls-view) component.
+Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls/#chatbutton) prop of [`CallControls`](../../ui-components/call/call-controls) component.
 
 ```tsx title="src/components/VideoCallUI.tsx"
 import React from 'react';
-import {
-  CallContentView,
-  CallControlsView,
-} from '@stream-io/video-react-native-sdk';
+import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import { useChannelWatch } from '../hooks/useChannelWatch';
 import { useUnreadCount } from '../hooks/useUnreadCount';
@@ -473,8 +466,8 @@ export const VideoCallUI = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CallContentView />
-      <CallControlsView
+      <CallContent />
+      <CallControls
         chatButton={{
           // highlight-next-line
           unreadBadgeCountIndicator,
@@ -509,19 +502,19 @@ By adding Video calling in chat we achieve a messenger like application, that al
       alt: 'Channel screen',
     },
     {
-      image: IncomingCallView,
-      caption: 'Incoming Call View',
-      alt: 'Incoming Call View',
+      image: IncomingCall,
+      caption: 'Incoming Call Component',
+      alt: 'Incoming Call',
     },
     {
-      image: OutgoingCallView,
-      caption: 'Outgoing Call View',
-      alt: 'Outgoing Call View',
+      image: OutgoingCall,
+      caption: 'Outgoing Call Component',
+      alt: 'Outgoing Call',
     },
     {
-      image: ActiveCallView,
-      caption: 'Active Call View',
-      alt: 'Active Call View',
+      image: ActiveCall,
+      caption: 'Active Call Component',
+      alt: 'Active Call',
     },
   ]}
 />
@@ -571,7 +564,7 @@ export default function App() {
       // highlight-next-line
       <NavigationContainer>
         {/* Rest of the code */}
-      // highlight-next-line
+        // highlight-next-line
       </NavigationContainer>
     </GestureHandlerRootView>
   );
@@ -606,12 +599,12 @@ Now we add the Channel List Screen:
 
 ```tsx title="src/screens/ChannelListScreen.tsx"
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
-import {ChannelList} from 'stream-chat-react-native';
-import type {ChannelSort} from 'stream-chat';
-import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import type {NavigationStackParamsList, StreamChatGenerics} from 'src/types';
-import {useAppContext} from 'src/context/AppContext';
+import { StyleSheet, View } from 'react-native';
+import { ChannelList } from 'stream-chat-react-native';
+import type { ChannelSort } from 'stream-chat';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { NavigationStackParamsList, StreamChatGenerics } from 'src/types';
+import { useAppContext } from 'src/context/AppContext';
 
 const sort: ChannelSort<StreamChatGenerics> = {
   last_message_at: -1,
@@ -626,8 +619,8 @@ type ChannelListScreenProps = NativeStackScreenProps<
   'ChannelListScreen'
 >;
 
-export function ChannelListScreen({navigation}: ChannelListScreenProps) {
-  const {setChannel} = useAppContext();
+export function ChannelListScreen({ navigation }: ChannelListScreenProps) {
+  const { setChannel } = useAppContext();
   // Logged in user details
   const user = {
     id: 'your-user-id',
@@ -636,7 +629,7 @@ export function ChannelListScreen({navigation}: ChannelListScreenProps) {
 
   const filters = {
     type: 'messaging',
-    members: {$in: [user.id]},
+    members: { $in: [user.id] },
     // Your filters
   };
 
@@ -644,7 +637,7 @@ export function ChannelListScreen({navigation}: ChannelListScreenProps) {
     <View style={styles.container}>
       <ChannelList<StreamChatGenerics>
         filters={filters}
-        onSelect={channel => {
+        onSelect={(channel) => {
           setChannel(channel);
           navigation.navigate('ChannelScreen');
         }}
@@ -669,9 +662,9 @@ Next up, we create the Channel Screen:
 ![Preview of the Channel screen](../assets/06-advanced/02-chat-integration/channel-screen.png)
 
 ```tsx title="src/screens/ChannelScreen.tsx"
-import React, {useEffect} from 'react';
-import {useAppContext} from 'src/context/AppContext';
-import {useHeaderHeight} from '@react-navigation/elements';
+import React, { useEffect } from 'react';
+import { useAppContext } from 'src/context/AppContext';
+import { useHeaderHeight } from '@react-navigation/elements';
 import {
   Channel,
   MessageInput,
@@ -679,20 +672,20 @@ import {
   useAttachmentPickerContext,
   useOverlayContext,
 } from 'stream-chat-react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {NavigationStackParamsList, StreamChatGenerics} from 'src/types';
-import {Platform, StyleSheet, View} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationStackParamsList, StreamChatGenerics } from 'src/types';
+import { Platform, StyleSheet, View } from 'react-native';
 
 type ChannelScreenProps = NativeStackScreenProps<
   NavigationStackParamsList,
   'ChannelScreen'
 >;
 
-export function ChannelScreen({navigation}: ChannelScreenProps) {
-  const {channel} = useAppContext();
+export function ChannelScreen({ navigation }: ChannelScreenProps) {
+  const { channel } = useAppContext();
   const headerHeight = useHeaderHeight();
-  const {setTopInset} = useAttachmentPickerContext();
-  const {overlay} = useOverlayContext();
+  const { setTopInset } = useAttachmentPickerContext();
+  const { overlay } = useOverlayContext();
 
   useEffect(() => {
     navigation.setOptions({
@@ -709,9 +702,7 @@ export function ChannelScreen({navigation}: ChannelScreenProps) {
   }
 
   return (
-    <Channel
-      channel={channel}
-      keyboardVerticalOffset={headerHeight}>
+    <Channel channel={channel} keyboardVerticalOffset={headerHeight}>
       <View style={styles.container}>
         <MessageList />
         <MessageInput />
@@ -732,9 +723,9 @@ We use the [`Channel`](https://getstream.io/chat/docs/sdk/reactnative/core-compo
 Since we navigate from one screen to other, we need to persist the state of the channel data to use it between different screens. To do this we will create a context. This can be created as follows:
 
 ```tsx title="src/context/AppContext.tsx"
-import React, {PropsWithChildren, useState} from 'react';
-import {Channel as ChannelType} from 'stream-chat';
-import {StreamChatGenerics} from '../types';
+import React, { PropsWithChildren, useState } from 'react';
+import { Channel as ChannelType } from 'stream-chat';
+import { StreamChatGenerics } from '../types';
 
 type AppContextType = {
   channel: ChannelType<StreamChatGenerics> | undefined;
@@ -745,7 +736,7 @@ type AppContextType = {
 
 export const AppContext = React.createContext({} as AppContextType);
 
-export const AppProvider = ({children}: PropsWithChildren<{}>) => {
+export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
   const [channel, setChannel] = useState<ChannelType<StreamChatGenerics>>();
 
   return (
@@ -753,7 +744,8 @@ export const AppProvider = ({children}: PropsWithChildren<{}>) => {
       value={{
         channel,
         setChannel,
-      }}>
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
@@ -779,8 +771,8 @@ export default function App() {
       <NavigationContainer>
         // highlight-next-line
         <AppProvider>
-        {/* Rest of the code */}
-        // highlight-next-line
+          {/* Rest of the code */}
+          // highlight-next-line
         </AppProvider>
       </NavigationContainer>
     </GestureHandlerRootView>
@@ -799,30 +791,22 @@ Now we set up the [Native Stack Navigator](https://reactnavigation.org/docs/nati
 ```tsx title="App.tsx"
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import {NavigationStackParamsList} from './src/types';
-import {
-  createNativeStackNavigator,
-} from '@react-navigation/native-stack';
+import { NavigationStackParamsList } from './src/types';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
-import {ChannelListScreen} from './src/screens/ChannelListScreen';
-import {ChannelScreen} from './src/screens/ChannelScreen';
-import {AppProvider} from './src/context/AppContext';
+import { ChannelListScreen } from './src/screens/ChannelListScreen';
+import { ChannelScreen } from './src/screens/ChannelScreen';
+import { AppProvider } from './src/context/AppContext';
 
 const Stack = createNativeStackNavigator<NavigationStackParamsList>();
 
 const Messenger = () => {
   return (
-      <Stack.Navigator>
-        <Stack.Screen
-          name="ChannelListScreen"
-          component={ChannelListScreen}
-        />
-        <Stack.Screen
-          name="ChannelScreen"
-          component={ChannelScreen}
-        />
-      </Stack.Navigator>
+    <Stack.Navigator>
+      <Stack.Screen name="ChannelListScreen" component={ChannelListScreen} />
+      <Stack.Screen name="ChannelScreen" component={ChannelScreen} />
+    </Stack.Navigator>
   );
 };
 
@@ -857,8 +841,8 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
-import {AppProvider} from './src/context/AppContext';
-import { ChatWrapper } from "./src/components/ChatWrapper";
+import { AppProvider } from './src/context/AppContext';
+import { ChatWrapper } from './src/components/ChatWrapper';
 // ...
 
 export default function App() {
@@ -871,7 +855,7 @@ export default function App() {
           // highlight-next-line
           <ChatWrapper>
             <Messenger />
-          // highlight-next-line
+            // highlight-next-line
           </ChatWrapper>
         </AppProvider>
       </NavigationContainer>
@@ -891,13 +875,13 @@ const styles = StyleSheet.create({
 Adhering to the [Getting and Setting the credentials](../../tutorials/video-calling/#step-3---getting-and-setting-the-credentials) step of the [Video Call Tutorial](../../tutorials/video-calling/), we will create a video wrapper that wraps and provides the Stream's Video client to the rest of the app.
 
 ```tsx title="src/components/VideoWrapper.tsx"
-import React, {PropsWithChildren, useEffect, useState} from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 
-export const VideoWrapper = ({children}: PropsWithChildren<{}>) => {
+export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -950,9 +934,9 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
-import {AppProvider} from './src/context/AppContext';
-import { ChatWrapper } from "./src/components/ChatWrapper";
-import { VideoWrapper } from "./src/components/VideoWrapper";
+import { AppProvider } from './src/context/AppContext';
+import { ChatWrapper } from './src/components/ChatWrapper';
+import { VideoWrapper } from './src/components/VideoWrapper';
 // ...
 
 export default function App() {
@@ -966,7 +950,7 @@ export default function App() {
             // highlight-next-line
             <VideoWrapper>
               <Messenger />
-            // highlight-next-line
+              // highlight-next-line
             </VideoWrapper>
           </ChatWrapper>
         </AppProvider>
@@ -991,7 +975,7 @@ To pass the call and provide it to the components within the hierarchy we use th
 We can use the following to create a `Calls` component that can later be passed down the hierarchy in the app.
 
 ```tsx src="src/components/Calls.tsx"
-import React, { useCallback, useEffect} from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { StreamCall, useCalls } from '@stream-io/video-react-native-sdk';
 import { Alert } from 'react-native';
 
@@ -1020,11 +1004,7 @@ export const Calls = () => {
     return null;
   }
 
-  return (
-    <StreamCall call={firstCall}>
-      {/* Rest of the code */}
-    </StreamCall>
-  );
+  return <StreamCall call={firstCall}>{/* Rest of the code */}</StreamCall>;
 };
 ```
 
@@ -1051,10 +1031,10 @@ We can create the call panel as follows:
 ```tsx title="src/components/CallPanel.tsx"
 import {
   CallingState,
-  CallControlsView,
-  CallContentView,
-  IncomingCallView,
-  OutgoingCallView,
+  CallControls,
+  CallContent,
+  IncomingCall,
+  OutgoingCall,
   useCall,
   useCallCallingState,
 } from '@stream-io/video-react-native-sdk';
@@ -1070,16 +1050,16 @@ export const CallPanel = () => {
     case CallingState.RINGING:
       return isCallCreatedByMe ? (
         <View style={styles.container}>
-          <OutgoingCallView />
+          <OutgoingCall />
         </View>
       ) : (
-        <IncomingCallView />
+        <IncomingCall />
       );
     case CallingState.JOINED:
       return (
         <SafeAreaView style={styles.container}>
-          <CallContentView />
-          <CallControlsView />
+          <CallContent />
+          <CallControls />
         </SafeAreaView>
       );
     case CallingState.JOINING:
@@ -1100,7 +1080,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-Here, we use the [`IncomingCallView`](../../ui-components/call/incoming-call-view/), [`OutgoingCallView`](../../ui-components/call/outgoing-call-view/) to show the incoming and outgoing call view when the call is in ringing mode. We show the [`OutgoingCallView`](../../ui-components/call/outgoing-call-view/) when the call is created by me, and the [`IncomingCallView`](../../ui-components/call/incoming-call-view/) when the call is not created by me and is received from someone else. To do that we use the following snippet above using the `useCall` hook:
+Here, we use the [`IncomingCall`](../../ui-components/call/incoming-call/), [`OutgoingCall`](../../ui-components/call/outgoing-call/) to show the incoming and outgoing call component when the call is in ringing mode. We show the [`OutgoingCall`](../../ui-components/call/outgoing-call/) when the call is created by me, and the [`IncomingCall`](../../ui-components/call/incoming-call/) when the call is not created by me and is received from someone else. To do that we use the following snippet above using the `useCall` hook:
 
 ```tsx
 const call = useCall();
@@ -1110,21 +1090,21 @@ const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
 <ImageShowcase
   items={[
     {
-      image: OutgoingCallView,
+      image: OutgoingCall,
       caption: 'John Calls Alice',
-      alt: 'Outgoing Call View',
+      alt: 'Outgoing Call',
     },
     {
-      image: IncomingCallView,
+      image: IncomingCall,
       caption: 'Alice Receives a call from John',
-      alt: 'Incoming Call View',
-    }
+      alt: 'Incoming Call',
+    },
   ]}
 />
 
-To show the joined call UI, we use the [`CallContentView`](../../ui-components/call/call-content-view/) and the [`CallControlsView`](../../ui-components/call/call-controls-view/) component from the SDK.
+To show the joined call UI, we use the [`CallContent`](../../ui-components/call/call-content/) and the [`CallControls`](../../ui-components/call/call-controls/) component from the SDK.
 
-![Preview of the Active call screen](../assets/06-advanced/02-chat-integration/active-call-view.png)
+![Preview of the Active call screen](../assets/06-advanced/02-chat-integration/active-call.png)
 
 Now, we pass the `CallPanel` created above as a child of the `Calls` component:
 
@@ -1166,7 +1146,7 @@ Creating a Channel Header is fairly simple, you can create a component and pass 
   options={{
     // highlight-next-line
     header: ChannelHeaderComponent,
-  // highlight-next-line
+    // highlight-next-line
   }}
 />
 ```
@@ -1174,10 +1154,10 @@ Creating a Channel Header is fairly simple, you can create a component and pass 
 The `ChannelHeader` can be created as follows:
 
 ```tsx title="src/components/ChannelHeader.tsx"
-import React, {useCallback} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
-import {useAppContext} from 'src/context/AppContext';
-import {NativeStackHeaderProps} from '@react-navigation/native-stack';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAppContext } from 'src/context/AppContext';
+import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import {
   MemberRequest,
   useStreamVideoClient,
@@ -1186,12 +1166,12 @@ import {
 type ChannelHeaderProps = NativeStackHeaderProps;
 
 const ChannelHeader = (props: ChannelHeaderProps) => {
-  const {navigation} = props;
-  const {channel} = useAppContext();
+  const { navigation } = props;
+  const { channel } = useAppContext();
   const videoClient = useStreamVideoClient();
   const members = Object.values(
     channel?.state?.members ?? {},
-  ).map<MemberRequest>(member => ({
+  ).map<MemberRequest>((member) => ({
     user_id: member.user_id!,
   }));
 
@@ -1202,8 +1182,8 @@ const ChannelHeader = (props: ChannelHeaderProps) => {
         ring: true,
         data: {
           // more timeout to cancel the call automatically so that it works when callee's app is in quit state
-          settings_override: {ring: {auto_cancel_timeout_ms: 60000}},
-          custom: {channelCid: channel?.cid},
+          settings_override: { ring: { auto_cancel_timeout_ms: 60000 } },
+          custom: { channelCid: channel?.cid },
           members: members,
         },
       });
@@ -1221,9 +1201,7 @@ const ChannelHeader = (props: ChannelHeaderProps) => {
       <Pressable onPress={goBackHandler} style={styles.icon}>
         {/* Back icon component */}
       </Pressable>
-      <Text style={styles.name}>
-        {/* Your custom Header Title */}
-      </Text>
+      <Text style={styles.name}>{/* Your custom Header Title */}</Text>
       <Pressable onPress={joinCallHandler} style={styles.icon}>
         {/* Call icon component */}
       </Pressable>
@@ -1233,7 +1211,7 @@ const ChannelHeader = (props: ChannelHeaderProps) => {
 
 export const ChannelHeaderComponent = (props: NativeStackHeaderProps) => {
   return <ChannelHeader {...props} />;
-}
+};
 
 const styles = StyleSheet.create({
   header: {
@@ -1256,7 +1234,7 @@ const styles = StyleSheet.create({
 });
 ```
 
-Finally, when you press on the call button, an outgoing call be sent to the participant, which can be accepted or rejected using the Incoming call view screen. On accepting, the call is joined the participants and the call controls are available.
+Finally, when you press on the call button, an outgoing call be sent to the participant, which can be accepted or rejected using the Incoming call component screen. On accepting, the call is joined the participants and the call controls are available.
 
 ## Further Steps
 

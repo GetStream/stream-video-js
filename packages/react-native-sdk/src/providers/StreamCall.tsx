@@ -2,7 +2,7 @@ import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useAndroidKeepCallAliveEffect, usePermissionRequest } from '../hooks';
-import { useIosCallkeepEndEffect } from '../hooks/useIosCallkeepEndEffect';
+import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
 import { MediaStreamManagement } from './MediaStreamManagement';
 
 export type StreamCallProps = {
@@ -54,6 +54,6 @@ const AndroidKeepCallAlive = () => {
  * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
  */
 const IosInformCallkeepCallEnd = () => {
-  useIosCallkeepEndEffect();
+  useIosCallkeepWithCallingStateEffect();
   return null;
 };

@@ -34,18 +34,12 @@ or perform some permission-related actions:
 ### Check permissions
 
 ```ts
-import { OwnCapability } from '@stream-io/video-react-sdk';
+import { OwnCapability } from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
 const canSendAudio = call.permissionsContext.hasPermission(
   OwnCapability.SEND_AUDIO,
 );
-```
-
-In our React Video SDK, you can use the `useHasPermissions` hook to check for permissions.
-
-```tsx
-const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
 ```
 
 ### Request permissions
@@ -55,7 +49,7 @@ For example, in an audio-room call type, only the hosts have `send-audio` permis
 Other users should request this permission before they can start sending audio if the call settings allow it.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-react-sdk';
+import { OwnCapability } from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
 if (!call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)) {
@@ -77,7 +71,7 @@ You can listen to this event and approve the request.
 import {
   PermissionRequestEvent,
   StreamCallEvent,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
 call.on('call.permission_request', async (event: StreamCallEvent) => {
@@ -93,7 +87,7 @@ call.on('call.permission_request', async (event: StreamCallEvent) => {
 At any time, a moderator or host can decide to either grant or revoke certain permission to any participant.
 
 ```ts
-import { OwnCapability } from '@stream-io/video-react-sdk';
+import { OwnCapability } from '@stream-io/video-client';
 
 const call = streamVideoClient.call(type, id);
 await call.updateUserPermissions({
@@ -113,7 +107,7 @@ await call.revokePermissions('demo-user', [OwnCapability.SCREENSHARE]);
 ```
 
 The end user would get notified via a WebSocket event with a type: `call.permissions_updated`.
-In the case of revoked permissions, the SDK would automatically stop publishing the appropriate tracks.
+In the case of revoked permissions, the client would automatically stop publishing the appropriate tracks.
 
 ### Muting participants
 
@@ -151,7 +145,7 @@ await call.endCall();
 ```
 
 This operation will emit `call.ended` event to every participant in the call.
-The SDK would automatically stop publishing any tracks and leave the call.
+The client would automatically stop publishing any tracks and leave the call.
 
 Ended calls can't be re-joined.
 
@@ -163,12 +157,9 @@ The capabilities of the local user live in the metadata of the `Call` instance.
 ```tsx
 const call = streamVideoClient.call(type, id);
 const { own_capabilities } = call.state.metadata;
-```
 
-In our React Video SDK, you can use the `useOwnCapabilities` hook.
-
-```tsx
-const ownCapabilities = useOwnCapabilities();
+// or if you want to subscribe to changes:
+call.state.metadata$.subscribe(/* ... */);
 ```
 
 Capabilities will have the type [`OwnCapability`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/gen/coordinator/index.ts).

@@ -4,10 +4,10 @@ description: Overview of the UI components
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import ParticipantViewCameraOn from '../assets/04-ui-components/participant-view-camera-on.png';
-import ParticipantViewCameraOff from '../assets/04-ui-components/participant-view-camera-off.png';
-import IncomingCallView from '../assets/04-ui-components/incoming-call-view.png';
-import OutgoingCallView from '../assets/04-ui-components/outgoing-call-view.png';
+import ParticipantCameraOn from '../assets/04-ui-components/participant-camera-on.png';
+import ParticipantCameraOff from '../assets/04-ui-components/participant-camera-off.png';
+import IncomingCall from '../assets/04-ui-components/incoming-call.png';
+import OutgoingCall from '../assets/04-ui-components/outgoing-call.png';
 
 Stream SDK aims to make it as easy as possible to build your own video calling, audio rooms, and live streams. We support a low-level client, guides on building your own UI, and several pre-built UI components. If you quickly want to add calling to your app, you can do that just in an hour with these UI components.
 
@@ -21,10 +21,10 @@ If you want to render a participant's video together with:
 - Fallback for when video is muted
 - Reactions
 
-We can use [ParticipantView](../participants/participant-view):
+We can use [Participant](../participants/participant):
 
 ```tsx
-<ParticipantView participant={participant} />
+<Participant participant={participant} />
 ```
 
 You will see the result as below:
@@ -32,21 +32,21 @@ You will see the result as below:
 <ImageShowcase
   items={[
     {
-      image: ParticipantViewCameraOn,
-      caption: 'Participant View Camera On',
-      alt: 'Participant View Camera On',
+      image: ParticipantCameraOn,
+      caption: 'Participant Camera On',
+      alt: 'Participant Camera On',
     },
     {
-      image: ParticipantViewCameraOff,
-      caption: 'Participant View Camera Off',
-      alt: 'Participant View Camera Off',
+      image: ParticipantCameraOff,
+      caption: 'Participant Camera Off',
+      alt: 'Participant Camera Off',
     },
   ]}
 />
 
 ## Video Call UI
 
-You can use the [`CallContentView`](../call/call-content-view), [`CallControlsView`](../call/call-controls-view), [`ParticipantInfoBadge`](../participants/participant-info-badge) to get the full Video Call UI, which consists of:
+You can use the [`CallContent`](../call/call-content), [`CallControls`](../call/call-controls), [`ParticipantInfoBadge`](../participants/participant-info-badge) to get the full Video Call UI, which consists of:
 
 - Header: Content is shown that calls information or additional actions.
 - Video Grids: A call video that renders the full participants of the call.
@@ -54,14 +54,16 @@ You can use the [`CallContentView`](../call/call-content-view), [`CallControlsVi
 
 ```tsx
 const App = () => {
-  return <View style={styles.container}>
+  return (
+    <View style={styles.container}>
       <View style={styles.icons}>
         <ParticipantsInfoBadge />
       </View>
-      <CallContentView />
-      <CallControlsView />
-  </View>
-}
+      <CallContent />
+      <CallControls />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -74,27 +76,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 2,
-  }
-})
+  },
+});
 ```
 
-![Preview of Video Call UI](../assets/04-ui-components/active-call-view.png)
+![Preview of Video Call UI](../assets/04-ui-components/active-call.png)
 
 ## Ringing (Incoming/Outgoing calls)
 
-You can implement incoming/outgoing screens using our [`IncomingCallView`](../call/incoming-call-view)/[`OutgoingCallView`](../call/outgoing-call) components:
+You can implement incoming/outgoing screens using our [`IncomingCall`](../call/incoming-call)/[`OutgoingCall`](../call/outgoing-call) components:
 
 <ImageShowcase
   items={[
     {
-      image: IncomingCallView,
-      caption: 'Incoming Call View',
-      alt: 'Incoming Call View',
+      image: IncomingCall,
+      caption: 'Incoming Call',
+      alt: 'Incoming Call',
     },
     {
-      image: OutgoingCallView,
-      caption: 'Outgoing Call View',
-      alt: 'Outgoing Call View',
+      image: OutgoingCall,
+      caption: 'Outgoing Call',
+      alt: 'Outgoing Call',
     },
   ]}
 />

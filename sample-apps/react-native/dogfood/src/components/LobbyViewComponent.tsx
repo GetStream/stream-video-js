@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LobbyView, theme, useI18n } from '@stream-io/video-react-native-sdk';
+import { Lobby, theme, useI18n } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
@@ -22,7 +22,7 @@ export const LobbyViewComponent = ({
   const { t } = useI18n();
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <LobbyView joinCallButton={{ onPressHandler: onCallJoinHandler }} />
+      <Lobby joinCallButton={{ onPressHandler: onCallJoinHandler }} />
       {route.name === 'MeetingScreen' ? (
         <Pressable
           style={styles.anonymousButton}

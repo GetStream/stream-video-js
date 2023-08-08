@@ -2,7 +2,8 @@ import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   pushAcceptedIncomingCallCId$,
   voipPushNotificationCallCId$,
-  pushRejectedIncomingCallCId$,
+  voipCallkeepCallOnForegroundMap$,
+  voipCallkeepAcceptedCallOnNativeDialerMap$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
 
@@ -15,8 +16,15 @@ export const iosCallkeepAcceptCall = (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
+  // to call end callkeep later if ended in app and not through callkeep
+  voipCallkeepAcceptedCallOnNativeDialerMap$.next({
+    uuid: callUUIDFromCallkeep,
+    cid: call_cid,
+  });
+  // to process the call in the app
   pushAcceptedIncomingCallCId$.next(call_cid);
-  voipPushNotificationCallCId$.next(undefined);
+  // no need to keep these references anymore
+  voipCallkeepCallOnForegroundMap$.next(undefined);
 };
 
 export const iosCallkeepRejectCall = async (
@@ -27,19 +35,17 @@ export const iosCallkeepRejectCall = async (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
-  pushRejectedIncomingCallCId$.next(call_cid);
+  // no need to keep these references anymore
+  voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
+  voipCallkeepCallOnForegroundMap$.next(undefined);
   voipPushNotificationCallCId$.next(undefined);
-  if (pushAcceptedIncomingCallCId$.observed) {
-    // we have observed the rejected call cid, so nothing to do here
-    return;
-  }
   await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
 };
 
 /**
  * Helper function to determine if the answer/end call event from callkeep must be processed
- * And also acts as a type guard for call_cid
- * */
+ * Just checks if we have a valid call_cid and acts as a type guard for call_cid
+ */
 const shouldProcessCallFromCallkeep = (
   call_cid: string | undefined,
   callUUIDFromCallkeep: string,
@@ -47,6 +53,5 @@ const shouldProcessCallFromCallkeep = (
   if (!call_cid || !callUUIDFromCallkeep) {
     return false;
   }
-  const [_callType, callId] = call_cid.split(':');
-  return callId === callUUIDFromCallkeep;
+  return true;
 };
