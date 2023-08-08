@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react';
 import classnames from 'classnames';
-import { isAndroid, isIOS, isSafari } from 'mobile-device-detect';
+import { isAndroid, isIOS } from 'mobile-device-detect';
 import { FeatureCollection, Geometry } from 'geojson';
 
 import LatencyMap from '../../LatencyMap';
@@ -23,7 +23,7 @@ export const LobbyLayout: FC<Props> = ({
   edges,
 }) => {
   const { qr } = useUserContext();
-  const shouldRenderMobileAppBanner = qr && (isAndroid || (isIOS && !isSafari));
+  const shouldRenderMobileAppBanner = qr && (isAndroid || isIOS);
   const [isNativeAppsBannerDismissed, setIsNativeAppsBannerDismissed] =
     useState(!shouldRenderMobileAppBanner);
   const rootClassName = classnames(
