@@ -90,11 +90,15 @@ export interface StreamVideoParticipant extends Participant {
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
   /**
    * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   *
+   * @deprecated use call.microphone.state.selectedDevice
    */
   audioDeviceId?: string;
 
   /**
    * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   *
+   * @deprecated use call.camera.state.selectedDevice
    */
   videoDeviceId?: string;
 
