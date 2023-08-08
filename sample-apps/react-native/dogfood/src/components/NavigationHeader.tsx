@@ -14,7 +14,7 @@ import { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { appTheme } from '../theme';
 import { AVATAR_SIZE } from '../constants';
 import { Button } from './Button';
-import { A11yButtons } from '../constants/A11yLabels';
+import { ButtonTestIds } from '../constants/TestIds';
 
 export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
   const videoClient = useStreamVideoClient();
@@ -70,7 +70,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
         <Button
           onPress={logoutHandler}
           title={t('Logout')}
-          accessibilityLabel={A11yButtons.LOG_OUT}
+          testID={ButtonTestIds.LOG_OUT}
         />
       ) : (
         <Button
@@ -79,7 +79,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           }}
           title={t('Choose Mode')}
           titleStyle={styles.buttonText}
-          accessibilityLabel={A11yButtons.CHOOSE_MODE}
+          testID={ButtonTestIds.CHOOSE_MODE}
         />
       )}
     </SafeAreaView>

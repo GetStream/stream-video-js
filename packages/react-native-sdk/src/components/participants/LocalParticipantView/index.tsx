@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { Z_INDEX, LOCAL_VIDEO_VIEW_STYLE } from '../../../constants';
-import { A11yComponents } from '../../../constants/A11yLabels';
+import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import { useMediaStreamManagement } from '../../../providers';
 import { theme } from '../../../theme';
@@ -73,7 +73,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   if (layout === 'fullscreen') {
     return (
       <View
-        accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT_FULLSCREEN}
+        accessibilityLabel={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
         style={styles.fullScreenContainer}
       >
         <View style={styles.topView}>
@@ -99,7 +99,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
 
   return (
     <View
-      accessibilityLabel={A11yComponents.LOCAL_PARTICIPANT}
+      accessibilityLabel={ComponentTestIds.LOCAL_PARTICIPANT}
       style={styles.floatingContainer}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches

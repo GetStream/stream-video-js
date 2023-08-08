@@ -1,10 +1,10 @@
-export enum A11yIcons {
+export enum IconTestIds {
   MUTED_VIDEO = 'muted-video-icon',
   HANG_UP_CALL = 'hang-up-call-icon',
   SCREEN_SHARE = 'screen-share-icon',
 }
 
-export enum A11yComponents {
+export enum ComponentTestIds {
   PARTICIPANT_AVATAR = 'participant-avatar',
   CALL_PARTICIPANTS_LIST = 'call-participants-list',
   CALL_PARTICIPANTS_SPOTLIGHT_VIEW = 'call-participants-spotlight-view',
@@ -18,17 +18,17 @@ export enum A11yComponents {
   CHAT_UNREAD_BADGE_COUNT_INDICATOR = 'chat-unread-badge-count-indicator',
 }
 
-export enum A11yButtons {
-  PARTICIPANTS_INFO = 'participants-info-button',
-  EXIT_PARTICIPANTS_INFO = 'exit-participants-info-button',
-  HANG_UP_CALL = 'hang-up-call-button',
-  REACTION = 'call-controls-reaction-button',
+export enum ButtonTestIds {
+  PARTICIPANTS_INFO = 'participants-info',
+  EXIT_PARTICIPANTS_INFO = 'exit-participants-info',
+  HANG_UP_CALL = 'hang-up-call',
+  REACTION = 'call-controls-reaction',
 }
 
-export enum A11yValues {
+export enum ValueTestIds {
   PARTICIPANTS_IS_SPEAKING = 'participant-is-speaking',
 }
 
-export enum A11yImages {
+export enum ImageTestIds {
   AVATAR = 'avatar-image',
 }

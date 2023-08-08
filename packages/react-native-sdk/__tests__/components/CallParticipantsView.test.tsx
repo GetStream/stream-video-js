@@ -2,7 +2,7 @@ import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
 import { SfuModels } from '@stream-io/video-client';
 import mockParticipant from '../mocks/participant';
-import { A11yComponents } from '../../src/constants/A11yLabels';
+import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
 import { CallContentView } from '../../src/components';
@@ -21,8 +21,8 @@ enum P_IDS {
 const simulateOnViewableItemsChanged = async (
   viewableItems: Array<ViewToken>,
 ) => {
-  const flatList = await screen.findByLabelText(
-    A11yComponents.CALL_PARTICIPANTS_LIST,
+  const flatList = await screen.findByTestId(
+    ComponentTestIds.CALL_PARTICIPANTS_LIST,
   );
   await act(() => {
     flatList.props.onViewableItemsChanged({
@@ -55,26 +55,26 @@ describe('CallParticipantsView', () => {
     });
 
     expect(
-      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_GRID_VIEW),
+      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_GRID_VIEW),
     ).toBeVisible();
 
     // Locating and verifying that all ParticipantViews are rendered
     const participant1 = within(
-      screen.getByLabelText(`participant-${P_IDS.REMOTE_1}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
     );
 
     // shows the local participant floating view?
     expect(
-      await screen.findByLabelText(A11yComponents.LOCAL_PARTICIPANT),
+      await screen.findByTestId(ComponentTestIds.LOCAL_PARTICIPANT),
     ).toBeVisible();
 
     expect(
-      participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'audio-test-url');
 
     // flat list should not be rendered for 2 participants as we should not wrap them in a grid
     expect(
-      screen.queryByLabelText(A11yComponents.CALL_PARTICIPANTS_LIST),
+      screen.queryByLabelText(ComponentTestIds.CALL_PARTICIPANTS_LIST),
     ).toBeNull();
   });
   it('should render an call participants view with spotlight mode with 2 participants', async () => {
@@ -103,14 +103,14 @@ describe('CallParticipantsView', () => {
     });
 
     expect(
-      await screen.findByLabelText(
-        A11yComponents.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
+      await screen.findByTestId(
+        ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT_VIEW,
       ),
     ).toBeVisible();
 
     // Since it has a screen share and thereby spotlight, we should render the flatlist even with 2 participants
     expect(
-      await screen.findByLabelText(A11yComponents.CALL_PARTICIPANTS_LIST),
+      await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_LIST),
     ).toBeVisible();
   });
 
@@ -156,35 +156,35 @@ describe('CallParticipantsView', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const localParticipant = within(
-      screen.getByLabelText(`participant-${P_IDS.LOCAL_1}`),
+      screen.getByTestId(`participant-${P_IDS.LOCAL_1}`),
     );
     const participant1 = within(
-      screen.getByLabelText(`participant-${P_IDS.REMOTE_1}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
     );
     const participant2 = within(
-      screen.getByLabelText(`participant-${P_IDS.REMOTE_2}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_2}`),
     );
 
     const participant3 = within(
-      screen.getByLabelText(`participant-${P_IDS.REMOTE_3}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_3}`),
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
     expect(
-      localParticipant.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      localParticipant.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     expect(
-      participant1.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'audio-test-url');
     expect(
-      participant2.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     expect(
-      participant3.getByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      participant3.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     // Verifying no extra/unknown RTCViews are rendered
     expect(
-      screen.getAllByLabelText(A11yComponents.PARTICIPANT_MEDIA_STREAM),
+      screen.getAllByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveLength(4);
   });
 });

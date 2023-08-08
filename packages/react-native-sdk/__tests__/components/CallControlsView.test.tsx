@@ -1,7 +1,7 @@
 import React from 'react';
 import { mockClientWithUser } from '../mocks/client';
 import mockParticipant from '../mocks/participant';
-import { A11yButtons, A11yComponents } from '../../src/constants/A11yLabels';
+import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
 import { CallControlsView } from '../../src/components';
@@ -58,9 +58,9 @@ describe('CallControlsView', () => {
 
     await waitFor(() =>
       expect(() =>
-        screen.getByLabelText(A11yComponents.CHAT_UNREAD_BADGE_COUNT_INDICATOR),
+        screen.getByTestId(ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR),
       ).toThrow(
-        /Unable to find an element with accessibilityLabel: chat-unread-badge-count-indicator/i,
+        /Unable to find an element with testID: chat-unread-badge-count-indicator/i,
       ),
     );
   });
@@ -82,11 +82,11 @@ describe('CallControlsView', () => {
       call,
     });
 
-    const button = await screen.findByLabelText(A11yButtons.REACTION);
+    const button = await screen.findByTestId(ButtonTestIds.REACTION);
 
     fireEvent.press(button);
 
-    expect(screen.getByLabelText(A11yComponents.REACTIONS_MODAL)).toBeVisible();
+    expect(screen.getByTestId(ComponentTestIds.REACTIONS_MODAL)).toBeVisible();
   });
 
   it('execute onPressHandler when its passed to hangup call button when its pressed in call controls view', async () => {
@@ -104,7 +104,7 @@ describe('CallControlsView', () => {
       call,
     });
 
-    const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
+    const button = await screen.findByTestId(ButtonTestIds.HANG_UP_CALL);
 
     fireEvent.press(button);
 
@@ -124,7 +124,7 @@ describe('CallControlsView', () => {
       call,
     });
 
-    const button = await screen.findByLabelText(A11yButtons.HANG_UP_CALL);
+    const button = await screen.findByTestId(ButtonTestIds.HANG_UP_CALL);
 
     fireEvent.press(button);
 

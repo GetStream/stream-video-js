@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '../utils/RNTLTools';
 import mockParticipant from '../mocks/participant';
-import { A11yComponents, A11yImages } from '../../src/constants/A11yLabels';
+import { ComponentTestIds, ImageTestIds } from '../../src/constants/TestIds';
 import { Avatar } from '../../src/components/utility/Avatar';
 
 describe('Avatar', () => {
@@ -17,7 +17,7 @@ describe('Avatar', () => {
 
     render(<Avatar participant={testParticipant} />);
 
-    expect(await screen.findByLabelText(A11yImages.AVATAR)).toBeOnTheScreen();
+    expect(await screen.findByTestId(ImageTestIds.AVATAR)).toBeOnTheScreen();
     expect(() => screen.getByText('TT')).toThrow(
       /unable to find an element with text: TT/i,
     );
@@ -28,7 +28,7 @@ describe('Avatar', () => {
     const size = 200;
     render(<Avatar participant={testParticipant} size={size} />);
     expect(
-      await screen.findByLabelText(A11yComponents.PARTICIPANT_AVATAR),
+      await screen.findByTestId(ComponentTestIds.PARTICIPANT_AVATAR),
     ).toHaveStyle({
       borderRadius: size / 2,
       height: size,

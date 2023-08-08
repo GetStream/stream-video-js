@@ -3,7 +3,7 @@ import React from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../../utils';
 import { theme } from '../../theme';
-import { A11yComponents, A11yImages } from '../../constants/A11yLabels';
+import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
 
 /**
  * Props to be passed for the Avatar component.
@@ -37,7 +37,7 @@ export const Avatar = (props: AvatarProps) => {
   const imageUrl = image;
   return (
     <View
-      accessibilityLabel={A11yComponents.PARTICIPANT_AVATAR}
+      testID={ComponentTestIds.PARTICIPANT_AVATAR}
       style={{
         ...styles.container,
         borderRadius: size / 2,
@@ -47,7 +47,7 @@ export const Avatar = (props: AvatarProps) => {
     >
       {imageUrl ? (
         <Image
-          accessibilityLabel={A11yImages.AVATAR}
+          testID={ImageTestIds.AVATAR}
           source={{
             uri: imageUrl,
           }}
