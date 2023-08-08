@@ -41,6 +41,14 @@ call.camera
 call.camera.select('device Id');
 ```
 
+### Flip camera
+
+On mobile devices it's useful if users can switch between the front and back cameras:
+
+```typescript
+await call.camera.flip();
+```
+
 ### Camera state
 
 ```typescript
@@ -48,6 +56,8 @@ call.camera.state.status; // enabled or disabled
 call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 call.camera.state.selectedDevice; // currently selected camera
 call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
+call.camera.state.direction; // front or back
+call.camera.state.direction$.subscribe(console.log); // Reactive value for direction, you can subscribe to changes
 ```
 
 ### Render video

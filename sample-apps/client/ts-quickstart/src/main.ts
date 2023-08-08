@@ -40,6 +40,8 @@ call.join({ create: true }).then(async () => {
   // render device selectors
   container.appendChild(renderAudioDeviceSelector(call));
   container.appendChild(renderVideoDeviceSelector(call));
+  // TODO: render camera flip on mobile devices
+  // container.appendChild(controls.flipButton);
 });
 
 window.addEventListener('beforeunload', () => {

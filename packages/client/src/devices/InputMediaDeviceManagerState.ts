@@ -1,11 +1,11 @@
-import { BehaviorSubject, Observable, map } from 'rxjs';
+import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
 import { RxUtils } from '../store';
 
-export class InputMediaDeviceManagerState {
-  private mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
+export abstract class InputMediaDeviceManagerState {
+  protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
-  private selectedDeviceSubject = new BehaviorSubject<string | undefined>(
+  protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
 
@@ -28,7 +28,9 @@ export class InputMediaDeviceManagerState {
 
   constructor() {
     this.mediaStream$ = this.mediaStreamSubject.asObservable();
-    this.selectedDevice$ = this.selectedDeviceSubject.asObservable();
+    this.selectedDevice$ = this.selectedDeviceSubject
+      .asObservable()
+      .pipe(distinctUntilChanged());
     this.status$ = this.mediaStream$.pipe(
       map((stream) => (stream ? 'enabled' : 'disabled')),
     );
@@ -69,6 +71,9 @@ export class InputMediaDeviceManagerState {
    */
   setMediaStream(stream: MediaStream | undefined) {
     this.setCurrentValue(this.mediaStreamSubject, stream);
+    if (stream) {
+      this.setDevice(this.getDeviceIdFromStream(stream));
+    }
   }
 
   /**
@@ -90,5 +95,9 @@ export class InputMediaDeviceManagerState {
    * @param update the update to apply to the subject.
    * @return the updated value.
    */
-  private setCurrentValue = RxUtils.setCurrentValue;
+  protected setCurrentValue = RxUtils.setCurrentValue;
+
+  protected abstract getDeviceIdFromStream(
+    stream: MediaStream,
+  ): string | undefined;
 }
