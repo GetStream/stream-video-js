@@ -64,6 +64,14 @@
   margin-left: 5px;
 }
 
+.str-chat__message-reaction button {
+  line-height: initial;
+}
+
+.str-chat__date-separator {
+  padding-inline: 0;
+}
+
 .str-chat__modal--open .str-chat__modal__inner {
   width: 90%;
 }
