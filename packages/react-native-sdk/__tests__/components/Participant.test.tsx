@@ -7,12 +7,12 @@ import {
   IconTestIds,
 } from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
-import { ParticipantView } from '../../src/components/participants/ParticipantView';
+import { Participant } from '../../src/components/participants/Participant';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
 
-describe('ParticipantView', () => {
+describe('Participant', () => {
   it('should render participant`s avatar when set to not visible, label, user name and reaction', async () => {
     const testParticipant = mockParticipant({
       image: undefined,
@@ -23,7 +23,7 @@ describe('ParticipantView', () => {
       },
     });
     render(
-      <ParticipantView
+      <Participant
         participant={testParticipant}
         kind={'video'}
         isVisible={false}
@@ -51,7 +51,7 @@ describe('ParticipantView', () => {
         toURL: () => 'test-url',
       },
     });
-    render(<ParticipantView participant={testParticipant} kind={'screen'} />);
+    render(<Participant participant={testParticipant} kind={'screen'} />);
 
     expect(
       await screen.findByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
@@ -70,7 +70,7 @@ describe('ParticipantView', () => {
       publishedTracks: [SfuModels.TrackType.VIDEO, SfuModels.TrackType.AUDIO],
       isSpeaking: true,
     });
-    render(<ParticipantView participant={testParticipant} kind={'video'} />);
+    render(<Participant participant={testParticipant} kind={'video'} />);
 
     const [VideoRTCView, AudioRTCView] = await screen.findAllByTestId(
       ComponentTestIds.PARTICIPANT_MEDIA_STREAM,

@@ -1,13 +1,13 @@
 ---
-id: participant-view
-title: ParticipantView
+id: participant
+title: Participant
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import ParticipantViewCameraOn from '../../assets/04-ui-components/participant-view-camera-on.png';
-import ParticipantViewCameraOff from '../../assets/04-ui-components/participant-view-camera-off.png';
+import ParticipantCameraOn from '../../assets/04-ui-components/participant-camera-on.png';
+import ParticipantCameraOff from '../../assets/04-ui-components/participant-camera-off.png';
 
-The ParticipantView component renders a participant's video and plays the participant's audio. It can also be used to display the screen sharing view.
+The Participant component renders a participant's video and plays the participant's audio. It can also be used to display the screen sharing view.
 
 It displays the participant info such as
 
@@ -19,31 +19,31 @@ It displays the participant info such as
 It can toggle between video and avatar based on the participant's video state. It also provides action buttons (for example, to unpin the participant).
 
 :::note
-It is used as a building block to render individual item of participants in [CallContentView](../call/call-content-view.mdx) and [CallParticipantsListView](../call/call-participants-list-view.mdx).
+It is used as a building block to render individual item of participants in [CallContent](../call/call-content.mdx) and [CallParticipantsList](../call/call-participants-list.mdx).
 :::
 
 <ImageShowcase
   items={[
     {
-      image: ParticipantViewCameraOn,
-      caption: 'Participant View Camera On',
-      alt: 'Participant View Camera On',
+      image: ParticipantCameraOn,
+      caption: 'Participant Camera On',
+      alt: 'Participant Camera On',
     },
     {
-      image: ParticipantViewCameraOff,
-      caption: 'Participant View Camera Off',
-      alt: 'Participant View Camera Off',
+      image: ParticipantCameraOff,
+      caption: 'Participant Camera Off',
+      alt: 'Participant Camera Off',
     },
   ]}
 />
 
 ## General Usage
 
-In order to use the `ParticipantView` as a standalone component, you should use the following code:
+In order to use the `Participant` as a standalone component, you should use the following code:
 
 ```tsx
 import {
-  ParticipantView,
+  Participant,
   useParticipants,
 } from '@stream-io/video-react-native-sdk';
 
@@ -51,7 +51,7 @@ const App = () => {
   const participants = useParticipants();
 
   // Here to show the demo, we pass only first participant. You can pass any of the participant.
-  return <ParticipantView participant={participants[0]} />;
+  return <Participant participant={participants[0]} />;
 };
 ```
 
@@ -63,7 +63,7 @@ const App = () => {
 | --------------------------------------------------------------------------------------------------------------- |
 | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) |
 
-The participants to be rendered in the `ParticipantView`.
+The participants to be rendered in the `Participant`.
 
 ### `kind`
 

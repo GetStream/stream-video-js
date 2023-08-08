@@ -4,7 +4,7 @@ import mockParticipant from '../mocks/participant';
 import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
-import { CallControlsView } from '../../src/components';
+import { CallControls } from '../../src/components';
 import { OwnCapability } from '@stream-io/video-client';
 
 console.warn = jest.fn();
@@ -14,7 +14,7 @@ enum P_IDS {
   LOCAL_1 = 'local-1',
 }
 
-describe('CallControlsView', () => {
+describe('CallControls', () => {
   it('should render an unread badge indicator when the value is defined in the chatButton prop', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
@@ -25,7 +25,7 @@ describe('CallControlsView', () => {
     ]);
 
     render(
-      <CallControlsView
+      <CallControls
         chatButton={{ onPressHandler: jest.fn(), unreadBadgeCountIndicator: 1 }}
       />,
       {
@@ -48,7 +48,7 @@ describe('CallControlsView', () => {
     ]);
 
     render(
-      <CallControlsView
+      <CallControls
         chatButton={{ onPressHandler: jest.fn(), unreadBadgeCountIndicator: 0 }}
       />,
       {
@@ -65,7 +65,7 @@ describe('CallControlsView', () => {
     );
   });
 
-  it('render reaction button in call controls view', async () => {
+  it('render reaction button in call controls component', async () => {
     const call = mockCall(
       mockClientWithUser(),
       [
@@ -78,7 +78,7 @@ describe('CallControlsView', () => {
       [OwnCapability.CREATE_REACTION],
     );
 
-    render(<CallControlsView />, {
+    render(<CallControls />, {
       call,
     });
 
@@ -89,7 +89,7 @@ describe('CallControlsView', () => {
     expect(screen.getByTestId(ComponentTestIds.REACTIONS_MODAL)).toBeVisible();
   });
 
-  it('execute onPressHandler when its passed to hangup call button when its pressed in call controls view', async () => {
+  it('execute onPressHandler when its passed to hangup call button when its pressed in call controls component', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -100,7 +100,7 @@ describe('CallControlsView', () => {
 
     const hangUpCallButton = { onPressHandler: jest.fn() };
 
-    render(<CallControlsView hangUpCallButton={hangUpCallButton} />, {
+    render(<CallControls hangUpCallButton={hangUpCallButton} />, {
       call,
     });
 
@@ -111,7 +111,7 @@ describe('CallControlsView', () => {
     expect(hangUpCallButton.onPressHandler).toHaveBeenCalled();
   });
 
-  it('execute call.leave when hangup button is pressed with no custom handler in call controls view', async () => {
+  it('execute call.leave when hangup button is pressed with no custom handler in call controls component', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
         isLocalParticipant: true,
@@ -120,7 +120,7 @@ describe('CallControlsView', () => {
       }),
     ]);
 
-    render(<CallControlsView />, {
+    render(<CallControls />, {
       call,
     });
 

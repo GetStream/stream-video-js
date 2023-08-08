@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { UserInfoView } from '../call/internal/UserInfoView';
+import { UserInfo } from './internal/UserInfo';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
@@ -10,27 +10,25 @@ import { Z_INDEX } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import {
   HangUpCallButton,
-  HangUpCallButtonType,
+  HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
 import { useI18n } from '@stream-io/video-react-bindings';
 
 /**
- * Props for the OutgoingCallView Component.
+ * Props for the OutgoingCall Component.
  */
-export type OutgoingCallViewType = {
+export type OutgoingCallProps = {
   /**
    * HangUp Call Button Props to be passed as an object
    */
-  hangupCallButton?: HangUpCallButtonType;
+  hangupCallButton?: HangUpCallButtonProps;
 };
 
 /**
- * An outgoing call view with the callee's avatar, name, caller's camera in background, reject and mute buttons.
+ * An outgoing call with the callee's avatar, name, caller's camera in background, reject and mute buttons.
  * Used after the user has initiated a call.
  */
-export const OutgoingCallView = ({
-  hangupCallButton,
-}: OutgoingCallViewType) => {
+export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
   const {
     initialAudioEnabled,
     initialVideoEnabled,
@@ -46,7 +44,7 @@ export const OutgoingCallView = ({
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
         <View style={styles.content}>
-          <UserInfoView />
+          <UserInfo />
           <Text style={styles.callingText}>{t('Calling...')}</Text>
         </View>
         <View style={styles.buttonGroup}>

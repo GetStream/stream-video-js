@@ -37,9 +37,7 @@ export default function App() {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>
-        {/* Your UI */}
-      </StreamCall>
+      <StreamCall call={call}>{/* Your UI */}</StreamCall>
     </StreamVideo>
   );
 }
@@ -56,14 +54,14 @@ The call participant's state can be accessed using hooks like `useParticipants`.
 
 ```tsx
 import {
-  CallParticipantsListView,
+  CallParticipantsList,
   useParticipants,
 } from '@stream-io/video-react-native-sdk';
 
 function VideoUI() {
   const participants = useParticipants();
 
-  return <CallParticipantsListView participants={participants} />;
+  return <CallParticipantsList participants={participants} />;
 }
 ```
 

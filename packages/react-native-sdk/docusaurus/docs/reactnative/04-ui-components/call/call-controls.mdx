@@ -1,22 +1,22 @@
 ---
-id: call-controls-view
-title: CallControlsView
+id: call-controls
+title: CallControls
 ---
 
-CallControlsView allows users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang-up calls, etc.).
+CallControls allows users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang-up calls, etc.).
 We provide a built-in component that displays all relevant call controls during a call.
 
-![Preview of the CallControlsView component.](../../assets/04-ui-components/call-controls-view.png)
+![Preview of the CallControls component.](../../assets/04-ui-components/call-controls.png)
 
 ## General Usage
 
-The `CallControlsView` component displays the available controls based on the [available permissions](../../03-core/08-permissions-and-moderation.mdx).
+The `CallControls` component displays the available controls based on the [available permissions](../../03-core/09-permissions-and-moderation.mdx).
 
 ```tsx
 import {
   Call,
-  CallContentView,
-  CallControlsView,
+  CallContent,
+  CallControls,
   StreamCall,
 } from '@stream-io/video-react-native-sdk';
 
@@ -25,7 +25,7 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
-      <CallContentView />
+      <CallContent />
       // highlight-next-line
       <CallControls />
     </StreamCall>
