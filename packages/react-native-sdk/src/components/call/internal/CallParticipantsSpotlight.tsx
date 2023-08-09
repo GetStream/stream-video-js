@@ -9,7 +9,7 @@ import {
   useRemoteParticipants,
 } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { Participant } from '../../participants/Participant';
+import { ParticipantView } from '../../participants/ParticipantView';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -39,10 +39,10 @@ export const CallParticipantsSpotlight = () => {
       style={styles.container}
     >
       {participantInSpotlight && (
-        <Participant
+        <ParticipantView
           participant={participantInSpotlight}
           containerStyle={styles.participantView}
-          kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
         />
       )}
       <View style={styles.participantVideoContainer}>

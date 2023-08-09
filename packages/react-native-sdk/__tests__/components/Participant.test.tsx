@@ -7,7 +7,7 @@ import {
   IconTestIds,
 } from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
-import { Participant } from '../../src/components/participants/Participant';
+import { ParticipantView } from '../../src/components/participants/ParticipantView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -15,7 +15,7 @@ jest.useFakeTimers();
 describe('Participant', () => {
   it('should render participant`s avatar when set to not visible, label, user name and reaction', async () => {
     const testParticipant = mockParticipant({
-      image: undefined,
+      image: 'https://picsum.photos/200/300',
       publishedTracks: [],
       reaction: {
         type: 'reaction',
@@ -23,9 +23,9 @@ describe('Participant', () => {
       },
     });
     render(
-      <Participant
+      <ParticipantView
         participant={testParticipant}
-        kind={'video'}
+        videoMode={'video'}
         isVisible={false}
       />,
     );
@@ -43,7 +43,7 @@ describe('Participant', () => {
     );
   });
 
-  it('should render participant`s screen when of screen kind', async () => {
+  it('should render participant`s screen when of screen mode', async () => {
     const testParticipant = mockParticipant({
       image: undefined,
       publishedTracks: [SfuModels.TrackType.SCREEN_SHARE],
@@ -51,7 +51,9 @@ describe('Participant', () => {
         toURL: () => 'test-url',
       },
     });
-    render(<Participant participant={testParticipant} kind={'screen'} />);
+    render(
+      <ParticipantView participant={testParticipant} videoMode={'screen'} />,
+    );
 
     expect(
       await screen.findByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
@@ -64,13 +66,15 @@ describe('Participant', () => {
     ).toBeOnTheScreen();
   });
 
-  it('should render participant`s video and audio when of video kind and partic. speaks', async () => {
+  it('should render participant`s video and audio when of video mode and partic. speaks', async () => {
     const testParticipant = mockParticipant({
       image: undefined,
       publishedTracks: [SfuModels.TrackType.VIDEO, SfuModels.TrackType.AUDIO],
       isSpeaking: true,
     });
-    render(<Participant participant={testParticipant} kind={'video'} />);
+    render(
+      <ParticipantView participant={testParticipant} videoMode={'video'} />,
+    );
 
     const [VideoRTCView, AudioRTCView] = await screen.findAllByTestId(
       ComponentTestIds.PARTICIPANT_MEDIA_STREAM,

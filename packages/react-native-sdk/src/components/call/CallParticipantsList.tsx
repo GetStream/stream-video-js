@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { Participant } from '../participants/Participant';
+import { ParticipantView } from '../participants/ParticipantView';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -141,10 +141,10 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
         participant.sessionId,
       );
       return (
-        <Participant
+        <ParticipantView
           participant={participant}
           containerStyle={itemContainerStyle}
-          kind="video"
+          videoMode="video"
           isVisible={isVisible}
         />
       );
@@ -160,10 +160,10 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
     return (
       <>
         {participants.map((participant, index) => (
-          <Participant
+          <ParticipantView
             participant={participant}
             containerStyle={styles.flexed}
-            kind="video"
+            videoMode="video"
             isVisible={true}
             key={keyExtractor(participant, index)}
           />

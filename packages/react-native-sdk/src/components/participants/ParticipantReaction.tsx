@@ -1,19 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { StreamReaction } from '@stream-io/video-client';
+import {
+  StreamVideoLocalParticipant,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
-import { StreamVideoRN } from '../../../utils';
+import { theme } from '../../theme';
+import { StreamVideoRN } from '../../utils';
 
-export type ReactionProps = {
-  reaction?: StreamReaction;
-  sessionId: string;
+export type ParticipantReactionProps = {
+  /**
+   * The participant whose info will be displayed.
+   */
+  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  /**
+   * The duration after which the reaction should disappear.
+   */
   hideAfterTimeoutInMs?: number;
 };
 
-export const ParticipantReaction = (props: ReactionProps) => {
+export const ParticipantReaction = (props: ParticipantReactionProps) => {
   const { supportedReactions } = StreamVideoRN.getConfig();
-  const { reaction, sessionId, hideAfterTimeoutInMs = 5500 } = props;
+  const { participant, hideAfterTimeoutInMs = 5500 } = props;
+  const { reaction, sessionId } = participant;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 

@@ -17,7 +17,7 @@ import { Avatar } from '../utility/Avatar';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
 import { useDebouncedValue } from '../../utils/hooks';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-import { ParticipantReaction } from './internal/ParticipantReaction';
+import { ParticipantReaction } from './ParticipantReaction';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -95,10 +95,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
         style={style}
       >
         <View style={styles.topView}>
-          <ParticipantReaction
-            reaction={localParticipant.reaction}
-            sessionId={localParticipant.sessionId}
-          />
+          <ParticipantReaction participant={localParticipant} />
         </View>
         {isVideoMuted ? (
           <Avatar participant={localParticipant} />
@@ -127,10 +124,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
     >
       <View style={style}>
         <View style={styles.topView}>
-          <ParticipantReaction
-            reaction={localParticipant.reaction}
-            sessionId={localParticipant.sessionId}
-          />
+          <ParticipantReaction participant={localParticipant} />
         </View>
         {isVideoMuted ? (
           <View style={theme.icon.md}>
