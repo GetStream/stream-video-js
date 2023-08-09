@@ -13,6 +13,7 @@ import {
   GoAwayReason,
   SdkType,
   TrackType,
+  VideoDimension,
 } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
@@ -81,6 +82,7 @@ import {
 import {
   BehaviorSubject,
   debounce,
+  distinctUntilKeyChanged,
   filter,
   map,
   pairwise,
@@ -1779,4 +1781,83 @@ export class Call {
       void this.microphone.enable();
     }
   }
+  registerVideoElement = (
+    videoElement: HTMLVideoElement,
+    kind: 'video' | 'screen',
+    sessionId: string,
+  ) => {
+    const doUpdate = (
+      debounceType: DebounceType,
+      dimension?: VideoDimension | null,
+    ) => {
+      this.updateSubscriptionsPartial(
+        kind,
+        {
+          [sessionId]: {
+            dimension:
+              dimension === null
+                ? undefined
+                : {
+                    height: videoElement.clientHeight,
+                    width: videoElement.clientWidth,
+                  },
+          },
+        },
+        debounceType,
+      );
+    };
+
+    const p = this.state.getParticipantLookupBySessionId()[sessionId];
+
+    let viewportVisibilityState =
+      p?.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+    const subscription = this.state.participants$
+      .pipe(
+        map(
+          (participants) =>
+            participants.find(
+              (participant) => participant.sessionId === sessionId,
+            ) as StreamVideoParticipant,
+        ),
+        takeWhile((participant) => !!participant),
+        distinctUntilKeyChanged('viewportVisibilityState'),
+      )
+      .subscribe((v) => {
+        viewportVisibilityState =
+          v.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+
+        if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
+          return doUpdate(DebounceType.MEDIUM, null);
+        }
+
+        doUpdate(DebounceType.MEDIUM);
+      });
+
+    let lastDimension: string;
+    const resizeObserver = new ResizeObserver(() => {
+      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
+
+      if (!lastDimension) {
+        doUpdate(DebounceType.FAST);
+        lastDimension = currentDimensions;
+        return;
+      }
+
+      if (
+        lastDimension === currentDimensions ||
+        viewportVisibilityState === VisibilityState.INVISIBLE
+      )
+        return;
+
+      doUpdate(DebounceType.SLOW);
+      lastDimension = currentDimensions;
+    });
+
+    resizeObserver.observe(videoElement);
+
+    return () => {
+      subscription.unsubscribe();
+      resizeObserver.disconnect();
+    };
+  };
 }

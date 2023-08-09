@@ -1,13 +1,10 @@
 import {
   ComponentPropsWithoutRef,
   ComponentType,
-  useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import {
-  DebounceType,
   SfuModels,
   StreamVideoParticipant,
   VisibilityState,
@@ -59,9 +56,6 @@ export const Video = ({
 
   // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const viewportVisibilityRef = useRef<VisibilityState | undefined>(
-    viewportVisibilityState,
-  );
 
   const stream =
     kind === 'none'
@@ -108,109 +102,13 @@ export const Video = ({
       !screenShareStream) ||
     !videoPlaying;
 
-  const lastDimensionRef = useRef<string | undefined>();
-  const updateSubscription = useCallback(
-    (
-      dimension?: SfuModels.VideoDimension,
-      type: DebounceType = DebounceType.SLOW,
-    ) => {
-      if (!call || kind === 'none') return;
-
-      call.updateSubscriptionsPartial(
-        kind,
-        {
-          [sessionId]: {
-            dimension,
-          },
-        },
-        type,
-      );
-    },
-    [call, kind, sessionId],
-  );
-
-  // handle visibility subscription updates
   useEffect(() => {
-    viewportVisibilityRef.current = viewportVisibilityState;
+    if (!call || !videoElement || kind === 'none' || isLocalParticipant) return;
 
-    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
+    const cleanup = call.registerVideoElement(videoElement, kind, sessionId);
 
-    const isInvisibleVVS =
-      viewportVisibilityState === VisibilityState.INVISIBLE;
-
-    updateSubscription(
-      isInvisibleVVS
-        ? undefined
-        : {
-            height: videoElement.clientHeight,
-            width: videoElement.clientWidth,
-          },
-      DebounceType.MEDIUM,
-    );
-  }, [
-    updateSubscription,
-    viewportVisibilityState,
-    videoElement,
-    isPublishingTrack,
-    isLocalParticipant,
-  ]);
-
-  // handle resize subscription updates
-  useEffect(() => {
-    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
-
-      // skip initial trigger of the observer
-      if (!lastDimensionRef.current) {
-        return (lastDimensionRef.current = currentDimensions);
-      }
-
-      if (
-        lastDimensionRef.current === currentDimensions ||
-        viewportVisibilityRef.current === VisibilityState.INVISIBLE
-      )
-        return;
-
-      updateSubscription(
-        {
-          height: videoElement.clientHeight,
-          width: videoElement.clientWidth,
-        },
-        DebounceType.SLOW,
-      );
-      lastDimensionRef.current = currentDimensions;
-    });
-    resizeObserver.observe(videoElement);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [
-    updateSubscription,
-    videoElement,
-    viewportVisibilityState,
-    isPublishingTrack,
-    isLocalParticipant,
-  ]);
-
-  // handle generic subscription updates
-  useEffect(() => {
-    if (!isPublishingTrack || !videoElement || isLocalParticipant) return;
-
-    updateSubscription(
-      {
-        height: videoElement.clientHeight,
-        width: videoElement.clientWidth,
-      },
-      DebounceType.FAST,
-    );
-
-    return () => {
-      updateSubscription(undefined, DebounceType.FAST);
-    };
-  }, [updateSubscription, videoElement, isPublishingTrack, isLocalParticipant]);
+    return () => cleanup();
+  }, [call, kind, sessionId, videoElement, isLocalParticipant]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
