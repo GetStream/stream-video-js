@@ -26,10 +26,6 @@ import {
   ParticipantVideo as DefaultParticipantVideo,
   ParticipantVideoProps,
 } from './ParticipantVideo';
-import {
-  ParticipantAudio as DefaultParticipantAudio,
-  ParticipantAudioProps,
-} from './ParticipantAudio';
 import { ParticipantVideoPlaceholderProps } from './ParticipantVideoPlaceholder';
 
 export type ParticipantVideoType = 'video' | 'screen';
@@ -55,14 +51,6 @@ export type ParticipantViewProps = {
    * When set to false, the video stream will not be shown even if it is available.
    */
   muteVideo?: boolean;
-  /**
-   * When set to true, the audio stream will not be played even if it is available.
-   */
-  muteAudio?: boolean;
-  /**
-   * Component to customize Audio component of the participant.
-   */
-  ParticipantAudio?: ComponentType<ParticipantAudioProps>;
   /**
    * Component to customize the Label of the participant.
    */
@@ -95,8 +83,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     participant,
     videoMode,
     muteVideo = false,
-    muteAudio = false,
-    ParticipantAudio = DefaultParticipantAudio,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
     ParticipantVideo = DefaultParticipantVideo,
@@ -256,7 +242,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         videoMode={videoMode}
         ParticipantVideoPlaceholder={ParticipantVideoPlaceholder}
       />
-      <ParticipantAudio participant={participant} muteAudio={muteAudio} />
       <View style={styles.bottomView}>
         <ParticipantLabel participant={participant} videoMode={videoMode} />
         <ParticipantNetworkQualityIndicator participant={participant} />
