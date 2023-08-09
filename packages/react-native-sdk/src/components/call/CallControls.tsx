@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import {
   LayoutRectangle,
   StyleSheet,
@@ -63,18 +63,10 @@ export const CallControls = ({
 }: CallControlsType) => {
   const [showReactionsPopup, setShowReactionsPopup] = useState<boolean>(false);
 
-  const onOpenReactionsPopupHandler = useCallback(() => {
-    setShowReactionsPopup(true);
-  }, []);
-
-  const onCloseReactionsPopupHandler = useCallback(() => {
-    setShowReactionsPopup(false);
-  }, []);
-
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
     useState<LayoutRectangle>();
 
-  // This is to make sure that the reaction popup is always rendered above the reactions button
+  // This is for the reaction popup
   const onReactionsButtonLayout = (layout: LayoutRectangle) => {
     setReactionsButtonLayoutRectangle((prev) => {
       if (
@@ -95,7 +87,9 @@ export const CallControls = ({
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           testID={ButtonTestIds.REACTION}
-          onPress={onOpenReactionsPopupHandler}
+          onPress={() => {
+            setShowReactionsPopup(true);
+          }}
           color={theme.light.static_white}
           style={styles.button}
           onLayout={(event) =>
@@ -129,7 +123,9 @@ export const CallControls = ({
         <ReactionsPopup
           reactions={StreamVideoRN.getConfig().supportedReactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
-          onRequestedClose={onCloseReactionsPopupHandler}
+          onRequestedClose={() => {
+            setShowReactionsPopup(false);
+          }}
         />
       )}
     </View>
@@ -162,6 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     zIndex: Z_INDEX.IN_FRONT,
+    backgroundColor: theme.light.static_black,
   },
   button: {
     // For iOS
@@ -193,9 +190,5 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     textAlign: 'center',
     ...theme.fonts.bodyBold,
-  },
-  reactionsPopup: {
-    position: 'absolute',
-    backgroundColor: 'rgba(0,0,0,0.9)',
   },
 });
