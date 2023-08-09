@@ -44,7 +44,7 @@ describe('CallParticipants', () => {
         userId: P_IDS.LOCAL_1,
       }),
       mockParticipant({
-        publishedTracks: [SfuModels.TrackType.AUDIO],
+        publishedTracks: [SfuModels.TrackType.VIDEO],
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
       }),
@@ -70,7 +70,7 @@ describe('CallParticipants', () => {
 
     expect(
       participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'audio-test-url');
+    ).toHaveProp('streamURL', 'video-test-url');
 
     // flat list should not be rendered for 2 participants as we should not wrap them in a grid
     expect(
@@ -156,9 +156,7 @@ describe('CallParticipants', () => {
     const localParticipant = within(
       screen.getByTestId(`participant-${P_IDS.LOCAL_1}`),
     );
-    const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
-    );
+
     const participant2 = within(
       screen.getByTestId(`participant-${P_IDS.REMOTE_2}`),
     );
@@ -172,9 +170,6 @@ describe('CallParticipants', () => {
       localParticipant.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     expect(
-      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'audio-test-url');
-    expect(
       participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
     expect(
@@ -183,6 +178,6 @@ describe('CallParticipants', () => {
     // Verifying no extra/unknown RTCViews are rendered
     expect(
       screen.getAllByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveLength(4);
+    ).toHaveLength(3);
   });
 });

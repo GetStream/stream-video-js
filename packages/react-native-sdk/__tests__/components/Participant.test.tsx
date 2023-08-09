@@ -76,15 +76,13 @@ describe('Participant', () => {
       <ParticipantView participant={testParticipant} videoMode={'video'} />,
     );
 
-    const [VideoRTCView, AudioRTCView] = await screen.findAllByTestId(
+    const [VideoRTCView] = await screen.findAllByTestId(
       ComponentTestIds.PARTICIPANT_MEDIA_STREAM,
     );
     // Video and Audio streams are rendered
     // This is our best way to test if video and audio is on
     expect(VideoRTCView).toBeOnTheScreen();
     expect(VideoRTCView).toHaveProp('streamURL', 'video-test-url');
-    expect(AudioRTCView).toBeOnTheScreen();
-    expect(AudioRTCView).toHaveProp('streamURL', 'audio-test-url');
 
     // Participant is speaking style is applied
     expect(

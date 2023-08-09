@@ -1,6 +1,5 @@
 export * from './LocalParticipantView';
 export * from './ParticipantsInfoBadge';
-export * from './ParticipantAudio';
 export * from './ParticipantLabel';
 export * from './ParticipantReaction';
 export * from './ParticipantVideo';
