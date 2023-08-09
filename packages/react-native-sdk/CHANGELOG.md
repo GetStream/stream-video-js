@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.361](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.360...@stream-io/video-react-native-sdk-0.0.1-alpha.361) (2023-08-09)
+
+
+### Features
+
+* **react-native:** add basic reactions popup ([#913](https://github.com/GetStream/stream-video-js/issues/913)) ([3969000](https://github.com/GetStream/stream-video-js/commit/3969000025faabf8c923c1648bc19475d31e0cfb))
+
+
+
 ## [0.0.1-alpha.360](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.359...@stream-io/video-react-native-sdk-0.0.1-alpha.360) (2023-08-08)
 
 
