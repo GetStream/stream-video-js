@@ -1,12 +1,6 @@
-import React, { ComponentType, useEffect, useRef } from 'react';
+import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import {
-  CallingState,
-  SfuModels,
-  StreamVideoParticipant,
-  VisibilityState,
-} from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
 import {
@@ -21,11 +15,11 @@ import {
   ParticipantLabel as DefaultParticipantLabel,
   ParticipantLabelProps,
 } from './ParticipantLabel';
+import { ParticipantVideoFallbackProps } from './ParticipantVideoFallback';
 import {
-  ParticipantVideo as DefaultParticipantVideo,
-  ParticipantVideoProps,
-} from './ParticipantVideo';
-import { ParticipantVideoPlaceholderProps } from './ParticipantVideoPlaceholder';
+  VideoRenderer as DefaultVideoRenderer,
+  VideoRendererProps,
+} from './VideoRenderer';
 
 export type ParticipantVideoType = 'video' | 'screen';
 
@@ -62,11 +56,11 @@ export type ParticipantViewProps = {
   /**
    * Component to customize the video component of the participant.
    */
-  ParticipantVideo?: ComponentType<ParticipantVideoProps>;
+  VideoRenderer?: ComponentType<VideoRendererProps>;
   /**
-   * Component to customize the video placeholder of the participant, when the video is disabled.
+   * Component to customize the video fallback of the participant, when the video is disabled.
    */
-  ParticipantVideoPlaceholder?: ComponentType<ParticipantVideoPlaceholderProps>;
+  ParticipantVideoFallback?: ComponentType<ParticipantVideoFallbackProps>;
   /**
    * Component to customize the network quality indicator of the participant.
    */
@@ -82,141 +76,15 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const {
     participant,
     videoMode,
-    muteVideo = false,
+    muteVideo,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
-    ParticipantVideo = DefaultParticipantVideo,
+    VideoRenderer = DefaultVideoRenderer,
     ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
-    ParticipantVideoPlaceholder,
+    ParticipantVideoFallback,
   } = props;
 
-  const call = useCall();
-  const callingState = useCallCallingState();
-  const hasJoinedCall = callingState === CallingState.JOINED;
-  const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const {
-    isSpeaking,
-    publishedTracks,
-    sessionId,
-    userId,
-    viewportVisibilityState,
-  } = participant;
-  const isPublishingVideoTrack = publishedTracks.includes(
-    videoMode === 'video'
-      ? SfuModels.TrackType.VIDEO
-      : SfuModels.TrackType.SCREEN_SHARE,
-  );
-
-  /**
-   * This effect updates the participant's viewportVisibilityState
-   * Additionally makes sure that when this view becomes visible again, the layout to subscribe is known
-   */
-  useEffect(() => {
-    if (!call) {
-      return;
-    }
-    if (!muteVideo) {
-      if (viewportVisibilityState !== VisibilityState.VISIBLE) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: VisibilityState.VISIBLE,
-        }));
-      }
-    } else {
-      if (viewportVisibilityState !== VisibilityState.INVISIBLE) {
-        call.state.updateParticipant(sessionId, (p) => ({
-          ...p,
-          viewportVisibilityState: VisibilityState.INVISIBLE,
-        }));
-      }
-      if (subscribedVideoLayoutRef.current) {
-        // when video is enabled again, we want to use the last subscribed dimension to resubscribe
-        pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
-        subscribedVideoLayoutRef.current = undefined;
-      }
-    }
-  }, [sessionId, viewportVisibilityState, muteVideo, call]);
-
-  useEffect(() => {
-    if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
-      // when call is joined again, we want to use the last subscribed dimension to resubscribe
-      pendingVideoLayoutRef.current = subscribedVideoLayoutRef.current;
-      subscribedVideoLayoutRef.current = undefined;
-    }
-  }, [hasJoinedCall]);
-
-  /**
-   * This effect updates the subscription either
-   * 1. when video tracks are published and was unpublished before
-   * 2. when the view's visibility changes
-   * 3. when call was rejoined
-   */
-  useEffect(() => {
-    // NOTE: We only want to update the subscription if the pendingVideoLayoutRef is set
-    const updateIsNeeded = pendingVideoLayoutRef.current;
-    if (!updateIsNeeded || !call || !isPublishingVideoTrack || !hasJoinedCall) {
-      return;
-    }
-
-    // NOTE: When the view is not visible, we want to subscribe to audio only.
-    // We unsubscribe their video by setting the dimension to undefined
-    const dimension = !muteVideo ? pendingVideoLayoutRef.current : undefined;
-
-    call.updateSubscriptionsPartial(videoMode, {
-      [sessionId]: { dimension },
-    });
-
-    if (dimension) {
-      subscribedVideoLayoutRef.current = pendingVideoLayoutRef.current;
-      pendingVideoLayoutRef.current = undefined;
-    }
-  }, [
-    call,
-    isPublishingVideoTrack,
-    videoMode,
-    sessionId,
-    muteVideo,
-    hasJoinedCall,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      subscribedVideoLayoutRef.current = undefined;
-      pendingVideoLayoutRef.current = undefined;
-    };
-  }, [videoMode, sessionId]);
-
-  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    const dimension = {
-      width: Math.trunc(event.nativeEvent.layout.width),
-      height: Math.trunc(event.nativeEvent.layout.height),
-    };
-
-    // NOTE: If the participant hasn't published a video track yet,
-    // or the view is not viewable, we store the dimensions and handle it
-    // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || muteVideo || !hasJoinedCall) {
-      pendingVideoLayoutRef.current = dimension;
-      return;
-    }
-
-    // NOTE: We don't want to update the subscription if the dimension hasn't changed
-    if (
-      subscribedVideoLayoutRef.current?.width === dimension.width &&
-      subscribedVideoLayoutRef.current?.height === dimension.height
-    ) {
-      return;
-    }
-
-    call.updateSubscriptionsPartial(videoMode, {
-      [sessionId]: {
-        dimension,
-      },
-    });
-    subscribedVideoLayoutRef.current = dimension;
-    pendingVideoLayoutRef.current = undefined;
-  };
+  const { isSpeaking, userId } = participant;
 
   const isScreenSharing = videoMode === 'screen';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
@@ -231,14 +99,13 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           ? 'participant-is-speaking'
           : 'participant-is-not-speaking',
       }}
-      onLayout={onLayout}
     >
       <ParticipantReaction participant={participant} />
-      <ParticipantVideo
+      <VideoRenderer
         muteVideo={muteVideo}
         participant={participant}
         videoMode={videoMode}
-        ParticipantVideoPlaceholder={ParticipantVideoPlaceholder}
+        ParticipantVideoFallback={ParticipantVideoFallback}
       />
       <View style={styles.bottomView}>
         <ParticipantLabel participant={participant} videoMode={videoMode} />

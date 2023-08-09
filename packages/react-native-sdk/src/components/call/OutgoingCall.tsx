@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { UserInfo } from './internal/UserInfo';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { Mic, MicOff, Video, VideoSlash } from '../../icons';
-import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
@@ -13,6 +12,7 @@ import {
   HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
 import { useI18n } from '@stream-io/video-react-bindings';
+import { RTCView } from 'react-native-webrtc';
 
 /**
  * Props for the OutgoingCall Component.
@@ -94,8 +94,8 @@ const Background = () => {
   }
   return (
     <View style={styles.background}>
-      <VideoRenderer
-        mediaStream={localVideoStream}
+      <RTCView
+        streamURL={localVideoStream?.toURL()}
         zOrder={Z_INDEX.IN_BACK}
         style={StyleSheet.absoluteFill}
         mirror

@@ -9,10 +9,10 @@ import { useMediaStreamManagement } from '../../../providers';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks';
 import { Avatar } from '../../utility';
-import { VideoRenderer } from '../../utility/internal/VideoRenderer';
 import { ParticipantReaction } from '../ParticipantReaction';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
+import { RTCView } from 'react-native-webrtc';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -84,9 +84,9 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
         ) : showBlankStream ? (
           <View style={styles.videoStreamFullScreen} />
         ) : (
-          <VideoRenderer
+          <RTCView
             mirror={debouncedCameraOnFrontFacingMode}
-            mediaStream={localParticipant.videoStream}
+            streamURL={localParticipant.videoStream?.toURL()}
             style={styles.videoStreamFullScreen}
           />
         )}
@@ -131,9 +131,9 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
             ) : showBlankStream ? (
               <View style={styles.videoStream} />
             ) : (
-              <VideoRenderer
+              <RTCView
                 mirror={debouncedCameraOnFrontFacingMode}
-                mediaStream={localParticipant.videoStream}
+                streamURL={localParticipant.videoStream?.toURL()}
                 style={styles.videoStream}
                 // zOrder should higher than the zOrder used in the ParticipantView
                 zOrder={Z_INDEX.IN_MIDDLE}
