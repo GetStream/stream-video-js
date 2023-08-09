@@ -21,7 +21,7 @@ import {
   HangUpCallButton,
   HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
-import { ReactionsPopup } from './ReactionsPopup';
+import { ReactionsPicker } from './ReactionsPicker';
 import { StreamVideoRN } from '../../utils';
 
 /**
@@ -121,7 +121,7 @@ export const CallControls = ({
       <HangUpCallButton onPressHandler={hangUpCallButton?.onPressHandler} />
 
       {showReactionsPicker && (
-        <ReactionsPopup
+        <ReactionsPicker
           reactions={StreamVideoRN.getConfig().supportedReactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
           onRequestedClose={() => {

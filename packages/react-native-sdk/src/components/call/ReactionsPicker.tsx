@@ -10,6 +10,7 @@ import { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
 import { useCall } from '@stream-io/video-react-bindings';
 import { SendReactionRequest } from '@stream-io/video-client';
 import { theme } from '../../theme';
+import { ComponentTestIds } from '../../constants/TestIds';
 
 interface Props {
   reactions: StreamVideoConfig['supportedReactions'];
@@ -20,7 +21,7 @@ interface Props {
 const TOP_PADDING = 4;
 const REACTION_MARGIN_BOTTOM = 4;
 
-export const ReactionsPopup = ({
+export const ReactionsPicker = ({
   reactions,
   reactionsButtonLayoutRectangle,
   onRequestedClose,
@@ -94,6 +95,7 @@ export const ReactionsPopup = ({
   return (
     <>
       <Pressable
+        testID={ComponentTestIds.REACTIONS_PICKER}
         style={[styles.reactionsPopup, reactionsPopupStyle]}
         onPress={() => {
           onClose();
