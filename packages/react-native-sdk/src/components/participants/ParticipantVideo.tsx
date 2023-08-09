@@ -20,6 +20,8 @@ export type ParticipantVideoProps = Pick<
   participant: StreamVideoParticipant;
   /**
    * When set to false, the video stream will not be displayed even if it is available.
+   *
+   * @default false
    */
   muteVideo?: boolean;
   /**

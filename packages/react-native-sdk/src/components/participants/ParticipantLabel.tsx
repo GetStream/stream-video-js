@@ -7,6 +7,7 @@ import { useMediaStreamManagement } from '../../providers';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../constants/TestIds';
 import { ParticipantVideoType } from './ParticipantView';
+import { Z_INDEX } from '../../constants';
 
 export type ParticipantLabelProps = {
   /**
@@ -84,13 +85,14 @@ export const ParticipantLabel = ({
 
 const styles = StyleSheet.create({
   status: {
+    alignSelf: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     backgroundColor: theme.light.static_overlay,
     flexShrink: 1,
-    marginRight: theme.margin.sm,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   userNameLabel: {
     flexShrink: 1,

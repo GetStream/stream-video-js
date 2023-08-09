@@ -7,7 +7,6 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { Z_INDEX } from '../../constants';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
 import {
@@ -46,9 +45,10 @@ export type ParticipantViewProps = {
    * Any custom style to be merged with the participant view
    */
   containerStyle?: StyleProp<ViewStyle>;
-
   /**
    * When set to false, the video stream will not be shown even if it is available.
+   *
+   * @default false
    */
   muteVideo?: boolean;
   /**
@@ -233,9 +233,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
       }}
       onLayout={onLayout}
     >
-      <View style={styles.topView}>
-        <ParticipantReaction participant={participant} />
-      </View>
+      <ParticipantReaction participant={participant} />
       <ParticipantVideo
         muteVideo={muteVideo}
         participant={participant}
@@ -252,22 +250,14 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
 const styles = StyleSheet.create({
   containerBase: {
-    alignItems: 'center',
     justifyContent: 'space-between',
     padding: theme.padding.xs,
     borderColor: palette.grey800,
     borderWidth: 2,
   },
-  topView: {
-    alignSelf: 'flex-start',
-    zIndex: Z_INDEX.IN_FRONT,
-  },
   bottomView: {
-    alignSelf: 'stretch',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: Z_INDEX.IN_FRONT,
   },
   isSpeaking: {
     borderColor: theme.light.primary,

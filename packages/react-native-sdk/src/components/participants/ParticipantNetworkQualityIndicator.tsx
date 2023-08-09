@@ -3,6 +3,7 @@ import { Path, Svg } from 'react-native-svg';
 import { theme } from '../../theme';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import React from 'react';
+import { Z_INDEX } from '../../constants';
 /**
  * Props to be passed for the NetworkQualityIndicator component.
  */
@@ -72,6 +73,8 @@ export const ParticipantNetworkQualityIndicator = ({
 
 const styles = StyleSheet.create({
   container: {
+    zIndex: Z_INDEX.IN_FRONT,
+    alignSelf: 'flex-end',
     backgroundColor: theme.light.static_overlay,
     borderRadius: theme.rounded.xs,
   },

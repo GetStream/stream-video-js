@@ -1,3 +1,4 @@
+import { useCall } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import { MediaStream, RTCView } from 'react-native-webrtc';
@@ -65,6 +66,8 @@ export interface VideoRendererProps {
  * Lower level component, that represents only the video part (wrapper around the WebRTC)
  */
 export const VideoRenderer = (props: VideoRendererProps) => {
+  const call = useCall();
+
   const {
     mediaStream,
     mirror = false,
@@ -72,8 +75,17 @@ export const VideoRenderer = (props: VideoRendererProps) => {
     zOrder = undefined,
     objectFit = 'cover',
   } = props;
+  const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
+    event,
+  ) => {
+    const dimension = {
+      width: Math.trunc(event.nativeEvent.layout.width),
+      height: Math.trunc(event.nativeEvent.layout.height),
+    };
+  };
   return (
     <RTCView
+      onLayout={onLayout}
       streamURL={mediaStream?.toURL()}
       mirror={mirror}
       style={style}

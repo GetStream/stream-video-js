@@ -7,6 +7,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
 import { StreamVideoRN } from '../../utils';
+import { Z_INDEX } from '../../constants';
 
 export type ParticipantReactionProps = {
   /**
@@ -15,6 +16,8 @@ export type ParticipantReactionProps = {
   participant: StreamVideoParticipant | StreamVideoLocalParticipant;
   /**
    * The duration after which the reaction should disappear.
+   *
+   * @default 5500
    */
   hideAfterTimeoutInMs?: number;
 };
@@ -56,14 +59,15 @@ export const ParticipantReaction = (props: ParticipantReactionProps) => {
     }
   }
 
-  return (
-    <View style={[styles.svgContainerStyle, theme.icon.md]}>{component}</View>
-  );
+  return <View style={[styles.container, theme.icon.md]}>{component}</View>;
 };
 
 const styles = StyleSheet.create({
   reaction: {
     ...theme.fonts.heading6,
   },
-  svgContainerStyle: {},
+  container: {
+    alignSelf: 'flex-start',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
 });
