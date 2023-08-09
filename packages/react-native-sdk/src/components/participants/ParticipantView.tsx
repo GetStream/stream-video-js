@@ -130,7 +130,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     if (!call) {
       return;
     }
-    if (muteVideo) {
+    if (!muteVideo) {
       if (viewportVisibilityState !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
@@ -175,7 +175,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
-    const dimension = muteVideo ? pendingVideoLayoutRef.current : undefined;
+    const dimension = !muteVideo ? pendingVideoLayoutRef.current : undefined;
 
     call.updateSubscriptionsPartial(videoMode, {
       [sessionId]: { dimension },
@@ -210,7 +210,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !muteVideo || !hasJoinedCall) {
+    if (!call || !isPublishingVideoTrack || muteVideo || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

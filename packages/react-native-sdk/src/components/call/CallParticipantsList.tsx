@@ -137,7 +137,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
-      const muteVideo = viewableParticipantSessionIds.current.has(
+      const isVideoVisible = viewableParticipantSessionIds.current.has(
         participant.sessionId,
       );
       return (
@@ -145,7 +145,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
           participant={participant}
           containerStyle={itemContainerStyle}
           videoMode="video"
-          muteVideo={muteVideo}
+          muteVideo={!isVideoVisible}
         />
       );
     },
@@ -159,14 +159,16 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   if (!shouldWrapByColumns) {
     return (
       <>
-        {participants.map((participant, index) => (
-          <ParticipantView
-            participant={participant}
-            containerStyle={styles.flexed}
-            videoMode="video"
-            key={keyExtractor(participant, index)}
-          />
-        ))}
+        {participants.map((participant, index) => {
+          return (
+            <ParticipantView
+              participant={participant}
+              containerStyle={styles.flexed}
+              videoMode="video"
+              key={keyExtractor(participant, index)}
+            />
+          );
+        })}
       </>
     );
   }
