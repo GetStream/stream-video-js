@@ -28,6 +28,13 @@ const toggleCamera = () => {
 };
 ```
 
+Here is how you can access the status:
+
+```typescript
+call.camera.state.status; // enabled or disabled
+call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
+```
+
 ### List and select devices
 
 ```typescript
@@ -41,6 +48,13 @@ call.camera
 call.camera.select('device Id');
 ```
 
+Here is how you can access the selected device:
+
+```typescript
+call.camera.state.selectedDevice; // currently selected camera
+call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
+```
+
 ### Flip camera
 
 On mobile devices it's useful if users can switch between the front and back cameras:
@@ -49,13 +63,9 @@ On mobile devices it's useful if users can switch between the front and back cam
 await call.camera.flip();
 ```
 
-### Camera state
+This is how you can access the camera direction:
 
 ```typescript
-call.camera.state.status; // enabled or disabled
-call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
-call.camera.state.selectedDevice; // currently selected camera
-call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 call.camera.state.direction; // front or back
 call.camera.state.direction$.subscribe(console.log); // Reactive value for direction, you can subscribe to changes
 ```
@@ -115,6 +125,13 @@ const toggleMicrophone = () => {
 };
 ```
 
+This is how you can access the microphone status:
+
+```typescript
+call.microphone.state.status; // enabled or disabled
+call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
+```
+
 ### List and select devices
 
 ```typescript
@@ -128,11 +145,9 @@ call.microphone
 call.microphone.select('device Id');
 ```
 
-### Microphone state
+This is how you can access the selected device:
 
 ```typescript
-call.microphone.state.status; // enabled or disabled
-call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 call.microphone.state.selectedDevice; // currently selected microphone
 call.microphone.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 ```
