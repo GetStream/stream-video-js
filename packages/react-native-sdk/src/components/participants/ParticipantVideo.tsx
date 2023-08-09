@@ -35,7 +35,7 @@ export type ParticipantVideoProps = Pick<
 
 /**
  * A component that renders the participants' video track or screenShare track
- * and additional info. By an absence of a video track or when disableVideo is truthy,
+ * and additional info. By an absence of a video track or when muteVideo is truthy,
  * only an avatar and audio track will be rendered.
  */
 export const ParticipantVideo = ({

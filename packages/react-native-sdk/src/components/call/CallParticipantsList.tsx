@@ -137,7 +137,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
-      const isVisible = viewableParticipantSessionIds.current.has(
+      const muteVideo = viewableParticipantSessionIds.current.has(
         participant.sessionId,
       );
       return (
@@ -145,7 +145,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
           participant={participant}
           containerStyle={itemContainerStyle}
           videoMode="video"
-          isVisible={isVisible}
+          muteVideo={muteVideo}
         />
       );
     },
@@ -164,7 +164,7 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
             participant={participant}
             containerStyle={styles.flexed}
             videoMode="video"
-            isVisible={true}
+            muteVideo={true}
             key={keyExtractor(participant, index)}
           />
         ))}

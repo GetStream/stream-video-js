@@ -26,7 +26,7 @@ describe('Participant', () => {
       <ParticipantView
         participant={testParticipant}
         videoMode={'video'}
-        isVisible={false}
+        muteVideo={false}
       />,
     );
 

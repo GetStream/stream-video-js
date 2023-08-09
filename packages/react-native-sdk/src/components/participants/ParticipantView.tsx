@@ -54,11 +54,11 @@ export type ParticipantViewProps = {
   /**
    * When set to false, the video stream will not be shown even if it is available.
    */
-  isVisible?: boolean;
+  muteVideo?: boolean;
   /**
    * When set to true, the audio stream will not be played even if it is available.
    */
-  disableAudio?: boolean;
+  muteAudio?: boolean;
   /**
    * Component to customize Audio component of the participant.
    */
@@ -87,15 +87,15 @@ export type ParticipantViewProps = {
 
 /**
  * A component that renders the participants' video track or screenShare track
- * and additional info. By an absence of a video track or when disableVideo is truthy,
+ * and additional info. By an absence of a video track or when muteVideo is truthy,
  * only an avatar and audio track will be rendered.
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
   const {
     participant,
     videoMode,
-    isVisible = true,
-    disableAudio,
+    muteVideo = true,
+    muteAudio,
     ParticipantAudio = DefaultParticipantAudio,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
@@ -130,7 +130,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     if (!call) {
       return;
     }
-    if (isVisible) {
+    if (muteVideo) {
       if (viewportVisibilityState !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
@@ -150,7 +150,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         subscribedVideoLayoutRef.current = undefined;
       }
     }
-  }, [sessionId, viewportVisibilityState, isVisible, call]);
+  }, [sessionId, viewportVisibilityState, muteVideo, call]);
 
   useEffect(() => {
     if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
@@ -175,7 +175,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
-    const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
+    const dimension = muteVideo ? pendingVideoLayoutRef.current : undefined;
 
     call.updateSubscriptionsPartial(videoMode, {
       [sessionId]: { dimension },
@@ -190,7 +190,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     isPublishingVideoTrack,
     videoMode,
     sessionId,
-    isVisible,
+    muteVideo,
     hasJoinedCall,
   ]);
 
@@ -210,7 +210,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
+    if (!call || !isPublishingVideoTrack || !muteVideo || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }
@@ -251,12 +251,12 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <ParticipantReaction participant={participant} />
       </View>
       <ParticipantVideo
-        isVideoVisible={isVisible}
+        isVideoVisible={muteVideo}
         participant={participant}
         videoMode={videoMode}
         ParticipantVideoPlaceholder={ParticipantVideoPlaceholder}
       />
-      <ParticipantAudio participant={participant} disableAudio={disableAudio} />
+      <ParticipantAudio participant={participant} muteAudio={muteAudio} />
       <View style={styles.bottomView}>
         <ParticipantLabel participant={participant} videoMode={videoMode} />
         <ParticipantNetworkQualityIndicator participant={participant} />

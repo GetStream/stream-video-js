@@ -6,7 +6,7 @@ export type ParticipantAudioProps = {
   /**
    * When set to true, the audio stream will not be played even if it is available.
    */
-  disableAudio?: boolean;
+  muteAudio?: boolean;
   /**
    * The participant whose info will be displayed.
    */
@@ -14,13 +14,13 @@ export type ParticipantAudioProps = {
 };
 
 export const ParticipantAudio = ({
-  disableAudio = false,
+  muteAudio = false,
   participant,
 }: ParticipantAudioProps) => {
   const { audioStream, publishedTracks } = participant;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
 
-  const isAudioAvailable = !!audioStream && !isAudioMuted && !disableAudio;
+  const isAudioAvailable = !!audioStream && !isAudioMuted && !muteAudio;
   if (isAudioAvailable) {
     return <RTCView streamURL={audioStream.toURL()} />;
   }
