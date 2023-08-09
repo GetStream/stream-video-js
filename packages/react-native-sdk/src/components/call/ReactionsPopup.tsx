@@ -155,11 +155,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: REACTION_MARGIN_BOTTOM,
     // temporary background color until we have theming
-    backgroundColor: '#272A30',
+    backgroundColor: theme.light.static_grey,
   },
   reactionText: {
     fontSize: 18.5,
-    fontWeight: 'bold',
-    color: 'white',
   },
 });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  LayoutChangeEvent,
   LayoutRectangle,
   StyleSheet,
   Text,
@@ -61,13 +62,15 @@ export const CallControls = ({
   hangUpCallButton,
   style,
 }: CallControlsType) => {
-  const [showReactionsPopup, setShowReactionsPopup] = useState<boolean>(false);
+  const [showReactionsPicker, setShowReactionsPicker] =
+    useState<boolean>(false);
 
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
     useState<LayoutRectangle>();
 
   // This is for the reaction popup
-  const onReactionsButtonLayout = (layout: LayoutRectangle) => {
+  const onReactionsButtonLayout = (event: LayoutChangeEvent) => {
+    const layout = event.nativeEvent.layout;
     setReactionsButtonLayoutRectangle((prev) => {
       if (
         prev &&
@@ -88,13 +91,11 @@ export const CallControls = ({
         <CallControlsButton
           testID={ButtonTestIds.REACTION}
           onPress={() => {
-            setShowReactionsPopup(true);
+            setShowReactionsPicker(true);
           }}
           color={theme.light.static_white}
           style={styles.button}
-          onLayout={(event) =>
-            onReactionsButtonLayout(event.nativeEvent.layout)
-          }
+          onLayout={onReactionsButtonLayout}
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
@@ -119,12 +120,12 @@ export const CallControls = ({
       <ToggleCameraFaceButton />
       <HangUpCallButton onPressHandler={hangUpCallButton?.onPressHandler} />
 
-      {showReactionsPopup && (
+      {showReactionsPicker && (
         <ReactionsPopup
           reactions={StreamVideoRN.getConfig().supportedReactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
           onRequestedClose={() => {
-            setShowReactionsPopup(false);
+            setShowReactionsPicker(false);
           }}
         />
       )}
