@@ -164,7 +164,6 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
             participant={participant}
             containerStyle={styles.flexed}
             videoMode="video"
-            muteVideo={true}
             key={keyExtractor(participant, index)}
           />
         ))}
