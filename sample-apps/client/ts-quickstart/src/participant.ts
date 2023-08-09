@@ -20,6 +20,7 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
+    videoEl.playsInline = true;
     videoEl.autoplay = true;
   }
   if (videoEl.srcObject !== participant.videoStream) {

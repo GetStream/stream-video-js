@@ -6,6 +6,7 @@ import {
   renderAudioDeviceSelector,
   renderVideoDeviceSelector,
 } from './device-selector';
+import { isMobile } from './mobile';
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY;
 const token = import.meta.env.VITE_STREAM_USER_TOKEN;
@@ -17,9 +18,9 @@ const client = new StreamVideoClient({
   user,
 });
 
-const callId = (
-  new Date().getTime() + Math.round(Math.random() * 100)
-).toString();
+const callId =
+  import.meta.env.VITE_STREAM_CALL_ID ||
+  (new Date().getTime() + Math.round(Math.random() * 100)).toString();
 const call = client.call('default', callId);
 
 call.join({ create: true }).then(async () => {
@@ -37,11 +38,14 @@ call.join({ create: true }).then(async () => {
   container.appendChild(controls.audioButton);
   container.appendChild(controls.videoButton);
 
-  // render device selectors
   container.appendChild(renderAudioDeviceSelector(call));
-  container.appendChild(renderVideoDeviceSelector(call));
-  // TODO: render camera flip on mobile devices
-  // container.appendChild(controls.flipButton);
+
+  // render device selectors
+  if (isMobile.any()) {
+    container.appendChild(controls.flipButton);
+  } else {
+    container.appendChild(renderVideoDeviceSelector(call));
+  }
 });
 
 window.addEventListener('beforeunload', () => {
