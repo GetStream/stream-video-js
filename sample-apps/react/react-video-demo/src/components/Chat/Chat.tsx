@@ -10,12 +10,13 @@ import {
   useChannelStateContext,
 } from 'stream-chat-react';
 
-import ChatInput from '../ChatInput';
-import { ChatRound } from '../Icons';
+import { ChatRound, PaperclipIcon } from '../Icons';
+import { SendButton } from '../ChatInput';
+
+import type { ConnectionError } from '../../hooks/useChatClient';
 
 import 'stream-chat-react/dist/css/v2/index.css';
 import styles from './Chat.module.css';
-import { ConnectionError } from '../../hooks/useChatClient';
 
 export type Props = {
   channelId: string;
@@ -51,10 +52,16 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   }, [channelId, client, setActiveChannel]);
 
   return (
-    <Channel Input={() => <ChatInput />} EmptyStateIndicator={NoMessages}>
+    <Channel
+      EmptyStateIndicator={NoMessages}
+      SendButton={SendButton}
+      FileUploadIcon={PaperclipIcon}
+    >
       <Window>
         <MessageList />
-        <MessageInput />
+        <MessageInput
+          additionalTextareaProps={{ placeholder: 'Send a message' }}
+        />
       </Window>
     </Channel>
   );
