@@ -7,8 +7,8 @@ import {
   OutgoingCall,
   StreamCall,
   useCall,
-  useCallCallingState,
   useCalls,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import { Alert, StyleSheet, View } from 'react-native';
 import { ActiveCall } from '../components/ActiveCall';
@@ -24,6 +24,7 @@ const CallPanel = () => {
   const call = useCall();
   const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
 
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   switch (callingState) {

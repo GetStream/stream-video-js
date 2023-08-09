@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   SfuModels,
   StreamVideoParticipant,
-  useDominantSpeaker,
-  useRemoteParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useAppConfig } from '../../hooks/useAppConfig';
 
@@ -12,6 +11,7 @@ export const useSpotlightParticipant = () => {
     useState<StreamVideoParticipant>();
 
   const { spotlightMode } = useAppConfig();
+  const { useDominantSpeaker, useRemoteParticipants } = useCallStateHooks();
   const dominantSpeaker = useDominantSpeaker();
   const allParticipants = useRemoteParticipants();
   useEffect(() => {

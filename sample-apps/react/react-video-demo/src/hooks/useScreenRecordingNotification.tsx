@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
-import { useIsCallRecordingInProgress } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { Record } from '../components/Icons';
 
@@ -11,6 +11,7 @@ export const useScreenRecordingNotification = () => {
 
   const { addNotification } = useNotificationContext();
 
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
 
   useEffect(() => {

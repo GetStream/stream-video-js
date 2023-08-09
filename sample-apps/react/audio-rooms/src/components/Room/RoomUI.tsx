@@ -8,11 +8,8 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   useCall,
-  useCallCallingState,
-  useCallMetadata,
+  useCallStateHooks,
   useHasPermissions,
-  useLocalParticipant,
-  useParticipants,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatIcon, CloseIcon, ListIcon, PersonIcon } from '../icons';
@@ -34,6 +31,12 @@ type RoomUIProps = {
 
 export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   const call = useCall();
+  const {
+    useCallMetadata,
+    useCallCallingState,
+    useLocalParticipant,
+    useParticipants,
+  } = useCallStateHooks();
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
   const localParticipant = useLocalParticipant();

@@ -2,8 +2,8 @@ import { ComponentType } from 'react';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   Restricted,
+  useCallStateHooks,
   useI18n,
-  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
 import { useMediaDevices } from '../../core';
@@ -47,6 +47,7 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { t } = useI18n();
 

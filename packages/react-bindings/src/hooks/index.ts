@@ -1,5 +1,12 @@
-export * from './call';
-export * from './participants';
+import * as CallStateHooks from './callStateHooks';
+
 export * from './permissions';
 export * from './store';
-export * from './user';
+// export * from './callStateHooks';
+
+/**
+ * A hook-alike function that exposes all call state hooks.
+ *
+ * @category Call State
+ */
+export const useCallStateHooks = () => CallStateHooks;

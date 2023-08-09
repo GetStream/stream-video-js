@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
 import {
   StreamVideoParticipant,
-  useRemoteParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import { People } from '../components/Icons';
@@ -16,6 +16,7 @@ export const useParticipantNotification = () => {
 
   const { addNotification } = useNotificationContext();
 
+  const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
 
   useEffect(() => {

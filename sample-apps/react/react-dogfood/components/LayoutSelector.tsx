@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, forwardRef, useEffect } from 'react';
+import { Dispatch, forwardRef, SetStateAction, useEffect } from 'react';
 import {
   GenericMenu,
   GenericMenuButtonItem,
@@ -7,7 +7,7 @@ import {
   PaginatedGridLayout,
   SpeakerLayout,
   ToggleMenuButtonProps,
-  useHasOngoingScreenShare,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -93,6 +93,7 @@ export const LayoutSelector = ({
   onMenuItemClick: setLayout,
   selectedLayout,
 }: LayoutSelectorProps) => {
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   useEffect(() => {
@@ -133,6 +134,7 @@ const Menu = ({
   onMenuItemClick: setLayout,
   selectedLayout,
 }: LayoutSelectorProps) => {
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   return (

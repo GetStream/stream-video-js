@@ -1,7 +1,8 @@
-import { Avatar, useCallMetadata } from '@stream-io/video-react-sdk';
+import { Avatar, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Stack, Typography } from '@mui/material';
 
 export const ParticipantsPreview = () => {
+  const { useCallMetadata } = useCallStateHooks();
   const callMetadata = useCallMetadata();
 
   if (

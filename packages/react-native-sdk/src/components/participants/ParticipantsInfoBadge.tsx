@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { Participants } from '../../icons';
-import { useParticipantCount } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
 import { ButtonTestIds } from '../../constants/TestIds';
 import { Z_INDEX } from '../../constants';
@@ -23,6 +23,7 @@ export type ParticipantsInfoBadgeProps = Pick<PressableProps, 'style'>;
 export const ParticipantsInfoBadge = ({
   style,
 }: ParticipantsInfoBadgeProps) => {
+  const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
