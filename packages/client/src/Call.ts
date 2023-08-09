@@ -204,7 +204,7 @@ export class Call {
    * A typical use case is to clean up some global event handlers.
    * @private
    */
-  private readonly leaveCallHooks: Function[] = [];
+  private readonly leaveCallHooks: Set<Function> = new Set();
 
   private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, CallEventHandler>();
@@ -255,12 +255,12 @@ export class Call {
       this.state.updateFromEvent(event);
     });
 
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       registerEventHandlers(this, this.state, this.dispatcher),
     );
     this.registerEffects();
 
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
           debounce((v) => timer(v.type)),
@@ -275,13 +275,15 @@ export class Call {
   }
 
   private registerEffects() {
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
         if (!settings) return;
         this.permissionsContext.setCallSettings(settings);
       }),
+    );
 
+    this.leaveCallHooks.add(
       // handle the case when the user permissions are modified.
       createSubscription(this.state.ownCapabilities$, (ownCapabilities) => {
         // update the permission context.
@@ -308,7 +310,9 @@ export class Call {
           }
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // handles the case when the user is blocked by the call owner.
       createSubscription(this.state.blockedUserIds$, async (blockedUserIds) => {
         if (!blockedUserIds) return;
@@ -318,7 +322,9 @@ export class Call {
           await this.leave();
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // watch for auto drop cancellation
       createSubscription(this.state.callingState$, (callingState) => {
         if (!this.ringing) return;
@@ -331,7 +337,9 @@ export class Call {
           this.dropTimeout = undefined;
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // "ringing" mode effects and event handlers
       createSubscription(this.ringingSubject, (isRinging) => {
         if (!isRinging) return;
@@ -339,7 +347,7 @@ export class Call {
         if (this.state.callingState === CallingState.IDLE) {
           this.state.setCallingState(CallingState.RINGING);
         }
-        this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+        this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
       }),
     );
   }
@@ -817,7 +825,7 @@ export class Call {
       },
     );
 
-    this.leaveCallHooks.push(() => {
+    this.leaveCallHooks.add(() => {
       unsubscribeOnlineEvent();
       unsubscribeOfflineEvent();
     });
@@ -1678,7 +1686,7 @@ export class Call {
       )
       .subscribe();
 
-    this.leaveCallHooks.push(() => {
+    this.leaveCallHooks.add(() => {
       !subscription.closed && subscription.unsubscribe();
     });
   };
@@ -1807,14 +1815,13 @@ export class Call {
       );
     };
 
-    const p = this.state.getParticipantLookupBySessionId()[sessionId];
-
-    let viewportVisibilityState =
-      p?.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+    // keep copy for resize observer handler
+    let viewportVisibilityState: VisibilityState | undefined;
     const subscription = this.state.participants$
       .pipe(
         map(
           (participants) =>
+            // this might be very bad for the performance just to get appropriate participant
             participants.find(
               (participant) => participant.sessionId === sessionId,
             ) as StreamVideoParticipant,
@@ -1823,8 +1830,11 @@ export class Call {
         distinctUntilKeyChanged('viewportVisibilityState'),
       )
       .subscribe((v) => {
-        viewportVisibilityState =
-          v.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+        // skip initial trigger
+        if (!viewportVisibilityState) {
+          return (viewportVisibilityState =
+            v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
+        }
 
         if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
           return doUpdate(DebounceType.MEDIUM, null);
@@ -1833,31 +1843,38 @@ export class Call {
         doUpdate(DebounceType.MEDIUM);
       });
 
-    let lastDimension: string;
+    let lastDimensions: string | undefined;
     const resizeObserver = new ResizeObserver(() => {
       const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
 
-      if (!lastDimension) {
-        doUpdate(DebounceType.FAST);
-        lastDimension = currentDimensions;
-        return;
+      // skip initial trigger
+      if (!lastDimensions) {
+        return (lastDimensions = currentDimensions);
       }
 
       if (
-        lastDimension === currentDimensions ||
+        lastDimensions === currentDimensions ||
         viewportVisibilityState === VisibilityState.INVISIBLE
       )
         return;
 
       doUpdate(DebounceType.SLOW);
-      lastDimension = currentDimensions;
+      lastDimensions = currentDimensions;
     });
-
     resizeObserver.observe(videoElement);
+    // do initial update on mount
+    doUpdate(DebounceType.IMMEDIATE);
 
-    return () => {
+    const cleanup = () => {
       subscription.unsubscribe();
       resizeObserver.disconnect();
+    };
+
+    this.leaveCallHooks.add(cleanup);
+
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
     };
   };
 }
