@@ -116,3 +116,7 @@
   display: none;
   transition: opacity 200ms;
 }
+
+.participantsPanel {
+  padding-inline: 0;
+}
