@@ -94,8 +94,8 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const {
     participant,
     videoMode,
-    muteVideo = true,
-    muteAudio,
+    muteVideo = false,
+    muteAudio = false,
     ParticipantAudio = DefaultParticipantAudio,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
@@ -251,7 +251,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
         <ParticipantReaction participant={participant} />
       </View>
       <ParticipantVideo
-        isVideoVisible={muteVideo}
+        muteVideo={muteVideo}
         participant={participant}
         videoMode={videoMode}
         ParticipantVideoPlaceholder={ParticipantVideoPlaceholder}

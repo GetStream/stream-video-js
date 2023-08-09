@@ -21,7 +21,7 @@ export type ParticipantVideoProps = Pick<
   /**
    * When set to false, the video stream will not be displayed even if it is available.
    */
-  isVideoVisible?: boolean;
+  muteVideo?: boolean;
   /**
    * The video kind that will be displayed.
    * @types `screen` or `video`
@@ -39,7 +39,7 @@ export type ParticipantVideoProps = Pick<
  * only an avatar and audio track will be rendered.
  */
 export const ParticipantVideo = ({
-  isVideoVisible = true,
+  muteVideo = false,
   participant,
   videoMode,
   videoRendererStyle,
@@ -64,7 +64,7 @@ export const ParticipantVideo = ({
   const hasVideoTrack = isScreenSharing
     ? hasScreenShareTrack
     : !isParticipantVideoMuted;
-  const canShowVideo = !!videoStream && isVideoVisible && hasVideoTrack;
+  const canShowVideo = !!videoStream && !muteVideo && hasVideoTrack;
   const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
 
   if (canShowVideo) {
