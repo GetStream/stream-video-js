@@ -19,10 +19,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   async flip() {
     const newDirection = this.state.direction === 'front' ? 'back' : 'front';
     this.state.setDirection(newDirection);
-    if (this.state.status === 'enabled') {
-      await this.disable();
-      await this.enable();
-    }
+    // Providing both device id and direction doesn't work, so we deselect the device
+    this.select(undefined);
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -31,8 +29,10 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
-    constraints.facingMode =
-      this.state.direction === 'front' ? 'user' : 'environment';
+    if (!this.state.selectedDevice) {
+      constraints.facingMode =
+        this.state.direction === 'front' ? 'user' : 'environment';
+    }
     return getVideoStream(constraints);
   }
   protected publishStream(stream: MediaStream): Promise<void> {
