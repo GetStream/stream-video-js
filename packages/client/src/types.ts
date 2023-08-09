@@ -25,7 +25,7 @@ export enum VisibilityState {
 }
 
 export enum DebounceType {
-  IMMEDIATE = 0,
+  IMMEDIATE = 20,
   FAST = 100,
   MEDIUM = 600,
   SLOW = 1200,
