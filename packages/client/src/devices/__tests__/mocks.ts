@@ -1,6 +1,5 @@
 import { vi } from 'vitest';
 import { CallingState } from '../../store';
-import { of } from 'rxjs';
 
 export const mockVideoDevices = [
   {

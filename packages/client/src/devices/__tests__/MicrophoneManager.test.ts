@@ -75,9 +75,7 @@ describe('MicrophoneManager', () => {
   it('disable microphone - after joined to call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
-    const stream = mockAudioStream();
-    // @ts-expect-error
-    manager.state.setMediaStream(stream);
+    await manager.enable();
 
     await manager.disable();
 
@@ -99,11 +97,6 @@ describe('MicrophoneManager', () => {
   });
 
   it('select device when microphone is off', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
-    manager.state.setMediaStream(undefined);
-    manager.state.setDevice(undefined);
-
     const deviceId = mockAudioDevices[0].deviceId;
     await manager.select(deviceId);
 
@@ -112,15 +105,12 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].publishAudioStream).not.toHaveBeenCalled();
   });
 
-  it('select device when microphone is on', async () => {
+  it('select device when microphone is on and already joined call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
-    const stream = mockAudioStream();
-    // @ts-expect-error
-    manager.state.setMediaStream(stream);
-    manager.state.setDevice(undefined);
+    await manager.enable();
 
-    const deviceId = mockAudioDevices[0].deviceId;
+    const deviceId = mockAudioDevices[1].deviceId;
     await manager.select(deviceId);
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);

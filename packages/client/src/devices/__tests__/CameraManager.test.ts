@@ -2,7 +2,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, vi, it, expect, Mock } from 'vitest';
 import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -88,8 +88,7 @@ describe('CameraManager', () => {
   it('disable camera - after joined to call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
-    // @ts-expect-error
-    manager.state.setMediaStream(mockVideoStream());
+    await manager.enable();
 
     await manager.disable();
 
@@ -111,11 +110,6 @@ describe('CameraManager', () => {
   });
 
   it('select device when camera is off', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
-    manager.state.setMediaStream(undefined);
-    manager.state.setDevice(undefined);
-
     const deviceId = mockVideoDevices[0].deviceId;
     await manager.select(deviceId);
 
@@ -124,17 +118,18 @@ describe('CameraManager', () => {
     expect(manager['call'].publishVideoStream).not.toHaveBeenCalled();
   });
 
-  it('select device when camera is on', async () => {
+  it('select device when camera is on and in call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
-    // @ts-expect-error
-    manager.state.setMediaStream(mockVideoStream());
-    manager.state.setDevice(undefined);
+    await manager.enable();
 
-    const deviceId = mockVideoDevices[0].deviceId;
+    const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
+    expect(getVideoStream).toHaveBeenCalledWith({
+      deviceId,
+    });
     expect(manager['call'].publishVideoStream).toHaveBeenCalled();
   });
 
@@ -144,6 +139,21 @@ describe('CameraManager', () => {
     await manager.flip();
 
     expect(manager.state.direction).toBe('back');
+  });
+
+  it(`shouldn't set deviceId and facingMode at the same time`, async () => {
+    await manager.enable();
+
+    await manager.flip();
+
+    expect(getVideoStream).toHaveBeenCalledWith({ facingMode: 'environment' });
+
+    const deviceId = mockVideoDevices[1].deviceId;
+    await manager.select(deviceId);
+
+    expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
+      deviceId,
+    });
   });
 
   afterEach(() => {

@@ -79,6 +79,10 @@ export abstract class InputMediaDeviceManager<
       return;
     }
     this.state.setDevice(deviceId);
+    await this.applySettingsToStream();
+  }
+
+  protected async applySettingsToStream() {
     if (this.state.status === 'enabled') {
       await this.disable();
       await this.enable();
