@@ -1,23 +1,18 @@
-import React, { useRef } from 'react';
-import {
-  Animated,
-  PanResponder,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
-import { VideoRenderer } from '../utility/internal/VideoRenderer';
+import React from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useLocalParticipant } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
-import { theme } from '../../theme';
-import { VideoSlash } from '../../icons';
-import { ComponentTestIds } from '../../constants/TestIds';
-import { Avatar } from '../utility/Avatar';
-import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../constants';
-import { useDebouncedValue } from '../../utils/hooks';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-import { ParticipantReaction } from './ParticipantReaction';
+import { Z_INDEX, LOCAL_VIDEO_VIEW_STYLE } from '../../../constants';
+import { ComponentTestIds } from '../../../constants/TestIds';
+import { VideoSlash } from '../../../icons';
+import { useMediaStreamManagement } from '../../../providers';
+import { theme } from '../../../theme';
+import { useDebouncedValue } from '../../../utils/hooks';
+import { Avatar } from '../../utility';
+import { VideoRenderer } from '../../utility/internal/VideoRenderer';
+import { ParticipantReaction } from '../ParticipantReaction';
+import { FloatingViewAlignment } from './FloatingView/common';
+import FloatingView from './FloatingView';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -50,11 +45,6 @@ export interface LocalParticipantViewProps {
  */
 export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const { layout = 'floating' } = props;
-  const containerStyle =
-    layout === 'floating'
-      ? styles.floatingContainer
-      : styles.fullScreenContainer;
-  const { style = containerStyle } = props;
   const localParticipant = useLocalParticipant();
   const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
   // it takes a few milliseconds for the camera stream to actually switch
@@ -62,18 +52,10 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
     isCameraOnFrontFacingMode,
     300,
   );
-  const pan = useRef(new Animated.ValueXY()).current;
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], {
-        useNativeDriver: false,
-      }),
-      onPanResponderRelease: () => {
-        pan.extractOffset();
-      },
-    }),
-  ).current;
+  const [containerDimensions, setContainerDimensions] = React.useState<{
+    width: number;
+    height: number;
+  }>();
 
   if (!localParticipant) {
     return null;
@@ -84,7 +66,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   );
 
   // when camera is switching show a blank stream
-  //otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
+  // otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
   const showBlankStream =
     isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
 
@@ -92,7 +74,7 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
     return (
       <View
         testID={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
-        style={style}
+        style={styles.fullScreenContainer}
       >
         <View style={styles.topView}>
           <ParticipantReaction participant={localParticipant} />
@@ -113,55 +95,77 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   }
 
   return (
-    <Animated.View
+    <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={{
-        // Needed to make the view is on top and draggable
-        zIndex: Z_INDEX.IN_MIDDLE,
-        transform: [{ translateX: pan.x }, { translateY: pan.y }],
+      style={styles.floatingContainer}
+      // "box-none" disallows the container view to be not take up touches
+      // and allows only the floating view (its child view) to take up the touches
+      pointerEvents="box-none"
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        setContainerDimensions((prev) => {
+          if (prev && prev.width === width && prev.height === height) {
+            return prev;
+          }
+          return {
+            width: width,
+            height: height,
+          };
+        });
       }}
-      {...panResponder.panHandlers}
     >
-      <View style={style}>
-        <View style={styles.topView}>
-          <ParticipantReaction participant={localParticipant} />
-        </View>
-        {isVideoMuted ? (
-          <View style={theme.icon.md}>
-            <VideoSlash color={theme.light.static_white} />
+      {containerDimensions && (
+        <FloatingView
+          containerHeight={containerDimensions.height}
+          containerWidth={containerDimensions.width}
+          initialAlignment={FloatingViewAlignment.topRight}
+        >
+          <View style={styles.floatingViewContainer}>
+            <View style={styles.topView}>
+              <ParticipantReaction participant={localParticipant} />
+            </View>
+            {isVideoMuted ? (
+              <View style={theme.icon.md}>
+                <VideoSlash color={theme.light.static_white} />
+              </View>
+            ) : showBlankStream ? (
+              <View style={styles.videoStream} />
+            ) : (
+              <VideoRenderer
+                mirror={debouncedCameraOnFrontFacingMode}
+                mediaStream={localParticipant.videoStream}
+                style={styles.videoStream}
+                // zOrder should higher than the zOrder used in the ParticipantView
+                zOrder={Z_INDEX.IN_MIDDLE}
+              />
+            )}
           </View>
-        ) : showBlankStream ? (
-          <View style={styles.videoStream} />
-        ) : (
-          <VideoRenderer
-            mirror={debouncedCameraOnFrontFacingMode}
-            mediaStream={localParticipant.videoStream}
-            style={styles.videoStream}
-          />
-        )}
-      </View>
-    </Animated.View>
+        </FloatingView>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  floatingContainer: {
-    position: 'absolute',
+  floatingViewContainer: {
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
-    right: theme.spacing.lg * 2,
-    top: theme.margin.xl * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
-    zIndex: Z_INDEX.IN_MIDDLE,
     backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   videoStream: {
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
-    flex: 1,
   },
   videoStreamFullScreen: {
     ...StyleSheet.absoluteFillObject,
@@ -182,5 +186,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  floatingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    margin: theme.padding.md,
+    // Needed to make the view on top and draggable
+    zIndex: Z_INDEX.IN_MIDDLE,
   },
 });
