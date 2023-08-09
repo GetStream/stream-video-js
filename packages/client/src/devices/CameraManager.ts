@@ -20,7 +20,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     const newDirection = this.state.direction === 'front' ? 'back' : 'front';
     this.state.setDirection(newDirection);
     // Providing both device id and direction doesn't work, so we deselect the device
-    this.select(undefined);
+    this.state.setDevice(undefined);
+    await this.applySettingsToStream();
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -29,7 +30,9 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
-    if (!this.state.selectedDevice) {
+    // We can't set both device id and facing mode
+    // Device id has higher priority
+    if (!constraints.deviceId) {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
