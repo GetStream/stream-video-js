@@ -30,6 +30,13 @@
   transition: all 0.3s ease-in;
 }
 
+/* FIXME: use tailwind variable for screen size (or get rid of tailwind) */
+@media (max-width: 768px) {
+  .animated.visible.participantsPanel {
+    height: 50%;
+  }
+}
+
 .header {
   @apply flex justify-between items-center p-4;
 }

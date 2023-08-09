@@ -40,6 +40,7 @@ export const AnimatedPanel: FC<Props & AnimatedProps> = ({
     styles.animated,
     {
       [styles.visible]: visible,
+      [styles.participantsPanel]: props.isParticipantsPanel,
     },
     className,
   );
