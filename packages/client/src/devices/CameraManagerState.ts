@@ -1,5 +1,6 @@
 import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
+import { isReactNative } from '../helpers/platforms';
 
 export class CameraManagerState extends InputMediaDeviceManagerState {
   private directionSubject = new BehaviorSubject<'front' | 'back'>('front');
@@ -40,10 +41,12 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   setMediaStream(stream: MediaStream | undefined): void {
     super.setMediaStream(stream);
     if (stream) {
-      const direction =
-        stream.getVideoTracks()[0]?.getSettings().facingMode === 'environment'
-          ? 'back'
-          : 'front';
+      // RN getSettings() doesn't return facingMode, so we don't verify camera direction
+      const direction = isReactNative()
+        ? this.direction
+        : stream.getVideoTracks()[0]?.getSettings().facingMode === 'environment'
+        ? 'back'
+        : 'front';
       this.setDirection(direction);
     }
   }
