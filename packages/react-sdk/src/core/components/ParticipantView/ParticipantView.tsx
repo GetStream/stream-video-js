@@ -160,12 +160,13 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         )}
       >
         <ParticipantViewContext.Provider value={participantViewContextValue}>
-          <Audio
-            // mute the local participant, as we don't want to hear ourselves
-            muted={isLocalParticipant || muteAudio}
-            sinkId={localParticipant?.audioOutputDeviceId}
-            audioStream={audioStream}
-          />
+          {/* mute the local participant, as we don't want to hear ourselves */}
+          {!isLocalParticipant && !muteAudio && (
+            <Audio
+              sinkId={localParticipant?.audioOutputDeviceId}
+              audioStream={audioStream}
+            />
+          )}
           <Video
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
