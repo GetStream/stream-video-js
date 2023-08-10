@@ -138,6 +138,19 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.publishStream).toHaveBeenCalled();
   });
 
+  it(`changing media stream constraints shouldn't toggle status`, async () => {
+    await manager.enable();
+    const spy = vi.fn();
+    manager.state.status$.subscribe(spy);
+
+    expect(spy.mock.calls.length).toBe(1);
+
+    const deviceId = mockVideoDevices[1].deviceId;
+    await manager.select(deviceId);
+
+    expect(spy.mock.calls.length).toBe(1);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();

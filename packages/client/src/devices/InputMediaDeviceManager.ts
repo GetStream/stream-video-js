@@ -25,15 +25,11 @@ export abstract class InputMediaDeviceManager<
    * Starts camera/microphone
    */
   async enable() {
-    if (this.state.mediaStream) {
+    if (this.state.status === 'enabled') {
       return;
     }
-    const constraints = { deviceId: this.state.selectedDevice };
-    const stream = await this.getStream(constraints);
-    if (this.call.state.callingState === CallingState.JOINED) {
-      await this.publishStream(stream);
-    }
-    this.state.setMediaStream(stream);
+    await this.startStream();
+    this.state.setStatus('enabled');
   }
 
   /**
@@ -41,15 +37,11 @@ export abstract class InputMediaDeviceManager<
    * @returns
    */
   async disable() {
-    if (!this.state.mediaStream) {
+    if (this.state.status === 'disabled') {
       return;
     }
-    if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream();
-    } else {
-      disposeOfMediaStream(this.state.mediaStream);
-    }
-    this.state.setMediaStream(undefined);
+    await this.stopStream();
+    this.state.setStatus('disabled');
   }
 
   /**
@@ -84,8 +76,8 @@ export abstract class InputMediaDeviceManager<
 
   protected async applySettingsToStream() {
     if (this.state.status === 'enabled') {
-      await this.disable();
-      await this.enable();
+      await this.stopStream();
+      await this.startStream();
     }
   }
 
@@ -98,4 +90,28 @@ export abstract class InputMediaDeviceManager<
   protected abstract publishStream(stream: MediaStream): Promise<void>;
 
   protected abstract stopPublishStream(): Promise<void>;
+
+  private async stopStream() {
+    if (!this.state.mediaStream) {
+      return;
+    }
+    if (this.call.state.callingState === CallingState.JOINED) {
+      await this.stopPublishStream();
+    } else if (this.state.mediaStream) {
+      disposeOfMediaStream(this.state.mediaStream);
+    }
+    this.state.setMediaStream(undefined);
+  }
+
+  private async startStream() {
+    if (this.state.mediaStream) {
+      return;
+    }
+    const constraints = { deviceId: this.state.selectedDevice };
+    const stream = await this.getStream(constraints);
+    if (this.call.state.callingState === CallingState.JOINED) {
+      await this.publishStream(stream);
+    }
+    this.state.setMediaStream(stream);
+  }
 }

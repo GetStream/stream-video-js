@@ -1,7 +1,10 @@
-import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
+import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
 
 export abstract class InputMediaDeviceManagerState {
+  protected statusSubject = new BehaviorSubject<'enabled' | 'disabled'>(
+    'disabled',
+  );
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
@@ -23,7 +26,6 @@ export abstract class InputMediaDeviceManagerState {
   /**
    * An Observable that emits the device status
    */
-  // TODO: we should extend this list with loading and error status options
   status$: Observable<'enabled' | 'disabled'>;
 
   constructor() {
@@ -31,9 +33,7 @@ export abstract class InputMediaDeviceManagerState {
     this.selectedDevice$ = this.selectedDeviceSubject
       .asObservable()
       .pipe(distinctUntilChanged());
-    this.status$ = this.mediaStream$.pipe(
-      map((stream) => (stream ? 'enabled' : 'disabled')),
-    );
+    this.status$ = this.statusSubject.asObservable();
   }
 
   /**
@@ -64,6 +64,14 @@ export abstract class InputMediaDeviceManagerState {
    * @param observable$ the observable to get the value from.
    */
   getCurrentValue = RxUtils.getCurrentValue;
+
+  /**
+   * @internal
+   * @param status
+   */
+  setStatus(status: 'enabled' | 'disabled') {
+    this.setCurrentValue(this.statusSubject, status);
+  }
 
   /**
    * @internal
