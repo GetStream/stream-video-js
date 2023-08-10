@@ -23,7 +23,7 @@ export const mockVideoDevices = [
     label: 'FaceTime HD Camera (Built-in) (05ac:8514)',
     groupId: '0387adca5bc7ab2850a9b9594a5622d838de4f78cbdf4d31c3506b701c58d94d',
   },
-];
+] as MediaDeviceInfo[];
 
 export const mockAudioDevices = [
   {
@@ -60,7 +60,7 @@ export const mockAudioDevices = [
     label: 'ZoomAudioDevice (Virtual)',
     groupId: '423bb83eab8607fe47313f2e0307600c40e03c37ad63a3b8412d3d5eb0671a55',
   },
-];
+] as MediaDeviceInfo[];
 
 export const mockCall = () => {
   return {
@@ -82,7 +82,7 @@ export const mockAudioStream = () => {
         }),
       },
     ],
-  };
+  } as MediaStream;
 };
 
 export const mockVideoStream = () => {
@@ -94,5 +94,5 @@ export const mockVideoStream = () => {
         }),
       },
     ],
-  };
+  } as MediaStream;
 };
