@@ -8,6 +8,7 @@ import {
   MessageInput,
   useChatContext,
   useChannelStateContext,
+  MESSAGE_ACTIONS,
 } from 'stream-chat-react';
 
 import { ChatRound, PaperclipIcon } from '../Icons';
@@ -17,6 +18,14 @@ import type { ConnectionError } from '../../hooks/useChatClient';
 
 import 'stream-chat-react/dist/css/v2/index.css';
 import styles from './Chat.module.css';
+
+const ALLOWED_MESSAGE_ACTIONS = [
+  MESSAGE_ACTIONS.edit,
+  MESSAGE_ACTIONS.delete,
+  MESSAGE_ACTIONS.flag,
+  MESSAGE_ACTIONS.quote,
+  MESSAGE_ACTIONS.react,
+];
 
 export type Props = {
   channelId: string;
@@ -49,7 +58,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
     const channel = client.channel(channelType, channelId);
 
     setActiveChannel(channel);
-  }, [channelId, client, setActiveChannel]);
+  }, [channelId, channelType, client, setActiveChannel]);
 
   return (
     <Channel
@@ -58,7 +67,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
       FileUploadIcon={PaperclipIcon}
     >
       <Window>
-        <MessageList />
+        <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
         <MessageInput
           additionalTextareaProps={{ placeholder: 'Send a message' }}
         />
