@@ -4,6 +4,7 @@ import { CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { CallSettingsResponse } from '../gen/coordinator';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   constructor(call: Call) {
@@ -43,5 +44,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
   protected stopPublishStream(): Promise<void> {
     return this.call.stopPublish(TrackType.VIDEO);
+  }
+
+  protected async applyDefaultSettings(settings: CallSettingsResponse) {
+    if (this.state.status === undefined && settings.video) {
+      await (settings.video.camera_default_on ? this.enable() : this.disable());
+    }
   }
 }

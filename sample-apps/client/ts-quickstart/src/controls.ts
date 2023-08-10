@@ -2,16 +2,14 @@ import { Call } from '@stream-io/video-client';
 
 const renderAudioButton = (call: Call) => {
   const audioButton = document.createElement('button');
-  audioButton.innerText = call.state.metadata?.settings.video.camera_default_on
-    ? 'Turn off mic'
-    : 'Turn on mic';
 
   audioButton.addEventListener('click', async () => {
     await call.microphone.toggle();
+  });
+
+  call.microphone.state.status$.subscribe((status) => {
     audioButton.innerText =
-      call.microphone.state.status === 'enabled'
-        ? 'Turn off mic'
-        : 'Turn on mic';
+      status === 'enabled' ? 'Turn off mic' : 'Turn on mic';
   });
 
   return audioButton;
@@ -19,16 +17,14 @@ const renderAudioButton = (call: Call) => {
 
 const renderVideoButton = (call: Call) => {
   const videoButton = document.createElement('button');
-  videoButton.innerText = call.state.metadata?.settings.audio.mic_default_on
-    ? 'Turn off camera'
-    : 'Turn on camera';
 
   videoButton.addEventListener('click', async () => {
     await call.camera.toggle();
+  });
+
+  call.camera.state.status$.subscribe((status) => {
     videoButton.innerText =
-      call.camera.state.status === 'enabled'
-        ? 'Turn off canera'
-        : 'Turn on canera';
+      status === 'enabled' ? 'Turn off camera' : 'Turn on camera';
   });
 
   return videoButton;

@@ -4,11 +4,18 @@ import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { disposeOfMediaStream } from './devices';
 import { isReactNative } from '../helpers/platforms';
+import { CallSettingsResponse } from '../gen/coordinator';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
 > {
-  constructor(protected readonly call: Call, public readonly state: T) {}
+  constructor(protected readonly call: Call, public readonly state: T) {
+    this.call.state.metadata$.subscribe((metadata) => {
+      if (metadata?.settings) {
+        void this.applyDefaultSettings(metadata.settings);
+      }
+    });
+  }
 
   /**
    * Lists the available audio/video devices
@@ -49,10 +56,10 @@ export abstract class InputMediaDeviceManager<
    * @returns
    */
   async toggle() {
-    if (this.state.status === 'disabled') {
-      return this.enable();
-    } else {
+    if (this.state.status === 'enabled') {
       return this.disable();
+    } else {
+      return this.enable();
     }
   }
 
@@ -90,6 +97,10 @@ export abstract class InputMediaDeviceManager<
   protected abstract publishStream(stream: MediaStream): Promise<void>;
 
   protected abstract stopPublishStream(): Promise<void>;
+
+  protected abstract applyDefaultSettings(
+    settings: CallSettingsResponse,
+  ): Promise<void>;
 
   private async stopStream() {
     if (!this.state.mediaStream) {
