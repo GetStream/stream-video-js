@@ -14,7 +14,23 @@ import { Video, VideoSlash } from '../../../icons';
 import { usePermissionNotification } from '../../../hooks';
 import { useMediaStreamManagement } from '../../../providers';
 
-export const ToggleVideoButton = () => {
+/**
+ * Props for the Toggle Video publishing button
+ */
+export type ToggleVideoPublishingButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle video mute/unmute status while in the call.
+ */
+export const ToggleVideoPublishingButton = ({
+  onPressHandler,
+}: ToggleVideoPublishingButtonProps) => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
   const { t } = useI18n();
@@ -57,6 +73,10 @@ export const ToggleVideoButton = () => {
   });
 
   const handleToggleVideoButton = async () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
     if (userHasSendVideoCapability) {
       await toggleVideoMuted();
       return;

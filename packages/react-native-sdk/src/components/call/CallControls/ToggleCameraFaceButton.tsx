@@ -8,14 +8,38 @@ import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
 import { StyleSheet } from 'react-native';
 
-export const ToggleCameraFaceButton = () => {
+/**
+ * Props for the Toggle Camera face button.
+ */
+export type ToggleCameraFaceButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle camera face(front/back) when in the call.
+ */
+export const ToggleCameraFaceButton = ({
+  onPressHandler,
+}: ToggleCameraFaceButtonProps) => {
   const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useMediaStreamManagement();
+
+  const toggleCameraFaceHandler = () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
+    toggleCameraFacingMode();
+  };
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
-        onPress={toggleCameraFacingMode}
+        onPress={toggleCameraFaceHandler}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
         style={isCameraOnFrontFacingMode ? styles.button : null}
       >

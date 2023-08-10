@@ -14,7 +14,23 @@ import { Alert, StyleSheet } from 'react-native';
 import { muteStatusColor } from '../../../utils';
 import { useMediaStreamManagement } from '../../../providers';
 
-export const ToggleAudioButton = () => {
+/**
+ * Props for the Toggle Audio publishing button
+ */
+export type ToggleAudioPublishingButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle audio mute/unmute status while in the call.
+ */
+export const ToggleAudioPublishingButton = ({
+  onPressHandler,
+}: ToggleAudioPublishingButtonProps) => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const { isAudioMuted, toggleAudioMuted } = useMediaStreamManagement();
   const userHasSendAudioCapability = useHasPermissions(
@@ -57,6 +73,10 @@ export const ToggleAudioButton = () => {
   );
 
   const handleToggleAudioButton = async () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
     if (userHasSendAudioCapability) {
       await toggleAudioMuted();
       return;

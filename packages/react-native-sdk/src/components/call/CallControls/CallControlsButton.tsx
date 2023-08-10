@@ -30,6 +30,10 @@ interface CallControlsButtonProps {
    * Accessibility label for the button.
    */
   testID?: string;
+  /**
+   * Invoked on mount and layout changes with
+   * {nativeEvent: { layout: {x, y, width, height}}}.
+   */
   onLayout?: View['props']['onLayout'];
 }
 

@@ -16,15 +16,24 @@ export type HangUpCallButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
-
+  /**
+   * Handler to be called when the call is hanged up.
+   */
+  onHangUpCall?: () => void;
   /**
    * Style of the Button Container
    */
   style?: StyleProp<ViewStyle>;
 };
 
+/**
+ * Button to hangup a call.
+ *
+ * Mostly calls call.leave() internally.
+ */
 export const HangUpCallButton = ({
   onPressHandler,
+  onHangUpCall,
   style,
 }: HangUpCallButtonProps) => {
   const call = useCall();
@@ -40,6 +49,9 @@ export const HangUpCallButton = ({
         return;
       }
       await call?.leave();
+      if (onHangUpCall) {
+        onHangUpCall();
+      }
     } catch (error) {
       console.error('Error leaving call:', error);
     }

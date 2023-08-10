@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallContentProps,
-  CallControls,
   CallControlsType,
   CallingState,
   ParticipantsInfoBadge,
@@ -9,6 +8,15 @@ import {
   useCall,
   useIncallManager,
   theme,
+  ReactionButton,
+  ChatButton,
+  ToggleVideoPublishingButton,
+  ToggleAudioPublishingButton,
+  ToggleCameraFaceButton,
+  HangUpCallButton,
+  ChatButtonProps,
+  CallControls,
+  HangUpCallButtonProps,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
@@ -18,14 +26,18 @@ import {
 } from 'react-native-safe-area-context';
 import { ActiveCallNotification } from './ActiveCallNotification';
 import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
+import { Z_INDEX } from '@stream-io/video-react-native-sdk/src/constants';
 
-type ActiveCallProps = CallControlsType;
+type ActiveCallProps = CallControlsType & {
+  chatButton: ChatButtonProps;
+  hangupCallButton: HangUpCallButtonProps;
+};
 
 type Layout = CallContentProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
-  hangUpCallButton,
+  hangupCallButton,
 }: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
@@ -62,14 +74,24 @@ export const ActiveCall = ({
         <ParticipantsInfoBadge />
       </View>
       <CallContent mode={selectedLayout} />
-      <CallControls
-        chatButton={chatButton}
-        hangUpCallButton={hangUpCallButton}
+      {/* Since we want the chat and the reaction button the entire call controls is customized */}
+      <View
         style={[
           styles.callControlsWrapper,
           { paddingBottom: Math.max(bottom, appTheme.spacing.lg) },
         ]}
-      />
+      >
+        <ReactionButton />
+        <ChatButton
+          onPressHandler={chatButton?.onPressHandler}
+          unreadBadgeCountIndicator={chatButton?.unreadBadgeCountIndicator}
+        />
+        <ToggleVideoPublishingButton />
+        <ToggleAudioPublishingButton />
+        <ToggleCameraFaceButton />
+        <HangUpCallButton onPressHandler={hangupCallButton.onPressHandler} />
+      </View>
+      <CallControls onHangupCallHandler={hangupCallButton.onPressHandler} />
     </SafeAreaView>
   );
 };
@@ -88,7 +110,9 @@ const styles = StyleSheet.create({
     zIndex: appTheme.zIndex.IN_FRONT,
   },
   callControlsWrapper: {
-    paddingTop: appTheme.spacing.lg,
-    paddingHorizontal: appTheme.spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: theme.padding.sm,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

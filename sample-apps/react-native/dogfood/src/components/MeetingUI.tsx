@@ -110,7 +110,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           },
           unreadBadgeCountIndicator,
         }}
-        hangUpCallButton={{
+        hangupCallButton={{
           onPressHandler: onCallHangupHandler,
         }}
       />
