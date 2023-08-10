@@ -15,7 +15,6 @@ import {
   ToggleCameraFaceButton,
   HangUpCallButton,
   ChatButtonProps,
-  HangUpCallButtonProps,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
@@ -28,15 +27,15 @@ import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
 import { Z_INDEX } from '@stream-io/video-react-native-sdk/src/constants';
 
 type ActiveCallProps = CallControlsType & {
-  chatButton: ChatButtonProps;
-  hangupCallButton: HangUpCallButtonProps;
+  chatButton?: ChatButtonProps;
+  onHangupCallHandler?: () => void;
 };
 
 type Layout = CallContentProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
-  hangupCallButton,
+  onHangupCallHandler,
 }: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
@@ -88,7 +87,7 @@ export const ActiveCall = ({
         <ToggleVideoPublishingButton />
         <ToggleAudioPublishingButton />
         <ToggleCameraFaceButton />
-        <HangUpCallButton onPressHandler={hangupCallButton.onPressHandler} />
+        <HangUpCallButton onPressHandler={onHangupCallHandler} />
       </View>
     </SafeAreaView>
   );
