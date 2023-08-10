@@ -20,7 +20,9 @@
   --str-chat__avatar-background-color: #005fff;
 
   --str-chat__message-textarea-color: #72767E;
-  --str-chat__message-send-disabled-color: #272a30
+  --str-chat__message-send-disabled-color: #272a30;
+  --str-chat__message-bubble-background-color: #1C1E22;
+  /*--str-chat__message-list-background-color: #000;*/
 }
 
 .str-chat__channel .str-chat__container {
@@ -201,15 +203,7 @@
 .str-chat__message.str-chat__message--me .str-chat__message-bubble {
   @apply text-video-grey-200;
 }
-.str-chat__message.str-chat__message--me .str-chat__message-inner,
-.str-chat__quoted-message-preview.str-chat__message--me
-  .str-chat__message-inner {
-  grid-template-areas:
-    'options message-bubble'
-    'reactions reactions';
-  grid-template-columns: 1fr auto;
-  row-gap: 10px;
-}
+
 
 .str-chat__edit-message-form
   .str-chat__edit-message-form-options
