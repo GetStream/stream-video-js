@@ -19,6 +19,10 @@ interface CallControlsButtonProps {
    */
   color?: string;
   /**
+   * Boolean to enable/enable the button
+   */
+  disabled?: boolean;
+  /**
    * Style to the Pressable button.
    */
   style?: StyleProp<ViewStyle>;
@@ -30,6 +34,7 @@ interface CallControlsButtonProps {
    * Accessibility label for the button.
    */
   testID?: string;
+  onLayout?: View['props']['onLayout'];
 }
 
 const DEFAULT_ICON_SIZE = theme.icon.md;
@@ -38,7 +43,16 @@ const DEFAULT_BUTTON_SIZE = theme.button.sm;
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
-  const { onPress, children, color, style, svgContainerStyle, testID } = props;
+  const {
+    onPress,
+    children,
+    disabled,
+    color,
+    style,
+    svgContainerStyle,
+    testID,
+    onLayout,
+  } = props;
 
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
     DEFAULT_BUTTON_SIZE,
@@ -48,10 +62,17 @@ export const CallControlsButton = (
       opacity: pressed ? 0.2 : 1,
     },
     style ? style : null,
+    disabled ? styles.disabledStyle : null,
   ];
 
   return (
-    <Pressable style={pressableStyle} onPress={onPress} testID={testID}>
+    <Pressable
+      disabled={disabled}
+      style={pressableStyle}
+      onPress={onPress}
+      testID={testID}
+      onLayout={onLayout}
+    >
       <View
         style={[
           styles.svgContainerStyle,
@@ -73,4 +94,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   svgContainerStyle: {},
+  disabledStyle: {
+    backgroundColor: theme.light.disabled,
+  },
 });

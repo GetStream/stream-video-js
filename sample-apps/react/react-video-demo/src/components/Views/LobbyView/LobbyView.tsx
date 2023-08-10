@@ -6,7 +6,7 @@ import { User } from '@stream-io/video-react-sdk';
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
 
-import { requestMediaPermissions, MediaPermissionsError } from 'mic-check';
+import { MediaPermissionsError, requestMediaPermissions } from 'mic-check';
 
 import LobbyLayout from '../../Layout/LobbyLayout';
 
@@ -60,15 +60,15 @@ export const LobbyView: FC<Props & Lobby> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const nextSentence =
-        loadingSentences[
-          (loadingSentences.indexOf(loadingSentence) + 1) %
-            loadingSentences.length
-        ];
-      setLoadingSentence(nextSentence);
+      setLoadingSentence((currentSentence) => {
+        const nextIndex =
+          (loadingSentences.indexOf(currentSentence) + 1) %
+          loadingSentences.length;
+        return loadingSentences[nextIndex];
+      });
     }, 1000);
     return () => clearInterval(interval);
-  }, [loadingSentence]);
+  }, []);
 
   return (
     <LobbyLayout

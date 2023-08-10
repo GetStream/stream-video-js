@@ -248,6 +248,7 @@ export const Participant = (props: ParticipantProps) => {
       </View>
       {canShowVideo ? (
         <VideoRenderer
+          // zOrder should lower than the zOrder used in the floating LocalParticipantView
           zOrder={Z_INDEX.IN_BACK}
           mirror={mirror}
           mediaStream={videoStream}

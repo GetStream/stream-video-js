@@ -1,7 +1,7 @@
 import { StreamReaction, StreamVideoClient } from '@stream-io/video-client';
 import { AndroidChannel } from '@notifee/react-native';
 
-type StreamReactionType = StreamReaction & {
+type StreamReactionType = Required<StreamReaction> & {
   icon: string | JSX.Element;
 };
 

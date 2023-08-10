@@ -1483,7 +1483,7 @@ export class Call {
   /**
    * Starts the broadcasting of the call.
    */
-  startBroadcasting = async () => {
+  startHLS = async () => {
     return this.streamClient.post<StartBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
@@ -1493,7 +1493,7 @@ export class Call {
   /**
    * Stops the broadcasting of the call.
    */
-  stopBroadcasting = async () => {
+  stopHLS = async () => {
     return this.streamClient.post<StopBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},

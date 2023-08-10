@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.363](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.362...@stream-io/video-react-native-sdk-0.0.1-alpha.363) (2023-08-10)
+
+
+
+## [0.0.1-alpha.362](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.361...@stream-io/video-react-native-sdk-0.0.1-alpha.362) (2023-08-10)
+
+
+### Bug Fixes
+
+* **react-native:** avoid usage of image showcase in push notification docs ([b820b94](https://github.com/GetStream/stream-video-js/commit/b820b946131e5cd4f897daf5f2f18fadcd980697))
+* **react-native:** disable camera toggle face button when local video is muted ([#903](https://github.com/GetStream/stream-video-js/issues/903)) ([58150bc](https://github.com/GetStream/stream-video-js/commit/58150bc8d15e6e62654e1f0bc14dc207d51ed1f9))
+
+
+
+## [0.0.1-alpha.361](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.360...@stream-io/video-react-native-sdk-0.0.1-alpha.361) (2023-08-09)
+
+
+### Features
+
+* **react-native:** add basic reactions popup ([#913](https://github.com/GetStream/stream-video-js/issues/913)) ([3969000](https://github.com/GetStream/stream-video-js/commit/3969000025faabf8c923c1648bc19475d31e0cfb))
+
+
+
+## [0.0.1-alpha.360](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.359...@stream-io/video-react-native-sdk-0.0.1-alpha.360) (2023-08-08)
+
+
+### Features
+
+* **react-native:** floating and a snapping animated local video view ([#906](https://github.com/GetStream/stream-video-js/issues/906)) ([aa683f6](https://github.com/GetStream/stream-video-js/commit/aa683f6908ee5b74575eb9f439c50c0d5cd83297))
+
+
+
+## [0.0.1-alpha.359](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.358...@stream-io/video-react-native-sdk-0.0.1-alpha.359) (2023-08-08)
+
+
+
 ## [0.0.1-alpha.358](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.357...@stream-io/video-react-native-sdk-0.0.1-alpha.358) (2023-08-08)
 
 
