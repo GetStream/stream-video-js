@@ -32,6 +32,12 @@
 @media (max-width: 768px) {
   .animated.visible.participantsPanel {
     height: 50%;
+
+    .content.participantsPanel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
   }
 }
 

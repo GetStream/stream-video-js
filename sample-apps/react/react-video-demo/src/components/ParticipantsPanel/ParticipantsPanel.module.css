@@ -31,7 +31,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  height: calc(100% - 60px);
+  flex: 1;
 }
 
 .participant {
