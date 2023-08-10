@@ -3,6 +3,7 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -14,6 +15,7 @@ import {
 import {
   useCall,
   useCallCallingState,
+  useCallMetadata,
   useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 import {
@@ -105,6 +107,7 @@ const MediaStreamContext =
  */
 export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
+  const settings = useCallMetadata()?.settings;
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
   const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
@@ -145,6 +148,19 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     }
     return hasNativePermission && hasUserPermission;
   });
+
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+    const { audio, video } = settings;
+    if (audio.mic_default_on && isMicPermissionGranted$.getValue()) {
+      setInitialAudioEnabled(audio.mic_default_on);
+    }
+    if (video.camera_default_on && isCameraPermissionGranted$.getValue()) {
+      setInitialVideoEnabled(video.camera_default_on);
+    }
+  }, [settings]);
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initVideoEnabled,
