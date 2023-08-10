@@ -1,13 +1,5 @@
-import {
-  FC,
-  ReactNode,
-  useCallback,
-  useState,
-  useRef,
-  forwardRef,
-} from 'react';
+import { FC, forwardRef, ReactNode, useState } from 'react';
 import classnames from 'classnames';
-import { CSSTransition } from 'react-transition-group';
 
 import { ArrowDown, Close } from '../Icons';
 
@@ -68,10 +60,6 @@ export const Panel = forwardRef<any, Props>(function MyInput(
 ) {
   const [isOpen, setOpen] = useState(true);
 
-  const handleCollapse = useCallback(() => {
-    setOpen(!isOpen);
-  }, [isOpen]);
-
   const rootClassname = classnames(
     styles.root,
     {
@@ -98,16 +86,16 @@ export const Panel = forwardRef<any, Props>(function MyInput(
 
   return (
     <div className={rootClassname} ref={ref}>
-      <div className={headingClassName}>
+      <div
+        className={headingClassName}
+        onClick={() => {
+          setOpen((prev) => !prev);
+        }}
+      >
         <h2 className={styles.heading}>{title}</h2>
 
         {canCollapse && !close ? (
-          <Button
-            className={styles.toggle}
-            color="secondary"
-            onClick={handleCollapse}
-            shape="square"
-          >
+          <Button className={styles.toggle} color="secondary" shape="square">
             <ArrowDown className={arrowClassName} />
           </Button>
         ) : null}

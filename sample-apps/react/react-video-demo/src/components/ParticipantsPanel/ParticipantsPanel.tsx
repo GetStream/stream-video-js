@@ -63,9 +63,9 @@ export const ParticipantsPanel: FC<Props> = ({
         </>
       }
       isFocused={isFocused}
-      canCollapse={true}
       fulllHeight={fulllHeight}
       close={close}
+      canCollapse
       isParticipantsPanel
     >
       <div className={styles.search}>

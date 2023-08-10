@@ -45,6 +45,7 @@
 
 .header.canCollapse {
   @apply flex justify-between items-center;
+  cursor: pointer;
 }
 
 .arrow {
