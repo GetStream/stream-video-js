@@ -1,8 +1,9 @@
 .search {
-  @apply hidden sm:flex bg-video-grey-500 flex items-center relative text-video-white/50 mt-4;
+  @apply sm:flex bg-video-grey-500 flex items-center justify-center text-video-white/50 mt-4;
   border: 1px solid #272a30;
   border-radius: 44px;
   height: 35px;
+  margin-inline: 0.5rem;
 }
 
 .amount {
@@ -10,17 +11,19 @@
 }
 
 .input {
-  @apply bg-video-transparent p-4 relative border-none text-sm z-10 cursor-pointer w-full h-full;
+  @apply bg-video-transparent border-none text-sm z-10 h-full;
+  padding: 1rem 0 1rem 1rem;
+  flex: 1;
+  outline: none;
 }
 
 .input:focus,
 .input:hover {
-  @apply bg-video-transparent relative border-none cursor-pointer;
+  @apply bg-video-transparent relative border-none;
 }
 
 .searchIcon {
-  @apply absolute z-0;
-  right: 8px;
+  margin-inline: 8px;
 }
 
 .participants {
@@ -33,6 +36,8 @@
 
 .participant {
   @apply flex items-center justify-between px-3 py-1.5;
+  padding-block: 0.375rem;
+  padding-inline: 1.125rem 0.75rem;
   font-size: 0.75rem;
 }
 

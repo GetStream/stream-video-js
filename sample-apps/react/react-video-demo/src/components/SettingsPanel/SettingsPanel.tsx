@@ -36,24 +36,24 @@ export const SettingsPanel: FC<Props> = ({
   toggleRecording,
   toggleShareScreen,
 }) => {
-  const { setComponent } = useModalContext();
+  const { setModal } = useModalContext();
   const { toggleSettings } = usePanelContext();
 
   const handleFeedback = useCallback(() => {
-    setComponent(<Feedback callId={callId} inMeeting={true} />);
-  }, [setComponent]);
+    setModal(<Feedback callId={callId} inMeeting />);
+  }, [setModal]);
 
   const handleSettings = useCallback(() => {
-    setComponent(<DeviceSettings />);
-  }, [setComponent]);
+    setModal(<DeviceSettings />);
+  }, [setModal]);
 
   const handleRecordings = useCallback(() => {
-    setComponent(<Recordings />);
-  }, [setComponent]);
+    setModal(<Recordings />);
+  }, [setModal]);
 
   const handleToggleCallState = useCallback(() => {
-    setComponent(<CallStats callId={callId} />);
-  }, [callId, setComponent]);
+    setModal(<CallStats callId={callId} />);
+  }, [callId, setModal]);
 
   const handleFullScreen = useCallback(() => {
     toggleSettings();

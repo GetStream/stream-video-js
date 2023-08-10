@@ -53,7 +53,7 @@ export const Footer: FC<Props> = ({
   participantCount,
   leave,
 }) => {
-  const { isVisible } = useModalContext();
+  const { showModal } = useModalContext();
   const {
     isChatVisible,
     isParticipantsVisible,
@@ -66,10 +66,10 @@ export const Footer: FC<Props> = ({
   } = usePanelContext();
 
   useEffect(() => {
-    if (isVisible && isSettingsVisible) {
+    if (showModal && isSettingsVisible) {
       toggleSettings();
     }
-  }, [isVisible]);
+  }, [showModal]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,

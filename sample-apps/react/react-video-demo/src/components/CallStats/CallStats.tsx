@@ -40,7 +40,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
   const previousStats = useRef<CallStatsReport>();
   const callStatsReport = useCallStatsReport();
 
-  const { close } = useModalContext();
+  const { closeModal } = useModalContext();
 
   useEffect(() => {
     if (!callStatsReport) return;
@@ -82,7 +82,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
         <p className={styles.callId}>Call ID: {callId}</p>
         <div className={styles.close}>
           <Button
-            onClick={() => close()}
+            onClick={closeModal}
             className={styles.button}
             color="transparent"
             shape="square"

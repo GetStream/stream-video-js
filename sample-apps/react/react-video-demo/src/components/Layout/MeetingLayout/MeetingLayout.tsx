@@ -36,7 +36,7 @@ export const MeetingLayout: FC<Props> = ({
   chatConnectionError,
   callId,
 }) => {
-  const { isVisible, component, close } = useModalContext();
+  const { showModal, modalElement, closeModal } = useModalContext();
   const { isChatVisible, isParticipantsVisible, toggleChat } =
     usePanelContext();
 
@@ -84,7 +84,7 @@ export const MeetingLayout: FC<Props> = ({
 
         <CSSTransition
           nodeRef={transitionRef}
-          in={isVisible}
+          in={showModal}
           timeout={500}
           classNames={{
             enterActive: styles['animation-enter'],
@@ -94,11 +94,11 @@ export const MeetingLayout: FC<Props> = ({
           }}
         >
           <div ref={transitionRef} className={styles.modals}>
-            <div className={styles.modal}>{component}</div>
+            <div className={styles.modal}>{modalElement}</div>
 
             <div className={styles.space}></div>
-            {isVisible ? (
-              <div className={styles.backdrop} onClick={() => close()} />
+            {showModal ? (
+              <div className={styles.backdrop} onClick={closeModal} />
             ) : null}
           </div>
         </CSSTransition>
