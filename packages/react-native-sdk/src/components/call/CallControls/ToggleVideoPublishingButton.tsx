@@ -78,7 +78,7 @@ export const ToggleVideoPublishingButton = ({
       return;
     }
     if (userHasSendVideoCapability) {
-      await toggleVideoMuted();
+      toggleVideoMuted();
       return;
     }
     if (!isAwaitingApproval) {

@@ -78,7 +78,7 @@ export const ToggleAudioPublishingButton = ({
       return;
     }
     if (userHasSendAudioCapability) {
-      await toggleAudioMuted();
+      toggleAudioMuted();
       return;
     }
     if (!isAwaitingApproval) {

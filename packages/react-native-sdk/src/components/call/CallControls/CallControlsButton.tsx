@@ -65,7 +65,7 @@ export const CallControlsButton = (
       backgroundColor: color,
       opacity: pressed ? 0.2 : 1,
     },
-    style ? style : null,
+    style,
     disabled ? styles.disabledStyle : null,
   ];
 
