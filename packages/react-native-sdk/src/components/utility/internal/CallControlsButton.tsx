@@ -19,6 +19,10 @@ interface CallControlsButtonProps {
    */
   color?: string;
   /**
+   * Boolean to enable/enable the button
+   */
+  disabled?: boolean;
+  /**
    * Style to the Pressable button.
    */
   style?: StyleProp<ViewStyle>;
@@ -42,6 +46,7 @@ export const CallControlsButton = (
   const {
     onPress,
     children,
+    disabled,
     color,
     style,
     svgContainerStyle,
@@ -57,10 +62,12 @@ export const CallControlsButton = (
       opacity: pressed ? 0.2 : 1,
     },
     style ? style : null,
+    disabled ? styles.disabledStyle : null,
   ];
 
   return (
     <Pressable
+      disabled={disabled}
       style={pressableStyle}
       onPress={onPress}
       testID={testID}
@@ -87,4 +94,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   svgContainerStyle: {},
+  disabledStyle: {
+    backgroundColor: theme.light.disabled,
+  },
 });
