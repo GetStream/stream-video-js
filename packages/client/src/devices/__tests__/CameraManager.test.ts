@@ -8,6 +8,7 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
+import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -63,6 +64,30 @@ describe('CameraManager', () => {
     await manager.enable();
 
     expect(manager.state.selectedDevice).toBeDefined();
+  });
+
+  it('should apply backend settings', async () => {
+    const settings = {
+      video: {
+        camera_default_on: true,
+      },
+    } as CallSettingsResponse;
+
+    await manager['applyDefaultSettings'](settings);
+    expect(manager.state.status).toBe('enabled');
+  });
+
+  it(`shouldn't apply backend settings if status is already set`, async () => {
+    await manager.enable();
+
+    const settings = {
+      video: {
+        camera_default_on: false,
+      },
+    } as CallSettingsResponse;
+
+    await manager['applyDefaultSettings'](settings);
+    expect(manager.state.status).toBe('enabled');
   });
 
   it('publish stream', async () => {

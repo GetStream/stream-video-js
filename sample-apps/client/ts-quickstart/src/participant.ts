@@ -17,6 +17,7 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
 
   if (!videoEl) {
     videoEl = document.createElement('video');
+    videoEl.style.setProperty('object-fit', 'contain');
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;

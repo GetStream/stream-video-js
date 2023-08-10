@@ -6,16 +6,6 @@ description: Managing audio and video
 
 ## Camera management
 
-### Call settings
-
-The call settings contain information about the default video state:
-
-```typescript
-call.state.metadata$.subscribe((metadata) =>
-  console.log(metadata?.settings.video.camera_default_on),
-);
-```
-
 ### Start-stop camera
 
 ```typescript
@@ -31,9 +21,12 @@ const toggleCamera = () => {
 Here is how you can access the status:
 
 ```typescript
-call.camera.state.status; // enabled or disabled
+call.camera.state.status; // enabled, disabled or undefined
 call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
+
+The initial status of the camera is `undefined`, which will be updated with the default backend settings once the call data is loaded.
+It's also possible to set the default status from the outside if you don't care about the backend settings.
 
 ### List and select devices
 
@@ -103,16 +96,6 @@ if (videoEl.srcObject !== call.camera.state.mediaStream) {
 
 ## Microphone management
 
-### Call settings
-
-The call settings contain information about the default audio state:
-
-```typescript
-call.state.metadata$.subscribe((metadata) =>
-  console.log(metadata?.settings.audio.mic_default_on),
-);
-```
-
 ### Start-stop microphone
 
 ```typescript
@@ -128,9 +111,12 @@ const toggleMicrophone = () => {
 This is how you can access the microphone status:
 
 ```typescript
-call.microphone.state.status; // enabled or disabled
+call.microphone.state.status; // enabled, disabled or undefined
 call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
+
+The initial status of the microphone is `undefined`, which will be updated with the default backend settings once the call data is loaded.
+It's also possible to set the default status from the outside if you don't care about the backend settings.
 
 ### List and select devices
 

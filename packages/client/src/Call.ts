@@ -925,17 +925,33 @@ export class Call {
       this.state.setCallingState(CallingState.JOINED);
 
       if (
-        this.camera.state.mediaStream &&
-        !this.state.localParticipant?.videoStream
+        this.camera.state.status === 'enabled' &&
+        !this.state.localParticipant?.videoStream &&
+        this.permissionsContext.hasPermission('send-video')
       ) {
-        this.publishVideoStream(this.camera.state.mediaStream);
+        // Wait for media stream
+        this.camera.state.mediaStream$
+          .pipe(takeWhile((s) => s === undefined, true))
+          .subscribe((stream) => {
+            if (!this.state.localParticipant?.videoStream) {
+              this.publishVideoStream(stream!);
+            }
+          });
       }
 
       if (
-        this.microphone.state.mediaStream &&
-        !this.state.localParticipant?.audioStream
+        this.microphone.state.status === 'enabled' &&
+        !this.state.localParticipant?.audioStream &&
+        this.permissionsContext.hasPermission('send-audio')
       ) {
-        this.publishAudioStream(this.microphone.state.mediaStream);
+        // Wait for media stream
+        this.microphone.state.mediaStream$
+          .pipe(takeWhile((s) => s === undefined, true))
+          .subscribe((stream) => {
+            if (!this.state.localParticipant?.audioStream) {
+              this.publishAudioStream(stream!);
+            }
+          });
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state

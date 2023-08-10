@@ -4,6 +4,7 @@ import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { CallSettingsResponse } from '../gen/coordinator';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   constructor(call: Call) {
@@ -23,5 +24,11 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
   protected stopPublishStream(): Promise<void> {
     return this.call.stopPublish(TrackType.AUDIO);
+  }
+
+  protected async applyDefaultSettings(settings: CallSettingsResponse) {
+    if (this.state.status === undefined && settings.audio) {
+      await (settings.audio.mic_default_on ? this.enable() : this.disable());
+    }
   }
 }
