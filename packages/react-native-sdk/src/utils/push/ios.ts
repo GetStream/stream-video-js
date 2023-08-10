@@ -25,7 +25,6 @@ export const iosCallkeepAcceptCall = (
   pushAcceptedIncomingCallCId$.next(call_cid);
   // no need to keep these references anymore
   voipCallkeepCallOnForegroundMap$.next(undefined);
-  // voipPushNotificationCallCId$.next(undefined);
 };
 
 export const iosCallkeepRejectCall = async (

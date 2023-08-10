@@ -5,19 +5,14 @@ title: Setup
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import ImageShowcase from '@site/src/components/ImageShowcase';
-import IosPreview from '../../assets/06-advanced/04-push-notifications/ios-preview.png';
-import AndroidPreview from '../../assets/06-advanced/04-push-notifications/android-preview.png';
 
 This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps.
 
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive. <ImageShowcase
-  border
-  items={[
-    { image: AndroidPreview, caption: "Android preview of the Firebase push notification" },
-    { image: IosPreview, caption: "iOS preview of VoIP notification using Apple Push Notification service (APNs)" },
-  ]}
-/>
+The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive. 
+
+| Android preview | iOS preview |
+|---|---|
+| ![Android preview of the Firebase push notification](../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../assets/06-advanced/04-push-notifications/ios-preview.png)
 
 ## Add push provider credentials to Stream
 
@@ -72,7 +67,6 @@ We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-
 ### Add header search path for react native callkeep library
 
 1. In Xcode: Click on `Build Settings` tab, then search for `Header Search Paths`.
-
 2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
 
 ![Example of how to add header search paths that are required for callkeep library](../../assets/06-advanced/04-push-notifications/ios-search-paths.png)

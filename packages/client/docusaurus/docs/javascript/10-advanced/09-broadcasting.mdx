@@ -22,8 +22,8 @@ Stream infrastructure recognizes few pre-built call types. Among them, the type 
 We have the following `Call` methods at our disposal to start and stop the broadcasting:
 
 ```ts
-call.startBroadcasting();
-call.stopBroadcasting();
+call.startHLS();
+call.stopHLS();
 ```
 
 Once started broadcasting, the data source URL is available through `playlist_url` property accessible through the `Call` state:
