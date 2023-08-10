@@ -7,6 +7,9 @@ import { StreamVideoServerClient } from '../StreamVideoServerClient';
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
+vi.mock('../devices/CameraManager.ts');
+vi.mock('../devices/MicrophoneManager.ts');
+
 const tokenProvider = (userId: string) => {
   const serverClient = new StreamVideoServerClient(apiKey, { secret });
   return async () => {

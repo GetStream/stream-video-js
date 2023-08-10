@@ -185,7 +185,7 @@ export class Call {
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
-  private readonly streamClient: StreamClient;
+  public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;

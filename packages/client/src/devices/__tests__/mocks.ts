@@ -66,6 +66,9 @@ export const mockAudioDevices = [
 
 export const mockCall = () => {
   return {
+    streamClient: {
+      browser: true,
+    },
     state: {
       callingState: CallingState.IDLE,
       metadata$: new BehaviorSubject<undefined | CallResponse>(undefined),
