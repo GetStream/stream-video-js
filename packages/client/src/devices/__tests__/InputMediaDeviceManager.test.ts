@@ -153,7 +153,7 @@ describe('InputMediaDeviceManager.test', () => {
   });
 
   it(`apply backend settings`, () => {
-    expect(manager.state.status).toBeUndefined;
+    expect(manager.state.status).toBeUndefined();
 
     const mockCallResponse = {
       settings: {
