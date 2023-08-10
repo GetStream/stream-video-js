@@ -42,9 +42,9 @@ export type ParticipantViewProps = {
   /**
    * When set to false, the video stream will not be shown even if it is available.
    *
-   * @default false
+   * @default true
    */
-  muteVideo?: boolean;
+  isVisible?: boolean;
   /**
    * Component to customize the Label of the participant.
    */
@@ -76,7 +76,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   const {
     participant,
     videoMode,
-    muteVideo,
+    isVisible = true,
     style,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
@@ -102,7 +102,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     >
       <ParticipantReaction participant={participant} />
       <VideoRenderer
-        muteVideo={muteVideo}
+        isVisible={isVisible}
         participant={participant}
         videoMode={videoMode}
         ParticipantVideoFallback={ParticipantVideoFallback}

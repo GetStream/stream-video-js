@@ -4,22 +4,14 @@ import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useMediaStreamManagement } from '../../providers';
-import { StreamVideoParticipant } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../constants/TestIds';
-import { ParticipantVideoType } from './ParticipantView';
+import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../constants';
 
-export type ParticipantLabelProps = {
-  /**
-   * The video kind that will be displayed.
-   * @types `screen` or `video`
-   */
-  videoMode: ParticipantVideoType;
-  /**
-   * The participant whose info will be displayed.
-   */
-  participant: StreamVideoParticipant;
-};
+export type ParticipantLabelProps = Pick<
+  ParticipantViewProps,
+  'videoMode' | 'participant'
+>;
 
 export const ParticipantLabel = ({
   participant,

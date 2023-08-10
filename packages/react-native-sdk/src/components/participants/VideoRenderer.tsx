@@ -1,11 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
-import { ParticipantVideoType, ParticipantViewProps } from '.';
+import { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
   SfuModels,
-  StreamVideoParticipant,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
@@ -18,24 +17,8 @@ import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './P
  */
 export type VideoRendererProps = Pick<
   ParticipantViewProps,
-  'ParticipantVideoFallback'
-> & {
-  /**
-   * The video kind that will be displayed.
-   * @types `screen` or `video`
-   */
-  videoMode: ParticipantVideoType;
-  /**
-   * The participant whose info will be displayed.
-   */
-  participant: StreamVideoParticipant;
-  /**
-   * When set to false, the video stream will not be displayed even if it is available.
-   *
-   * @default false
-   */
-  muteVideo?: boolean;
-};
+  'ParticipantVideoFallback' | 'videoMode' | 'participant' | 'isVisible'
+>;
 
 /**
  * Lower level component, that represents only the video part (wrapper around the WebRTC)
@@ -43,7 +26,7 @@ export type VideoRendererProps = Pick<
 export const VideoRenderer = ({
   videoMode,
   participant,
-  muteVideo,
+  isVisible,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
@@ -67,7 +50,7 @@ export const VideoRenderer = ({
       : SfuModels.TrackType.VIDEO,
   );
   const hasJoinedCall = callingState === CallingState.JOINED;
-  const canShowVideo = !!videoStream && !muteVideo && isPublishingVideoTrack;
+  const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
   const videoStreamToRender = isScreenSharing ? screenShareStream : videoStream;
   const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
 
@@ -79,7 +62,7 @@ export const VideoRenderer = ({
     if (!call) {
       return;
     }
-    if (!muteVideo) {
+    if (!isVisible) {
       if (viewportVisibilityState !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
@@ -99,7 +82,7 @@ export const VideoRenderer = ({
         subscribedVideoLayoutRef.current = undefined;
       }
     }
-  }, [sessionId, viewportVisibilityState, muteVideo, call]);
+  }, [sessionId, viewportVisibilityState, isVisible, call]);
 
   useEffect(() => {
     if (!hasJoinedCall && subscribedVideoLayoutRef.current) {
@@ -125,7 +108,7 @@ export const VideoRenderer = ({
 
     // NOTE: When the view is not visible, we want to subscribe to audio only.
     // We unsubscribe their video by setting the dimension to undefined
-    const dimension = !muteVideo ? pendingVideoLayoutRef.current : undefined;
+    const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
 
     call.updateSubscriptionsPartial(videoMode, {
       [sessionId]: { dimension },
@@ -139,7 +122,7 @@ export const VideoRenderer = ({
     call,
     isPublishingVideoTrack,
     videoMode,
-    muteVideo,
+    isVisible,
     sessionId,
     hasJoinedCall,
   ]);
@@ -162,7 +145,7 @@ export const VideoRenderer = ({
     // NOTE: If the participant hasn't published a video track yet,
     // or the view is not viewable, we store the dimensions and handle it
     // when the track is published or the video is enabled.
-    if (!call || !isPublishingVideoTrack || !hasJoinedCall) {
+    if (!call || !isPublishingVideoTrack || !isVisible || !hasJoinedCall) {
       pendingVideoLayoutRef.current = dimension;
       return;
     }

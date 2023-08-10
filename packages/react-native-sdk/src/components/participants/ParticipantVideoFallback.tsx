@@ -1,15 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../utility';
-import { StreamVideoParticipant } from '@stream-io/video-client';
 import { theme } from '../../theme';
+import { ParticipantViewProps } from './ParticipantView';
 
-export type ParticipantVideoFallbackProps = {
-  /**
-   * The participant whose info will be displayed.
-   */
-  participant: StreamVideoParticipant;
-};
+export type ParticipantVideoFallbackProps = Pick<
+  ParticipantViewProps,
+  'participant'
+>;
 
 export const ParticipantVideoFallback = ({
   participant,

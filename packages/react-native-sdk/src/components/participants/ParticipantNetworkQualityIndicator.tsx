@@ -1,18 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
 import { theme } from '../../theme';
-import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+import { SfuModels } from '@stream-io/video-client';
 import React from 'react';
 import { Z_INDEX } from '../../constants';
+import { ParticipantViewProps } from './ParticipantView';
 /**
  * Props to be passed for the NetworkQualityIndicator component.
  */
-export type ParticipantNetworkQualityIndicatorProps = {
-  /**
-   * The participant whose info will be displayed.
-   */
-  participant: StreamVideoParticipant;
-};
+export type ParticipantNetworkQualityIndicatorProps = Pick<
+  ParticipantViewProps,
+  'participant'
+>;
 
 const connectionQualitySignalColors: Record<
   SfuModels.ConnectionQuality,

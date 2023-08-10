@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import {
-  StreamVideoLocalParticipant,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
 import { StreamVideoRN } from '../../utils';
 import { Z_INDEX } from '../../constants';
+import { ParticipantViewProps } from './ParticipantView';
 
-export type ParticipantReactionProps = {
-  /**
-   * The participant whose info will be displayed.
-   */
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+export type ParticipantReactionProps = Pick<
+  ParticipantViewProps,
+  'participant'
+> & {
   /**
    * The duration after which the reaction should disappear.
    *
