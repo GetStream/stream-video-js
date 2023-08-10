@@ -25,7 +25,7 @@ export type ToggleCameraFaceButtonProps = {
 export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
-  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+  const { isVideoMuted, isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useMediaStreamManagement();
 
   const toggleCameraFaceHandler = () => {
@@ -39,6 +39,7 @@ export const ToggleCameraFaceButton = ({
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
+        disabled={isVideoMuted}
         onPress={toggleCameraFaceHandler}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
         style={isCameraOnFrontFacingMode ? styles.button : null}
