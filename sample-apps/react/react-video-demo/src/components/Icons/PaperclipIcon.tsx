@@ -5,7 +5,7 @@ import { Props } from './types';
 
 import styles from './Icons.module.css';
 
-export const Attachment: FC<Props> = ({ className }) => {
+export const PaperclipIcon: FC<Props> = ({ className }) => {
   const rootClassName = classnames(styles.root, className);
   return (
     <svg

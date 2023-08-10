@@ -9,7 +9,6 @@
 
 .branding {
   @apply flex items-center justify-center w-full;
-  bottom: 40px;
 }
 
 .logo {

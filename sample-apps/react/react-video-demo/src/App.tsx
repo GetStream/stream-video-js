@@ -81,15 +81,16 @@ const Init = () => {
     };
   }, []);
 
-  const chatClient = useCreateStreamChatClient({
-    apiKey,
-    tokenOrProvider: token ?? tokenProvider,
-    userData: {
-      id: user.id || '!anon',
-      name: user.name,
-      image: user.image,
-    },
-  });
+  const { chatClient, connectionError: chatConnectionError } =
+    useCreateStreamChatClient({
+      apiKey,
+      tokenOrProvider: token ?? tokenProvider,
+      userData: {
+        id: user.id || '!anon',
+        name: user.name,
+        image: user.image,
+      },
+    });
 
   const callType: string = type ?? 'default';
   const [callId] = useState(() => {
@@ -186,6 +187,7 @@ const Init = () => {
                         isCallActive={isCallActive}
                         setCallHasEnded={setCallHasEnded}
                         chatClient={chatClient}
+                        chatConnectionError={chatConnectionError}
                       />
                     )}
                   </TourProvider>

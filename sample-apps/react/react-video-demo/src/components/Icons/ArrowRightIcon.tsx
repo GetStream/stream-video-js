@@ -5,7 +5,7 @@ import { Props } from './types';
 
 import styles from './Icons.module.css';
 
-export const Send: FC<Props> = ({ className }) => {
+export const ArrowRightIcon: FC<Props> = ({ className }) => {
   const rootClassName = classnames(styles.root, className);
   return (
     <svg
