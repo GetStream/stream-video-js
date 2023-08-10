@@ -2,7 +2,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect, Mock } from 'vitest';
+import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
 import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
