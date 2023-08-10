@@ -38,7 +38,7 @@ export type ParticipantViewProps = {
   /**
    * Any custom style to be merged with the participant view
    */
-  containerStyle?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle>;
   /**
    * When set to false, the video stream will not be shown even if it is available.
    *
@@ -77,6 +77,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     participant,
     videoMode,
     muteVideo,
+    style,
     ParticipantLabel = DefaultParticipantLabel,
     ParticipantReaction = DefaultParticipantReaction,
     VideoRenderer = DefaultVideoRenderer,
@@ -92,13 +93,12 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 
   return (
     <View
-      style={[styles.containerBase, props.containerStyle, speakerStyle]}
-      testID={`participant-${userId}`}
-      accessibilityValue={{
-        text: isSpeaking
-          ? 'participant-is-speaking'
-          : 'participant-is-not-speaking',
-      }}
+      style={[styles.container, style, speakerStyle]}
+      testID={
+        isSpeaking
+          ? `participant-${userId}-is-speaking`
+          : `participant-${userId}-is-not-speaking`
+      }
     >
       <ParticipantReaction participant={participant} />
       <VideoRenderer
@@ -116,11 +116,13 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 };
 
 const styles = StyleSheet.create({
-  containerBase: {
+  container: {
     justifyContent: 'space-between',
     padding: theme.padding.xs,
     borderColor: palette.grey800,
     borderWidth: 2,
+    borderRadius: theme.rounded.sm,
+    overflow: 'hidden',
   },
   bottomView: {
     flexDirection: 'row',

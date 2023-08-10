@@ -41,7 +41,7 @@ export const CallParticipantsSpotlight = () => {
       {participantInSpotlight && (
         <ParticipantView
           participant={participantInSpotlight}
-          containerStyle={styles.participantView}
+          style={styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
         />
       )}
@@ -60,13 +60,10 @@ export const CallParticipantsSpotlight = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   participantView: {
-    flex: 2,
-    overflow: 'hidden',
-    borderRadius: theme.rounded.sm,
+    flex: 1,
     marginHorizontal: theme.padding.sm,
   },
   participantVideoContainer: {
-    flex: 1,
     paddingVertical: theme.padding.sm,
   },
 });

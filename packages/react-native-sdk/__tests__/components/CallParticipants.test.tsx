@@ -60,7 +60,7 @@ describe('CallParticipants', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`),
     );
 
     // shows the local participant floating view?
@@ -154,15 +154,15 @@ describe('CallParticipants', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const localParticipant = within(
-      screen.getByTestId(`participant-${P_IDS.LOCAL_1}`),
+      screen.getByTestId(`participant-${P_IDS.LOCAL_1}-is-not-speaking`),
     );
 
     const participant2 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_2}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`),
     );
 
     const participant3 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_3}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_3}-is-not-speaking`),
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant

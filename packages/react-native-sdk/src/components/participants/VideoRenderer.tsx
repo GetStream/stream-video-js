@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
 import { ParticipantVideoType, ParticipantViewProps } from '.';
 import {
@@ -183,27 +183,29 @@ export const VideoRenderer = ({
     pendingVideoLayoutRef.current = undefined;
   };
 
-  if (!canShowVideo) {
-    return (
-      <ParticipantVideoFallback participant={participant} onLayout={onLayout} />
-    );
-  }
-
   return (
-    <RTCView
-      onLayout={onLayout}
-      streamURL={videoStreamToRender?.toURL()}
-      mirror={mirror}
-      style={styles.container}
-      objectFit={isScreenSharing ? 'contain' : 'cover'}
-      // zOrder should lower than the zOrder used in the floating LocalParticipantView
-      zOrder={Z_INDEX.IN_BACK}
-    />
+    <View onLayout={onLayout} style={styles.container}>
+      {canShowVideo ? (
+        <RTCView
+          style={styles.videoStream}
+          streamURL={videoStreamToRender?.toURL()}
+          mirror={mirror}
+          objectFit={isScreenSharing ? 'contain' : 'cover'}
+          // zOrder should lower than the zOrder used in the floating LocalParticipantView
+          zOrder={Z_INDEX.IN_BACK}
+        />
+      ) : (
+        <ParticipantVideoFallback participant={participant} />
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  videoStream: {
     ...StyleSheet.absoluteFillObject,
   },
 });

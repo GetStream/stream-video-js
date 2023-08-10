@@ -1,11 +1,7 @@
 import React from 'react';
 import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
-import {
-  ComponentTestIds,
-  ValueTestIds,
-  IconTestIds,
-} from '../../src/constants/TestIds';
+import { ComponentTestIds, IconTestIds } from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
 import { ParticipantView } from '../../src/components/participants/ParticipantView';
 
@@ -86,9 +82,7 @@ describe('Participant', () => {
 
     // Participant is speaking style is applied
     expect(
-      screen.getByAccessibilityValue({
-        text: ValueTestIds.PARTICIPANTS_IS_SPEAKING,
-      }),
+      screen.getByTestId(`participant-${testParticipant.userId}-is-speaking`),
     ).toBeOnTheScreen();
   });
 });
