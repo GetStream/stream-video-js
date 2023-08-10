@@ -3,7 +3,6 @@ import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { PhoneDown } from '../../../icons';
-import { StyleSheet } from 'react-native';
 import { CallingState } from '@stream-io/video-client';
 
 /**
@@ -55,15 +54,10 @@ export const RejectCallButton = ({
     <CallControlsButton
       onPress={rejectCallHandler}
       color={theme.light.error}
-      style={[styles.button, theme.button.lg]}
-      svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
+      style={theme.button.lg}
+      svgContainerStyle={theme.icon.lg}
     >
       <PhoneDown color={theme.light.static_white} />
     </CallControlsButton>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {},
-  svgContainerStyle: {},
-});

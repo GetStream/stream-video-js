@@ -6,7 +6,6 @@ import { useMediaStreamManagement } from '../../../providers/MediaStreamManageme
 import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
-import { StyleSheet } from 'react-native';
 
 /**
  * Props for the Toggle Camera face button.
@@ -42,7 +41,6 @@ export const ToggleCameraFaceButton = ({
         disabled={isVideoMuted}
         onPress={toggleCameraFaceHandler}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
-        style={isCameraOnFrontFacingMode ? styles.button : null}
       >
         <CameraSwitch
           color={
@@ -55,18 +53,3 @@ export const ToggleCameraFaceButton = ({
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-});

@@ -77,13 +77,7 @@ export const CallControlsButton = (
       testID={testID}
       onLayout={onLayout}
     >
-      <View
-        style={[
-          styles.svgContainerStyle,
-          DEFAULT_ICON_SIZE,
-          svgContainerStyle ?? null,
-        ]}
-      >
+      <View style={[DEFAULT_ICON_SIZE, svgContainerStyle ?? null]}>
         {children}
       </View>
     </Pressable>
@@ -96,8 +90,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.light.content_bg,
     alignItems: 'center',
+    // For iOS
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.37,
+    shadowRadius: 7.49,
+
+    // For android
+    elevation: 6,
   },
-  svgContainerStyle: {},
   disabledStyle: {
     backgroundColor: theme.light.disabled,
   },

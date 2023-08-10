@@ -3,7 +3,6 @@ import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { Phone } from '../../../icons';
-import { StyleSheet } from 'react-native';
 
 /**
  * The props for the Accept Call button.
@@ -50,15 +49,10 @@ export const AcceptCallButton = ({
     <CallControlsButton
       onPress={acceptCallHandler}
       color={theme.light.info}
-      style={[styles.button, theme.button.lg]}
-      svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
+      style={theme.button.lg}
+      svgContainerStyle={theme.icon.lg}
     >
       <Phone color={theme.light.static_white} />
     </CallControlsButton>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {},
-  svgContainerStyle: {},
-});

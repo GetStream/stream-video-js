@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
@@ -62,25 +62,10 @@ export const HangUpCallButton = ({
     <CallControlsButton
       onPress={hangUpCallHandler}
       color={theme.light.error}
-      style={[styles.button, { shadowColor: theme.light.error }, style]}
+      style={[{ shadowColor: theme.light.error }, style]}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
       <PhoneDown color={theme.light.static_white} />
     </CallControlsButton>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-});

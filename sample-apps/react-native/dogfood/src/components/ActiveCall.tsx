@@ -15,7 +15,6 @@ import {
   ToggleCameraFaceButton,
   HangUpCallButton,
   ChatButtonProps,
-  CallControls,
   HangUpCallButtonProps,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -91,7 +90,6 @@ export const ActiveCall = ({
         <ToggleCameraFaceButton />
         <HangUpCallButton onPressHandler={hangupCallButton.onPressHandler} />
       </View>
-      <CallControls onHangupCallHandler={hangupCallButton.onPressHandler} />
     </SafeAreaView>
   );
 };

@@ -8,7 +8,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert } from 'react-native';
 import { theme } from '../../../theme';
 import { Video, VideoSlash } from '../../../icons';
 import { usePermissionNotification } from '../../../hooks';
@@ -93,7 +93,6 @@ export const ToggleVideoPublishingButton = ({
       <CallControlsButton
         onPress={handleToggleVideoButton}
         color={muteStatusColor(isVideoMuted)}
-        style={!isVideoMuted ? styles.button : null}
       >
         {isVideoMuted ? (
           <VideoSlash color={theme.light.static_white} />
@@ -104,21 +103,3 @@ export const ToggleVideoPublishingButton = ({
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});

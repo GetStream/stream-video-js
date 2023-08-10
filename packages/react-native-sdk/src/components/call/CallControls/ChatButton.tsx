@@ -36,7 +36,6 @@ export const ChatButton = ({
         color={theme.light.static_white}
         onPress={onPressHandler}
         svgContainerStyle={styles.svgContainerStyle}
-        style={styles.button}
       >
         <UnreadBadgeCountIndicator count={unreadBadgeCountIndicator} />
         <Chat color={theme.light.static_black} />
@@ -66,18 +65,6 @@ const UnreadBadgeCountIndicator = ({
 };
 
 const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
   svgContainerStyle: {
     paddingTop: theme.padding.xs,
   },

@@ -7,7 +7,7 @@ import { theme } from '../../../theme';
 import { Reaction } from '../../../icons';
 import { ReactionsPicker } from '../ReactionsPicker';
 import { StreamVideoRN } from '../../../utils';
-import { LayoutChangeEvent, LayoutRectangle, StyleSheet } from 'react-native';
+import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
 
 /**
  * Props for the Reaction button
@@ -61,7 +61,6 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
           testID={ButtonTestIds.REACTION}
           onPress={reactionButtonHandler}
           color={theme.light.static_white}
-          style={styles.button}
           onLayout={onReactionsButtonLayout}
         >
           <Reaction color={theme.light.static_black} />
@@ -79,21 +78,3 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});

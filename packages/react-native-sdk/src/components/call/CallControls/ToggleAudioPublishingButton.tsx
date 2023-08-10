@@ -10,7 +10,7 @@ import { CallControlsButton } from './CallControlsButton';
 import { usePermissionNotification } from '../../../hooks';
 import { theme } from '../../../theme';
 import { Mic, MicOff } from '../../../icons';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert } from 'react-native';
 import { muteStatusColor } from '../../../utils';
 import { useMediaStreamManagement } from '../../../providers';
 
@@ -93,7 +93,6 @@ export const ToggleAudioPublishingButton = ({
       <CallControlsButton
         onPress={handleToggleAudioButton}
         color={muteStatusColor(isAudioMuted)}
-        style={!isAudioMuted ? styles.button : null}
       >
         {isAudioMuted ? (
           <MicOff color={theme.light.static_white} />
@@ -104,21 +103,3 @@ export const ToggleAudioPublishingButton = ({
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});
