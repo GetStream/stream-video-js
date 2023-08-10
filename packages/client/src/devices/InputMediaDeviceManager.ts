@@ -11,7 +11,7 @@ export abstract class InputMediaDeviceManager<
 > {
   constructor(protected readonly call: Call, public readonly state: T) {
     this.call.state.metadata$.subscribe((metadata) => {
-      if (metadata?.settings) {
+      if (metadata?.settings && this.call.streamClient.browser) {
         void this.applyDefaultSettings(metadata.settings);
       }
     });
