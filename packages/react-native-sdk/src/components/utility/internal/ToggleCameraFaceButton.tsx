@@ -9,12 +9,13 @@ import { theme } from '../../../theme';
 import { StyleSheet } from 'react-native';
 
 export const ToggleCameraFaceButton = () => {
-  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+  const { isVideoMuted, isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useMediaStreamManagement();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
+        disabled={isVideoMuted}
         onPress={toggleCameraFacingMode}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
         style={isCameraOnFrontFacingMode ? styles.button : null}
