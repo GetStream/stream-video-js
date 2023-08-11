@@ -13,7 +13,7 @@ import { StyleSheet } from 'react-native';
 
 export const ToggleCameraFaceButton = () => {
   const call = useCall();
-  const { direction } = useCameraState();
+  const { direction, status } = useCameraState();
   const onPress = async () => {
     await call?.camera.flip();
   };
@@ -24,6 +24,7 @@ export const ToggleCameraFaceButton = () => {
         onPress={onPress}
         color={muteStatusColor(direction === 'back')}
         style={direction === 'front' ? styles.button : null}
+        disabled={status === 'disabled'}
       >
         <CameraSwitch
           color={

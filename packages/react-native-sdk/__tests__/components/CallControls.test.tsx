@@ -86,7 +86,7 @@ describe('CallControls', () => {
 
     fireEvent.press(button);
 
-    expect(screen.getByTestId(ComponentTestIds.REACTIONS_MODAL)).toBeVisible();
+    expect(screen.getByTestId(ComponentTestIds.REACTIONS_PICKER)).toBeVisible();
   });
 
   it('execute onPressHandler when its passed to hangup call button when its pressed in call controls component', async () => {

@@ -4,7 +4,7 @@ import {
   getAudioStream,
   OwnCapability,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../../contexts/StreamVideoContext';
 
 /**
@@ -22,6 +22,7 @@ export const useAudioPublisher = ({
   initialAudioMuted,
 }: AudioPublisherInit) => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const audioDeviceId = useStreamVideoStoreValue(
     (store) => store.currentAudioDevice,

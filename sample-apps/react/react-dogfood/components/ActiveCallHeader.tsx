@@ -8,7 +8,7 @@ import {
   LoadingIndicator,
   Notification,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { CallRecordings } from './CallRecordings';
@@ -24,6 +24,7 @@ export const ActiveCallHeader = ({
 }: LayoutSelectorProps) => {
   const { setOpen } = useSettings();
   const activeCall = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
   const isMigrating = callingState === CallingState.MIGRATING;

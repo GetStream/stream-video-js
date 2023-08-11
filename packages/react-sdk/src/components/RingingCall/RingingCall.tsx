@@ -1,8 +1,7 @@
 import { CallingState, UserResponse } from '@stream-io/video-client';
 import {
   useCall,
-  useCallCallingState,
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -39,8 +38,9 @@ export type RingingCallProps = {
 export const RingingCall = (props: RingingCallProps) => {
   const { includeSelf = false, totalMembersToShow = 3 } = props;
   const call = useCall();
-  const callingState = useCallCallingState();
   const { t } = useI18n();
+  const { useCallCallingState, useCallMembers } = useCallStateHooks();
+  const callingState = useCallCallingState();
   const members = useCallMembers();
   const connectedUser = useConnectedUser();
 

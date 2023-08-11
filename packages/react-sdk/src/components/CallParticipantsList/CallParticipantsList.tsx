@@ -1,15 +1,16 @@
 import {
+  ComponentProps,
+  Dispatch,
   ForwardedRef,
   forwardRef,
+  SetStateAction,
   useCallback,
   useState,
-  ComponentProps,
 } from 'react';
 import {
   Restricted,
   useCall,
-  useCallMetadata,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import {
   name,
@@ -111,9 +112,7 @@ const CallParticipantListContentHeader = ({
   setUserListType,
 }: {
   userListType: keyof typeof UserListTypes;
-  setUserListType: React.Dispatch<
-    React.SetStateAction<keyof typeof UserListTypes>
-  >;
+  setUserListType: Dispatch<SetStateAction<keyof typeof UserListTypes>>;
 }) => {
   const call = useCall();
 
@@ -161,6 +160,7 @@ const ActiveUsersSearchResults = ({
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants({ sortBy: name });
 
   const activeUsersSearchFn = useCallback(
@@ -201,6 +201,8 @@ const BlockedUsersSearchResults = ({
   CallParticipantListProps,
   'blockedUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
+  const { useCallMetadata } = useCallStateHooks();
+
   const { blocked_user_ids: blockedUsers = [] } = useCallMetadata()!;
 
   const blockedUsersSearchFn = useCallback(

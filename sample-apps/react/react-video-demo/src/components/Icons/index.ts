@@ -1,5 +1,5 @@
 export { ArrowDown } from './ArrowDown';
-export { Attachment } from './Attachment';
+export { PaperclipIcon } from './PaperclipIcon';
 export { BarGraph } from './BarGraph';
 export { Bolt } from './Bolt';
 export { Chat } from './Chat';
@@ -32,7 +32,7 @@ export { ScreenShare } from './ScreenShare';
 export { Search } from './Search';
 export { Settings } from './Settings';
 export { Security } from './Security';
-export { Send } from './Send';
+export { ArrowRightIcon } from './ArrowRightIcon';
 export { ShareScreen } from './ShareScreen';
 export { Signal } from './Signal';
 export { Speaker } from './Speaker';

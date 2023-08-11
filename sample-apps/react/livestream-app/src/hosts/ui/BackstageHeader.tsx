@@ -2,8 +2,8 @@ import './BackstageHeader.scss';
 import {
   DeviceSettings,
   useCall,
+  useCallStateHooks,
   useConnectedUser,
-  useIsCallBroadcastingInProgress,
 } from '@stream-io/video-react-sdk';
 import {
   DurationBadge,
@@ -15,6 +15,7 @@ import {
 export const BackstageHeader = () => {
   const call = useCall();
   const currentUser = useConnectedUser();
+  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallBroadcastingInProgress();
   return (
     <div className="backstage-header">

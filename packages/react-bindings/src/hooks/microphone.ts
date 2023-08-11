@@ -1,7 +1,7 @@
 import { useCall } from '../contexts';
 import { Call } from '@stream-io/video-client';
 
-import { useObservableValue } from './helpers/useObservableValue';
+import { useObservableValue } from './useObservableValue';
 import { MicrophoneManagerState } from '@stream-io/video-client';
 
 export const useMicrophoneState = () => {

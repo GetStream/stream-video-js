@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import {
   MediaDevicesContextAPI,
   SfuModels,
-  useLocalParticipant,
+  useCallStateHooks,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
@@ -59,6 +59,7 @@ export const DeviceSettingsCaptor = () => {
   let isAudioMute = !initialAudioEnabled;
   let isVideoMute = !initialVideoState.enabled;
 
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   if (localParticipant) {
     const publishedTracks = localParticipant.publishedTracks || [];

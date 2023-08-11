@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
 
 import {
-  useMediaDevices,
-  useLocalParticipant,
   createSoundDetector,
   SfuModels,
+  useCallStateHooks,
+  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted } from '../components/Icons';
@@ -13,6 +13,7 @@ import { MicMuted } from '../components/Icons';
 import { useNotificationContext } from '../contexts/NotificationsContext';
 
 export const useSpeakingWhileMutedNotification = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { getAudioStream } = useMediaDevices();
 

@@ -16,8 +16,8 @@ import {
 } from '@stream-io/video-client';
 import {
   useCall,
-  useCallCallingState,
   useCameraState,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
@@ -69,6 +69,7 @@ export const Participant = (props: ParticipantProps) => {
   const { participant, kind, isVisible = true, disableAudio } = props;
 
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
   const hasJoinedCall = callingState === CallingState.JOINED;

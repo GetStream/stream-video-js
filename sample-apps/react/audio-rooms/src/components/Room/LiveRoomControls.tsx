@@ -5,11 +5,9 @@ import {
   SfuModels,
   StreamCallEvent,
   useCall,
-  useCallCallingState,
-  useCallMetadata,
+  useCallStateHooks,
   useConnectedUser,
   useHasPermissions,
-  useLocalParticipant,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
@@ -31,6 +29,8 @@ export const LiveRoomControls = ({
   openRequestsList,
 }: LiveRoomControlsProps) => {
   const call = useCall();
+  const { useCallMetadata, useCallCallingState, useLocalParticipant } =
+    useCallStateHooks();
   const callMetadata = useCallMetadata();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();

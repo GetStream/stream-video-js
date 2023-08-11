@@ -2,8 +2,7 @@ import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Call,
   SfuModels,
-  useLocalParticipant,
-  useParticipants,
+  useCallStateHooks,
   Video,
 } from '@stream-io/video-react-sdk';
 
@@ -23,6 +22,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
     undefined,
   );
 
+  const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>

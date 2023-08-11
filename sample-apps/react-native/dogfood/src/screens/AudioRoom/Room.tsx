@@ -4,7 +4,7 @@ import {
   OwnCapability,
   SfuModels,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import { ParticipantsPanel } from '../../components/AudioRoom/ParticipantsPanel'
 import { DescriptionPanel } from '../../components/AudioRoom/DescriptionPanel';
 
 export default function Room({ onClose }: { onClose: () => void }) {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
 

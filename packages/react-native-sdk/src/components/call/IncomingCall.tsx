@@ -3,8 +3,7 @@ import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import {
   useCall,
-  useCallCallingState,
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -61,6 +60,7 @@ export const IncomingCall = ({
   const { toggleInitialVideoMuteState, initialVideoEnabled } =
     useMediaStreamManagement();
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
 
@@ -142,6 +142,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const connectedUser = useConnectedUser();
+  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars

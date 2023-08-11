@@ -1,7 +1,7 @@
 import { useCall } from '../contexts';
 import { Call, CameraManagerState } from '@stream-io/video-client';
 
-import { useObservableValue } from './helpers/useObservableValue';
+import { useObservableValue } from './useObservableValue';
 
 export const useCameraState = () => {
   const call = useCall();

@@ -3,14 +3,15 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
-  isMicPermissionGranted$,
   isCameraPermissionGranted$,
+  isMicPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
 import { Alert } from 'react-native';
 import { useAudioPublisher } from './useAudioPublisher';
@@ -54,8 +55,10 @@ const MediaStreamContext =
  *
  * @category Device Management
  */
-export const MediaStreamManagement = ({}: PropsWithChildren<{}>) => {
+export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
+  const { useCallMetadata } = useCallStateHooks();
+  const settings = useCallMetadata()?.settings;
 
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
     const hasNativePermission = isMicPermissionGranted$.getValue();
@@ -83,6 +86,19 @@ export const MediaStreamManagement = ({}: PropsWithChildren<{}>) => {
     }
     return hasNativePermission && hasUserPermission;
   });
+
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+    const { audio, video } = settings;
+    if (audio.mic_default_on && isMicPermissionGranted$.getValue()) {
+      setInitialAudioEnabled(audio.mic_default_on);
+    }
+    if (video.camera_default_on && isCameraPermissionGranted$.getValue()) {
+      setInitialVideoEnabled(video.camera_default_on);
+    }
+  }, [settings]);
 
   useAudioPublisher({
     initialAudioMuted: !initAudioEnabled,

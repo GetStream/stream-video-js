@@ -1,7 +1,8 @@
-import { Avatar, useCallMetadata } from '@stream-io/video-react-sdk';
+import { Avatar, useCallStateHooks } from '@stream-io/video-react-sdk';
 import type { CustomCallData, User } from '../../types';
 
 export const RoomCard = () => {
+  const { useCallMetadata } = useCallStateHooks();
   const metadata = useCallMetadata();
   const { title, hosts, description } = (metadata?.custom ||
     {}) as CustomCallData;

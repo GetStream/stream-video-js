@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import {
   useCameraState,
-  useLocalParticipant,
+  useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
-import { Z_INDEX, LOCAL_VIDEO_VIEW_STYLE } from '../../../constants';
+import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
@@ -47,6 +47,7 @@ export interface LocalParticipantViewProps {
  */
 export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const { layout = 'floating' } = props;
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { direction } = useCameraState();
   const isCameraOnFrontFacingMode = direction === 'front';

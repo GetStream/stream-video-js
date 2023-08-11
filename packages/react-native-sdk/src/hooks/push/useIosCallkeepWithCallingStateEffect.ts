@@ -1,5 +1,5 @@
 import { CallingState, RxUtils } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -29,6 +29,7 @@ const isAcceptedCallingState = (callingState: CallingState) => {
  */
 export const useIosCallkeepWithCallingStateEffect = () => {
   const activeCall = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [acceptedForegroundCallkeepMap, setAcceptedForegroundCallkeepMap] =
     useState<{
