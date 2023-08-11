@@ -77,7 +77,7 @@ export const ActiveCall = ({
         <ReactionButton />
         <ChatButton
           onPressHandler={chatButton?.onPressHandler}
-          unreadBadgeCountIndicator={chatButton?.unreadBadgeCountIndicator}
+          unreadBadgeCount={chatButton?.unreadBadgeCount}
         />
         <ToggleVideoPublishingButton />
         <ToggleAudioPublishingButton />
