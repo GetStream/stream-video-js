@@ -1,8 +1,5 @@
 import * as CallStateHooks from './callStateHooks';
 
-export * from './camera';
-export * from './microphone';
-
 export * from './permissions';
 export * from './store';
 export * from './callStateHooks';
