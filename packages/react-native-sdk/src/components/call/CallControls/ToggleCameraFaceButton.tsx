@@ -6,18 +6,41 @@ import { useMediaStreamManagement } from '../../../providers/MediaStreamManageme
 import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
-import { StyleSheet } from 'react-native';
 
-export const ToggleCameraFaceButton = () => {
-  const { isCameraOnFrontFacingMode, toggleCameraFacingMode } =
+/**
+ * Props for the Toggle Camera face button.
+ */
+export type ToggleCameraFaceButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle camera face(front/back) when in the call.
+ */
+export const ToggleCameraFaceButton = ({
+  onPressHandler,
+}: ToggleCameraFaceButtonProps) => {
+  const { isVideoMuted, isCameraOnFrontFacingMode, toggleCameraFacingMode } =
     useMediaStreamManagement();
+
+  const toggleCameraFaceHandler = () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
+    toggleCameraFacingMode();
+  };
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
-        onPress={toggleCameraFacingMode}
+        disabled={isVideoMuted}
+        onPress={toggleCameraFaceHandler}
         color={muteStatusColor(!isCameraOnFrontFacingMode)}
-        style={isCameraOnFrontFacingMode ? styles.button : null}
       >
         <CameraSwitch
           color={
@@ -30,18 +53,3 @@ export const ToggleCameraFaceButton = () => {
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-});

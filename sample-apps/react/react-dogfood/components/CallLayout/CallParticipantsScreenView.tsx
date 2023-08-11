@@ -6,14 +6,14 @@ import {
   IconButton,
   ParticipantView,
   SfuModels,
-  useLocalParticipant,
-  useParticipants,
+  useCallStateHooks,
   useVerticalScrollPosition,
   Video,
 } from '@stream-io/video-react-sdk';
 
 export const CallParticipantsScreenView = (props: { call: Call }) => {
   const { call } = props;
+  const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
   const firstScreenSharingParticipant = allParticipants.find((p) =>

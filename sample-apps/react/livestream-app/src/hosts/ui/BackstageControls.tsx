@@ -7,7 +7,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useIsCallBroadcastingInProgress,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const BackstageControls = () => {
@@ -25,6 +25,7 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
+  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallBroadcastingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {

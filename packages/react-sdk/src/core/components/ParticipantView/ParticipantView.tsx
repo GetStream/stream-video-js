@@ -13,13 +13,13 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { applyElementToRef, isComponentType } from '../../../utilities';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
 
 export type ParticipantViewContextValue = Required<
   Pick<ParticipantViewProps, 'participant' | 'videoMode'>
@@ -90,9 +90,11 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       audioStream,
       isLocalParticipant,
       isSpeaking,
+      isDominantSpeaker,
       publishedTracks,
       sessionId,
     } = participant;
+    const { useLocalParticipant } = useCallStateHooks();
     const localParticipant = useLocalParticipant();
 
     const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
@@ -153,6 +155,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         }}
         className={clsx(
           'str-video__participant-view',
+          isDominantSpeaker && 'str-video__participant-view--dominant-speaker',
           isSpeaking && 'str-video__participant-view--speaking',
           !hasVideo && 'str-video__participant-view--no-video',
           !hasAudio && 'str-video__participant-view--no-audio',
@@ -160,12 +163,13 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         )}
       >
         <ParticipantViewContext.Provider value={participantViewContextValue}>
-          <Audio
-            // mute the local participant, as we don't want to hear ourselves
-            muted={isLocalParticipant || muteAudio}
-            sinkId={localParticipant?.audioOutputDeviceId}
-            audioStream={audioStream}
-          />
+          {/* mute the local participant, as we don't want to hear ourselves */}
+          {!isLocalParticipant && !muteAudio && (
+            <Audio
+              sinkId={localParticipant?.audioOutputDeviceId}
+              audioStream={audioStream}
+            />
+          )}
           <Video
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}

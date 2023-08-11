@@ -1,4 +1,3 @@
-import React from 'react';
 import { CallRecording } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button';

@@ -1,6 +1,5 @@
-import { FC, useRef } from 'react';
+import { useRef } from 'react';
 import {
-  Attachment,
   Avatar,
   messageHasReactions,
   MessageOptions,
@@ -46,7 +45,7 @@ export const ChatMessage = () => {
         )}
         <MessageText customInnerClass={styles.text} />
         <MessageStatus />
-        {/* {hasAttachments && <Attachment attachments={message.attachments} />} */}
+        {/* {hasAttachments && <PaperclipIcon attachments={message.attachments} />} */}
         {hasReactions && !showDetailedReactions && isReactionEnabled && (
           <SimpleReactionsList />
         )}

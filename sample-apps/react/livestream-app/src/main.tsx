@@ -1,4 +1,4 @@
-import '@stream-io/video-styling/dist/css/styles.css';
+import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './main.scss';
 
 import ReactDOM from 'react-dom/client';

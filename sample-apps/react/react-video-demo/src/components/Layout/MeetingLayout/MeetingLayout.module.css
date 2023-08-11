@@ -75,7 +75,6 @@
 .sidebar {
   grid-area: sidebar;
   @apply rounded-container;
-  overflow-y: scroll;
   overflow: hidden;
 }
 

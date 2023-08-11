@@ -5,11 +5,7 @@ import {
   OwnCapability,
   SfuModels,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallCallingState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useStreamVideoStoreValue } from '../../contexts/StreamVideoContext';
 
 /**
@@ -27,6 +23,7 @@ export const useAudioPublisher = ({
   initialAudioMuted,
 }: AudioPublisherInit) => {
   const call = useCall();
+  const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const callingState = useCallCallingState();
   const participant = useLocalParticipant();
   const audioDeviceId = useStreamVideoStoreValue(

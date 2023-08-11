@@ -1,4 +1,4 @@
-import React, { ComponentProps, useState } from 'react';
+import { ComponentProps, useState } from 'react';
 import { Tooltip, TooltipProps } from './Tooltip';
 import { useEnterLeaveHandlers } from './hooks';
 

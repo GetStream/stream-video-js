@@ -3,7 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   CallingState,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
@@ -26,9 +26,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useI18n();
-  const unreadBadgeCountIndicator = useUnreadCount();
+  const unreadBadgeCount = useUnreadCount();
 
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const returnToHomeHandler = () => {
@@ -54,7 +55,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     }
   }, [call, appStoreSetState]);
 
-  const onCallHangupHandler = async () => {
+  const onHangupCallHandler = async () => {
     setShow('loading');
     try {
       if (callingState === CallingState.LEFT) {
@@ -108,11 +109,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           onPressHandler: () => {
             navigation.navigate('ChatScreen', { callId });
           },
-          unreadBadgeCountIndicator,
+          unreadBadgeCount,
         }}
-        hangUpCallButton={{
-          onPressHandler: onCallHangupHandler,
-        }}
+        onHangupCallHandler={onHangupCallHandler}
+        onBackPressed={onHangupCallHandler}
       />
     );
   }

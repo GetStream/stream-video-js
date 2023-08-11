@@ -6,11 +6,7 @@ import {
   Call,
   getScreenShareStream,
   SfuModels,
-  useCallStatsReport,
-  useHasOngoingScreenShare,
-  useIsCallRecordingInProgress,
-  useLocalParticipant,
-  useParticipants,
+  useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
@@ -30,6 +26,8 @@ import { useNotificationContext } from '../../../contexts/NotificationsContext';
 
 import { tour } from '../../../../data/tour';
 
+import type { ConnectionError } from 'src/hooks/useChatClient';
+
 import '@stream-io/video-styling/dist/css/styles.css';
 
 export type Props = {
@@ -41,6 +39,7 @@ export type Props = {
   logo: string;
   setCallHasEnded(ended: boolean): void;
   chatClient?: StreamChat | null;
+  chatConnectionError?: ConnectionError;
 };
 
 export type Meeting = {
@@ -56,6 +55,7 @@ export const View: FC<Props & Meeting> = ({
   isCallActive,
   setCallHasEnded,
   chatClient,
+  chatConnectionError,
 }) => {
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
@@ -70,6 +70,13 @@ export const View: FC<Props & Meeting> = ({
   const { addNotification } = useNotificationContext();
 
   const client = useStreamVideoClient();
+  const {
+    useCallStatsReport,
+    useLocalParticipant,
+    useParticipants,
+    useIsCallRecordingInProgress,
+    useHasOngoingScreenShare,
+  } = useCallStateHooks();
   const participants = useParticipants();
   const statsReport = useCallStatsReport();
   const localParticipant = useLocalParticipant();
@@ -170,6 +177,7 @@ export const View: FC<Props & Meeting> = ({
     <MeetingLayout
       callId={callId}
       chatClient={chatClient}
+      chatConnectionError={chatConnectionError}
       header={
         <Header
           logo={logo}
@@ -188,6 +196,7 @@ export const View: FC<Props & Meeting> = ({
         <Sidebar
           callId={callId}
           chatClient={chatClient}
+          chatConnectionError={chatConnectionError}
           participants={participants}
         />
       }

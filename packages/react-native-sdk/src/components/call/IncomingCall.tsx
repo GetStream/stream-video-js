@@ -1,18 +1,15 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
-import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import {
-  useCall,
-  useCallCallingState,
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { UserInfo } from './internal/UserInfo';
-import { Phone, PhoneDown, Video, VideoSlash } from '../../icons';
 import { theme } from '../../theme';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-import { CallingState } from '@stream-io/video-client';
+import { RejectCallButton } from './CallControls/RejectCallButton';
+import { AcceptCallButton } from './CallControls/AcceptCallButton';
+import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
 /**
  * The props for the Accept Call button in the IncomingCall component.
@@ -58,40 +55,7 @@ export const IncomingCall = ({
   acceptCallButton,
   rejectCallButton,
 }: IncomingCallType) => {
-  const { toggleInitialVideoMuteState, initialVideoEnabled } =
-    useMediaStreamManagement();
-  const call = useCall();
-  const callingState = useCallCallingState();
   const { t } = useI18n();
-
-  const acceptCallHandler = useCallback(async () => {
-    if (acceptCallButton?.onPressHandler) {
-      acceptCallButton.onPressHandler();
-      return;
-    }
-    try {
-      await call?.join();
-    } catch (error) {
-      console.log('Error joining Call', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
-
-  const rejectCallHandler = useCallback(async () => {
-    if (rejectCallButton?.onPressHandler) {
-      rejectCallButton.onPressHandler();
-      return;
-    }
-    try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave({ reject: true });
-    } catch (error) {
-      console.log('Error rejecting Call', error);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
 
   return (
     <Background>
@@ -101,38 +65,9 @@ export const IncomingCall = ({
       </View>
 
       <View style={styles.buttonGroup}>
-        <CallControlsButton
-          onPress={rejectCallHandler}
-          color={theme.light.error}
-          style={[styles.button, theme.button.lg]}
-          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-        >
-          <PhoneDown color={theme.light.static_white} />
-        </CallControlsButton>
-        <CallControlsButton
-          onPress={toggleInitialVideoMuteState}
-          color={
-            initialVideoEnabled
-              ? theme.light.static_white
-              : theme.light.overlay_dark
-          }
-          style={[styles.button, theme.button.lg]}
-          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-        >
-          {!initialVideoEnabled ? (
-            <VideoSlash color={theme.light.static_white} />
-          ) : (
-            <Video color={theme.light.static_black} />
-          )}
-        </CallControlsButton>
-        <CallControlsButton
-          onPress={acceptCallHandler}
-          color={theme.light.info}
-          style={[styles.button, theme.button.lg]}
-          svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-        >
-          <Phone color={theme.light.static_white} />
-        </CallControlsButton>
+        <RejectCallButton onPressHandler={rejectCallButton?.onPressHandler} />
+        <ToggleVideoPreviewButton />
+        <AcceptCallButton onPressHandler={acceptCallButton?.onPressHandler} />
       </View>
     </Background>
   );
@@ -142,6 +77,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const connectedUser = useConnectedUser();
+  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars
@@ -185,9 +121,6 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.padding.xl,
+    justifyContent: 'space-evenly',
   },
-  button: {},
-  svgContainerStyle: {},
 });

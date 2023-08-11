@@ -7,7 +7,7 @@ import {
   MenuToggle,
   ToggleMenuButtonProps,
   useCall,
-  useCallRecordings,
+  useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
@@ -15,6 +15,7 @@ const MAX_NUMBER_POLL_REQUESTS = 6;
 const POLL_INTERVAL_MS = 10 * 1000;
 
 export const CallRecordings = () => {
+  const { useCallRecordings } = useCallStateHooks();
   const callRecordings = useCallRecordings();
   const client = useStreamVideoClient();
   const activeCall = useCall();

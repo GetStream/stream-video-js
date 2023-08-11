@@ -2,6 +2,55 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.367](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.366...@stream-io/video-react-native-sdk-0.0.1-alpha.367) (2023-08-11)
+
+
+### Features
+
+* **react-native:** add CallTopView component ([#921](https://github.com/GetStream/stream-video-js/issues/921)) ([252adf3](https://github.com/GetStream/stream-video-js/commit/252adf36216c7bd291fccd4ecbdf95c9cdb31a18))
+
+
+
+## [0.0.1-alpha.366](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.365...@stream-io/video-react-native-sdk-0.0.1-alpha.366) (2023-08-11)
+
+
+
+## [0.0.1-alpha.365](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.364...@stream-io/video-react-native-sdk-0.0.1-alpha.365) (2023-08-11)
+
+
+### Features
+
+* Wrap all call state hooks in useCallStateHooks() ([#917](https://github.com/GetStream/stream-video-js/issues/917)) ([19f891a](https://github.com/GetStream/stream-video-js/commit/19f891aab42b725b6a1d0194bf0ef8f645ccc792))
+
+
+
+## [0.0.1-alpha.364](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.363...@stream-io/video-react-native-sdk-0.0.1-alpha.364) (2023-08-10)
+
+
+
+## [0.0.1-alpha.363](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.362...@stream-io/video-react-native-sdk-0.0.1-alpha.363) (2023-08-10)
+
+
+
+## [0.0.1-alpha.362](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.361...@stream-io/video-react-native-sdk-0.0.1-alpha.362) (2023-08-10)
+
+
+### Bug Fixes
+
+* **react-native:** avoid usage of image showcase in push notification docs ([b820b94](https://github.com/GetStream/stream-video-js/commit/b820b946131e5cd4f897daf5f2f18fadcd980697))
+* **react-native:** disable camera toggle face button when local video is muted ([#903](https://github.com/GetStream/stream-video-js/issues/903)) ([58150bc](https://github.com/GetStream/stream-video-js/commit/58150bc8d15e6e62654e1f0bc14dc207d51ed1f9))
+
+
+
+## [0.0.1-alpha.361](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.360...@stream-io/video-react-native-sdk-0.0.1-alpha.361) (2023-08-09)
+
+
+### Features
+
+* **react-native:** add basic reactions popup ([#913](https://github.com/GetStream/stream-video-js/issues/913)) ([3969000](https://github.com/GetStream/stream-video-js/commit/3969000025faabf8c923c1648bc19475d31e0cfb))
+
+
+
 ## [0.0.1-alpha.360](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.359...@stream-io/video-react-native-sdk-0.0.1-alpha.360) (2023-08-08)
 
 
