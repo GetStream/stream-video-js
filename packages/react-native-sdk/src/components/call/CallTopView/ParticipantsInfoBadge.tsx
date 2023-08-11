@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../../../icons';
-import { useParticipantCount } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { theme } from '../../../theme';
 import { Z_INDEX } from '../../../constants';
 import { CallTopViewProps } from '..';
@@ -18,6 +18,7 @@ export type ParticipantsInfoBadgeProps = Pick<
 export const ParticipantsInfoBadge = ({
   onParticipantInfoPress,
 }: ParticipantsInfoBadgeProps) => {
+  const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
 
   return (
