@@ -56,19 +56,37 @@ call.camera.state.selectedDevice; // currently selected camera
 call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 ```
 
-### Flip camera
+### Camera direction
 
 On mobile devices it's useful if users can switch between the front and back cameras:
 
 ```typescript
+await call.camera.selectDirection('front'); // or back
+
+// Flip camera
 await call.camera.flip();
 ```
 
 This is how you can access the camera direction:
 
 ```typescript
-call.camera.state.direction; // front or back
+call.camera.state.direction; // front, back or undefined
 call.camera.state.direction$.subscribe(console.log); // Reactive value for direction, you can subscribe to changes
+```
+
+The initial direction of the camera is `undefined`. If you don't change the initial status, the default backend settings will be applied once the participant joins the call.
+
+If you're building a lobby screen, this is how you can apply the backend settings:
+
+```typescript
+await call.get();
+// fallback in case no backend setting
+let defaultDirection: CameraDirection = 'front';
+const backendSetting = this.state.metadata?.settings.video.camera_facing;
+if (backendSetting) {
+  defaultDirection = backendSetting === 'front' ? 'front' : 'back';
+}
+this.camera.selectDirection(defaultDirection);
 ```
 
 ### Render video

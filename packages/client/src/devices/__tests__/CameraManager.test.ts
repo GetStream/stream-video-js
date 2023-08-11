@@ -54,7 +54,6 @@ describe('CameraManager', () => {
 
     expect(getVideoStream).toHaveBeenCalledWith({
       deviceId: undefined,
-      facingMode: 'user',
     });
   });
 
@@ -88,11 +87,33 @@ describe('CameraManager', () => {
   });
 
   it('flip', async () => {
-    expect(manager.state.direction).toBe('front');
+    await manager.selectDirection('front');
 
     await manager.flip();
 
     expect(manager.state.direction).toBe('back');
+  });
+
+  it('select camera direction', async () => {
+    expect(manager.state.direction).toBe(undefined);
+
+    await manager.enable();
+
+    expect(getVideoStream).toHaveBeenCalledWith({ deviceId: undefined });
+
+    await manager.selectDirection('front');
+
+    expect(getVideoStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+      facingMode: 'user',
+    });
+
+    await manager.selectDirection('back');
+
+    expect(getVideoStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+      facingMode: 'environment',
+    });
   });
 
   it(`shouldn't set deviceId and facingMode at the same time`, async () => {

@@ -2,15 +2,17 @@ import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 
+export type CameraDirection = 'front' | 'back' | undefined;
+
 export class CameraManagerState extends InputMediaDeviceManagerState {
-  private directionSubject = new BehaviorSubject<'front' | 'back'>('front');
+  private directionSubject = new BehaviorSubject<CameraDirection>(undefined);
 
   /**
    * Observable that emits the preferred camera direction
    * front - means the camera facing the user
    * back - means the camera facing the environment
    */
-  direction$: Observable<'front' | 'back'>;
+  direction$: Observable<CameraDirection>;
 
   constructor() {
     super();
@@ -31,7 +33,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   /**
    * @internal
    */
-  setDirection(direction: 'front' | 'back') {
+  setDirection(direction: CameraDirection) {
     this.setCurrentValue(this.directionSubject, direction);
   }
 

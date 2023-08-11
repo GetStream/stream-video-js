@@ -111,6 +111,7 @@ import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
 import { CameraManager } from './devices/CameraManager';
 import { MicrophoneManager } from './devices/MicrophoneManager';
+import { CameraDirection } from './devices/CameraManagerState';
 
 /**
  * An object representation of a `Call`.
@@ -1718,6 +1719,15 @@ export class Call {
     ) {
       return;
     }
+    if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
+      let defaultDirection: CameraDirection = 'front';
+      const backendSetting = this.state.metadata?.settings.video.camera_facing;
+      if (backendSetting) {
+        defaultDirection = backendSetting === 'front' ? 'front' : 'back';
+      }
+      this.camera.selectDirection(defaultDirection);
+    }
+
     // Publish already started media streams (this is the case if there is a lobby screen before join)
     if (this.camera.state.status === 'enabled') {
       // Wait for media stream
