@@ -25,8 +25,16 @@ call.camera.state.status; // enabled, disabled or undefined
 call.camera.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
 
-The initial status of the camera is `undefined`, which will be updated with the default backend settings once the call data is loaded.
-It's also possible to set the default status from the outside if you don't care about the backend settings.
+The initial status of the camera is `undefined`. If you don't change the initial status, the default backend settings will be applied once the participant joins the call.
+
+If you're building a lobby screen, this is how you can apply the backend settings:
+
+```typescript
+await call.get();
+const defaultCameraStatus =
+  call.state.metadata.settings.video.camera_default_on;
+defaultCameraStatus ? call.camera.enable() : call.camera.disable();
+```
 
 ### List and select devices
 
@@ -115,8 +123,15 @@ call.microphone.state.status; // enabled, disabled or undefined
 call.microphone.state.status$.subscribe(console.log); // Reactive value for status, you can subscribe to changes
 ```
 
-The initial status of the microphone is `undefined`, which will be updated with the default backend settings once the call data is loaded.
-It's also possible to set the default status from the outside if you don't care about the backend settings.
+The initial status of the microphone is `undefined`. If you don't change the initial status, the default backend settings will be applied once the participant joins the call.
+
+If you're building a lobby screen, this is how you can apply the backend settings:
+
+```typescript
+await call.get();
+const defaultMicStatus = call.state.metadata.settings.audio.mic_default_on;
+defaultMicStatus ? call.microphone.enable() : call.microphone.disable();
+```
 
 ### List and select devices
 
