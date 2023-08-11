@@ -55,7 +55,7 @@ export const ActiveCall = ({
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const { top } = useSafeAreaInsets();
+  const { top, bottom } = useSafeAreaInsets();
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -73,7 +73,14 @@ export const ActiveCall = ({
       </View>
       <CallContent mode={selectedLayout} />
       {/* Since we want the chat and the reaction button the entire call controls is customized */}
-      <View style={styles.callControlsWrapper}>
+      <View
+        style={[
+          styles.callControlsWrapper,
+          {
+            paddingBottom: Math.max(bottom, appTheme.spacing.lg),
+          },
+        ]}
+      >
         <ReactionButton />
         <ChatButton
           onPressHandler={chatButton?.onPressHandler}
