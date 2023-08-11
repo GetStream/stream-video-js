@@ -112,6 +112,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
           unreadBadgeCount,
         }}
         onHangupCallHandler={onHangupCallHandler}
+        onBackPressed={onHangupCallHandler}
       />
     );
   }

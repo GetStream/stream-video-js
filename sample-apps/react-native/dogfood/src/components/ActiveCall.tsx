@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  CallContentProps,
-  CallControlsType,
   CallingState,
-  ParticipantsInfoBadge,
   CallContent,
   useCall,
   useIncallManager,
@@ -14,6 +11,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   HangUpCallButton,
+  CallTopView,
   ChatButtonProps,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -22,25 +20,29 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { ActiveCallNotification } from './ActiveCallNotification';
-import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
-import { Z_INDEX } from '@stream-io/video-react-native-sdk/src/constants';
+import { ParticipantsInfoList } from './ParticipantsInfoList';
+import { Z_INDEX } from '../constants';
 
-type ActiveCallProps = CallControlsType & {
+type ActiveCallProps = {
   chatButton?: ChatButtonProps;
   onHangupCallHandler?: () => void;
+  onBackPressed?: () => void;
 };
-
-type Layout = CallContentProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
+  onBackPressed,
   onHangupCallHandler,
 }: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
-  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
+  const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
+    useState<boolean>(false);
+
+  const onOpenCallParticipantsInfo = () => {
+    setIsCallParticipantsVisible(true);
+  };
 
   useEffect(() => {
     return () => {
@@ -55,7 +57,7 @@ export const ActiveCall = ({
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const { top, bottom } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -63,15 +65,13 @@ export const ActiveCall = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <ActiveCallNotification />
-      <View style={[styles.icons, { top }]}>
-        <ParticipantsLayoutSwitchButton
-          selectedLayout={selectedLayout}
-          setSelectedLayout={setSelectedLayout}
+      <View style={styles.container}>
+        <CallTopView
+          onBackPressed={onBackPressed}
+          onParticipantInfoPress={onOpenCallParticipantsInfo}
         />
-        <ParticipantsInfoBadge />
+        <CallContent />
       </View>
-      <CallContent mode={selectedLayout} />
       {/* Since we want the chat and the reaction button the entire call controls is customized */}
       <View
         style={[
@@ -91,6 +91,10 @@ export const ActiveCall = ({
         <ToggleCameraFaceButton />
         <HangUpCallButton onPressHandler={onHangupCallHandler} />
       </View>
+      <ParticipantsInfoList
+        isCallParticipantsInfoVisible={isCallParticipantsVisible}
+        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+      />
     </SafeAreaView>
   );
 };

@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
   },
   buttonGroup: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.padding.xl,
+    justifyContent: 'space-evenly',
   },
 });
