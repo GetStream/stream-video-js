@@ -19,6 +19,7 @@ export type Props = {
   className?: string;
   title: string | ReactNode;
   isFocused?: boolean;
+  isParticipantsPanel?: boolean;
   canCollapse?: boolean;
   fulllHeight?: boolean;
   close?: () => void;
@@ -39,6 +40,7 @@ export const AnimatedPanel: FC<Props & AnimatedProps> = ({
     styles.animated,
     {
       [styles.visible]: visible,
+      [styles.participantsPanel]: props.isParticipantsPanel,
     },
     className,
   );
@@ -52,7 +54,16 @@ export const AnimatedPanel: FC<Props & AnimatedProps> = ({
 };
 
 export const Panel = forwardRef<any, Props>(function MyInput(
-  { className, children, title, isFocused, fulllHeight, canCollapse, close },
+  {
+    className,
+    children,
+    title,
+    isFocused,
+    fulllHeight,
+    canCollapse,
+    close,
+    isParticipantsPanel,
+  },
   ref,
 ) {
   const [isOpen, setOpen] = useState(true);
@@ -82,6 +93,7 @@ export const Panel = forwardRef<any, Props>(function MyInput(
 
   const contentClassName = classnames(styles.content, {
     [styles.open]: isOpen,
+    [styles.participantsPanel]: isParticipantsPanel,
   });
 
   return (

@@ -5,7 +5,7 @@ import {
   PaginatedGridLayout,
   StreamCall,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
   useConnectedUser,
   useMediaDevices,
   useStreamVideoClient,
@@ -52,6 +52,7 @@ export const Backstage = () => {
 
 const BackstageUI = () => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   const { publishVideoStream, publishAudioStream } = useMediaDevices();
   useEffect(() => {

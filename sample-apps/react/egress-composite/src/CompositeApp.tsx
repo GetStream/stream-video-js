@@ -7,7 +7,7 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useHasOngoingScreenShare,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
 import { useAppConfig } from './hooks/useAppConfig';
@@ -83,6 +83,7 @@ const UiDispatcher = (props: { layout: LayoutId }) => {
   const { ParticipantsView, ScreenShareView } =
     Layouts[layout || DEFAULT_LAYOUT_ID];
 
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   if (hasScreenShare) {
     return <ScreenShareView />;

@@ -1,4 +1,4 @@
-import { CallingState, useCallCallingState } from '@stream-io/video-react-sdk';
+import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { useEffect } from 'react';
 
 interface WakeLockSentinel {
@@ -6,6 +6,7 @@ interface WakeLockSentinel {
 }
 
 export const useWakeLock = () => {
+  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
 
   useEffect(() => {

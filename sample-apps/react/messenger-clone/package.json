@@ -14,7 +14,6 @@
   "dependencies": {
     "@mui/icons-material": "^5.11.16",
     "@stream-io/video-react-sdk": "workspace:^",
-    "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "dayjs": "^1.11.6",
     "immer": "^9.0.16",

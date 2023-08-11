@@ -3,7 +3,7 @@ import {
   AggregatedStatsReport,
   CallStatsReport,
 } from '@stream-io/video-client';
-import { useCallStatsReport } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 
 export const CallStats = () => {
@@ -17,6 +17,7 @@ export const CallStats = () => {
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>();
+  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {

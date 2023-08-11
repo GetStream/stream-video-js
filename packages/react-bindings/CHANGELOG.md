@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.16...@stream-io/video-react-bindings-0.1.17) (2023-08-11)
+
+
+### Features
+
+* Wrap all call state hooks in useCallStateHooks() ([#917](https://github.com/GetStream/stream-video-js/issues/917)) ([19f891a](https://github.com/GetStream/stream-video-js/commit/19f891aab42b725b6a1d0194bf0ef8f645ccc792))
+
+### [0.1.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.15...@stream-io/video-react-bindings-0.1.16) (2023-08-10)
+
+
+### Bug Fixes
+
+* **bindings:** do not return call is live without metadata being available ([831e6f3](https://github.com/GetStream/stream-video-js/commit/831e6f347acb4c496c34346802862dba8c6d780a))
+
 ### [0.1.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.14...@stream-io/video-react-bindings-0.1.15) (2023-08-08)
 
 ### Dependency Updates

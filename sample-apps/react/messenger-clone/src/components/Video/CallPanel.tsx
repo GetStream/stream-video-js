@@ -8,8 +8,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallCallingState,
-  useCallMetadata,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
 import { useState } from 'react';
@@ -17,6 +16,7 @@ import { useDraggable } from '../../hooks';
 
 export const CallPanel = () => {
   const call = useCall();
+  const { useCallCallingState, useCallMetadata } = useCallStateHooks();
   const callingState = useCallCallingState();
   const metadata = useCallMetadata();
   const { channel: activeChannel } = useChatContext();
