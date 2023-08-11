@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
 import {
   Svg,
   Rect,
@@ -18,14 +17,10 @@ type Props = {
    * Width of the SVG container
    */
   width?: NumberProp;
-  /**
-   * Style to be applied to the SVG container
-   */
-  style?: StyleProp<ViewStyle>;
 };
 
-export const TopViewBackground = ({ height, width, style }: Props) => (
-  <Svg width={width} height={height} fill={'none'} style={style}>
+export const TopViewBackground = ({ height, width }: Props) => (
+  <Svg width={width} height={height} fill={'none'}>
     <Defs>
       <LinearGradient
         id="paint0_linear_8092_98095"

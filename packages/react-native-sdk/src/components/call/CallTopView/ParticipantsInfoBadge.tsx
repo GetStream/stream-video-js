@@ -21,7 +21,12 @@ export const ParticipantsInfoBadge = ({
   const participantCount = useParticipantCount();
 
   return (
-    <Pressable onPress={onParticipantInfoPress} style={styles.container}>
+    <Pressable
+      onPress={onParticipantInfoPress}
+      style={({ pressed }) => [
+        { ...styles.container, opacity: pressed ? 0.2 : 1 },
+      ]}
+    >
       <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />
       </View>

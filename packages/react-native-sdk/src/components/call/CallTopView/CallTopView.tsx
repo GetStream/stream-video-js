@@ -12,6 +12,8 @@ import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { Z_INDEX } from '../../../constants';
 import { TopViewBackground } from '../../../icons';
+import { useCallCallingState } from '@stream-io/video-react-bindings';
+import { CallingState } from '@stream-io/video-client';
 
 export type CallTopViewProps = {
   /**
@@ -40,7 +42,9 @@ export const CallTopView = ({
   title,
   style,
 }: CallTopViewProps) => {
+  const callingState = useCallCallingState();
   const [headerHeight, setHeaderHeight] = useState<number>(0);
+  const isCallReconnecting = callingState === CallingState.RECONNECTING;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height } = event.nativeEvent.layout;
@@ -48,18 +52,18 @@ export const CallTopView = ({
   };
 
   return (
-    <>
+    <View style={[styles.container, style]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
-      <TopViewBackground
-        height={headerHeight}
-        width={'100%'}
-        style={[styles.background, style]}
-      />
-      <View style={[styles.container, style]} onLayout={onLayout}>
+      <TopViewBackground height={headerHeight} width={'100%'} />
+      <View style={styles.topView} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (
             <Pressable
-              style={[theme.icon.md, styles.backIcon]}
+              style={({ pressed }) => [
+                theme.icon.md,
+                styles.backIcon,
+                { opacity: pressed ? 0.2 : 1 },
+              ]}
               onPress={onBackPressed}
             >
               <Back color={theme.light.static_white} />
@@ -67,7 +71,13 @@ export const CallTopView = ({
           )}
         </View>
         <View style={styles.centerElement}>
-          {title && <Text style={styles.title}>{title}</Text>}
+          {title ? (
+            <Text style={styles.title}>{title}</Text>
+          ) : (
+            isCallReconnecting && (
+              <Text style={styles.title}>Reconnecting...</Text>
+            )
+          )}
         </View>
         <View style={styles.rightElement}>
           {onParticipantInfoPress && (
@@ -77,22 +87,21 @@ export const CallTopView = ({
           )}
         </View>
       </View>
-    </>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    position: 'absolute',
-    zIndex: Z_INDEX.IN_FRONT,
-  },
   container: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: Z_INDEX.IN_FRONT,
+    position: 'absolute',
+  },
+  topView: {
     position: 'absolute',
     flexDirection: 'row',
     paddingVertical: theme.padding.lg,
     alignItems: 'center',
-    backgroundColor: 'transparent',
-    zIndex: Z_INDEX.IN_FRONT,
   },
   backIcon: {
     // Added to compensate the participant badge surface area

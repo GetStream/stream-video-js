@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControls,
   CallControlsType,
@@ -9,13 +9,12 @@ import {
   theme,
   CallTopView,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { ActiveCallNotification } from './ActiveCallNotification';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 
 type ActiveCallProps = CallControlsType & {
@@ -33,9 +32,9 @@ export const ActiveCall = ({
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
 
-  const onOpenCallParticipantsInfo = useCallback(() => {
+  const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
-  }, [setIsCallParticipantsVisible]);
+  };
 
   useEffect(() => {
     return () => {
@@ -50,7 +49,7 @@ export const ActiveCall = ({
    */
   useIncallManager({ media: 'video', auto: true });
 
-  const { bottom, top } = useSafeAreaInsets();
+  const { bottom } = useSafeAreaInsets();
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -58,18 +57,13 @@ export const ActiveCall = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <ActiveCallNotification />
-      <CallTopView
-        onBackPressed={onBackPressed}
-        title={call.id}
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
-        style={{ top }}
-      />
-      <ParticipantsInfoList
-        isCallParticipantsInfoVisible={isCallParticipantsVisible}
-        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
-      />
-      <CallContent />
+      <View style={styles.container}>
+        <CallTopView
+          onBackPressed={onBackPressed}
+          onParticipantInfoPress={onOpenCallParticipantsInfo}
+        />
+        <CallContent />
+      </View>
       <CallControls
         chatButton={chatButton}
         hangUpCallButton={hangUpCallButton}
@@ -77,6 +71,10 @@ export const ActiveCall = ({
           styles.callControlsWrapper,
           { paddingBottom: Math.max(bottom, appTheme.spacing.lg) },
         ]}
+      />
+      <ParticipantsInfoList
+        isCallParticipantsInfoVisible={isCallParticipantsVisible}
+        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
       />
     </SafeAreaView>
   );
