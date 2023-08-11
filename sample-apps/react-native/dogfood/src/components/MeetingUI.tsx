@@ -114,6 +114,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
         hangUpCallButton={{
           onPressHandler: onCallHangupHandler,
         }}
+        onBackPressed={onCallHangupHandler}
       />
     );
   }
