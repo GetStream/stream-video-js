@@ -231,14 +231,8 @@ export const useAnonymousParticipantCount = () => {
 export const useCameraState = () => {
   const call = useCall();
 
-  const {
-    camera = {
-      state: new CameraManagerState(),
-    },
-  } = call as Call;
-
-  const status = useObservableValue(camera.state.status$);
-  const direction = useObservableValue(camera.state.direction$);
+  const status = useObservableValue(call?.camera.state.status$);
+  const direction = useObservableValue(call?.camera.state.direction$);
 
   return {
     status,
@@ -254,14 +248,10 @@ export const useCameraState = () => {
 export const useMicrophoneState = () => {
   const call = useCall();
 
-  const {
-    microphone = {
-      state: new MicrophoneManagerState(),
-    },
-  } = call as Call;
-
-  const status = useObservableValue(microphone.state.status$);
-  const selectedDevice = useObservableValue(microphone.state.selectedDevice$);
+  const status = useObservableValue(call?.microphone.state.status$);
+  const selectedDevice = useObservableValue(
+    call?.microphone.state.selectedDevice$,
+  );
 
   return {
     status,
