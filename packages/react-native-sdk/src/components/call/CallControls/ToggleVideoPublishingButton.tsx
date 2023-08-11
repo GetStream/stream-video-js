@@ -7,15 +7,31 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
-import { StyleSheet } from 'react-native';
 import { theme } from '../../../theme';
 import { Video, VideoSlash } from '../../../icons';
 
-export const ToggleVideoButton = () => {
+/**
+ * Props for the Toggle Video publishing button
+ */
+export type ToggleVideoPublishingButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle video mute/unmute status while in the call.
+ */
+export const ToggleVideoPublishingButton = ({
+  onPressHandler,
+}: ToggleVideoPublishingButtonProps) => {
   const call = useCall();
   const { status } = useCameraState();
 
   const onPress = async () => {
+    onPressHandler?.();
     await call?.camera.toggle();
   };
 
@@ -24,7 +40,6 @@ export const ToggleVideoButton = () => {
       <CallControlsButton
         onPress={onPress}
         color={muteStatusColor(status === 'disabled')}
-        style={status !== 'disabled' ? styles.button : null}
       >
         {status === 'disabled' ? (
           <VideoSlash color={theme.light.static_white} />
@@ -35,21 +50,3 @@ export const ToggleVideoButton = () => {
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});

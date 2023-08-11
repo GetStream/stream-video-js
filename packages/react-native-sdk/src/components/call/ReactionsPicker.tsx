@@ -144,12 +144,12 @@ const styles = StyleSheet.create({
   reactionsPopup: {
     position: 'absolute',
     alignItems: 'center',
-    backgroundColor: theme.light.static_black,
+    backgroundColor: theme.light.static_grey,
     paddingTop: TOP_PADDING,
   },
   reactionsButtonDimmer: {
     position: 'absolute',
-    backgroundColor: theme.light.static_black,
+    backgroundColor: theme.light.static_grey,
     opacity: 0.5,
   },
   reactionItem: {
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: REACTION_MARGIN_BOTTOM,
     // temporary background color until we have theming
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: theme.light.overlay,
   },
   reactionText: {
     fontSize: 18.5,

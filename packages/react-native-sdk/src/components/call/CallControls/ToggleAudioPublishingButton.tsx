@@ -8,14 +8,30 @@ import {
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { Mic, MicOff } from '../../../icons';
-import { StyleSheet } from 'react-native';
 import { muteStatusColor } from '../../../utils';
 
-export const ToggleAudioButton = () => {
+/**
+ * Props for the Toggle Audio publishing button
+ */
+export type ToggleAudioPublishingButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle audio mute/unmute status while in the call.
+ */
+export const ToggleAudioPublishingButton = ({
+  onPressHandler,
+}: ToggleAudioPublishingButtonProps) => {
   const call = useCall();
   const { status } = useMicrophoneState();
 
   const onPress = async () => {
+    onPressHandler?.();
     await call?.microphone.toggle();
   };
 
@@ -24,7 +40,6 @@ export const ToggleAudioButton = () => {
       <CallControlsButton
         onPress={onPress}
         color={muteStatusColor(status === 'disabled')}
-        style={status === 'enabled' ? styles.button : null}
       >
         {status === 'disabled' ? (
           <MicOff color={theme.light.static_white} />
@@ -35,21 +50,3 @@ export const ToggleAudioButton = () => {
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});

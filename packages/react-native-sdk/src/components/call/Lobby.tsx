@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Mic, MicOff, Video, VideoSlash } from '../../icons';
+import { MicOff } from '../../icons';
 import {
   useCall,
   useCameraState,
@@ -9,14 +9,14 @@ import {
   useI18n,
   useMicrophoneState,
 } from '@stream-io/video-react-bindings';
-import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
 import { useLocalVideoStream } from '../../hooks';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { Avatar } from '../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
+import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
 /**
  * Use this view prior to joining a call.
@@ -46,12 +46,8 @@ type LobbyProps = {
 export const Lobby = ({ joinCallButton }: LobbyProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
-    useMediaStreamManagement();
   const { direction, status: cameraStatus } = useCameraState();
   const isCameraDisabled = cameraStatus === 'disabled';
-  const { status: micStatus } = useMicrophoneState();
-  const isMicDisabled = micStatus === 'disabled';
   const isVideoAvailable = !!localVideoStream && !isCameraDisabled;
   const call = useCall();
   const { useCallMetadata } = useCallStateHooks();
@@ -59,26 +55,11 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
   const { t } = useI18n();
   const participantsCount = callMetadata?.session?.participants.length;
 
-  const MicIcon = isMicDisabled ? (
-    <MicOff color={theme.light.static_white} />
-  ) : (
-    <Mic color={theme.light.static_black} />
-  );
-  const VideoIcon = isCameraDisabled ? (
-    <VideoSlash color={theme.light.static_white} />
-  ) : (
-    <Video color={theme.light.static_black} />
-  );
-
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
     image: connectedUser?.image,
     name: connectedUser?.name,
   } as StreamVideoParticipant;
-
-  const muteStatusColor = (muted: boolean) => {
-    return muted ? theme.light.static_black : theme.light.static_white;
-  };
 
   return (
     <View style={styles.container}>
@@ -104,32 +85,8 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
               <ParticipantStatus />
             </View>
             <View style={styles.buttonGroup}>
-              <CallControlsButton
-                onPress={toggleInitialAudioMuteState}
-                color={muteStatusColor(isMicDisabled)}
-                style={[
-                  styles.button,
-                  theme.button.md,
-                  {
-                    shadowColor: muteStatusColor(isMicDisabled),
-                  },
-                ]}
-              >
-                {MicIcon}
-              </CallControlsButton>
-              <CallControlsButton
-                onPress={toggleInitialVideoMuteState}
-                color={muteStatusColor(isCameraDisabled)}
-                style={[
-                  styles.button,
-                  theme.button.md,
-                  {
-                    shadowColor: muteStatusColor(isCameraDisabled),
-                  },
-                ]}
-              >
-                {VideoIcon}
-              </CallControlsButton>
+              <ToggleAudioPreviewButton />
+              <ToggleVideoPreviewButton />
             </View>
           </>
         )}
@@ -183,17 +140,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    alignItems: 'center',
     paddingHorizontal: theme.padding.md,
   },
   heading: {
     color: theme.light.static_white,
     ...theme.fonts.heading4,
+    textAlign: 'center',
   },
   subHeading: {
     color: theme.light.text_low_emphasis,
     ...theme.fonts.subtitle,
     marginBottom: theme.margin.sm,
+    textAlign: 'center',
   },
   videoView: {
     backgroundColor: theme.light.disabled,
@@ -209,11 +167,8 @@ const styles = StyleSheet.create({
   topView: {},
   buttonGroup: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     marginBottom: theme.margin.md,
-  },
-  button: {
-    marginHorizontal: theme.margin.sm,
   },
   info: {
     backgroundColor: theme.light.static_overlay,

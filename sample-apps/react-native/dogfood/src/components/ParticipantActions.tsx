@@ -3,27 +3,24 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import {
-  Cross,
-  Mic,
-  MicOff,
-  Pin,
-  ScreenShare,
-  Video,
-  VideoDisabled,
-  VideoSlash,
-} from '../../../icons';
+import { Cross } from '../assets/Cross';
+import { Mic } from '../assets/Mic';
+import { MicOff } from '../assets/MicOff';
+import { Pin } from '../assets/Pin';
+import { ScreenShare } from '../assets/ScreenShare';
+import { Video } from '../assets/Video';
+import { VideoDisabled } from '../assets/VideoDisabled';
+import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { generateParticipantTitle } from '../../../utils';
 import React, { useCallback } from 'react';
-import { Avatar } from '../../utility/Avatar';
-import { theme } from '../../../theme';
 import {
   useCall,
   useHasPermissions,
   useI18n,
-} from '@stream-io/video-react-bindings';
-import { palette } from '../../../theme/constants';
+  theme,
+  Avatar,
+} from '@stream-io/video-react-native-sdk';
+import { generateParticipantTitle } from '../utils';
 
 type CallParticipantOptionType = {
   title: string;
@@ -284,6 +281,6 @@ const styles = StyleSheet.create({
   closePressable: {
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
-    backgroundColor: palette.grey800,
+    backgroundColor: theme.light.static_grey,
   },
 });

@@ -1,18 +1,17 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfo } from './internal/UserInfo';
-import { CallControlsButton } from '../utility/internal/CallControlsButton';
-import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import {
   HangUpCallButton,
   HangUpCallButtonProps,
-} from '../utility/internal/HangupCallButton';
-import { useI18n } from '@stream-io/video-react-bindings';
+} from './CallControls/HangupCallButton';
+import { useCameraState, useI18n } from '@stream-io/video-react-bindings';
+import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
+import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
 /**
  * Props for the OutgoingCall Component.
@@ -29,16 +28,7 @@ export type OutgoingCallProps = {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
-  const {
-    initialAudioEnabled,
-    initialVideoEnabled,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-  } = useMediaStreamManagement();
   const { t } = useI18n();
-  const muteStatusColor = (status: boolean) => {
-    return status ? theme.light.overlay_dark : theme.light.static_white;
-  };
 
   return (
     <>
@@ -49,30 +39,8 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
         </View>
         <View style={styles.buttonGroup}>
           <View style={styles.deviceControlButtons}>
-            <CallControlsButton
-              onPress={toggleInitialAudioMuteState}
-              color={muteStatusColor(!initialAudioEnabled)}
-              style={[styles.button, theme.button.lg]}
-              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-            >
-              {!initialAudioEnabled ? (
-                <MicOff color={theme.light.static_white} />
-              ) : (
-                <Mic color={theme.light.static_black} />
-              )}
-            </CallControlsButton>
-            <CallControlsButton
-              onPress={toggleInitialVideoMuteState}
-              color={muteStatusColor(!initialVideoEnabled)}
-              style={[styles.button, theme.button.lg]}
-              svgContainerStyle={[styles.svgContainerStyle, theme.icon.lg]}
-            >
-              {!initialVideoEnabled ? (
-                <VideoSlash color={theme.light.static_white} />
-              ) : (
-                <Video color={theme.light.static_black} />
-              )}
-            </CallControlsButton>
+            <ToggleAudioPreviewButton />
+            <ToggleVideoPreviewButton />
           </View>
           <HangUpCallButton
             onPressHandler={hangupCallButton?.onPressHandler}
@@ -87,9 +55,9 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
 
 const Background = () => {
   const localVideoStream = useLocalVideoStream();
-  const { initialVideoEnabled } = useMediaStreamManagement();
+  const { status } = useCameraState();
 
-  if (!initialVideoEnabled || !localVideoStream) {
+  if (status === 'disabled' || !localVideoStream) {
     return <View style={styles.background} />;
   }
   return (
@@ -131,6 +99,4 @@ const styles = StyleSheet.create({
   cancelCallButton: {
     alignSelf: 'center',
   },
-  button: {},
-  svgContainerStyle: {},
 });

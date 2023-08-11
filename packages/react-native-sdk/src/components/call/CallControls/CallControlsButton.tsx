@@ -19,7 +19,7 @@ interface CallControlsButtonProps {
    */
   color?: string;
   /**
-   * Boolean to enable/enable the button
+   * Boolean to enable/disable the button
    */
   disabled?: boolean;
   /**
@@ -34,6 +34,10 @@ interface CallControlsButtonProps {
    * Accessibility label for the button.
    */
   testID?: string;
+  /**
+   * Invoked on mount and layout changes with
+   * {nativeEvent: { layout: {x, y, width, height}}}.
+   */
   onLayout?: View['props']['onLayout'];
 }
 
@@ -61,7 +65,7 @@ export const CallControlsButton = (
       backgroundColor: color,
       opacity: pressed ? 0.2 : 1,
     },
-    style ? style : null,
+    style,
     disabled ? styles.disabledStyle : null,
   ];
 
@@ -73,13 +77,7 @@ export const CallControlsButton = (
       testID={testID}
       onLayout={onLayout}
     >
-      <View
-        style={[
-          styles.svgContainerStyle,
-          DEFAULT_ICON_SIZE,
-          svgContainerStyle ?? null,
-        ]}
-      >
+      <View style={[DEFAULT_ICON_SIZE, svgContainerStyle ?? null]}>
         {children}
       </View>
     </Pressable>
@@ -92,8 +90,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.light.content_bg,
     alignItems: 'center',
+    // For iOS
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+
+    // For android
+    elevation: 6,
   },
-  svgContainerStyle: {},
   disabledStyle: {
     backgroundColor: theme.light.disabled,
   },

@@ -5,6 +5,7 @@
   "Invite": "Invite",
   "Join": "Join",
   "You": "You",
+  "Reconnecting...": "Reconnecting...",
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen"
 }

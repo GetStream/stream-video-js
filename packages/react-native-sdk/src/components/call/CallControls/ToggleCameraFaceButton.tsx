@@ -9,12 +9,29 @@ import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
-import { StyleSheet } from 'react-native';
 
-export const ToggleCameraFaceButton = () => {
+/**
+ * Props for the Toggle Camera face button.
+ */
+export type ToggleCameraFaceButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle camera face(front/back) when in the call.
+ */
+export const ToggleCameraFaceButton = ({
+  onPressHandler,
+}: ToggleCameraFaceButtonProps) => {
   const call = useCall();
-  const { direction, status } = useCameraState();
+  const { status, direction } = useCameraState();
+
   const onPress = async () => {
+    onPressHandler?.();
     await call?.camera.flip();
   };
 
@@ -23,7 +40,6 @@ export const ToggleCameraFaceButton = () => {
       <CallControlsButton
         onPress={onPress}
         color={muteStatusColor(direction === 'back')}
-        style={direction === 'front' ? styles.button : null}
         disabled={status === 'disabled'}
       >
         <CameraSwitch
@@ -37,18 +53,3 @@ export const ToggleCameraFaceButton = () => {
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-});
