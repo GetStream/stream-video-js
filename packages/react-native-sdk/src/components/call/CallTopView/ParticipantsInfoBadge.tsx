@@ -26,6 +26,7 @@ export const ParticipantsInfoBadge = ({
       style={({ pressed }) => [
         { ...styles.container, opacity: pressed ? 0.2 : 1 },
       ]}
+      disabled={!onParticipantInfoPress}
     >
       <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />
