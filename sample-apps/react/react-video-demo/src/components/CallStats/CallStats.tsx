@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from 'react';
-import { CallStatsReport } from '@stream-io/video-react-sdk';
+import { CallStatsReport, useCallStateHooks } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
 import StatCard from '../StatCard';
@@ -17,7 +17,6 @@ import {
 } from '../../utils/useCalculateBitRate';
 
 import styles from './CallStats.module.css';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type Props = {
   className?: string;
