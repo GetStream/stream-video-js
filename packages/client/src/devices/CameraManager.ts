@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { Call } from '../Call';
-import { CameraManagerState } from './CameraManagerState';
+import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -11,6 +11,17 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   /**
+   * Select the camera direaction
+   * @param direction
+   */
+  async selectDirection(direction: Exclude<CameraDirection, undefined>) {
+    this.state.setDirection(direction);
+    // Providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDevice(undefined);
+    await this.applySettingsToStream();
+  }
+
+  /**
    * Flips the camera direction: if it's front it will change to back, if it's back, it will change to front.
    *
    * Note: if there is no available camera with the desired direction, this method will do nothing.
@@ -18,10 +29,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   async flip() {
     const newDirection = this.state.direction === 'front' ? 'back' : 'front';
-    this.state.setDirection(newDirection);
-    // Providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDevice(undefined);
-    await this.applySettingsToStream();
+    this.selectDirection(newDirection);
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -32,7 +40,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   ): Promise<MediaStream> {
     // We can't set both device id and facing mode
     // Device id has higher priority
-    if (!constraints.deviceId) {
+    if (!constraints.deviceId && this.state.direction) {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }

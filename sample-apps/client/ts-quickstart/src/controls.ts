@@ -32,13 +32,14 @@ const renderVideoButton = (call: Call) => {
 
 const renderFlipButton = (call: Call) => {
   const flipButton = document.createElement('button');
-  flipButton.innerText =
-    call.camera.state.direction === 'front' ? 'Back camera' : 'Front camera';
 
   flipButton.addEventListener('click', async () => {
     await call.camera.flip();
+  });
+
+  call.camera.state.direction$.subscribe((direction) => {
     flipButton.innerText =
-      call.camera.state.direction === 'front' ? 'Back camera' : 'Front camera';
+      direction === 'front' ? 'Back camera' : 'Front camera';
   });
 
   return flipButton;
