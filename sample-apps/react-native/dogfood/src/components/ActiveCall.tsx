@@ -18,11 +18,14 @@ import {
 import { ActiveCallNotification } from './ActiveCallNotification';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
 
-type ActiveCallProps = CallControlsType;
+type ActiveCallProps = CallControlsType & {
+  onBackPressed?: () => void;
+};
 
 export const ActiveCall = ({
   chatButton,
   hangUpCallButton,
+  onBackPressed,
 }: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
@@ -57,9 +60,7 @@ export const ActiveCall = ({
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ActiveCallNotification />
       <CallTopView
-        onBackPressed={() => {
-          console.log('Heyllo');
-        }}
+        onBackPressed={onBackPressed}
         title={call.id}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         style={{ top }}

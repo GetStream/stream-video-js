@@ -58,7 +58,10 @@ export const CallTopView = ({
       <View style={[styles.container, style]} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (
-            <Pressable style={[theme.icon.md, styles.backIcon]}>
+            <Pressable
+              style={[theme.icon.md, styles.backIcon]}
+              onPress={onBackPressed}
+            >
               <Back color={theme.light.static_white} />
             </Pressable>
           )}
