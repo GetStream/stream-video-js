@@ -1466,7 +1466,7 @@ export class Call {
    * @param data the request data.
    * @param params the request params.
    */
-  goLive = async (data: GoLiveRequest, params?: { notify?: boolean }) => {
+  goLive = async (data: GoLiveRequest = {}, params?: { notify?: boolean }) => {
     return this.streamClient.post<GoLiveResponse, GoLiveRequest>(
       `${this.streamClientBasePath}/go_live`,
       data,
