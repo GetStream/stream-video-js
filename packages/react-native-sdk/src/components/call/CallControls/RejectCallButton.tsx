@@ -1,5 +1,5 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { PhoneDown } from '../../../icons';
@@ -34,7 +34,7 @@ export const RejectCallButton = ({
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const rejectCallHandler = useCallback(async () => {
+  const rejectCallHandler = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -50,8 +50,7 @@ export const RejectCallButton = ({
     } catch (error) {
       console.log('Error rejecting Call', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
+  };
 
   return (
     <CallControlsButton
