@@ -29,7 +29,7 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
     useState<LayoutRectangle>();
 
-  // This is for the reaction popup
+  // This is for the reaction picker
   const onReactionsButtonLayout = (event: LayoutChangeEvent) => {
     const layout = event.nativeEvent.layout;
     setReactionsButtonLayoutRectangle((prev) => {
