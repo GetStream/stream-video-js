@@ -67,7 +67,6 @@ export const CallTopView = ({
                 { opacity: pressed ? 0.2 : 1 },
               ]}
               onPress={onBackPressed}
-              disabled={!onBackPressed}
             >
               <Back color={theme.light.static_white} />
             </Pressable>
