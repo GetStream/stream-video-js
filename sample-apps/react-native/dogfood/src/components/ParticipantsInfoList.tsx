@@ -1,15 +1,16 @@
+import React, { useState, useCallback } from 'react';
 import {
   OwnCapability,
   SfuModels,
   StreamVideoParticipant,
-} from '@stream-io/video-client';
-import {
   Restricted,
   useCall,
   useConnectedUser,
   useI18n,
   useParticipants,
-} from '@stream-io/video-react-bindings';
+  Avatar,
+  theme,
+} from '@stream-io/video-react-native-sdk';
 import {
   Alert,
   FlatList,
@@ -21,21 +22,15 @@ import {
   Text,
   View,
 } from 'react-native';
-import {
-  ArrowRight,
-  Cross,
-  MicOff,
-  ScreenShare,
-  VideoSlash,
-} from '../../icons';
-import React, { useCallback, useState } from 'react';
-import { generateParticipantTitle } from '../../utils';
-import { ParticipantActions } from './internal/ParticipantActions';
-import { Avatar } from '../utility/Avatar';
-import { theme } from '../../theme';
-import { ButtonTestIds, ComponentTestIds } from '../../constants/TestIds';
-import { Z_INDEX } from '../../constants';
-import { palette } from '../../theme/constants';
+import { Cross } from '../assets/Cross';
+import { MicOff } from '../assets/MicOff';
+import { ScreenShare } from '../assets/ScreenShare';
+import { VideoSlash } from '../assets/VideoSlash';
+import { ArrowRight } from '../assets/ArrowRight';
+import { appTheme } from '../theme';
+import { ParticipantActions } from './ParticipantActions';
+import { generateParticipantTitle } from '../utils';
+import { Z_INDEX } from '../constants';
 
 export interface ParticipantsInfoListProps {
   /**
@@ -105,7 +100,6 @@ export const ParticipantsInfoList = ({
 
   return (
     <Modal
-      testID={ComponentTestIds.PARTICIPANTS_INFO}
       animationType="fade"
       transparent
       visible={isCallParticipantsInfoVisible}
@@ -125,10 +119,9 @@ export const ParticipantsInfoList = ({
               </Text>
               <Pressable
                 onPress={onCloseCallParticipantsVisible}
-                testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
                 style={styles.closePressable}
               >
-                <Cross color={theme.dark.primary} style={theme.icon.xs} />
+                <Cross color={appTheme.colors.primary} style={theme.icon.xs} />
               </Pressable>
             </View>
             <FlatList data={participants} renderItem={renderItem} />
@@ -264,7 +257,7 @@ const styles = StyleSheet.create({
     padding: theme.padding.sm,
     borderRadius: theme.rounded.xs,
     marginRight: theme.margin.md,
-    backgroundColor: palette.grey800,
+    backgroundColor: theme.light.static_grey,
   },
   buttonGroup: {
     flexDirection: 'row',

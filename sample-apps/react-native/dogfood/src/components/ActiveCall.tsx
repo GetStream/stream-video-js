@@ -1,27 +1,24 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  CallContentProps,
   CallControls,
   CallControlsType,
   CallingState,
-  ParticipantsInfoBadge,
   CallContent,
   useCall,
   useIncallManager,
   theme,
+  CallTopView,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { appTheme } from '../theme';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { ActiveCallNotification } from './ActiveCallNotification';
-import { ParticipantsLayoutSwitchButton } from './ParticipantsLayoutButton';
+import { ParticipantsInfoList } from './ParticipantsInfoList';
 
 type ActiveCallProps = CallControlsType;
-
-type Layout = CallContentProps['mode'];
 
 export const ActiveCall = ({
   chatButton,
@@ -30,7 +27,12 @@ export const ActiveCall = ({
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
-  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
+  const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
+    useState<boolean>(false);
+
+  const onOpenCallParticipantsInfo = useCallback(() => {
+    setIsCallParticipantsVisible(true);
+  }, [setIsCallParticipantsVisible]);
 
   useEffect(() => {
     return () => {
@@ -54,14 +56,19 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ActiveCallNotification />
-      <View style={[styles.icons, { top }]}>
-        <ParticipantsLayoutSwitchButton
-          selectedLayout={selectedLayout}
-          setSelectedLayout={setSelectedLayout}
-        />
-        <ParticipantsInfoBadge />
-      </View>
-      <CallContent mode={selectedLayout} />
+      <CallTopView
+        onBackPressed={() => {
+          console.log('Heyllo');
+        }}
+        title={call.id}
+        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        style={{ top }}
+      />
+      <ParticipantsInfoList
+        isCallParticipantsInfoVisible={isCallParticipantsVisible}
+        setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
+      />
+      <CallContent />
       <CallControls
         chatButton={chatButton}
         hangUpCallButton={hangUpCallButton}
