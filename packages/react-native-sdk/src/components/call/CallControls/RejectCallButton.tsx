@@ -16,6 +16,8 @@ type RejectCallButtonProps = {
   onPressHandler?: () => void;
   /**
    * Handler to be called when the reject call button is pressed.
+   *
+   * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onRejectHandler?: () => void;
 };

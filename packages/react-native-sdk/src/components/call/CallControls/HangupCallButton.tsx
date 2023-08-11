@@ -18,6 +18,8 @@ export type HangUpCallButtonProps = {
   onPressHandler?: () => void;
   /**
    * Handler to be called when the call is hanged up.
+   *
+   * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onHangUpCall?: () => void;
   /**

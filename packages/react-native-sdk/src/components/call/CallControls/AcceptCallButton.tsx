@@ -13,7 +13,9 @@ type AcceptCallButtonProps = {
    */
   onPressHandler?: () => void;
   /**
-   *  Handler to be called after the incoming call is accepted.
+   * Handler to be called after the incoming call is accepted.
+   *
+   * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onAcceptHandler?: () => void;
 };
