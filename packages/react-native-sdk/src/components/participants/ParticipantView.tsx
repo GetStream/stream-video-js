@@ -2,7 +2,6 @@ import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { theme } from '../../theme';
-import { palette } from '../../theme/constants';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
   ParticipantNetworkQualityIndicatorProps,
@@ -69,7 +68,7 @@ export type ParticipantViewProps = {
 
 /**
  * A component that renders the participants' video track or screenShare track
- * and additional info. By an absence of a video track or when muteVideo is truthy,
+ * and additional info. By an absence of a video track or when isVisible is truthy,
  * only an avatar and audio track will be rendered.
  */
 export const ParticipantView = (props: ParticipantViewProps) => {
@@ -119,9 +118,8 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
     padding: theme.padding.xs,
-    borderColor: palette.grey800,
+    borderColor: theme.light.overlay,
     borderWidth: 2,
-    borderRadius: theme.rounded.sm,
     overflow: 'hidden',
   },
   bottomView: {

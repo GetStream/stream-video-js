@@ -198,6 +198,7 @@ const styles = StyleSheet.create({
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: theme.margin.sm,
+    borderRadius: theme.rounded.sm,
   },
 });
 
