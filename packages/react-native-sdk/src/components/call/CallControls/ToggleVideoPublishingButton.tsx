@@ -8,21 +8,36 @@ import {
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert } from 'react-native';
 import { theme } from '../../../theme';
 import { Video, VideoSlash } from '../../../icons';
 import { usePermissionNotification } from '../../../hooks';
 import { useMediaStreamManagement } from '../../../providers';
 
-export const ToggleVideoButton = () => {
+/**
+ * Props for the Toggle Video publishing button
+ */
+export type ToggleVideoPublishingButtonProps = {
+  /**
+   * Handler to be called when the the video publishing button is pressed.
+   * @returns void
+   */
+  onPressHandler?: () => void;
+};
+
+/**
+ * Button to toggle video mute/unmute status while in the call.
+ */
+export const ToggleVideoPublishingButton = ({
+  onPressHandler,
+}: ToggleVideoPublishingButtonProps) => {
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
   const { t } = useI18n();
-
+  const call = useCall();
   const userHasSendVideoCapability = useHasPermissions(
     OwnCapability.SEND_VIDEO,
   );
-  const call = useCall();
 
   useEffect(() => {
     if (userHasSendVideoCapability) {
@@ -57,8 +72,12 @@ export const ToggleVideoButton = () => {
   });
 
   const handleToggleVideoButton = async () => {
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
     if (userHasSendVideoCapability) {
-      await toggleVideoMuted();
+      toggleVideoMuted();
       return;
     }
     if (!isAwaitingApproval) {
@@ -73,7 +92,6 @@ export const ToggleVideoButton = () => {
       <CallControlsButton
         onPress={handleToggleVideoButton}
         color={muteStatusColor(isVideoMuted)}
-        style={!isVideoMuted ? styles.button : null}
       >
         {isVideoMuted ? (
           <VideoSlash color={theme.light.static_white} />
@@ -84,21 +102,3 @@ export const ToggleVideoButton = () => {
     </Restricted>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    // For iOS
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
-
-    // For android
-    elevation: 6,
-  },
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
-});
