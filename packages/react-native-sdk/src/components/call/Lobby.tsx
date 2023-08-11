@@ -7,6 +7,7 @@ import {
   useCallStateHooks,
   useConnectedUser,
   useI18n,
+  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
@@ -45,26 +46,25 @@ type LobbyProps = {
 export const Lobby = ({ joinCallButton }: LobbyProps) => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const {
-    initialAudioEnabled,
-    initialVideoEnabled,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-  } = useMediaStreamManagement();
-  const { direction } = useCameraState();
-  const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
+  const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
+    useMediaStreamManagement();
+  const { direction, status: cameraStatus } = useCameraState();
+  const isCameraDisabled = cameraStatus === 'disabled';
+  const { status: micStatus } = useMicrophoneState();
+  const isMicDisabled = micStatus === 'disabled';
+  const isVideoAvailable = !!localVideoStream && !isCameraDisabled;
   const call = useCall();
   const { useCallMetadata } = useCallStateHooks();
   const callMetadata = useCallMetadata();
   const { t } = useI18n();
   const participantsCount = callMetadata?.session?.participants.length;
 
-  const MicIcon = !initialAudioEnabled ? (
+  const MicIcon = isMicDisabled ? (
     <MicOff color={theme.light.static_white} />
   ) : (
     <Mic color={theme.light.static_black} />
   );
-  const VideoIcon = !initialVideoEnabled ? (
+  const VideoIcon = isCameraDisabled ? (
     <VideoSlash color={theme.light.static_white} />
   ) : (
     <Video color={theme.light.static_black} />
@@ -106,12 +106,12 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
             <View style={styles.buttonGroup}>
               <CallControlsButton
                 onPress={toggleInitialAudioMuteState}
-                color={muteStatusColor(!initialAudioEnabled)}
+                color={muteStatusColor(isMicDisabled)}
                 style={[
                   styles.button,
                   theme.button.md,
                   {
-                    shadowColor: muteStatusColor(!initialAudioEnabled),
+                    shadowColor: muteStatusColor(isMicDisabled),
                   },
                 ]}
               >
@@ -119,12 +119,12 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
               </CallControlsButton>
               <CallControlsButton
                 onPress={toggleInitialVideoMuteState}
-                color={muteStatusColor(!initialVideoEnabled)}
+                color={muteStatusColor(isCameraDisabled)}
                 style={[
                   styles.button,
                   theme.button.md,
                   {
-                    shadowColor: muteStatusColor(!initialVideoEnabled),
+                    shadowColor: muteStatusColor(isCameraDisabled),
                   },
                 ]}
               >
@@ -161,13 +161,13 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled } = useMediaStreamManagement();
+  const { status: micStatus } = useMicrophoneState();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
         {participantLabel}
       </Text>
-      {!initialAudioEnabled && (
+      {micStatus === 'disabled' && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
         </View>

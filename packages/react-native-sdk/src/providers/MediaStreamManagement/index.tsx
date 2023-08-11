@@ -5,31 +5,30 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
 } from 'react';
-import { OwnCapability } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import {
   isCameraPermissionGranted$,
   isMicPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
 import { Alert } from 'react-native';
-import { useAudioPublisher } from './useAudioPublisher';
-import { useVideoPublisher } from './useVideoPublisher';
+
+export type MediaDevicesInitialState = {
+  /**
+   * Provides external control over the initial audio input (microphone) enablement. Overrides the default false.
+   */
+  initialAudioEnabled?: boolean;
+  /**
+   * Provides external control over the initial video input (camera) enablement. Overrides the default false.
+   */
+  initialVideoEnabled?: boolean;
+};
 
 /**
  * API to control device enablement, device selection and media stream access for a call.
  * @category Device Management
  */
 export type MediaStreamManagementContextAPI = {
-  /**
-   * Signals whether audio stream will be published when the call is joined.
-   */
-  initialAudioEnabled: boolean;
-  /**
-   * Signals whether audio stream will be published when the call is joined.
-   */
-  initialVideoEnabled: boolean;
   /**
    * Toggles the initialAudioEnabled boolean flag.
    * The latest value set will be used to decide, whether audio stream will be published when joining a call.
@@ -55,97 +54,71 @@ const MediaStreamContext =
  *
  * @category Device Management
  */
-export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
+export const MediaStreamManagement = ({
+  initialAudioEnabled,
+  initialVideoEnabled,
+  children,
+}: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const settings = useCallMetadata()?.settings;
-
-  const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
-    const hasNativePermission = isMicPermissionGranted$.getValue();
-    const hasUserPermission = !!call?.permissionsContext?.hasPermission(
-      OwnCapability.SEND_AUDIO,
-    );
-    const metaDataSettings = call?.data?.settings?.audio.mic_default_on;
-    if (metaDataSettings !== undefined) {
-      return hasNativePermission && hasUserPermission && metaDataSettings;
-    }
-    return hasNativePermission && hasUserPermission;
-  });
-
-  const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(() => {
-    if (call?.type === 'audio_room') {
-      return false;
-    }
-    const hasNativePermission = isCameraPermissionGranted$.getValue();
-    const hasUserPermission = !!call?.permissionsContext?.hasPermission(
-      OwnCapability.SEND_VIDEO,
-    );
-    const metaDataSettings = call?.data?.settings?.video.camera_default_on;
-    if (metaDataSettings !== undefined) {
-      return hasNativePermission && hasUserPermission && metaDataSettings;
-    }
-    return hasNativePermission && hasUserPermission;
-  });
 
   useEffect(() => {
-    if (!settings) {
-      return;
+    if (
+      typeof initialAudioEnabled !== 'undefined' &&
+      isMicPermissionGranted$.getValue()
+    ) {
+      if (initialAudioEnabled && call?.microphone.state.status === 'disabled') {
+        call?.microphone.enable();
+      } else {
+        call?.microphone.disable();
+      }
     }
-    const { audio, video } = settings;
-    if (audio.mic_default_on && isMicPermissionGranted$.getValue()) {
-      setInitialAudioEnabled(audio.mic_default_on);
+    if (
+      typeof initialVideoEnabled !== 'undefined' &&
+      isCameraPermissionGranted$.getValue()
+    ) {
+      if (initialVideoEnabled && call?.camera.state.status === 'disabled') {
+        call?.camera.enable();
+      } else {
+        call?.camera.disable();
+      }
     }
-    if (video.camera_default_on && isCameraPermissionGranted$.getValue()) {
-      setInitialVideoEnabled(video.camera_default_on);
-    }
-  }, [settings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAudioEnabled, initialVideoEnabled]);
 
-  useAudioPublisher({
-    initialAudioMuted: !initAudioEnabled,
-  });
-  useVideoPublisher({
-    initialVideoMuted: !initVideoEnabled,
-  });
+  const toggleInitialAudioMuteState = useCallback(() => {
+    if (
+      !isMicPermissionGranted$.getValue() &&
+      call?.microphone.state.status === 'disabled'
+    ) {
+      Alert.alert('Microphone permission not granted, can not enable audio');
+      return false;
+    }
 
-  const toggleInitialAudioMuteState = useCallback(
-    () =>
-      setInitialAudioEnabled((prev) => {
-        if (!isMicPermissionGranted$.getValue() && !prev) {
-          Alert.alert(
-            'Microphone permission not granted, can not enable audio',
-          );
-          return false;
-        }
-        return !prev;
-      }),
-    [],
-  );
-  const toggleInitialVideoMuteState = useCallback(
-    () =>
-      setInitialVideoEnabled((prev) => {
-        if (!isCameraPermissionGranted$.getValue() && !prev) {
-          Alert.alert('Camera permission not granted, can not enable video');
-          return false;
-        }
-        return !prev;
-      }),
-    [],
-  );
+    call?.microphone.state.status === 'disabled'
+      ? call?.microphone.enable()
+      : call?.microphone.disable();
+  }, [call]);
+
+  const toggleInitialVideoMuteState = useCallback(() => {
+    if (
+      !isCameraPermissionGranted$.getValue() &&
+      call?.camera.state.status === 'disabled'
+    ) {
+      Alert.alert('Camera permission not granted, can not enable video');
+      return false;
+    }
+
+    call?.camera.state.status === 'disabled'
+      ? call?.camera.enable()
+      : call?.camera.disable();
+  }, [call]);
 
   const contextValue = useMemo(() => {
     return {
-      initialAudioEnabled: initAudioEnabled,
-      initialVideoEnabled: initVideoEnabled,
       toggleInitialAudioMuteState,
       toggleInitialVideoMuteState,
     };
-  }, [
-    initAudioEnabled,
-    initVideoEnabled,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-  ]);
-
+  }, [toggleInitialAudioMuteState, toggleInitialVideoMuteState]);
   return (
     <MediaStreamContext.Provider value={contextValue}>
       {children}
