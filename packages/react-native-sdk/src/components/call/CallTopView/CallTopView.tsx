@@ -12,7 +12,7 @@ import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { Z_INDEX } from '../../../constants';
 import { TopViewBackground } from '../../../icons';
-import { useCallCallingState, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 export type CallTopViewProps = {
@@ -42,6 +42,7 @@ export const CallTopView = ({
   title,
   style,
 }: CallTopViewProps) => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
   const [headerHeight, setHeaderHeight] = useState<number>(0);
