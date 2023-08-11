@@ -38,10 +38,9 @@ export const CallControls = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: theme.padding.sm,
-    paddingHorizontal: theme.padding.md,
+    paddingVertical: theme.padding.md,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
     zIndex: Z_INDEX.IN_FRONT,
     backgroundColor: theme.light.static_grey,
   },
