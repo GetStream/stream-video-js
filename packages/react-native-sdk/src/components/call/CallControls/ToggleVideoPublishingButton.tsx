@@ -31,7 +31,10 @@ export const ToggleVideoPublishingButton = ({
   const { status } = useCameraState();
 
   const onPress = async () => {
-    onPressHandler?.();
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
     await call?.camera.toggle();
   };
 

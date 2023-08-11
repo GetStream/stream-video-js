@@ -31,7 +31,11 @@ export const ToggleAudioPublishingButton = ({
   const { status } = useMicrophoneState();
 
   const onPress = async () => {
-    onPressHandler?.();
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
+
     await call?.microphone.toggle();
   };
 
