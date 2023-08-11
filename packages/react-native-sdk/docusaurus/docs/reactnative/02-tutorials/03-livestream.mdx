@@ -147,17 +147,19 @@ export default function App() {
     };
   }, []);
 
-  return <Livestream />;
+  return  (
+    <StreamVideo client={client} language="en">
+      <StreamCall call={call}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <LiveStream />
+        </SafeAreaView>
+      </StreamCall>
+    </StreamVideo>
+  );
 }
 
-const Livestream = () => (
-  <StreamVideo client={client} language="en">
-    <StreamCall call={call}>
-      <SafeAreaView>
-        <Text style={{ fontSize: 30, color: 'black' }}>TODO: render video</Text>
-      </SafeAreaView>
-    </StreamCall>
-  </StreamVideo>
+const LiveStream = () => (
+    <Text style={{ fontSize: 30, color: 'black' }}>TODO: render video</Text>
 );
 ```
 
@@ -217,7 +219,7 @@ Finally, using `call.join(create = true)` will not only create the call object o
 
 Note that you can also add members to a call and assign them different roles. For more information, see the [Joining & Creating Calls](../../core/joining-and-creating-calls/) docs.
 
-### Step 3 - Rendering the video
+### Step 4 - Rendering the video
 
 In this step, we're going to build a UI for showing your local video with a button to start the livestream.
 
@@ -230,7 +232,7 @@ import {
   useParticipantCount,
   useIsCallLive,
   ParticipantView,
-} from '@stream-io/video-react-sdk';
+} from '@stream-io/video-react-native-sdk';
 
 const Livestream = () => {
   const call = useCall();
