@@ -204,7 +204,7 @@ Next, we initialize the client by passing the API Key, user and user token:
 const myClient = new StreamVideoClient({ apiKey, user, token });
 ```
 
-Your backend typically generates the `user` and `token` on signup or login.
+Your backend typically generates the `user` and `token` on sign-up or login.
 
 The most important step to review is how we create the call. Stream uses the same call object for livestreaming, audio rooms and video calling. Have a look at the code snippet below:
 
@@ -380,7 +380,7 @@ Now that we've learned to publish using WebRTC or RTMP let's talk about watching
 
 Watching a livestream is even easier than broadcasting.
 
-Compared to the current code in in `App.tsx` you:
+Compared to the current code in `App.tsx` you:
 
 - Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
 - Typically include some small UI elements like viewer count, a button to mute etc.
@@ -436,7 +436,7 @@ To recap what we've learned:
 - You setup a call: `const call = client.call("livestream", callId)`
 - The call type `"livestream"` controls which features are enabled and how permissions are setup
 - The livestream by default enables "backstage" mode. This allows you and your co-hosts to setup your mic and camera before allowing people in
-- When you join a call, realtime communication is setup for audio & video: `await call.join()`
+- When you join a call, real-time communication is setup for audio & video: `await call.join()`
 - Call state `call.state` and helper state access hooks make it easy to build your own UI
 
 We've used [Stream's Livestream API](https://getstream.io/video/livestreaming/),

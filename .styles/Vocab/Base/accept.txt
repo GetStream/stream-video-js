@@ -73,3 +73,6 @@ SDK's
 const
 img
 APNs
+SFUs
+RTMPs
+broadcasted
