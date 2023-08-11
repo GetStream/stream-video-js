@@ -394,13 +394,14 @@ So HLS can be a good option when:
 - A 10-20 second delay is acceptable
 - Your users want to watch the Stream in poor network conditions
 
-Let's show how to broadcast your call to HLS:
+One option to start HLS is to set the `start_hls` parameter to `true` in the `call.goLive()` method, as described above.
+If you want to explicitly start it, when you are live, you can use the following method:
 
 ```ts
 import { useCall, useCallMetadata } from '@stream-io/video-react-sdk';
 
 const call = useCall();
-await call.goLive({ start_hls: true });
+await call.startHLS();
 
 // take the URL to the M3U8 playlist
 const metadata = useCallMetadata();
