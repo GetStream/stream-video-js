@@ -84,11 +84,9 @@ export const CallTopView = ({
           )}
         </View>
         <View style={styles.rightElement}>
-          {onParticipantInfoPress && (
-            <ParticipantsInfoBadge
-              onParticipantInfoPress={onParticipantInfoPress}
-            />
-          )}
+          <ParticipantsInfoBadge
+            onParticipantInfoPress={onParticipantInfoPress}
+          />
         </View>
       </View>
     </View>
