@@ -37,14 +37,13 @@ export const ToggleAudioPublishingButton = ({
     OwnCapability.SEND_AUDIO,
   );
   const { t } = useI18n();
+  const call = useCall();
 
   usePermissionNotification({
     permission: OwnCapability.SEND_AUDIO,
     messageApproved: t('You can now speak.'),
     messageRevoked: t('You can no longer speak.'),
   });
-
-  const call = useCall();
 
   useEffect(() => {
     if (userHasSendAudioCapability) {

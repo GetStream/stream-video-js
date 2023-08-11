@@ -24,12 +24,9 @@ describe('ChatButton', () => {
       }),
     ]);
 
-    render(
-      <ChatButton onPressHandler={jest.fn()} unreadBadgeCountIndicator={1} />,
-      {
-        call,
-      },
-    );
+    render(<ChatButton onPressHandler={jest.fn()} unreadBadgeCount={1} />, {
+      call,
+    });
 
     const indicator = await screen.findByText('1');
 
@@ -45,12 +42,9 @@ describe('ChatButton', () => {
       }),
     ]);
 
-    render(
-      <ChatButton onPressHandler={jest.fn()} unreadBadgeCountIndicator={0} />,
-      {
-        call,
-      },
-    );
+    render(<ChatButton onPressHandler={jest.fn()} unreadBadgeCount={0} />, {
+      call,
+    });
 
     await waitFor(() =>
       expect(() =>

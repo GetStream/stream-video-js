@@ -34,11 +34,10 @@ export const ToggleVideoPublishingButton = ({
   const [isAwaitingApproval, setIsAwaitingApproval] = useState(false);
   const { isVideoMuted, toggleVideoMuted } = useMediaStreamManagement();
   const { t } = useI18n();
-
+  const call = useCall();
   const userHasSendVideoCapability = useHasPermissions(
     OwnCapability.SEND_VIDEO,
   );
-  const call = useCall();
 
   useEffect(() => {
     if (userHasSendVideoCapability) {

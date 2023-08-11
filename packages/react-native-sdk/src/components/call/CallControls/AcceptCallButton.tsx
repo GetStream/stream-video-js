@@ -1,5 +1,5 @@
 import { useCall } from '@stream-io/video-react-bindings';
-import React, { useCallback } from 'react';
+import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
 import { Phone } from '../../../icons';
@@ -10,7 +10,6 @@ import { Phone } from '../../../icons';
 type AcceptCallButtonProps = {
   /**
    * Handler to be called when the accept call button is pressed.
-   * @returns void
    */
   onPressHandler?: () => void;
   /**
@@ -29,7 +28,7 @@ export const AcceptCallButton = ({
   onAcceptHandler,
 }: AcceptCallButtonProps) => {
   const call = useCall();
-  const acceptCallHandler = useCallback(async () => {
+  const acceptCallHandler = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -42,8 +41,7 @@ export const AcceptCallButton = ({
     } catch (error) {
       console.log('Error joining Call', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
+  };
 
   return (
     <CallControlsButton

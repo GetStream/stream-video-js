@@ -16,9 +16,9 @@ export type ChatButtonProps = {
    */
   onPressHandler?: () => void;
   /**
-   * The unread message indicator to be displayed above on the Chat button.
+   * The count of the current unread message to be displayed above on the Chat button.
    */
-  unreadBadgeCountIndicator?: number;
+  unreadBadgeCount?: number;
 };
 
 /**
@@ -28,7 +28,7 @@ export type ChatButtonProps = {
  */
 export const ChatButton = ({
   onPressHandler,
-  unreadBadgeCountIndicator,
+  unreadBadgeCount,
 }: ChatButtonProps) => {
   return (
     <View>
@@ -37,7 +37,7 @@ export const ChatButton = ({
         onPress={onPressHandler}
         svgContainerStyle={styles.svgContainerStyle}
       >
-        <UnreadBadgeCountIndicator count={unreadBadgeCountIndicator} />
+        <UnreadBadgeCountIndicator count={unreadBadgeCount} />
         <Chat color={theme.light.static_black} />
       </CallControlsButton>
     </View>
@@ -47,7 +47,7 @@ export const ChatButton = ({
 const UnreadBadgeCountIndicator = ({
   count,
 }: {
-  count: ChatButtonProps['unreadBadgeCountIndicator'];
+  count: ChatButtonProps['unreadBadgeCount'];
 }) => {
   // Don't show badge if count is 0 or undefined
   if (!count) {

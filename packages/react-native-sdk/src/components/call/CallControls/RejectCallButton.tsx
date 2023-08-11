@@ -1,4 +1,4 @@
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
@@ -30,6 +30,7 @@ export const RejectCallButton = ({
   onRejectHandler,
 }: RejectCallButtonProps) => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const rejectCallHandler = useCallback(async () => {
     if (onPressHandler) {
