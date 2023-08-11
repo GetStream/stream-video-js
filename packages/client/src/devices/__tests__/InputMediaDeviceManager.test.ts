@@ -6,8 +6,7 @@ import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
 import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
-import { BehaviorSubject, of } from 'rxjs';
-import { CallResponse } from '../../gen/coordinator';
+import { of } from 'rxjs';
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -25,7 +24,6 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public applyDefaultSettings = vi.fn();
 
   constructor(call: Call) {
     super(call, new TestInputMediaDeviceManagerState());
@@ -150,27 +148,6 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.select(deviceId);
 
     expect(spy.mock.calls.length).toBe(1);
-  });
-
-  it(`apply backend settings`, () => {
-    expect(manager.state.status).toBeUndefined();
-
-    const mockCallResponse = {
-      settings: {
-        video: {
-          camera_default_on: true,
-        },
-      },
-    } as CallResponse;
-    (
-      manager['call'].state.metadata$ as BehaviorSubject<
-        undefined | CallResponse
-      >
-    ).next(mockCallResponse);
-
-    expect(manager.applyDefaultSettings).toHaveBeenCalledWith(
-      mockCallResponse.settings,
-    );
   });
 
   afterEach(() => {

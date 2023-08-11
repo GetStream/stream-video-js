@@ -924,35 +924,8 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      if (
-        this.camera.state.status === 'enabled' &&
-        !this.state.localParticipant?.videoStream &&
-        this.permissionsContext.hasPermission('send-video')
-      ) {
-        // Wait for media stream
-        this.camera.state.mediaStream$
-          .pipe(takeWhile((s) => s === undefined, true))
-          .subscribe((stream) => {
-            if (!this.state.localParticipant?.videoStream) {
-              this.publishVideoStream(stream!);
-            }
-          });
-      }
-
-      if (
-        this.microphone.state.status === 'enabled' &&
-        !this.state.localParticipant?.audioStream &&
-        this.permissionsContext.hasPermission('send-audio')
-      ) {
-        // Wait for media stream
-        this.microphone.state.mediaStream$
-          .pipe(takeWhile((s) => s === undefined, true))
-          .subscribe((stream) => {
-            if (!this.state.localParticipant?.audioStream) {
-              this.publishAudioStream(stream!);
-            }
-          });
-      }
+      this.initCamera();
+      this.initMic();
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
       // we schedule a fast subscription update for all remote participants
@@ -1737,4 +1710,61 @@ export class Call {
       { custom: payload },
     );
   };
+
+  private initCamera() {
+    if (
+      this.state.localParticipant?.videoStream ||
+      !this.permissionsContext.hasPermission('send-video')
+    ) {
+      return;
+    }
+    // Publish already started media streams (this is the case if there is a lobby screen before join)
+    if (this.camera.state.status === 'enabled') {
+      // Wait for media stream
+      this.camera.state.mediaStream$
+        .pipe(takeWhile((s) => s === undefined, true))
+        .subscribe((stream) => {
+          if (!this.state.localParticipant?.videoStream) {
+            this.publishVideoStream(stream!);
+          }
+        });
+    }
+
+    // Apply backend config (this is the case if there is no lobby screen before join)
+    if (
+      this.camera.state.status === undefined &&
+      this.state.metadata?.settings.video.camera_default_on
+    ) {
+      void this.camera.enable();
+    }
+  }
+
+  private initMic() {
+    if (
+      this.state.localParticipant?.audioStream ||
+      !this.permissionsContext.hasPermission('send-audio')
+    ) {
+      return;
+    }
+
+    // Publish already started media streams (this is the case if there is a lobby screen before join)
+    if (this.microphone.state.status === 'enabled') {
+      // Wait for media stream
+      this.microphone.state.mediaStream$
+        .pipe(takeWhile((s) => s === undefined, true))
+        .subscribe((stream) => {
+          if (!this.state.localParticipant?.audioStream) {
+            this.publishAudioStream(stream!);
+          }
+        });
+    }
+
+    // Apply backend config (this is the case if there is no lobby screen before join)
+    if (
+      this.microphone.state.status === undefined &&
+      this.state.metadata?.settings.audio.mic_default_on
+    ) {
+      void this.microphone.enable();
+    }
+  }
 }
