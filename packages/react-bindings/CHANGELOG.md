@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.15...@stream-io/video-react-bindings-0.1.16) (2023-08-10)
+
+
+### Bug Fixes
+
+* **bindings:** do not return call is live without metadata being available ([831e6f3](https://github.com/GetStream/stream-video-js/commit/831e6f347acb4c496c34346802862dba8c6d780a))
+
+### [0.1.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.14...@stream-io/video-react-bindings-0.1.15) (2023-08-08)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
 ### [0.1.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.1.13...@stream-io/video-react-bindings-0.1.14) (2023-08-07)
 
 ### Dependency Updates

@@ -1,4 +1,4 @@
-import { useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
@@ -71,6 +71,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   }
   const foregroundServiceStartedRef = useRef(false);
 
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   useEffect(() => {

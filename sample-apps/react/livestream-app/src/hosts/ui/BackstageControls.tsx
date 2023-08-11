@@ -7,7 +7,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useIsCallBroadcastingInProgress,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const BackstageControls = () => {
@@ -25,6 +25,7 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
+  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallBroadcastingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
@@ -41,12 +42,12 @@ const ToggleLivestreamButton = (props: { call: Call }) => {
       }`}
       onClick={async () => {
         if (isBroadcasting) {
-          call.stopBroadcasting().catch((err) => {
+          call.stopHLS().catch((err) => {
             console.error('Error stopping livestream', err);
           });
         } else {
           call.goLive();
-          call.startBroadcasting().catch((err) => {
+          call.startHLS().catch((err) => {
             console.error('Error starting livestream', err);
           });
         }

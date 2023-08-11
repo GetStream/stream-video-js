@@ -1,4 +1,5 @@
 import { theme } from '../theme';
+import { StreamVideoConfig } from '../utils/StreamVideoRN/types';
 
 export const LOCAL_VIDEO_VIEW_STYLE = {
   height: 140,
@@ -6,7 +7,7 @@ export const LOCAL_VIDEO_VIEW_STYLE = {
   borderRadius: theme.rounded.sm,
 };
 
-export const defaultEmojiReactions = [
+export const defaultEmojiReactions: StreamVideoConfig['supportedReactions'] = [
   {
     type: 'reaction',
     emoji_code: ':like:',

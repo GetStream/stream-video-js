@@ -2,7 +2,7 @@ import {
   DefaultParticipantViewUI,
   ParticipantView,
   SfuModels,
-  useRemoteParticipants,
+  useCallStateHooks,
   Video,
 } from '@stream-io/video-react-sdk';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
@@ -10,6 +10,7 @@ import './ScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeakerScreenShare = () => {
+  const { useRemoteParticipants } = useCallStateHooks();
   const participants = useRemoteParticipants();
   const screenSharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),

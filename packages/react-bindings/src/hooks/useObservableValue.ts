@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { RxUtils } from '@stream-io/video-client';
 
 /**
- *
+ * Utility hook which provides the current value of the given observable.
  * @internal
  */
 export const useObservableValue = <T>(observable$: Observable<T>) => {

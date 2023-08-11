@@ -16,12 +16,7 @@ import {
   SfuModels,
   watchForDisconnectedAudioOutputDevice,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallCallingState,
-  useCallMetadata,
-  useCallState,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
   useAudioInputDeviceFallback,
@@ -240,6 +235,8 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = DEFAULT_DEVICE_ID,
 }: PropsWithChildren<MediaDevicesProviderProps>) => {
   const call = useCall();
+  const { useCallCallingState, useCallState, useCallMetadata } =
+    useCallStateHooks();
   const callingState = useCallCallingState();
   const callState = useCallState();
   const metadata = useCallMetadata();

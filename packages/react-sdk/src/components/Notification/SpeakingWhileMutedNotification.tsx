@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { createSoundDetector, SfuModels } from '@stream-io/video-client';
-import { useI18n, useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 
 import { useMediaDevices } from '../../core';
 import { Notification } from './Notification';
@@ -16,6 +16,7 @@ export const SpeakingWhileMutedNotification = ({
   children,
   text,
 }: PropsWithChildren<SpeakingWhileMutedNotificationProps>) => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { getAudioStream } = useMediaDevices();
   const { t } = useI18n();

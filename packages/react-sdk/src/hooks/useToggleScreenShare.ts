@@ -1,13 +1,14 @@
 import { useCallback, useRef } from 'react';
-import { useCall, useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
+  getScreenShareStream,
   OwnCapability,
   SfuModels,
-  getScreenShareStream,
 } from '@stream-io/video-client';
 import { useRequestPermission } from './useRequestPermission';
 
 export const useToggleScreenShare = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const call = useCall();
   const isScreenSharingReference = useRef(false);

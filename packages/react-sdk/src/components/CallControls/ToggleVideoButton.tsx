@@ -1,8 +1,8 @@
 import { ComponentType } from 'react';
 import {
   Restricted,
+  useCallStateHooks,
   useI18n,
-  useLocalParticipant,
 } from '@stream-io/video-react-bindings';
 
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
@@ -46,6 +46,7 @@ type ToggleVideoPublishingButtonProps = {
 export const ToggleVideoPublishingButton = (
   props: ToggleVideoPublishingButtonProps,
 ) => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { t } = useI18n();
 

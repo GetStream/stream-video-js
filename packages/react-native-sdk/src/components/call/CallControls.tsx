@@ -1,11 +1,17 @@
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, ViewProps } from 'react-native';
+import React, { useState } from 'react';
+import {
+  LayoutChangeEvent,
+  LayoutRectangle,
+  StyleSheet,
+  Text,
+  View,
+  ViewProps,
+} from 'react-native';
 import { Chat, Reaction } from '../../icons';
 import { CallControlsButton } from '../utility/internal/CallControlsButton';
 import { theme } from '../../theme';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted } from '@stream-io/video-react-bindings';
-import { ReactionModal } from '../utility/ReactionsModal';
 import { ToggleAudioButton } from '../utility/internal/ToggleAudioButton';
 import { ToggleVideoButton } from '../utility/internal/ToggleVideoButton';
 import { ButtonTestIds, ComponentTestIds } from '../../constants/TestIds';
@@ -15,6 +21,8 @@ import {
   HangUpCallButton,
   HangUpCallButtonProps,
 } from '../utility/internal/HangupCallButton';
+import { ReactionsPicker } from './ReactionsPicker';
+import { StreamVideoRN } from '../../utils';
 
 /**
  * The props for the Chat Button in the Call Controls.
@@ -54,29 +62,44 @@ export const CallControls = ({
   hangUpCallButton,
   style,
 }: CallControlsType) => {
-  const [isReactionModalActive, setIsReactionModalActive] =
+  const [showReactionsPicker, setShowReactionsPicker] =
     useState<boolean>(false);
 
-  const onOpenReactionsModalHandler = useCallback(() => {
-    setIsReactionModalActive(true);
-  }, [setIsReactionModalActive]);
+  const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
+    useState<LayoutRectangle>();
+
+  // This is for the reaction popup
+  const onReactionsButtonLayout = (event: LayoutChangeEvent) => {
+    const layout = event.nativeEvent.layout;
+    setReactionsButtonLayoutRectangle((prev) => {
+      if (
+        prev &&
+        prev.width === layout.width &&
+        prev.height === layout.height &&
+        prev.x === layout.x &&
+        prev.y === layout.y
+      ) {
+        return prev;
+      }
+      return layout;
+    });
+  };
 
   return (
     <View style={[styles.container, style]}>
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           testID={ButtonTestIds.REACTION}
-          onPress={onOpenReactionsModalHandler}
+          onPress={() => {
+            setShowReactionsPicker(true);
+          }}
           color={theme.light.static_white}
           style={styles.button}
+          onLayout={onReactionsButtonLayout}
         >
           <Reaction color={theme.light.static_black} />
         </CallControlsButton>
       </Restricted>
-      <ReactionModal
-        isReactionModalActive={isReactionModalActive}
-        setIsReactionModalActive={setIsReactionModalActive}
-      />
       {chatButton && (
         <View>
           <CallControlsButton
@@ -96,6 +119,16 @@ export const CallControls = ({
       <ToggleAudioButton />
       <ToggleCameraFaceButton />
       <HangUpCallButton onPressHandler={hangUpCallButton?.onPressHandler} />
+
+      {showReactionsPicker && (
+        <ReactionsPicker
+          reactions={StreamVideoRN.getConfig().supportedReactions}
+          reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
+          onRequestedClose={() => {
+            setShowReactionsPicker(false);
+          }}
+        />
+      )}
     </View>
   );
 };
@@ -126,6 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     zIndex: Z_INDEX.IN_FRONT,
+    backgroundColor: theme.light.static_black,
   },
   button: {
     // For iOS

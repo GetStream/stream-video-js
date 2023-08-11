@@ -10,7 +10,7 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useParticipants } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
   DefaultParticipantViewUI,
@@ -47,6 +47,7 @@ export const SpeakerLayout = ({
   participantsBarPosition = 'bottom',
 }: SpeakerLayoutProps) => {
   const call = useCall();
+  const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,

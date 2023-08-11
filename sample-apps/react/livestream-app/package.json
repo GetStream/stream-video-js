@@ -15,7 +15,6 @@
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.13.0",
     "@stream-io/video-react-sdk": "workspace:^",
-    "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "hls.js": "^1.4.3",
     "react": "^18.2.0",

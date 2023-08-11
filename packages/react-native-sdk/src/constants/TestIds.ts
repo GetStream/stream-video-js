@@ -14,7 +14,7 @@ export enum ComponentTestIds {
   PARTICIPANT_MEDIA_STREAM = 'participant-media-stream',
   PARTICIPANTS_INFO = 'participants-info',
   PARTICIPANT_SCREEN_SHARING = 'participant-screen-sharing',
-  REACTIONS_MODAL = 'reactions-modal',
+  REACTIONS_PICKER = 'reactions-picker',
   CHAT_UNREAD_BADGE_COUNT_INDICATOR = 'chat-unread-badge-count-indicator',
 }
 

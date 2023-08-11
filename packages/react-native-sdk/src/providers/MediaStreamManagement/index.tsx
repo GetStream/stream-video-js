@@ -3,6 +3,7 @@ import React, {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -11,14 +12,10 @@ import {
   OwnCapability,
   SfuModels,
 } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
-  useCall,
-  useCallCallingState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
-import {
-  isMicPermissionGranted$,
   isCameraPermissionGranted$,
+  isMicPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
 import { useAudioPublisher } from './useAudioPublisher';
 import { useVideoPublisher } from './useVideoPublisher';
@@ -105,10 +102,13 @@ const MediaStreamContext =
  */
 export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
+  const { useLocalParticipant, useCallCallingState, useCallMetadata } =
+    useCallStateHooks();
+  const settings = useCallMetadata()?.settings;
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
   const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
-  const localVideoStream = useLocalParticipant()?.videoStream;
+  const localVideoStream = localParticipant?.videoStream;
   const isAudioMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -145,6 +145,19 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     }
     return hasNativePermission && hasUserPermission;
   });
+
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+    const { audio, video } = settings;
+    if (audio.mic_default_on && isMicPermissionGranted$.getValue()) {
+      setInitialAudioEnabled(audio.mic_default_on);
+    }
+    if (video.camera_default_on && isCameraPermissionGranted$.getValue()) {
+      setInitialVideoEnabled(video.camera_default_on);
+    }
+  }, [settings]);
 
   const publishVideoStream = useVideoPublisher({
     initialVideoMuted: !initVideoEnabled,

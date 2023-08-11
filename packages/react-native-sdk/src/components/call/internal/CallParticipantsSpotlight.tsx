@@ -1,13 +1,10 @@
 import React from 'react';
 import {
   SfuModels,
-  StreamVideoParticipant,
   speakerLayoutSortPreset,
+  StreamVideoParticipant,
 } from '@stream-io/video-client';
-import {
-  useParticipants,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { Participant } from '../../participants/Participant';
 import { theme } from '../../../theme';
@@ -20,6 +17,7 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
 export const CallParticipantsSpotlight = () => {
+  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });

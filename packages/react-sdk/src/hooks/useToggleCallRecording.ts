@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-
-import {
-  useCall,
-  useIsCallRecordingInProgress,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export const useToggleCallRecording = () => {
   const call = useCall();
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 

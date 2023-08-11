@@ -2,6 +2,29 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.3...@stream-io/video-react-sdk-0.2.4) (2023-08-10)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `0.1.16`
+### [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.2...@stream-io/video-react-sdk-0.2.3) (2023-08-10)
+
+
+### Bug Fixes
+
+* **ParticipantView:** remove audio element while muted ([#918](https://github.com/GetStream/stream-video-js/issues/918)) ([076c7ff](https://github.com/GetStream/stream-video-js/commit/076c7ffbc4a525b0fb2acbc62a560734381e362b))
+
+### [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.1...@stream-io/video-react-sdk-0.2.2) (2023-08-08)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.1.15`
+
+### Features
+
+* **livestream:** Livestream tutorial rewrite ([#909](https://github.com/GetStream/stream-video-js/issues/909)) ([49efdaa](https://github.com/GetStream/stream-video-js/commit/49efdaa14faccaa4848e8f9bdf3abb7748b925ac))
+
 ### [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.0...@stream-io/video-react-sdk-0.2.1) (2023-08-07)
 
 ### Dependency Updates

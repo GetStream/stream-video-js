@@ -19,7 +19,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import { Lobby } from './Lobby';
@@ -57,6 +57,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   >('lobby');
   const router = useRouter();
   const activeCall = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -300,6 +301,7 @@ const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
 );
 
 export const LoadingScreen = () => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [message, setMessage] = useState('');
   useEffect(() => {

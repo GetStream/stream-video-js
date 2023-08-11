@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useFloatingUIPreset } from '../../hooks';
 import { StatCard } from '../CallStats';
-import { useCallStatsReport } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export const DebugStatsView = (props: {
   call: Call;
@@ -11,6 +11,7 @@ export const DebugStatsView = (props: {
   userId: string;
 }) => {
   const { call, mediaStream, sessionId, userId } = props;
+  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {
