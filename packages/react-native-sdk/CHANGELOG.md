@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.368](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.367...@stream-io/video-react-native-sdk-0.0.1-alpha.368) (2023-08-11)
+
+
+### Features
+
+* **react-native:** CallControls customization ([#920](https://github.com/GetStream/stream-video-js/issues/920)) ([91f6a9d](https://github.com/GetStream/stream-video-js/commit/91f6a9d5723f29b547bd3fdb0c1dfca7b8cab925))
+
+
+
 ## [0.0.1-alpha.367](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.366...@stream-io/video-react-native-sdk-0.0.1-alpha.367) (2023-08-11)
 
 
