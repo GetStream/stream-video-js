@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.5...@stream-io/video-react-sdk-0.2.6) (2023-08-11)
+
+
+### Features
+
+* flag the dominant speaker with a CSS class ([#923](https://github.com/GetStream/stream-video-js/issues/923)) ([d503578](https://github.com/GetStream/stream-video-js/commit/d5035788c6f2b1a9db195d9f5fb9dd062cad1627))
+
 ### [0.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.4...@stream-io/video-react-sdk-0.2.5) (2023-08-11)
 
 ### Dependency Updates
