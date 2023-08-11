@@ -1,13 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  CallControls,
-  CallControlsType,
   CallingState,
   CallContent,
   useCall,
   useIncallManager,
   theme,
+  ReactionButton,
+  ChatButton,
+  ToggleVideoPublishingButton,
+  ToggleAudioPublishingButton,
+  ToggleCameraFaceButton,
+  HangUpCallButton,
   CallTopView,
+  ChatButtonProps,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
@@ -16,15 +21,18 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
+import { Z_INDEX } from '../constants';
 
-type ActiveCallProps = CallControlsType & {
+type ActiveCallProps = {
+  chatButton?: ChatButtonProps;
+  onHangupCallHandler?: () => void;
   onBackPressed?: () => void;
 };
 
 export const ActiveCall = ({
   chatButton,
-  hangUpCallButton,
   onBackPressed,
+  onHangupCallHandler,
 }: ActiveCallProps) => {
   const call = useCall();
   const activeCallRef = useRef(call);
@@ -64,14 +72,25 @@ export const ActiveCall = ({
         />
         <CallContent />
       </View>
-      <CallControls
-        chatButton={chatButton}
-        hangUpCallButton={hangUpCallButton}
+      {/* Since we want the chat and the reaction button the entire call controls is customized */}
+      <View
         style={[
           styles.callControlsWrapper,
-          { paddingBottom: Math.max(bottom, appTheme.spacing.lg) },
+          {
+            paddingBottom: Math.max(bottom, appTheme.spacing.lg),
+          },
         ]}
-      />
+      >
+        <ReactionButton />
+        <ChatButton
+          onPressHandler={chatButton?.onPressHandler}
+          unreadBadgeCount={chatButton?.unreadBadgeCount}
+        />
+        <ToggleVideoPublishingButton />
+        <ToggleAudioPublishingButton />
+        <ToggleCameraFaceButton />
+        <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      </View>
       <ParticipantsInfoList
         isCallParticipantsInfoVisible={isCallParticipantsVisible}
         setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
@@ -83,7 +102,6 @@ export const ActiveCall = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: appTheme.colors.static_grey,
   },
   icons: {
     position: 'absolute',
@@ -94,7 +112,10 @@ const styles = StyleSheet.create({
     zIndex: appTheme.zIndex.IN_FRONT,
   },
   callControlsWrapper: {
-    paddingTop: appTheme.spacing.lg,
-    paddingHorizontal: appTheme.spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingVertical: theme.padding.md,
+    zIndex: Z_INDEX.IN_FRONT,
+    backgroundColor: appTheme.colors.static_grey,
   },
 });
