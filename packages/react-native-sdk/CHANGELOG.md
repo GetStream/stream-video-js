@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.367](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.366...@stream-io/video-react-native-sdk-0.0.1-alpha.367) (2023-08-11)
+
+
+### Features
+
+* **react-native:** add CallTopView component ([#921](https://github.com/GetStream/stream-video-js/issues/921)) ([252adf3](https://github.com/GetStream/stream-video-js/commit/252adf36216c7bd291fccd4ecbdf95c9cdb31a18))
+
+
+
 ## [0.0.1-alpha.366](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.365...@stream-io/video-react-native-sdk-0.0.1-alpha.366) (2023-08-11)
 
 
