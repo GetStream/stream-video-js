@@ -90,6 +90,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       audioStream,
       isLocalParticipant,
       isSpeaking,
+      isDominantSpeaker,
       publishedTracks,
       sessionId,
     } = participant;
@@ -154,6 +155,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         }}
         className={clsx(
           'str-video__participant-view',
+          isDominantSpeaker && 'str-video__participant-view--dominant-speaker',
           isSpeaking && 'str-video__participant-view--speaking',
           !hasVideo && 'str-video__participant-view--no-video',
           !hasAudio && 'str-video__participant-view--no-audio',
