@@ -91,12 +91,13 @@ const styles = StyleSheet.create({
     borderColor: theme.light.content_bg,
     alignItems: 'center',
     // For iOS
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 2,
     },
-    shadowOpacity: 0.37,
-    shadowRadius: 7.49,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
 
     // For android
     elevation: 6,
