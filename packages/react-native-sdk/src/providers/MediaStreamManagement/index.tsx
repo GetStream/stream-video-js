@@ -6,46 +6,21 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {
-  CallingState,
-  OwnCapability,
-  SfuModels,
-} from '@stream-io/video-client';
-import {
-  useCall,
-  useCallCallingState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
 import {
   isMicPermissionGranted$,
   isCameraPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
+import { Alert } from 'react-native';
 import { useAudioPublisher } from './useAudioPublisher';
 import { useVideoPublisher } from './useVideoPublisher';
-import { Alert } from 'react-native';
-import { useStreamVideoStoreValue } from '../../contexts';
 
 /**
  * API to control device enablement, device selection and media stream access for a call.
  * @category Device Management
  */
 export type MediaStreamManagementContextAPI = {
-  /**
-   * Publishes audio stream for currently selected audio input (microphone) device to other call participants.
-   */
-  publishAudioStream: () => Promise<void>;
-  /**
-   * Publishes video stream for currently selected video input (camera) device to other call participants.
-   */
-  publishVideoStream: () => Promise<void>;
-  /**
-   * Signals whether local audio stream is muted/unmuted when in the call.
-   */
-  isAudioMuted: boolean;
-  /**
-   * Signals whether local video stream is muted/unmuted when in the call.
-   */
-  isVideoMuted: boolean;
   /**
    * Signals whether audio stream will be published when the call is joined.
    */
@@ -54,10 +29,6 @@ export type MediaStreamManagementContextAPI = {
    * Signals whether audio stream will be published when the call is joined.
    */
   initialVideoEnabled: boolean;
-  /**
-   * Signals whether the camera is on front facing mode.
-   */
-  isCameraOnFrontFacingMode: boolean;
   /**
    * Toggles the initialAudioEnabled boolean flag.
    * The latest value set will be used to decide, whether audio stream will be published when joining a call.
@@ -68,26 +39,6 @@ export type MediaStreamManagementContextAPI = {
    * The latest value set will be used to decide, whether audio stream will be published when joining a call.
    */
   toggleInitialVideoMuteState: () => void;
-  /**
-   * Toggles the video mute status, when in the call.
-   */
-  toggleVideoMuted: () => void;
-  /**
-   * Toggles the audio mute status, when in the call.
-   */
-  toggleAudioMuted: () => void;
-  /**
-   * Toggles the camera facing mode between front and back camera.
-   */
-  toggleCameraFacingMode: () => void;
-  /**
-   * Stops publishing audio stream for currently selected audio input (microphone) device to other call participants.
-   */
-  stopPublishingAudio: () => void;
-  /**
-   * Stops publishing video stream for currently selected video input (camera) device to other call participants.
-   */
-  stopPublishingVideo: () => void;
 };
 
 const MediaStreamContext =
@@ -103,21 +54,8 @@ const MediaStreamContext =
  *
  * @category Device Management
  */
-export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
+export const MediaStreamManagement = ({}: PropsWithChildren<{}>) => {
   const call = useCall();
-  const localParticipant = useLocalParticipant();
-  const callingState = useCallCallingState();
-  const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
-  const localVideoStream = useLocalParticipant()?.videoStream;
-  const isAudioMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const isVideoMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-
-  const [isCameraOnFrontFacingMode, setIsCameraOnFrontFacingMode] =
-    useState(true);
 
   const [initAudioEnabled, setInitialAudioEnabled] = useState<boolean>(() => {
     const hasNativePermission = isMicPermissionGranted$.getValue();
@@ -146,50 +84,12 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     return hasNativePermission && hasUserPermission;
   });
 
-  const publishVideoStream = useVideoPublisher({
-    initialVideoMuted: !initVideoEnabled,
-  });
-  const publishAudioStream = useAudioPublisher({
+  useAudioPublisher({
     initialAudioMuted: !initAudioEnabled,
   });
-
-  const stopPublishingAudio = useCallback(() => {
-    if (
-      callingState === CallingState.IDLE ||
-      callingState === CallingState.RINGING
-    ) {
-      setInitialAudioEnabled(false);
-    } else {
-      call?.stopPublish(SfuModels.TrackType.AUDIO);
-    }
-  }, [call, callingState]);
-
-  const stopPublishingVideo = useCallback(() => {
-    if (
-      callingState === CallingState.IDLE ||
-      callingState === CallingState.RINGING
-    ) {
-      setInitialVideoEnabled(false);
-    } else {
-      call?.stopPublish(SfuModels.TrackType.VIDEO);
-    }
-  }, [call, callingState]);
-
-  const toggleVideoMuted = useCallback(async () => {
-    if (isVideoMuted) {
-      publishVideoStream();
-    } else {
-      stopPublishingVideo();
-    }
-  }, [isVideoMuted, publishVideoStream, stopPublishingVideo]);
-
-  const toggleAudioMuted = useCallback(async () => {
-    if (isAudioMuted) {
-      publishAudioStream();
-    } else {
-      stopPublishingAudio();
-    }
-  }, [isAudioMuted, publishAudioStream, stopPublishingAudio]);
+  useVideoPublisher({
+    initialVideoMuted: !initVideoEnabled,
+  });
 
   const toggleInitialAudioMuteState = useCallback(
     () =>
@@ -216,50 +116,18 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     [],
   );
 
-  const toggleCameraFacingMode = useCallback(() => {
-    const canSwitchCamera = videoDevices.length > 1;
-    if (canSwitchCamera && localVideoStream) {
-      const tracks = localVideoStream.getVideoTracks();
-      const videoTrack = tracks[0];
-      if (videoTrack) {
-        videoTrack._switchCamera();
-        setIsCameraOnFrontFacingMode((prev) => !prev);
-      }
-    }
-  }, [localVideoStream, videoDevices.length]);
-
   const contextValue = useMemo(() => {
     return {
-      isAudioMuted,
-      isVideoMuted,
       initialAudioEnabled: initAudioEnabled,
       initialVideoEnabled: initVideoEnabled,
-      isCameraOnFrontFacingMode,
-      toggleAudioMuted,
-      toggleVideoMuted,
       toggleInitialAudioMuteState,
       toggleInitialVideoMuteState,
-      toggleCameraFacingMode,
-      publishAudioStream,
-      publishVideoStream,
-      stopPublishingAudio,
-      stopPublishingVideo,
     };
   }, [
-    isAudioMuted,
-    isVideoMuted,
     initAudioEnabled,
     initVideoEnabled,
-    isCameraOnFrontFacingMode,
-    toggleAudioMuted,
-    toggleVideoMuted,
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
-    toggleCameraFacingMode,
-    publishAudioStream,
-    publishVideoStream,
-    stopPublishingAudio,
-    stopPublishingVideo,
   ]);
 
   return (

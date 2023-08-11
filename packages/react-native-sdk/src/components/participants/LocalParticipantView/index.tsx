@@ -1,11 +1,13 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import {
+  useCameraState,
+  useLocalParticipant,
+} from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { Z_INDEX, LOCAL_VIDEO_VIEW_STYLE } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
-import { useMediaStreamManagement } from '../../../providers';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks';
 import { Avatar } from '../../utility';
@@ -46,7 +48,8 @@ export interface LocalParticipantViewProps {
 export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   const { layout = 'floating' } = props;
   const localParticipant = useLocalParticipant();
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const { direction } = useCameraState();
+  const isCameraOnFrontFacingMode = direction === 'front';
   // it takes a few milliseconds for the camera stream to actually switch
   const debouncedCameraOnFrontFacingMode = useDebouncedValue(
     isCameraOnFrontFacingMode,

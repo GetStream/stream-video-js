@@ -17,12 +17,12 @@ import {
 import {
   useCall,
   useCallCallingState,
+  useCameraState,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../constants';
 import { ComponentTestIds } from '../../constants/TestIds';
 import { MicOff, VideoSlash, PinVertical, ScreenShare } from '../../icons';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import { theme } from '../../theme';
 import { palette } from '../../theme/constants';
 import { Avatar } from '../utility';
@@ -80,7 +80,7 @@ export const Participant = (props: ParticipantProps) => {
       ? SfuModels.TrackType.VIDEO
       : SfuModels.TrackType.SCREEN_SHARE,
   );
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const { direction } = useCameraState();
   const { connectionQuality, reaction, sessionId } = participant;
 
   /**
@@ -209,7 +209,7 @@ export const Participant = (props: ParticipantProps) => {
   );
   const isScreenSharing = kind === 'screen';
   const hasVideoTrack = isScreenSharing ? hasScreenShareTrack : !isVideoMuted;
-  const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
+  const mirror = isLocalParticipant && direction === 'front';
   const isAudioAvailable =
     kind === 'video' && !!audioStream && !isAudioMuted && !disableAudio;
   const canShowVideo = !!videoStream && isVisible && hasVideoTrack;

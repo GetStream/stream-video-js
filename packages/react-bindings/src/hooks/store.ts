@@ -1,4 +1,4 @@
-import { CallState } from '@stream-io/video-client';
+import { CallState, CameraManagerState } from '@stream-io/video-client';
 import { useCall, useStreamVideoClient } from '../contexts';
 
 /**

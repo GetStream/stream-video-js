@@ -4,6 +4,7 @@ import { Mic, MicOff, Video, VideoSlash } from '../../icons';
 import {
   useCall,
   useCallMetadata,
+  useCameraState,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -49,8 +50,8 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
     initialVideoEnabled,
     toggleInitialAudioMuteState,
     toggleInitialVideoMuteState,
-    isCameraOnFrontFacingMode,
   } = useMediaStreamManagement();
+  const { direction } = useCameraState();
   const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
   const call = useCall();
   const callMetadata = useCallMetadata();
@@ -91,7 +92,7 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
               <View style={styles.topView} />
               {isVideoAvailable ? (
                 <VideoRenderer
-                  mirror={isCameraOnFrontFacingMode}
+                  mirror={direction === 'front'}
                   mediaStream={localVideoStream}
                   objectFit="cover"
                   style={StyleSheet.absoluteFillObject}

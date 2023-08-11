@@ -65,19 +65,6 @@ export const useVideoPublisher = ({
     }
   }, undefined);
 
-  const lastVideoDeviceId = useRef(videoDeviceId);
-  useEffect(() => {
-    if (
-      callingState === CallingState.JOINED &&
-      videoDeviceId !== lastVideoDeviceId.current
-    ) {
-      lastVideoDeviceId.current = videoDeviceId;
-      publishVideoStream().catch((e) => {
-        console.error('Failed to publish video stream', e);
-      });
-    }
-  }, [callingState, publishVideoStream, videoDeviceId]);
-
   const initialPublishRun = useRef(false);
 
   /*
@@ -98,36 +85,6 @@ export const useVideoPublisher = ({
     });
     initialPublishRun.current = true;
   }, [callingState, initialVideoMuted, publishVideoStream]);
-
-  /*
-   * When track ended unexpectedly due to unknown external factors, try to publish the video stream again
-   * Note: this is not triggered when track.stop is called
-   */
-  useEffect(() => {
-    if (!participant?.videoStream || !call || !isPublishingVideo) {
-      return;
-    }
-
-    const [track] = participant.videoStream.getVideoTracks();
-    const selectedVideoDeviceId = track.getSettings().deviceId;
-
-    const handleTrackEnded = async () => {
-      if (
-        selectedVideoDeviceId === videoDeviceId &&
-        call.permissionsContext.hasPermission(OwnCapability.SEND_VIDEO)
-      ) {
-        const videoStream = await getVideoStream({
-          deviceId: videoDeviceId,
-        });
-        await call.publishVideoStream(videoStream);
-      }
-    };
-
-    track.addEventListener('ended', handleTrackEnded);
-    return () => {
-      track.removeEventListener('ended', handleTrackEnded);
-    };
-  }, [videoDeviceId, call, participant?.videoStream, isPublishingVideo]);
 
   return publishVideoStream;
 };

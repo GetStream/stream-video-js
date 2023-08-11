@@ -30,7 +30,7 @@ export const HangUpCallButton = ({
   const call = useCall();
   const callingState = useCallCallingState();
 
-  const hangUpCallHandler = useCallback(async () => {
+  const onPress = useCallback(async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -48,7 +48,7 @@ export const HangUpCallButton = ({
 
   return (
     <CallControlsButton
-      onPress={hangUpCallHandler}
+      onPress={onPress}
       color={theme.light.error}
       style={[styles.button, { shadowColor: theme.light.error }, style]}
       testID={ButtonTestIds.HANG_UP_CALL}
