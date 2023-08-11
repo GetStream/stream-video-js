@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  useCall,
-  useLocalParticipant,
-  useParticipants,
-  useRemoteParticipants,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -85,6 +80,8 @@ export const PaginatedGridLayout = ({
   const [page, setPage] = useState(0);
 
   const call = useCall();
+  const { useParticipants, useRemoteParticipants, useLocalParticipant } =
+    useCallStateHooks();
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();

@@ -6,9 +6,9 @@ import {
 import {
   Restricted,
   useCall,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
-  useParticipants,
 } from '@stream-io/video-react-bindings';
 import {
   Alert,
@@ -59,6 +59,7 @@ export const ParticipantsInfoList = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import {
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -77,6 +77,7 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const connectedUser = useConnectedUser();
+  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars

@@ -3,7 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   CallingState,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
@@ -29,6 +29,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const unreadBadgeCountIndicator = useUnreadCount();
 
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const returnToHomeHandler = () => {

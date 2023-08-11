@@ -11,7 +11,6 @@ body {
 }
 
 .mapboxgl-popup {
-  width: auto;
   height: auto;
   display: flex;
   align-items: center;
@@ -34,4 +33,24 @@ body {
 
 .mapboxgl-control-container {
   display: none;
+}
+
+/* Scrollbar styles */
+
+/* Firefox */
+* {
+  scrollbar-color: #72767E transparent;
+  scrollbar-width: thin;
+}
+
+/* WebKit and Chromium */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-video-grey-400;
+  border-radius: 5px;
 }

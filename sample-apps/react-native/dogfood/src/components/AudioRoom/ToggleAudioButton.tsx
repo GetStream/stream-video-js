@@ -2,10 +2,10 @@ import {
   OwnCapability,
   SfuModels,
   useCall,
+  useCallStateHooks,
   useConnectedUser,
   useHasPermissions,
   useIncallManager,
-  useLocalParticipant,
   useMediaStreamManagement,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
@@ -18,6 +18,7 @@ export default function ToggleAudioButton() {
   const call = useCall();
   const connectedUser = useConnectedUser();
 
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,

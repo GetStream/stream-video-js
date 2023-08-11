@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff } from '../../icons';
 import {
   useCall,
-  useCallMetadata,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -49,6 +49,7 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
     useMediaStreamManagement();
   const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
   const call = useCall();
+  const { useCallMetadata } = useCallStateHooks();
   const callMetadata = useCallMetadata();
   const { t } = useI18n();
   const participantsCount = callMetadata?.session?.participants.length;

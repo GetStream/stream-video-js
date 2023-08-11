@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 import { v1 as uuid } from 'uuid';
-import {
-  SfuModels,
-  useHasOngoingScreenShare,
-  useLocalParticipant,
-  useParticipants,
-} from '@stream-io/video-react-sdk';
+import { SfuModels, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { ScreenShare } from '../components/Icons';
 
@@ -19,10 +14,10 @@ export const useScreenShareNotification = () => {
   }>({ sharing: false });
 
   const { addNotification } = useNotificationContext();
+  const { useHasOngoingScreenShare, useLocalParticipant, useParticipants } =
+    useCallStateHooks();
   const localParticipant = useLocalParticipant();
-
   const allParticipants = useParticipants();
-
   const remoteScreenShare = useHasOngoingScreenShare();
 
   const localScreenShare = localParticipant?.publishedTracks.includes(

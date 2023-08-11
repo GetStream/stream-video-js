@@ -1,6 +1,6 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { useCallState } from './store';
-import { useObservableValue } from './helpers/useObservableValue';
+import { useCallState } from './callStateHooks';
+import { useObservableValue } from './useObservableValue';
 
 /**
  * Hook that returns true if the local participant has all the given permissions.

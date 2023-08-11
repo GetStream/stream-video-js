@@ -5,12 +5,15 @@ import { StreamChat } from 'stream-chat';
 import { AnimatedPanel } from '../Panel';
 import Chat from '../Chat';
 
+import type { ConnectionError } from '../../hooks/useChatClient';
+
 import styles from './ChatPanel.module.css';
 
 export type Props = {
   className?: string;
   isFocused?: boolean;
   channelId: string;
+  chatConnectionError?: ConnectionError;
   client?: StreamChat | null;
   channelType: string;
   close?: () => void;
@@ -24,6 +27,7 @@ export const ChatPanel: FC<Props> = ({
   channelId,
   client,
   channelType,
+  chatConnectionError,
   close,
   fulllHeight,
   visible,
@@ -40,7 +44,12 @@ export const ChatPanel: FC<Props> = ({
       fulllHeight={fulllHeight}
       visible={visible}
     >
-      <Chat channelId={channelId} client={client} channelType={channelType} />
+      <Chat
+        channelId={channelId}
+        client={client}
+        channelType={channelType}
+        chatConnectionError={chatConnectionError}
+      />
     </AnimatedPanel>
   );
 };

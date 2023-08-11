@@ -3,7 +3,7 @@ import {
   ParticipantView,
   SfuModels,
   useCall,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
@@ -13,6 +13,7 @@ import { AudioTracks } from './AudioTracks';
 export const DominantSpeaker = () => {
   const activeCall = useCall();
   const speakerInSpotlight = useSpotlightParticipant();
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { setVideoElement, setVideoPlaceholderElement } =
     useEgressReadyWhenAnyParticipantMounts(

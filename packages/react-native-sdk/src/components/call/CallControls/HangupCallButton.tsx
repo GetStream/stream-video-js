@@ -4,7 +4,7 @@ import { theme } from '../../../theme';
 import { StyleProp, ViewStyle } from 'react-native';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 /**
@@ -37,6 +37,7 @@ export const HangUpCallButton = ({
   style,
 }: HangUpCallButtonProps) => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const hangUpCallHandler = useCallback(async () => {
