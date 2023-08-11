@@ -4,7 +4,7 @@ import {
   SfuModels,
   useAudioInputDevices,
   useAudioOutputDevices,
-  useLocalParticipant,
+  useCallStateHooks,
   useMediaDevices,
   useVideoDevices,
 } from '@stream-io/video-react-sdk';
@@ -39,6 +39,7 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     isAudioOutputChangeSupported,
   } = useMediaDevices();
 
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const videoDevices = useVideoDevices();
   const audioInputDevices = useAudioInputDevices();

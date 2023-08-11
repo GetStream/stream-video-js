@@ -4,9 +4,7 @@ import {
   OwnCapability,
   Restricted,
   useCall,
-  useCallCallingState,
-  useCallMetadata,
-  useIsCallLive,
+  useCallStateHooks,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +14,8 @@ export const RoomAccessControls = () => {
   const { setInitialAudioEnabled } = useMediaDevices();
   const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
+  const { useCallMetadata, useCallCallingState, useIsCallLive } =
+    useCallStateHooks();
   const metadata = useCallMetadata();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();

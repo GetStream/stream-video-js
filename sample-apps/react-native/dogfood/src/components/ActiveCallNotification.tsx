@@ -3,10 +3,11 @@ import { ActivityIndicator, Animated, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appTheme } from '../theme';
 import InfoIconSvg from '../assets/InfoIconSvg';
-import { useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 export const ActiveCallNotification = () => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const header = getHeader(callingState);
 

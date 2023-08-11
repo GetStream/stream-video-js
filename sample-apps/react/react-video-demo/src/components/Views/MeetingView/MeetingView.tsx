@@ -6,11 +6,7 @@ import {
   Call,
   getScreenShareStream,
   SfuModels,
-  useCallStatsReport,
-  useHasOngoingScreenShare,
-  useIsCallRecordingInProgress,
-  useLocalParticipant,
-  useParticipants,
+  useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
@@ -74,6 +70,13 @@ export const View: FC<Props & Meeting> = ({
   const { addNotification } = useNotificationContext();
 
   const client = useStreamVideoClient();
+  const {
+    useCallStatsReport,
+    useLocalParticipant,
+    useParticipants,
+    useIsCallRecordingInProgress,
+    useHasOngoingScreenShare,
+  } = useCallStateHooks();
   const participants = useParticipants();
   const statsReport = useCallStatsReport();
   const localParticipant = useLocalParticipant();

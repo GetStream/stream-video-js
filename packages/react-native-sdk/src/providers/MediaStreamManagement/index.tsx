@@ -12,15 +12,10 @@ import {
   OwnCapability,
   SfuModels,
 } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
-  useCall,
-  useCallCallingState,
-  useCallMetadata,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
-import {
-  isMicPermissionGranted$,
   isCameraPermissionGranted$,
+  isMicPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
 import { useAudioPublisher } from './useAudioPublisher';
 import { useVideoPublisher } from './useVideoPublisher';
@@ -107,11 +102,13 @@ const MediaStreamContext =
  */
 export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
+  const { useLocalParticipant, useCallCallingState, useCallMetadata } =
+    useCallStateHooks();
   const settings = useCallMetadata()?.settings;
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
   const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
-  const localVideoStream = useLocalParticipant()?.videoStream;
+  const localVideoStream = localParticipant?.videoStream;
   const isAudioMuted = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );

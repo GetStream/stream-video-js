@@ -5,7 +5,7 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
 import { LobbyHeader } from '../LobbyHeader';

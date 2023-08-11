@@ -8,7 +8,7 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCallCallingState,
+  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
 
@@ -59,6 +59,7 @@ export default function App() {
 }
 
 export const UILayout = () => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   if (callingState !== CallingState.JOINED) {
     return <div>Loading...</div>;

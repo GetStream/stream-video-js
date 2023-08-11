@@ -8,7 +8,6 @@ import {
   SfuModels,
   StreamReaction,
   StreamVideoParticipant,
-  useCallCallingState,
   VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
@@ -18,6 +17,7 @@ import Reaction from '../Reaction';
 import { useNotificationContext } from '../../contexts/NotificationsContext';
 
 import styles from './Participant.module.css';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type Props = {
   className?: string;
@@ -58,6 +58,7 @@ export const Overlay: FC<{
   sessionId,
   slider,
 }) => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const videoOverlayClassNames = classnames(styles.videoOverlay, {

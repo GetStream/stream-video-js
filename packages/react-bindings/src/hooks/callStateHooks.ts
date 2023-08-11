@@ -1,5 +1,30 @@
-import { useObservableValue } from './helpers/useObservableValue';
-import { useCallState, useStore } from './store';
+import { useMemo } from 'react';
+import {
+  CallState,
+  Comparator,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
+import { useCall } from '../contexts';
+import { useObservableValue } from './useObservableValue';
+
+/**
+ * Utility hook, which provides the current call's state.
+ *
+ * @category Call State
+ */
+export const useCallState = () => {
+  const call = useCall();
+  // return an empty and unlinked CallState object if there is no call in the provider
+  // this ensures that the hooks always return a value and many null checks can be avoided
+  if (!call) {
+    const message =
+      'You are using useCallState() outside a Call context. ' +
+      'Please wrap your component in <StreamCall /> and provide a "call" instance.';
+    console.warn(message);
+    return new CallState();
+  }
+  return call.state;
+};
 
 /**
  * Utility hook which provides information whether the current call is being recorded. It will return `true` if the call is being recorded.
@@ -71,21 +96,10 @@ export const useDominantSpeaker = () => {
 };
 
 /**
- * Utility hook which provides a list of all notifications about created calls.
- * In the ring call settings, these calls can be outgoing (I have called somebody)
- * or incoming (somebody has called me).
- *
- * @category Client State
- */
-export const useCalls = () => {
-  const { calls$ } = useStore();
-  return useObservableValue(calls$);
-};
-
-/**
  * Utility hook which provides call metadata (such as blocked users and own capabilities).
  *
  * @category Call State
+ * @deprecated will be removed in the next major release and replaced with more specific hooks.
  */
 export const useCallMetadata = () => {
   const { metadata$ } = useCallState();
@@ -131,4 +145,76 @@ export const useCallCallingState = () => {
 export const useCallStartedAt = () => {
   const { startedAt$ } = useCallState();
   return useObservableValue(startedAt$);
+};
+
+/**
+ * A hook which provides a list of all participants that have joined an active call.
+ *
+ * @category Call State
+ *
+ * @param options.sortBy - A comparator function to sort the participants by.
+ * Make sure to memoize output of the `combineComparators` function
+ * (or keep it out of component's scope if possible) before passing it down to this property.
+ */
+export const useParticipants = ({
+  sortBy,
+}: {
+  /**
+   * Make sure to memoize output of the `combineComparators` function
+   * (or keep it out of component's scope if possible) before passing it down to this property.
+   */
+  sortBy?: Comparator<StreamVideoParticipant>;
+} = {}) => {
+  const { participants$ } = useCallState();
+  const participants = useObservableValue(participants$);
+
+  return useMemo(() => {
+    if (sortBy) {
+      return [...participants].sort(sortBy);
+    }
+    return participants;
+  }, [participants, sortBy]);
+};
+
+/**
+ * A hook which provides a StreamVideoLocalParticipant object.
+ * It signals that I have joined a call.
+ *
+ * @category Call State
+ */
+export const useLocalParticipant = () => {
+  const { localParticipant$ } = useCallState();
+  return useObservableValue(localParticipant$);
+};
+
+/**
+ * A hook which provides a list of all other participants than me that have joined an active call.
+ *
+ * @category Call State
+ */
+export const useRemoteParticipants = () => {
+  const { remoteParticipants$ } = useCallState();
+  return useObservableValue(remoteParticipants$);
+};
+
+/**
+ * Returns the approximate participant count of the active call.
+ * This includes the anonymous users as well, and it is computed on the server.
+ *
+ * @category Call State
+ */
+export const useParticipantCount = () => {
+  const { participantCount$ } = useCallState();
+  return useObservableValue(participantCount$);
+};
+
+/**
+ * Returns the approximate anonymous participant count of the active call.
+ * The regular participants are not included in this count. It is computed on the server.
+ *
+ * @category Call State
+ */
+export const useAnonymousParticipantCount = () => {
+  const { anonymousParticipantCount$ } = useCallState();
+  return useObservableValue(anonymousParticipantCount$);
 };

@@ -4,8 +4,7 @@ import {
   Call,
   SfuModels,
   StreamVideoParticipant,
-  useLocalParticipant,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import ParticipantsSlider from '../ParticipantsSlider';
@@ -26,8 +25,8 @@ export const MeetingParticipants: FC<Props> = ({
   maxParticipantsOnScreen = 8,
 }) => {
   const [maxParticipants, setMaxParticipants] = useState<number>();
+  const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   const breakpoint = useBreakpoint();

@@ -1,5 +1,5 @@
-import { CallState } from '@stream-io/video-client';
-import { useCall, useStreamVideoClient } from '../contexts';
+import { useStreamVideoClient } from '../contexts';
+import { useObservableValue } from './useObservableValue';
 
 /**
  * Utility hook which provides access to client's state store.
@@ -15,20 +15,23 @@ export const useStore = () => {
 };
 
 /**
- * Utility hook which provides the current call's state.
+ * Utility hook which provides a list of all notifications about created calls.
+ * In the ring call settings, these calls can be outgoing (I have called somebody)
+ * or incoming (somebody has called me).
  *
- * @category Call State
+ * @category Client State
  */
-export const useCallState = () => {
-  const call = useCall();
-  // return an empty and unlinked CallState object if there is no call in the provider
-  // this ensures that the hooks always return a value and many null checks can be avoided
-  if (!call) {
-    const message =
-      'You are using useCallState() outside a Call context. ' +
-      'Please wrap your component in <StreamCallProvider /> and provide a non-null "call" instance.';
-    console.warn(message);
-    return new CallState();
-  }
-  return call.state;
+export const useCalls = () => {
+  const { calls$ } = useStore();
+  return useObservableValue(calls$);
+};
+
+/**
+ * Returns the current connected user.
+ *
+ * @category Client State
+ */
+export const useConnectedUser = () => {
+  const { connectedUser$ } = useStore();
+  return useObservableValue(connectedUser$);
 };

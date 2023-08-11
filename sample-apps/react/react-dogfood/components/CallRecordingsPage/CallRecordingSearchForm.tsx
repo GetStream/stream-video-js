@@ -3,7 +3,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/router';
-import React, {
+import {
   ChangeEventHandler,
   FormEventHandler,
   KeyboardEventHandler,

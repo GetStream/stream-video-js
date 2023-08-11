@@ -9,13 +9,7 @@ import {
   watchForAddedDefaultVideoDevice,
   watchForDisconnectedVideoDevice,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallCallingState,
-  useCallMetadata,
-  useCallState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebugPreferredVideoCodec } from '../../components/Debug/useIsDebugMode';
 import { useHasBrowserPermissions } from './useDevices';
 
@@ -36,6 +30,12 @@ export const useVideoPublisher = ({
   videoDeviceId,
 }: VideoPublisherInit) => {
   const call = useCall();
+  const {
+    useCallState,
+    useCallCallingState,
+    useLocalParticipant,
+    useCallMetadata,
+  } = useCallStateHooks();
   const callState = useCallState();
   const callingState = useCallCallingState();
   const participant = useLocalParticipant();

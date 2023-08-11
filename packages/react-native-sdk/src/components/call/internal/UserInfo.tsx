@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
 import { generateCallTitle } from '../../../utils';
 import {
-  useCallMembers,
+  useCallStateHooks,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { UserResponse } from '@stream-io/video-client';
@@ -33,6 +33,7 @@ export const UserInfo = ({
   totalMembersToShow = 3,
 }: UserInfoType) => {
   const connectedUser = useConnectedUser();
+  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars
