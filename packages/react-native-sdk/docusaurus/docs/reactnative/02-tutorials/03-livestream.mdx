@@ -24,7 +24,7 @@ Let's get started, if you have any questions or feedback be sure to let us know 
 Create a new React Native app using the official template,
 
 ```bash title=Terminal
-npx react-native@latest init AudioRoomExample
+npx react-native@latest init LiveStreamExample
 cd LiveStreamExample
 ```
 
@@ -40,8 +40,8 @@ The SDK requires installing some peer dependencies. You can run the following co
 
 ```bash title=Terminal
 yarn add react-native-webrtc react-native-device-info \
-   react-native-incall-manager react-native-svg \
-   @react-native-community/netinfo @notifee/react-native
+    react-native-incall-manager react-native-svg \
+    @react-native-community/netinfo @notifee/react-native
 npx pod-install
 ```
 
@@ -51,16 +51,20 @@ npx pod-install
 
 Add the following keys and values to `Info.plist` file:
 
-- `Privacy - Microphone Usage Description` - "`AudioRoomExample` requires microphone access to capture and transmit audio"
+- `Privacy - Camera Usage Description` - "`LiveStreamExample` requires camera access to capture and transmit video"
+- `Privacy - Microphone Usage Description` - "`LiveStreamExample` requires microphone access to capture and transmit audio"
 
 #### Android
 
 In `AndroidManifest.xml` add the following permissions before the `<application>` section.
 
 ```xml
+<uses-feature android:name="android.hardware.camera" />
+<uses-feature android:name="android.hardware.camera.autofocus" />
 <uses-feature android:name="android.hardware.audio.output" />
 <uses-feature android:name="android.hardware.microphone" />
 
+<uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
@@ -77,7 +81,7 @@ If you plan to also support Bluetooth devices then also add the following.
 ```
 
 :::note
-For simplicity, in this tutorial, we do not cover managing native runtime permissions. Before starting the next step, ensure that necessary permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
+For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that camera and microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
 :::
 
 #### Android Specific installation
@@ -131,35 +135,36 @@ const user: User = {
   image: `https://getstream.io/random_png/?id=${userId}&name=Santhosh`,
 };
 
-const client = new StreamVideoClient({ apiKey, user, token });
-const call = client.call('livestream', callId);
+const myClient = new StreamVideoClient({ apiKey, user, token });
+const myCall = myClient.call('livestream', callId);
 
 export default function App() {
   useEffect(() => {
-    call.join({ create: true }).catch((err) => {
+    myCall.join({ create: true }).catch((err) => {
       console.error('Failed to join the call', err);
     });
 
     return () => {
-      call.leave().catch((err) => {
+      myCall.leave().catch((err) => {
         console.error('Failed to leave the call', err);
       });
     };
   }, []);
 
-  return  (
-    <StreamVideo client={client} language="en">
-      <StreamCall call={call}>
+  return (
+    <StreamVideo client={myClient} language="en">
+      <StreamCall call={myCall}>
         <SafeAreaView style={{ flex: 1 }}>
-          <LiveStream />
+          <LivestreamUI />
         </SafeAreaView>
       </StreamCall>
     </StreamVideo>
   );
 }
 
-const LiveStream = () => (
-    <Text style={{ fontSize: 30, color: 'black' }}>TODO: render video</Text>
+
+const LivestreamUI = () => (
+  <Text style={{ fontSize: 30, color: 'black' }}>TODO: render video</Text>
 );
 ```
 
@@ -196,7 +201,7 @@ If you don't have an authenticated user you can also use a guest or anonymous us
 Next, we initialize the client by passing the API Key, user and user token:
 
 ```ts
-const client = new StreamVideoClient({ apiKey, user, token });
+const myClient = new StreamVideoClient({ apiKey, user, token });
 ```
 
 Your backend typically generates the `user` and `token` on signup or login.
@@ -204,16 +209,16 @@ Your backend typically generates the `user` and `token` on signup or login.
 The most important step to review is how we create the call. Stream uses the same call object for livestreaming, audio rooms and video calling. Have a look at the code snippet below:
 
 ```ts
-const call = client.call('livestream', callId);
+const myCall = client.call('livestream', callId);
 
 useEffect(() => {
-  call.join({ create: true }).catch((err) => {
+  myCall.join({ create: true }).catch((err) => {
     console.error('Failed to join the call', err);
   });
 }, []);
 ```
 
-To create the first call object, specify the call type as **livestream** and provide a unique `callId`. The `livestream` call type comes with default settings that are usually suitable for live streams, but you can customize features, permissions, and settings in the dashboard. Additionally, the dashboard allows you to create new call types as required. For more information, see the [Call Types](../../core/configuring-call-types/) docs.
+To create the first call object, specify the call type as **livestream** and provide a unique `callId`. The `livestream` call type comes with default settings that are usually suitable for live streams, but you can customize features, permissions, and settings in the dashboard. Additionally, the dashboard allows you to create new call types as required.
 
 Finally, using `call.join(create = true)` will not only create the call object on our servers but also initiate the real-time transport for audio and video. This allows for seamless and immediate engagement in the live stream.
 
@@ -223,63 +228,74 @@ Note that you can also add members to a call and assign them different roles. Fo
 
 In this step, we're going to build a UI for showing your local video with a button to start the livestream.
 
-In `App.tsx` replace the `Livestream` component with the following code:
+In `App.tsx` replace the `LivestreamUI` component with the following code:
 
 ```tsx
-import {
-  useCall,
-  useLocalParticipant,
-  useParticipantCount,
-  useIsCallLive,
-  ParticipantView,
-} from '@stream-io/video-react-native-sdk';
+import { useCall, useCallStateHooks, useIncallManager } from '@stream-io/video-react-native-sdk';
+import { RTCView } from 'react-native-webrtc';
+import { Button, Text, StyleSheet } from 'react-native';
 
-const Livestream = () => {
+const LivestreamUI = () => {
   const call = useCall();
+
+  const { useParticipantCount, useLocalParticipant, useIsCallLive } =
+    useCallStateHooks();
+
   const totalParticipants = useParticipantCount();
   const localParticipant = useLocalParticipant();
   const isCallLive = useIsCallLive();
+
+  // Automatically route audio to devices as relevant for watching videos.
+  useIncallManager({ media: 'video', auto: true });
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-      <div
-        style={{
-          alignSelf: 'flex-start',
-          color: 'white',
-          backgroundColor: 'blue',
-          borderRadius: '8px',
-          padding: '4px 6px',
-        }}
-      >
-        Live: {totalParticipants}
-      </div>
-      <div style={{ flex: 1 }}>
-        {localParticipant && (
-          <ParticipantView
-            participant={localParticipant}
-            // disables the extra UI elements as such:
-            // name, audio, video indicator, etc...
-            ParticipantViewUI={null}
+    <View style={styles.flexed}>
+      <Text style={styles.text}>Live: {totalParticipants}</Text>
+      <View style={styles.flexed}>
+        <RTCView
+          style={styles.flexed}
+          streamURL={localParticipant?.videoStream?.toURL()}
+        />
+      </View>
+      <View style={styles.bottomBar}>
+        {isCallLive ? (
+          <Button onPress={() => call?.stopLive()} title="Stop Livestream" />
+        ) : (
+          <Button
+            onPress={() => {
+              call?.goLive();
+            }}
+            title="Start Livestream"
           />
         )}
-      </div>
-      <div style={{ alignSelf: 'center' }}>
-        {isCallLive ? (
-          <button onClick={() => call?.stopLive()}>Stop Livestream</button>
-        ) : (
-          <button onClick={() => call?.goLive()}>Start Livestream</button>
-        )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  flexed: {
+    flex: 1,
+  },
+  text: {
+    alignSelf: 'center',
+    color: 'white',
+    backgroundColor: 'blue',
+    padding: 6,
+    margin: 4,
+  },
+  bottomBar: {
+    alignSelf: 'center',
+    margin: 4,
+  },
+});
 ```
 
 Upon running your app, you will be greeted with an interface that looks like this:
 
-<!-- ![Preview of the UI](../assets/02-tutorials/livestream-first-preview.png) -->
+![Preview of the UI](../assets/02-tutorials/03-livestream/livestream-first-preview.png)
 
-Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world.
-This makes it possible to reach a large audience in realtime.
+Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world. This makes it possible to reach a large audience in realtime.
 
 Now let's press **Start Livestream** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
 
@@ -287,29 +303,47 @@ Now let's press **Start Livestream** in your new app and click the **Join Call**
 
 Let's take a moment to review the code above.
 
-You can see we use a few hooks to get the call state. The most important ones are:
+#### State & Participants​
+
+You can see we use a few hooks to get the call state. The ones used in this example are:
 
 ```ts
-const totalParticipants = useParticipantCount();
-const localParticipant = useLocalParticipant();
-const isCallLive = useIsCallLive();
+  const { useParticipantCount, useLocalParticipant, useIsCallLive } = useCallStateHooks();
 ```
 
-The [Call & Participant state](../../guides/call-and-participant-state/) lists all available hoos you can use for accessing call and participant state.
+In this example, we use:
 
-The layout is built using standard React DOM elements.
-The [ParticipantView](../../ui-components/core/participant-view/) component is provided by Stream's React Video SDK.
-**ParticipantView** renders the video and a fallback. You can use it for rendering the local and remote video.
+* `useParticipantCount`: the number of participants watching the livestream
+* `useLocalParticipant`: the local participant object, to get the video stream.
+* `useIsCallLive`: a boolean that returns if the call is in backstage mode or not
+
+There are many possibilities and the [call and participant state](../../core/call-and-participant-state/) docs explain this in more detail.
+
+#### Creating a UI to watch a livestream​
+
+The layout is built using standard React Native components.
+The `RTCView` component is provided by `react-native-webrtc` library. You can use it for rendering the local and remote video.
+The `useIncallManager` hook is used to automatically route audio to devices as relevant for watching videos.
 
 #### Backstage mode
 
 In the example above you might have noticed the `call.goLive()` method and the `isCallLive` value.
-The backstage functionality is enabled by default on the livestream call type.
+The backstage functionality is enabled by default on the `livestream` call type.
 It makes it easy to build a flow where you and your co-hosts can setup your camera and equipment before going live.
-Only after you call `call.goLive()` will regular users be allowed to join the livestream.
+Only after you execute `call.goLive()` will regular users be allowed to join the livestream.
 
 This is convenient for many livestreaming and audio-room use cases. If you want calls to start immediately when you join them that's also possible.
-Simply go the Stream dashboard, click the livestream call type and disable the backstage mode.
+Simply go to the Stream dashboard, click the livestream call type and disable the backstage mode.
+
+The `call.goLive` method can also automatically start HLS livestreaming, recording or transcribing. To do that, you need to pass the corresponding optional parameter:
+
+```ts
+await call.goLive({
+  start_hls: true,
+  start_recording: true,
+  start_transcription: true,
+});
+```
 
 ### Step 4 - (Optional) Publishing RTMP using OBS
 
@@ -321,11 +355,13 @@ So let's see how to publish using RTMPs. Feel free to skip this step if you don'
 #### Log the URL & Stream Key
 
 ```ts
-import { useCallMetadata } from '@stream-io/video-react-sdk';
+const { useCallMetadata } = useCallStateHooks();
 
 const metadata = useCallMetadata();
+// highlight-start
 const rtmpURL = metadata?.ingress?.rtmp.address;
 const streamKey = `${apiKey}/${token}`;
+// highlight-end
 
 console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
 ```
@@ -364,15 +400,16 @@ Let's show how to broadcast your call to HLS:
 import { useCall, useCallMetadata } from '@stream-io/video-react-sdk';
 
 const call = useCall();
-await call.startHLS();
+await call.goLive({ start_hls: true });
 
 // take the URL to the M3U8 playlist
 const metadata = useCallMetadata();
+// highlight-next-line
 const playlistUrl = metadata?.egress?.hls?.playlistUrl;
 console.log('HLS playlist url:', playlistUrl);
 ```
 
-You can view the HLS video feed using any HLS capable video player.
+You can view the HLS video feed using any HLS capable video player. The most popular one on React Native is the one provided by [`react-native-video`](https://github.com/react-native-video/react-native-video) library.
 
 ### Step 7 - Advanced Features
 
@@ -381,16 +418,17 @@ It also went into more details about HLS & RTMP-in.
 
 There are several advanced features that can improve the livestreaming experience:
 
-- ** [Co-hosts](../../guides/joining-and-creating-calls/) ** You can add members to your livestream with elevated permissions. So you can have co-hosts, moderators etc.
-- ** [Custom events](../../guides/reactions-and-custom-events/) ** You can use custom events on the call to share any additional data. Think about showing the score for a game, or any other realtime use case.
-- ** [Reactions & Chat](../../guides/reactions-and-custom-events/) ** Users can react to the livestream, and you can add chat. This makes for a more engaging experience.
-- ** [Recording](../../advanced/recording/) ** The call recording functionality allows you to record the call with various options and layouts
+- ** [Co-hosts](../../core/joining-and-creating-calls/) ** You can add members to your livestream with elevated permissions. So you can have co-hosts, moderators etc.
+- ** [Custom events](../../core/reactions-and-custom-events/) ** You can use custom events on the call to share any additional data. Think about showing the score for a game, or any other realtime use case.
+- ** [Reactions & Chat](../../core/reactions-and-custom-events/) ** Users can react to the livestream, and you can add chat. This makes for a more engaging experience.
+- ** [Recording](../../advanced/recording/) ** The call recording functionality allows you to record the call with various options and layouts.
+- ** [Notifications](../../advanced/push-notifications/overview/) ** You can notify users via push notifications when the livestream starts.
 
 ### Recap
 
-It was fun to see just how quickly you can build in-app low latency livestreaming.
-Please do let us know if you ran into any issues.
-Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
+It was fun to see just how quickly you can build in-app low-latency livestreaming.
+Please do let us know if you run into any issues.
+Our team is also happy to review your UI designs and offer recommendations on how to achieve them with Stream.
 
 To recap what we've learned:
 
@@ -407,6 +445,3 @@ By being closer to your users the latency and reliability of calls are better.
 The React SDK enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
 
 We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.
-You can find the code for this tutorial in [this CodeSandbox](https://codesandbox.io/s/livestream-tutorial-mlqtrd).
-
-The source code for the companion Livestreaming App, together with all of its features, is available on [Github.](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react/livestream-app)
