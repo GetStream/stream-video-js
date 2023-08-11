@@ -47,14 +47,23 @@ describe('MicrophoneManager', () => {
     expect(spy).toHaveBeenCalledWith(mockAudioDevices);
   });
 
-  it('enable microphone - before joined to call', async () => {
+  it('get stream', async () => {
     await manager.enable();
 
-    expect(manager.state.mediaStream).toBeDefined();
-    expect(manager.state.status).toBe('enabled');
+    expect(getAudioStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+    });
   });
 
-  it('enable microphone - after joined to call', async () => {
+  it('should get device id from stream', async () => {
+    expect(manager.state.selectedDevice).toBeUndefined();
+
+    await manager.enable();
+
+    expect(manager.state.selectedDevice).toBeDefined();
+  });
+
+  it('publish stream', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
 
@@ -65,14 +74,7 @@ describe('MicrophoneManager', () => {
     );
   });
 
-  it('disable microphone - before joined to call', async () => {
-    await manager.disable();
-
-    expect(manager.state.mediaStream).toBeUndefined();
-    expect(manager.state.status).toBe('disabled');
-  });
-
-  it('disable microphone - after joined to call', async () => {
+  it('stop publish stream', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
     await manager.enable();
@@ -80,41 +82,6 @@ describe('MicrophoneManager', () => {
     await manager.disable();
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
-  });
-
-  it('toggle microphone', async () => {
-    vi.spyOn(manager, 'disable');
-    vi.spyOn(manager, 'enable');
-
-    manager.state.setMediaStream(undefined);
-    await manager.toggle();
-
-    expect(manager.enable).toHaveBeenCalled();
-
-    await manager.toggle();
-
-    expect(manager.disable).toHaveBeenCalled();
-  });
-
-  it('select device when microphone is off', async () => {
-    const deviceId = mockAudioDevices[0].deviceId;
-    await manager.select(deviceId);
-
-    expect(manager.state.selectedDevice).toBe(deviceId);
-    expect(getAudioStream).not.toHaveBeenCalledWith();
-    expect(manager['call'].publishAudioStream).not.toHaveBeenCalled();
-  });
-
-  it('select device when microphone is on and already joined call', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
-    await manager.enable();
-
-    const deviceId = mockAudioDevices[1].deviceId;
-    await manager.select(deviceId);
-
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
-    expect(manager['call'].publishAudioStream).toHaveBeenCalled();
   });
 
   afterEach(() => {

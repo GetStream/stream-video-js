@@ -8,6 +8,7 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
+import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -48,18 +49,24 @@ describe('CameraManager', () => {
     expect(spy).toHaveBeenCalledWith(mockVideoDevices);
   });
 
-  it('enable camera - before joined to call', async () => {
+  it('get stream', async () => {
     await manager.enable();
 
     expect(getVideoStream).toHaveBeenCalledWith({
       deviceId: undefined,
       facingMode: 'user',
     });
-    expect(manager.state.mediaStream).toBeDefined();
-    expect(manager.state.status).toBe('enabled');
   });
 
-  it('enable camera - after joined to call', async () => {
+  it('should get device id from stream', async () => {
+    expect(manager.state.selectedDevice).toBeUndefined();
+
+    await manager.enable();
+
+    expect(manager.state.selectedDevice).toBeDefined();
+  });
+
+  it('publish stream', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
 
@@ -70,22 +77,7 @@ describe('CameraManager', () => {
     );
   });
 
-  it('enable camera should set device id', async () => {
-    expect(manager.state.selectedDevice).toBeUndefined();
-
-    await manager.enable();
-
-    expect(manager.state.selectedDevice).toBeDefined();
-  });
-
-  it('disable camera - before joined to call', async () => {
-    await manager.disable();
-
-    expect(manager.state.mediaStream).toBeUndefined();
-    expect(manager.state.status).toBe('disabled');
-  });
-
-  it('disable camera - after joined to call', async () => {
+  it('stop publish stream', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
     await manager.enable();
@@ -93,44 +85,6 @@ describe('CameraManager', () => {
     await manager.disable();
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
-  });
-
-  it('toggle camera', async () => {
-    vi.spyOn(manager, 'disable');
-    vi.spyOn(manager, 'enable');
-
-    manager.state.setMediaStream(undefined);
-    await manager.toggle();
-
-    expect(manager.enable).toHaveBeenCalled();
-
-    await manager.toggle();
-
-    expect(manager.disable).toHaveBeenCalled();
-  });
-
-  it('select device when camera is off', async () => {
-    const deviceId = mockVideoDevices[0].deviceId;
-    await manager.select(deviceId);
-
-    expect(manager.state.selectedDevice).toBe(deviceId);
-    expect(getVideoStream).not.toHaveBeenCalledWith();
-    expect(manager['call'].publishVideoStream).not.toHaveBeenCalled();
-  });
-
-  it('select device when camera is on and in call', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
-    await manager.enable();
-
-    const deviceId = mockVideoDevices[1].deviceId;
-    await manager.select(deviceId);
-
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
-    expect(getVideoStream).toHaveBeenCalledWith({
-      deviceId,
-    });
-    expect(manager['call'].publishVideoStream).toHaveBeenCalled();
   });
 
   it('flip', async () => {

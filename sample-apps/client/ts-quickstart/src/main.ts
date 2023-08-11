@@ -24,14 +24,6 @@ const callId =
 const call = client.call('default', callId);
 
 call.join({ create: true }).then(async () => {
-  // publish audio and video based on backend settings
-  if (call.state.metadata?.settings.video.camera_default_on) {
-    call.camera.enable();
-  }
-  if (call.state.metadata?.settings.audio.mic_default_on) {
-    call.microphone.enable();
-  }
-
   // render mic and camera controls
   const controls = renderControls(call);
   const container = document.getElementById('call-controls')!;
