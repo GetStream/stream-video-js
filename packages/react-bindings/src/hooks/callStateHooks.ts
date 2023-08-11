@@ -53,6 +53,7 @@ export const useIsCallBroadcastingInProgress = () => {
  */
 export const useIsCallLive = () => {
   const metadata = useCallMetadata();
+  if (!metadata) return false;
   return !metadata?.backstage;
 };
 

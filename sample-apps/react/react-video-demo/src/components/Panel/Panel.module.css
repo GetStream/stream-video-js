@@ -3,17 +3,15 @@
   pointer-events: initial;
 }
 
-.root.fullHeight {
-  @apply h-auto;
-}
 
 .root.open.fulllHeight {
-  @apply h-full;
+  flex: 1;
+  min-height: 0;
 }
 
 .root.focused {
   @apply border-video-stream-500;
-  box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+  box-shadow: 0 0 30px rgba(0, 95, 255, 0.5);
 }
 
 .animated {
@@ -28,6 +26,13 @@
   opacity: 1;
   height: auto;
   transition: all 0.3s ease-in;
+}
+
+/* FIXME: use tailwind variable for screen size (or get rid of tailwind) */
+@media (max-width: 768px) {
+  .animated.visible.participantsPanel {
+    height: 50%;
+  }
 }
 
 .header {
@@ -115,4 +120,8 @@
   opacity: 0;
   display: none;
   transition: opacity 200ms;
+}
+
+.participantsPanel {
+  padding-inline: 0;
 }

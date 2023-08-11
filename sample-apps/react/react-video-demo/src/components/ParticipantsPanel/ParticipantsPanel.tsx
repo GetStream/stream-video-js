@@ -199,6 +199,7 @@ export const ParticipantsPanel: FC<Props> = ({
       canCollapse={true}
       fulllHeight={fulllHeight}
       close={close}
+      isParticipantsPanel
     >
       <div className={styles.search}>
         <input

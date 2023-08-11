@@ -11,6 +11,8 @@ import { usePanelContext } from '../../../contexts/PanelContext';
 import { useBreakpoint } from '../../../hooks/useBreakpoints';
 import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';
 
+import type { ConnectionError } from 'src/hooks/useChatClient';
+
 import styles from './MeetingLayout.module.css';
 
 export type Props = {
@@ -20,6 +22,7 @@ export type Props = {
   footer: ReactNode;
   sidebar?: ReactNode;
   chatClient?: StreamChat | null;
+  chatConnectionError?: ConnectionError;
   callId: string;
 };
 
@@ -30,6 +33,7 @@ export const MeetingLayout: FC<Props> = ({
   sidebar,
   children,
   chatClient,
+  chatConnectionError,
   callId,
 }) => {
   const { isVisible, component, close } = useModalContext();
@@ -74,6 +78,7 @@ export const MeetingLayout: FC<Props> = ({
             channelId={callId}
             channelType="videocall"
             client={chatClient}
+            chatConnectionError={chatConnectionError}
           />
         ) : null}
 
