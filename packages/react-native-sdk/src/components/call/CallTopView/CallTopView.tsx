@@ -98,9 +98,10 @@ export const CallTopView = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
     zIndex: Z_INDEX.IN_FRONT,
     position: 'absolute',
+    left: 0,
+    right: 0,
   },
   topView: {
     position: 'absolute',
