@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import React, { ComponentProps, ForwardedRef, forwardRef } from 'react';
+import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import { CallRecording } from '@stream-io/video-client';
 import { CopyToClipboardButtonWithPopup } from '../Button';
 

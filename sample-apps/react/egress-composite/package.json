@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@stream-io/video-react-sdk": "workspace:^",
-    "@stream-io/video-styling": "workspace:^",
     "clsx": "^1.2.1",
     "js-base64": "^3.7.5",
     "react": "^18.2.0",

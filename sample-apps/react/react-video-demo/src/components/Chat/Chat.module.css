@@ -16,3 +16,14 @@
 .description {
   @apply text-video-grey-400 mt-2 text-sm;
 }
+
+.chat-stand-in {
+  @apply flex justify-center items-center flex-col gap-y-4 h-full p-4 text-video-white;
+  position: relative;
+  background-color: rgb(0 0 0 / 1);
+  text-align: center;
+}
+
+.chat-stand-in p {
+  font-size: 0.75rem;
+}

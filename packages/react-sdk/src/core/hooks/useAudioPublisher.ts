@@ -8,12 +8,7 @@ import {
   watchForAddedDefaultAudioDevice,
   watchForDisconnectedAudioDevice,
 } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallCallingState,
-  useCallState,
-  useLocalParticipant,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useHasBrowserPermissions } from './useDevices';
 
 /**
@@ -33,6 +28,8 @@ export const useAudioPublisher = ({
   audioDeviceId,
 }: AudioPublisherInit) => {
   const call = useCall();
+  const { useCallState, useCallCallingState, useLocalParticipant } =
+    useCallStateHooks();
   const callState = useCallState();
   const callingState = useCallCallingState();
   const participant = useLocalParticipant();

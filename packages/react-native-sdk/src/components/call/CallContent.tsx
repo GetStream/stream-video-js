@@ -1,10 +1,7 @@
 import React from 'react';
 import { CallParticipantsGrid } from './internal/CallParticipantsGrid';
 import { CallParticipantsSpotlight } from './internal/CallParticipantsSpotlight';
-import {
-  useCall,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 
 export type CallContentProps = {
@@ -21,6 +18,7 @@ export type CallContentProps = {
  * @param mode The mode of the call view. Defaults to 'grid'.
  */
 export const CallContent = ({ mode }: CallContentProps) => {
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const callType = useCall()?.type;
 

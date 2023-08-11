@@ -5,9 +5,9 @@ import {
   StreamVideoParticipant,
   Restricted,
   useCall,
+  useCallStateHooks,
   useConnectedUser,
   useI18n,
-  useParticipants,
   Avatar,
   theme,
 } from '@stream-io/video-react-native-sdk';
@@ -54,6 +54,7 @@ export const ParticipantsInfoList = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<

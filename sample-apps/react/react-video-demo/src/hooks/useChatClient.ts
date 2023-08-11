@@ -8,6 +8,13 @@ import {
   StreamChat,
 } from 'stream-chat';
 
+export type ConnectionError = {
+  code: number;
+  StatusCode: number;
+  message: string;
+  isWSFailure: boolean;
+};
+
 export const useCreateStreamChatClient = <
   SCG extends ExtendableGenerics = DefaultGenerics,
 >({
@@ -20,6 +27,9 @@ export const useCreateStreamChatClient = <
   tokenOrProvider: TokenOrProvider;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat<SCG> | null>(null);
+  const [connectionError, setConnectionError] = useState<
+    ConnectionError | undefined
+  >(undefined);
 
   useEffect(() => {
     const client = new StreamChat<SCG>(apiKey);
@@ -27,9 +37,14 @@ export const useCreateStreamChatClient = <
     let didUserConnectInterrupt = false;
     const connectionPromise = client
       .connectUser(userData, tokenOrProvider)
+      .catch((e) => {
+        didUserConnectInterrupt = true;
+        setConnectionError(JSON.parse(e.message));
+      })
       .then(() => {
         if (!didUserConnectInterrupt) setChatClient(client);
-      });
+      })
+      .catch(setConnectionError);
 
     return () => {
       didUserConnectInterrupt = true;
@@ -43,5 +58,5 @@ export const useCreateStreamChatClient = <
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey, userData.id, tokenOrProvider]);
 
-  return chatClient;
+  return { chatClient, connectionError };
 };

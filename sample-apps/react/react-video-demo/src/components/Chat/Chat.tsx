@@ -10,8 +10,10 @@ import {
   useChannelStateContext,
 } from 'stream-chat-react';
 
-import ChatInput from '../ChatInput';
-import { ChatRound } from '../Icons';
+import { ChatRound, PaperclipIcon } from '../Icons';
+import { SendButton } from '../ChatInput';
+
+import type { ConnectionError } from '../../hooks/useChatClient';
 
 import 'stream-chat-react/dist/css/v2/index.css';
 import styles from './Chat.module.css';
@@ -20,6 +22,7 @@ export type Props = {
   channelId: string;
   client?: StreamChatInterface | null;
   channelType: string;
+  chatConnectionError?: ConnectionError;
 };
 
 export const NoMessages = () => {
@@ -49,18 +52,36 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   }, [channelId, client, setActiveChannel]);
 
   return (
-    <Channel Input={() => <ChatInput />} EmptyStateIndicator={NoMessages}>
+    <Channel
+      EmptyStateIndicator={NoMessages}
+      SendButton={SendButton}
+      FileUploadIcon={PaperclipIcon}
+    >
       <Window>
         <MessageList />
-        <MessageInput />
+        <MessageInput
+          additionalTextareaProps={{ placeholder: 'Send a message' }}
+        />
       </Window>
     </Channel>
   );
 };
 
-export const Chat: FC<Props> = (props) => {
+export const Chat: FC<Props> = ({ chatConnectionError, ...props }) => {
   const { client } = props;
-  if (!client) return <div>Loading Chat...</div>;
+
+  if (chatConnectionError) {
+    return (
+      <div className={styles['chat-stand-in']}>
+        <h4>Failed to load chat</h4>
+        <p>{chatConnectionError.message}</p>
+        {/*<p>{JSON.parse(chatConnectionError.message).message}</p>*/}
+      </div>
+    );
+  }
+
+  if (!client)
+    return <div className={styles['chat-stand-in']}>Loading Chat...</div>;
 
   return (
     <StreamChat theme="str-chat__theme-dark" client={client}>

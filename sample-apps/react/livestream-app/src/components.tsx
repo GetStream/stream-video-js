@@ -1,6 +1,6 @@
 import './components.scss';
 import { useEffect, useState } from 'react';
-import { useParticipantCount } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const DurationBadge = () => {
   const [duration, setDuration] = useState(0);
@@ -27,6 +27,7 @@ export const LiveBadge = () => {
 };
 
 export const TotalViewersBadge = () => {
+  const { useParticipantCount } = useCallStateHooks();
   const viewers = useParticipantCount();
   return (
     <div className="total-viewers-badge">

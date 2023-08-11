@@ -25,14 +25,15 @@
 
 .participants {
   @apply overflow-hidden mb-4 mt-2;
-  overflow-y: scroll;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   height: calc(100% - 60px);
 }
 
 .participant {
-  @apply flex items-center justify-between p-2 text-sm;
+  @apply flex items-center justify-between px-3 py-1.5;
+  font-size: 0.75rem;
 }
 
 .participant:hover {

@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { useLocalParticipant } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 
 import { useMediaDevices } from '../core';
@@ -7,6 +7,7 @@ import { useRequestPermission } from './useRequestPermission';
 
 export const useToggleVideoMuteState = () => {
   const { publishVideoStream, stopPublishingVideo } = useMediaDevices();
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
 
   const { isAwaitingPermission, requestPermission } = useRequestPermission(

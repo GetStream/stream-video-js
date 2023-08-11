@@ -1,6 +1,6 @@
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import {
-  useCallCallingState,
+  useCallStateHooks,
   useHasPermissions,
 } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
@@ -32,6 +32,7 @@ export const usePermissionNotification = (
   const { permission, messageApproved, messageRevoked } = props;
   const hasPermission = useHasPermissions(permission);
   const previousHasPermission = usePrevious(hasPermission);
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const showGrantedNotification = useCallback(() => {
