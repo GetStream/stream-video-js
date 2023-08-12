@@ -17,7 +17,7 @@ type AcceptCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onAcceptHandler?: () => void;
+  onAcceptCallHandler?: () => void;
 };
 
 /**
@@ -27,7 +27,7 @@ type AcceptCallButtonProps = {
  */
 export const AcceptCallButton = ({
   onPressHandler,
-  onAcceptHandler,
+  onAcceptCallHandler,
 }: AcceptCallButtonProps) => {
   const call = useCall();
   const acceptCallHandler = async () => {
@@ -37,8 +37,8 @@ export const AcceptCallButton = ({
     }
     try {
       await call?.join();
-      if (onAcceptHandler) {
-        onAcceptHandler();
+      if (onAcceptCallHandler) {
+        onAcceptCallHandler();
       }
     } catch (error) {
       console.log('Error joining Call', error);

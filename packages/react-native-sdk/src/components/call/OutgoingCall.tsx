@@ -34,7 +34,7 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
   return (
     <>
       <View style={[StyleSheet.absoluteFill, styles.container]}>
-        <View style={styles.content}>
+        <View>
           <UserInfo />
           <Text style={styles.callingText}>{t('Calling...')}</Text>
         </View>
@@ -43,10 +43,7 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
             <ToggleAudioPreviewButton />
             <ToggleVideoPreviewButton />
           </View>
-          <HangUpCallButton
-            onPressHandler={hangupCallButton?.onPressHandler}
-            style={[styles.cancelCallButton, theme.button.lg]}
-          />
+          <HangUpCallButton onPressHandler={hangupCallButton?.onPressHandler} />
         </View>
       </View>
       <Background />
@@ -84,7 +81,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.light.static_grey,
     flex: 1,
   },
-  content: {},
   callingText: {
     marginTop: theme.margin.md,
     textAlign: 'center',
@@ -96,8 +92,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: theme.margin.md,
-  },
-  cancelCallButton: {
-    alignSelf: 'center',
   },
 });

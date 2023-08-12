@@ -4,13 +4,13 @@ title: CallControls
 ---
 
 CallControls allows users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang-up calls, etc.).
-We provide a built-in component that displays all relevant call controls during a call.
+We provide a built-in `CallControls` component that displays all relevant call controls during a call.
 
 ![Preview of the CallControls component.](../../assets/04-ui-components/call-controls.png)
 
 ## General Usage
 
-The `CallControls` component displays the available controls based on the [available permissions](../../03-core/09-permissions-and-moderation.mdx).
+The `CallControls` component displays the available controls for the call.
 
 ```tsx
 import {
@@ -25,7 +25,6 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
-      <CallContent />
       // highlight-next-line
       <CallControls />
     </StreamCall>
@@ -35,44 +34,103 @@ const VideoCallUI = () => {
 
 ## Props
 
-### `chatButton`
+### `onHangupCallHandler`
 
 | Type                        |
 | --------------------------- |
-| [ChatButton](#chatbutton-1) |
+| `() => void` \| `undefined` |
 
-Prop for the chat button that contains all the necessary elements to make it functional.
+Handler to be called when the call is left using the Hang up call button.
 
-### `hangUpCallButton`
+## Built-in call controls
 
-| Type                                    |
-| --------------------------------------- |
-| [HangUpCallButton](#hangupcallbutton-1) |
+Each call control is available as a separate UI component.
 
-Prop for the hang-up call button that contains all the necessary props to make it functional.
+### `AcceptCallButton`
 
-## Button Prop
+This component is used in the [Incoming Call](../incoming-call) component to accept an incoming call.
 
-Each call controls button has separate props to customize it, handle the `onPress` event, etc.
+| Type                  | Type                        | Description                                                                                          |
+| --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `onPressHandler`      | `() => void` \| `undefined` | Handler to be called when the accept call button is pressed. Used to override the default behaviour. |
+| `onAcceptCallHandler` | `() => void` \| `undefined` | Handler to be called after the incoming call is accepted.                                            |
+
+### `HangupCallButton`
+
+This component is used to hangup/leave an active call/outgoing call.
+
+| Type                  | Type                        | Description                                                                                           |
+| --------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `onPressHandler`      | `() => void` \| `undefined` | Handler to be called when the hang up call button is pressed. Used to override the default behaviour. |
+| `onHangupCallHandler` | `() => void` \| `undefined` | Handler to be called after the call is hanged up.                                                     |
+
+### `RejectCallButton`
+
+This component is used in the [Incoming Call](../incoming-call) component to reject an incoming call.
+
+| Type                  | Type                        | Description                                                                                          |
+| --------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `onPressHandler`      | `() => void` \| `undefined` | Handler to be called when the reject call button is pressed. Used to override the default behaviour. |
+| `onRejectCallHandler` | `() => void` \| `undefined` | Handler to be called after the incoming call is rejected.                                            |
+
+### `ToggleAudioPreviewButton`
+
+This component is used to toggle audio mute/unmute status before joining the call.
+
+| Type             | Type                        | Description                                                                                            |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to be called when the audio preview button is pressed. Used to override the default behaviour. |
+
+### `ToggleVideoPreviewButton`
+
+This component is used to toggle video mute/unmute status before joining the call.
+
+| Type             | Type                        | Description                                                                                            |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to be called when the video preview button is pressed. Used to override the default behaviour. |
+
+### `ToggleAudioPublishingButton`
+
+This component is used to toggle audio mute/unmute status while in the call.
+
+| Type             | Type                        | Description                                                                |
+| ---------------- | --------------------------- | -------------------------------------------------------------------------- |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour of the audio publishing button.. |
+
+### `ToggleVideoPublishingButton`
+
+This component is used to toggle video mute/unmute status while in the call.
+
+| Type             | Type                        | Description                                                               |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------- |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour of the video publishing button. |
+
+### `ToggleCameraFaceButton`
+
+This component is used to toggle camera face(front/back) when in the call.
+
+| Type             | Type                        | Description                                                                 |
+| ---------------- | --------------------------- | --------------------------------------------------------------------------- |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour of the toggle camera face button. |
+
+### `ReactionButton`
+
+This component is used to display the list of Reactions supported in the call. It can also be used to send reactions.
+
+The following reactions are supported by default:
+
+- like 👍
+- raise hand ✋
+- fireworks 🎉
+
+| Type             | Type                        | Description                                                                     |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------------- |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour when the reactions button is pressed. |
 
 ### `ChatButton`
 
-The chat button, which on press opens up the Chat UI if integrated in the application.
+This component is used to display/open the chat window while in the call.
 
-#### Props
-
-| Name                        | Description                                           | Type                        |
-| --------------------------- | ----------------------------------------------------- | --------------------------- |
-| `onPressHandler`            | Callback to be called when the chat button is pressed | `() => void` \| `undefined` |
-| `unreadBadgeCountIndicator` | Shows the number of unread messages over the button   | `number` \| `undefined`     |
-
-### `HangUpCallButton`
-
-The hang-up call button, which hangs up the call when pressed.
-
-#### Props
-
-| Name             | Description                                              | Type                                                       |
-| ---------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
-| `onPressHandler` | Callback to be called when the hang-up button is pressed | `() => void` \| `undefined`                                |
-| `style`          | Styles to be applied on the container of the button      | [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+| Type             | Type                        | Description                                                                |
+| ---------------- | --------------------------- | -------------------------------------------------------------------------- |
+| `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour when the chat button is pressed. |
