@@ -44,11 +44,10 @@ type LobbyProps = {
 };
 
 export const Lobby = ({ joinCallButton }: LobbyProps) => {
-  const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
   const { direction, status: cameraStatus } = useCameraState();
-  const isCameraEnabled = cameraStatus === 'enabled';
-  const isVideoAvailable = !!localVideoStream && isCameraEnabled;
+  const localVideoStream = useLocalVideoStream();
+  const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
   const call = useCall();
   const { useCallMetadata } = useCallStateHooks();
   const callMetadata = useCallMetadata();

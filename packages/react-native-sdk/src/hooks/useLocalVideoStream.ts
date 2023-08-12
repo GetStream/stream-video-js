@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { disposeOfMediaStream, getVideoStream } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
 import { useStreamVideoStoreValue } from '../contexts';
+import { useCameraState } from '@stream-io/video-react-bindings';
 
 /**
  * A hook which provides the device's local video stream.
@@ -12,6 +13,7 @@ export const useLocalVideoStream = () => {
   const [videoStream, setVideoStream] = useState<MediaStream | undefined>(
     undefined,
   );
+  const { status: cameraStatus } = useCameraState();
   const currentVideoDeviceId = useStreamVideoStoreValue(
     (store) => store.currentVideoDevice,
   )?.deviceId;
@@ -36,14 +38,23 @@ export const useLocalVideoStream = () => {
       mediaStream = _mediaStream;
       setVideoStream(_mediaStream);
     };
-    loadVideoStream();
+
+    if (!cameraStatus || cameraStatus === 'disabled') {
+      if (mediaStream) {
+        disposeOfMediaStream(mediaStream);
+        setVideoStream(undefined);
+      }
+    } else {
+      loadVideoStream();
+    }
+
     return () => {
       interrupted = true;
       if (mediaStream) {
         disposeOfMediaStream(mediaStream);
       }
     };
-  }, [currentVideoDeviceId]);
+  }, [currentVideoDeviceId, cameraStatus]);
 
   return videoStream;
 };
