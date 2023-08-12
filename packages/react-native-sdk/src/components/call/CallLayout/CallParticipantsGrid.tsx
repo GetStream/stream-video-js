@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { LocalParticipantView } from '../../participants/LocalParticipantView';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { CallParticipantsList } from '../../call/CallParticipantsList';
+import { CallParticipantsList } from '../CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 
 export const CallParticipantsGrid = () => {
