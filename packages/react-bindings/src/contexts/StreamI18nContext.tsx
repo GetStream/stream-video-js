@@ -56,11 +56,13 @@ export const useCreateI18n = ({
   );
 
   useEffect(() => {
-    if (i18n.isInitialized && language && i18n?.currentLanguage !== language) {
-      i18n.changeLanguage(language);
-    } else if (!i18n.isInitialized) {
-      if (!language) i18n.changeLanguage();
+    const { isInitialized } = i18n;
+    if (!isInitialized) {
       i18n.init().then((_i18n) => setTranslationFn(() => _i18n.i18nInstance.t));
+    } else {
+      if (language && i18n?.currentLanguage !== language) {
+        i18n.changeLanguage(language);
+      }
     }
   }, [i18n, i18nInstance, language, translationsOverrides]);
 
