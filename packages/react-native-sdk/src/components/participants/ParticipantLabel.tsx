@@ -39,7 +39,7 @@ export const ParticipantLabel = ({
             <MicOff color={theme.light.error} />
           </View>
         )}
-        {call?.type !== 'audio_room' && isVideoMuted && (
+        {isVideoMuted && (
           <View style={[styles.svgContainerStyle, theme.icon.xs]}>
             <VideoSlash color={theme.light.error} />
           </View>
