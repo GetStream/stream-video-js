@@ -59,10 +59,10 @@ export const useCreateI18n = ({
     const { isInitialized } = i18n;
     if (!isInitialized) {
       i18n.init().then((_i18n) => setTranslationFn(() => _i18n.i18nInstance.t));
-    } else {
-      if (language && i18n?.currentLanguage !== language) {
-        i18n.changeLanguage(language);
-      }
+      return;
+    }
+    if (language && i18n?.currentLanguage !== language) {
+      i18n.changeLanguage(language);
     }
   }, [i18n, i18nInstance, language, translationsOverrides]);
 
