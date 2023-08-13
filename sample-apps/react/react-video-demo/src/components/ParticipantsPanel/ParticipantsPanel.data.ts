@@ -1,6 +1,5 @@
-import { Props } from './ParticipantsPanel';
+import { ParticipantsPanelProps } from './ParticipantsPanel';
 
-export const KitchinSink: Props = {
+export const KitchinSink: ParticipantsPanelProps = {
   callId: '12312q3',
-  visible: true,
 };

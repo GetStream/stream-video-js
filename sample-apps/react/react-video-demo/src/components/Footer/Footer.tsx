@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import classnames from 'classnames';
 import { isMobile, isTablet } from 'mobile-device-detect';
 
@@ -7,28 +7,27 @@ import Button from '../Button';
 import { PanelButton } from '../ControlButton';
 import {
   Chat,
-  People,
-  Options,
   Leave,
+  Like,
+  LoadingSpinner,
+  Options,
+  People,
   Record,
   ShareScreen,
   Stop,
-  LoadingSpinner,
-  Like,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
 
 import { useModalContext } from '../../contexts/ModalContext';
-import { usePanelContext } from '../../contexts/PanelContext';
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
 
-export type Props = {
+export type FooterProps = {
   call: any;
   isCallActive: boolean;
-  callId: string;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
@@ -40,9 +39,8 @@ export type Props = {
   leave(): void;
 };
 
-export const Footer: FC<Props> = ({
+export const Footer = ({
   call,
-  callId,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
@@ -52,24 +50,21 @@ export const Footer: FC<Props> = ({
   unreadMessages,
   participantCount,
   leave,
-}) => {
+}: FooterProps) => {
   const { showModal } = useModalContext();
   const {
-    isChatVisible,
-    isParticipantsVisible,
+    chatPanelVisibility,
+    participantsPanelVisibility,
     isSettingsVisible,
     isReactionVisible,
-    toggleChat,
-    toggleParticipants,
-    toggleSettings,
-    toggleReaction,
+    toggleHide,
   } = usePanelContext();
 
   useEffect(() => {
-    if (showModal && isSettingsVisible) {
-      toggleSettings();
+    if (showModal) {
+      toggleHide('device-settings');
     }
-  }, [showModal]);
+  }, [showModal, toggleHide]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
@@ -83,12 +78,12 @@ export const Footer: FC<Props> = ({
           className={styles.settings}
           portalId="settings"
           showPanel={isSettingsVisible}
-          onClick={() => toggleSettings()}
+          onClick={() => toggleHide('device-settings')}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
               <SettingsPanel
-                callId={callId}
+                callId={call.id}
                 toggleRecording={
                   !isRecording ? handleStartRecording : handleStopRecording
                 }
@@ -137,7 +132,7 @@ export const Footer: FC<Props> = ({
           className={styles.reactions}
           portalId="reactions"
           showPanel={isReactionVisible}
-          onClick={() => toggleReaction()}
+          onClick={() => toggleHide('reaction')}
           label="Reaction"
           panel={
             <Portal className={styles.reactionsPortal} selector="reactions">
@@ -163,9 +158,13 @@ export const Footer: FC<Props> = ({
         <Button
           className={styles.chat}
           label="Chat"
-          color={isChatVisible ? 'active' : 'secondary'}
+          color={
+            chatPanelVisibility !== PANEL_VISIBILITY.hidden
+              ? 'active'
+              : 'secondary'
+          }
           shape="square"
-          onClick={() => toggleChat()}
+          onClick={() => toggleHide('chat')}
         >
           <Chat />
           {unreadMessages && unreadMessages > 0 ? (
@@ -175,12 +174,16 @@ export const Footer: FC<Props> = ({
         <Button
           label="Participants"
           className={styles.participants}
-          color={isParticipantsVisible ? 'active' : 'secondary'}
+          color={
+            participantsPanelVisibility !== PANEL_VISIBILITY.hidden
+              ? 'active'
+              : 'secondary'
+          }
           shape="square"
-          onClick={toggleParticipants}
+          onClick={() => toggleHide('participant-list')}
         >
           <People />
-          {!isParticipantsVisible &&
+          {!participantsPanelVisibility &&
           participantCount &&
           participantCount > 1 ? (
             <span className={styles.participantCounter}>

@@ -16,7 +16,6 @@ import styles from './LobbyPanel.module.css';
 
 export type Props = {
   joinCall(): void;
-  logo: string;
   user: User;
   className?: string;
   call?: any;
@@ -57,7 +56,6 @@ export const DisabledVideoPreview: FC<{ name?: string }> = ({ name }) => {
 
 export const LobbyPanel: FC<Props> = ({
   call,
-  logo,
   user,
   joinCall,
   className,
@@ -127,7 +125,6 @@ export const LobbyPanel: FC<Props> = ({
 
       <JoinContainer
         className={styles.lobbyContainer}
-        logo={logo}
         joinCall={joinCall}
         isJoiningCall={isJoiningCall}
       />

@@ -8,7 +8,6 @@ export const KichinSink: Props = {
     teams: ['team'],
     image: '',
   },
-  logo: '/images/icons/stream-logo.svg',
   joinCall: () => {},
   callId: 'ADFSDAf12124',
   fastestEdge: {

@@ -4,7 +4,7 @@
 }
 
 
-.root.open.fulllHeight {
+.root.expanded {
   flex: 1;
   min-height: 0;
 }
@@ -50,7 +50,7 @@
 }
 
 .header.canCollapse {
-  @apply flex justify-between items-center;
+  @apply items-center;
   cursor: pointer;
 }
 

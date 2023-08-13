@@ -1,4 +1,3 @@
-import { FC } from 'react';
 import { StreamChat } from 'stream-chat';
 import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
@@ -9,56 +8,50 @@ import ChatPanel from '../ChatPanel';
 
 import PoweredBy from '../PoweredBy';
 
-import { usePanelContext } from '../../contexts/PanelContext';
-import { useTourContext, StepNames } from '../../contexts/TourContext';
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
+import { StepNames, useTourContext } from '../../contexts/TourContext';
 
 import type { ConnectionError } from 'src/hooks/useChatClient';
 
 import styles from './Sidebar.module.css';
 
-export type Props = {
+export type SidebarProps = {
   callId: string;
   chatClient?: StreamChat | null;
   participants: StreamVideoParticipant[];
   chatConnectionError?: ConnectionError;
 };
 
-export const Sidebar: FC<Props> = ({
+export const Sidebar = ({
   chatClient,
   callId,
   chatConnectionError,
   participants,
-}) => {
-  const { isChatVisible, isParticipantsVisible } = usePanelContext();
+}: SidebarProps) => {
+  const { chatPanelVisibility, participantsPanelVisibility } =
+    usePanelContext();
   const { current: currenTourStep } = useTourContext();
 
   return (
     <div
       className={classnames(styles.sidebar, {
-        [styles.chatVisible]: isChatVisible,
-        [styles.participantsVisible]: isParticipantsVisible,
+        [styles.chatVisible]: chatPanelVisibility !== PANEL_VISIBILITY.hidden,
+        [styles.participantsVisible]:
+          participantsPanelVisibility !== PANEL_VISIBILITY.hidden,
       })}
     >
       <InvitePanel
         callId={callId}
         isFocused={currenTourStep === StepNames.Invite}
-        fulllHeight
       />
 
-      <ParticipantsPanel
-        participants={participants}
-        callId={callId}
-        fulllHeight
-        visible={isParticipantsVisible}
-      />
+      <ParticipantsPanel participants={participants} callId={callId} />
 
       <ChatPanel
         channelId={callId}
         channelType="videocall"
         chatConnectionError={chatConnectionError}
         client={chatClient}
-        fulllHeight
-        visible={isChatVisible}
       />
 
       <PoweredBy className={styles.branding} />

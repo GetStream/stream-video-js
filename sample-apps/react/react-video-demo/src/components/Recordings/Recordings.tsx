@@ -72,7 +72,7 @@ export const Recordings = () => {
   }, []);
 
   return (
-    <Panel className={styles.root} title="Recordings" close={closeModal}>
+    <Panel className={styles.root} title="Recordings" toggleHide={closeModal}>
       {loadingCallRecordings && !callRecordings.length && (
         <div className={styles.loading}>
           <LoadingSpinner className={styles.loadingSpinner} />

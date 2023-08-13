@@ -37,7 +37,7 @@ export const SettingsPanel: FC<Props> = ({
   toggleShareScreen,
 }) => {
   const { setModal } = useModalContext();
-  const { toggleSettings } = usePanelContext();
+  const { toggleHide } = usePanelContext();
 
   const handleFeedback = useCallback(() => {
     setModal(<Feedback callId={callId} inMeeting />);
@@ -56,23 +56,23 @@ export const SettingsPanel: FC<Props> = ({
   }, [callId, setModal]);
 
   const handleFullScreen = useCallback(() => {
-    toggleSettings();
-    if (screenfull.isEnabled && screenfull.isFullscreen === false) {
+    toggleHide('device-settings');
+    if (screenfull.isEnabled && !screenfull.isFullscreen) {
       screenfull.request();
     } else {
       screenfull.exit();
     }
-  }, []);
+  }, [toggleHide]);
 
   const handleRecording = useCallback(() => {
-    toggleSettings();
+    toggleHide('device-settings');
     toggleRecording?.();
-  }, [toggleRecording]);
+  }, [toggleHide, toggleRecording]);
 
   const handleShareScreen = useCallback(() => {
-    toggleSettings();
+    toggleHide('device-settings');
     toggleShareScreen?.();
-  }, [toggleShareScreen]);
+  }, [toggleHide, toggleShareScreen]);
 
   const rootClassName = classnames(styles.root, className);
 

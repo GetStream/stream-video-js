@@ -4,6 +4,7 @@ import { StreamChat } from 'stream-chat';
 
 import { AnimatedPanel } from '../Panel';
 import Chat from '../Chat';
+import { usePanelContext } from '../../contexts/PanelContext';
 
 import type { ConnectionError } from '../../hooks/useChatClient';
 
@@ -16,9 +17,6 @@ export type Props = {
   chatConnectionError?: ConnectionError;
   client?: StreamChat | null;
   channelType: string;
-  close?: () => void;
-  fulllHeight?: boolean;
-  visible: boolean;
 };
 
 export const ChatPanel: FC<Props> = ({
@@ -28,10 +26,8 @@ export const ChatPanel: FC<Props> = ({
   client,
   channelType,
   chatConnectionError,
-  close,
-  fulllHeight,
-  visible,
 }) => {
+  const { chatPanelVisibility, toggleCollapse } = usePanelContext();
   const rootClassname = classnames(styles.root, className);
 
   return (
@@ -39,10 +35,8 @@ export const ChatPanel: FC<Props> = ({
       className={rootClassname}
       title="Chat"
       isFocused={isFocused}
-      close={close}
-      canCollapse
-      fulllHeight={fulllHeight}
-      visible={visible}
+      toggleCollapse={() => toggleCollapse('chat')}
+      visibility={chatPanelVisibility}
     >
       <Chat
         channelId={channelId}

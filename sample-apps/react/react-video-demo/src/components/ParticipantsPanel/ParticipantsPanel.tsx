@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import classnames from 'classnames';
 
 import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
@@ -10,26 +10,35 @@ import { ParticipantListItem } from './ParticipantListItem';
 import { useSearch } from '../../hooks/useSearch';
 
 import styles from './ParticipantsPanel.module.css';
+import { usePanelContext } from '../../contexts/PanelContext';
 
-export type Props = {
+type ParticipantsPanelTitleProps = {
+  participants: StreamVideoParticipant[];
+};
+
+const ParticipantsPanelTitle = ({
+  participants,
+}: ParticipantsPanelTitleProps) => (
+  <>
+    Participants{' '}
+    <span className={styles.amount}>{`(${participants?.length})`}</span>
+  </>
+);
+
+export type ParticipantsPanelProps = {
   className?: string;
   participants?: StreamVideoParticipant[];
   isFocused?: boolean;
   callId: string;
-  close?: () => void;
-  fulllHeight?: boolean;
-  visible: boolean;
 };
 
-export const ParticipantsPanel: FC<Props> = ({
+export const ParticipantsPanel = ({
   isFocused,
-  close,
   className,
   participants = [],
   callId,
-  fulllHeight,
-  visible,
-}) => {
+}: ParticipantsPanelProps) => {
+  const { participantsPanelVisibility, toggleCollapse } = usePanelContext();
   const [searchQuery, setSearchQuery]: any = useState(undefined);
 
   const rootClassname = classnames(styles.root, className);
@@ -55,17 +64,10 @@ export const ParticipantsPanel: FC<Props> = ({
   return (
     <AnimatedPanel
       className={rootClassname}
-      visible={visible}
-      title={
-        <>
-          Participants{' '}
-          <span className={styles.amount}>{`(${participants?.length})`}</span>
-        </>
-      }
+      title={<ParticipantsPanelTitle participants={participants} />}
       isFocused={isFocused}
-      fulllHeight={fulllHeight}
-      close={close}
-      canCollapse
+      toggleCollapse={() => toggleCollapse('participant-list')}
+      visibility={participantsPanelVisibility}
       isParticipantsPanel
     >
       <div className={styles.search}>

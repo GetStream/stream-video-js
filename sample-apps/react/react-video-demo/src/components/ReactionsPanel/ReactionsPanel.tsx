@@ -38,14 +38,14 @@ export type Props = {
 export const ReactionsPanel: FC<Props> = ({ className }) => {
   const activeCall = useCall();
 
-  const { toggleReaction } = usePanelContext();
+  const { toggleHide } = usePanelContext();
 
   const sendReaction = useCallback(
     (reaction: StreamReaction) => {
-      toggleReaction();
+      toggleHide('reaction');
       activeCall?.sendReaction(reaction);
     },
-    [activeCall],
+    [activeCall, toggleHide],
   );
 
   const rootClassname = classnames(styles.root, className);

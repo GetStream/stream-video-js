@@ -1,15 +1,20 @@
-import { FC, useEffect } from 'react';
-import { StreamChat as StreamChatInterface } from 'stream-chat';
+import { useCallback, useEffect } from 'react';
 import {
-  Chat as StreamChat,
+  StreamChat as StreamChatInterface,
+  Channel as StreamChannel,
+} from 'stream-chat';
+import {
   Channel,
-  Window,
-  MessageList,
-  MessageInput,
-  useChatContext,
-  useChannelStateContext,
+  Chat as StreamChat,
   MESSAGE_ACTIONS,
+  MessageInput,
+  MessageList,
+  useChannelStateContext,
+  useChatContext,
+  Window,
 } from 'stream-chat-react';
+
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import { ChatRound, PaperclipIcon } from '../Icons';
 import { SendButton } from '../ChatInput';
@@ -27,7 +32,7 @@ const ALLOWED_MESSAGE_ACTIONS = [
   MESSAGE_ACTIONS.react,
 ];
 
-export type Props = {
+export type ActiveChatProps = {
   channelId: string;
   client?: StreamChatInterface | null;
   channelType: string;
@@ -51,8 +56,17 @@ export const NoMessages = () => {
   return null;
 };
 
-export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
+export const ActiveChat = ({ channelId, channelType }: ActiveChatProps) => {
   const { client, setActiveChannel } = useChatContext();
+  const { chatPanelVisibility } = usePanelContext();
+
+  const doMarkReadRequest = useCallback(
+    (channel: StreamChannel) => {
+      if (chatPanelVisibility !== PANEL_VISIBILITY.expanded) return;
+      channel.markRead();
+    },
+    [chatPanelVisibility],
+  );
 
   useEffect(() => {
     const channel = client.channel(channelType, channelId);
@@ -65,6 +79,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
       EmptyStateIndicator={NoMessages}
       SendButton={SendButton}
       FileUploadIcon={PaperclipIcon}
+      doMarkReadRequest={doMarkReadRequest}
     >
       <Window>
         <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
@@ -76,7 +91,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   );
 };
 
-export const Chat: FC<Props> = ({ chatConnectionError, ...props }) => {
+export const Chat = ({ chatConnectionError, ...props }: ActiveChatProps) => {
   const { client } = props;
 
   if (chatConnectionError) {
