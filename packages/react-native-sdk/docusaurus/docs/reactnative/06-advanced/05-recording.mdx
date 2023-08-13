@@ -1,0 +1,101 @@
+---
+title: Recording
+description: Recording
+---
+
+### Call's recording features
+
+In some cases, you want to be able to record a meeting and share the recording with the participants later on. The Stream Video React Native SDK has support for this use-case.
+
+To support this feature, you will need to use the `Call`'s recording features, available after you join a call.
+
+#### Recording state
+
+To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep your own state signalling that the call recording is starting, but has not begun yet.
+
+```ts
+const isCallRecordingInProgress = useIsCallRecordingInProgress();
+```
+
+#### Start or Stop a recording
+
+To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`:
+
+```ts
+await call.startRecording() // to start recording
+await call.stopRecording() // to stop recording
+``` 
+
+Starting and stopping will update the state in the `useIsCallRecordingInProgress` hook.
+
+#### Stop a recording
+
+To stop a recording, you need to call the `stopRecording` method of the `Call`:
+
+```swift
+func stopRecording() {
+    Task {
+        try await call.stopRecording()
+    }
+}
+```
+
+This will change the current recording state of the call to `noRecording`.
+
+#### Recording events
+
+You can listen to the recording events and show visual indications to the users based on these events, by subscribing to the async stream of the `recordingEvents`:
+
+```swift
+func subscribeToRecordingEvents() {
+    Task {
+        for await event in call.subscribe() {
+            switch event {
+                case .typeCallRecordingStartedEvent(let recordingStartedEvent):
+                    log.debug("received an event \(recordingStartedEvent)")
+                    /* handle recording event */
+                case .typeCallRecordingStoppedEvent(let recordingStoppedEvent):
+                    log.debug("received an event \(recordingStoppedEvent)")
+                    /* handle recording event */
+                default:
+                    break
+            }
+        }
+    }
+}
+```
+
+#### Search recordings
+
+You can search for recordings in a video call, using the `Call`'s `listRecordings` method:
+
+```swift
+func loadRecordings() {
+    Task {
+        self.recordings = try await call.listRecordings()
+    }
+}
+```
+
+This will return a list of recordings, that contains information about the filename, URL, as well as the start and end time. You can use the URL to present the recording in a player. Here's an example in SwiftUI:
+
+```swift
+import SwiftUI
+import StreamVideo
+import AVKit
+
+struct PlayerView: View {
+    
+    let recording: CallRecordingInfo
+    
+    var body: some View {
+        Group {
+            if let url = URL(string: recording.url) {
+                VideoPlayer(player: AVPlayer(url:  url))
+            } else {
+                Text("Video can't be loaded")
+            }
+        }
+    }
+}
+```
