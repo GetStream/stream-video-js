@@ -168,6 +168,7 @@ export const MeetingView = ({
       }
       footer={
         <Footer
+          chatClient={chatClient}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
