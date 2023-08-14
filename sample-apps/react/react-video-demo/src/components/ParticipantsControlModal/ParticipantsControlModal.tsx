@@ -1,51 +1,45 @@
-import { FC } from 'react';
-
 import {
   OwnCapability,
+  Restricted,
+  SfuModels,
   StreamVideoParticipant,
-  useOwnCapabilities,
+  useCall,
 } from '@stream-io/video-react-sdk';
 
 import Panel from '../Panel';
 import { MicMuted, People, VideoOff } from '../Icons';
 
-import { Restricted } from '../Moderation/Restricted';
-
 import styles from './ParticipantsControlModal.module.css';
+import { useModalContext } from '../../contexts/ModalContext';
 
-export type Props = {
+export type ParticipantsControlModalProps = {
   participant: StreamVideoParticipant;
-  handleMuteUser: (userId: string, sessionId: string) => void;
-  handleDisableVideo: (userId: string, sessionId: string) => void;
-  handleBlockUser: (userId: string) => void;
-  isAudioOn: boolean;
-  isVideoOn: boolean;
-  particpantName: string;
 };
 
-export const ParticipantsControlModal: FC<Props> = ({
-  isAudioOn,
+export const ParticipantsControlModal = ({
   participant,
-  isVideoOn,
-  handleDisableVideo,
-  handleMuteUser,
-  handleBlockUser,
-  particpantName,
-}) => {
-  const ownCapabilities = useOwnCapabilities();
+}: ParticipantsControlModalProps) => {
+  const call = useCall();
+  const { closeModal } = useModalContext();
+
+  const isAudioOn = participant.publishedTracks.includes(
+    SfuModels.TrackType.AUDIO,
+  );
+  const isVideoOn = participant.publishedTracks.includes(
+    SfuModels.TrackType.VIDEO,
+  );
+
   return (
-    <Panel className={styles.root} title={particpantName}>
+    <Panel className={styles.root} title={participant.name}>
       <ul className={styles.controls}>
         {isAudioOn && (
-          <Restricted
-            availableGrants={ownCapabilities}
-            requiredGrants={[OwnCapability.MUTE_USERS]}
-          >
+          <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
             <li
               className={styles.option}
-              onClick={() =>
-                handleMuteUser(participant.userId, participant.sessionId)
-              }
+              onClick={() => {
+                call?.muteUser(participant.userId, 'audio');
+                closeModal();
+              }}
             >
               <MicMuted className={styles.mic} />
               <span>Mute user</span>
@@ -53,15 +47,13 @@ export const ParticipantsControlModal: FC<Props> = ({
           </Restricted>
         )}
         {isVideoOn && (
-          <Restricted
-            availableGrants={ownCapabilities}
-            requiredGrants={[OwnCapability.MUTE_USERS]}
-          >
+          <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
             <li
               className={styles.option}
-              onClick={() =>
-                handleDisableVideo(participant.userId, participant.sessionId)
-              }
+              onClick={() => {
+                call?.muteUser(participant.userId, 'video');
+                closeModal();
+              }}
             >
               <VideoOff className={styles.video} />
               <span>Disable video</span>
@@ -69,13 +61,13 @@ export const ParticipantsControlModal: FC<Props> = ({
           </Restricted>
         )}
 
-        <Restricted
-          availableGrants={ownCapabilities}
-          requiredGrants={[OwnCapability.BLOCK_USERS]}
-        >
+        <Restricted requiredGrants={[OwnCapability.BLOCK_USERS]}>
           <li
             className={styles.option}
-            onClick={() => handleBlockUser(participant.userId)}
+            onClick={() => {
+              call?.blockUser(participant.userId);
+              closeModal();
+            }}
           >
             <People className={styles.people} />
             <span>Block user</span>

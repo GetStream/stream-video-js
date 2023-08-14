@@ -1,5 +1,5 @@
-import { Props } from './InvitePanel';
+import { InvitePanelProps } from './InvitePanel';
 
-export const KichinSink: Props = {
+export const KichinSink: InvitePanelProps = {
   callId: '1231dsx211ff',
 };

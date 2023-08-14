@@ -132,9 +132,6 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   });
 
   const [initVideoEnabled, setInitialVideoEnabled] = useState<boolean>(() => {
-    if (call?.type === 'audio_room') {
-      return false;
-    }
     const hasNativePermission = isCameraPermissionGranted$.getValue();
     const hasUserPermission = !!call?.permissionsContext?.hasPermission(
       OwnCapability.SEND_VIDEO,

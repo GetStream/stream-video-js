@@ -6,10 +6,12 @@ import { StreamChat } from 'stream-chat';
 import Chat from '../../Chat';
 
 import { useModalContext } from '../../../contexts/ModalContext';
-import { usePanelContext } from '../../../contexts/PanelContext';
+import {
+  PANEL_VISIBILITY,
+  usePanelContext,
+} from '../../../contexts/PanelContext';
 
 import { useBreakpoint } from '../../../hooks/useBreakpoints';
-import { useKeyboardShortcuts } from '../../../hooks/useKeyboardShortcuts';
 
 import type { ConnectionError } from 'src/hooks/useChatClient';
 
@@ -36,8 +38,8 @@ export const MeetingLayout: FC<Props> = ({
   chatConnectionError,
   callId,
 }) => {
-  const { isVisible, component, close } = useModalContext();
-  const { isChatVisible, isParticipantsVisible, toggleChat } =
+  const { showModal, modalElement, closeModal } = useModalContext();
+  const { chatPanelVisibility, participantsPanelVisibility, toggleHide } =
     usePanelContext();
 
   // useKeyboardShortcuts();
@@ -49,31 +51,34 @@ export const MeetingLayout: FC<Props> = ({
 
   const layoutContainerClassName = classnames(styles.layoutContainer, {
     [styles.showParticipants]:
-      isParticipantsVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+      participantsPanelVisibility &&
+      (breakpoint === 'xs' || breakpoint === 'sm'),
     [styles.showChat]:
-      isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+      chatPanelVisibility && (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   const bodyClassName = classnames(styles.body, {
     [styles.showChat]:
-      isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+      chatPanelVisibility && (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   return (
     <section className={rootClassName}>
       <div className={layoutContainerClassName}>
-        {isParticipantsVisible &&
+        {participantsPanelVisibility === PANEL_VISIBILITY.expanded &&
         (breakpoint === 'xs' || breakpoint === 'sm') ? null : (
           <div className={styles.header}>{header}</div>
         )}
-        {isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
-          <div className={styles.backdrop} onClick={toggleChat} />
+        {chatPanelVisibility === PANEL_VISIBILITY.expanded &&
+        (breakpoint === 'xs' || breakpoint === 'sm') ? (
+          <div className={styles.backdrop} onClick={() => toggleHide('chat')} />
         ) : null}
         <div className={bodyClassName}>{children}</div>
 
         <div className={styles.footer}>{footer}</div>
 
-        {isChatVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
+        {chatPanelVisibility === PANEL_VISIBILITY.expanded &&
+        (breakpoint === 'xs' || breakpoint === 'sm') ? (
           <Chat
             channelId={callId}
             channelType="videocall"
@@ -84,7 +89,7 @@ export const MeetingLayout: FC<Props> = ({
 
         <CSSTransition
           nodeRef={transitionRef}
-          in={isVisible}
+          in={showModal}
           timeout={500}
           classNames={{
             enterActive: styles['animation-enter'],
@@ -94,11 +99,11 @@ export const MeetingLayout: FC<Props> = ({
           }}
         >
           <div ref={transitionRef} className={styles.modals}>
-            <div className={styles.modal}>{component}</div>
+            <div className={styles.modal}>{modalElement}</div>
 
             <div className={styles.space}></div>
-            {isVisible ? (
-              <div className={styles.backdrop} onClick={() => close()} />
+            {showModal ? (
+              <div className={styles.backdrop} onClick={closeModal} />
             ) : null}
           </div>
         </CSSTransition>
