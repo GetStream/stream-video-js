@@ -1789,6 +1789,35 @@ export class Call {
       void this.microphone.enable();
     }
   }
+  trackElementVisibility = <T extends HTMLElement>(
+    element: T,
+    sessionId: string,
+  ) => {
+    const cleanup = this.viewportTracker.observe(element, (entry) => {
+      this.state.updateParticipant(sessionId, (p) => ({
+        ...p,
+        viewportVisibilityState:
+          // observer triggers when element is "moved" to be a fullscreen element
+          // keep it VISIBLE if that happens to prevent fullscreen with placeholder
+          entry.isIntersecting || document.fullscreenElement === element
+            ? VisibilityState.VISIBLE
+            : VisibilityState.INVISIBLE,
+      }));
+    });
+
+    return () => {
+      cleanup();
+      this.state.updateParticipant(sessionId, (p) => ({
+        ...p,
+        viewportVisibilityState: VisibilityState.UNKNOWN,
+      }));
+    };
+  };
+
+  setViewport = <T extends HTMLElement>(element: T) => {
+    return this.viewportTracker.setViewport(element);
+  };
+
   registerVideoElement = (
     videoElement: HTMLVideoElement,
     kind: 'video' | 'screen',
@@ -1862,6 +1891,7 @@ export class Call {
       lastDimensions = currentDimensions;
     });
     resizeObserver.observe(videoElement);
+
     // do initial update on mount
     doUpdate(DebounceType.IMMEDIATE);
 
