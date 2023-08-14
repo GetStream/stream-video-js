@@ -1,5 +1,6 @@
 @import './styles/chat.css';
 @import './styles/animation.css';
+@import '@stream-io/video-react-sdk/dist/css/styles.css' layer(default-video-sdk);
 
 @tailwind base;
 @tailwind components;
@@ -53,4 +54,10 @@ body {
 ::-webkit-scrollbar-thumb {
   @apply bg-video-grey-400;
   border-radius: 5px;
+}
+
+.utility-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
