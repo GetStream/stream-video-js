@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
 import { appTheme } from '../theme';
-import { CallContentProps } from '@stream-io/video-react-native-sdk';
 
-type Layout = CallContentProps['mode'];
+type Layout = 'grid' | 'spotlight';
 
 const LayoutSelectionItem = ({
   layout,

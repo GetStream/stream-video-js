@@ -5,7 +5,7 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { UserInfo } from './internal/UserInfo';
+import { UserInfo } from './UserInfo';
 import { theme } from '../../theme';
 import { RejectCallButton } from './CallControls/RejectCallButton';
 import { AcceptCallButton } from './CallControls/AcceptCallButton';
