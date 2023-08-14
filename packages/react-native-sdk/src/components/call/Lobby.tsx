@@ -9,11 +9,11 @@ import {
 } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
 import { useLocalVideoStream } from '../../hooks';
-import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { Avatar } from '../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
 import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
+import { RTCView } from 'react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
@@ -72,9 +72,9 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
             <View style={styles.videoView}>
               <View style={styles.topView} />
               {isVideoAvailable ? (
-                <VideoRenderer
+                <RTCView
                   mirror={isCameraOnFrontFacingMode}
-                  mediaStream={localVideoStream}
+                  streamURL={localVideoStream?.toURL()}
                   objectFit="cover"
                   style={StyleSheet.absoluteFillObject}
                 />

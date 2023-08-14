@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { StreamReaction } from '@stream-io/video-client';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
-import { StreamVideoRN } from '../../../utils';
+import { theme } from '../../theme';
+import { StreamVideoRN } from '../../utils';
+import { Z_INDEX } from '../../constants';
+import { ParticipantViewProps } from './ParticipantView';
 
-export type ReactionProps = {
-  reaction?: StreamReaction;
-  sessionId: string;
+export type ParticipantReactionProps = Pick<
+  ParticipantViewProps,
+  'participant'
+> & {
+  /**
+   * The duration after which the reaction should disappear.
+   *
+   * @default 5500
+   */
   hideAfterTimeoutInMs?: number;
 };
 
-export const ParticipantReaction = (props: ReactionProps) => {
+export const ParticipantReaction = (props: ParticipantReactionProps) => {
   const { supportedReactions } = StreamVideoRN.getConfig();
-  const { reaction, sessionId, hideAfterTimeoutInMs = 5500 } = props;
+  const { participant, hideAfterTimeoutInMs = 5500 } = props;
+  const { reaction, sessionId } = participant;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 
@@ -47,14 +55,15 @@ export const ParticipantReaction = (props: ReactionProps) => {
     }
   }
 
-  return (
-    <View style={[styles.svgContainerStyle, theme.icon.md]}>{component}</View>
-  );
+  return <View style={[styles.container, theme.icon.md]}>{component}</View>;
 };
 
 const styles = StyleSheet.create({
   reaction: {
     ...theme.fonts.heading6,
   },
-  svgContainerStyle: {},
+  container: {
+    alignSelf: 'flex-start',
+    zIndex: Z_INDEX.IN_FRONT,
+  },
 });

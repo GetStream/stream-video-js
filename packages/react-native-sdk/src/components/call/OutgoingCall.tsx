@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfo } from './internal/UserInfo';
-import { VideoRenderer } from '../utility/internal/VideoRenderer';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
@@ -11,6 +10,7 @@ import {
   HangUpCallButtonProps,
 } from './CallControls/HangupCallButton';
 import { useI18n } from '@stream-io/video-react-bindings';
+import { RTCView } from 'react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
@@ -63,8 +63,8 @@ const Background = () => {
   }
   return (
     <View style={styles.background}>
-      <VideoRenderer
-        mediaStream={localVideoStream}
+      <RTCView
+        streamURL={localVideoStream?.toURL()}
         zOrder={Z_INDEX.IN_BACK}
         style={StyleSheet.absoluteFill}
         mirror

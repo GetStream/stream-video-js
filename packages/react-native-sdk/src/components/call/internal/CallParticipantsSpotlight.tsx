@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { Participant } from '../../participants/Participant';
+import { ParticipantView } from '../../participants/ParticipantView';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -37,10 +37,10 @@ export const CallParticipantsSpotlight = () => {
       style={styles.container}
     >
       {participantInSpotlight && (
-        <Participant
+        <ParticipantView
           participant={participantInSpotlight}
-          containerStyle={styles.participantView}
-          kind={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          style={styles.participantView}
+          videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
         />
       )}
       <View style={styles.participantVideoContainer}>
@@ -56,15 +56,19 @@ export const CallParticipantsSpotlight = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1,
+    paddingVertical: theme.padding.sm,
+    backgroundColor: theme.light.static_grey,
+  },
   participantView: {
     flex: 2,
     overflow: 'hidden',
     borderRadius: theme.rounded.sm,
     marginHorizontal: theme.padding.sm,
+    marginBottom: theme.padding.sm,
   },
   participantVideoContainer: {
     flex: 1,
-    paddingVertical: theme.padding.sm,
   },
 });
