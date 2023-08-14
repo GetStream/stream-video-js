@@ -1,0 +1,23 @@
+.str-video__notification {
+  @apply bg-video-grey-800 text-video-white rounded-input;
+  max-width: 220px;
+
+  .str-chat__new-message-notification {
+    display: flex;
+    gap: 0.5rem;
+
+    .str-chat__new-message-notification__content {
+      min-width: 0;
+      flex: 1;
+
+      .str-chat__new-message-notification__heading {
+        display: flex;
+        gap: 1rem;
+
+        .str-chat__new-message-notification__time {
+          @apply text-video-grey-200;
+        }
+      }
+    }
+  }
+}

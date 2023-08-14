@@ -20,7 +20,6 @@ import MeetingLayout from '../../Layout/MeetingLayout';
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
 import { useTourContext } from '../../../contexts/TourContext';
-import { usePanelContext } from '../../../contexts/PanelContext';
 import { useNotificationContext } from '../../../contexts/NotificationsContext';
 
 import { tour } from '../../../../data/tour';
@@ -63,7 +62,6 @@ export const MeetingView = ({
   const channelWatched = useWatchChannel({ chatClient, channelId: call.id });
 
   const { setSteps } = useTourContext();
-  const { chatPanelVisibility } = usePanelContext();
   const { addNotification } = useNotificationContext();
 
   const remoteScreenShare = useHasOngoingScreenShare();
@@ -171,6 +169,7 @@ export const MeetingView = ({
       }
       footer={
         <Footer
+          chatClient={chatClient}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
