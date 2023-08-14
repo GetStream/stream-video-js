@@ -44,7 +44,7 @@
     "react-native-reanimated": ">=2.7.0",
     "react-native-svg": ">=13.6.0",
     "react-native-voip-push-notification": ">=3.3.1",
-    "react-native-webrtc": ">=111.0.3"
+    "react-native-webrtc": "106.0.7"
   },
   "peerDependenciesMeta": {
     "@react-native-firebase/app": {
@@ -90,7 +90,7 @@
     "react-native-reanimated": "2.7.0",
     "react-native-svg": "^13.6.0",
     "react-native-voip-push-notification": "3.3.1",
-    "react-native-webrtc": "~106.0.4",
+    "react-native-webrtc": "106.0.7",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.1.0",

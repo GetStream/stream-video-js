@@ -154,7 +154,7 @@ PODS:
   - hermes-engine (0.71.11):
     - hermes-engine/Pre-built (= 0.71.11)
   - hermes-engine/Pre-built (0.71.11)
-  - JitsiWebRTC (111.0.2)
+  - JitsiWebRTC (106.0.0)
   - libevent (2.1.12)
   - MMKV (1.2.16):
     - MMKVCore (~> 1.2.16)
@@ -437,8 +437,8 @@ PODS:
     - react-native-video/Video (= 5.2.1)
   - react-native-video/Video (5.2.1):
     - React-Core
-  - react-native-webrtc (111.0.3):
-    - JitsiWebRTC (~> 111.0.0)
+  - react-native-webrtc (106.0.7):
+    - JitsiWebRTC (~> 106.0.0)
     - React-Core
   - React-perflogger (0.71.11)
   - React-RCTActionSheet (0.71.11):
@@ -893,7 +893,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
   hermes-engine: 34c863b446d0135b85a6536fa5fd89f48196f848
-  JitsiWebRTC: 80f62908fcf2a1160e0d14b584323fb6e6be630b
+  JitsiWebRTC: f441eb0e2d67f0588bf24e21c5162e97342714fb
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   MMKV: 784471ce430a2e2d16afef9053d63fab1b357d9e
   MMKVCore: 9cfef4c48c6c46f66226fc2e4634d78490206a48
@@ -920,7 +920,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-safe-area-context: 39c2d8be3328df5d437ac1700f4f3a4f75716acc
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
-  react-native-webrtc: 4d1669c2ed29767fe70b0169428b4466589ecf8b
+  react-native-webrtc: 0df36747802476e758af6b6dceccdeaed8c826c2
   React-perflogger: e706562ab7eb8eb590aa83a224d26fa13963d7f2
   React-RCTActionSheet: 57d4bd98122f557479a3359ad5dad8e109e20c5a
   React-RCTAnimation: ccf3ef00101ea74bda73a045d79a658b36728a60

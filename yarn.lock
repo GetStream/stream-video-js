@@ -7037,7 +7037,7 @@ __metadata:
     react-native-svg: ^13.9.0
     react-native-video: ^5.2.1
     react-native-voip-push-notification: ~3.3.1
-    react-native-webrtc: 111.0.3
+    react-native-webrtc: 106.0.7
     react-test-renderer: 18.2.0
     rxjs: ~7.8.1
     stream-chat-react-native: ^5.15.1
@@ -7077,7 +7077,7 @@ __metadata:
     react-native-svg: ^13.6.0
     react-native-url-polyfill: 2.0.0
     react-native-voip-push-notification: 3.3.1
-    react-native-webrtc: ~106.0.4
+    react-native-webrtc: 106.0.7
     react-test-renderer: ^18.2.0
     rimraf: ^3.0.2
     text-encoding-polyfill: 0.6.7
@@ -7098,7 +7098,7 @@ __metadata:
     react-native-reanimated: ">=2.7.0"
     react-native-svg: ">=13.6.0"
     react-native-voip-push-notification: ">=3.3.1"
-    react-native-webrtc: ">=111.0.3"
+    react-native-webrtc: 106.0.7
   peerDependenciesMeta:
     "@react-native-firebase/app":
       optional: true
@@ -24481,20 +24481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-webrtc@npm:111.0.3":
-  version: 111.0.3
-  resolution: "react-native-webrtc@npm:111.0.3"
-  dependencies:
-    base64-js: 1.5.1
-    debug: 4.3.4
-    event-target-shim: 6.0.2
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: de951a1ffdf7fd19459c651c878141a76ca45f34a303fb185644601812a9fd5af9b5354fd0008865385c9079948a0f38f8e08f9ec467c8eb2dd381f246301cd8
-  languageName: node
-  linkType: hard
-
-"react-native-webrtc@npm:~106.0.4":
+"react-native-webrtc@npm:106.0.7":
   version: 106.0.7
   resolution: "react-native-webrtc@npm:106.0.7"
   dependencies:
