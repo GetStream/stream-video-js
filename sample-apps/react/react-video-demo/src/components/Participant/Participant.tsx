@@ -9,6 +9,7 @@ import {
   StreamReaction,
   StreamVideoParticipant,
   VideoPlaceholderProps,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -17,7 +18,6 @@ import Reaction from '../Reaction';
 import { useNotificationContext } from '../../contexts/NotificationsContext';
 
 import styles from './Participant.module.css';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type Props = {
   className?: string;

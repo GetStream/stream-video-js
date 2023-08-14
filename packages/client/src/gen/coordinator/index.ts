@@ -2415,6 +2415,31 @@ export interface GetOrCreateCallResponse {
 /**
  *
  * @export
+ * @interface GoLiveRequest
+ */
+export interface GoLiveRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_hls?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_transcription?: boolean;
+}
+/**
+ *
+ * @export
  * @interface GoLiveResponse
  */
 export interface GoLiveResponse {

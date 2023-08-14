@@ -31,8 +31,8 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 
-// @ts-expect-error
-Logger.enable(false);
+// only enable warning and error logs from webrtc library
+Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

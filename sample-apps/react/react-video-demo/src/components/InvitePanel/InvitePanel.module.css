@@ -5,7 +5,7 @@
 
 .root.focused {
   @apply border-video-stream-500;
-  box-shadow: 0px 0px 30px rgba(0, 95, 255, 0.5);
+  box-shadow: 0 0 30px rgba(0, 95, 255, 0.5);
 }
 
 .header {
@@ -21,63 +21,53 @@
 }
 
 .copy {
-  @apply bg-video-grey-500 p-2 flex items-center relative text-video-white/50;
+  @apply bg-video-grey-500 p-2 flex items-center text-video-white/50;
   border: 1px solid #272a30;
   border-radius: 6px;
+  flex-wrap: nowrap;
 }
 
 .copy:hover {
   @apply text-video-white;
 }
 
-.limit {
-  @apply hidden w-[90%];
+.copyButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
 }
 
-.limit.canCopy {
-  @apply block;
+.copyButton:focus,
+.copyButton:hover {
+  @apply bg-video-transparent relative border-none cursor-pointer;
+
 }
 
-.input {
+.url {
   @apply bg-video-transparent relative border-none cursor-pointer w-full h-full text-xs;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   z-index: 2;
 }
-.input:focus,
-.input:hover {
-  @apply bg-video-transparent relative border-none cursor-pointer;
-}
 
 .copied {
-  @apply hidden items-center justify-around text-video-white text-xs;
+  @apply flex content-between items-center justify-around text-video-white text-xs;
+  width: 100%;
 }
 
-.copied.isCopied {
-  @apply flex;
+.copied span {
+  flex: 1;
 }
 
 .copiedIcon {
   @apply mr-1 h-[18px];
 }
 
-.copyIcon {
-  @apply absolute z-0 h-[18px];
-  right: 8px;
-  top: 11px;
-}
-
-.copyIcon:hover {
-  @apply cursor-pointer;
-}
 
 .reload {
-  @apply absolute z-0 h-[14px] right-[8px] top-[11px];
-}
-
-.reload:hover {
-  @apply cursor-pointer;
+  @apply h-[14px] cursor-pointer;
 }
 
 .description {

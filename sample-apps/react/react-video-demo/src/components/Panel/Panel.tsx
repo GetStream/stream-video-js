@@ -1,129 +1,104 @@
-import {
-  FC,
-  ReactNode,
-  useCallback,
-  useState,
-  useRef,
-  forwardRef,
-} from 'react';
+import { forwardRef, PropsWithChildren, ReactNode } from 'react';
 import classnames from 'classnames';
-import { CSSTransition } from 'react-transition-group';
 
 import { ArrowDown, Close } from '../Icons';
 
 import Button from '../Button';
 
 import styles from './Panel.module.css';
+import { PANEL_VISIBILITY } from '../../contexts/PanelContext';
 
-export type Props = {
+export type PanelProps = {
   className?: string;
   title: string | ReactNode;
   isFocused?: boolean;
   isParticipantsPanel?: boolean;
-  canCollapse?: boolean;
-  fulllHeight?: boolean;
-  close?: () => void;
-  children: ReactNode | undefined;
+  toggleCollapse?: () => void;
+  toggleHide?: () => void;
+  visibility?: PANEL_VISIBILITY;
 };
 
-export type AnimatedProps = {
-  visible: boolean;
-};
-
-export const AnimatedPanel: FC<Props & AnimatedProps> = ({
-  visible = false,
-  fulllHeight,
+export const AnimatedPanel = ({
   className,
+  visibility,
   ...props
-}) => {
+}: PropsWithChildren<PanelProps>) => {
   const animatedClassNames = classnames(
     styles.animated,
     {
-      [styles.visible]: visible,
+      [styles.visible]: visibility !== PANEL_VISIBILITY.hidden,
       [styles.participantsPanel]: props.isParticipantsPanel,
     },
     className,
   );
   return (
-    <Panel
-      {...props}
-      className={animatedClassNames}
-      fulllHeight={visible && fulllHeight}
-    />
+    <Panel {...props} className={animatedClassNames} visibility={visibility} />
   );
 };
 
-export const Panel = forwardRef<any, Props>(function MyInput(
-  {
-    className,
-    children,
-    title,
-    isFocused,
-    fulllHeight,
-    canCollapse,
-    close,
-    isParticipantsPanel,
-  },
-  ref,
-) {
-  const [isOpen, setOpen] = useState(true);
-
-  const handleCollapse = useCallback(() => {
-    setOpen(!isOpen);
-  }, [isOpen]);
-
-  const rootClassname = classnames(
-    styles.root,
+export const Panel = forwardRef<any, PropsWithChildren<PanelProps>>(
+  function MyInput(
     {
-      [styles.focused]: isFocused,
-      [styles.open]: isOpen,
-      [styles.fulllHeight]: fulllHeight,
+      className,
+      children,
+      isFocused,
+      isParticipantsPanel,
+      title,
+      toggleCollapse,
+      toggleHide,
+      visibility,
     },
-    className,
-  );
+    ref,
+  ) {
+    const expanded = visibility === PANEL_VISIBILITY.expanded;
+    const visible = visibility !== PANEL_VISIBILITY.hidden;
+    const rootClassname = classnames(
+      styles.root,
+      {
+        [styles.focused]: isFocused,
+        [styles.expanded]: expanded,
+      },
+      className,
+    );
 
-  const headingClassName = classnames(styles.header, {
-    [styles.canCollapse]: canCollapse,
-    [styles.open]: isOpen,
-  });
+    const headingClassName = classnames(styles.header, {
+      [styles.canCollapse]: !!toggleCollapse,
+      [styles.open]: visible,
+    });
 
-  const arrowClassName = classnames(styles.arrow, {
-    [styles.open]: !isOpen,
-  });
+    const arrowClassName = classnames(styles.arrow, {
+      [styles.open]: !visible,
+    });
 
-  const contentClassName = classnames(styles.content, {
-    [styles.open]: isOpen,
-    [styles.participantsPanel]: isParticipantsPanel,
-  });
+    const contentClassName = classnames(styles.content, {
+      [styles.open]: !visibility || expanded,
+      [styles.participantsPanel]: isParticipantsPanel,
+    });
 
-  return (
-    <div className={rootClassname} ref={ref}>
-      <div className={headingClassName}>
-        <h2 className={styles.heading}>{title}</h2>
+    return (
+      <div className={rootClassname} ref={ref}>
+        <div className={headingClassName} onClick={toggleCollapse}>
+          <h2 className={styles.heading}>{title}</h2>
 
-        {canCollapse && !close ? (
-          <Button
-            className={styles.toggle}
-            color="secondary"
-            onClick={handleCollapse}
-            shape="square"
-          >
-            <ArrowDown className={arrowClassName} />
-          </Button>
-        ) : null}
+          {toggleCollapse ? (
+            <Button className={styles.toggle} color="secondary" shape="square">
+              <ArrowDown className={arrowClassName} />
+            </Button>
+          ) : null}
 
-        {close ? (
-          <Button
-            className={styles.close}
-            color="secondary"
-            onClick={close}
-            shape="square"
-          >
-            <Close className={styles.cross} />
-          </Button>
-        ) : null}
+          {toggleHide ? (
+            <Button
+              className={styles.close}
+              color="secondary"
+              onClick={toggleHide}
+              shape="square"
+            >
+              <Close className={styles.cross} />
+            </Button>
+          ) : null}
+        </div>
+        <div className={contentClassName}>{children}</div>
       </div>
-      <div className={contentClassName}>{children}</div>
-    </div>
-  );
-});
+    );
+  },
+);

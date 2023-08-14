@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallingState,
-  CallContent,
   useCall,
   useIncallManager,
   theme,
@@ -13,6 +12,9 @@ import {
   HangUpCallButton,
   CallTopView,
   ChatButtonProps,
+  useCallStateHooks,
+  CallParticipantsSpotlight,
+  CallParticipantsGrid,
 } from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { appTheme } from '../theme';
@@ -34,11 +36,13 @@ export const ActiveCall = ({
   onBackPressed,
   onHangupCallHandler,
 }: ActiveCallProps) => {
-  const call = useCall();
-  const activeCallRef = useRef(call);
-  activeCallRef.current = call;
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
+  const call = useCall();
+  const { useHasOngoingScreenShare } = useCallStateHooks();
+  const hasScreenShare = useHasOngoingScreenShare();
+  const activeCallRef = useRef(call);
+  activeCallRef.current = call;
 
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
@@ -70,7 +74,11 @@ export const ActiveCall = ({
           onBackPressed={onBackPressed}
           onParticipantInfoPress={onOpenCallParticipantsInfo}
         />
-        <CallContent />
+        {hasScreenShare ? (
+          <CallParticipantsSpotlight />
+        ) : (
+          <CallParticipantsGrid />
+        )}
       </View>
       {/* Since we want the chat and the reaction button the entire call controls is customized */}
       <View

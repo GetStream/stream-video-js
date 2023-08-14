@@ -8,32 +8,48 @@ import {
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
 
+export enum PANEL_VISIBILITY {
+  hidden,
+  collapsed,
+  expanded,
+}
+
+const togglePanelVisibility = (prev: PANEL_VISIBILITY) =>
+  prev === PANEL_VISIBILITY.hidden
+    ? PANEL_VISIBILITY.expanded
+    : PANEL_VISIBILITY.hidden;
+
+const togglePanelCollapse = (prev: PANEL_VISIBILITY) =>
+  prev === PANEL_VISIBILITY.collapsed
+    ? PANEL_VISIBILITY.expanded
+    : PANEL_VISIBILITY.collapsed;
+
+type PanelName = 'chat' | 'participant-list' | 'device-settings' | 'reaction';
+
 type Props = {
-  toggleChat: () => void;
-  toggleParticipants: () => void;
-  toggleSettings: () => void;
-  toggleReaction: () => void;
-  isChatVisible: boolean;
-  isParticipantsVisible: boolean;
+  toggleCollapse: (panel: PanelName) => void;
+  toggleHide: (panel: PanelName) => void;
+  chatPanelVisibility: PANEL_VISIBILITY;
+  participantsPanelVisibility: PANEL_VISIBILITY;
   isSettingsVisible: boolean;
   isReactionVisible: boolean;
 };
 
 const PanelContext = createContext<Props>({
-  toggleChat: () => null,
-  toggleParticipants: () => null,
-  toggleSettings: () => null,
-  toggleReaction: () => null,
-  isChatVisible: false,
-  isParticipantsVisible: false,
+  toggleCollapse: () => null,
+  toggleHide: () => null,
+  chatPanelVisibility: PANEL_VISIBILITY.hidden,
+  participantsPanelVisibility: PANEL_VISIBILITY.hidden,
   isSettingsVisible: false,
   isReactionVisible: false,
 });
 
 export const PanelProvider = ({ children }: { children: ReactNode }) => {
-  const [isChatVisible, setChatVisible] = useState<boolean>(false);
-  const [isParticipantsVisible, setParticipantsVisible] =
-    useState<boolean>(false);
+  const [chatVisibility, setChatVisibility] = useState<PANEL_VISIBILITY>(
+    PANEL_VISIBILITY.hidden,
+  );
+  const [participantsPanelVisibility, setParticipantsPanelVisibility] =
+    useState<PANEL_VISIBILITY>(PANEL_VISIBILITY.hidden);
 
   const [isSettingsVisible, setSettingsVisible] = useState<boolean>(false);
 
@@ -41,41 +57,40 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
 
   const breakpoint = useBreakpoint();
 
-  const toggleChat = useCallback(() => {
-    if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setChatVisible(!isChatVisible);
-      setParticipantsVisible(false);
-    } else {
-      setChatVisible(!isChatVisible);
-    }
-  }, [isChatVisible, isParticipantsVisible, breakpoint]);
+  const toggleCollapse = (panel: PanelName) => {
+    if (panel === 'chat') setChatVisibility(togglePanelCollapse);
+    if (panel === 'participant-list')
+      setParticipantsPanelVisibility(togglePanelCollapse);
+  };
 
-  const toggleParticipants = useCallback(() => {
-    if (breakpoint === 'xs' || breakpoint === 'sm') {
-      setParticipantsVisible(!isParticipantsVisible);
-      setChatVisible(false);
-    } else {
-      setParticipantsVisible(!isParticipantsVisible);
-    }
-  }, [isParticipantsVisible, isChatVisible, breakpoint]);
+  const toggleHide = useCallback(
+    (panel: PanelName) => {
+      if (panel === 'chat') {
+        setChatVisibility(togglePanelVisibility);
+        if (breakpoint === 'xs' || breakpoint === 'sm') {
+          setParticipantsPanelVisibility(PANEL_VISIBILITY.hidden);
+        }
+      }
+      if (panel === 'participant-list') {
+        setParticipantsPanelVisibility(togglePanelVisibility);
+        if (breakpoint === 'xs' || breakpoint === 'sm') {
+          setChatVisibility(PANEL_VISIBILITY.hidden);
+        }
+      }
 
-  const toggleSettings = useCallback(() => {
-    setSettingsVisible(!isSettingsVisible);
-  }, [isSettingsVisible]);
-
-  const toggleReaction = useCallback(() => {
-    setReactionVisible(!isReactionVisible);
-  }, [isReactionVisible]);
+      if (panel === 'device-settings') setSettingsVisible((prev) => !prev);
+      if (panel === 'reaction') setReactionVisible((prev) => !prev);
+    },
+    [breakpoint],
+  );
 
   return (
     <PanelContext.Provider
       value={{
-        toggleChat,
-        toggleParticipants,
-        toggleSettings,
-        toggleReaction,
-        isChatVisible,
-        isParticipantsVisible,
+        toggleCollapse,
+        toggleHide,
+        chatPanelVisibility: chatVisibility,
+        participantsPanelVisibility: participantsPanelVisibility,
         isSettingsVisible,
         isReactionVisible,
       }}

@@ -24,7 +24,7 @@ export const Recordings = () => {
 
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
 
-  const { close } = useModalContext();
+  const { closeModal } = useModalContext();
 
   const startPolling = useCallback(() => {
     let recordingPollRequestsCount = 0;
@@ -72,7 +72,7 @@ export const Recordings = () => {
   }, []);
 
   return (
-    <Panel className={styles.root} title="Recordings" close={close}>
+    <Panel className={styles.root} title="Recordings" toggleHide={closeModal}>
       {loadingCallRecordings && !callRecordings.length && (
         <div className={styles.loading}>
           <LoadingSpinner className={styles.loadingSpinner} />

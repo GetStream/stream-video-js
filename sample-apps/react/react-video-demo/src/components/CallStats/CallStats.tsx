@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from 'react';
-import { CallStatsReport } from '@stream-io/video-react-sdk';
+import { CallStatsReport, useCallStateHooks } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
 import StatCard from '../StatCard';
@@ -17,7 +17,6 @@ import {
 } from '../../utils/useCalculateBitRate';
 
 import styles from './CallStats.module.css';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type Props = {
   className?: string;
@@ -39,7 +38,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
-  const { close } = useModalContext();
+  const { closeModal } = useModalContext();
 
   useEffect(() => {
     if (!callStatsReport) return;
@@ -81,7 +80,7 @@ export const CallStats: FC<Props> = ({ className, callId }) => {
         <p className={styles.callId}>Call ID: {callId}</p>
         <div className={styles.close}>
           <Button
-            onClick={() => close()}
+            onClick={closeModal}
             className={styles.button}
             color="transparent"
             shape="square"

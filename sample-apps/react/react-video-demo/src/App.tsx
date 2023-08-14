@@ -41,9 +41,6 @@ import { tour } from '../data/tour';
 
 import './App.css';
 
-// This could be exported. No need to prop-drill a constant.
-const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
-
 const config: Config = {
   dictionaries: [adjectives],
   separator: '-',
@@ -180,10 +177,7 @@ const Init = () => {
                   <TourProvider>
                     {activeCall && (
                       <MeetingView
-                        logo={logo}
                         call={activeCall}
-                        callId={callId}
-                        callType={callType}
                         isCallActive={isCallActive}
                         setCallHasEnded={setCallHasEnded}
                         chatClient={chatClient}
@@ -195,7 +189,6 @@ const Init = () => {
               </NotificationProvider>
             ) : (
               <LobbyView
-                logo={logo}
                 user={user}
                 callId={callId || ''}
                 edges={edges}
