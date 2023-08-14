@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.370](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.369...@stream-io/video-react-native-sdk-0.0.1-alpha.370) (2023-08-14)
+
+
+### Features
+
+* **react-native:** ParticipantView customizations ([#915](https://github.com/GetStream/stream-video-js/issues/915)) ([aaa55a6](https://github.com/GetStream/stream-video-js/commit/aaa55a67b6628d17894448212f296e16d693452f))
+
+
+
 ## [0.0.1-alpha.369](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.368...@stream-io/video-react-native-sdk-0.0.1-alpha.369) (2023-08-11)
 
 
