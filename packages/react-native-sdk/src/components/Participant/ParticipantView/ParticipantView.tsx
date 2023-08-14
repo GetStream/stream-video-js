@@ -1,24 +1,12 @@
 import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { theme } from '../../theme';
-import {
-  ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
-  ParticipantNetworkQualityIndicatorProps,
-} from './ParticipantNetworkQualityIndicator';
-import {
-  ParticipantReaction as DefaultParticipantReaction,
-  ParticipantReactionProps,
-} from './ParticipantReaction';
-import {
-  ParticipantLabel as DefaultParticipantLabel,
-  ParticipantLabelProps,
-} from './ParticipantLabel';
+import { theme } from '../../../theme';
+import { ParticipantNetworkQualityIndicatorProps } from './ParticipantNetworkQualityIndicator';
+import { ParticipantReactionProps } from './ParticipantReaction';
+import { ParticipantLabelProps } from './ParticipantLabel';
 import { ParticipantVideoFallbackProps } from './ParticipantVideoFallback';
-import {
-  VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
-} from './VideoRenderer';
+import { VideoRendererProps } from './VideoRenderer';
 
 export type ParticipantVideoType = 'video' | 'screen';
 
@@ -77,10 +65,10 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     videoMode,
     isVisible = true,
     style,
-    ParticipantLabel = DefaultParticipantLabel,
-    ParticipantReaction = DefaultParticipantReaction,
-    VideoRenderer = DefaultVideoRenderer,
-    ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
+    ParticipantLabel,
+    ParticipantReaction,
+    VideoRenderer,
+    ParticipantNetworkQualityIndicator,
     ParticipantVideoFallback,
   } = props;
 
@@ -99,16 +87,22 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           : `participant-${userId}-is-not-speaking`
       }
     >
-      <ParticipantReaction participant={participant} />
-      <VideoRenderer
-        isVisible={isVisible}
-        participant={participant}
-        videoMode={videoMode}
-        ParticipantVideoFallback={ParticipantVideoFallback}
-      />
+      {ParticipantReaction && <ParticipantReaction participant={participant} />}
+      {VideoRenderer && (
+        <VideoRenderer
+          isVisible={isVisible}
+          participant={participant}
+          videoMode={videoMode}
+          ParticipantVideoFallback={ParticipantVideoFallback}
+        />
+      )}
       <View style={styles.bottomView}>
-        <ParticipantLabel participant={participant} videoMode={videoMode} />
-        <ParticipantNetworkQualityIndicator participant={participant} />
+        {ParticipantLabel && (
+          <ParticipantLabel participant={participant} videoMode={videoMode} />
+        )}
+        {ParticipantNetworkQualityIndicator && (
+          <ParticipantNetworkQualityIndicator participant={participant} />
+        )}
       </View>
     </View>
   );

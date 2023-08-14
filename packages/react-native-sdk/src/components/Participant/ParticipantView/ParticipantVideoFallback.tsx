@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Avatar } from '../utility';
-import { theme } from '../../theme';
+import { Avatar } from '../../utility';
+import { theme } from '../../../theme';
 import { ParticipantViewProps } from './ParticipantView';
 
 export type ParticipantVideoFallbackProps = Pick<

@@ -5,7 +5,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { theme } from '../../../theme';
 import { Reaction } from '../../../icons';
-import { ReactionsPicker } from '../ReactionsPicker';
+import { ReactionsPicker } from './internal/ReactionsPicker';
 import { StreamVideoRN } from '../../../utils';
 import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
 

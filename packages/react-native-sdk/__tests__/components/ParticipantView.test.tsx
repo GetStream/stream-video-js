@@ -3,7 +3,7 @@ import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
 import { ComponentTestIds, IconTestIds } from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
-import { ParticipantView } from '../../src/components/participants/ParticipantView';
+import { ParticipantView } from '../../src/components/Participant/ParticipantView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();

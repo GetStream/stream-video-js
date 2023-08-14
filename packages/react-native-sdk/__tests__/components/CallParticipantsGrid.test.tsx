@@ -5,7 +5,7 @@ import mockParticipant from '../mocks/participant';
 import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
-import { CallParticipantsGrid } from '../../src/components/call/CallLayout/CallParticipantsGrid';
+import { CallParticipantsGrid } from '../../src/components/Call/CallLayout/CallParticipantsGrid';
 import { ViewToken } from 'react-native';
 
 console.warn = jest.fn();

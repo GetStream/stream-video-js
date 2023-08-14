@@ -6,11 +6,11 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { StreamVideoConfig } from '../../utils/StreamVideoRN/types';
+import { StreamVideoConfig } from '../../../../utils/StreamVideoRN/types';
 import { useCall } from '@stream-io/video-react-bindings';
 import { SendReactionRequest } from '@stream-io/video-client';
-import { theme } from '../../theme';
-import { ComponentTestIds } from '../../constants/TestIds';
+import { theme } from '../../../../theme';
+import { ComponentTestIds } from '../../../../constants/TestIds';
 
 interface Props {
   reactions: StreamVideoConfig['supportedReactions'];

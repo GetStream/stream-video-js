@@ -9,7 +9,7 @@ import { useMediaStreamManagement } from '../../../providers';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks';
 import { Avatar } from '../../utility';
-import { ParticipantReaction } from '../ParticipantReaction';
+import { ParticipantReaction } from '../ParticipantView/ParticipantReaction';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
 import { RTCView } from 'react-native-webrtc';
