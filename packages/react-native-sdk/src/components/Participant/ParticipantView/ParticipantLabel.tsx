@@ -2,8 +2,12 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../../providers';
+import {
+  useCall,
+  useCameraState,
+  useI18n,
+  useMicrophoneState,
+} from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
@@ -19,7 +23,8 @@ export const ParticipantLabel = ({
 }: ParticipantLabelProps) => {
   const { name, userId, pin, sessionId } = participant;
   const call = useCall();
-  const { isAudioMuted, isVideoMuted } = useMediaStreamManagement();
+  const { status: micStatus } = useMicrophoneState();
+  const { status: cameraStatus } = useCameraState();
   const { t } = useI18n();
   const participantLabel = name ?? userId;
   const isPinningEnabled = pin?.isLocalPin;
@@ -34,12 +39,12 @@ export const ParticipantLabel = ({
         <Text style={styles.userNameLabel} numberOfLines={1}>
           {participantLabel}
         </Text>
-        {isAudioMuted && (
+        {micStatus === 'disabled' && (
           <View style={[styles.svgContainerStyle, theme.icon.xs]}>
             <MicOff color={theme.light.error} />
           </View>
         )}
-        {isVideoMuted && (
+        {cameraStatus === 'disabled' && (
           <View style={[styles.svgContainerStyle, theme.icon.xs]}>
             <VideoSlash color={theme.light.error} />
           </View>

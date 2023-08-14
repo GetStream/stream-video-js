@@ -7,8 +7,11 @@ import {
   SfuModels,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../../providers';
+import {
+  useCall,
+  useCallCallingState,
+  useCameraState,
+} from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
 
 /**
@@ -32,7 +35,7 @@ export const VideoRenderer = ({
   const callingState = useCallCallingState();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const { direction } = useCameraState();
   const {
     isLocalParticipant,
     sessionId,
@@ -51,7 +54,7 @@ export const VideoRenderer = ({
   const hasJoinedCall = callingState === CallingState.JOINED;
   const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
   const videoStreamToRender = isScreenSharing ? screenShareStream : videoStream;
-  const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
+  const mirror = isLocalParticipant && direction === 'front';
 
   /**
    * This effect updates the participant's viewportVisibilityState
