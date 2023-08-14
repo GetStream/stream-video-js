@@ -20,7 +20,6 @@ export type Props = {
   participants: StreamVideoParticipant[];
   isScreenSharing?: boolean;
   participantsAmount: number;
-  callId: string;
 };
 
 export const Meeting: FC<Props> = ({
@@ -28,34 +27,34 @@ export const Meeting: FC<Props> = ({
   participants,
   isScreenSharing,
   participantsAmount,
-  callId,
 }) => {
   const breakpoint = useBreakpoint();
   const { next, current, total, step, active, toggleTour } = useTourContext();
 
-  const { toggleParticipants, isParticipantsVisible } = usePanelContext();
+  const { participantsPanelVisibility } = usePanelContext();
 
   const contentClasses = classnames(styles.content, {
     [styles.activeTour]: active && participantsAmount === 1,
     [styles.showParticipants]:
-      isParticipantsVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+      participantsPanelVisibility &&
+      (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   const stageClasses = classnames(styles.stage, {
     [styles.showParticipants]:
-      isParticipantsVisible && (breakpoint === 'xs' || breakpoint === 'sm'),
+      participantsPanelVisibility &&
+      (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
   return (
     <>
       <Notifications className={styles.notifications} />
-      {isParticipantsVisible && (breakpoint === 'xs' || breakpoint === 'sm') ? (
+      {participantsPanelVisibility &&
+      (breakpoint === 'xs' || breakpoint === 'sm') ? (
         <ParticipantsPanel
           className={styles.participantsPanel}
-          callId={callId}
-          close={toggleParticipants}
+          callId={call.id}
           participants={participants}
-          visible={true}
         />
       ) : null}
       <div className={contentClasses}>

@@ -1,44 +1,47 @@
-import { FC, ReactNode, useEffect, useState, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { differenceInSeconds } from 'date-fns';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import Button from '../Button';
-import { Security, People } from '../Icons';
+import { People, Security } from '../Icons';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import { usePanelContext } from '../../contexts/PanelContext';
 
+import { logoURI } from '../../utils/constants';
+
 import styles from './Header.module.css';
 
-export type Props = {
+export type HeaderProps = {
   className?: string;
   callId: string;
-  logo: string;
   participants?: any;
   isCallActive: boolean;
   particpants?: any;
-  latency?: number;
-  participantCount?: number;
 };
 
-export const CallIdentification: FC<
-  Pick<Props, 'className' | 'callId' | 'logo'>
-> = ({ className, callId, logo }) => {
+export const CallIdentification = ({
+  className,
+  callId,
+}: Pick<HeaderProps, 'className' | 'callId'>) => {
   const rootClassName = classnames(styles.callIdentification, className);
 
   return (
     <div className={rootClassName}>
-      <img src={logo} className={styles.logo} alt="logo" />
+      <img src={logoURI} className={styles.logo} alt="logo" />
       <span className={styles.callId}>{callId}</span>
     </div>
   );
 };
 
-export const LatencyIndicator: FC<Pick<Props, 'className' | 'latency'>> = ({
+export const LatencyIndicator = ({
   className,
-  latency,
-}) => {
+}: Pick<HeaderProps, 'className'>) => {
+  const { useCallStatsReport } = useCallStateHooks();
+  const statsReport = useCallStatsReport();
+  const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
   const rootClassName = classnames(styles.latency, className);
   const latencyIndicatorClassName = classnames(styles.latencyIndicator, {
     [styles.green]: latency && latency <= 100,
@@ -55,9 +58,12 @@ export const LatencyIndicator: FC<Pick<Props, 'className' | 'latency'>> = ({
   );
 };
 
-export const Elapsed: FC<{ className?: string; joinedAt: number }> = ({
+export const Elapsed = ({
   className,
   joinedAt,
+}: {
+  className?: string;
+  joinedAt: number;
 }) => {
   const rootClassName = classnames(styles.elapsedContainer, className);
   const [elapsed, setElapsed] = useState<any>();
@@ -85,11 +91,13 @@ export const Elapsed: FC<{ className?: string; joinedAt: number }> = ({
   );
 };
 
-export const Img: FC<{
+type ImgProps = {
   className?: string;
   src: string;
   placeholder: ReactNode;
-}> = ({ className, src, placeholder }) => {
+};
+
+export const Img = ({ className, src, placeholder }: ImgProps) => {
   const doesExist = useMemo(() => {
     if (src === '') {
       return false;
@@ -116,9 +124,10 @@ export const Img: FC<{
   return <>{placeholder}</>;
 };
 
-export const Participants: FC<
-  Pick<Props, 'className' | 'participants' | 'logo'>
-> = ({ className, participants, logo }) => {
+export const Participants = ({
+  className,
+  participants,
+}: Pick<HeaderProps, 'className' | 'participants'>) => {
   const rootClassName = classnames(styles.participants, className);
   const maxDisplayParticipants = participants.slice(0, 3);
   const names = maxDisplayParticipants.map(
@@ -128,7 +137,7 @@ export const Participants: FC<
 
   return (
     <div className={rootClassName}>
-      <img src={logo} className={styles.logo} alt="logo" />
+      <img src={logoURI} className={styles.logo} alt="logo" />
       <div className={styles.innerParticipants}>
         <ul className={styles.avatars}>
           {maxDisplayParticipants.map((participant: any) => {
@@ -156,30 +165,28 @@ export const Participants: FC<
   );
 };
 
-export const ParticipantsToggle: FC = () => {
-  const { isParticipantsVisible, toggleParticipants } = usePanelContext();
+export const ParticipantsToggle = () => {
+  const { participantsPanelVisibility, toggleHide } = usePanelContext();
 
   return (
     <Button
       label="Participants"
       className={styles.participantsToggle}
-      color={isParticipantsVisible ? 'active' : 'secondary'}
+      color={participantsPanelVisibility ? 'active' : 'secondary'}
       shape="square"
-      onClick={toggleParticipants}
+      onClick={() => toggleHide('participant-list')}
     >
       <People />
     </Button>
   );
 };
 
-export const Header: FC<Props> = ({
+export const Header = ({
   className,
   callId,
-  logo,
-  latency,
   isCallActive = true,
   participants,
-}) => {
+}: HeaderProps) => {
   const breakpoint = useBreakpoint();
 
   const rootClassName = classnames(
@@ -196,15 +203,15 @@ export const Header: FC<Props> = ({
     return (
       <div className={rootClassName}>
         {participants?.length > 1 ? (
-          <Participants participants={participants} logo={logo} />
+          <Participants participants={participants} />
         ) : (
-          <CallIdentification callId={callId} logo={logo} />
+          <CallIdentification callId={callId} />
         )}
         <Elapsed joinedAt={me?.joinedAt?.seconds} />
         {breakpoint === 'xs' || breakpoint === 'sm' ? (
           <ParticipantsToggle />
         ) : (
-          <LatencyIndicator latency={latency} />
+          <LatencyIndicator />
         )}
       </div>
     );
@@ -212,7 +219,7 @@ export const Header: FC<Props> = ({
 
   return (
     <>
-      <CallIdentification callId={callId} logo={logo} />
+      <CallIdentification callId={callId} />
     </>
   );
 };

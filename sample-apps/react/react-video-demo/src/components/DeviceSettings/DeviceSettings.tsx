@@ -17,11 +17,7 @@ import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './DeviceSettings.module.css';
 
-export type Props = {
-  className?: string;
-};
-
-export const DeviceSettings: FC<Props> = ({ className }) => {
+export const DeviceSettings = () => {
   const {
     selectedVideoDeviceId,
     isAudioOutputChangeSupported,
@@ -32,7 +28,7 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
   const videoDevices = useVideoDevices();
   const audioInputDevices = useAudioInputDevices();
   const audioOutputDevices = useAudioOutputDevices();
-  const { close } = useModalContext();
+  const { closeModal } = useModalContext();
 
   const [audioInputId, setAudioInputId] = useState<string>();
   const [audioOutputId, setAudioOutputId] = useState<string>();
@@ -72,8 +68,15 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
       await switchDevice('audiooutput', audioOutputId);
     }
 
-    close();
-  }, [audioInputId, audioOutputId, videoInputId, isAudioOutputChangeSupported]);
+    closeModal();
+  }, [
+    audioInputId,
+    audioOutputId,
+    closeModal,
+    switchDevice,
+    videoInputId,
+    isAudioOutputChangeSupported,
+  ]);
 
   return (
     <SettingsMenu className={styles.root} title="Settings" icon={<Cog />}>
@@ -105,13 +108,13 @@ export const DeviceSettings: FC<Props> = ({ className }) => {
           className={styles.cancel}
           color="secondary"
           shape="oval"
-          onClick={() => close()}
+          onClick={closeModal}
         >
           Cancel
         </Button>
         <Button
           className={styles.confirm}
-          onClick={() => save()}
+          onClick={save}
           color="primary"
           shape="oval"
         >
