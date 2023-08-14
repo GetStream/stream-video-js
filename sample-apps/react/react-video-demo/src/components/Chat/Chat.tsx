@@ -1,14 +1,20 @@
-import { FC, useEffect } from 'react';
-import { StreamChat as StreamChatInterface } from 'stream-chat';
+import { useCallback, useEffect } from 'react';
 import {
-  Chat as StreamChat,
+  StreamChat as StreamChatInterface,
+  Channel as StreamChannel,
+} from 'stream-chat';
+import {
   Channel,
-  Window,
-  MessageList,
+  Chat as StreamChat,
+  MESSAGE_ACTIONS,
   MessageInput,
-  useChatContext,
+  MessageList,
   useChannelStateContext,
+  useChatContext,
+  Window,
 } from 'stream-chat-react';
+
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import { ChatRound, PaperclipIcon } from '../Icons';
 import { SendButton } from '../ChatInput';
@@ -18,7 +24,15 @@ import type { ConnectionError } from '../../hooks/useChatClient';
 import 'stream-chat-react/dist/css/v2/index.css';
 import styles from './Chat.module.css';
 
-export type Props = {
+const ALLOWED_MESSAGE_ACTIONS = [
+  MESSAGE_ACTIONS.edit,
+  MESSAGE_ACTIONS.delete,
+  MESSAGE_ACTIONS.flag,
+  MESSAGE_ACTIONS.quote,
+  MESSAGE_ACTIONS.react,
+];
+
+export type ActiveChatProps = {
   channelId: string;
   client?: StreamChatInterface | null;
   channelType: string;
@@ -42,23 +56,33 @@ export const NoMessages = () => {
   return null;
 };
 
-export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
+export const ActiveChat = ({ channelId, channelType }: ActiveChatProps) => {
   const { client, setActiveChannel } = useChatContext();
+  const { chatPanelVisibility } = usePanelContext();
+
+  const doMarkReadRequest = useCallback(
+    (channel: StreamChannel) => {
+      if (chatPanelVisibility !== PANEL_VISIBILITY.expanded) return;
+      channel.markRead();
+    },
+    [chatPanelVisibility],
+  );
 
   useEffect(() => {
     const channel = client.channel(channelType, channelId);
 
     setActiveChannel(channel);
-  }, [channelId, client, setActiveChannel]);
+  }, [channelId, channelType, client, setActiveChannel]);
 
   return (
     <Channel
       EmptyStateIndicator={NoMessages}
       SendButton={SendButton}
       FileUploadIcon={PaperclipIcon}
+      doMarkReadRequest={doMarkReadRequest}
     >
       <Window>
-        <MessageList />
+        <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
         <MessageInput
           additionalTextareaProps={{ placeholder: 'Send a message' }}
         />
@@ -67,7 +91,7 @@ export const ActiveChat: FC<Props> = ({ channelId, channelType }) => {
   );
 };
 
-export const Chat: FC<Props> = ({ chatConnectionError, ...props }) => {
+export const Chat = ({ chatConnectionError, ...props }: ActiveChatProps) => {
   const { client } = props;
 
   if (chatConnectionError) {

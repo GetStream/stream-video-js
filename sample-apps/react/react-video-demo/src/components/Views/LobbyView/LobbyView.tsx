@@ -21,7 +21,6 @@ const loadingSentences = [
 ];
 
 export type Props = {
-  logo: string;
   user: User;
   joinCall(): void;
   callId: string;
@@ -39,7 +38,6 @@ export type Lobby = {
 };
 
 export const LobbyView: FC<Props & Lobby> = ({
-  logo,
   joinCall,
   call,
   callId,
@@ -73,7 +71,7 @@ export const LobbyView: FC<Props & Lobby> = ({
   return (
     <LobbyLayout
       edges={edges}
-      header={<Header logo={logo} callId={callId} isCallActive={false} />}
+      header={<Header callId={callId} isCallActive={false} />}
     >
       {isjoiningCall ? (
         <div className={styles.loadingPanel}>
@@ -88,7 +86,6 @@ export const LobbyView: FC<Props & Lobby> = ({
         <LobbyPanel
           className={styles.lobbyPanel}
           joinCall={joinCall}
-          logo={logo}
           call={call}
           user={user}
           fastestEdge={fastestEdge}

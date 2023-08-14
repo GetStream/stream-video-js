@@ -1,8 +1,6 @@
-import { Props } from './Header';
+import { HeaderProps } from './Header';
 
-export const KichinSink: Props = {
+export const KichinSink: HeaderProps = {
   callId: '12321dDA2354da',
-  logo: '/images/icons/stream-logo.svg',
-  latency: 12,
   isCallActive: false,
 };

@@ -28,6 +28,7 @@ import {
   GetCallResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
+  GoLiveRequest,
   GoLiveResponse,
   ListRecordingsResponse,
   MuteUsersRequest,
@@ -1484,11 +1485,14 @@ export class Call {
 
   /**
    * Starts the livestreaming of the call.
+   *
+   * @param data the request data.
+   * @param params the request params.
    */
-  goLive = async (params?: { notify?: boolean }) => {
-    return this.streamClient.post<GoLiveResponse>(
+  goLive = async (data: GoLiveRequest = {}, params?: { notify?: boolean }) => {
+    return this.streamClient.post<GoLiveResponse, GoLiveRequest>(
       `${this.streamClientBasePath}/go_live`,
-      {},
+      data,
       params,
     );
   };

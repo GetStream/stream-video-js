@@ -4,7 +4,12 @@ import mockParticipant from '../mocks/participant';
 import { ButtonTestIds, ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { fireEvent, render, screen, waitFor } from '../utils/RNTLTools';
-import { CallControls, ChatButton, ReactionButton } from '../../src/components';
+import {
+  CallControls,
+  ChatButton,
+  HangUpCallButton,
+  ReactionButton,
+} from '../../src/components';
 import { OwnCapability } from '@stream-io/video-client';
 
 console.warn = jest.fn();
@@ -94,7 +99,7 @@ describe('HangupCallButton', () => {
 
     const onHangupCallHandler = jest.fn();
 
-    render(<CallControls onHangupCallHandler={onHangupCallHandler} />, {
+    render(<HangUpCallButton onPressHandler={onHangupCallHandler} />, {
       call,
     });
 

@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import classnames from 'classnames';
 
@@ -12,41 +12,27 @@ import { useBreakpoint } from '../../hooks/useBreakpoints';
 
 import styles from './InvitePanel.module.css';
 
-export type Props = {
+export type InvitePanelProps = {
   className?: string;
   callId: string;
   isFocused?: boolean;
-  fulllHeight?: boolean;
 };
 
-export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
+export const Invite = ({
   callId,
   canShare,
+}: {
+  callId: string;
+  canShare?: boolean;
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const hasId = new URL(window.location.href).searchParams.has('id');
+  const URLtoCopy = `${window.location.href}${!hasId ? `?id=${callId}` : ''}`;
 
-  useEffect(() => {
-    if (inputRef && inputRef.current) {
-      const hasId = new URL(window.location.href).searchParams.has('id');
-      if (hasId) {
-        inputRef.current.value = `${window.location.href}`;
-      } else {
-        inputRef.current.value = `${window.location.href}?id=${callId}`;
-      }
-    }
-  }, [inputRef, callId]);
-
-  const handleCopy = useCallback(() => {
-    if (inputRef && inputRef.current) {
-      copyUrl(inputRef?.current?.value);
-    }
-  }, [inputRef]);
-
-  const copyUrl = useCallback((value: string) => {
+  const copyUrl = useCallback(() => {
     try {
-      navigator.clipboard.writeText(value).then(
+      navigator.clipboard.writeText(URLtoCopy).then(
         function () {
           setIsCopied(true);
         },
@@ -55,15 +41,11 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
         },
       );
     } catch (error) {}
-  }, []);
+  }, [URLtoCopy]);
 
-  const copiedClasses = classnames(styles.copied, {
-    [styles.isCopied]: isCopied,
-  });
+  const copiedClasses = classnames(styles.copied);
 
-  const limitClasses = classnames(styles.limit, {
-    [styles.canCopy]: isCopied === false,
-  });
+  const copyButtonClasses = classnames(styles.copyButton);
 
   return (
     <>
@@ -71,17 +53,19 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
         Send the URL below to someone and have them join this private call:
       </p>
       <div className={styles.copy}>
-        <div className={copiedClasses} onClick={() => setIsCopied(false)}>
-          <UserChecked className={styles.copiedIcon} />
+        {isCopied ? (
+          <div className={copiedClasses} onClick={() => setIsCopied(false)}>
+            <UserChecked className={styles.copiedIcon} />
 
-          <span className={copiedClasses}>Link copied</span>
-          <Reload className={styles.reload} />
-        </div>
-
-        <div className={limitClasses} onClick={() => handleCopy()}>
-          <input ref={inputRef} className={styles.input} readOnly={true} />
-          <Copy className={styles.copyIcon} />
-        </div>
+            <span>Link copied</span>
+            <Reload className={styles.reload} />
+          </div>
+        ) : (
+          <div className={copyButtonClasses} onClick={copyUrl}>
+            <div className={styles.url}>{URLtoCopy}</div>
+            <Copy className={styles.copyIcon} />
+          </div>
+        )}
       </div>
 
       {canShare && (
@@ -97,12 +81,11 @@ export const Invite: FC<{ callId: string; canShare?: boolean }> = ({
   );
 };
 
-export const InvitePanel: FC<Props> = ({
+export const InvitePanel = ({
   className,
   isFocused,
   callId,
-  fulllHeight,
-}) => {
+}: InvitePanelProps) => {
   const [showQr, setShowQr] = useState(false);
   const { qr } = useUserContext();
   const breakpoint = useBreakpoint();
@@ -114,17 +97,17 @@ export const InvitePanel: FC<Props> = ({
   }, [breakpoint]);
 
   const handleToggleDisplayQr = useCallback(() => {
-    setShowQr(!showQr);
-  }, [showQr]);
+    setShowQr((prev) => !prev);
+  }, []);
 
   const rootClassname = classnames(styles.root, className);
 
   const qrClassNames = classnames(styles.qr, {
-    [styles.hide]: showQr === false,
+    [styles.hide]: showQr,
   });
 
   const showQrIndicatorClassNames = classnames(styles.showQrIndicator, {
-    [styles.transform]: showQr === false,
+    [styles.transform]: showQr,
   });
 
   const qrCodeContent = new URL(window.location.toString());

@@ -25,10 +25,6 @@ export enum ButtonTestIds {
   REACTION = 'call-controls-reaction',
 }
 
-export enum ValueTestIds {
-  PARTICIPANTS_IS_SPEAKING = 'participant-is-speaking',
-}
-
 export enum ImageTestIds {
   AVATAR = 'avatar-image',
 }

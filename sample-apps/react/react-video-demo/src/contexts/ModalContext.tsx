@@ -1,48 +1,35 @@
 import {
   createContext,
+  ReactElement,
   ReactNode,
   useContext,
   useState,
-  useCallback,
 } from 'react';
 
 type Props = {
-  close: () => void;
-  component: ReactNode | undefined;
-  setComponent: (component: ReactNode) => void;
-  isVisible: boolean;
+  closeModal: () => void;
+  modalElement: ReactElement | undefined;
+  setModal: (element: ReactElement) => void;
+  showModal: boolean;
 };
 
 const ModalContext = createContext<Props>({
-  close: () => null,
-  component: undefined,
-  setComponent: () => null,
-  isVisible: false,
+  closeModal: () => null,
+  modalElement: undefined,
+  setModal: () => null,
+  showModal: false,
 });
 
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
-  const [component, updateComponent]: any = useState(undefined);
-  const [isVisible, setVisible]: any = useState<boolean>(false);
-
-  const setComponent = useCallback((c: ReactNode) => {
-    updateComponent(c);
-    setVisible(true);
-  }, []);
-
-  const close = useCallback(() => {
-    if (component) {
-      setVisible(false);
-      updateComponent(undefined);
-    }
-  }, [component]);
+  const [modalElement, setModal] = useState<ReactElement | undefined>();
 
   return (
     <ModalContext.Provider
       value={{
-        setComponent,
-        component,
-        close,
-        isVisible,
+        setModal,
+        modalElement,
+        closeModal: () => setModal(undefined),
+        showModal: !!modalElement,
       }}
     >
       {children}
