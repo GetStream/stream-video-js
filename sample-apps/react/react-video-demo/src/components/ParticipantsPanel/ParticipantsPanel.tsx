@@ -61,6 +61,8 @@ export const ParticipantsPanel = ({
     searchQuery,
   });
 
+  const participantsToList = (searchQuery ? searchResults : participants) ?? [];
+
   return (
     <AnimatedPanel
       className={rootClassname}
@@ -82,13 +84,17 @@ export const ParticipantsPanel = ({
       </div>
 
       <ul className={styles.participants}>
-        {(searchQuery ? searchResults : participants).map((participant) => {
-          return (
-            <li className={styles.participant} key={participant.sessionId}>
-              <ParticipantListItem participant={participant} />
-            </li>
-          );
-        })}
+        {!participantsToList.length ? (
+          <p>No matches found</p>
+        ) : (
+          participantsToList.map((participant) => {
+            return (
+              <li className={styles.participant} key={participant.sessionId}>
+                <ParticipantListItem participant={participant} />
+              </li>
+            );
+          })
+        )}
       </ul>
 
       <div className={styles.invite}>
@@ -123,6 +129,8 @@ export const ParticipantsPanelSmallScreen = ({
     searchQuery,
   });
 
+  const participantsToList = (searchQuery ? searchResults : participants) ?? [];
+
   return (
     <div className={styles['participants-panel-small-screen']}>
       <div className={styles['participants-panel-small-screen__float']}>
@@ -148,13 +156,17 @@ export const ParticipantsPanelSmallScreen = ({
         </div>
 
         <ul className={styles.participants}>
-          {(searchQuery ? searchResults : participants).map((participant) => {
-            return (
-              <li className={styles.participant} key={participant.sessionId}>
-                <ParticipantListItem participant={participant} />
-              </li>
-            );
-          })}
+          {!participantsToList.length ? (
+            <p>No matches found</p>
+          ) : (
+            participantsToList.map((participant) => {
+              return (
+                <li className={styles.participant} key={participant.sessionId}>
+                  <ParticipantListItem participant={participant} />
+                </li>
+              );
+            })
+          )}
         </ul>
 
         <div className={styles.invite}>

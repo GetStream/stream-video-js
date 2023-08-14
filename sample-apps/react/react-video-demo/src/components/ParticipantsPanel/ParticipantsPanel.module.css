@@ -101,6 +101,12 @@
   @apply flex flex-col md:hidden;
 }
 
+.participants p {
+  @apply text-video-white;
+  font-size: 0.75rem;
+  text-align: center;
+  padding-block: 1rem;
+}
 
 .participants-panel-small-screen {
   grid-area: header;
