@@ -10,10 +10,7 @@ Additionally, the `<StreamCall />` component sets up a [`MediaDevicesProvider`](
 ## General usage
 
 ```tsx
-import {
-  StreamCall,
-  useCreateStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { StreamCall } from '@stream-io/video-react-sdk';
 
 export const App = () => {
   const call = /* ... */;
@@ -32,7 +29,7 @@ export const App = () => {
 ### `call`
 
 | Type   |
-|--------|
+| ------ |
 | `Call` |
 
 Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
@@ -40,7 +37,7 @@ Stream's `Call` instance propagated to the component's children as a part of `St
 ### `mediaDevicesProviderProps`
 
 | Type                                       |
-|--------------------------------------------|
+| ------------------------------------------ |
 | `MediaDevicesProviderProps` \| `undefined` |
 
 An optional props to pass to the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).

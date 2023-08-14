@@ -168,7 +168,7 @@ The capabilities of the local user live in the metadata of the `Call` instance.
 
 ```tsx
 const call = streamVideoClient.call(type, id);
-const { own_capabilities } = call.state.metadata;
+const { ownCapabilities } = call.state;
 ```
 
 <SDKSpecific name="react">

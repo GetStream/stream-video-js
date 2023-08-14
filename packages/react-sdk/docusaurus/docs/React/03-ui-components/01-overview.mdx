@@ -72,23 +72,26 @@ The [Call & Participant State guide](../../guides/call-and-participant-state) de
 Here is an example of how you can use the `useParticipants()` hook to get all call participants and render them in your application.
 
 ```tsx
-import { useParticipants } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-const ParticipantList = () => {
-    const participants = useParticipants();
-
-    return (
-        <>
-            <h2>Participants</h2>
-            { participants.map((participant) => (
-                <div key={participant.userId}>
-                    <img src={participant.image} alt={`Profile picture of ${participant.name}.`}
-                    <span>{participant.name}</span>
-                </div>
-            ))}
-        </>
-    )
-}
+const MyParticipantList = () => {
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants();
+  return (
+    <>
+      <h2>Participants</h2>
+      {participants.map((participant) => (
+        <div key={participant.sessionId}>
+          <img
+            src={participant.image}
+            alt={`Profile picture of ${participant.name}.`}
+          />
+          <span>{participant.name}</span>
+        </div>
+      ))}
+    </>
+  );
+};
 ```
 
 :::tip

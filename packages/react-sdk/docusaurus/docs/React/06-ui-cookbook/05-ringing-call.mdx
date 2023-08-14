@@ -35,11 +35,11 @@ In order we can start performing calls we need a `StreamVideoClient` instance co
 
 ## Ringing call panel implementation
 
-The component will rely on data accessed via our utility hooks:
+The component will rely on data accessed via our helper hooks:
 
 - `useCall`
 - `useCallCallingState`
-- `useCallMetadata`
+- `useCallCreatedBy`
 - `useCallMembers`
 - `useMediaDevices`
 
@@ -57,8 +57,7 @@ Note, how the initial video state is handled by [`MediaDevicesProvider`](../../g
 ```tsx
 import {
   useCall,
-  useCallMembers,
-  useCallMetadata,
+  useCallStateHooks,
   useMediaDevices,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -77,14 +76,15 @@ export const CustomRingingCall = ({
   showMemberCount = 3,
 }: RingingCallProps) => {
   const call = useCall();
-  const metadata = useCallMetadata();
+  const { useCallMembers, useCallCreatedBy } = useCallStateHooks();
   const members = useCallMembers();
+  const creator = useCallCreatedBy();
   // highlight-next-line
   const { initialVideoState } = useMediaDevices();
 
   if (!call) return null;
 
-  const caller = metadata?.created_by;
+  const caller = creator;
   // show the caller if this is an incoming call or show all the users I am calling to
   let membersToShow: UserResponse[] = [];
   if (call.isCreatedByMe) {
@@ -121,7 +121,7 @@ import {
   CallingState,
   StreamCall,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
   useCalls,
 } from '@stream-io/video-react-sdk';
 
@@ -149,6 +149,7 @@ export const Video = () => {
 // custom component that renders ringing as well as active call UI
 const CallPanel = () => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   if (!call) return null;
@@ -168,17 +169,15 @@ const CallPanel = () => {
 Or, if instead of using [`StreamCall`](../../ui-components/core/stream-call), we want to use the `MediaDevicesProvider` component directly, we pass `initialVideoEnabled` value to it as follows:
 
 ```tsx
-import { MediaDevicesProvider } from "@stream-io/video-react-sdk";
+import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
 
-const SomeComponent = () => {
-    return (
-        ...
-        <MediaDevicesProvider initialVideoEnabled>
-          ...
-        </MediaDevicesProvider>
-        ...
-    )
-}
+const MyComponent = () => {
+  return (
+    // ...
+    <MediaDevicesProvider initialVideoEnabled>//...</MediaDevicesProvider>
+    // ...
+  );
+};
 ```
 
 #### User avatars
@@ -222,7 +221,7 @@ In this component we are using translation service that comes bundled with the S
 ```tsx
 import {
   CallingState,
-  useCallCallingState,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
@@ -240,6 +239,7 @@ const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
 
 const CallCallingStateLabel = () => {
   const { t } = useI18n();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const callingStateLabel = CALLING_STATE_TO_LABEL[callingState];
 
@@ -262,12 +262,13 @@ import {
   CancelCallButton,
   IconButton,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 const CallControls = () => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   if (!call) return null;
