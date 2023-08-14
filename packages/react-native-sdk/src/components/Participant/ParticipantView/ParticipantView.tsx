@@ -41,10 +41,6 @@ export type ParticipantViewProps = {
    */
   ParticipantReaction?: ComponentType<ParticipantReactionProps>;
   /**
-   * Component to customize the video component of the participant.
-   */
-  VideoRenderer?: ComponentType<VideoRendererProps>;
-  /**
    * Component to customize the video fallback of the participant, when the video is disabled.
    */
   ParticipantVideoFallback?: ComponentType<ParticipantVideoFallbackProps>;
@@ -52,6 +48,10 @@ export type ParticipantViewProps = {
    * Component to customize the network quality indicator of the participant.
    */
   ParticipantNetworkQualityIndicator?: ComponentType<ParticipantNetworkQualityIndicatorProps>;
+  /**
+   * Component to customize the video component of the participant.
+   */
+  VideoRenderer?: ComponentType<VideoRendererProps>;
 };
 
 /**

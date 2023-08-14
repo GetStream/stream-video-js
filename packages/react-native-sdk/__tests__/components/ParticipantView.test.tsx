@@ -3,7 +3,14 @@ import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
 import { ComponentTestIds, IconTestIds } from '../../src/constants/TestIds';
 import { act, render, screen } from '../utils/RNTLTools';
-import { ParticipantView } from '../../src/components/Participant/ParticipantView';
+import {
+  ParticipantLabel,
+  ParticipantNetworkQualityIndicator,
+  ParticipantReaction,
+  ParticipantVideoFallback,
+  ParticipantView,
+  VideoRenderer,
+} from '../../src/components/Participant/ParticipantView';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -23,6 +30,11 @@ describe('Participant', () => {
         participant={testParticipant}
         videoMode={'video'}
         isVisible={false}
+        ParticipantLabel={ParticipantLabel}
+        ParticipantReaction={ParticipantReaction}
+        ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
+        ParticipantVideoFallback={ParticipantVideoFallback}
+        VideoRenderer={VideoRenderer}
       />,
     );
 
@@ -48,7 +60,15 @@ describe('Participant', () => {
       },
     });
     render(
-      <ParticipantView participant={testParticipant} videoMode={'screen'} />,
+      <ParticipantView
+        participant={testParticipant}
+        videoMode={'screen'}
+        ParticipantLabel={ParticipantLabel}
+        ParticipantReaction={ParticipantReaction}
+        ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
+        ParticipantVideoFallback={ParticipantVideoFallback}
+        VideoRenderer={VideoRenderer}
+      />,
     );
 
     expect(
@@ -69,7 +89,15 @@ describe('Participant', () => {
       isSpeaking: true,
     });
     render(
-      <ParticipantView participant={testParticipant} videoMode={'video'} />,
+      <ParticipantView
+        participant={testParticipant}
+        videoMode={'video'}
+        ParticipantLabel={ParticipantLabel}
+        ParticipantReaction={ParticipantReaction}
+        ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
+        ParticipantVideoFallback={ParticipantVideoFallback}
+        VideoRenderer={VideoRenderer}
+      />,
     );
 
     const [VideoRTCView] = await screen.findAllByTestId(
