@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -21,11 +21,7 @@ export type HangUpCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onHangUpCall?: () => void;
-  /**
-   * Style of the Button Container
-   */
-  style?: StyleProp<ViewStyle>;
+  onHangupCallHandler?: () => void;
 };
 
 /**
@@ -35,8 +31,7 @@ export type HangUpCallButtonProps = {
  */
 export const HangUpCallButton = ({
   onPressHandler,
-  onHangUpCall,
-  style,
+  onHangupCallHandler,
 }: HangUpCallButtonProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -52,8 +47,8 @@ export const HangUpCallButton = ({
         return;
       }
       await call?.leave();
-      if (onHangUpCall) {
-        onHangUpCall();
+      if (onHangupCallHandler) {
+        onHangupCallHandler();
       }
     } catch (error) {
       console.error('Error leaving call:', error);
@@ -65,10 +60,16 @@ export const HangUpCallButton = ({
     <CallControlsButton
       onPress={hangUpCallHandler}
       color={theme.light.error}
-      style={[{ shadowColor: theme.light.error }, style]}
+      style={styles.button}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
       <PhoneDown color={theme.light.static_white} />
     </CallControlsButton>
   );
 };
+
+const styles = StyleSheet.create({
+  button: {
+    shadowColor: theme.light.error,
+  },
+});

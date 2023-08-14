@@ -10,36 +10,35 @@ import { HangUpCallButton } from './HangupCallButton';
 /**
  * Props for the CallControls Component.
  */
-export interface CallControlsType extends Pick<ViewProps, 'style'> {
+export type CallControlProps = Pick<ViewProps, 'style'> & {
   /**
    * Handler to override the hang up handler when the hangup button is pressed.
    * @returns void
    */
   onHangupCallHandler?: () => void;
-}
+};
 
 /**
  * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
  * the user can trigger within an active call.
  */
 export const CallControls = ({
-  onHangupCallHandler,
   style,
-}: CallControlsType) => {
+  onHangupCallHandler,
+}: CallControlProps) => {
   return (
     <View style={[styles.container, style]}>
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
-      <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: theme.padding.md,
-    paddingBottom: theme.padding.lg,
+    paddingVertical: theme.padding.md,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     zIndex: Z_INDEX.IN_FRONT,

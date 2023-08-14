@@ -19,7 +19,7 @@ type RejectCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onRejectHandler?: () => void;
+  onRejectCallHandler?: () => void;
 };
 
 /**
@@ -29,7 +29,7 @@ type RejectCallButtonProps = {
  */
 export const RejectCallButton = ({
   onPressHandler,
-  onRejectHandler,
+  onRejectCallHandler,
 }: RejectCallButtonProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -44,8 +44,8 @@ export const RejectCallButton = ({
         return;
       }
       await call?.leave({ reject: true });
-      if (onRejectHandler) {
-        onRejectHandler();
+      if (onRejectCallHandler) {
+        onRejectCallHandler();
       }
     } catch (error) {
       console.log('Error rejecting Call', error);
