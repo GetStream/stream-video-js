@@ -16,17 +16,16 @@ import { useDraggable } from '../../hooks';
 
 export const CallPanel = () => {
   const call = useCall();
-  const { useCallCallingState, useCallMetadata } = useCallStateHooks();
+  const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const metadata = useCallMetadata();
+  const customData = useCallCustomData();
   const { channel: activeChannel } = useChatContext();
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
   if (!call) return null;
 
-  const callingToActiveChannel =
-    activeChannel?.cid === metadata?.custom.channelCid;
+  const callingToActiveChannel = activeChannel?.cid === customData.channelCid;
   // FIXME: currently does not show call panel when called from channel not loaded into state
   if (CallingState.RINGING === callingState && !callingToActiveChannel)
     return null;

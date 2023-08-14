@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   CallRecording,
   useCall,
-  useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
@@ -17,8 +16,7 @@ const MAX_NUMBER_POLL_REQUESTS = 6;
 const POLL_INTERVAL_MS = 10 * 1000;
 
 export const Recordings = () => {
-  const { useCallRecordings } = useCallStateHooks();
-  const callRecordings = useCallRecordings();
+  const [callRecordings, setCallRecordings] = useState<CallRecording[]>([]);
   const client = useStreamVideoClient();
   const activeCall = useCall();
 
@@ -30,7 +28,7 @@ export const Recordings = () => {
     let recordingPollRequestsCount = 0;
     let recordingPollRequestsInterval: any = undefined;
 
-    if (!(client && activeCall && callRecordings)) return;
+    if (!client || !activeCall || callRecordings.length === 0) return;
     const scheduleCallRecordingPolling = () => {
       setLoadingCallRecordings(true);
 
@@ -58,6 +56,8 @@ export const Recordings = () => {
             setLoadingCallRecordings(false);
             clearInterval(recordingPollRequestsInterval);
           }
+
+          setCallRecordings(recordings);
         }
       }, POLL_INTERVAL_MS);
     };

@@ -235,11 +235,10 @@ export const MediaDevicesProvider = ({
   initialAudioInputDeviceId = DEFAULT_DEVICE_ID,
 }: PropsWithChildren<MediaDevicesProviderProps>) => {
   const call = useCall();
-  const { useCallCallingState, useCallState, useCallMetadata } =
+  const { useCallCallingState, useCallState, useCallSettings } =
     useCallStateHooks();
   const callingState = useCallCallingState();
   const callState = useCallState();
-  const metadata = useCallMetadata();
   const { localParticipant$ } = callState;
   const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
     'camera' as PermissionName,
@@ -267,7 +266,7 @@ export const MediaDevicesProvider = ({
     initialVideoEnabled ? DEVICE_STATE.starting : DEVICE_STATE.uninitialized,
   );
 
-  const settings = metadata?.settings;
+  const settings = useCallSettings();
   useEffect(() => {
     if (!settings) return;
     const { audio, video } = settings;

@@ -48,11 +48,11 @@ const SpeakingRequest = ({
   speakingRequest,
 }: SpeakingRequestProps) => {
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const metadata = useCallMetadata();
+  const { useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
 
   const acceptRequest = useCallback(async () => {
-    if (!(call && metadata?.custom)) return null;
+    if (!(call && customData)) return null;
 
     await call?.updateUserPermissions({
       user_id: speakingRequest.user.id,
@@ -61,16 +61,13 @@ const SpeakingRequest = ({
 
     await call?.update({
       custom: {
-        ...(metadata?.custom || {}),
-        speakerIds: [
-          ...(metadata?.custom.speakerIds || []),
-          speakingRequest.user.id,
-        ],
+        ...(customData || {}),
+        speakerIds: [...(customData.speakerIds || []), speakingRequest.user.id],
       },
     });
 
     dismiss(speakingRequest);
-  }, [dismiss, call, metadata?.custom, speakingRequest]);
+  }, [dismiss, call, customData, speakingRequest]);
 
   return (
     <div className="speaking-request">

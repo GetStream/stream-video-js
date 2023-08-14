@@ -3,7 +3,6 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  CallResponse,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
@@ -186,13 +185,6 @@ export type CallConstructor = {
    * The Call ID.
    */
   id: string;
-
-  /**
-   * An optional {@link CallResponse} metadata from the backend.
-   * If provided, the call will be initialized with the data from this object.
-   * This is useful when initializing a new "pending call" from an event.
-   */
-  metadata?: CallResponse;
 
   /**
    * An optional list of {@link MemberResponse} from the backend.

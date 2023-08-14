@@ -7,7 +7,7 @@ import {
   SfuModels,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useMediaStreamManagement } from '../../providers';
 import { Z_INDEX } from '../../constants';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
@@ -30,6 +30,7 @@ export const VideoRenderer = ({
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
