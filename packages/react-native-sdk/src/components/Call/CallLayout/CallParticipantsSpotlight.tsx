@@ -6,17 +6,51 @@ import {
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { ParticipantView } from '../../participants/ParticipantView';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { CallParticipantsList } from '../../call/CallParticipantsList';
-import { LocalParticipantView } from '../../participants';
+import {
+  CallParticipantsList,
+  CallParticipantsListProps,
+} from '../CallParticipantsList/CallParticipantsList';
+import {
+  LocalParticipantView,
+  ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
+  ParticipantReaction as DefaultParticipantReaction,
+  ParticipantLabel as DefaultParticipantLabel,
+  ParticipantVideoFallback as DefaultParticipantVideoFallback,
+  VideoRenderer as DefaultVideoRenderer,
+  ParticipantView as DefaultParticipantView,
+} from '../../Participant';
+
+/**
+ * Props for the CallParticipantsSpotlight component.
+ */
+export type CallParticipantsSpotlightProps = Pick<
+  CallParticipantsListProps,
+  | 'ParticipantLabel'
+  | 'ParticipantNetworkQualityIndicator'
+  | 'ParticipantReaction'
+  | 'ParticipantVideoFallback'
+  | 'ParticipantView'
+  | 'VideoRenderer'
+>;
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
-export const CallParticipantsSpotlight = () => {
+/**
+ * Component used to display the list of participants in a spotlight mode.
+ * This can be used when you want to render the screen sharing stream.
+ */
+export const CallParticipantsSpotlight = ({
+  ParticipantLabel = DefaultParticipantLabel,
+  ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
+  ParticipantReaction = DefaultParticipantReaction,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  ParticipantView = DefaultParticipantView,
+  VideoRenderer = DefaultVideoRenderer,
+}: CallParticipantsSpotlightProps) => {
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
@@ -41,6 +75,13 @@ export const CallParticipantsSpotlight = () => {
           participant={participantInSpotlight}
           style={styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          ParticipantLabel={ParticipantLabel}
+          ParticipantNetworkQualityIndicator={
+            ParticipantNetworkQualityIndicator
+          }
+          ParticipantReaction={ParticipantReaction}
+          ParticipantVideoFallback={ParticipantVideoFallback}
+          VideoRenderer={VideoRenderer}
         />
       )}
       <View style={styles.participantVideoContainer}>
@@ -49,6 +90,14 @@ export const CallParticipantsSpotlight = () => {
             isScreenShareOnSpotlight ? allParticipants : otherParticipants
           }
           horizontal
+          ParticipantLabel={ParticipantLabel}
+          ParticipantNetworkQualityIndicator={
+            ParticipantNetworkQualityIndicator
+          }
+          ParticipantReaction={ParticipantReaction}
+          ParticipantVideoFallback={ParticipantVideoFallback}
+          ParticipantView={ParticipantView}
+          VideoRenderer={VideoRenderer}
         />
       </View>
     </View>

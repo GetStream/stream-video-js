@@ -1,4 +1,4 @@
 // exported UI components we want to expose to our integrators
-export * from './call';
+export * from './Call';
 export * from './utility';
-export * from './participants';
+export * from './Participant';

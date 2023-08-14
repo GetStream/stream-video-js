@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../icons';
-import { theme } from '../../theme';
+import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
+import { theme } from '../../../theme';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../providers';
-import { ComponentTestIds } from '../../constants/TestIds';
+import { useMediaStreamManagement } from '../../../providers';
+import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
-import { Z_INDEX } from '../../constants';
+import { Z_INDEX } from '../../../constants';
 
 export type ParticipantLabelProps = Pick<
   ParticipantViewProps,

@@ -8,9 +8,8 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../providers';
-import { Z_INDEX } from '../../constants';
-import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
+import { useMediaStreamManagement } from '../../../providers';
+import { Z_INDEX } from '../../../constants';
 
 /**
  * Props to be passed for the VideoRenderer component.
@@ -27,7 +26,7 @@ export const VideoRenderer = ({
   videoMode,
   participant,
   isVisible,
-  ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  ParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -179,7 +178,9 @@ export const VideoRenderer = ({
           zOrder={Z_INDEX.IN_BACK}
         />
       ) : (
-        <ParticipantVideoFallback participant={participant} />
+        ParticipantVideoFallback && (
+          <ParticipantVideoFallback participant={participant} />
+        )
       )}
     </View>
   );

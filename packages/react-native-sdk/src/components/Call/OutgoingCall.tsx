@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { UserInfo } from './internal/UserInfo';
+import { UserInfo } from './UserInfo';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
@@ -87,10 +87,12 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading6,
   },
-  buttonGroup: {},
+  buttonGroup: {
+    alignItems: 'center',
+  },
   deviceControlButtons: {
+    width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: theme.margin.md,
+    justifyContent: 'space-evenly',
   },
 });

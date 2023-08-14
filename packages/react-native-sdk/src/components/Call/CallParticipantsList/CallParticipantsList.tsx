@@ -6,17 +6,18 @@ import React, {
   useState,
 } from 'react';
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { ParticipantView } from '../participants/ParticipantView';
+
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { theme } from '../../theme';
-import { useDebouncedValue } from '../../utils/hooks/useDebouncedValue';
+import { theme } from '../../../theme';
+import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
-import { ComponentTestIds } from '../../constants/TestIds';
+import { ComponentTestIds } from '../../../constants/TestIds';
+import { ParticipantViewProps } from '../../Participant/ParticipantView';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -27,7 +28,17 @@ const VIEWABILITY_CONFIG: FlatListProps['viewabilityConfig'] = {
   itemVisiblePercentThreshold: 60,
 };
 
-interface CallParticipantsListProps {
+/**
+ * Props of the CallParticipantsList component
+ */
+export type CallParticipantsListProps = Pick<
+  ParticipantViewProps,
+  | 'ParticipantLabel'
+  | 'ParticipantNetworkQualityIndicator'
+  | 'ParticipantReaction'
+  | 'ParticipantVideoFallback'
+  | 'VideoRenderer'
+> & {
   /**
    * The list of participants to display in the list
    */
@@ -41,7 +52,11 @@ interface CallParticipantsListProps {
    * If true, the list will be displayed in horizontal scrolling mode
    */
   horizontal?: boolean;
-}
+  /**
+   * Component to customize the participant view.
+   */
+  ParticipantView?: React.ComponentType<ParticipantViewProps>;
+};
 
 /**
  * This component displays a list of participants in a FlatList.
@@ -49,8 +64,17 @@ interface CallParticipantsListProps {
  * NOTE: this component depends on a flex container to calculate the width and height of the participant view,
  * hence it should be used only in a flex parent container
  */
-export const CallParticipantsList = (props: CallParticipantsListProps) => {
-  const { numberOfColumns = 2, horizontal, participants } = props;
+export const CallParticipantsList = ({
+  numberOfColumns = 2,
+  horizontal,
+  participants,
+  ParticipantLabel,
+  ParticipantNetworkQualityIndicator,
+  ParticipantReaction,
+  ParticipantVideoFallback,
+  ParticipantView,
+  VideoRenderer,
+}: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
@@ -141,14 +165,26 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
         participant.sessionId,
       );
       return (
-        <ParticipantView
-          participant={participant}
-          style={itemContainerStyle}
-          videoMode="video"
-          isVisible={isVisible}
-        />
+        <>
+          {ParticipantView && (
+            <ParticipantView
+              participant={participant}
+              style={itemContainerStyle}
+              videoMode="video"
+              isVisible={isVisible}
+              ParticipantLabel={ParticipantLabel}
+              ParticipantNetworkQualityIndicator={
+                ParticipantNetworkQualityIndicator
+              }
+              ParticipantReaction={ParticipantReaction}
+              ParticipantVideoFallback={ParticipantVideoFallback}
+              VideoRenderer={VideoRenderer}
+            />
+          )}
+        </>
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [itemContainerStyle],
   );
 
@@ -161,12 +197,21 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
       <>
         {participants.map((participant, index) => {
           return (
-            <ParticipantView
-              participant={participant}
-              style={styles.flexed}
-              videoMode="video"
-              key={keyExtractor(participant, index)}
-            />
+            ParticipantView && (
+              <ParticipantView
+                participant={participant}
+                style={styles.flexed}
+                videoMode="video"
+                key={keyExtractor(participant, index)}
+                ParticipantLabel={ParticipantLabel}
+                ParticipantNetworkQualityIndicator={
+                  ParticipantNetworkQualityIndicator
+                }
+                ParticipantReaction={ParticipantReaction}
+                ParticipantVideoFallback={ParticipantVideoFallback}
+                VideoRenderer={VideoRenderer}
+              />
+            )
           );
         })}
       </>
