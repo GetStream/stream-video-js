@@ -10,7 +10,7 @@ import {
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
-} from '../../src/components/Participant/ParticipantView';
+} from '../../src/components';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
