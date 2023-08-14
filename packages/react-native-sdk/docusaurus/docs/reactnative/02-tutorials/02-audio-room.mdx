@@ -102,6 +102,7 @@ Open up `src/App.tsx` and replace it with this code:
 ```tsx title="src/App.tsx"
 import {
   StreamVideoClient,
+  StreamVideoRN,
   Call,
   CallingState,
   StreamVideo,
@@ -111,8 +112,10 @@ import {
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, Text } from 'react-native';
 
+// for simplicity, we assume that permission was granted through the native settings app
 StreamVideoRN.setPermissions({
-  isMicPermissionGranted: true, // for simplicity, we assume that permission was granted through the native settings app
+  isCameraPermissionGranted: false,
+  isMicPermissionGranted: true,
 });
 
 const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
@@ -185,7 +188,9 @@ export default function App() {
     <StreamVideo client={client} language="en">
       <StreamCall call={call}>
         <SafeAreaView>
-          <Text style={{ fontSize: 30, color: 'black' }}>Ready to render Audio room</Text>
+          <Text style={{ fontSize: 30, color: 'black' }}>
+            Ready to render Audio room
+          </Text>
         </SafeAreaView>
       </StreamCall>
     </StreamVideo>
