@@ -4,7 +4,7 @@
 }
 
 
-.root.open.fulllHeight {
+.root.expanded {
   flex: 1;
   min-height: 0;
 }
@@ -32,6 +32,12 @@
 @media (max-width: 768px) {
   .animated.visible.participantsPanel {
     height: 50%;
+
+    .content.participantsPanel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
   }
 }
 
@@ -44,7 +50,8 @@
 }
 
 .header.canCollapse {
-  @apply flex justify-between items-center;
+  @apply items-center;
+  cursor: pointer;
 }
 
 .arrow {

@@ -84,7 +84,7 @@ export const Feedback: FC<Props> = ({
   const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
   const [errorMessage, setError] = useState<string | null>(null);
 
-  const { close, isVisible } = useModalContext();
+  const { closeModal, showModal } = useModalContext();
 
   const endpointUrl =
     import.meta.env.MODE === 'staging' || import.meta.env.MODE === 'development'
@@ -150,12 +150,12 @@ export const Feedback: FC<Props> = ({
           <h2 className={styles.header}>
             Your message was successfully sent 👍
           </h2>
-          {isVisible ? (
+          {showModal ? (
             <Button
               shape="square"
               className={styles.close}
               color="transparent"
-              onClick={close}
+              onClick={closeModal}
             >
               <Close className={styles.closeIcon} />
             </Button>
@@ -170,7 +170,7 @@ export const Feedback: FC<Props> = ({
     );
   }
 
-  if (feedbackSent === false) {
+  if (!feedbackSent) {
     return (
       <div className={rootClassName}>
         <h4 className={styles.heading}>How was your calling experience?</h4>
