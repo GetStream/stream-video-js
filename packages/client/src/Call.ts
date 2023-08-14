@@ -1719,6 +1719,9 @@ export class Call {
     ) {
       return;
     }
+
+    // Set camera direction if it's not yet set
+    // This will also start publishing if camera is enabled
     if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
       let defaultDirection: CameraDirection = 'front';
       const backendSetting = this.state.metadata?.settings.video.camera_facing;
@@ -1726,10 +1729,8 @@ export class Call {
         defaultDirection = backendSetting === 'front' ? 'front' : 'back';
       }
       this.camera.selectDirection(defaultDirection);
-    }
-
-    // Publish already started media streams (this is the case if there is a lobby screen before join)
-    if (this.camera.state.status === 'enabled') {
+    } else if (this.camera.state.status === 'enabled') {
+      // Publish already started media streams (this is the case if there is a lobby screen before join)
       // Wait for media stream
       this.camera.state.mediaStream$
         .pipe(takeWhile((s) => s === undefined, true))
