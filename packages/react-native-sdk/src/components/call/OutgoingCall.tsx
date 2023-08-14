@@ -87,10 +87,12 @@ const styles = StyleSheet.create({
     color: theme.light.static_white,
     ...theme.fonts.heading6,
   },
-  buttonGroup: {},
+  buttonGroup: {
+    alignItems: 'center',
+  },
   deviceControlButtons: {
+    width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: theme.margin.md,
+    justifyContent: 'space-evenly',
   },
 });
