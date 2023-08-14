@@ -1,11 +1,11 @@
 import { ComponentType } from 'react';
-import DominantSpeakerLayout from './dominant-speaker';
+import FullscreenLayout from './fullscreen';
 import GridLayout from './grid';
+import {SidebarLeftLayout, SidebarRightLayout} from "./sidebar";
 
 export const DEFAULT_LAYOUT_ID: LayoutId = 'grid';
 
-export type SpotlightMode = 'dominant-speaker' | 'shuffle';
-export type LayoutId = 'dominant-speaker' | 'grid';
+export type LayoutId = 'fullscreen' | 'grid' | 'sidebar_right' | 'sidebar_left';
 
 export interface Layout {
   ParticipantsView: ComponentType;
@@ -13,7 +13,9 @@ export interface Layout {
 }
 
 const layouts: Record<LayoutId, Layout> = {
-  'dominant-speaker': DominantSpeakerLayout,
+  'fullscreen': FullscreenLayout,
+  'sidebar_right': SidebarLeftLayout,
+  'sidebar_left': SidebarRightLayout,
   grid: GridLayout,
 };
 
