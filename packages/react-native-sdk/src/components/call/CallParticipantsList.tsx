@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import { Participant } from '../participants/Participant';
+import { ParticipantView } from '../participants/ParticipantView';
 import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -141,10 +141,10 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
         participant.sessionId,
       );
       return (
-        <Participant
+        <ParticipantView
           participant={participant}
-          containerStyle={itemContainerStyle}
-          kind="video"
+          style={itemContainerStyle}
+          videoMode="video"
           isVisible={isVisible}
         />
       );
@@ -159,15 +159,16 @@ export const CallParticipantsList = (props: CallParticipantsListProps) => {
   if (!shouldWrapByColumns) {
     return (
       <>
-        {participants.map((participant, index) => (
-          <Participant
-            participant={participant}
-            containerStyle={styles.flexed}
-            kind="video"
-            isVisible={true}
-            key={keyExtractor(participant, index)}
-          />
-        ))}
+        {participants.map((participant, index) => {
+          return (
+            <ParticipantView
+              participant={participant}
+              style={styles.flexed}
+              videoMode="video"
+              key={keyExtractor(participant, index)}
+            />
+          );
+        })}
       </>
     );
   }
@@ -197,7 +198,6 @@ const styles = StyleSheet.create({
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: theme.margin.sm,
-    overflow: 'hidden',
     borderRadius: theme.rounded.sm,
   },
 });

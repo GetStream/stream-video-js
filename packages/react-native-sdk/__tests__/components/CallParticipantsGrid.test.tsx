@@ -47,7 +47,7 @@ describe('CallParticipantsGrid', () => {
         userId: P_IDS.LOCAL_1,
       }),
       mockParticipant({
-        publishedTracks: [SfuModels.TrackType.AUDIO],
+        publishedTracks: [SfuModels.TrackType.AUDIO, SfuModels.TrackType.VIDEO],
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
       }),
@@ -63,7 +63,7 @@ describe('CallParticipantsGrid', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`),
     );
 
     // shows the local participant floating view?
@@ -73,7 +73,7 @@ describe('CallParticipantsGrid', () => {
 
     expect(
       participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'audio-test-url');
+    ).toHaveProp('streamURL', 'video-test-url');
 
     // flat list should not be rendered for 2 participants as we should not wrap them in a grid
     expect(
@@ -123,26 +123,19 @@ describe('CallParticipantsGrid', () => {
 
     // Locating and verifying that all ParticipantViews are rendered
     const localParticipant = within(
-      screen.getByTestId(`participant-${P_IDS.LOCAL_1}`),
-    );
-    const participant1 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_1}`),
+      screen.getByTestId(`participant-${P_IDS.LOCAL_1}-is-not-speaking`),
     );
     const participant2 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_2}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`),
     );
-
     const participant3 = within(
-      screen.getByTestId(`participant-${P_IDS.REMOTE_3}`),
+      screen.getByTestId(`participant-${P_IDS.REMOTE_3}-is-not-speaking`),
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
     expect(
       localParticipant.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
-    expect(
-      participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'audio-test-url');
     expect(
       participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');
@@ -152,7 +145,7 @@ describe('CallParticipantsGrid', () => {
     // Verifying no extra/unknown RTCViews are rendered
     expect(
       screen.getAllByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveLength(4);
+    ).toHaveLength(3);
   });
 });
 

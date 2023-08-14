@@ -6,6 +6,7 @@ import 'react-native-url-polyfill/auto';
 /** i18next polyfill to handle intl format for pluralization. For more info see https://www.i18next.com/misc/json-format#i-18-next-json-v4 */
 import 'intl-pluralrules';
 import { registerGlobals } from 'react-native-webrtc';
+import Logger from 'react-native-webrtc/src/Logger';
 import { Platform } from 'react-native';
 
 // We're registering globals, because our video JS client is serving SDKs that use browser based webRTC functions.
@@ -14,6 +15,9 @@ import { Platform } from 'react-native';
 if (Platform.OS !== 'web') {
   registerGlobals();
 }
+
+// only enable warning and error logs from webrtc library
+Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
 
 export * from '@stream-io/i18n';
 export * from '@stream-io/video-client';

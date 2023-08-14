@@ -1,14 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
-import { theme } from '../../../theme';
+import { theme } from '../../theme';
 import { SfuModels } from '@stream-io/video-client';
 import React from 'react';
+import { Z_INDEX } from '../../constants';
+import { ParticipantViewProps } from './ParticipantView';
 /**
  * Props to be passed for the NetworkQualityIndicator component.
  */
-export type NetworkQualityIndicatorType = {
-  connectionQuality: SfuModels.ConnectionQuality;
-};
+export type ParticipantNetworkQualityIndicatorProps = Pick<
+  ParticipantViewProps,
+  'participant'
+>;
 
 const connectionQualitySignalColors: Record<
   SfuModels.ConnectionQuality,
@@ -24,9 +27,10 @@ const connectionQualitySignalColors: Record<
   3: [theme.light.primary, theme.light.primary, theme.light.primary],
 };
 
-export const NetworkQualityIndicator = ({
-  connectionQuality,
-}: NetworkQualityIndicatorType) => {
+export const ParticipantNetworkQualityIndicator = ({
+  participant,
+}: ParticipantNetworkQualityIndicatorProps) => {
+  const { connectionQuality } = participant;
   if (!connectionQuality) {
     return null;
   }
@@ -68,6 +72,8 @@ export const NetworkQualityIndicator = ({
 
 const styles = StyleSheet.create({
   container: {
+    zIndex: Z_INDEX.IN_FRONT,
+    alignSelf: 'flex-end',
     backgroundColor: theme.light.static_overlay,
     borderRadius: theme.rounded.xs,
   },
