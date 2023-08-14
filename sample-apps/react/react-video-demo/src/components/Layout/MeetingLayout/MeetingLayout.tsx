@@ -65,10 +65,7 @@ export const MeetingLayout: FC<Props> = ({
   return (
     <section className={rootClassName}>
       <div className={layoutContainerClassName}>
-        {participantsPanelVisibility === PANEL_VISIBILITY.expanded &&
-        (breakpoint === 'xs' || breakpoint === 'sm') ? null : (
-          <div className={styles.header}>{header}</div>
-        )}
+        {header}
         {chatPanelVisibility === PANEL_VISIBILITY.expanded &&
         (breakpoint === 'xs' || breakpoint === 'sm') ? (
           <div className={styles.backdrop} onClick={() => toggleHide('chat')} />

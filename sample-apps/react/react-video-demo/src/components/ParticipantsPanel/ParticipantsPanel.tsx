@@ -5,7 +5,7 @@ import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
 import { AnimatedPanel } from '../Panel';
 import { Invite } from '../InvitePanel';
-import { Search } from '../Icons';
+import { Close, Search } from '../Icons';
 import { ParticipantListItem } from './ParticipantListItem';
 import { useSearch } from '../../hooks/useSearch';
 
@@ -95,5 +95,72 @@ export const ParticipantsPanel = ({
         <Invite callId={callId} canShare />
       </div>
     </AnimatedPanel>
+  );
+};
+
+export const ParticipantsPanelSmallScreen = ({
+  participants = [],
+  callId,
+}: ParticipantsPanelProps) => {
+  const { toggleHide } = usePanelContext();
+  const [searchQuery, setSearchQuery]: any = useState(undefined);
+
+  const activeUsersSearchFn = useCallback(
+    (queryString: string) => {
+      const queryRegExp = new RegExp(queryString, 'i');
+      return Promise.resolve(
+        (participants || []).filter((participant) => {
+          return participant.name.match(queryRegExp);
+        }),
+      );
+    },
+    [participants],
+  );
+
+  const { searchResults } = useSearch<StreamVideoParticipant>({
+    searchFn: activeUsersSearchFn,
+    debounceInterval: 0,
+    searchQuery,
+  });
+
+  return (
+    <div className={styles['participants-panel-small-screen']}>
+      <div className={styles['participants-panel-small-screen__float']}>
+        <div className={styles['participants-panel-small-screen__header']}>
+          <div
+            className={styles['participants-panel-small-screen__header__title']}
+          >
+            <ParticipantsPanelTitle participants={participants} />
+          </div>
+          <button onClick={() => toggleHide('participant-list')}>
+            <Close />
+          </button>
+        </div>
+        <div className={styles.search}>
+          <input
+            className={styles.input}
+            type="text"
+            placeholder="Search"
+            onBlur={(e) => setSearchQuery(e.currentTarget.value)}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          />
+          <Search className={styles.searchIcon} />
+        </div>
+
+        <ul className={styles.participants}>
+          {(searchQuery ? searchResults : participants).map((participant) => {
+            return (
+              <li className={styles.participant} key={participant.sessionId}>
+                <ParticipantListItem participant={participant} />
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className={styles.invite}>
+          <Invite callId={callId} canShare />
+        </div>
+      </div>
+    </div>
   );
 };

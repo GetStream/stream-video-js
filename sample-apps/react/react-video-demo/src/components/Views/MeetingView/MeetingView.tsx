@@ -29,7 +29,6 @@ import type { ConnectionError } from 'src/hooks/useChatClient';
 import '@stream-io/video-styling/dist/css/styles.css';
 
 export type MeetingViewProps = {
-  loading?: boolean;
   call: Call;
   isCallActive: boolean;
   setCallHasEnded(ended: boolean): void;
@@ -169,7 +168,6 @@ export const MeetingView = ({
       }
       footer={
         <Footer
-          chatClient={chatClient}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
@@ -188,7 +186,6 @@ export const MeetingView = ({
         isScreenSharing={isScreenSharing}
         call={call}
         participantsAmount={participants?.length}
-        participants={participants}
       />
     </MeetingLayout>
   );
