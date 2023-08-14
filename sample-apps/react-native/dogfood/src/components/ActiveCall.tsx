@@ -41,10 +41,8 @@ export const ActiveCall = ({
   const call = useCall();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
-  const callType = useCall()?.type;
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
-  const showSpotLightMode = callType !== 'audio_room' && hasScreenShare;
 
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
@@ -76,7 +74,7 @@ export const ActiveCall = ({
           onBackPressed={onBackPressed}
           onParticipantInfoPress={onOpenCallParticipantsInfo}
         />
-        {showSpotLightMode ? (
+        {hasScreenShare ? (
           <CallParticipantsSpotlight />
         ) : (
           <CallParticipantsGrid />
