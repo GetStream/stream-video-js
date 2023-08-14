@@ -56,7 +56,9 @@ export const NewMessageNotification = ({
                 </span>
               )}
             </div>
-            <div className="str-chat__utility-ellipsis">{message?.text}</div>
+            <div className="str-chat__new-message-notification__text utility-ellipsis">
+              {message?.text}
+            </div>
           </div>
         </div>
       }
