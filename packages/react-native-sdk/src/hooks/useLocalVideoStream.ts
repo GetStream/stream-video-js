@@ -3,6 +3,7 @@ import { disposeOfMediaStream, getVideoStream } from '@stream-io/video-client';
 import { MediaStream } from 'react-native-webrtc';
 import { useStreamVideoStoreValue } from '../contexts';
 import { useCameraState } from '@stream-io/video-react-bindings';
+import { useAppStateListener } from '../utils/hooks';
 
 /**
  * A hook which provides the device's local video stream.
@@ -17,6 +18,21 @@ export const useLocalVideoStream = () => {
   const currentVideoDeviceId = useStreamVideoStoreValue(
     (store) => store.currentVideoDevice,
   )?.deviceId;
+
+  // Pause/Resume video stream tracks when app goes to background/foreground
+  // To save on CPU resources
+  useAppStateListener(
+    () => {
+      videoStream?.getVideoTracks().forEach((track) => {
+        track.enabled = true;
+      });
+    },
+    () => {
+      videoStream?.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    },
+  );
 
   useEffect(() => {
     let mediaStream: MediaStream | undefined;
