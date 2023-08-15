@@ -28,9 +28,7 @@ yarn add @stream-io/video-react-sdk
 Open up `src/App.tsx` and replace it with this code:
 
 ```tsx title="src/App.tsx"
-import { useEffect, useState } from 'react';
 import {
-  Call,
   CallingState,
   StreamCall,
   StreamVideo,
@@ -56,7 +54,7 @@ const client = new StreamVideoClient({ apiKey, user, token });
 const call = client.call('default', callId);
 call.join({ create: true });
 
-export default function App() {
+export const App = () => {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
@@ -64,7 +62,7 @@ export default function App() {
       </StreamCall>
     </StreamVideo>
   );
-}
+};
 
 export const MyUILayout = () => {
   const call = useCall();
@@ -129,7 +127,7 @@ After the user and client are created, we create a call like this:
 
 ```ts
 const call = client.call('default', callId);
-call.join({ create: true });
+await call.join({ create: true });
 ```
 
 As soon as you use `call.join()` the connection for video & audio is setup.
@@ -410,7 +408,7 @@ It supports reactions, screensharing, active speaker detection, network quality 
 The full list of [UI components](../../ui-components/overview) is available in the docs.
 
 :::note
-Because of simplicity of this tutorial, we are skipping some of the best-practices for building a production ready app.
+Because of simplicity, in this tutorial, we are skipping some of the best practices for building a production ready app.
 Take a look at our sample app linked at the end of this tutorial for a more complete example.
 :::
 
