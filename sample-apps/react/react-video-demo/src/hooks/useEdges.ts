@@ -23,7 +23,12 @@ const cacheEdges = (edges: FeatureCollection<Geometry>) => {
 
 const getCachedEdges = (): CachedEdges | undefined => {
   const edgeJSON = localStorage.getItem(EDGES_KEY);
-  return edgeJSON ? JSON.parse(edgeJSON) : undefined;
+  if (!edgeJSON) return;
+  try {
+    return JSON.parse(edgeJSON);
+  } catch {
+    return undefined;
+  }
 };
 
 export const useEdges = (client?: StreamVideoClient) => {
