@@ -81,6 +81,10 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
+  protected abstract pause(): void;
+
+  protected abstract resume(): void;
+
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
   protected abstract getStream(

@@ -52,4 +52,22 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected stopPublishStream(): Promise<void> {
     return this.call.stopPublish(TrackType.VIDEO);
   }
+
+  /**
+   * Disables the video tracks of the camera
+   */
+  protected pause() {
+    this.state.mediaStream?.getVideoTracks().forEach((track) => {
+      track.enabled = false;
+    });
+  }
+
+  /**
+   * (Re)enables the video tracks of the camera
+   */
+  protected resume() {
+    this.state.mediaStream?.getVideoTracks().forEach((track) => {
+      track.enabled = true;
+    });
+  }
 }
