@@ -19,7 +19,6 @@ export const ParticipantLabel = ({
 }: ParticipantLabelProps) => {
   const { name, userId, pin, sessionId, publishedTracks, isLocalParticipant } =
     participant;
-  console.log({ isLocalParticipant });
   const call = useCall();
   const { t } = useI18n();
   const participantName = name ?? userId;
