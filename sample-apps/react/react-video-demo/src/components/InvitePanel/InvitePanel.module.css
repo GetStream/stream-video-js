@@ -66,16 +66,16 @@
 }
 
 
-.reload {
-  @apply h-[14px] cursor-pointer;
+.reload, .copyIcon {
+  @apply h-[18px] cursor-pointer;
 }
 
 .description {
-  @apply mt-4 mb-4 text-xs flex;
+  @apply mt-4 mb-4 text-xs flex text-video-white;
 }
 
 .description:last-of-type {
-  @apply hidden lg:inline-block;
+  @apply lg:inline-block;
 }
 
 .qr {
@@ -102,5 +102,8 @@
 }
 
 .share {
-  @apply mt-3 w-full;
+  @apply mt-3 w-full bg-video-stream-500 text-video-white  border-video-stream-500;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding-block: 0.5rem;
 }

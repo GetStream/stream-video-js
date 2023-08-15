@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import classnames from 'classnames';
 import { isMobile, isTablet } from 'mobile-device-detect';
+import { StreamChat } from 'stream-chat';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
@@ -19,6 +20,7 @@ import {
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
+import { NewMessageNotification } from '../NewMessageNotification';
 
 import { useModalContext } from '../../contexts/ModalContext';
 import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
@@ -31,6 +33,7 @@ export type FooterProps = {
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
+  chatClient?: StreamChat | null;
   isRecording?: boolean;
   isAwaitingRecording?: boolean;
   isScreenSharing?: boolean;
@@ -41,6 +44,7 @@ export type FooterProps = {
 
 export const Footer = ({
   call,
+  chatClient,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
@@ -155,22 +159,28 @@ export const Footer = ({
         </Button>
       </div>
       <div className={styles.toggles}>
-        <Button
-          className={styles.chat}
-          label="Chat"
-          color={
-            chatPanelVisibility !== PANEL_VISIBILITY.hidden
-              ? 'active'
-              : 'secondary'
-          }
-          shape="square"
-          onClick={() => toggleHide('chat')}
+        <NewMessageNotification
+          chatClient={chatClient}
+          channelWatched
+          disableOnChatOpen={chatPanelVisibility === PANEL_VISIBILITY.expanded}
         >
-          <Chat />
-          {unreadMessages && unreadMessages > 0 ? (
-            <span className={styles.chatCounter}>{unreadMessages}</span>
-          ) : null}
-        </Button>
+          <Button
+            className={styles.chat}
+            label="Chat"
+            color={
+              chatPanelVisibility !== PANEL_VISIBILITY.hidden
+                ? 'active'
+                : 'secondary'
+            }
+            shape="square"
+            onClick={() => toggleHide('chat')}
+          >
+            <Chat />
+            {unreadMessages && unreadMessages > 0 ? (
+              <span className={styles.chatCounter}>{unreadMessages}</span>
+            ) : null}
+          </Button>
+        </NewMessageNotification>
         <Button
           label="Participants"
           className={styles.participants}

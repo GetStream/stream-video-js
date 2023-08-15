@@ -3,7 +3,7 @@
 }
 
 .content.showParticipants {
-  @apply flex flex-row;
+  @apply flex;
   align-items: baseline;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .participantsPanel {
-  @apply max-w-none m-4;
+  @apply m-4;
 }
 .tour {
   @apply flex items-center justify-center w-full;
