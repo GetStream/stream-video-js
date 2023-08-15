@@ -29,33 +29,7 @@ export const ParticipantLabel = ({
     call?.unpin(sessionId);
   };
 
-  if (videoMode === 'video') {
-    return (
-      <View style={styles.status}>
-        <Text style={styles.userNameLabel} numberOfLines={1}>
-          {participantLabel}
-        </Text>
-        {isAudioMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-            <MicOff color={theme.light.error} />
-          </View>
-        )}
-        {isVideoMuted && (
-          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-            <VideoSlash color={theme.light.error} />
-          </View>
-        )}
-        {isPinningEnabled && (
-          <Pressable
-            style={[styles.svgContainerStyle, theme.icon.xs]}
-            onPress={unPinParticipantHandler}
-          >
-            <PinVertical color={theme.light.static_white} />
-          </Pressable>
-        )}
-      </View>
-    );
-  } else if (videoMode === 'screen') {
+  if (videoMode === 'screen') {
     return (
       <View
         style={styles.status}
@@ -73,12 +47,35 @@ export const ParticipantLabel = ({
     );
   }
 
-  return <></>;
+  return (
+    <View style={styles.status}>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {participantLabel}
+      </Text>
+      {isAudioMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <MicOff color={theme.light.error} />
+        </View>
+      )}
+      {isVideoMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <VideoSlash color={theme.light.error} />
+        </View>
+      )}
+      {isPinningEnabled && (
+        <Pressable
+          style={[styles.svgContainerStyle, theme.icon.xs]}
+          onPress={unPinParticipantHandler}
+        >
+          <PinVertical color={theme.light.static_white} />
+        </Pressable>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   status: {
-    alignSelf: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
     padding: theme.padding.sm,
