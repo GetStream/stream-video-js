@@ -10,7 +10,7 @@ import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
-import { LocalParticipantView } from '../../Participant';
+import { LocalParticipantViewProps } from '../../Participant';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -28,6 +28,10 @@ export type CallParticipantsSpotlightProps = Pick<
    * Component to customize the CallParticipantsList.
    */
   CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
+  /**
+   * Component to customize the LocalParticipantView.
+   */
+  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
 };
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
@@ -39,6 +43,7 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
  */
 export const CallParticipantsSpotlight = ({
   CallParticipantsList,
+  LocalParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -57,7 +62,11 @@ export const CallParticipantsSpotlight = ({
   const isUserAloneInCall = _remoteParticipants?.length === 0;
 
   if (isUserAloneInCall) {
-    return <LocalParticipantView layout={'fullscreen'} />;
+    return (
+      <>
+        {LocalParticipantView && <LocalParticipantView layout={'fullscreen'} />}
+      </>
+    );
   }
 
   return (

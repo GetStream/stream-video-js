@@ -5,7 +5,14 @@ import mockParticipant from '../mocks/participant';
 import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { render, screen } from '../utils/RNTLTools';
-import { CallParticipantsSpotlight } from '../../src/components';
+import {
+  CallParticipantsList,
+  CallParticipantsSpotlight,
+  LocalParticipantView,
+  ParticipantLabel,
+  ParticipantView,
+  VideoRenderer,
+} from '../../src/components';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -38,9 +45,18 @@ describe('CallParticipantsSpotlight', () => {
       }),
     ]);
 
-    render(<CallParticipantsSpotlight />, {
-      call,
-    });
+    render(
+      <CallParticipantsSpotlight
+        CallParticipantsList={CallParticipantsList}
+        LocalParticipantView={LocalParticipantView}
+        ParticipantView={ParticipantView}
+        VideoRenderer={VideoRenderer}
+        ParticipantLabel={ParticipantLabel}
+      />,
+      {
+        call,
+      },
+    );
 
     expect(
       await screen.findByTestId(ComponentTestIds.PARTICIPANT_SCREEN_SHARING),
@@ -68,9 +84,15 @@ describe('CallParticipantsSpotlight', () => {
       }),
     ]);
 
-    render(<CallParticipantsSpotlight />, {
-      call,
-    });
+    render(
+      <CallParticipantsSpotlight
+        CallParticipantsList={CallParticipantsList}
+        ParticipantView={ParticipantView}
+      />,
+      {
+        call,
+      },
+    );
 
     expect(
       await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT),
