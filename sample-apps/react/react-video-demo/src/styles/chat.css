@@ -8,6 +8,7 @@
   --str-chat__secondary-background-color: var(--str-chat__grey900);
   --str-chat__primary-surface-color: var(--color-video-grey-700);
 
+  --str-chat__channel-background-color: #000;
   --str-chat__message-input-background-color: var(--color-video-grey-800);
 
 

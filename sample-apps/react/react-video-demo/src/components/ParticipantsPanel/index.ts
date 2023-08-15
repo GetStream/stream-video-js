@@ -1,1 +1,1 @@
-export { ParticipantsPanel as default } from './ParticipantsPanel';
+export * from './ParticipantsPanel';
