@@ -18,6 +18,7 @@
     "lint:ci": "eslint --cache 'src/**/*.{ts,tsx}'"
   },
   "dependencies": {
+    "@livekit/react-native-webrtc": "104.0.1",
     "@notifee/react-native": "^7.7.1",
     "@react-native-camera-roll/camera-roll": "^5.6.0",
     "@react-native-clipboard/clipboard": "^1.11.1",
@@ -49,7 +50,6 @@
     "react-native-svg": "^13.9.0",
     "react-native-video": "^5.2.1",
     "react-native-voip-push-notification": "~3.3.1",
-    "react-native-webrtc": "106.0.7",
     "rxjs": "~7.8.1",
     "stream-chat-react-native": "^5.15.1"
   },

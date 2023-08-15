@@ -4,6 +4,9 @@
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "description": "Stream Video SDK for React Native",
+  "author": "https://getstream.io",
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk#readme",
   "license": "See license in LICENSE",
   "scripts": {
     "postinstall": "yarn copy-version",
@@ -31,6 +34,7 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
+    "@livekit/react-native-webrtc": "104.0.1",
     "@notifee/react-native": ">=7.7.0",
     "@react-native-community/netinfo": ">=9.0.0",
     "@react-native-firebase/app": ">=17.5.0",
@@ -43,8 +47,7 @@
     "react-native-incall-manager": ">=4.1.0",
     "react-native-reanimated": ">=2.7.0",
     "react-native-svg": ">=13.6.0",
-    "react-native-voip-push-notification": ">=3.3.1",
-    "react-native-webrtc": "106.0.7"
+    "react-native-voip-push-notification": ">=3.3.1"
   },
   "peerDependenciesMeta": {
     "@react-native-firebase/app": {
@@ -68,6 +71,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
+    "@livekit/react-native-webrtc": "104.0.1",
     "@notifee/react-native": "7.7.1",
     "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-community/netinfo": "9.3.9",
@@ -90,7 +94,6 @@
     "react-native-reanimated": "2.7.0",
     "react-native-svg": "^13.6.0",
     "react-native-voip-push-notification": "3.3.1",
-    "react-native-webrtc": "106.0.7",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.1.0",

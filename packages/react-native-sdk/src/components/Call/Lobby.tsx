@@ -14,7 +14,7 @@ import { useLocalVideoStream } from '../../hooks';
 import { Avatar } from '../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@livekit/react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
