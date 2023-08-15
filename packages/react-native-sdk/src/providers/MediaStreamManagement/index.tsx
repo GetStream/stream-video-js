@@ -12,6 +12,8 @@ import {
   isMicPermissionGranted$,
 } from '../../utils/StreamVideoRN/permissions';
 import { Alert } from 'react-native';
+import { useAppStateListener } from '../../utils/hooks';
+import { MediaStream } from 'react-native-webrtc';
 
 export type MediaDevicesInitialState = {
   /**
@@ -60,6 +62,23 @@ export const MediaStreamManagement = ({
   children,
 }: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
+
+  // Pause/Resume video stream tracks when app goes to background/foreground
+  // To save on CPU resources
+  useAppStateListener(
+    () => {
+      const stream = call?.camera?.state.mediaStream as MediaStream | undefined;
+      stream?.getVideoTracks().forEach((track) => {
+        track.enabled = true;
+      });
+    },
+    () => {
+      const stream = call?.camera?.state.mediaStream as MediaStream | undefined;
+      stream?.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    },
+  );
 
   useEffect(() => {
     if (
