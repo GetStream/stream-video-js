@@ -911,29 +911,29 @@ export class CallState {
    *
    * @internal
    *
-   * @param r the call response from the server.
+   * @param call the call response from the server.
    */
-  updateFromCallResponse = (r: CallResponse) => {
-    this.setCurrentValue(this.backstageSubject, r.backstage);
-    this.setCurrentValue(this.blockedUserIdsSubject, r.blocked_user_ids);
-    this.setCurrentValue(this.createdAtSubject, new Date(r.created_at));
-    this.setCurrentValue(this.updatedAtSubject, new Date(r.updated_at));
+  updateFromCallResponse = (call: CallResponse) => {
+    this.setCurrentValue(this.backstageSubject, call.backstage);
+    this.setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
+    this.setCurrentValue(this.createdAtSubject, new Date(call.created_at));
+    this.setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));
     this.setCurrentValue(
       this.startsAtSubject,
-      r.starts_at ? new Date(r.starts_at) : undefined,
+      call.starts_at ? new Date(call.starts_at) : undefined,
     );
     this.setCurrentValue(
       this.endedAtSubject,
-      r.ended_at ? new Date(r.ended_at) : undefined,
+      call.ended_at ? new Date(call.ended_at) : undefined,
     );
-    this.setCurrentValue(this.createdBySubject, r.created_by);
-    this.setCurrentValue(this.customSubject, r.custom);
-    this.setCurrentValue(this.egressSubject, r.egress);
-    this.setCurrentValue(this.ingressSubject, r.ingress);
-    this.setCurrentValue(this.recordingSubject, r.recording);
-    this.setCurrentValue(this.sessionSubject, r.session);
-    this.setCurrentValue(this.settingsSubject, r.settings);
-    this.setCurrentValue(this.transcribingSubject, r.transcribing);
+    this.setCurrentValue(this.createdBySubject, call.created_by);
+    this.setCurrentValue(this.customSubject, call.custom);
+    this.setCurrentValue(this.egressSubject, call.egress);
+    this.setCurrentValue(this.ingressSubject, call.ingress);
+    this.setCurrentValue(this.recordingSubject, call.recording);
+    this.setCurrentValue(this.sessionSubject, call.session);
+    this.setCurrentValue(this.settingsSubject, call.settings);
+    this.setCurrentValue(this.transcribingSubject, call.transcribing);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
