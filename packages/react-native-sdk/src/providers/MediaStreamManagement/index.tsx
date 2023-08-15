@@ -13,7 +13,6 @@ import {
 } from '../../utils/StreamVideoRN/permissions';
 import { Alert } from 'react-native';
 import { useAppStateListener } from '../../utils/hooks';
-import { MediaStream } from 'react-native-webrtc';
 
 export type MediaDevicesInitialState = {
   /**
@@ -67,16 +66,10 @@ export const MediaStreamManagement = ({
   // To save on CPU resources
   useAppStateListener(
     () => {
-      const stream = call?.camera?.state.mediaStream as MediaStream | undefined;
-      stream?.getVideoTracks().forEach((track) => {
-        track.enabled = true;
-      });
+      call?.camera?.resume();
     },
     () => {
-      const stream = call?.camera?.state.mediaStream as MediaStream | undefined;
-      stream?.getVideoTracks().forEach((track) => {
-        track.enabled = false;
-      });
+      call?.camera?.pause();
     },
   );
 
