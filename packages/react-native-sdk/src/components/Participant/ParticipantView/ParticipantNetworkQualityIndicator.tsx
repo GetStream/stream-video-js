@@ -5,14 +5,18 @@ import { SfuModels } from '@stream-io/video-client';
 import React from 'react';
 import { Z_INDEX } from '../../../constants';
 import { ParticipantViewProps } from './ParticipantView';
+
 /**
- * Props to be passed for the NetworkQualityIndicator component.
+ * Props for the NetworkQualityIndicator component.
  */
 export type ParticipantNetworkQualityIndicatorProps = Pick<
   ParticipantViewProps,
   'participant'
 >;
 
+/**
+ * This component is used to display the network quality indicator of the participant.
+ */
 const connectionQualitySignalColors: Record<
   SfuModels.ConnectionQuality,
   string[]
