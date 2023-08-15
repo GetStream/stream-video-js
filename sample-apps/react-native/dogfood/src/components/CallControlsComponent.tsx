@@ -1,6 +1,5 @@
 import {
   ChatButton,
-  ChatButtonProps,
   HangUpCallButton,
   ReactionButton,
   ToggleAudioPublishingButton,
@@ -14,13 +13,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
 
 export type CallControlsComponentProps = {
-  chatButton?: ChatButtonProps;
+  onChatOpenHandler: () => void;
   onHangupCallHandler?: () => void;
+  unreadCountIndicator: number;
 };
 
 export const CallControlsComponent = ({
-  chatButton,
+  onChatOpenHandler,
   onHangupCallHandler,
+  unreadCountIndicator,
 }: CallControlsComponentProps) => {
   const { bottom } = useSafeAreaInsets();
 
@@ -35,8 +36,8 @@ export const CallControlsComponent = ({
     >
       <ReactionButton />
       <ChatButton
-        onPressHandler={chatButton?.onPressHandler}
-        unreadBadgeCount={chatButton?.unreadBadgeCount}
+        onPressHandler={onChatOpenHandler}
+        unreadBadgeCount={unreadCountIndicator}
       />
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />

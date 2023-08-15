@@ -8,7 +8,6 @@ import { render, screen } from '../utils/RNTLTools';
 import {
   CallParticipantsList,
   CallParticipantsSpotlight,
-  LocalParticipantView,
   ParticipantLabel,
   ParticipantView,
   VideoRenderer,
@@ -48,7 +47,6 @@ describe('CallParticipantsSpotlight', () => {
     render(
       <CallParticipantsSpotlight
         CallParticipantsList={CallParticipantsList}
-        LocalParticipantView={LocalParticipantView}
         ParticipantView={ParticipantView}
         VideoRenderer={VideoRenderer}
         ParticipantLabel={ParticipantLabel}

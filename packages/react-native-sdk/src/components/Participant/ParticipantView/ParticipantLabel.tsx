@@ -17,10 +17,13 @@ export const ParticipantLabel = ({
   participant,
   videoMode,
 }: ParticipantLabelProps) => {
-  const { name, userId, pin, sessionId, publishedTracks } = participant;
+  const { name, userId, pin, sessionId, publishedTracks, isLocalParticipant } =
+    participant;
+  console.log({ isLocalParticipant });
   const call = useCall();
   const { t } = useI18n();
-  const participantLabel = name ?? userId;
+  const participantName = name ?? userId;
+  const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
   const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);

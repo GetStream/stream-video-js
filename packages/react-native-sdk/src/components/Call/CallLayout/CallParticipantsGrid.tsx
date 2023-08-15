@@ -46,26 +46,17 @@ export const CallParticipantsGrid = ({
   const allParticipants = useParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
-  const showFloatingView = remoteParticipants.length < 3;
-  const isUserAloneInCall = remoteParticipants?.length === 0;
-  const participants = showFloatingView ? remoteParticipants : allParticipants;
+  const showFloatingView =
+    remoteParticipants.length > 0 && remoteParticipants.length < 3;
 
-  if (isUserAloneInCall) {
-    return (
-      <>
-        {LocalParticipantView && <LocalParticipantView layout={'fullscreen'} />}
-      </>
-    );
-  }
+  const participants = showFloatingView ? remoteParticipants : allParticipants;
 
   return (
     <View
       style={styles.container}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
-      {showFloatingView && LocalParticipantView && (
-        <LocalParticipantView layout={'floating'} />
-      )}
+      {showFloatingView && LocalParticipantView && <LocalParticipantView />}
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}

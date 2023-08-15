@@ -10,7 +10,6 @@ import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
-import { LocalParticipantViewProps } from '../../Participant';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -28,10 +27,6 @@ export type CallParticipantsSpotlightProps = Pick<
    * Component to customize the CallParticipantsList.
    */
   CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
-  /**
-   * Component to customize the LocalParticipantView.
-   */
-  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
 };
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
@@ -43,7 +38,6 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
  */
 export const CallParticipantsSpotlight = ({
   CallParticipantsList,
-  LocalParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -61,14 +55,6 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _remoteParticipants?.length === 0;
 
-  if (isUserAloneInCall) {
-    return (
-      <>
-        {LocalParticipantView && <LocalParticipantView layout={'fullscreen'} />}
-      </>
-    );
-  }
-
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
@@ -77,7 +63,7 @@ export const CallParticipantsSpotlight = ({
       {participantInSpotlight && ParticipantView && (
         <ParticipantView
           participant={participantInSpotlight}
-          style={styles.participantView}
+          style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
           ParticipantLabel={ParticipantLabel}
           ParticipantNetworkQualityIndicator={
@@ -88,24 +74,26 @@ export const CallParticipantsSpotlight = ({
           VideoRenderer={VideoRenderer}
         />
       )}
-      <View style={styles.participantVideoContainer}>
-        {CallParticipantsList && (
-          <CallParticipantsList
-            participants={
-              isScreenShareOnSpotlight ? allParticipants : otherParticipants
-            }
-            horizontal
-            ParticipantLabel={ParticipantLabel}
-            ParticipantNetworkQualityIndicator={
-              ParticipantNetworkQualityIndicator
-            }
-            ParticipantReaction={ParticipantReaction}
-            ParticipantVideoFallback={ParticipantVideoFallback}
-            ParticipantView={ParticipantView}
-            VideoRenderer={VideoRenderer}
-          />
-        )}
-      </View>
+      {!isUserAloneInCall && (
+        <View style={styles.participantVideoContainer}>
+          {CallParticipantsList && (
+            <CallParticipantsList
+              participants={
+                isScreenShareOnSpotlight ? allParticipants : otherParticipants
+              }
+              horizontal
+              ParticipantLabel={ParticipantLabel}
+              ParticipantNetworkQualityIndicator={
+                ParticipantNetworkQualityIndicator
+              }
+              ParticipantReaction={ParticipantReaction}
+              ParticipantVideoFallback={ParticipantVideoFallback}
+              ParticipantView={ParticipantView}
+              VideoRenderer={VideoRenderer}
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 };
@@ -115,6 +103,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: theme.padding.sm,
     backgroundColor: theme.light.static_grey,
+  },
+  fullScreen: {
+    flex: 1,
   },
   participantView: {
     flex: 2,

@@ -30,11 +30,10 @@ import {
 import { CallingState } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 
-export type CallContentProps = Pick<
-  CallTopViewProps,
-  'onBackPressed' | 'onParticipantInfoPress'
+export type CallContentComponentProps = Pick<
+  CallControlProps,
+  'onHangupCallHandler'
 > &
-  Pick<CallControlProps, 'onHangupCallHandler'> &
   Pick<
     CallParticipantsGridProps,
     | 'CallParticipantsList'
@@ -56,6 +55,17 @@ export type CallContentProps = Pick<
     CallControls?: React.ComponentType<CallControlProps>;
   };
 
+export type CallContentProps = Pick<
+  CallTopViewProps,
+  'onBackPressed' | 'onParticipantInfoPress'
+> &
+  CallContentComponentProps & {
+    /**
+     * This switches the participant's layout between the grid and the spotlight mode.
+     */
+    layout?: 'grid' | 'spotlight';
+  };
+
 export const CallContent = ({
   onBackPressed,
   onParticipantInfoPress,
@@ -70,8 +80,10 @@ export const CallContent = ({
   VideoRenderer = DefaultVideoRenderer,
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
+  layout,
 }: CallContentProps) => {
   const hasScreenShare = useHasOngoingScreenShare();
+  const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
   /**
    * This hook is used to handle IncallManager specs of the application.
    */
@@ -89,7 +101,7 @@ export const CallContent = ({
     };
   }, []);
 
-  const participantViewProps = {
+  const participantViewProps: CallContentComponentProps = {
     CallParticipantsList,
     LocalParticipantView,
     ParticipantLabel,
@@ -107,7 +119,7 @@ export const CallContent = ({
           onBackPressed={onBackPressed}
           onParticipantInfoPress={onParticipantInfoPress}
         />
-        {hasScreenShare ? (
+        {showSpotlightLayout ? (
           <CallParticipantsSpotlight {...participantViewProps} />
         ) : (
           <CallParticipantsGrid {...participantViewProps} />

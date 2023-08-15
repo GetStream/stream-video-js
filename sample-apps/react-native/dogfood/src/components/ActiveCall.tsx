@@ -13,9 +13,10 @@ type ActiveCallProps = CallControlsComponentProps & {
 };
 
 export const ActiveCall = ({
-  chatButton,
+  onChatOpenHandler,
   onBackPressed,
   onHangupCallHandler,
+  unreadCountIndicator,
 }: ActiveCallProps) => {
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
@@ -29,10 +30,11 @@ export const ActiveCall = ({
     return (
       <CallControlsComponent
         onHangupCallHandler={onHangupCallHandler}
-        chatButton={chatButton}
+        onChatOpenHandler={onChatOpenHandler}
+        unreadCountIndicator={unreadCountIndicator}
       />
     );
-  }, [chatButton, onHangupCallHandler]);
+  }, [onChatOpenHandler, onHangupCallHandler, unreadCountIndicator]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;

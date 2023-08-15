@@ -25,29 +25,6 @@ enum P_IDS {
 }
 
 describe('CallParticipantsGrid', () => {
-  it('should render an local video when only 1 participant present in the call', async () => {
-    const call = mockCall(mockClientWithUser(), [
-      mockParticipant({
-        isLocalParticipant: true,
-        sessionId: P_IDS.LOCAL_1,
-        userId: P_IDS.LOCAL_1,
-        publishedTracks: [SfuModels.TrackType.AUDIO],
-        videoStream: null,
-      }),
-    ]);
-
-    render(
-      <CallParticipantsGrid LocalParticipantView={LocalParticipantView} />,
-      {
-        call,
-      },
-    );
-
-    expect(
-      await screen.findByTestId(ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN),
-    ).toBeVisible();
-  });
-
   it('should render an call participants with grid mode with 2 participants when no screen shared', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
