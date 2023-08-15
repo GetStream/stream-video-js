@@ -1,33 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  CallingState,
-  useCall,
-  useIncallManager,
-  theme,
-  ReactionButton,
-  ChatButton,
-  ToggleVideoPublishingButton,
-  ToggleAudioPublishingButton,
-  ToggleCameraFaceButton,
-  HangUpCallButton,
-  CallTopView,
-  ChatButtonProps,
-  useCallStateHooks,
-  CallParticipantsSpotlight,
-  CallParticipantsGrid,
-} from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { appTheme } from '../theme';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import React, { useCallback, useState } from 'react';
+import { useCall, CallContent } from '@stream-io/video-react-native-sdk';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
-import { Z_INDEX } from '../constants';
+import {
+  CallControlsComponent,
+  CallControlsComponentProps,
+} from './CallControlsComponent';
 
-type ActiveCallProps = {
-  chatButton?: ChatButtonProps;
-  onHangupCallHandler?: () => void;
+type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
 };
 
@@ -39,29 +20,19 @@ export const ActiveCall = ({
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
   const call = useCall();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
-  const hasScreenShare = useHasOngoingScreenShare();
-  const activeCallRef = useRef(call);
-  activeCallRef.current = call;
 
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
   };
 
-  useEffect(() => {
-    return () => {
-      if (activeCallRef.current?.state.callingState !== CallingState.LEFT) {
-        activeCallRef.current?.leave();
-      }
-    };
-  }, []);
-
-  /**
-   * This hook is used to handle IncallManager specs of the application.
-   */
-  useIncallManager({ media: 'video', auto: true });
-
-  const { bottom } = useSafeAreaInsets();
+  const CustomControlsComponent = useCallback(() => {
+    return (
+      <CallControlsComponent
+        onHangupCallHandler={onHangupCallHandler}
+        chatButton={chatButton}
+      />
+    );
+  }, [chatButton, onHangupCallHandler]);
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -69,36 +40,11 @@ export const ActiveCall = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.container}>
-        <CallTopView
-          onBackPressed={onBackPressed}
-          onParticipantInfoPress={onOpenCallParticipantsInfo}
-        />
-        {hasScreenShare ? (
-          <CallParticipantsSpotlight />
-        ) : (
-          <CallParticipantsGrid />
-        )}
-      </View>
-      {/* Since we want the chat and the reaction button the entire call controls is customized */}
-      <View
-        style={[
-          styles.callControlsWrapper,
-          {
-            paddingBottom: Math.max(bottom, appTheme.spacing.lg),
-          },
-        ]}
-      >
-        <ReactionButton />
-        <ChatButton
-          onPressHandler={chatButton?.onPressHandler}
-          unreadBadgeCount={chatButton?.unreadBadgeCount}
-        />
-        <ToggleVideoPublishingButton />
-        <ToggleAudioPublishingButton />
-        <ToggleCameraFaceButton />
-        <HangUpCallButton onPressHandler={onHangupCallHandler} />
-      </View>
+      <CallContent
+        onBackPressed={onBackPressed}
+        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        CallControls={CustomControlsComponent}
+      />
       <ParticipantsInfoList
         isCallParticipantsInfoVisible={isCallParticipantsVisible}
         setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
@@ -110,20 +56,5 @@ export const ActiveCall = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  icons: {
-    position: 'absolute',
-    right: theme.spacing.lg * 2,
-    marginTop: appTheme.spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: appTheme.zIndex.IN_FRONT,
-  },
-  callControlsWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingVertical: theme.padding.md,
-    zIndex: Z_INDEX.IN_FRONT,
-    backgroundColor: appTheme.colors.static_grey,
   },
 });

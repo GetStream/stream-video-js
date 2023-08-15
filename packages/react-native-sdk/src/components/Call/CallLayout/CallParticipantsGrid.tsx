@@ -2,21 +2,9 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import {
-  CallParticipantsList,
-  CallParticipantsListProps,
-} from '../CallParticipantsList/CallParticipantsList';
+import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import {
-  ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
-  ParticipantReaction as DefaultParticipantReaction,
-  ParticipantLabel as DefaultParticipantLabel,
-  ParticipantVideoFallback as DefaultParticipantVideoFallback,
-  VideoRenderer as DefaultVideoRenderer,
-  ParticipantView as DefaultParticipantView,
-  LocalParticipantView as DefaultLocalParticipantView,
-  LocalParticipantViewProps,
-} from '../../Participant';
+import { LocalParticipantViewProps } from '../../Participant';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -31,22 +19,27 @@ export type CallParticipantsGridProps = Pick<
   | 'VideoRenderer'
 > & {
   /**
-   * Component to customize the local participant view.
+   * Component to customize the LocalParticipantView.
    */
   LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
+  /**
+   * Component to customize the CallParticipantsList.
+   */
+  CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
 };
 
 /**
  * Component used to display the list of participants in a grid mode.
  */
 export const CallParticipantsGrid = ({
-  ParticipantLabel = DefaultParticipantLabel,
-  ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
-  ParticipantReaction = DefaultParticipantReaction,
-  ParticipantVideoFallback = DefaultParticipantVideoFallback,
-  ParticipantView = DefaultParticipantView,
-  VideoRenderer = DefaultVideoRenderer,
-  LocalParticipantView = DefaultLocalParticipantView,
+  CallParticipantsList,
+  ParticipantLabel,
+  ParticipantNetworkQualityIndicator,
+  ParticipantReaction,
+  ParticipantVideoFallback,
+  ParticipantView,
+  VideoRenderer,
+  LocalParticipantView,
 }: CallParticipantsGridProps) => {
   const { useRemoteParticipants, useParticipants } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
@@ -57,8 +50,12 @@ export const CallParticipantsGrid = ({
   const isUserAloneInCall = remoteParticipants?.length === 0;
   const participants = showFloatingView ? remoteParticipants : allParticipants;
 
-  if (showFloatingView && isUserAloneInCall) {
-    return <LocalParticipantView layout={'fullscreen'} />;
+  if (isUserAloneInCall) {
+    return (
+      <>
+        {LocalParticipantView && <LocalParticipantView layout={'fullscreen'} />}
+      </>
+    );
   }
 
   return (
@@ -66,16 +63,22 @@ export const CallParticipantsGrid = ({
       style={styles.container}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
-      {showFloatingView && <LocalParticipantView layout={'floating'} />}
-      <CallParticipantsList
-        participants={participants}
-        ParticipantLabel={ParticipantLabel}
-        ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
-        ParticipantReaction={ParticipantReaction}
-        ParticipantVideoFallback={ParticipantVideoFallback}
-        ParticipantView={ParticipantView}
-        VideoRenderer={VideoRenderer}
-      />
+      {showFloatingView && LocalParticipantView && (
+        <LocalParticipantView layout={'floating'} />
+      )}
+      {CallParticipantsList && (
+        <CallParticipantsList
+          participants={participants}
+          ParticipantLabel={ParticipantLabel}
+          ParticipantNetworkQualityIndicator={
+            ParticipantNetworkQualityIndicator
+          }
+          ParticipantReaction={ParticipantReaction}
+          ParticipantVideoFallback={ParticipantVideoFallback}
+          ParticipantView={ParticipantView}
+          VideoRenderer={VideoRenderer}
+        />
+      )}
     </View>
   );
 };

@@ -3,10 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../../providers';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
+import { SfuModels } from '@stream-io/video-client';
 
 export type ParticipantLabelProps = Pick<
   ParticipantViewProps,
@@ -17,12 +17,13 @@ export const ParticipantLabel = ({
   participant,
   videoMode,
 }: ParticipantLabelProps) => {
-  const { name, userId, pin, sessionId } = participant;
+  const { name, userId, pin, sessionId, publishedTracks } = participant;
   const call = useCall();
-  const { isAudioMuted, isVideoMuted } = useMediaStreamManagement();
   const { t } = useI18n();
   const participantLabel = name ?? userId;
   const isPinningEnabled = pin?.isLocalPin;
+  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
+  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);

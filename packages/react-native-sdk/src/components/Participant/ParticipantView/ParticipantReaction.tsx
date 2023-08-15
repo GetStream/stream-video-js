@@ -18,9 +18,11 @@ export type ParticipantReactionProps = Pick<
   hideAfterTimeoutInMs?: number;
 };
 
-export const ParticipantReaction = (props: ParticipantReactionProps) => {
+export const ParticipantReaction = ({
+  participant,
+  hideAfterTimeoutInMs = 5500,
+}: ParticipantReactionProps) => {
   const { supportedReactions } = StreamVideoRN.getConfig();
-  const { participant, hideAfterTimeoutInMs = 5500 } = props;
   const { reaction, sessionId } = participant;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);
