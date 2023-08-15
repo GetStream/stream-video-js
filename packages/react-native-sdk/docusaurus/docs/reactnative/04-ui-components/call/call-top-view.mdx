@@ -1,0 +1,74 @@
+---
+id: call-top-view
+title: CallTopView
+---
+
+The `CallTopView` represents the header component that gives the user more information when in a call, while adding a few actions they can trigger while the call is active. The header is useful for showing the call name or title, as well as the state, such as if the user is fully connected to the call or not.
+It has a back button by default and a participant info badge.
+
+![Preview of the CallTopView component](../../assets/04-ui-components/call/call-top-view/call-top-view.png)
+
+## General Usage
+
+To use the component, you can simple use it as:
+
+```tsx
+import {
+  Call,
+  CallTopView,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      // highlight-next-line
+      <CallTopView />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `onBackPressed`
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+Handler to be called when the back button is pressed in the CallTopView.
+
+### `onParticipantInfoPress`
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+Handler to be called when the Participant icon is pressed in the CallTopView.
+
+### `title`
+
+| Type                    |
+| ----------------------- |
+| `string` \| `undefined` |
+
+Title to be rendered at the center of the Header.
+
+### `style`
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+Style to override the container of the `CallTopView`.
+
+## Built-in components
+
+This component is display the number of participants in the call and also has [`onParticipantInfoPress`](#onparticipantinfopress) hooked to it.
+
+| Type                     | Type                        | Description                                                                   |
+| ------------------------ | --------------------------- | ----------------------------------------------------------------------------- |
+| `onParticipantInfoPress` | `() => void` \| `undefined` | Handler to be called when the Participant icon is pressed in the CallTopView. |
