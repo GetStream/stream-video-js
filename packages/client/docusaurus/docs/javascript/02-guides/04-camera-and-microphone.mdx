@@ -13,22 +13,20 @@ The video client exports helper methods to make it easier to work with the [`Med
 The call settings contain information about the default video state:
 
 ```typescript
-call.state.metadata$.subscribe((metadata) =>
-  console.log(metadata?.settings.video.camera_default_on),
-);
+call.state.settings$.subscribe((settings) => {
+  console.log(settings?.video.camera_default_on);
+});
 ```
 
 ### Start-stop camera
 
 ```typescript
-import { Call, getVideoStream, SfuModels } from '@stream-io/video-client';
+import { getVideoStream, SfuModels } from '@stream-io/video-client';
 
 const toggleCamera = () => {
-  const participant = call.state.localParticipant;
-  if (!participant) {
-    return;
-  }
-  if (participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
+  const { localParticipant } = call.state;
+  if (!localParticipant) return;
+  if (localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
     // This will take care of disposing the media stream
     await call.stopPublish(SfuModels.TrackType.VIDEO);
   } else {
@@ -45,14 +43,16 @@ import { getVideoStream, getVideoDevices } from '@stream-io/video-client';
 
 // List devices
 // The error handler is called if the user denies permission to use camera
-getVideoDevices().subscribe({ next: console.log, error: console.error });
+getVideoDevices().subscribe({
+  next: (cameras) => console.log(cameras),
+  error: (err) => console.error(err),
+});
 
-// Select device
-// Store selected device for participant
+// Select device and store selected device for participant
 call.setVideoDevice('device Id');
 
-// Start video stream
-getVideoStream({ deviceId: 'device Id' });
+// Take a video stream
+const videoStream = await getVideoStream({ deviceId: 'device Id' });
 ```
 
 ### Lobby preview
@@ -70,20 +70,18 @@ TODO example
 The call settings contain information about the default audio state:
 
 ```typescript
-call.state.metadata$.subscribe((metadata) =>
-  console.log(metadata?.settings.audio.mic_default_on),
-);
+call.state.settings$.subscribe((settings) => {
+  console.log(settings?.audio.mic_default_on);
+});
 ```
 
 ### Start-stop microphone
 
 ```typescript
 const toggleMicrophone = () => {
-  const participant = call.state.localParticipant;
-  if (!participant) {
-    return;
-  }
-  if (participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
+  const { localParticipant } = call.state;
+  if (!localParticipant) return;
+  if (localParticipant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
     // This will take care of disposing the media stream
     await call.stopPublish(SfuModels.TrackType.AUDIO);
   } else {
@@ -100,14 +98,16 @@ import { getAudioStream, getAudioDevices } from '@stream-io/video-client';
 
 // List devices
 // The error handler is called if the user denies permission to use microphone
-getAudioDevices().subscribe({ next: console.log, error: console.error });
+getAudioDevices().subscribe({
+  next: (mics) => console.log(mics),
+  error: (err) => console.error(err),
+});
 
-// Select device
-// Store selected device for participant
+// Select device and store selected device for participant
 call.setAudioDevice('device Id');
 
-// Start video stream
-getAudioStream({ deviceId: 'device Id' });
+// Take an audio stream
+const audioStream = await getAudioStream({ deviceId: 'device Id' });
 ```
 
 For more information you can refer to [this codesandbox](https://codesandbox.io/s/javascript-device-management-forked-cv47gr?file=/src/index.ts) that shows how you can select audio and video devices.
@@ -130,11 +130,13 @@ checkIfAudioOutputChangeSupported();
 import { getAudioOutputDevices } from '@stream-io/video-client';
 
 // List devices
-// The error handler is called if the user denies permission to use microphone
-getAudioOutputDevices().subscribe({ next: console.log, error: console.error });
+// The error handler is called if the user denies permission to use play audio through device's speakers
+getAudioOutputDevices().subscribe({
+  next: (speakers) => console.log(speakers),
+  error: (err) => console.error(err),
+});
 
-// Select device
-// Store selected device for participant
+// store selected device for participant
 call.setAudioOutputDevice('device Id');
 ```
 

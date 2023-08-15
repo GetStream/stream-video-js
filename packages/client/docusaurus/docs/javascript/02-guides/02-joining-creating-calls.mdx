@@ -15,7 +15,7 @@ You create a call by specifying a call type and a call id.
 ```ts
 const callType = 'default';
 const callId = 'test-call';
-await videoClient.call(callType, callId).join({ create: true });
+await client.call(callType, callId).join({ create: true });
 ```
 
 The [call type](../../guides/configuring-call-types) controls which features are enabled, and sets up permissions.
@@ -29,7 +29,7 @@ If you don't want to join a call, just create one, you can use the `getOrCreate`
 ```typescript
 const callType = 'default';
 const callId = 'test-call';
-await videoClient.call(callType, callId).getOrCreate();
+await client.call(callType, callId).getOrCreate();
 ```
 
 See all possible options at the [Call creation options section](#call-creation-options)
@@ -39,7 +39,7 @@ See all possible options at the [Call creation options section](#call-creation-o
 To leave a call, you can use the `leave` method:
 
 ```typescript
-call.leave();
+await call.leave();
 ```
 
 ### End call
@@ -47,7 +47,7 @@ call.leave();
 Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
-call.endCall();
+await call.endCall();
 ```
 
 Only users with special permission can join an ended call.
@@ -60,7 +60,7 @@ To create a ring call, we need to set the `ring` flag to `true` and provide the 
 It is important to note that the caller should also be included in the list of members.
 
 ```typescript
-client.call('default', 'test-outgoing-call').getOrCreate({
+await client.call('default', 'test-outgoing-call').getOrCreate({
   // highlight-next-line
   ring: true,
   data: {
@@ -92,7 +92,7 @@ Let's see how the cancel, accept and reject operations work:
 A caller can cancel an outgoing call until the first callee accepts the call. Canceling a call will stop the signaling flow.
 
 ```typescript
-call.leave();
+await call.leave();
 ```
 
 Please note that calling `call.leave()` after joining the call won't stop the signaling flow.
@@ -102,7 +102,7 @@ Please note that calling `call.leave()` after joining the call won't stop the si
 A callee can accept or reject an incoming call. To accept and join the call:
 
 ```typescript
-call.join();
+await call.join();
 ```
 
 Please note that it's possible to join multiple calls. If you only want to allow one active call, you must leave joined calls before accepting an incoming call.
@@ -112,7 +112,7 @@ Please note that it's possible to join multiple calls. If you only want to allow
 A callee can accept or reject an incoming call. To reject the call:
 
 ```typescript
-call.leave({ reject: true });
+await call.leave({ reject: true });
 ```
 
 ### Leave call
@@ -120,7 +120,7 @@ call.leave({ reject: true });
 To leave a joined call, you can use the `leave` method:
 
 ```typescript
-call.leave();
+await call.leave();
 ```
 
 ### End call
@@ -128,7 +128,7 @@ call.leave();
 Ending a call requires a [special permission](../../guides/permissions-and-moderation). This action terminates the call for everyone.
 
 ```typescript
-call.endCall();
+await call.endCall();
 ```
 
 ## Call creation options

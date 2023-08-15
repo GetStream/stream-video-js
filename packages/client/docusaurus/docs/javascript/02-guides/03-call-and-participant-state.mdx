@@ -8,7 +8,13 @@ The call, participant and client states are reactive. Their value is updated on 
 Let's see an example, this is how you can subscribe to changes related to participants:
 
 ```typescript
-call.state.participants$.subscribe((participants) => console.log(participants));
+const { participants$ } = call.state;
+const subscription = participants$.subscribe((participants) => {
+  console.log(participants);
+});
+
+// dispose the subscription when you don't need it anymore
+subscription.unsubscribe();
 ```
 
 The `console.log` method will be called each time there is a change to the list of participants in the call.
@@ -18,48 +24,37 @@ This approach makes it possible to access the state and be notified about change
 Alternatively you can also access the current value of each state variable:
 
 ```typescript
-console.log(call.state.participants);
+const { participants } = call.state;
+console.log(participants);
 ```
 
 It's useful when you need to know the current value, but you don't need to be notified about future changes.
 
 ## Call state
 
-The call state can be accessed by `call.state`.
+The call state can be accessed through `call.state` object as in the examples above.
+In this object, you'll find properties that are reactive and static as well.
+The reactive/observable properties are suffixed with `$` and the static ones are without the suffix.
 
-Here are all the call state properties:
+Here are is an excerpt of the call state properties:
 
 | Reactive value           | Static value            | Description                                                                                                  |
 | ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `members$`               | `members`               | The list of call members                                                                                     |
 | `callingState$`          | `callingState`          | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.               |
+| `localParticipant$`      | `localParticipant`      | The local participant is the logged-in user.                                                                 |
+| `remoteParticipants$`    | `remoteParticipants`    | All participants except the local participant.                                                               |
+| `participants$`          | `participants`          | All participants, including local and remote participants.                                                   |
 | `startedAt$`             | `startedAt`             | The actual start time of the current call session.                                                           |
 | `callStatsReport$`       | `callStatsReport`       | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval. |
-| `metadata$`              | `metadata`              | The `CallResponse`, see below for more information.                                                          |
-| `callRecordingList$`     | `callRecordingList`     | The latest list of recordings performed during the call.                                                     |
 | `hasOngoingScreenShare$` | `hasOngoingScreenShare` | It will return `true` if at least one participant is sharing their screen.                                   |
+| `custom$`                | `custom`                | Custom data attached to the call.                                                                            |
 | `dominantSpeaker$`       | `dominantSpeaker`       | The participant that is the current dominant speaker of the call.                                            |
 | `ownCapabilities$`       | `ownCapabilities`       | The capabilities of the local participant.                                                                   |
 
-The `CallResponse` object contains the following information:
-
-| Name               | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `backstage`        | It's `true` if the call is in backstage mode.           |
-| `blocked_user_ids` | The users who are blocked from this call.               |
-| `created_at`       | The time the call was created.                          |
-| `created_by`       | The creator of the call.                                |
-| `custom`           | Custom data attached to the call.                       |
-| `egress`           | Broadcasting related information.                       |
-| `ended_at`         | When the call was ended.                                |
-| `ingress`          | RTMP publishing related information.                    |
-| `recording`        | It's `true` if the call is being recorded.              |
-| `session`          | Information related to the current session of the call. |
-| `settings`         | The settings for this call.                             |
-| `starts_at`        | The scheduled start time of the call.                   |
-| `team`             | Team that the call is restricted to.                    |
-| `type`             | The type of the call.                                   |
-| `updated_at`       | When the call was updated.                              |
+:::note
+Your IDE of choice may help you to discover the other properties of the call state.
+:::
 
 ## Participant state
 
