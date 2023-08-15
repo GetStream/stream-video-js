@@ -38,7 +38,7 @@ or perform some permission-related actions:
 ```ts
 import { OwnCapability } from '@stream-io/video-react-sdk';
 
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 const canSendAudio = call.permissionsContext.hasPermission(
   OwnCapability.SEND_AUDIO,
 );
@@ -63,7 +63,7 @@ Other users should request this permission before they can start sending audio i
 ```ts
 import { OwnCapability } from '@stream-io/video-react-sdk';
 
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 if (!call.permissionsContext.canRequest(OwnCapability.SEND_AUDIO)) {
   console.log('The host has disabled the ability to request this permission');
   return;
@@ -85,7 +85,7 @@ import {
   StreamCallEvent,
 } from '@stream-io/video-react-sdk';
 
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 call.on('call.permission_request', async (event: StreamCallEvent) => {
   const request = event as PermissionRequestEvent;
   if (shouldApproveRequest(request)) {
@@ -101,7 +101,7 @@ At any time, a moderator or host can decide to either grant or revoke certain pe
 ```ts
 import { OwnCapability } from '@stream-io/video-react-sdk';
 
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 await call.updateUserPermissions({
   user_id: 'demo-user',
   grant_permission: [OwnCapability.SEND_AUDIO, OwnCapability.SEND_VIDEO],
@@ -127,7 +127,7 @@ In addition to granting or revoking permissions, a moderator or host can also mu
 This is a common scenario as quite often, participants may be a source of unwanted noise or distraction.
 
 ```ts
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 await call.muteUser('demo-user-id', 'audio');
 await call.muteUser('demo-user-id', 'video');
 await call.muteUser('demo-user-id', 'screenshare');
@@ -152,7 +152,7 @@ This operation doesn't revoke any permission, and the user would still be able t
 In some cases, a moderator or host may want to end the call for everyone.
 
 ```ts
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 await call.endCall();
 ```
 
@@ -167,7 +167,7 @@ Every user connecting to a Stream Call has a set of Capabilities.
 The capabilities of the local user live in the state of the `Call` instance.
 
 ```tsx
-const call = streamVideoClient.call(type, id);
+const call = client.call(type, id);
 const { ownCapabilities } = call.state;
 ```
 
