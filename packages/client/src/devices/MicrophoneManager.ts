@@ -28,7 +28,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   /**
    * Disables the audio tracks of the microphone
    */
-  protected pause() {
+  pause() {
     this.state.mediaStream?.getAudioTracks().forEach((track) => {
       track.enabled = false;
     });
@@ -37,7 +37,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   /**
    * (Re)enables the audio tracks of the microphone
    */
-  protected resume() {
+  resume() {
     this.state.mediaStream?.getAudioTracks().forEach((track) => {
       track.enabled = true;
     });
