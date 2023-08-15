@@ -24,4 +24,22 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   protected stopPublishStream(): Promise<void> {
     return this.call.stopPublish(TrackType.AUDIO);
   }
+
+  /**
+   * Disables the audio tracks of the microphone
+   */
+  protected pause() {
+    this.state.mediaStream?.getAudioTracks().forEach((track) => {
+      track.enabled = false;
+    });
+  }
+
+  /**
+   * (Re)enables the audio tracks of the microphone
+   */
+  protected resume() {
+    this.state.mediaStream?.getAudioTracks().forEach((track) => {
+      track.enabled = true;
+    });
+  }
 }
