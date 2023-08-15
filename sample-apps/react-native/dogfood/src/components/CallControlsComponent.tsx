@@ -13,9 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
 
 export type CallControlsComponentProps = {
-  onChatOpenHandler: () => void;
+  onChatOpenHandler?: () => void;
   onHangupCallHandler?: () => void;
-  unreadCountIndicator: number;
+  unreadCountIndicator?: number;
 };
 
 export const CallControlsComponent = ({
