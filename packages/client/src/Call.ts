@@ -108,8 +108,9 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails, getOSInfo } from './client-details';
 import { getLogger } from './logger';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * An object representation of a `Call`.
@@ -819,6 +820,12 @@ export class Call {
     const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
     const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
 
+    let preferredVideoCodec = this.streamClient.options.preferredVideoCodec;
+    if (isReactNative()) {
+      const isIOS = getOSInfo()?.name.toLowerCase() === 'ios';
+      preferredVideoCodec = isIOS ? undefined : 'VP8';
+    }
+
     if (!this.publisher) {
       this.publisher = new Publisher({
         sfuClient,
@@ -827,7 +834,7 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
-        preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
+        preferredVideoCodec,
       });
     }
 

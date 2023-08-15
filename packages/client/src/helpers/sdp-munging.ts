@@ -16,6 +16,30 @@ type Fmtp = {
   config: string;
 };
 
+type RtcpFb = {
+  original: string;
+  payload: string;
+};
+
+const getRtcpFbLine = (line: string): RtcpFb | undefined => {
+  const rtcpFbRegex = /^a=rtcp-fb:(\S+) (\S+)( (\S+))?/i;
+  const rtcpFbMatch = rtcpFbRegex.exec(line);
+  if (rtcpFbMatch) {
+    return {
+      original: rtcpFbMatch[0],
+      payload: rtcpFbMatch[1],
+    };
+  }
+  const rtcpFbTrrIntRegex = /^a=rtcp-fb:(\d+) trr-int (\d+)/i;
+  const rtcpFbTrrIntMatch = rtcpFbTrrIntRegex.exec(line);
+  if (rtcpFbTrrIntMatch) {
+    return {
+      original: rtcpFbTrrIntMatch[0],
+      payload: rtcpFbTrrIntMatch[1],
+    };
+  }
+};
+
 const getRtpMap = (line: string): RtpMap | undefined => {
   // Example: a=rtpmap:110 opus/48000/2
   const rtpRegex = /^a=rtpmap:(\d*) ([\w\-.]*)(?:\s*\/(\d*)(?:\s*\/(\S*))?)?/;
@@ -65,6 +89,7 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
   let media: Media | undefined;
   const rtpMap: RtpMap[] = [];
   const fmtp: Fmtp[] = [];
+  const rtcpFbLines: RtcpFb[] = [];
   let isTheRequiredMediaSection = false;
   sdp.split(/(\r\n|\r|\n)/).forEach((line) => {
     const isValidLine = /^([a-z])=(.*)/.test(line);
@@ -87,6 +112,11 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
         rtpMap.push(rtpMapLine);
       } else if (fmtpLine) {
         fmtp.push(fmtpLine);
+      } else {
+        const rtcpFbLine = getRtcpFbLine(line);
+        if (rtcpFbLine) {
+          rtcpFbLines.push(rtcpFbLine);
+        }
       }
     }
   });
@@ -95,6 +125,7 @@ const getMediaSection = (sdp: string, mediaType: 'video' | 'audio') => {
       media,
       rtpMap,
       fmtp,
+      rtcpFbLines,
     };
   }
 };
@@ -184,14 +215,22 @@ export const removeCodec = (
     return sdp;
   }
   const newCodecOrder = removeCodecFromOrder(mediaSection.codecOrder, codecId);
-  const fmtp = section?.fmtp.find((f) => f.payload === codecId);
-  return sdp
+  const fmtp = section.fmtp.find((f) => f.payload === codecId);
+  let newSdp = sdp
     .replace(
       mediaSection.original,
       `${mediaSection.mediaWithPorts} ${newCodecOrder}`,
     )
     .replace(new RegExp(`${rtpMap.original}[\r\n]+`), '') // remove the corresponding rtpmap line
     .replace(fmtp?.original ? new RegExp(`${fmtp?.original}[\r\n]+`) : '', ''); // remove the corresponding fmtp line
+
+  const rtcpFbLines = section.rtcpFbLines
+    .filter((r) => r.payload === codecId)
+    .map((r) => r.original);
+  for (const line of rtcpFbLines) {
+    newSdp = newSdp.replace(new RegExp(`${line}[\r\n]+`), ''); // remove the corresponding rtcp-fb line
+  }
+  return newSdp;
 };
 
 /**
