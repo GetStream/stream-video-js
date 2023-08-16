@@ -5,7 +5,13 @@ import mockParticipant from '../mocks/participant';
 import { ComponentTestIds } from '../../src/constants/TestIds';
 import { mockCall } from '../mocks/call';
 import { act, render, screen, within } from '../utils/RNTLTools';
-import { CallParticipantsGrid } from '../../src/components';
+import {
+  CallParticipantsGrid,
+  CallParticipantsList,
+  LocalParticipantView,
+  ParticipantView,
+  VideoRenderer,
+} from '../../src/components';
 import { ViewToken } from 'react-native';
 
 console.warn = jest.fn();
@@ -19,26 +25,6 @@ enum P_IDS {
 }
 
 describe('CallParticipantsGrid', () => {
-  it('should render an local video when only 1 participant present in the call', async () => {
-    const call = mockCall(mockClientWithUser(), [
-      mockParticipant({
-        isLocalParticipant: true,
-        sessionId: P_IDS.LOCAL_1,
-        userId: P_IDS.LOCAL_1,
-        publishedTracks: [SfuModels.TrackType.AUDIO],
-        videoStream: null,
-      }),
-    ]);
-
-    render(<CallParticipantsGrid />, {
-      call,
-    });
-
-    expect(
-      await screen.findByTestId(ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN),
-    ).toBeVisible();
-  });
-
   it('should render an call participants with grid mode with 2 participants when no screen shared', async () => {
     const call = mockCall(mockClientWithUser(), [
       mockParticipant({
@@ -53,9 +39,17 @@ describe('CallParticipantsGrid', () => {
       }),
     ]);
 
-    render(<CallParticipantsGrid />, {
-      call,
-    });
+    render(
+      <CallParticipantsGrid
+        CallParticipantsList={CallParticipantsList}
+        ParticipantView={ParticipantView}
+        LocalParticipantView={LocalParticipantView}
+        VideoRenderer={VideoRenderer}
+      />,
+      {
+        call,
+      },
+    );
 
     expect(
       await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_GRID),
@@ -108,9 +102,16 @@ describe('CallParticipantsGrid', () => {
       }),
     ]);
 
-    render(<CallParticipantsGrid />, {
-      call,
-    });
+    render(
+      <CallParticipantsGrid
+        CallParticipantsList={CallParticipantsList}
+        ParticipantView={ParticipantView}
+        VideoRenderer={VideoRenderer}
+      />,
+      {
+        call,
+      },
+    );
 
     const visibleParticipantsItems = call.state.participants.map((p) => ({
       key: p.sessionId,

@@ -9,19 +9,7 @@ import { StyleSheet, View } from 'react-native';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import {
-  CallParticipantsList,
-  CallParticipantsListProps,
-} from '../CallParticipantsList/CallParticipantsList';
-import {
-  LocalParticipantView,
-  ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
-  ParticipantReaction as DefaultParticipantReaction,
-  ParticipantLabel as DefaultParticipantLabel,
-  ParticipantVideoFallback as DefaultParticipantVideoFallback,
-  VideoRenderer as DefaultVideoRenderer,
-  ParticipantView as DefaultParticipantView,
-} from '../../Participant';
+import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -34,7 +22,12 @@ export type CallParticipantsSpotlightProps = Pick<
   | 'ParticipantVideoFallback'
   | 'ParticipantView'
   | 'VideoRenderer'
->;
+> & {
+  /**
+   * Component to customize the CallParticipantsList.
+   */
+  CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
+};
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -44,12 +37,13 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
  * This can be used when you want to render the screen sharing stream.
  */
 export const CallParticipantsSpotlight = ({
-  ParticipantLabel = DefaultParticipantLabel,
-  ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
-  ParticipantReaction = DefaultParticipantReaction,
-  ParticipantVideoFallback = DefaultParticipantVideoFallback,
-  ParticipantView = DefaultParticipantView,
-  VideoRenderer = DefaultVideoRenderer,
+  CallParticipantsList,
+  ParticipantLabel,
+  ParticipantNetworkQualityIndicator,
+  ParticipantReaction,
+  ParticipantVideoFallback,
+  ParticipantView,
+  VideoRenderer,
 }: CallParticipantsSpotlightProps) => {
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
@@ -61,19 +55,15 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _remoteParticipants?.length === 0;
 
-  if (isUserAloneInCall) {
-    return <LocalParticipantView layout={'fullscreen'} />;
-  }
-
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={styles.container}
     >
-      {participantInSpotlight && (
+      {participantInSpotlight && ParticipantView && (
         <ParticipantView
           participant={participantInSpotlight}
-          style={styles.participantView}
+          style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
           ParticipantLabel={ParticipantLabel}
           ParticipantNetworkQualityIndicator={
@@ -84,22 +74,26 @@ export const CallParticipantsSpotlight = ({
           VideoRenderer={VideoRenderer}
         />
       )}
-      <View style={styles.participantVideoContainer}>
-        <CallParticipantsList
-          participants={
-            isScreenShareOnSpotlight ? allParticipants : otherParticipants
-          }
-          horizontal
-          ParticipantLabel={ParticipantLabel}
-          ParticipantNetworkQualityIndicator={
-            ParticipantNetworkQualityIndicator
-          }
-          ParticipantReaction={ParticipantReaction}
-          ParticipantVideoFallback={ParticipantVideoFallback}
-          ParticipantView={ParticipantView}
-          VideoRenderer={VideoRenderer}
-        />
-      </View>
+      {!isUserAloneInCall && (
+        <View style={styles.participantVideoContainer}>
+          {CallParticipantsList && (
+            <CallParticipantsList
+              participants={
+                isScreenShareOnSpotlight ? allParticipants : otherParticipants
+              }
+              horizontal
+              ParticipantLabel={ParticipantLabel}
+              ParticipantNetworkQualityIndicator={
+                ParticipantNetworkQualityIndicator
+              }
+              ParticipantReaction={ParticipantReaction}
+              ParticipantVideoFallback={ParticipantVideoFallback}
+              ParticipantView={ParticipantView}
+              VideoRenderer={VideoRenderer}
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 };
@@ -109,6 +103,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: theme.padding.sm,
     backgroundColor: theme.light.static_grey,
+  },
+  fullScreen: {
+    flex: 1,
   },
   participantView: {
     flex: 2,
