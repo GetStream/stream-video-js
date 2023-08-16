@@ -29,6 +29,7 @@ import {
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
+import { getOSInfo } from '../client-details';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -241,9 +242,17 @@ export class Publisher {
           ? findOptimalVideoLayers(track, targetResolution)
           : undefined;
 
+      let preferredCodec = opts.preferredCodec;
+      if (!preferredCodec && trackType === TrackType.VIDEO) {
+        const isRNAndroid =
+          isReactNative() && getOSInfo()?.name.toLowerCase() === 'android';
+        if (isRNAndroid) {
+          preferredCodec = 'VP8';
+        }
+      }
       const codecPreferences = this.getCodecPreferences(
         trackType,
-        opts.preferredCodec,
+        preferredCodec,
       );
 
       // listen for 'ended' event on the track as it might be ended abruptly
@@ -548,19 +557,6 @@ export class Publisher {
   private mungeCodecs = (sdp?: string) => {
     if (sdp) {
       sdp = toggleDtx(sdp, this.isDtxEnabled);
-      if (isReactNative()) {
-        if (this.preferredVideoCodec) {
-          sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
-        }
-        sdp = setPreferredCodec(
-          sdp,
-          'audio',
-          this.isRedEnabled ? 'red' : 'opus',
-        );
-        if (!this.isRedEnabled) {
-          sdp = removeCodec(sdp, 'audio', 'red');
-        }
-      }
     }
     return sdp;
   };
