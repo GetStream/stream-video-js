@@ -7,9 +7,18 @@ import ImageShowcase from '@site/src/components/ImageShowcase';
 import CallContentGrid from '../../assets/04-ui-components/call-content-grid.png';
 import CallContentSpotlight from '../../assets/04-ui-components/call-content-spotlight.png';
 
-CallContent is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
+The `CallContent` is the highest-level UI component that allows you to build your own call screen with full UI elements. So you don't need to take care much about each feature that you need to build a video call screen with this component.
 
-The CallContent has two modes(`grid` or `spotlight`). The grid mode lists the participants vertically, one after the other. In contrast, the spotlight mode shows the screen sharing view, or a single dominant speaker, or a pinned participant in an elongated view, while other participants are in a horizontal view.
+Basically what you can do with the `CallContent` is:
+
+- A full call screen with multiple UI elements, such as the top view, participants grid, and control action buttons.
+- Handles the state and actions of enabling and disabling camera, microphone, and speakerphone.
+- Renders Screensharing.
+- Display participant information, such as network quality, name, microphone states, and reactions.
+- Renders video of the participant.
+- Allows changing layout from `grid` to `spotlight`.
+
+Based on the call state, the CallContent provides a list or grid of participants, with their avatars and names, or a video if they're publishing, with more information for each participant, like their connection quality, etc.
 
 <ImageShowcase
   items={[
@@ -28,9 +37,9 @@ The CallContent has two modes(`grid` or `spotlight`). The grid mode lists the pa
 
 ## General usage
 
-The `CallContent` can be used to display the video stream of all the participants and also play their audio stream.
+Let's see how to show the `CallContent` UI:
 
-```tsx
+```tsx {13}
 import {
   Call,
   CallContent,
@@ -43,7 +52,6 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
-      // highlight-next-line
       <CallContent />
     </StreamCall>
   );
@@ -52,7 +60,7 @@ const VideoCallUI = () => {
 
 ## Props
 
-### `mode`
+### `layout`
 
 | Type                  | Default Value |
 | --------------------- | ------------- |
@@ -63,3 +71,115 @@ This switches the list between the grid and the spotlight mode.
 :::note
 When a screen is shared, the layout automatically changes to `spotlight` mode.
 :::
+
+### [`onBackPressed`](../call-top-view/#onbackpressed)
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+Handler to be called when the back button is pressed in the [`CallTopView`](../call-top-view).
+
+### [`onParticipantInfoPress`](../call-top-view/#onparticipantinfopress)
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+Handler to be called when the Participant icon is pressed in the [`CallTopView`](../call-top-view).
+
+### [`onHangupCallHandler`](../call-controls/#onhangupcallhandler)
+
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
+
+Handler to be called when the call is left using the [HangupCallButton](../call-controls/#hangupcallbutton) in [`CallControls`](../call-controls).
+
+### `CallTopView`
+
+| Type                          | Default Value                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`CallTopView`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallTopView/CallTopView.tsx) |
+
+Prop to customize the [`CallTopView`](../call-top-view) component.
+
+### `CallControls`
+
+| Type                          | Default Value                                                                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`CallControls`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/CallControls.tsx) |
+
+Prop to customize the [`CallControls`](../call-controls) component.
+
+### `ParticipantLabel`
+
+| Type                          | Default Value                                                                                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantLabel`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantLabel.tsx) |
+
+Prop to customize the Label of the [ParticipantView](../../participants/participant-view).
+
+### `ParticipantReaction`
+
+| Type                          | Default Value                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantReaction`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantReaction.tsx) |
+
+Prop to customize the component that displays the reaction of the [ParticipantView](../../participants/participant-view).
+
+### `ParticipantVideoFallback`
+
+| Type                          | Default Value                                                                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantVideoFallback`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantVideoFallback.tsx) |
+
+Prop to customize the video fallback of the [ParticipantView](../../participants/participant-view), when the video is disabled.
+
+### `ParticipantNetworkQualityIndicator`
+
+| Type                          | Default Value                                                                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantNetworkQualityIndicator`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantNetworkQualityIndicator.tsx) |
+
+Prop to customize the network quality indicator of the [ParticipantView](../../participants/participant-view).
+
+### `VideoRenderer`
+
+| Type                          | Default Value                                                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`VideoRenderer`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/VideoRenderer.tsx) |
+
+Prop to customize the video component of the [ParticipantView](../../participants/participant-view). It is also responsible to display the [`ParticipantVideoFallback`](#participantvideofallback).
+
+### `ParticipantView`
+
+| Type                          | Default Value                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantView`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantView.tsx) |
+
+Prop to customize the [ParticipantView](../../participants/participant-view) component entirely.
+
+### `LocalParticipantView`
+
+| Type                          | Default Value                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`LocalParticipantView`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/LocalParticipantView/index.tsx) |
+
+Prop to customize the [LocalParticipantView](../../participants/local-participant-view) component.
+
+### `CallParticipantsList`
+
+| Type                          | Default Value                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`CallParticipantsList`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallParticipantsList/CallParticipantsList.tsx) |
+
+Prop to customize the [CallParticipantsList](../call-participants-list) component.
+
+## Customization
+
+If you're looking for guides on how to override and customize this UI, we have various [UI Cookbook](../../../ui-cookbook/overview) recipes for you:
+
+- [Call Top View](../../../ui-cookbook/replacing-call-top-view) and [Call Controls](../../../ui-cookbook/replacing-call-controls).
+- [`ParticipantView`](../../participants/participant-view) can be customized using the following [customization guide](../../participants/participant-view/#customization).
+- You can pass your own component to [`LocalParticipantView`](#localparticipantview) prop to customize it.

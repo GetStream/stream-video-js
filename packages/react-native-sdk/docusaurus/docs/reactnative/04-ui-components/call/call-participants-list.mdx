@@ -9,7 +9,7 @@ This component displays a list of participants in a [FlatList](https://reactnati
 This component depends on a flex container to calculate the width and height of the participant view, hence it should be used only in a flex parent container
 :::
 
-Our [CallContent](./call-content.mdx) component internally uses CallParticipantsList.
+Our [CallContent](./call-content.mdx) component internally uses `CallParticipantsList` inside [`CallParticipantsGrid`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallLayout/CallParticipantsGrid.tsx) and [`CallParticipantsSpotlight`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallLayout/CallParticipantsSpotlight.tsx) components.
 
 ![Preview of the CallParticipantsList component.](../../assets/04-ui-components/call-participants-list.png)
 
@@ -63,3 +63,51 @@ The number of participants to be displayed in a single row. This property is onl
 | `boolean` \| `undefined` | false         |
 
 This decides whether the participants should be listed vertically or horizontally.
+
+### `ParticipantView`
+
+| Type                          | Default Value                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantView`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantView.tsx) |
+
+Prop to customize the [ParticipantView](../../participants/participant-view) component entirely.
+
+### `ParticipantLabel`
+
+| Type                          | Default Value                                                                                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantLabel`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantLabel.tsx) |
+
+Prop to customize the Label of the [ParticipantView](../../participants/participant-view).
+
+### `ParticipantReaction`
+
+| Type                          | Default Value                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantReaction`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantReaction.tsx) |
+
+Prop to customize the component that displays the reaction of the [ParticipantView](../../participants/participant-view).
+
+### `ParticipantVideoFallback`
+
+| Type                          | Default Value                                                                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantVideoFallback`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantVideoFallback.tsx) |
+
+Prop to customize the video fallback of the [ParticipantView](../../participants/participant-view), when the video is disabled.
+
+### `ParticipantNetworkQualityIndicator`
+
+| Type                          | Default Value                                                                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantNetworkQualityIndicator`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantNetworkQualityIndicator.tsx) |
+
+Prop to customize the network quality indicator of the [ParticipantView](../../participants/participant-view).
+
+### `VideoRenderer`
+
+| Type                          | Default Value                                                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`VideoRenderer`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/VideoRenderer.tsx) |
+
+Prop to customize the video component of the [ParticipantView](../../participants/participant-view). It is also responsible to display the [`ParticipantVideoFallback`](#participantvideofallback).
