@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.377](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.376...@stream-io/video-react-native-sdk-0.0.1-alpha.377) (2023-08-16)
+
+
+### Bug Fixes
+
+* **react-native:** remove processing from background modes ([a208ad2](https://github.com/GetStream/stream-video-js/commit/a208ad2e5b33bc78559128435e0f41cf99a332a7))
+
+
+
 ## [0.0.1-alpha.376](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.375...@stream-io/video-react-native-sdk-0.0.1-alpha.376) (2023-08-15)
 
 
