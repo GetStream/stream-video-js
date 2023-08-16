@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  CallRecording,
-  useCall,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { CallRecording, useCall } from '@stream-io/video-react-sdk';
 
 import { Panel } from '../Panel/Panel';
 import { Download, LoadingSpinner } from '../Icons';
@@ -12,64 +8,66 @@ import { useModalContext } from '../../contexts/ModalContext';
 
 import styles from './Recordings.module.css';
 
-const MAX_NUMBER_POLL_REQUESTS = 6;
-const POLL_INTERVAL_MS = 10 * 1000;
-
 export const Recordings = () => {
+  const call = useCall();
   const [callRecordings, setCallRecordings] = useState<CallRecording[]>([]);
-  const client = useStreamVideoClient();
-  const activeCall = useCall();
-
   const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
 
   const { closeModal } = useModalContext();
 
-  const startPolling = useCallback(() => {
-    let recordingPollRequestsCount = 0;
-    let recordingPollRequestsInterval: any = undefined;
-
-    if (!client || !activeCall || callRecordings.length === 0) return;
-    const scheduleCallRecordingPolling = () => {
-      setLoadingCallRecordings(true);
-
-      if (recordingPollRequestsInterval) {
-        clearInterval(recordingPollRequestsInterval);
+  const fetchCallRecordings = useCallback(() => {
+    if (!call) return;
+    setLoadingCallRecordings(true);
+    call.queryRecordings().then(({ recordings }) => {
+      setCallRecordings(recordings);
+      // FIXME OL: we need to find a better way of showing the loading state
+      // currently, whenever we open this modal, we assume there is a recording
+      // and we show the loading state until we get the actual recordings
+      if (recordings.length > 0) {
+        setLoadingCallRecordings(false);
       }
-
-      recordingPollRequestsInterval = setInterval(async () => {
-        let recordings: CallRecording[] = [];
-        try {
-          const response = await activeCall.queryRecordings();
-          recordings = response.recordings;
-        } catch (e) {
-          console.error('Failed to query recordings', e);
-        } finally {
-          recordingPollRequestsCount = recordingPollRequestsCount + 1;
-          const hasNewRecordings = callRecordings.length < recordings.length;
-
-          if (hasNewRecordings) {
-            setLoadingCallRecordings(false);
-            clearInterval(recordingPollRequestsInterval);
-          }
-
-          if (recordingPollRequestsCount === MAX_NUMBER_POLL_REQUESTS) {
-            setLoadingCallRecordings(false);
-            clearInterval(recordingPollRequestsInterval);
-          }
-
-          setCallRecordings(recordings);
-        }
-      }, POLL_INTERVAL_MS);
-    };
-
-    if (callRecordings.length === 0) {
-      scheduleCallRecordingPolling();
-    }
-  }, [client, activeCall, callRecordings]);
+    });
+  }, [call]);
 
   useEffect(() => {
-    startPolling();
-  }, []);
+    let attempts = 10;
+    setLoadingCallRecordings(true);
+    const interval = setInterval(() => {
+      fetchCallRecordings();
+      if (attempts-- <= 0 || callRecordings.length > 0) {
+        clearInterval(interval);
+        setLoadingCallRecordings(false);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [callRecordings.length, fetchCallRecordings]);
+
+  useEffect(() => {
+    if (!call) return;
+    const unsubscribeRecordingStopped = call.on(
+      'call.recording_stopped',
+      () => {
+        setLoadingCallRecordings(true);
+      },
+    );
+
+    // @ts-expect-error
+    const unsubscribeRecordingReady = call.on('call.recording_ready', (e) => {
+      try {
+        // FIXME OL this event isn't yet available in the OpenAPI schema
+        const { call_recording: recording } = e;
+        setCallRecordings((prev) => [...prev, recording]);
+      } catch (error) {
+        console.error(error);
+      }
+      setLoadingCallRecordings(false);
+    });
+
+    return () => {
+      unsubscribeRecordingReady();
+      unsubscribeRecordingStopped();
+    };
+  }, [call]);
 
   return (
     <Panel className={styles.root} title="Recordings" toggleHide={closeModal}>
