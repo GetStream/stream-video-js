@@ -9,7 +9,7 @@ import {
   HangUpCallButtonProps,
 } from './CallControls/HangupCallButton';
 import { useCameraState, useI18n } from '@stream-io/video-react-bindings';
-import { RTCView } from '@livekit/react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 

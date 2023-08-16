@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { RTCView } from '@livekit/react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 import { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,

@@ -17,7 +17,7 @@ import {
   navigationRef,
   StaticNavigationService,
 } from './src/utils/staticNavigationUtils';
-import Logger from '@livekit/react-native-webrtc/src/Logger';
+import Logger from '@stream-io/react-native-webrtc/src/Logger';
 import { Meeting } from './src/navigators/Meeting';
 import { Call } from './src/navigators/Call';
 import { VideoWrapper } from './src/components/VideoWrapper';

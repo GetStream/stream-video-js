@@ -3497,21 +3497,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@livekit/react-native-webrtc@npm:104.0.1":
-  version: 104.0.1
-  resolution: "@livekit/react-native-webrtc@npm:104.0.1"
-  dependencies:
-    adm-zip: 0.5.9
-    base64-js: 1.5.1
-    debug: 4.3.4
-    event-target-shim: 6.0.2
-    tar: 6.1.11
-  peerDependencies:
-    react-native: ">=0.60.0"
-  checksum: a38f7f24a868f3d32de421fdbc76da5098c03b6c9289ff23f267311b0dc56f247717f7d66b27aa80152fa461e0eb76ae05fe5b92e714cec7495d57ef052fcc8d
-  languageName: node
-  linkType: hard
-
 "@lukeed/csprng@npm:^1.0.0":
   version: 1.1.0
   resolution: "@lukeed/csprng@npm:1.1.0"
@@ -7006,6 +6991,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/react-native-webrtc@npm:104.0.1":
+  version: 104.0.1
+  resolution: "@stream-io/react-native-webrtc@npm:104.0.1"
+  dependencies:
+    adm-zip: 0.5.9
+    base64-js: 1.5.1
+    debug: 4.3.4
+    event-target-shim: 6.0.2
+    tar: 6.1.11
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 9adc7aa20113bb4fcc7bc2cc4db4ef775994d9a4e359498b5091e26a690b5331c56812c6bb1976eb9959ef3a8031e836d577f3f8379df4a03aff1e8511891c5b
+  languageName: node
+  linkType: hard
+
 "@stream-io/stream-chat-css@npm:^3.9.0, @stream-io/stream-chat-css@npm:^3.9.1":
   version: 3.9.1
   resolution: "@stream-io/stream-chat-css@npm:3.9.1"
@@ -7158,7 +7158,6 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
-    "@livekit/react-native-webrtc": 104.0.1
     "@notifee/react-native": ^7.7.1
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
@@ -7174,6 +7173,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": ^0.1.22
     "@sentry/react-native": ^5.6.0
     "@stream-io/flat-list-mvcp": ^0.10.3
+    "@stream-io/react-native-webrtc": 104.0.1
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@tsconfig/react-native": ^2.0.2
     "@types/jest": ^29.2.1
@@ -7219,13 +7219,13 @@ __metadata:
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
     "@babel/preset-typescript": ^7.21.5
-    "@livekit/react-native-webrtc": 104.0.1
     "@notifee/react-native": 7.7.1
     "@react-native-community/eslint-config": ^3.2.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-firebase/app": 17.5.0
     "@react-native-firebase/messaging": 17.5.0
     "@stream-io/i18n": "workspace:^"
+    "@stream-io/react-native-webrtc": 104.0.1
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@testing-library/jest-native": ^5.4.2
@@ -7254,11 +7254,11 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^4.9.5
   peerDependencies:
-    "@livekit/react-native-webrtc": 104.0.1
     "@notifee/react-native": ">=7.7.0"
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
+    "@stream-io/react-native-webrtc": ">=104.0.1"
     react: ">=17.0.0"
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.11"
