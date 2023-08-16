@@ -4,7 +4,6 @@ import classnames from 'classnames';
 
 import { Copy, Reload, UserChecked } from '../Icons';
 import Panel from '../Panel';
-import Button from '../Button';
 
 import { useUserContext } from '../../contexts/UserContext';
 
@@ -69,13 +68,12 @@ export const Invite = ({
       </div>
 
       {canShare && (
-        <Button
+        <button
           className={styles.share}
           onClick={() => navigator.share({ url: `${window.location.href}` })}
-          color="primary"
         >
           Share
-        </Button>
+        </button>
       )}
     </>
   );

@@ -28,16 +28,13 @@ yarn add @stream-io/video-react-sdk
 Open up `src/App.tsx` and replace it with this code:
 
 ```tsx title="src/App.tsx"
-import { useEffect, useState } from 'react';
 import {
-  Call,
   CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
   useCall,
-  useCallCallingState,
-  useParticipantCount,
+  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
 
@@ -54,38 +51,23 @@ const user: User = {
 };
 
 const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', callId);
+call.join({ create: true });
 
-export default function App() {
-  const [call, setCall] = useState<Call>();
-  useEffect(() => {
-    const myCall = client.call('default', callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
-
-    setCall(myCall);
-
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error(`Failed to leave the call`, err);
-      });
-    };
-  }, []);
-
-  if (!call) return null;
-
+export const App = () => {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <UILayout />
+        <MyUILayout />
       </StreamCall>
     </StreamVideo>
   );
-}
+};
 
-export const UILayout = () => {
+export const MyUILayout = () => {
   const call = useCall();
+
+  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
 
@@ -144,33 +126,27 @@ const client = new StreamVideoClient({ apiKey, user, token });
 After the user and client are created, we create a call like this:
 
 ```ts
-const [call, setCall] = useState<Call>();
-useEffect(() => {
-  const myCall = client.call('default', callId);
-  myCall.join({ create: true }).catch((err) => {
-    console.error(`Failed to join the call`, err);
-  });
-
-  setCall(myCall);
-
-  return () => {
-    setCall(undefined);
-    myCall.leave().catch((err) => {
-      console.error(`Failed to leave the call`, err);
-    });
-  };
-}, []);
+const call = client.call('default', callId);
+await call.join({ create: true });
 ```
 
 As soon as you use `call.join()` the connection for video & audio is setup.
 
-Lastly, the UI is rendered by observing the call state through the state hooks (participants and connection states):
+:::note
+In production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide.
+:::
+
+#### Rendering the UI
+
+Lastly, the UI is rendered by observing the call state through the call state hooks (participants and call state):
 
 ```tsx
-import {
-  useCallCallingState,
-  useParticipantCount,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+// all call state hooks are available in the useCallStateHooks() object
+// your IDE should help you to explore all of them
+const { useCallCallingState, useParticipantCount } = useCallStateHooks();
 
 const callingState = useCallCallingState();
 const participantCount = useParticipantCount();
@@ -197,14 +173,19 @@ Let's update our `UILayout` component to load the predefined SDK stylesheet, app
 import {
   CallingState,
   StreamTheme,
-  useCallCallingState,
-  useLocalParticipant,
-  useRemoteParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
-export const UILayout = () => {
+export const MyUILayout = () => {
+  const {
+    useCallCallingState,
+    useLocalParticipant,
+    useRemoteParticipants,
+    // ... other hooks
+  } = useCallStateHooks();
+
   const callingState = useCallCallingState();
   const localParticipant = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -215,14 +196,14 @@ export const UILayout = () => {
 
   return (
     <StreamTheme>
-      <ParticipantList participants={remoteParticipants} />
-      <FloatingLocalParticipant participant={localParticipant} />
+      <MyParticipantList participants={remoteParticipants} />
+      <MyFloatingLocalParticipant participant={localParticipant} />
     </StreamTheme>
   );
 };
 ```
 
-We will now create a `ParticipantList` component that will render the remote participants video.
+We will now create a `MyParticipantList` component that will render the remote participants video.
 
 ```tsx title="src/App.tsx"
 import {
@@ -230,7 +211,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 
-export const ParticipantList = (props: {
+export const MyParticipantList = (props: {
   participants: StreamVideoParticipant[];
 }) => {
   const { participants } = props;
@@ -253,7 +234,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 
-export const FloatingLocalParticipant = (props: {
+export const MyFloatingLocalParticipant = (props: {
   participant?: StreamVideoParticipant;
 }) => {
   const { participant } = props;
@@ -295,20 +276,22 @@ The video is lazily loaded, and only requested from the video infrastructure if 
 So if you have a video call with 200 participants, and you show only 10 of them, you'll only receive video for 10 participants.
 This is how software like Zoom and Google Meet make large calls work.
 
-`FloatingLocalParticipant` renders a display of your own video.
+`MyFloatingLocalParticipant` renders a display of your own video.
 
 ```tsx
+const { useLocalParticipant } = useCallStateHooks();
 const localParticipant = useLocalParticipant();
 
-<FloatingLocalParticipant participant={useLocalParticipant} />;
+<MyFloatingLocalParticipant participant={useLocalParticipant} />;
 ```
 
-`ParticipantList` renders a list of remote participants.
+`MyParticipantList` renders a list of remote participants.
 
 ```tsx
+const { useRemoteParticipants } = useCallStateHooks();
 const remoteParticipants = useRemoteParticipants();
 
-<ParticipantList participants={remoteParticipants} />;
+<MyParticipantList participants={remoteParticipants} />;
 ```
 
 ### Step 5 - A Full Video Calling UI
@@ -352,9 +335,7 @@ html {
 ```
 
 ```tsx title=src/App.tsx
-import { useEffect, useState } from 'react';
 import {
-  Call,
   CallControls,
   CallingState,
   SpeakerLayout,
@@ -362,7 +343,7 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCallCallingState,
+  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
 
@@ -381,38 +362,23 @@ const user: User = {
 };
 
 const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', callId);
+call.join({ create: true });
 
 export default function App() {
-  const [call, setCall] = useState<Call>();
-  useEffect(() => {
-    const myCall = client.call('default', callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
-
-    setCall(myCall);
-
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error(`Failed to leave the call`, err);
-      });
-    };
-  }, []);
-
-  if (!call) return null;
-
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <UILayout />
+        <MyUILayout />
       </StreamCall>
     </StreamVideo>
   );
 }
 
-export const UILayout = () => {
+export const MyUILayout = () => {
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+
   if (callingState !== CallingState.JOINED) {
     return <div>Loading...</div>;
   }
@@ -441,6 +407,11 @@ It supports reactions, screensharing, active speaker detection, network quality 
 
 The full list of [UI components](../../ui-components/overview) is available in the docs.
 
+:::note
+Because of simplicity, in this tutorial, we are skipping some of the best practices for building a production ready app.
+Take a look at our sample app linked at the end of this tutorial for a more complete example.
+:::
+
 ### Step 6 - Customizing the UI
 
 You can customize the UI by:
@@ -461,7 +432,7 @@ To recap what we've learned:
 - You setup a call: `const call = client.call('default', '123');`.
 - The call type (`'default'` in the above case) controls which features are enabled and how permissions are setup.
 - When you join a call, realtime communication is setup for audio & video calling: `call.join()`.
-- Call state `call.state` and helper state access hooks as `useLocalParticipant` make it easy to build your own UI
+- Call state `call.state` and helper state access hooks exposed through `useCallStateHooks()` make it easy to build your own UI
 - `ParticipantView` is the low level component that renders video, plays audio and by default, it utilizes `DefaultParticipantViewUI` that adds UI elements as participant name, network quality, etc...
 
 We've used [Stream's Video Calling API](https://getstream.io/video/video-calling/),

@@ -14,9 +14,9 @@ export const RoomAccessControls = () => {
   const { setInitialAudioEnabled } = useMediaDevices();
   const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
-  const { useCallMetadata, useCallCallingState, useIsCallLive } =
+  const { useCallEndedAt, useCallCallingState, useIsCallLive } =
     useCallStateHooks();
-  const metadata = useCallMetadata();
+  const endedAt = useCallEndedAt();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
 
@@ -24,7 +24,7 @@ export const RoomAccessControls = () => {
     !call ||
     // The controls will not be shown. Instead, a lobby overlay will be presented.
     (callingState !== CallingState.JOINED && isLive) ||
-    !!metadata?.ended_at
+    !!endedAt
   )
     return null;
 

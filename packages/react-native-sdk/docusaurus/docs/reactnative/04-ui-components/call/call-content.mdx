@@ -7,9 +7,33 @@ import ImageShowcase from '@site/src/components/ImageShowcase';
 import CallContentGrid from '../../assets/04-ui-components/call-content-grid.png';
 import CallContentSpotlight from '../../assets/04-ui-components/call-content-spotlight.png';
 
-CallContent is one of the main components for a Call. This is responsible for listing all the participant's video streams in a vertical/horizontal list and playing the audio streams for those participants.
+import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
+import CallControls from '../../common-content/ui-components/call/call-content/call-controls.mdx';
+import ParticipantsInfoBadge from '../../common-content/ui-components/call/call-content/participants-info-badge.mdx';
+import OnBackPressed from '../../common-content/ui-components/call/call-content/on-back-pressed.mdx';
+import OnParticipantInfoPress from '../../common-content/ui-components/call/call-content/on-participant-info-press.mdx';
+import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
+import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
+import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
+import ParticipantVideoFallback from '../../common-content/ui-components/call/call-content/participant-video-fallback.mdx';
+import VideoRenderer from '../../common-content/ui-components/call/call-content/video-renderer.mdx';
+import OnHangupCallHandler from '../../common-content/ui-components/call/call-content/on-hangup-call-handler.mdx';
+import ParticipantView from '../../common-content/ui-components/call/call-content/participant-view.mdx';
+import LocalParticipantView from '../../common-content/ui-components/call/call-content/local-participant-view.mdx';
+import CallParticipantsList from '../../common-content/ui-components/call/call-content/call-participants-list.mdx';
 
-The CallContent has two modes(`grid` or `spotlight`). The grid mode lists the participants vertically, one after the other. In contrast, the spotlight mode shows the screen sharing view, or a single dominant speaker, or a pinned participant in an elongated view, while other participants are in a horizontal view.
+The `CallContent` is the highest-level UI component that allows you to build your own call screen with full UI elements. So you don't need to take care much about each feature that you need to build a video call screen with this component.
+
+Basically what you can do with the `CallContent` is:
+
+- A full call screen with multiple UI elements, such as the top view, participants grid, and control action buttons.
+- Handles the state and actions of enabling and disabling camera, microphone, and speakerphone.
+- Renders screen sharing.
+- Display participant information, such as network quality, name, microphone states, and reactions.
+- Renders video of the participant.
+- Allows changing layout from `grid` to `spotlight`.
+
+Based on the call state, the CallContent provides a list or grid of participants, with their avatars and names, or a video if they're publishing, with more information for each participant, like their connection quality, etc.
 
 <ImageShowcase
   items={[
@@ -28,9 +52,9 @@ The CallContent has two modes(`grid` or `spotlight`). The grid mode lists the pa
 
 ## General usage
 
-The `CallContent` can be used to display the video stream of all the participants and also play their audio stream.
+Let's see how to show the `CallContent` UI:
 
-```tsx
+```tsx {13}
 import {
   Call,
   CallContent,
@@ -43,7 +67,6 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
-      // highlight-next-line
       <CallContent />
     </StreamCall>
   );
@@ -52,14 +75,74 @@ const VideoCallUI = () => {
 
 ## Props
 
-### `mode`
+### `layout`
+
+This switches the list between the grid and the spotlight mode.
 
 | Type                  | Default Value |
 | --------------------- | ------------- |
 | `grid` \| `spotlight` | `grid`        |
 
-This switches the list between the grid and the spotlight mode.
-
 :::note
 When a screen is shared, the layout automatically changes to `spotlight` mode.
 :::
+
+### [`onBackPressed`](../call-top-view/#onbackpressed)
+
+<OnBackPressed />
+
+### [`onParticipantInfoPress`](../call-top-view/#onparticipantinfopress)
+
+<OnParticipantInfoPress />
+
+### [`onHangupCallHandler`](../call-controls/#onhangupcallhandler)
+
+<OnHangupCallHandler />
+
+### `CallTopView`
+
+<CallTopView />
+
+### `CallControls`
+
+<CallControls />
+
+### `ParticipantLabel`
+
+<ParticipantLabel />
+
+### `ParticipantReaction`
+
+<ParticipantReaction />
+
+### `ParticipantVideoFallback`
+
+<ParticipantVideoFallback />
+
+### `ParticipantNetworkQualityIndicator`
+
+<ParticipantNetworkQualityIndicator />
+
+### `VideoRenderer`
+
+<VideoRenderer />
+
+### `ParticipantView`
+
+<ParticipantView />
+
+### `LocalParticipantView`
+
+<LocalParticipantView />
+
+### `CallParticipantsList`
+
+<CallParticipantsList />
+
+## Customization
+
+If you're looking for guides on how to override and customize this UI, we have various [UI Cookbook](../../../ui-cookbook/overview) recipes for you:
+
+- [Call Top View](../../../ui-cookbook/replacing-call-top-view) and [Call Controls](../../../ui-cookbook/replacing-call-controls).
+- [`ParticipantView`](../../participants/participant-view) can be customized using the following [customization guide](../../participants/participant-view/#customization).
+- You can pass your own component to [`LocalParticipantView`](#localparticipantview) prop to customize it.

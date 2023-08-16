@@ -7,12 +7,13 @@ This quickstart gives you a quick overview of how Stream's video SDKs work.
 
 ## Client setup & Calls
 
-Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user.
+
+Next you create a call object and join the call.
+We'll specify `create: true` to create the call if it doesn't exist.
 
 ```tsx
-import { useEffect, useState } from 'react';
 import {
-  Call,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -24,58 +25,35 @@ const userId = 'user-id';
 const token = 'authentication-token';
 const user: User = { id: userId };
 
-export default function App() {
-  const [client, setClient] = useState<StreamVideoClient>();
-  const [call, setCall] = useState<Call>();
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', 'my-first-call');
+myCall.join({ create: true });
 
-  useEffect(() => {
-    const myClient = new StreamVideoClient({ apiKey, user, token });
-    setClient(myClient);
-    return () => {
-      myClient.disconnectUser();
-      setClient(undefined);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!client) return;
-    const myCall = client.call('default', 'my-first-call');
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
-
-    setCall(myCall);
-
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error(`Failed to leave the call`, err);
-      });
-    };
-  }, [client]);
-
-  if (!client || !call) return null;
-
+export const App = () => {
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>/* Video UI */</StreamCall>
+      <StreamCall call={call}>/* My Video UI */</StreamCall>
     </StreamVideo>
   );
-}
+};
 ```
 
 `default` is a call type. There are 4 built-in [call types](../../guides/configuring-call-types/) and you can also create your own. The call type controls the permissions and which features are enabled.
 
-The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+The second argument is the call id. Call IDs can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
 
 ## Rendering video
 
-The call's state can be accessed using hooks, you'll often work with `useParticipants`. Have a look below for a basic example of how to render the video of all participants:
+The call's state can be accessed using hooks, all exposed through the top-level `useCallStateHooks` hook.
+
+You'll often work with `useParticipants` hook.
+Have a look below for a basic example of how to render the video of all participants:
 
 ```tsx
-import { useParticipants, ParticipantView } from '@stream-io/video-react-sdk';
+import { useCallStateHooks, ParticipantView } from '@stream-io/video-react-sdk';
 
-function VideoUI() {
+export const MyVideoUI = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   return (
     <>
@@ -84,10 +62,11 @@ function VideoUI() {
       ))}
     </>
   );
-}
+};
 ```
 
 The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+`sessionId` uniquely identifies a participant in a call.
 
 More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
 
@@ -98,23 +77,23 @@ Most video apps will show buttons to mute/unmute the audio or video. The example
 ```tsx
 import {
   SfuModels,
-  useLocalParticipant,
+  useCallStateHooks,
   useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 
-function VideoButton() {
+export const MyVideoButton = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isVideoMute = !localParticipant?.publishedTracks.includes(
     SfuModels.TrackType.VIDEO,
   );
   const { toggleVideoMuteState } = useToggleVideoMuteState();
-
   return (
     <button onClick={toggleVideoMuteState}>
       {isVideoMute ? 'Turn on camera' : 'Turn off camera'}
     </button>
   );
-}
+};
 ```
 
 More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
@@ -136,18 +115,26 @@ Let's see an example where we set up the UI using built-in components:
 - Additionally, hook in the default `<CallControls />` component to enable call control functionalities (such as mute, hang up, etc.).
 
 ```tsx
+import {
+  CallControls,
+  SpeakerLayout,
+  StreamCall,
+  StreamTheme,
+  StreamVideo,
+} from '@stream-io/video-react-sdk';
+
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
-const MyApp = () => {
+export const MyApp = () => {
   // Assuming you have the 'client' and 'call' created
   return (
     <StreamVideo client={client}>
-      <StreamTheme>
-        <StreamCall call={call}>
+      <StreamCall call={call}>
+        <StreamTheme>
           <SpeakerLayout />
           <CallControls />
-        </StreamCall>
-      </StreamTheme>
+        </StreamTheme>
+      </StreamCall>
     </StreamVideo>
   );
 };

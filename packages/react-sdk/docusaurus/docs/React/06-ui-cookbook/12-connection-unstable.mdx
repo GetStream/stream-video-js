@@ -42,12 +42,13 @@ export const CustomParticipantViewUI = () => {
 Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the [ParticipantView customizations guide](../participant-view-customizations).
 
 ```tsx
-import { useParticipants } from '@stream-io/video-react-sdk';
+import { useCallStateHooks, ParticipantView } from '@stream-io/video-react-sdk';
 
 import { CustomParticipantViewUI } from '../ParticipantViewUI';
 import { CustomVideoPlaceholder } from '../VideoPlaceholder';
 
 export const CustomCallLayout = () => {
+  const { useParticipants } = useCallStateHooks();
   const otherParticipants = useParticipants();
 
   return (

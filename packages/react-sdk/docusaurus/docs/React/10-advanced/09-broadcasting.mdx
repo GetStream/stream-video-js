@@ -26,27 +26,30 @@ Stream infrastructure recognizes few pre-built call types. Among them, the type 
 We have the following `Call` methods at our disposal to start and stop the broadcasting:
 
 ```ts
-call.startHLS();
-call.stopHLS();
+await call.startHLS();
+await call.stopHLS();
+```
+
+alternatively:
+
+```ts
+await call.goLive({ start_hls: true });
 ```
 
 Once started broadcasting, the data source URL is available through `playlist_url` property accessible through the `Call` state:
 
 ```ts
-import { useCallMetadata } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 // omitted code ...
 
 const YourComponent = () => {
-  const metadata = useCallMetadata();
-  const { playlist_url } = metadata.egress.hls;
+  const { useCallEgress } = useCallStateHooks();
+  const egress = useCallEgress();
+  const m3u8Playlist = egress?.hls.playlist_url;
 
   // omitted code ...
 };
 ```
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).
-
-:::important
-In order the data to be broadcasted to the participants, the host side has to invoke `call.goLive()` alongisde `call.startHLS()`.
-:::

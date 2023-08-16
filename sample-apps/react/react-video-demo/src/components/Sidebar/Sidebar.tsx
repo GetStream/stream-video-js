@@ -3,7 +3,7 @@ import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import classnames from 'classnames';
 
 import InvitePanel from '../InvitePanel';
-import ParticipantsPanel from '../ParticipantsPanel';
+import { ParticipantsPanel } from '../ParticipantsPanel';
 import ChatPanel from '../ChatPanel';
 
 import PoweredBy from '../PoweredBy';

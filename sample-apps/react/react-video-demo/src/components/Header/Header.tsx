@@ -5,10 +5,11 @@ import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import Button from '../Button';
 import { People, Security } from '../Icons';
+import { ParticipantsPanelSmallScreen } from '../ParticipantsPanel';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
-import { usePanelContext } from '../../contexts/PanelContext';
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import { logoURI } from '../../utils/constants';
 
@@ -188,6 +189,7 @@ export const Header = ({
   participants,
 }: HeaderProps) => {
   const breakpoint = useBreakpoint();
+  const { participantsPanelVisibility } = usePanelContext();
 
   const rootClassName = classnames(
     styles.header,
@@ -200,7 +202,14 @@ export const Header = ({
   const me = participants?.[0];
 
   if (isCallActive) {
-    return (
+    return participantsPanelVisibility !== PANEL_VISIBILITY.hidden &&
+      (breakpoint === 'xs' || breakpoint === 'sm') ? (
+      <ParticipantsPanelSmallScreen
+        className={styles.participantsPanel}
+        callId={callId}
+        participants={participants}
+      />
+    ) : (
       <div className={rootClassName}>
         {participants?.length > 1 ? (
           <Participants participants={participants} />

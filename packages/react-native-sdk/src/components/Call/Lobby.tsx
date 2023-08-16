@@ -49,10 +49,10 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
     useMediaStreamManagement();
   const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
   const { t } = useI18n();
-  const participantsCount = callMetadata?.session?.participants.length;
+  const participantsCount = session?.participants.length;
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,

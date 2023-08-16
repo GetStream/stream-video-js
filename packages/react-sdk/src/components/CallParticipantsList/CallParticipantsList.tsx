@@ -201,9 +201,8 @@ const BlockedUsersSearchResults = ({
   CallParticipantListProps,
   'blockedUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
-  const { useCallMetadata } = useCallStateHooks();
-
-  const { blocked_user_ids: blockedUsers = [] } = useCallMetadata()!;
+  const { useCallBlockedUserIds } = useCallStateHooks();
+  const blockedUsers = useCallBlockedUserIds();
 
   const blockedUsersSearchFn = useCallback(
     (queryString: string) => {

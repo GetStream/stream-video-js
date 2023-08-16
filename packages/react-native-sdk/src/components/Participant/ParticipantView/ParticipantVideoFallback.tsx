@@ -4,11 +4,17 @@ import { Avatar } from '../../utility';
 import { theme } from '../../../theme';
 import { ParticipantViewProps } from './ParticipantView';
 
+/**
+ * Props for the ParticipantVideoFallback component.
+ */
 export type ParticipantVideoFallbackProps = Pick<
   ParticipantViewProps,
   'participant'
 >;
 
+/**
+ * This component is used to customize the video fallback of the participant, when the video is disabled.
+ */
 export const ParticipantVideoFallback = ({
   participant,
 }: ParticipantVideoFallbackProps) => {

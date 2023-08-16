@@ -26,7 +26,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const appStoreSetState = useAppGlobalStoreSetState();
   const { t } = useI18n();
-  const unreadBadgeCount = useUnreadCount();
+  const unreadCountIndicator = useUnreadCount();
 
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -54,6 +54,10 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
       setShow('error-join');
     }
   }, [call, appStoreSetState]);
+
+  const onChatOpenHandler = () => {
+    navigation.navigate('ChatScreen', { callId });
+  };
 
   const onHangupCallHandler = async () => {
     setShow('loading');
@@ -105,12 +109,8 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   } else {
     return (
       <ActiveCall
-        chatButton={{
-          onPressHandler: () => {
-            navigation.navigate('ChatScreen', { callId });
-          },
-          unreadBadgeCount,
-        }}
+        onChatOpenHandler={onChatOpenHandler}
+        unreadCountIndicator={unreadCountIndicator}
         onHangupCallHandler={onHangupCallHandler}
         onBackPressed={onHangupCallHandler}
       />
