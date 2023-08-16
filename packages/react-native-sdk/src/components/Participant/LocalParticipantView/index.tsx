@@ -121,25 +121,11 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
   },
-  videoStreamFullScreen: {
-    ...StyleSheet.absoluteFillObject,
-  },
   topView: {
     position: 'absolute',
     top: theme.spacing.sm,
     left: theme.spacing.sm,
     zIndex: Z_INDEX.IN_FRONT,
-  },
-  fullScreenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.light.disabled,
-  },
-  avatarContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   floatingContainer: {
     ...StyleSheet.absoluteFillObject,
