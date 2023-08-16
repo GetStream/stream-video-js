@@ -12,7 +12,7 @@ It has a back button by default and a participant info badge.
 
 To use the component, you can simple use it as:
 
-```tsx
+```tsx {12}
 import {
   Call,
   CallTopView,
@@ -24,7 +24,6 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
-      // highlight-next-line
       <CallTopView />
     </StreamCall>
   );
@@ -65,16 +64,10 @@ Title to be rendered at the center of the Header.
 
 Style to override the container of the `CallTopView`.
 
-## Built-in components
+### `ParticipantsInfoBadge`
 
-### `ParticipantInfoBadge`
+Component to customize the ParticipantInfoBadge of the CallTopView.
 
-This component is display the number of participants in the call and also has [`onParticipantInfoPress`](#onparticipantinfopress) hooked to it.
-
-| Type                     | Type                        | Description                                                                   |
-| ------------------------ | --------------------------- | ----------------------------------------------------------------------------- |
-| `onParticipantInfoPress` | `() => void` \| `undefined` | Handler to be called when the Participant icon is pressed in the CallTopView. |
-
-## Customization
-
-If you want to create custom call top view, follow the [Call Top View Cookbook guide](../../../ui-cookbook/replacing-call-top-view/) for more information.
+| Type                          | Default                                                                                                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantsInfobadge`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallTopView/ParticipantsInfoBadge.tsx) |
