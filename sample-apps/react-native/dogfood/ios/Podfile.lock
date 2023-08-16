@@ -607,7 +607,7 @@ PODS:
   - stream-react-native-webrtc (104.0.1):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.0.1-alpha.383):
+  - stream-video-react-native (0.0.1-alpha.376):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -960,7 +960,7 @@ SPEC CHECKSUMS:
   SentryPrivate: 2eaabf598a46d4b9b8822aef766df2a84caf2e6f
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: ae8266ce792b3d5aae916d54f6ecf3999df6d25f
+  stream-video-react-native: f9f3964fb15ca8673fd5b5dbdbbea483a283c807
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: f7decafdc5e8c125e6fa0da38a687e35238420fa
