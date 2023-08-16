@@ -31,7 +31,8 @@ Once started broadcasting, the data source URL is available through `playlist_ur
 ```ts
 // omitted code ...
 const call: Call;
-const { playlist_url } = call.metadata.egress.hls;
+// m3u8 playlist URL
+const playlistUrl = call.state.egress?.hls?.playlist_url;
 ```
 
 To play the video over HLS, a third-party library is required (for example [HLS.js](https://nochev.github.io/hls.js/docs/html/)).

@@ -1,60 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  CallingState,
-  CallState,
-  StreamVideoWriteableStateStore,
-} from '../../store';
-import {
-  watchCallAccepted,
-  watchCallEnded,
-  watchCallRejected,
-  watchCallUpdated,
-} from '../call';
+import { CallingState, StreamVideoWriteableStateStore } from '../../store';
+import { watchCallAccepted, watchCallEnded, watchCallRejected } from '../call';
 import {
   CallAcceptedEvent,
   CallEndedEvent,
   CallResponse,
-  CallUpdatedEvent,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 
 describe('Call ringing events', () => {
-  describe('call.updated', () => {
-    it(`will update the call's metadata`, () => {
-      const state = new CallState();
-      const handler = watchCallUpdated(state);
-      const event: CallUpdatedEvent = {
-        type: 'call.updated',
-        call_cid: 'development:12345',
-        // @ts-expect-error
-        call: {
-          cid: 'development:12345',
-        },
-      };
-
-      // @ts-ignore
-      handler(event);
-      expect(state.metadata).toEqual(event.call);
-    });
-
-    it(`will ignore unknown events`, () => {
-      const state = new CallState();
-      const handler = watchCallUpdated(state);
-      const event = {
-        type: 'call.updated.unknown',
-        call_cid: 'development:12345',
-        call: {
-          cid: 'development:12345',
-        },
-      };
-
-      // @ts-ignore
-      handler(event);
-      expect(state.metadata).toBeUndefined();
-    });
-  });
-
   describe(`call.accepted`, () => {
     it(`will ignore events from the current user`, async () => {
       const call = fakeCall();
@@ -96,7 +51,7 @@ describe('Call ringing events', () => {
   describe(`call.rejected`, () => {
     it(`caller will leave the call if all callees have rejected`, async () => {
       const call = fakeCall({ currentUserId: 'm1' });
-      call.state.setMetadata({
+      call.state.updateFromCallResponse({
         ...fakeMetadata(),
         // @ts-ignore
         created_by: { id: 'm1' },
@@ -141,7 +96,7 @@ describe('Call ringing events', () => {
 
     it(`caller will not leave the call if only one callee rejects`, async () => {
       const call = fakeCall();
-      call.state.setMetadata({
+      call.state.updateFromCallResponse({
         ...fakeMetadata(),
         // @ts-ignore
         created_by: { id: 'm0' },
@@ -182,7 +137,7 @@ describe('Call ringing events', () => {
 
     it('callee will leave the call if caller rejects', async () => {
       const call = fakeCall({ currentUserId: 'm1' });
-      call.state.setMetadata({
+      call.state.updateFromCallResponse({
         ...fakeMetadata(),
         // @ts-ignore
         created_by: { id: 'm0' },

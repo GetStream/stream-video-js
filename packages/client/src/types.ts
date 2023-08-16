@@ -3,7 +3,6 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  CallResponse,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
@@ -90,11 +89,15 @@ export interface StreamVideoParticipant extends Participant {
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
   /**
    * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   *
+   * @deprecated use call.microphone.state.selectedDevice
    */
   audioDeviceId?: string;
 
   /**
    * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
+   *
+   * @deprecated use call.camera.state.selectedDevice
    */
   videoDeviceId?: string;
 
@@ -186,13 +189,6 @@ export type CallConstructor = {
    * The Call ID.
    */
   id: string;
-
-  /**
-   * An optional {@link CallResponse} metadata from the backend.
-   * If provided, the call will be initialized with the data from this object.
-   * This is useful when initializing a new "pending call" from an event.
-   */
-  metadata?: CallResponse;
 
   /**
    * An optional list of {@link MemberResponse} from the backend.

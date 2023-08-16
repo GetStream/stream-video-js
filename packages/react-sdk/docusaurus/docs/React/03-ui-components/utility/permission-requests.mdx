@@ -4,43 +4,45 @@ title: Permission requests
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import PermissionRequestBanner from '../../assets/03-ui-components/permission-requests/permission-requests-banner.png'
-import PermissionRequestList from '../../assets/03-ui-components/permission-requests/permission-requests-list.png'
+import PermissionRequestBanner from '../../assets/03-ui-components/permission-requests/permission-requests-banner.png';
+import PermissionRequestList from '../../assets/03-ui-components/permission-requests/permission-requests-list.png';
 
 The default component to display a list of permission requests from other call participants is called `PermissionRequests`. The component takes care of:
 
 1. listing the permission requests if the user has permissions to grant permissions
 2. displaying the buttons to grant or ignore the permission requests
 
-
 <ImageShowcase
-    items={[
-        {
-            image: PermissionRequestBanner,
-            caption: 'Default UI of permission request notification',
-            alt: 'Default UI of permission request notification',
-        },
-        {
-            image: PermissionRequestList,
-            caption: 'Default UI of permission requests listing',
-            alt: 'Default UI of permission requests listing',
-        },
-    ]}
+  items={[
+    {
+      image: PermissionRequestBanner,
+      caption: 'Default UI of permission request notification',
+      alt: 'Default UI of permission request notification',
+    },
+    {
+      image: PermissionRequestList,
+      caption: 'Default UI of permission requests listing',
+      alt: 'Default UI of permission requests listing',
+    },
+  ]}
 />
 
 ## General usage
+
 The default component is just rendered without passing any props:
 
 ```tsx
-const YourComponent = (someProps: SomeProps) => {
-    // omitted code ...
+import { PermissionRequests } from '@stream-io/video-react-sdk';
 
-    return (
-      {/* omitted code ... */}
-        <PermissionRequests />
-      {/* omitted code ... */}
-    );
-}
+const MyComponent = () => {
+  // omitted code ...
+
+  return (
+    /* omitted code ... */
+    <PermissionRequests />
+    /* omitted code ... */
+  );
+};
 ```
 
 ## Customization

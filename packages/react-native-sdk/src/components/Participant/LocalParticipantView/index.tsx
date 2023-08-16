@@ -3,11 +3,11 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
+import { VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
-import { VideoSlash } from '../../../icons';
 
 /**
  * Props to be passed for the LocalVideoView component.

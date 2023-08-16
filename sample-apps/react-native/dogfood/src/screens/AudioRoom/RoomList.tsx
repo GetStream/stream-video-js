@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
+  Button,
   FlatList,
   FlatListProps,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
-  Button,
-  ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { appTheme } from '../../theme';
 import {
@@ -127,9 +127,9 @@ const RoomList = (props: Props) => {
             setCall(callItem);
           }}
         >
-          <Text style={styles.title}>{callItem.data?.custom.title}</Text>
+          <Text style={styles.title}>{callItem.state.custom.title}</Text>
           <Text style={styles.subTitle}>
-            {callItem.data?.custom.description}
+            {callItem.state.custom.description}
           </Text>
         </Pressable>
       );

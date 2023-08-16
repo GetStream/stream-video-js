@@ -21,14 +21,11 @@ import {
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
-import {
-  removeCodec,
-  setPreferredCodec,
-  toggleDtx,
-} from '../helpers/sdp-munging';
+import { toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
+import { getOSInfo } from '../client-details';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -50,7 +47,6 @@ export type PublisherOpts = {
 export class Publisher {
   private pc: RTCPeerConnection;
   private readonly state: CallState;
-  private readonly dispatcher: Dispatcher;
 
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -129,7 +125,6 @@ export class Publisher {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
-    this.dispatcher = dispatcher;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
     this.preferredVideoCodec = preferredVideoCodec;
@@ -234,16 +229,24 @@ export class Publisher {
     };
 
     if (!transceiver) {
-      const metadata = this.state.metadata;
-      const targetResolution = metadata?.settings.video.target_resolution;
+      const { settings } = this.state;
+      const targetResolution = settings?.video.target_resolution;
       const videoEncodings =
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
           : undefined;
 
+      let preferredCodec = opts.preferredCodec;
+      if (!preferredCodec && trackType === TrackType.VIDEO) {
+        const isRNAndroid =
+          isReactNative() && getOSInfo()?.name.toLowerCase() === 'android';
+        if (isRNAndroid) {
+          preferredCodec = 'VP8';
+        }
+      }
       const codecPreferences = this.getCodecPreferences(
         trackType,
-        opts.preferredCodec,
+        preferredCodec,
       );
 
       // listen for 'ended' event on the track as it might be ended abruptly
@@ -548,19 +551,6 @@ export class Publisher {
   private mungeCodecs = (sdp?: string) => {
     if (sdp) {
       sdp = toggleDtx(sdp, this.isDtxEnabled);
-      if (isReactNative()) {
-        if (this.preferredVideoCodec) {
-          sdp = setPreferredCodec(sdp, 'video', this.preferredVideoCodec);
-        }
-        sdp = setPreferredCodec(
-          sdp,
-          'audio',
-          this.isRedEnabled ? 'red' : 'opus',
-        );
-        if (!this.isRedEnabled) {
-          sdp = removeCodec(sdp, 'audio', 'red');
-        }
-      }
     }
     return sdp;
   };
@@ -608,8 +598,8 @@ export class Publisher {
       return String(media.mid);
     };
 
-    const metadata = this.state.metadata;
-    const targetResolution = metadata?.settings.video.target_resolution;
+    const { settings } = this.state;
+    const targetResolution = settings?.video.target_resolution;
     return this.pc
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)

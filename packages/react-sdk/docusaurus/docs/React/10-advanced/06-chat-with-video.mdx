@@ -216,7 +216,7 @@ import {
   CallingState,
   CancelCallButton,
   useCall,
-  useCallCallingState,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
 
@@ -225,10 +225,11 @@ export const ChannelPreviewCallControls = () => {
   // highlight-next-line
   // the Call instance is passed down from StreamCallProvider located in StreamCall
   const call = useCall();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const callingToActiveChannel =
-    activeChannel && call && activeChannel.cid === call.data?.custom.channelCid;
+    activeChannel && call && activeChannel.cid === call.state.custom.channelCid;
 
   const isRinging = callingState === CallingState.RINGING;
 
@@ -265,13 +266,12 @@ import {
   CallingState,
   CallParticipantsView,
   useCall,
-  useCallCallingState,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   CancelCallButton,
-  useCallMetadata,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useChatContext } from 'stream-chat-react';
 import { useState } from 'react';
@@ -279,17 +279,18 @@ import { useDraggable } from '../../hooks';
 
 export const CallPanel = () => {
   const call = useCall();
+  const { useCallCallingState, useCallCustomData } = useCallStateHooks();
   // highlight-next-line
   const callingState = useCallCallingState();
-  const metadata = useCallMetadata();
+  const customData = useCallCustomData();
+
   const { channel: activeChannel } = useChatContext();
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   useDraggable(panelElement);
 
   if (!call) return null;
 
-  const callingToActiveChannel =
-    activeChannel?.cid === metadata?.custom.channelCid;
+  const callingToActiveChannel = activeChannel?.cid === customData.channelCid;
 
   // highlight-next-line
   if (CallingState.RINGING === callingState && !callingToActiveChannel)

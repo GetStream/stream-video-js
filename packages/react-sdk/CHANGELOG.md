@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.1...@stream-io/video-react-sdk-0.3.2) (2023-08-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.2`
+### [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.0...@stream-io/video-react-sdk-0.3.1) (2023-08-16)
+
+### Dependency Updates
+
+* `@stream-io/video-react-bindings` updated to version `0.2.1`
+## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.8...@stream-io/video-react-sdk-0.3.0) (2023-08-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.0`
+
+### ⚠ BREAKING CHANGES
+
+* Call State reorganization (#931)
+
+### Features
+
+* Call State reorganization ([#931](https://github.com/GetStream/stream-video-js/issues/931)) ([441dbd4](https://github.com/GetStream/stream-video-js/commit/441dbd4ffb8c851abb0ca719be143a1e80d1418c)), closes [#917](https://github.com/GetStream/stream-video-js/issues/917)
+
 ### [0.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.2.7...@stream-io/video-react-sdk-0.2.8) (2023-08-15)
 
 ### Dependency Updates

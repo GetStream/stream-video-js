@@ -2,11 +2,14 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
-import { SfuModels } from '@stream-io/video-client';
 
 /**
  * Props for the ParticipantLabel component.
@@ -23,15 +26,17 @@ export const ParticipantLabel = ({
   participant,
   videoMode,
 }: ParticipantLabelProps) => {
-  const { name, userId, pin, sessionId, publishedTracks, isLocalParticipant } =
-    participant;
+  const { name, userId, pin, sessionId, isLocalParticipant } = participant;
   const call = useCall();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { status: micStatus } = useMicrophoneState();
+  const { status: cameraStatus } = useCameraState();
   const { t } = useI18n();
   const participantName = name ?? userId;
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
-  const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
-  const isVideoMuted = !publishedTracks.includes(SfuModels.TrackType.VIDEO);
+  const isAudioMuted = micStatus === 'disabled';
+  const isVideoMuted = cameraStatus === 'disabled';
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);

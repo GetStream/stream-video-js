@@ -4,13 +4,12 @@ import { UserInfo } from './UserInfo';
 import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
 import { theme } from '../../theme';
 import { Z_INDEX } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
 import {
   HangUpCallButton,
   HangUpCallButtonProps,
 } from './CallControls/HangupCallButton';
-import { useI18n } from '@stream-io/video-react-bindings';
-import { RTCView } from 'react-native-webrtc';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { RTCView } from '@stream-io/react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
@@ -53,9 +52,10 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
 
 const Background = () => {
   const localVideoStream = useLocalVideoStream();
-  const { initialVideoEnabled } = useMediaStreamManagement();
+  const { useCameraState } = useCallStateHooks();
+  const { status } = useCameraState();
 
-  if (!initialVideoEnabled || !localVideoStream) {
+  if (status === 'disabled' || !localVideoStream) {
     return <View style={styles.background} />;
   }
   return (

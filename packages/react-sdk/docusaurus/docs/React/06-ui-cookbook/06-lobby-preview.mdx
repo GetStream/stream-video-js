@@ -34,10 +34,10 @@ We would like to show some basic information about the call, when users arrive t
 
 The initial call information can be retrieved by the `get` or `getOrCreate` method of a `Call` instance. Then we can use the following hooks:
 
-- `useCallMetadata`
+- `useCallSession`
 - `useCallMembers`
 
-These hooks make sure, that the information about call metadata or call members is updated in real time. The updates are made automatically in response to [Stream's WebSocket events](../../advanced/events) arriving from the backend.
+These hooks make sure, that the information about call session or call members is updated in real time. The updates are made automatically in response to [Stream's WebSocket events](../../advanced/events) arriving from the backend.
 
 Learn more about setting up the boilerplate of joining a call room in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/#call-room) guide.
 
@@ -215,27 +215,23 @@ export const VideoInputDeviceSelector = () => {
 
 ### Participants in a call
 
-We can retrieve the list of members, that already joined the call (participants), by inspecting the call metadata object (`callMetadata.session.participants`). The object is provided and maintained up-to-date by `useCallMetadata` hook.
+We can retrieve the list of members, that already joined the call (participants), by inspecting the call session object (`session.participants`).
+The object is provided and maintained up-to-date by `useCallSession` hook.
 
 ```tsx
-import { Avatar, useCallMetadata } from '@stream-io/video-react-sdk';
+import { Avatar, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const ParticipantsPreview = () => {
-  const callMetadata = useCallMetadata();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
 
-  if (
-    !(
-      callMetadata?.session?.participants &&
-      callMetadata?.session?.participants.length
-    )
-  )
-    return null;
+  if (session?.participants || session?.participants.length === 0) return null;
 
   return (
     <div>
-      <div>Already in call ({callMetadata.session.participants.length}):</div>
+      <div>Already in call ({session.participants.length}):</div>
       <div style={{ display: 'flex' }}>
-        {callMetadata.session.participants.map((participant) => (
+        {session.participants.map((participant) => (
           <div>
             <Avatar
               name={participant.user.name}
