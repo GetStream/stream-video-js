@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { disposeOfMediaStream, getVideoStream } from '@stream-io/video-client';
-import { MediaStream } from 'react-native-webrtc';
+import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useStreamVideoStoreValue } from '../contexts';
 import { useCameraState } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';

@@ -14,7 +14,7 @@ import { Avatar } from '../../utility';
 import { ParticipantReaction } from '../ParticipantView/ParticipantReaction';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 
 /**
  * Props to be passed for the LocalVideoView component.
