@@ -32,7 +32,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 ```typescript
 await call.get();
 const defaultCameraStatus =
-  call.state.metadata.settings.video.camera_default_on;
+  call.state.settings?.video.camera_default_on;
 defaultCameraStatus ? call.camera.enable() : call.camera.disable();
 ```
 
@@ -82,7 +82,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 await call.get();
 // fallback in case no backend setting
 let defaultDirection: CameraDirection = 'front';
-const backendSetting = this.state.metadata?.settings.video.camera_facing;
+const backendSetting = this.state.settings?.video.camera_facing;
 if (backendSetting) {
   defaultDirection = backendSetting === 'front' ? 'front' : 'back';
 }
@@ -147,7 +147,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 
 ```typescript
 await call.get();
-const defaultMicStatus = call.state.metadata.settings.audio.mic_default_on;
+const defaultMicStatus = call.state.settings?.audio.mic_default_on;
 defaultMicStatus ? call.microphone.enable() : call.microphone.disable();
 ```
 

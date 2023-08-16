@@ -1724,7 +1724,7 @@ export class Call {
     // This will also start publishing if camera is enabled
     if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
       let defaultDirection: CameraDirection = 'front';
-      const backendSetting = this.state.metadata?.settings.video.camera_facing;
+      const backendSetting = this.state.settings?.video.camera_facing;
       if (backendSetting) {
         defaultDirection = backendSetting === 'front' ? 'front' : 'back';
       }
@@ -1744,7 +1744,7 @@ export class Call {
     // Apply backend config (this is the case if there is no lobby screen before join)
     if (
       this.camera.state.status === undefined &&
-      this.state.metadata?.settings.video.camera_default_on
+      this.state.settings?.video.camera_default_on
     ) {
       void this.camera.enable();
     }
@@ -1773,7 +1773,7 @@ export class Call {
     // Apply backend config (this is the case if there is no lobby screen before join)
     if (
       this.microphone.state.status === undefined &&
-      this.state.metadata?.settings.audio.mic_default_on
+      this.state.settings?.audio.mic_default_on
     ) {
       void this.microphone.enable();
     }
