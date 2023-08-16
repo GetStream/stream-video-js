@@ -70,6 +70,7 @@
 	<string>$(PRODUCT_NAME) would like access to your photo gallery</string>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
