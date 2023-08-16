@@ -22,11 +22,12 @@ import { useEffect, useState } from 'react';
 import {
   createSoundDetector,
   SfuModels,
-  useLocalParticipant,
+  useCallStateHooks,
   useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 export const SpeakingWhileMutedNotification = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { getAudioStream } = useMediaDevices();
 

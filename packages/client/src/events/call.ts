@@ -1,4 +1,4 @@
-import { CallingState, CallState } from '../store';
+import { CallingState } from '../store';
 import { StreamVideoEvent } from '../coordinator/connection/types';
 import { Call } from '../Call';
 
@@ -76,24 +76,13 @@ export const watchCallRejected = (call: Call) => {
 export const watchCallEnded = (call: Call) => {
   return async function onCallCancelled(event: StreamVideoEvent) {
     if (event.type !== 'call.ended') return;
+    const { callingState } = call.state;
     if (
-      call.state.callingState === CallingState.RINGING ||
-      call.state.callingState === CallingState.JOINED ||
-      call.state.callingState === CallingState.JOINING
+      callingState === CallingState.RINGING ||
+      callingState === CallingState.JOINED ||
+      callingState === CallingState.JOINING
     ) {
-      call.state.setMetadata(event.call);
       await call.leave();
     }
-  };
-};
-
-/**
- * An event handler which listens to `call.updated` events
- * and updates the given call state accordingly.
- */
-export const watchCallUpdated = (state: CallState) => {
-  return function onCallUpdated(event: StreamVideoEvent) {
-    if (event.type !== 'call.updated') return;
-    state.setMetadata(event.call);
   };
 };

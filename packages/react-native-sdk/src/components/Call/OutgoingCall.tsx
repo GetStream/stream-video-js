@@ -8,7 +8,7 @@ import {
   HangUpCallButton,
   HangUpCallButtonProps,
 } from './CallControls/HangupCallButton';
-import { useCameraState, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
@@ -52,6 +52,7 @@ export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
 
 const Background = () => {
   const localVideoStream = useLocalVideoStream();
+  const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
 
   if (status === 'disabled' || !localVideoStream) {

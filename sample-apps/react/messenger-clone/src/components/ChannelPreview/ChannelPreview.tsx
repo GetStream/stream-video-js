@@ -24,7 +24,7 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
   const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
-    return calls.find((call) => call.data?.custom.channelCid === channel.cid);
+    return calls.find((call) => call.state.custom.channelCid === channel.cid);
   }, [calls, channel]);
 
   const avatarName =

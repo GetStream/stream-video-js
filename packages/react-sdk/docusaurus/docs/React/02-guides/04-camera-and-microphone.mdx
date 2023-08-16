@@ -12,19 +12,29 @@ Handling audio and video devices in a web application means working with [`Media
 
 The default state of the camera is determined by the call settings:
 
-```typescript
-const metadata = useCallMetadata();
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-metadata?.settings?.video.camera_default_on;
+const { useCallSettings } = useCallStateHooks();
+const settings = useCallSettings();
+
+settings?.video.camera_default_on;
 ```
 
 ### Start-stop camera
 
-```typescript
+```tsx
+import {
+  useCallStateHooks,
+  useToggleVideoMuteState,
+} from '@stream-io/video-react-sdk';
+
+const { useLocalParticipant } = useCallStateHooks();
 const localParticipant = useLocalParticipant();
 const isVideoMute = !localParticipant?.publishedTracks.includes(
   SfuModels.TrackType.VIDEO,
 );
+
 const { toggleVideoMuteState } = useToggleVideoMuteState();
 
 console.log(`Camera is ${isVideoMute ? 'off' : 'on'}`);
@@ -112,15 +122,24 @@ export const App = () => {
 
 The default state of the microphone is determined by the call settings:
 
-```typescript
-const metadata = useCallMetadata();
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-metadata?.settings?.audio.mic_default_on;
+const { useCallSettings } = useCallStateHooks();
+const settings = useCallSettings();
+
+settings?.audio.mic_default_on;
 ```
 
 ### Start-stop microphone
 
-```typescript
+```tsx
+import {
+  useCallStateHooks,
+  toggleAudioMuteState,
+} from '@stream-io/video-react-sdk';
+
+const { useLocalParticipant } = useCallStateHooks();
 const localParticipant = useLocalParticipant();
 const isAudioMute = !localParticipant?.publishedTracks.includes(
   SfuModels.TrackType.AUDIO,

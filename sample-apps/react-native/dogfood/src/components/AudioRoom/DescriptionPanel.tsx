@@ -3,10 +3,10 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const DescriptionPanel = ({ onClose }: { onClose: () => void }) => {
-  const { useCallMetadata } = useCallStateHooks();
-  const metadata = useCallMetadata();
-  const custom = metadata?.custom;
-  const participantsCount = metadata?.session?.participants?.length ?? 0;
+  const { useCallCustomData, useCallSession } = useCallStateHooks();
+  const custom = useCallCustomData();
+  const session = useCallSession();
+  const participantsCount = session?.participants?.length ?? 0;
   const { t } = useI18n();
 
   return (

@@ -51,7 +51,6 @@ export type PublisherOpts = {
 export class Publisher {
   private pc: RTCPeerConnection;
   private readonly state: CallState;
-  private readonly dispatcher: Dispatcher;
 
   private readonly transceiverRegistry: {
     [key in TrackType]: RTCRtpTransceiver | undefined;
@@ -130,7 +129,6 @@ export class Publisher {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
-    this.dispatcher = dispatcher;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
     this.preferredVideoCodec = preferredVideoCodec;
@@ -235,8 +233,8 @@ export class Publisher {
     };
 
     if (!transceiver) {
-      const metadata = this.state.metadata;
-      const targetResolution = metadata?.settings.video.target_resolution;
+      const { settings } = this.state;
+      const targetResolution = settings?.video.target_resolution;
       const videoEncodings =
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
@@ -604,8 +602,8 @@ export class Publisher {
       return String(media.mid);
     };
 
-    const metadata = this.state.metadata;
-    const targetResolution = metadata?.settings.video.target_resolution;
+    const { settings } = this.state;
+    const targetResolution = settings?.video.target_resolution;
     return this.pc
       .getTransceivers()
       .filter((t) => t.direction === 'sendonly' && t.sender.track)

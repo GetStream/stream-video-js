@@ -3,9 +3,6 @@ id: i18n
 title: Internationalization
 ---
 
-
-import SDKSpecific from '../SDKSpecific';
-
 The SDK comes with a built-in translation service powered internally by the [`i18next`](https://www.i18next.com/) library. The main focus of the service is to provide support for:
 
 1. Switching the language
@@ -13,8 +10,6 @@ The SDK comes with a built-in translation service powered internally by the [`i1
 3. Access to underlying i18n instance from i18next library and thus have access to the library's API
 
 Also, the SDK already provides default translations for the available components.
-
-<SDKSpecific name="react">
 
 ## Integration
 
@@ -61,30 +56,27 @@ The translations are merged with the SDK's defaults. That means that the default
 
 ```tsx
 const translations = {
-    en: {
-        ...
-        terminate: "terminate"
-        ...
-    },
-    de: {
-        ...
-        terminate: "beended"
-        ...
-    },
-    ...
-}
+  en: {
+    // ...
+    terminate: 'terminate',
+    // ...
+  },
+  de: {
+    // ...
+    terminate: 'beended',
+    // ...
+  },
+  // ...
+};
 
 const App = () => {
-    ...
-    return (
-        <StreamVideo
-            client={client}
-            translationsOverrides={translations}
-        >
-            ...
-        </StreamVideo>
-    );
-}
+  // ...
+  return (
+    <StreamVideo client={client} translationsOverrides={translations}>
+      // ...
+    </StreamVideo>
+  );
+};
 ```
 
 #### Provide your own instance of `StreamI18n`
@@ -136,28 +128,24 @@ You can set the current language for the translation service with `language` pro
 
 ```tsx
 const App = () => {
-    {/*  a hook that keeps track of the current language in your app  */}
-    const {language, setLanguage} = useLanguage();
-    ...
-    return (
-        <StreamVideo
-            client={client}
-            language={language}
-            translationsOverrides={translations}
-        >
-            ...
-        </StreamVideo>
-    );
-}
+  /*  a hook that keeps track of the current language in your app  */
+  const { language, setLanguage } = useLanguage();
+  // ...
+  return (
+    <StreamVideo
+      client={client}
+      language={language}
+      translationsOverrides={translations}
+    >
+      {/*...*/}
+    </StreamVideo>
+  );
+};
 ```
-
-</SDKSpecific>
 
 ## Translation function
 
 This is the central feature of the service. The function is passed a string we want to translate and returns its translation. If the translated key is not found, then the returned value is the original string. We rely on the translation function provided by the library `i18next`. This function is exposed on `StreamI18n` object <SDKSpecific name="react">as well as in the `StreamI18nContextValue`.</SDKSpecific>.
-
-<SDKSpecific name="react">
 
 ### Accessing the translation function
 
@@ -172,8 +160,6 @@ const CustomButton = () => {
   return <button>{t('Submit')}</button>;
 };
 ```
-
-</SDKSpecific>
 
 ## Final recommendations
 

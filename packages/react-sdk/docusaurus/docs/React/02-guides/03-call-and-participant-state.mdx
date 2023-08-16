@@ -9,27 +9,33 @@ You can access call, participant and client state using hooks. These hooks are r
 
 To observe call state you need to provide a `Call` instance to the [`StreamCall` component](../../ui-components/core/stream-call).
 
-Let's see an example where we use the `useCall` and `useCallCallingState` hooks to display some basic information about the call:
+Let's see an example where we use the `useCall`, `useCallCallingState` and `useParticipants` hooks to display some basic information about the call:
 
 ```tsx
+import { Call, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+
 export default function App() {
   let call: Call;
 
   return (
     <StreamCall call={call}>
-      <CallUI />
+      <MyCallUI />
     </StreamCall>
   );
 }
 
-const CallUI = () => {
+const MyCallUI = () => {
   const call = useCall();
+
+  const { useCallCallingState, useParticipants } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const participants = useParticipants();
 
   return (
     <div>
-      <div>Call: {call?.data?.cid}</div>
+      <div>Call: {call?.cid}</div>
       <div>State: {callingState}</div>
+      <div>Participants: {participants.length}</div>
     </div>
   );
 };
@@ -39,44 +45,49 @@ This approach makes it possible to access the call state and be notified about c
 
 The `StreamCall` component uses the `StreamCallProvider` under the hood.
 
-Here are all the call-related state hooks:
+Here is an excerpt of the available call state hooks:
 
 | Name                              | Description                                                                                                   |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `useCall`                         | The `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls. |
-| `useIsCallRecordingInProgress`    | It's' `true` if the call is being recorded.                                                                   |
+| `useCallBlockedUserIds`           | The list of blocked user IDs.                                                                                 |
+| `useCallCallingState`             | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
+| `useCallCreatedAt`                | The time the call was created.                                                                                |
+| `useCallCreatedBy`                | The user that created the call.                                                                               |
+| `useCallCustomData`               | The custom data attached to the call.                                                                         |
+| `useCallEgress`                   | The egress information of the call.                                                                           |
+| `useCallEndedBy`                  | The user that ended the call.                                                                                 |
+| `useCallIngress`                  | The ingress information of the call.                                                                          |
+| `useCallMembers`                  | The list of call members                                                                                      |
+| `useCallSession`                  | The information for the current call session.                                                                 |
+| `useCallSettings`                 | The settings of the call.                                                                                     |
+| `useCallStartedAt`                | The actual start time of the current call session.                                                            |
+| `useCallStartsAt`                 | The scheduled start time of the call.                                                                         |
+| `useCallStatsReport`              | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
+| `useCallUpdatedAt`                | The time the call was last updated.                                                                           |
+| `useDominantSpeaker`              | The participant that is the current dominant speaker of the call.                                             |
+| `useHasOngoingScreenShare`        | It will return `true` if at least one participant is sharing their screen.                                    |
+| `useHasPermissions`               | Returns `true` if the local participant has all the given permissions.                                        |
 | `useIsCallBroadcastingInProgress` | It's `true` if the call is being broadcasted.                                                                 |
 | `useIsCallLive`                   | It's `true` if the call is currently live.                                                                    |
-| `useCallMembers`                  | The list of call members                                                                                      |
-| `useCallCallingState`             | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
-| `useCallStartedAt`                | The actual start time of the current call session.                                                            |
-| `useCallStatsReport`              | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
-| `useCallMetadata`                 | The `CallResponse`, see below for more information.                                                           |
-| `useCallRecordings`               | The latest list of recordings performed during the call.                                                      |
-| `useHasOngoingScreenShare`        | It will return `true` if at least one participant is sharing their screen.                                    |
-| `useDominantSpeaker`              | The participant that is the current dominant speaker of the call.                                             |
+| `useIsCallRecordingInProgress`    | It's' `true` if the call is being recorded.                                                                   |
+| `useIsCallTranscribingInProgress` | It's `true` if the call is being transcribed.                                                                 |
 | `useOwnCapabilities`              | The capabilities of the local participant.                                                                    |
-| `useHasPermissions`               | Returns `true` if the local participant has all the given permissions.                                        |
 
-The `CallResponse` object contains the following information:
+In your IDE of choice, you can see the full list if you destructure the `useCallStateHooks` object:
 
-| Name               | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `backstage`        | It's `true` if the call is in backstage mode.           |
-| `blocked_user_ids` | The users who are blocked from this call.               |
-| `created_at`       | The time the call was created.                          |
-| `created_by`       | The creator of the call.                                |
-| `custom`           | Custom data attached to the call.                       |
-| `egress`           | Broadcasting related information.                       |
-| `ended_at`         | When the call was ended.                                |
-| `ingress`          | RTMP publishing related information.                    |
-| `recording`        | It's `true` if the call is being recorded.              |
-| `session`          | Information related to the current session of the call. |
-| `settings`         | The settings for this call.                             |
-| `starts_at`        | The scheduled start time of the call.                   |
-| `team`             | Team that the call is restricted to.                    |
-| `type`             | The type of the call.                                   |
-| `updated_at`       | When the call was updated.                              |
+```ts
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const {
+  useCallMembers,
+  useDominantSpeaker,
+  useParticipants,
+  useLocalParticipant,
+  useIsCallRecordingInProgress,
+  // ...
+} = useCallStateHooks();
+```
 
 ## Participant state
 
@@ -91,17 +102,20 @@ If you want to display information about the joined participants of the call you
 | `useAnonymousParticipantCount` | The approximate participant count of anonymous users in the active call.                                                                                               |
 
 ```tsx
+import { useCallStateHooks, StreamCall } from '@stream-io/video-react-sdk';
+
 export default function App() {
   let call: call;
 
   return (
     <StreamCall call={call}>
-      <CallUI />
+      <MyCallUI />
     </StreamCall>
   );
 }
 
-const CallUI = () => {
+const MyCallUI = () => {
+  const { useLocalParticipant, useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const localParticipant = useLocalParticipant();
 
@@ -142,24 +156,28 @@ The `StreamVideoLocalParticipant` has these additional properties:
 
 ## Client state
 
-To observe client state you need to provide a `StreamVideoClient` instance to the `StreamVideo` context provider:
+To observe client state you need to provide a `StreamVideoClient` instance to the `StreamVideo` context provider.
+If you want to observe the connected user you can use the `useConnectedUser` hook.
 
 Let's see an example:
 
-If you want to observe the connected user you can use the `useConnectedUser` hook.
-
 ```tsx
+import {
+  useConnectedUser,
+  StreamVideoClient,
+} from '@stream-io/video-react-sdk';
+
 export default function App() {
   let client: StreamVideoClient;
 
   return (
     <StreamVideo client={client}>
-      <Header></Header>
+      <MyHeader />
     </StreamVideo>
   );
 }
 
-const Header = () => {
+const MyHeader = () => {
   const user = useConnectedUser();
   return <div>{user ? `Logged in: ${user.name}` : 'Logged out'}</div>;
 };

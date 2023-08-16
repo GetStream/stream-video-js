@@ -6,6 +6,9 @@ import { StreamVideoRN } from '../../../utils';
 import { Z_INDEX } from '../../../constants';
 import { ParticipantViewProps } from './ParticipantView';
 
+/**
+ * Props for the ParticipantReaction component.
+ */
 export type ParticipantReactionProps = Pick<
   ParticipantViewProps,
   'participant'
@@ -18,9 +21,14 @@ export type ParticipantReactionProps = Pick<
   hideAfterTimeoutInMs?: number;
 };
 
-export const ParticipantReaction = (props: ParticipantReactionProps) => {
+/**
+ * This component is used to display the current participant reaction.
+ */
+export const ParticipantReaction = ({
+  participant,
+  hideAfterTimeoutInMs = 5500,
+}: ParticipantReactionProps) => {
   const { supportedReactions } = StreamVideoRN.getConfig();
-  const { participant, hideAfterTimeoutInMs = 5500 } = props;
   const { reaction, sessionId } = participant;
   const call = useCall();
   const [isShowing, setIsShowing] = useState<boolean>(false);

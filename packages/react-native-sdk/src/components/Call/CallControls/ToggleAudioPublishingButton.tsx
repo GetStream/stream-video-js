@@ -3,7 +3,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCall,
-  useMicrophoneState,
+  useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { theme } from '../../../theme';
@@ -28,6 +28,7 @@ export const ToggleAudioPublishingButton = ({
   onPressHandler,
 }: ToggleAudioPublishingButtonProps) => {
   const call = useCall();
+  const { useMicrophoneState } = useCallStateHooks();
   const { status } = useMicrophoneState();
 
   const onPress = async () => {

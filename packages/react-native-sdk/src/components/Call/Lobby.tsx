@@ -3,11 +3,9 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff } from '../../icons';
 import {
   useCall,
-  useCameraState,
   useCallStateHooks,
   useConnectedUser,
   useI18n,
-  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { theme } from '../../theme';
 import { useLocalVideoStream } from '../../hooks';
@@ -45,14 +43,14 @@ type LobbyProps = {
 
 export const Lobby = ({ joinCallButton }: LobbyProps) => {
   const connectedUser = useConnectedUser();
+  const { useCameraState, useCallSession } = useCallStateHooks();
   const { direction, status: cameraStatus } = useCameraState();
   const localVideoStream = useLocalVideoStream();
   const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const session = useCallSession();
   const { t } = useI18n();
-  const participantsCount = callMetadata?.session?.participants.length;
+  const participantsCount = session?.participants.length;
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -116,6 +114,7 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
+  const { useMicrophoneState } = useCallStateHooks();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
   const { status: micStatus } = useMicrophoneState();
   return (

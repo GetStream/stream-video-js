@@ -4,6 +4,8 @@ title: Camera & Microphone
 description: Managing audio and video
 ---
 
+If you want to see the device management API in action, you can check out [the sample app](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/client/ts-quickstart).
+
 ## Camera management
 
 ### Start-stop camera
@@ -31,8 +33,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 
 ```typescript
 await call.get();
-const defaultCameraStatus =
-  call.state.metadata.settings.video.camera_default_on;
+const defaultCameraStatus = call.state.settings?.video.camera_default_on;
 defaultCameraStatus ? call.camera.enable() : call.camera.disable();
 ```
 
@@ -82,7 +83,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 await call.get();
 // fallback in case no backend setting
 let defaultDirection: CameraDirection = 'front';
-const backendSetting = this.state.metadata?.settings.video.camera_facing;
+const backendSetting = this.state.settings?.video.camera_facing;
 if (backendSetting) {
   defaultDirection = backendSetting === 'front' ? 'front' : 'back';
 }
@@ -147,7 +148,7 @@ If you're building a lobby screen, this is how you can apply the backend setting
 
 ```typescript
 await call.get();
-const defaultMicStatus = call.state.metadata.settings.audio.mic_default_on;
+const defaultMicStatus = call.state.settings?.audio.mic_default_on;
 defaultMicStatus ? call.microphone.enable() : call.microphone.disable();
 ```
 
@@ -199,8 +200,6 @@ This is how you can show a visual representation about the sound level coming fr
 ```typescript
 // This feature is coming soon 🏗️
 ```
-
-For more information you can refer to [the sample app](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/client/ts-quickstart) that shows how you can select audio and video devices.
 
 ## Speaker management
 

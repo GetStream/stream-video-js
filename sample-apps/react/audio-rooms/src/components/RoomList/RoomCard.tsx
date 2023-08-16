@@ -1,23 +1,26 @@
-import { Avatar, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Avatar, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import type { CustomCallData, User } from '../../types';
 
 export const RoomCard = () => {
-  const { useCallMetadata } = useCallStateHooks();
-  const metadata = useCallMetadata();
-  const { title, hosts, description } = (metadata?.custom ||
-    {}) as CustomCallData;
+  const call = useCall();
+  const { useCallCustomData, useCallCreatedBy, useCallEndedAt } =
+    useCallStateHooks();
+  const customData = useCallCustomData();
+  const creator = useCallCreatedBy();
+  const endedAt = useCallEndedAt();
+  const { title, hosts, description } = (customData || {}) as CustomCallData;
   const backupHost =
-    metadata?.created_by &&
+    creator &&
     ({
-      name: metadata.created_by.name,
-      id: metadata.created_by.id,
-      imageUrl: metadata.created_by.image,
+      name: creator.name,
+      id: creator.id,
+      imageUrl: creator.image,
     } as User);
 
   return (
     <div className="room-card">
       <h3>
-        {title || metadata?.id} {metadata?.ended_at && '(ENDED)'}
+        {title || call?.id} {endedAt && '(ENDED)'}
       </h3>
       <span>Host(s)</span>
       <div className="hosts-grid">

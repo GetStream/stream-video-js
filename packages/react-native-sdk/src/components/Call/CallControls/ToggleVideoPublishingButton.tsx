@@ -3,7 +3,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCall,
-  useCameraState,
+  useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { muteStatusColor } from '../../../utils';
@@ -28,6 +28,7 @@ export const ToggleVideoPublishingButton = ({
   onPressHandler,
 }: ToggleVideoPublishingButtonProps) => {
   const call = useCall();
+  const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
 
   const onPress = async () => {

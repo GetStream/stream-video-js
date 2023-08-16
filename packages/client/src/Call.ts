@@ -9,7 +9,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
+import {
+  GoAwayReason,
+  SdkType,
+  TrackType,
+} from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -105,10 +109,11 @@ import {
   CallEventHandler,
   CallEventTypes,
   EventHandler,
+  EventTypes,
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
 import { CameraManager } from './devices/CameraManager';
 import { MicrophoneManager } from './devices/MicrophoneManager';
@@ -213,7 +218,6 @@ export class Call {
     type,
     id,
     streamClient,
-    metadata,
     members,
     ownCapabilities,
     sortParticipantsBy,
@@ -238,12 +242,16 @@ export class Call {
       this.state.setSortParticipantsBy(participantSorter);
     }
 
-    this.state.setMetadata(metadata);
     this.state.setMembers(members || []);
     this.state.setOwnCapabilities(ownCapabilities || []);
     this.state.setCallingState(
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
+
+    this.on('all', (event) => {
+      // update state with the latest event data
+      this.state.updateFromEvent(event);
+    });
 
     this.leaveCallHooks.push(
       registerEventHandlers(this, this.state, this.dispatcher),
@@ -266,10 +274,10 @@ export class Call {
 
   private registerEffects() {
     this.leaveCallHooks.push(
-      // handles updating the permissions context when the metadata changes.
-      createSubscription(this.state.metadata$, (metadata) => {
-        if (!metadata) return;
-        this.permissionsContext.setCallSettings(metadata.settings);
+      // handles updating the permissions context when the settings change.
+      createSubscription(this.state.settings$, (settings) => {
+        if (!settings) return;
+        this.permissionsContext.setCallSettings(settings);
       }),
 
       // handle the case when the user permissions are modified.
@@ -300,13 +308,10 @@ export class Call {
       }),
 
       // handles the case when the user is blocked by the call owner.
-      createSubscription(this.state.metadata$, async (metadata) => {
-        if (!metadata) return;
+      createSubscription(this.state.blockedUserIds$, async (blockedUserIds) => {
+        if (!blockedUserIds) return;
         const currentUserId = this.currentUserId;
-        if (
-          currentUserId &&
-          metadata.blocked_user_ids.includes(currentUserId)
-        ) {
+        if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
           await this.leave();
         }
@@ -345,9 +350,9 @@ export class Call {
    * @returns a function which can be called to unsubscribe from the given event(s)
    */
   on(eventName: SfuEventKinds, fn: SfuEventListener): () => void;
-  on(eventName: CallEventTypes, fn: CallEventHandler): () => void;
+  on(eventName: EventTypes, fn: CallEventHandler): () => void;
   on(
-    eventName: SfuEventKinds | CallEventTypes,
+    eventName: SfuEventKinds | EventTypes,
     fn: SfuEventListener | CallEventHandler,
   ) {
     if (isSfuEvent(eventName)) {
@@ -437,13 +442,6 @@ export class Call {
   };
 
   /**
-   * A getter for the call metadata.
-   */
-  get data() {
-    return this.state.metadata;
-  }
-
-  /**
    * A flag indicating whether the call is "ringing" type of call.
    */
   get ringing() {
@@ -461,7 +459,7 @@ export class Call {
    * A flag indicating whether the call was created by the current user.
    */
   get isCreatedByMe() {
-    return this.state.metadata?.created_by.id === this.currentUserId;
+    return this.state.createdBy?.id === this.currentUserId;
   }
 
   /**
@@ -485,7 +483,7 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    this.state.setMetadata(response.call);
+    this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
@@ -512,7 +510,7 @@ export class Call {
       this.ringingSubject.next(true);
     }
 
-    this.state.setMetadata(response.call);
+    this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
 
@@ -614,7 +612,7 @@ export class Call {
     let connectionConfig: RTCConfiguration | undefined;
     try {
       const call = await join(this.streamClient, this.type, this.id, data);
-      this.state.setMetadata(call.metadata);
+      this.state.updateFromCallResponse(call.metadata);
       this.state.setMembers(call.members);
       this.state.setOwnCapabilities(call.ownCapabilities);
       connectionConfig = call.connectionConfig;
@@ -831,7 +829,7 @@ export class Call {
       });
     }
 
-    const audioSettings = this.data?.settings.audio;
+    const audioSettings = this.state.settings?.audio;
     const isDtxEnabled = !!audioSettings?.opus_dtx_enabled;
     const isRedEnabled = !!audioSettings?.redundant_coding_enabled;
 
@@ -926,8 +924,11 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      this.initCamera();
-      this.initMic();
+      // React uses a different device management for now
+      if (getSdkInfo()?.type !== SdkType.REACT) {
+        this.initCamera();
+        this.initMic();
+      }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
       // we schedule a fast subscription update for all remote participants
@@ -1539,7 +1540,7 @@ export class Call {
     >(`${this.streamClientBasePath}`, updates);
 
     const { call, members, own_capabilities } = response;
-    this.state.setMetadata(call);
+    this.state.updateFromCallResponse(call);
     this.state.setMembers(members);
     this.state.setOwnCapabilities(own_capabilities);
 
@@ -1640,23 +1641,23 @@ export class Call {
 
   private scheduleAutoDrop = () => {
     if (this.dropTimeout) clearTimeout(this.dropTimeout);
-    const subscription = this.state.metadata$
+    const subscription = this.state.settings$
       .pipe(
         pairwise(),
-        tap(([prevMeta, currentMeta]) => {
-          if (!(currentMeta && this.clientStore.connectedUser)) return;
+        tap(([prevSettings, currentSettings]) => {
+          if (!currentSettings || !this.clientStore.connectedUser) return;
 
           const isOutgoingCall =
-            this.currentUserId === currentMeta.created_by.id;
+            this.currentUserId === this.state.createdBy?.id;
 
           const [prevTimeoutMs, timeoutMs] = isOutgoingCall
             ? [
-                prevMeta?.settings.ring.auto_cancel_timeout_ms,
-                currentMeta.settings.ring.auto_cancel_timeout_ms,
+                prevSettings?.ring.auto_cancel_timeout_ms,
+                currentSettings.ring.auto_cancel_timeout_ms,
               ]
             : [
-                prevMeta?.settings.ring.incoming_call_timeout_ms,
-                currentMeta.settings.ring.incoming_call_timeout_ms,
+                prevSettings?.ring.incoming_call_timeout_ms,
+                currentSettings.ring.incoming_call_timeout_ms,
               ];
           if (
             typeof timeoutMs === 'undefined' ||
@@ -1681,7 +1682,6 @@ export class Call {
 
   /**
    * Retrieves the list of recordings for the current call or call session.
-   * Updates the call state with the returned array of CallRecording objects.
    *
    * If `callSessionId` is provided, it will return the recordings for that call session.
    * Otherwise, all recordings for the current call will be returned.
@@ -1695,13 +1695,9 @@ export class Call {
     if (callSessionId) {
       endpoint = `${endpoint}/${callSessionId}`;
     }
-    const response = await this.streamClient.get<ListRecordingsResponse>(
+    return this.streamClient.get<ListRecordingsResponse>(
       `${endpoint}/recordings`,
     );
-
-    this.state.setCallRecordingsList(response.recordings);
-
-    return response;
   };
 
   /**
@@ -1728,7 +1724,7 @@ export class Call {
     // This will also start publishing if camera is enabled
     if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
       let defaultDirection: CameraDirection = 'front';
-      const backendSetting = this.state.metadata?.settings.video.camera_facing;
+      const backendSetting = this.state.settings?.video.camera_facing;
       if (backendSetting) {
         defaultDirection = backendSetting === 'front' ? 'front' : 'back';
       }
@@ -1748,7 +1744,7 @@ export class Call {
     // Apply backend config (this is the case if there is no lobby screen before join)
     if (
       this.camera.state.status === undefined &&
-      this.state.metadata?.settings.video.camera_default_on
+      this.state.settings?.video.camera_default_on
     ) {
       void this.camera.enable();
     }
@@ -1777,7 +1773,7 @@ export class Call {
     // Apply backend config (this is the case if there is no lobby screen before join)
     if (
       this.microphone.state.status === undefined &&
-      this.state.metadata?.settings.audio.mic_default_on
+      this.state.settings?.audio.mic_default_on
     ) {
       void this.microphone.enable();
     }

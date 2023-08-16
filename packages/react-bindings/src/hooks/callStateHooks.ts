@@ -5,7 +5,14 @@ import {
   CameraManagerState,
   Comparator,
   MicrophoneManagerState,
+  CallIngressResponse,
+  CallSessionResponse,
+  CallSettingsResponse,
+  CallStatsReport,
+  EgressResponse,
+  MemberResponse,
   StreamVideoParticipant,
+  UserResponse,
 } from '@stream-io/video-client';
 import { useCall } from '../contexts';
 import { useObservableValue } from './useObservableValue';
@@ -34,9 +41,9 @@ export const useCallState = () => {
  *
  * @category Call State
  */
-export const useIsCallRecordingInProgress = () => {
-  const metadata = useCallMetadata();
-  return !!metadata?.recording;
+export const useIsCallRecordingInProgress = (): boolean => {
+  const { recording$ } = useCallState();
+  return useObservableValue(recording$);
 };
 
 /**
@@ -44,9 +51,11 @@ export const useIsCallRecordingInProgress = () => {
  *
  * @category Call State
  */
-export const useIsCallBroadcastingInProgress = () => {
-  const metadata = useCallMetadata();
-  return !!metadata?.egress.broadcasting;
+export const useIsCallBroadcastingInProgress = (): boolean => {
+  const { egress$ } = useCallState();
+  const egress = useObservableValue(egress$);
+  if (!egress) return false;
+  return egress.broadcasting;
 };
 
 /**
@@ -54,10 +63,114 @@ export const useIsCallBroadcastingInProgress = () => {
  *
  * @category Call State
  */
-export const useIsCallLive = () => {
-  const metadata = useCallMetadata();
-  if (!metadata) return false;
-  return !metadata?.backstage;
+export const useIsCallLive = (): boolean => {
+  const { backstage$ } = useCallState();
+  const isBackstageOn = useObservableValue(backstage$);
+  return !isBackstageOn;
+};
+
+/**
+ * Returns the list of blocked users in the current call.
+ */
+export const useCallBlockedUserIds = (): string[] => {
+  const { blockedUserIds$ } = useCallState();
+  return useObservableValue(blockedUserIds$);
+};
+
+/**
+ * Returns the timestamp when this call was created.
+ */
+export const useCallCreatedAt = (): Date | undefined => {
+  const { createdAt$ } = useCallState();
+  return useObservableValue(createdAt$);
+};
+
+/**
+ * Returns the timestamp when this call was ended.
+ */
+export const useCallEndedAt = (): Date | undefined => {
+  const { endedAt$ } = useCallState();
+  return useObservableValue(endedAt$);
+};
+
+/**
+ * Returns the timestamp telling when the call is scheduled to start.
+ */
+export const useCallStartsAt = (): Date | undefined => {
+  const { startsAt$ } = useCallState();
+  return useObservableValue(startsAt$);
+};
+
+/**
+ * Returns the timestamp when this call was updated.
+ */
+export const useCallUpdatedAt = (): Date | undefined => {
+  const { updatedAt$ } = useCallState();
+  return useObservableValue(updatedAt$);
+};
+
+/**
+ * Returns the information about the call's creator.
+ */
+export const useCallCreatedBy = (): UserResponse | undefined => {
+  const { createdBy$ } = useCallState();
+  return useObservableValue(createdBy$);
+};
+
+/**
+ * Returns the call's custom data.
+ */
+export const useCallCustomData = (): Record<string, any> => {
+  const { custom$ } = useCallState();
+  return useObservableValue(custom$);
+};
+
+/**
+ * Returns the call's Egress information.
+ */
+export const useCallEgress = (): EgressResponse | undefined => {
+  const { egress$ } = useCallState();
+  return useObservableValue(egress$);
+};
+
+/**
+ * Returns the call's Ingress information.
+ */
+export const useCallIngress = (): CallIngressResponse | undefined => {
+  const { ingress$ } = useCallState();
+  return useObservableValue(ingress$);
+};
+
+/**
+ * Returns the data for the current call session.
+ */
+export const useCallSession = (): CallSessionResponse | undefined => {
+  const { session$ } = useCallState();
+  return useObservableValue(session$);
+};
+
+/**
+ * Returns the call's settings.
+ */
+export const useCallSettings = (): CallSettingsResponse | undefined => {
+  const { settings$ } = useCallState();
+  return useObservableValue(settings$);
+};
+
+/**
+ * Returns whether the call has transcribing enabled.
+ */
+export const useIsCallTranscribingInProgress = (): boolean => {
+  const { transcribing$ } = useCallState();
+  return useObservableValue(transcribing$);
+};
+
+/**
+ * Returns information about the user who has marked this call as ended.
+ */
+export const useCallEndedBy = (): UserResponse | undefined => {
+  const { endedBy$ } = useCallState();
+  return useObservableValue(endedBy$);
 };
 
 /**
@@ -66,7 +179,7 @@ export const useIsCallLive = () => {
  *
  * @category Call State
  */
-export const useHasOngoingScreenShare = () => {
+export const useHasOngoingScreenShare = (): boolean => {
   const { hasOngoingScreenShare$ } = useCallState();
   return useObservableValue(hasOngoingScreenShare$);
 };
@@ -83,7 +196,7 @@ export const useHasOngoingScreenShare = () => {
  *
  * @category Call State
  */
-export const useCallStatsReport = () => {
+export const useCallStatsReport = (): CallStatsReport | undefined => {
   const { callStatsReport$ } = useCallState();
   return useObservableValue(callStatsReport$);
 };
@@ -93,20 +206,9 @@ export const useCallStatsReport = () => {
  *
  * @category Call State
  */
-export const useDominantSpeaker = () => {
+export const useDominantSpeaker = (): StreamVideoParticipant | undefined => {
   const { dominantSpeaker$ } = useCallState();
   return useObservableValue(dominantSpeaker$);
-};
-
-/**
- * Utility hook which provides call metadata (such as blocked users and own capabilities).
- *
- * @category Call State
- * @deprecated will be removed in the next major release and replaced with more specific hooks.
- */
-export const useCallMetadata = () => {
-  const { metadata$ } = useCallState();
-  return useObservableValue(metadata$);
 };
 
 /**
@@ -114,19 +216,9 @@ export const useCallMetadata = () => {
  *
  * @category Call State
  */
-export const useCallMembers = () => {
+export const useCallMembers = (): MemberResponse[] => {
   const { members$ } = useCallState();
   return useObservableValue(members$);
-};
-
-/**
- * Utility hook providing the latest list of recordings performed during the active call
- *
- * @category Call State
- */
-export const useCallRecordings = () => {
-  const { callRecordingList$ } = useCallState();
-  return useObservableValue(callRecordingList$);
 };
 
 /**

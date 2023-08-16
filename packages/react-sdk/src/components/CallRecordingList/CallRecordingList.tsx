@@ -28,6 +28,8 @@ export type CallRecordingListProps = {
   loading?: boolean;
   /** Custom component to be rendered when loading is true */
   LoadingCallRecordingList?: ComponentType<LoadingCallRecordingListProps>;
+  /** Callback to be invoked when the refresh button is clicked */
+  onRefresh?: () => void;
 };
 
 export const CallRecordingList = ({
@@ -37,10 +39,14 @@ export const CallRecordingList = ({
   EmptyCallRecordingList = DefaultEmptyCallRecordingList,
   loading,
   LoadingCallRecordingList = DefaultLoadingCallRecordingList,
+  onRefresh,
 }: CallRecordingListProps) => {
   return (
     <div className="str-video__call-recording-list">
-      <CallRecordingListHeader callRecordings={callRecordings} />
+      <CallRecordingListHeader
+        callRecordings={callRecordings}
+        onRefresh={onRefresh}
+      />
       <div className="str-video__call-recording-list__listing">
         {loading ? (
           <LoadingCallRecordingList callRecordings={callRecordings} />

@@ -4,62 +4,45 @@ import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
 import {
   useCall,
-  useCameraState,
+  useCallStateHooks,
   useI18n,
-  useMicrophoneState,
 } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
 
+/**
+ * Props for the ParticipantLabel component.
+ */
 export type ParticipantLabelProps = Pick<
   ParticipantViewProps,
   'videoMode' | 'participant'
 >;
 
+/**
+ * This component is used to display the participant label that contains the participant name, video/audio mute/unmute status.
+ */
 export const ParticipantLabel = ({
   participant,
   videoMode,
 }: ParticipantLabelProps) => {
-  const { name, userId, pin, sessionId } = participant;
+  const { name, userId, pin, sessionId, isLocalParticipant } = participant;
   const call = useCall();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
   const { status: micStatus } = useMicrophoneState();
   const { status: cameraStatus } = useCameraState();
   const { t } = useI18n();
-  const participantLabel = name ?? userId;
+  const participantName = name ?? userId;
+  const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
+  const isAudioMuted = micStatus === 'disabled';
+  const isVideoMuted = cameraStatus === 'disabled';
 
   const unPinParticipantHandler = () => {
     call?.unpin(sessionId);
   };
 
-  if (videoMode === 'video') {
-    return (
-      <View style={styles.status}>
-        <Text style={styles.userNameLabel} numberOfLines={1}>
-          {participantLabel}
-        </Text>
-        {micStatus === 'disabled' && (
-          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-            <MicOff color={theme.light.error} />
-          </View>
-        )}
-        {cameraStatus === 'disabled' && (
-          <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-            <VideoSlash color={theme.light.error} />
-          </View>
-        )}
-        {isPinningEnabled && (
-          <Pressable
-            style={[styles.svgContainerStyle, theme.icon.xs]}
-            onPress={unPinParticipantHandler}
-          >
-            <PinVertical color={theme.light.static_white} />
-          </Pressable>
-        )}
-      </View>
-    );
-  } else if (videoMode === 'screen') {
+  if (videoMode === 'screen') {
     return (
       <View
         style={styles.status}
@@ -77,12 +60,35 @@ export const ParticipantLabel = ({
     );
   }
 
-  return <></>;
+  return (
+    <View style={styles.status}>
+      <Text style={styles.userNameLabel} numberOfLines={1}>
+        {participantLabel}
+      </Text>
+      {isAudioMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <MicOff color={theme.light.error} />
+        </View>
+      )}
+      {isVideoMuted && (
+        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
+          <VideoSlash color={theme.light.error} />
+        </View>
+      )}
+      {isPinningEnabled && (
+        <Pressable
+          style={[styles.svgContainerStyle, theme.icon.xs]}
+          onPress={unPinParticipantHandler}
+        >
+          <PinVertical color={theme.light.static_white} />
+        </Pressable>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   status: {
-    alignSelf: 'flex-end',
     flexDirection: 'row',
     alignItems: 'center',
     padding: theme.padding.sm,

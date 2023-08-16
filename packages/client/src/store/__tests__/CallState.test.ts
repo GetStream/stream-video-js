@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { anyNumber } from 'vitest-mock-extended';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallState } from '../CallState';
+import { ConnectionQuality } from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
   conditional,
@@ -13,7 +14,13 @@ import {
   publishingVideo,
   screenSharing,
 } from '../../sorting';
-
+import {
+  CallAcceptedEvent,
+  CallEndedEvent,
+  CallUpdatedEvent,
+  MemberResponse,
+  OwnCapability,
+} from '../../gen/coordinator';
 import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
@@ -155,6 +162,445 @@ describe('CallState', () => {
         { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
         { sessionId: '456' },
       ]);
+    });
+  });
+
+  describe('events', () => {
+    describe('call.live and backstage events', () => {
+      it('handles call.live_started events', () => {
+        const state = new CallState();
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.live_started',
+          // @ts-ignore
+          call: {
+            backstage: false,
+          },
+        });
+        expect(state.backstage).toBe(false);
+      });
+    });
+
+    describe('Call ringing events', () => {
+      describe('call.updated', () => {
+        it(`will update the call's metadata`, () => {
+          const state = new CallState();
+          const event: CallUpdatedEvent = {
+            type: 'call.updated',
+            call_cid: 'development:12345',
+            // @ts-expect-error
+            call: {
+              cid: 'development:12345',
+              custom: {
+                test: 'value',
+              },
+            },
+          };
+
+          // @ts-ignore
+          state.updateFromEvent(event);
+          expect(state.custom).toEqual(event.call.custom);
+        });
+      });
+
+      describe(`call.accepted`, () => {
+        it(`will update state`, () => {
+          const state = new CallState();
+          const event: CallAcceptedEvent = {
+            type: 'call.accepted',
+            // @ts-expect-error
+            call: {
+              custom: {
+                test: 'value',
+              },
+            },
+          };
+          // @ts-ignore
+          state.updateFromEvent(event);
+
+          expect(state.custom).toEqual(event.call.custom);
+        });
+      });
+
+      describe(`call.rejected`, () => {
+        it(`will update state`, () => {
+          const state = new CallState();
+          const event: CallEndedEvent = {
+            type: 'call.rejected',
+            // @ts-expect-error
+            call: {
+              custom: {
+                test: 'value',
+              },
+            },
+          };
+          // @ts-ignore
+          state.updateFromEvent(event);
+
+          expect(state.custom).toEqual(event.call.custom);
+        });
+      });
+
+      describe(`call.ended`, () => {
+        it(`will update state`, () => {
+          const state = new CallState();
+          const event: CallEndedEvent = {
+            type: 'call.ended',
+            // @ts-expect-error
+            call: {
+              custom: {
+                test: 'value',
+              },
+            },
+          };
+          // @ts-ignore
+          state.updateFromEvent(event);
+
+          expect(state.custom).toEqual(event.call.custom);
+        });
+      });
+    });
+
+    describe('Call Permission Events', () => {
+      it('handles call.permissions_updated', () => {
+        const state = new CallState();
+        state.setParticipants([
+          {
+            userId: 'test',
+            name: 'test',
+            sessionId: 'test',
+            isDominantSpeaker: false,
+            isSpeaking: false,
+            audioLevel: 0,
+            image: '',
+            publishedTracks: [],
+            connectionQuality: ConnectionQuality.EXCELLENT,
+            roles: [],
+            trackLookupPrefix: '',
+            isLocalParticipant: true,
+          },
+        ]);
+
+        state.updateFromEvent({
+          type: 'call.permissions_updated',
+          created_at: '',
+          call_cid: 'development:12345',
+          own_capabilities: [
+            OwnCapability.SEND_AUDIO,
+            OwnCapability.SEND_VIDEO,
+          ],
+          user: {
+            id: 'test',
+            created_at: '',
+            role: '',
+            updated_at: '',
+            custom: {},
+            teams: [],
+          },
+        });
+
+        expect(state.ownCapabilities).toEqual([
+          OwnCapability.SEND_AUDIO,
+          OwnCapability.SEND_VIDEO,
+        ]);
+
+        state.updateFromEvent({
+          type: 'call.permissions_updated',
+          created_at: '',
+          call_cid: 'development:12345',
+          own_capabilities: [OwnCapability.SEND_VIDEO],
+          user: {
+            id: 'test',
+            created_at: '',
+            role: '',
+            updated_at: '',
+            custom: {},
+            teams: [],
+          },
+        });
+        expect(state.ownCapabilities).toEqual([OwnCapability.SEND_VIDEO]);
+      });
+    });
+
+    describe('member events', () => {
+      it('handles call.member_added events', () => {
+        const state = new CallState();
+        const initialMembers: MemberResponse[] = [
+          {
+            user_id: 'user0',
+          } as MemberResponse,
+        ];
+        state.setMembers(initialMembers);
+        state.updateFromEvent({
+          type: 'call.member_added',
+          // @ts-ignore
+          members: [{ user_id: 'user1' }, { user_id: 'user2' }],
+        });
+
+        const updatedMembers = state.members;
+        updatedMembers.forEach((member, index) =>
+          expect(member.user_id).toBe(`user${index}`),
+        );
+      });
+
+      it('handles call.member_removed events', () => {
+        const state = new CallState();
+        const initialMembers: MemberResponse[] = [
+          // @ts-ignore
+          { user_id: 'user0' },
+          // @ts-ignore
+          { user_id: 'user1' },
+          // @ts-ignore
+          { user_id: 'user2' },
+        ];
+        state.setMembers(initialMembers);
+        const removedMembers = ['user1'];
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.member_removed',
+          members: removedMembers,
+        });
+
+        const updatedMembers = state.members;
+        expect(updatedMembers[0].user_id).toBe('user0');
+        expect(updatedMembers[1].user_id).toBe('user2');
+        expect(updatedMembers.length).toBe(
+          initialMembers.length - removedMembers.length,
+        );
+      });
+
+      it('handles call.member_updated_permission events', () => {
+        const state = new CallState();
+        const user0 = {
+          user_id: 'user0',
+          user: {
+            role: 'viewer',
+          },
+        } as MemberResponse;
+        const user1 = {
+          user_id: 'user1',
+          user: {
+            role: 'host',
+          },
+        } as MemberResponse;
+        const user2 = {
+          user_id: 'user2',
+          user: {
+            role: 'viewer',
+          },
+        } as MemberResponse;
+        const initialMembers: MemberResponse[] = [user0, user1, user2];
+        state.setMembers(initialMembers);
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.member_updated_permission',
+          members: [
+            {
+              user_id: user1.user_id,
+              // @ts-ignore
+              user: { ...user1, role: 'viewer' },
+              role: 'viewer',
+            },
+            {
+              user_id: user0.user_id,
+              // @ts-ignore
+              user: { ...user0, role: 'host' },
+              role: 'host',
+            },
+          ],
+        });
+
+        const updatedMembers = state.members;
+        expect(updatedMembers[0].user.role).toBe('host');
+        expect(updatedMembers[1].user.role).toBe('viewer');
+        expect(updatedMembers[2].user.role).toBe('viewer');
+      });
+
+      it('handles call.member_updated events', () => {
+        const state = new CallState();
+        const user0 = {
+          user_id: 'user0',
+          user: {
+            name: 'Jane',
+          },
+        } as MemberResponse;
+        const user1 = {
+          user_id: 'user1',
+          user: {
+            name: 'Jack',
+          },
+        } as MemberResponse;
+        const user2 = {
+          user_id: 'user2',
+          user: {
+            name: 'Adam',
+          },
+        } as MemberResponse;
+        const initialMembers: MemberResponse[] = [user0, user1, user2];
+        state.setMembers(initialMembers);
+        state.updateFromEvent({
+          type: 'call.member_updated',
+          // @ts-ignore
+          members: [{ ...user1, user: { name: 'John' } }],
+        });
+
+        const updatedMembers = state.members;
+        expect(updatedMembers[0].user.name).toBe('Jane');
+        expect(updatedMembers[1].user.name).toBe('John');
+        expect(updatedMembers[2].user.name).toBe('Adam');
+      });
+    });
+
+    describe('recording and broadcasting events', () => {
+      it('handles call.recording_started events', () => {
+        const state = new CallState();
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.recording_started',
+        });
+        expect(state.recording).toBe(true);
+      });
+
+      it('handles call.recording_stopped events', () => {
+        const state = new CallState();
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.recording_stopped',
+        });
+        expect(state.recording).toBe(false);
+      });
+
+      it('handles call.broadcasting_started events', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-ignore
+          egress: {
+            broadcasting: false,
+            hls: {
+              playlist_url: '',
+            },
+          },
+        });
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.broadcasting_started',
+          hls_playlist_url: 'https://example.com/playlist.m3u8',
+        });
+        expect(state.egress?.broadcasting).toBe(true);
+        expect(state.egress?.hls?.playlist_url).toBe(
+          'https://example.com/playlist.m3u8',
+        );
+      });
+
+      it('handles call.broadcasting_stopped events', () => {
+        const state = new CallState();
+        // @ts-ignore
+        state.updateFromCallResponse({});
+        // @ts-ignore
+        state.updateFromEvent({
+          type: 'call.broadcasting_stopped',
+        });
+        expect(state.egress?.broadcasting).toBe(false);
+      });
+    });
+
+    describe('call.session events', () => {
+      it('should update the call metadata when a session starts', () => {
+        const state = new CallState();
+        state.updateFromEvent({
+          type: 'call.session_started',
+          // @ts-ignore
+          call: { session: { id: 'session-id' } },
+        });
+
+        expect(state.session).toEqual({ id: 'session-id' });
+      });
+
+      it('should update the call metadata when a session ends', () => {
+        const state = new CallState();
+        state.updateFromEvent({
+          type: 'call.session_ended',
+          // @ts-ignore
+          call: { session: { id: 'session-id' } },
+        });
+        expect(state.session).toEqual({ id: 'session-id' });
+      });
+
+      it('should update the call metadata when a participant joins', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-ignore
+          session: {
+            participants: [],
+            participants_count_by_role: {},
+          },
+        });
+        state.updateFromEvent({
+          type: 'call.session_participant_joined',
+          participant: {
+            // @ts-ignore
+            user: {
+              id: 'user-id',
+              role: 'user',
+            },
+            user_session_id: '123',
+          },
+        });
+        expect(state.session).toEqual({
+          participants: [
+            {
+              user: {
+                id: 'user-id',
+                role: 'user',
+              },
+              user_session_id: '123',
+            },
+          ],
+          participants_count_by_role: {
+            user: 1,
+          },
+        });
+      });
+
+      it('should update the call metadata when a participant leaves', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-ignore
+          session: {
+            participants: [
+              {
+                joined_at: '2021-01-01T00:00:00.000Z',
+                // @ts-ignore
+                user: {
+                  id: 'user-id',
+                  role: 'user',
+                },
+                user_session_id: '123',
+              },
+            ],
+            participants_count_by_role: {
+              user: 1,
+            },
+          },
+        });
+        state.updateFromEvent({
+          type: 'call.session_participant_left',
+          participant: {
+            // @ts-ignore
+            user: {
+              id: 'user-id',
+              role: 'user',
+            },
+            user_session_id: '123',
+          },
+        });
+        expect(state.session).toEqual({
+          participants: [],
+          participants_count_by_role: {
+            user: 0,
+          },
+        });
+      });
     });
   });
 });

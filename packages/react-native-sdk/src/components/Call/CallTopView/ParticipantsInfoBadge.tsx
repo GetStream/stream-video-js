@@ -6,6 +6,9 @@ import { theme } from '../../../theme';
 import { Z_INDEX } from '../../../constants';
 import { CallTopViewProps } from '..';
 
+/**
+ * Props for the ParticipantsInfoBadge component.
+ */
 export type ParticipantsInfoBadgeProps = Pick<
   CallTopViewProps,
   'onParticipantInfoPress'

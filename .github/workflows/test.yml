@@ -1,7 +1,7 @@
 name: Test
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   STREAM_API_KEY: ${{ vars.CLIENT_TEST_API_KEY }}
   STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
 
@@ -12,30 +12,25 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'packages/react-native-sdk/docusaurus/**'
-      - 'packages/react-sdk/docusaurus/**'
+      - '**/docusaurus/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
-      - 'packages/react-native-sdk/docusaurus/**'
-      - 'packages/react-sdk/docusaurus/**'
+      - '**/docusaurus/**'
 
 jobs:
   test-and-build:
     timeout-minutes: 30
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Node ${{ matrix.node-version }}
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18.x
           cache: 'yarn'
 
       - name: ESLint Cache
@@ -59,5 +54,5 @@ jobs:
       - name: Build packages
         run: NODE_ENV=production yarn build:all
 
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
+#      - name: SonarCloud Scan
+#        uses: sonarsource/sonarcloud-github-action@master

@@ -43,6 +43,7 @@ For that purpose, we are going to utilize some fundamental React Video SDK compo
 
 - [`<ParticipantView />`](../../ui-components/core/participant-view) - A component that renders a video stream of a participant.
 - `useCall()` - A hook that returns the current call instance. You can use this hook to access the call state and call methods.
+- `useCallStateHooks()` - A hook-alike function that wraps all call-state hooks. You can use this hook to access the list of all participants in the call, the local participant, and the dominant speaker.
 - `useParticipants()` - A hook that returns the list of all participants in the call.
 
 ```tsx
@@ -54,13 +55,16 @@ import {
   StreamTheme,
   ParticipantView,
   useCall,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
+
+const { useParticipants } = useCallStateHooks();
 ```
 
 ```tsx
 export const SpeakerView = () => {
   const call = useCall();
+  const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   return (
@@ -171,6 +175,7 @@ in a `useEffect` hook (see full code [here](https://github.com/GetStream/stream-
 ```tsx
 export const SpeakerView = () => {
   const call = useCall();
+  const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
 
   // highlight-start
@@ -223,6 +228,7 @@ In calls with a large number of participants, your horizontal list will grow pas
 ```tsx
 export const SpeakerView = () => {
   const call = useCall();
+  const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
   // highlight-start
   const [participantsBar, setParticipantsBar] = useState<HTMLDivElement | null>(

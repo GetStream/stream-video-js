@@ -1,16 +1,12 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import {
-  useCameraState,
-  useCallStateHooks,
-} from '@stream-io/video-react-bindings';
+import { StyleSheet, View } from 'react-native';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { SfuModels } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks';
-import { Avatar } from '../../utility';
 import { ParticipantReaction } from '../ParticipantView/ParticipantReaction';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
@@ -19,35 +15,13 @@ import { RTCView } from '@stream-io/react-native-webrtc';
 /**
  * Props to be passed for the LocalVideoView component.
  */
-export interface LocalParticipantViewProps {
-  /**
-   * An optional style object to be applied to the local video view
-   * @defaultValue
-   * The default is `{
-   *     position: 'absolute',
-   *     height: 140,
-   *     width: 80,
-   *     right: 2 * theme.spacing.lg,
-   *     top: 100,
-   *     borderRadius: theme.rounded.sm,
-   *     zIndex: 1,
-   *   }`
-   */
-  style?: StyleProp<ViewStyle>;
-
-  /**
-   * The layout of the local video view controls weather the local participant's video will be rendered in full screen or floating
-   * @defaultValue 'floating'
-   */
-  layout?: 'floating' | 'fullscreen';
-}
+export type LocalParticipantViewProps = {};
 
 /**
  * A component to render the local participant's video.
  */
-export const LocalParticipantView = (props: LocalParticipantViewProps) => {
-  const { layout = 'floating' } = props;
-  const { useLocalParticipant } = useCallStateHooks();
+export const LocalParticipantView = () => {
+  const { useLocalParticipant, useCameraState } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const { direction } = useCameraState();
   const isCameraOnFrontFacingMode = direction === 'front';
@@ -73,30 +47,6 @@ export const LocalParticipantView = (props: LocalParticipantViewProps) => {
   // otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
   const showBlankStream =
     isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
-
-  if (layout === 'fullscreen') {
-    return (
-      <View
-        testID={ComponentTestIds.LOCAL_PARTICIPANT_FULLSCREEN}
-        style={styles.fullScreenContainer}
-      >
-        <View style={styles.topView}>
-          <ParticipantReaction participant={localParticipant} />
-        </View>
-        {isVideoMuted ? (
-          <Avatar participant={localParticipant} />
-        ) : showBlankStream ? (
-          <View style={styles.videoStreamFullScreen} />
-        ) : (
-          <RTCView
-            mirror={debouncedCameraOnFrontFacingMode}
-            streamURL={localParticipant.videoStream?.toURL()}
-            style={styles.videoStreamFullScreen}
-          />
-        )}
-      </View>
-    );
-  }
 
   return (
     <View
@@ -171,25 +121,11 @@ const styles = StyleSheet.create({
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
   },
-  videoStreamFullScreen: {
-    ...StyleSheet.absoluteFillObject,
-  },
   topView: {
     position: 'absolute',
     top: theme.spacing.sm,
     left: theme.spacing.sm,
     zIndex: Z_INDEX.IN_FRONT,
-  },
-  fullScreenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.light.disabled,
-  },
-  avatarContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   floatingContainer: {
     ...StyleSheet.absoluteFillObject,

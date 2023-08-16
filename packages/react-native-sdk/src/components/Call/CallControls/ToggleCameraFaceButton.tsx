@@ -2,7 +2,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCall,
-  useCameraState,
+  useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
@@ -28,6 +28,7 @@ export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
   const call = useCall();
+  const { useCameraState } = useCallStateHooks();
   const { status, direction } = useCameraState();
 
   const onPress = async () => {

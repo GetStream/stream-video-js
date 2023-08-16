@@ -18,13 +18,13 @@ export const SpeakerElement = ({
   speaker: StreamVideoParticipant | StreamVideoLocalParticipant;
 }) => {
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const { useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
   const canMuteUsers = useHasPermissions(OwnCapability.MUTE_USERS);
 
   if (!call) return null;
 
-  const { hosts = [] } = (callMetadata?.custom || {}) as CustomCallData;
+  const { hosts = [] } = (customData || {}) as CustomCallData;
   const isAudioEnabled = speaker.publishedTracks.includes(
     SfuModels.TrackType.AUDIO,
   );
@@ -53,9 +53,9 @@ export const SpeakerElement = ({
                 });
                 call.update({
                   custom: {
-                    ...(callMetadata?.custom || {}),
+                    ...(customData || {}),
                     speakerIds: [
-                      (callMetadata?.custom.speakersIds || []).filter(
+                      (customData.speakersIds || []).filter(
                         (id: string) => id === speaker.userId,
                       ),
                     ],

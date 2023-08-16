@@ -3,31 +3,14 @@ import { Dispatcher } from '../rtc';
 import { CallState } from '../store';
 import {
   watchAudioLevelChanged,
-  watchBlockedUser,
   watchCallAccepted,
-  watchCallBroadcastingStarted,
-  watchCallBroadcastingStopped,
   watchCallEnded,
   watchCallGrantsUpdated,
-  watchCallLiveStarted,
-  watchCallMemberAdded,
-  watchCallMemberRemoved,
-  watchCallMemberUpdated,
-  watchCallMemberUpdatedPermission,
-  watchCallPermissionsUpdated,
-  watchCallRecordingStarted,
-  watchCallRecordingStopped,
   watchCallRejected,
-  watchCallSessionEnded,
-  watchCallSessionParticipantJoined,
-  watchCallSessionParticipantLeft,
-  watchCallSessionStarted,
-  watchCallUpdated,
   watchChangePublishQuality,
   watchConnectionQualityChanged,
   watchDominantSpeakerChanged,
   watchLiveEnded,
-  watchNewReactions,
   watchParticipantCountChanged,
   watchParticipantJoined,
   watchParticipantLeft,
@@ -35,7 +18,6 @@ import {
   watchSfuErrorReports,
   watchTrackPublished,
   watchTrackUnpublished,
-  watchUnblockedUser,
 } from '../events';
 import {
   CallEventTypes,
@@ -45,16 +27,6 @@ import {
 type RingCallEvents = Extract<
   CallEventTypes,
   'call.accepted' | 'call.rejected'
->;
-
-type AllCallEvents = Exclude<
-  CallEventTypes,
-  | 'call.created' // handled by StreamVideoClient
-  | 'call.ring' // handled by StreamVideoClient
-  | 'call.notification' // not used currently
-  | 'call.permission_request' // should be handled by the SDK component
-  | 'custom' // integrators should handle custom events
-  | RingCallEvents // handled by registerRingingCallEventHandlers
 >;
 
 /**
@@ -69,31 +41,9 @@ export const registerEventHandlers = (
   state: CallState,
   dispatcher: Dispatcher,
 ) => {
-  const coordinatorEvents: {
-    [key in AllCallEvents]: (e: StreamCallEvent) => any;
-  } = {
-    'call.blocked_user': watchBlockedUser(state),
-    'call.broadcasting_started': watchCallBroadcastingStarted(state),
-    'call.broadcasting_stopped': watchCallBroadcastingStopped(state),
-    'call.ended': watchCallEnded(call),
-    'call.live_started': watchCallLiveStarted(state),
-    'call.member_added': watchCallMemberAdded(state),
-    'call.member_removed': watchCallMemberRemoved(state),
-    'call.member_updated': watchCallMemberUpdated(state),
-    'call.member_updated_permission': watchCallMemberUpdatedPermission(state),
-    'call.permissions_updated': watchCallPermissionsUpdated(state),
-    'call.reaction_new': watchNewReactions(state),
-    'call.recording_started': watchCallRecordingStarted(state),
-    'call.recording_stopped': watchCallRecordingStopped(state),
-    'call.session_started': watchCallSessionStarted(state),
-    'call.session_ended': watchCallSessionEnded(state),
-    'call.session_participant_joined': watchCallSessionParticipantJoined(state),
-    'call.session_participant_left': watchCallSessionParticipantLeft(state),
-    'call.unblocked_user': watchUnblockedUser(state),
-    'call.updated': watchCallUpdated(state),
-    'call.user_muted': () => console.log('call.user_muted received'),
-  };
   const eventHandlers = [
+    call.on('call.ended', watchCallEnded(call)),
+
     watchLiveEnded(dispatcher, call),
     watchSfuErrorReports(dispatcher),
     watchChangePublishQuality(dispatcher, call),
@@ -112,11 +62,6 @@ export const registerEventHandlers = (
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
     call.on('pinsUpdated', watchPinsUpdated(state)),
   ];
-
-  Object.keys(coordinatorEvents).forEach((event) => {
-    const eventName = event as AllCallEvents;
-    eventHandlers.push(call.on(eventName, coordinatorEvents[eventName]));
-  });
 
   if (call.ringing) {
     // these events are only relevant when the call is ringing

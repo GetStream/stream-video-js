@@ -15,7 +15,9 @@ import {
 export const BackstageHeader = () => {
   const call = useCall();
   const currentUser = useConnectedUser();
-  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
+  const { useIsCallBroadcastingInProgress, useCallCustomData } =
+    useCallStateHooks();
+  const customData = useCallCustomData();
   const isBroadcasting = useIsCallBroadcastingInProgress();
   return (
     <div className="backstage-header">
@@ -23,7 +25,7 @@ export const BackstageHeader = () => {
         <StreamLogo />
         <div className="backstage-header-details">
           <h3 className="backstage-header-title">
-            {call?.data?.custom.title || call?.cid || 'Livestream'}
+            {customData.title || call?.cid || 'Livestream'}
           </h3>
           <h5 className="backstage-header-subtitle">
             {currentUser?.name || currentUser?.id || 'Stream user'}
