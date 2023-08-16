@@ -7,7 +7,6 @@ import ImageShowcase from '@site/src/components/ImageShowcase';
 import CallContentGrid from '../../assets/04-ui-components/call-content-grid.png';
 import CallContentSpotlight from '../../assets/04-ui-components/call-content-spotlight.png';
 
-import Layout from '../../common-content/ui-components/call/call-content/layout.mdx';
 import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
 import CallControls from '../../common-content/ui-components/call/call-content/call-controls.mdx';
 import ParticipantsInfoBadge from '../../common-content/ui-components/call/call-content/participants-info-badge.mdx';
@@ -78,7 +77,15 @@ const VideoCallUI = () => {
 
 ### `layout`
 
-<Layout />
+This switches the list between the grid and the spotlight mode.
+
+| Type                  | Default Value |
+| --------------------- | ------------- |
+| `grid` \| `spotlight` | `grid`        |
+
+:::note
+When a screen is shared, the layout automatically changes to `spotlight` mode.
+:::
 
 ### [`onBackPressed`](../call-top-view/#onbackpressed)
 

@@ -3,6 +3,13 @@ id: call-participants-list
 title: CallParticipantsList
 ---
 
+import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
+import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
+import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
+import ParticipantVideoFallback from '../../common-content/ui-components/call/call-content/participant-video-fallback.mdx';
+import VideoRenderer from '../../common-content/ui-components/call/call-content/video-renderer.mdx';
+import ParticipantView from '../../common-content/ui-components/call/call-content/participant-view.mdx';
+
 This component displays a list of participants in a [FlatList](https://reactnative.dev/docs/flatlist). You can use this component to display participants either in a vertical or horizontal scrolling mode.
 
 :::note
@@ -64,50 +71,26 @@ The number of participants to be displayed in a single row. This property is onl
 
 This decides whether the participants should be listed vertically or horizontally.
 
-### `ParticipantView`
-
-| Type                          | Default Value                                                                                                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantView`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantView.tsx) |
-
-Prop to customize the [ParticipantView](../../participants/participant-view) component entirely.
-
 ### `ParticipantLabel`
 
-| Type                          | Default Value                                                                                                                                                          |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantLabel`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantLabel.tsx) |
-
-Prop to customize the Label of the [ParticipantView](../../participants/participant-view).
+<ParticipantLabel />
 
 ### `ParticipantReaction`
 
-| Type                          | Default Value                                                                                                                                                                |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantReaction`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantReaction.tsx) |
-
-Prop to customize the component that displays the reaction of the [ParticipantView](../../participants/participant-view).
+<ParticipantReaction />
 
 ### `ParticipantVideoFallback`
 
-| Type                          | Default Value                                                                                                                                                                          |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantVideoFallback`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantVideoFallback.tsx) |
-
-Prop to customize the video fallback of the [ParticipantView](../../participants/participant-view), when the video is disabled.
+<ParticipantVideoFallback />
 
 ### `ParticipantNetworkQualityIndicator`
 
-| Type                          | Default Value                                                                                                                                                                                              |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantNetworkQualityIndicator`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantNetworkQualityIndicator.tsx) |
-
-Prop to customize the network quality indicator of the [ParticipantView](../../participants/participant-view).
+<ParticipantNetworkQualityIndicator />
 
 ### `VideoRenderer`
 
-| Type                          | Default Value                                                                                                                                                    |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`VideoRenderer`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/VideoRenderer.tsx) |
+<VideoRenderer />
 
-Prop to customize the video component of the [ParticipantView](../../participants/participant-view). It is also responsible to display the [`ParticipantVideoFallback`](#participantvideofallback).
+### `ParticipantView`
+
+<ParticipantView />
