@@ -18,7 +18,7 @@ on:
       - 'sample-apps/react/**'
       - 'packages/**'
       - '!packages/react-native-sdk/**'
-      - '!packages/react-sdk/docusaurus/**'
+      - '!**/docusaurus/**'
   workflow_dispatch:
 
 jobs:
