@@ -5,13 +5,12 @@ import { SfuModels } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
-import { useMediaStreamManagement } from '../../../providers';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks';
 import { ParticipantReaction } from '../ParticipantView/ParticipantReaction';
 import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -22,9 +21,10 @@ export type LocalParticipantViewProps = {};
  * A component to render the local participant's video.
  */
 export const LocalParticipantView = () => {
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useCameraState } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const { direction } = useCameraState();
+  const isCameraOnFrontFacingMode = direction === 'front';
   // it takes a few milliseconds for the camera stream to actually switch
   const debouncedCameraOnFrontFacingMode = useDebouncedValue(
     isCameraOnFrontFacingMode,

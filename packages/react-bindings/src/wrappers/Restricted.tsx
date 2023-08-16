@@ -34,7 +34,7 @@ export const Restricted = ({
   const call = useCall();
   const ownCapabilities = useOwnCapabilities();
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](
-    (capability) => ownCapabilities.includes(capability),
+    (capability) => ownCapabilities?.includes(capability),
   );
 
   if (hasPermissionsOnly) return hasPermissions ? <>{children}</> : null;

@@ -1,8 +1,11 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useCall,
+  useCallStateHooks,
+} from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { useMediaStreamManagement } from '../../../providers/MediaStreamManagement';
 import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
 import { theme } from '../../../theme';
@@ -24,27 +27,25 @@ export type ToggleCameraFaceButtonProps = {
 export const ToggleCameraFaceButton = ({
   onPressHandler,
 }: ToggleCameraFaceButtonProps) => {
-  const { isVideoMuted, isCameraOnFrontFacingMode, toggleCameraFacingMode } =
-    useMediaStreamManagement();
+  const call = useCall();
+  const { useCameraState } = useCallStateHooks();
+  const { status, direction } = useCameraState();
 
-  const toggleCameraFaceHandler = () => {
-    if (onPressHandler) {
-      onPressHandler();
-      return;
-    }
-    toggleCameraFacingMode();
+  const onPress = async () => {
+    onPressHandler?.();
+    await call?.camera.flip();
   };
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
-        disabled={isVideoMuted}
-        onPress={toggleCameraFaceHandler}
-        color={muteStatusColor(!isCameraOnFrontFacingMode)}
+        onPress={onPress}
+        color={muteStatusColor(direction === 'back')}
+        disabled={status === 'disabled'}
       >
         <CameraSwitch
           color={
-            isCameraOnFrontFacingMode
+            direction === 'front'
               ? theme.light.static_black
               : theme.light.static_white
           }
