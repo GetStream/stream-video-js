@@ -13,6 +13,11 @@ on:
       - opened
       - synchronize
       - reopened
+    paths:
+      - '.github/workflows/copy-react-demo-s3.yml'
+      - 'sample-apps/react/react-video-demo/**'
+      - 'packages/**'
+      - '!packages/react-native-sdk/**'
   workflow_dispatch:
 
 jobs:
