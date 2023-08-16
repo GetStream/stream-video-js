@@ -210,7 +210,7 @@ export class Publisher {
       transceiver.sender.track &&
       transceiver.sender.track.readyState === 'live'
     ) {
-      if (!transceiver.sender.track.enabled) return;
+      if (transceiver.sender.track.enabled) return;
       transceiver.sender.track.enabled = true;
       return this.sfuClient.updateMuteState(trackType, false);
     }
