@@ -62,7 +62,8 @@ export const useIsCallBroadcastingInProgress = (): boolean => {
  */
 export const useIsCallLive = (): boolean => {
   const { backstage$ } = useCallState();
-  return useObservableValue(backstage$);
+  const isBackstageOn = useObservableValue(backstage$);
+  return !isBackstageOn;
 };
 
 /**
