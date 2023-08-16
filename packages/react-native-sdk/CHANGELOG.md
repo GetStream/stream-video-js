@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.379](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.378...@stream-io/video-react-native-sdk-0.0.1-alpha.379) (2023-08-16)
+
+
+### Features
+
+* **react-native:** add CallContent component with customization of inner components ([#933](https://github.com/GetStream/stream-video-js/issues/933)) ([1fe896f](https://github.com/GetStream/stream-video-js/commit/1fe896fe2207878afc2e795f4707cc0a046fd51c))
+
+
+
 ## [0.0.1-alpha.378](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.377...@stream-io/video-react-native-sdk-0.0.1-alpha.378) (2023-08-16)
 
 
