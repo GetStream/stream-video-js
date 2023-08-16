@@ -1,0 +1,69 @@
+---
+id: call-top-view
+title: CallTopView
+---
+
+import ParticipantsInfoBadge from '../../common-content/ui-components/call/call-content/participants-info-badge.mdx';
+import OnBackPressed from '../../common-content/ui-components/call/call-content/on-back-pressed.mdx';
+import OnParticipantInfoPress from '../../common-content/ui-components/call/call-content/on-participant-info-press.mdx';
+
+The `CallTopView` represents the header component that gives the user more information when in a call, while adding a few actions they can trigger while the call is active. The header is useful for showing the call name or title, as well as the state, such as if the user is fully connected to the call or not.
+It has a back button by default and a participant info badge.
+
+![Preview of the CallTopView component](../../assets/04-ui-components/call/call-top-view/call-top-view.png)
+
+## General Usage
+
+To use the component, you can simple use it as:
+
+```tsx {12}
+import {
+  Call,
+  CallTopView,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+
+  return (
+    <StreamCall call={call}>
+      <CallTopView />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `onBackPressed`
+
+<OnBackPressed />
+
+### `onParticipantInfoPress`
+
+<OnParticipantInfoPress />
+
+### `title`
+
+Title to be rendered at the center of the Header.
+
+| Type                    |
+| ----------------------- |
+| `string` \| `undefined` |
+
+### `style`
+
+Style to override the container of the `CallTopView`.
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+### `ParticipantsInfoBadge`
+
+<ParticipantsInfoBadge />
+
+## Customization
+
+You can create your own custom `CallTopView` using the [Call Top View UI Cookbook guide](../../../ui-cookbook/replacing-call-top-view/).
