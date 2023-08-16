@@ -9,7 +9,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
+import {
+  GoAwayReason,
+  SdkType,
+  TrackType,
+} from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -109,8 +113,11 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
+import { CameraManager } from './devices/CameraManager';
+import { MicrophoneManager } from './devices/MicrophoneManager';
+import { CameraDirection } from './devices/CameraManagerState';
 
 /**
  * An object representation of a `Call`.
@@ -148,6 +155,16 @@ export class Call {
   watching: boolean;
 
   /**
+   * Device manager for the camera
+   */
+  readonly camera: CameraManager;
+
+  /**
+   * Device manager for the microhpone
+   */
+  readonly microphone: MicrophoneManager;
+
+  /**
    * Flag telling whether this call is a "ringing" call.
    */
   private readonly ringingSubject: Subject<boolean>;
@@ -175,7 +192,7 @@ export class Call {
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
-  private readonly streamClient: StreamClient;
+  public readonly streamClient: StreamClient;
   private sfuClient?: StreamSfuClient;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
@@ -250,6 +267,9 @@ export class Call {
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
     );
+
+    this.camera = new CameraManager(this);
+    this.microphone = new MicrophoneManager(this);
   }
 
   private registerEffects() {
@@ -904,6 +924,12 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
+      // React uses a different device management for now
+      if (getSdkInfo()?.type !== SdkType.REACT) {
+        this.initCamera();
+        this.initMic();
+      }
+
       // 3. once we have the "joinResponse", and possibly reconciled the local state
       // we schedule a fast subscription update for all remote participants
       // that were visible before we reconnected or migrated to a new SFU.
@@ -1190,6 +1216,8 @@ export class Call {
    *
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.microphone.select
    */
   setAudioDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;
@@ -1204,6 +1232,8 @@ export class Call {
    * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
    *
    * @param deviceId the selected device, pass `undefined` to clear the device selection
+   *
+   * @deprecated use call.camera.select
    */
   setVideoDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;
@@ -1681,4 +1711,71 @@ export class Call {
       { custom: payload },
     );
   };
+
+  private initCamera() {
+    if (
+      this.state.localParticipant?.videoStream ||
+      !this.permissionsContext.hasPermission('send-video')
+    ) {
+      return;
+    }
+
+    // Set camera direction if it's not yet set
+    // This will also start publishing if camera is enabled
+    if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
+      let defaultDirection: CameraDirection = 'front';
+      const backendSetting = this.state.settings?.video.camera_facing;
+      if (backendSetting) {
+        defaultDirection = backendSetting === 'front' ? 'front' : 'back';
+      }
+      this.camera.selectDirection(defaultDirection);
+    } else if (this.camera.state.status === 'enabled') {
+      // Publish already started media streams (this is the case if there is a lobby screen before join)
+      // Wait for media stream
+      this.camera.state.mediaStream$
+        .pipe(takeWhile((s) => s === undefined, true))
+        .subscribe((stream) => {
+          if (!this.state.localParticipant?.videoStream) {
+            this.publishVideoStream(stream!);
+          }
+        });
+    }
+
+    // Apply backend config (this is the case if there is no lobby screen before join)
+    if (
+      this.camera.state.status === undefined &&
+      this.state.settings?.video.camera_default_on
+    ) {
+      void this.camera.enable();
+    }
+  }
+
+  private initMic() {
+    if (
+      this.state.localParticipant?.audioStream ||
+      !this.permissionsContext.hasPermission('send-audio')
+    ) {
+      return;
+    }
+
+    // Publish already started media streams (this is the case if there is a lobby screen before join)
+    if (this.microphone.state.status === 'enabled') {
+      // Wait for media stream
+      this.microphone.state.mediaStream$
+        .pipe(takeWhile((s) => s === undefined, true))
+        .subscribe((stream) => {
+          if (!this.state.localParticipant?.audioStream) {
+            this.publishAudioStream(stream!);
+          }
+        });
+    }
+
+    // Apply backend config (this is the case if there is no lobby screen before join)
+    if (
+      this.microphone.state.status === undefined &&
+      this.state.settings?.audio.mic_default_on
+    ) {
+      void this.microphone.enable();
+    }
+  }
 }
