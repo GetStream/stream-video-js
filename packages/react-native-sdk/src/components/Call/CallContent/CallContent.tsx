@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
+  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
   CallTopViewProps,
 } from '../CallTopView';
 import {
@@ -57,7 +58,7 @@ export type CallContentComponentProps = Pick<
 
 export type CallContentProps = Pick<
   CallTopViewProps,
-  'onBackPressed' | 'onParticipantInfoPress'
+  'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
 > &
   CallContentComponentProps & {
     /**
@@ -77,6 +78,7 @@ export const CallContent = ({
   ParticipantReaction = DefaultParticipantReaction,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
+  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
   VideoRenderer = DefaultVideoRenderer,
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
@@ -118,6 +120,7 @@ export const CallContent = ({
         <CallTopView
           onBackPressed={onBackPressed}
           onParticipantInfoPress={onParticipantInfoPress}
+          ParticipantsInfoBadge={ParticipantsInfoBadge}
         />
         {showSpotlightLayout ? (
           <CallParticipantsSpotlight {...participantViewProps} />
