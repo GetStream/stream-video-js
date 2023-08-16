@@ -100,3 +100,69 @@
 .invite {
   @apply flex flex-col md:hidden;
 }
+
+.participants p {
+  @apply text-video-white;
+  font-size: 0.75rem;
+  text-align: center;
+  padding-block: 1rem;
+}
+
+.participants-panel-small-screen {
+  grid-area: header;
+  position: relative;
+  background: #1C1C1E;
+
+  .participants-panel-small-screen__float {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 99;
+    max-height: 470px;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    background: #1C1C1E;
+
+    .participants-panel-small-screen__header {
+      @apply text-video-white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      position: relative;
+
+    .participants-panel-small-screen__header__title {
+      text-align: center;
+      flex: 1;
+    }
+      button {
+        position: absolute;
+        right: 1rem;
+        top: 0.75rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #72767E;
+        background-color: #000;
+        height: 35px;
+        width: 35px;
+        border-radius: 0.5rem;
+
+        &:hover {
+          @apply bg-video-grey-300 text-video-white;
+        }
+
+        &:active {
+          @apply bg-video-grey-700;
+        }
+      }
+    }
+
+    .participants{
+      height: 100px;
+    }
+    .invite {
+      padding: 0.5rem 1rem 1rem 18px;
+    }
+  }
+}

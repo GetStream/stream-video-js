@@ -1,0 +1,35 @@
+.str-video__notification {
+  @apply bg-video-grey-800 text-video-white rounded-input;
+  max-width: 220px;
+
+  .str-chat__new-message-notification {
+    display: flex;
+    gap: 0.75rem;
+    overflow: hidden;
+
+    .str-chat__new-message-notification__content {
+      min-width: 0;
+      flex: 1;
+      max-width: 155px;
+
+      .str-chat__new-message-notification__heading {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.375rem;
+
+        .str-chat__new-message-notification__time {
+          @apply text-video-grey-200;
+        }
+      }
+
+      .str-chat__new-message-notification__text {
+      }
+    }
+  }
+}
+
+@media screen(md) {
+  .str-video__notification {
+    transform: translateX(-3rem);
+  }
+}
