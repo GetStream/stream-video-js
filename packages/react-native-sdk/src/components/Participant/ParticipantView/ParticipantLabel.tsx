@@ -8,11 +8,17 @@ import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
 import { SfuModels } from '@stream-io/video-client';
 
+/**
+ * Props for the ParticipantLabel component.
+ */
 export type ParticipantLabelProps = Pick<
   ParticipantViewProps,
   'videoMode' | 'participant'
 >;
 
+/**
+ * This component is used to display the participant label that contains the participant name, video/audio mute/unmute status.
+ */
 export const ParticipantLabel = ({
   participant,
   videoMode,
