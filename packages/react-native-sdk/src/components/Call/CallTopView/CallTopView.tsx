@@ -7,7 +7,10 @@ import {
   ViewStyle,
   Pressable,
 } from 'react-native';
-import { ParticipantsInfoBadge } from './ParticipantsInfoBadge';
+import {
+  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
+  ParticipantsInfoBadgeProps,
+} from './ParticipantsInfoBadge';
 import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { Z_INDEX } from '../../../constants';
@@ -34,6 +37,10 @@ export type CallTopViewProps = {
    * Style to override the container of the CallTopView.
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * Component to customize the ParticipantInfoBadge of the CallTopView.
+   */
+  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps>;
 };
 
 export const CallTopView = ({
@@ -41,6 +48,7 @@ export const CallTopView = ({
   onParticipantInfoPress,
   title,
   style,
+  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -84,9 +92,11 @@ export const CallTopView = ({
           )}
         </View>
         <View style={styles.rightElement}>
-          <ParticipantsInfoBadge
-            onParticipantInfoPress={onParticipantInfoPress}
-          />
+          {ParticipantsInfoBadge && (
+            <ParticipantsInfoBadge
+              onParticipantInfoPress={onParticipantInfoPress}
+            />
+          )}
         </View>
       </View>
     </View>
