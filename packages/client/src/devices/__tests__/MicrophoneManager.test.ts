@@ -84,6 +84,18 @@ describe('MicrophoneManager', () => {
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
   });
 
+  it('should pause and resume tracks', async () => {
+    await manager.enable();
+
+    manager.pause();
+
+    expect(manager.state.mediaStream?.getAudioTracks()[0].enabled).toBe(false);
+
+    manager.resume();
+
+    expect(manager.state.mediaStream?.getAudioTracks()[0].enabled).toBe(true);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();

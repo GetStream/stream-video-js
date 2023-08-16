@@ -77,25 +77,25 @@ export const mockCall = () => {
 };
 
 export const mockAudioStream = () => {
+  const track = {
+    getSettings: () => ({
+      deviceId: mockAudioDevices[0].deviceId,
+    }),
+    enabled: true,
+  };
   return {
-    getAudioTracks: () => [
-      {
-        getSettings: () => ({
-          deviceId: mockAudioDevices[0].deviceId,
-        }),
-      },
-    ],
+    getAudioTracks: () => [track],
   } as MediaStream;
 };
 
 export const mockVideoStream = () => {
+  const track = {
+    getSettings: () => ({
+      deviceId: mockVideoDevices[0].deviceId,
+    }),
+    enabled: true,
+  };
   return {
-    getVideoTracks: () => [
-      {
-        getSettings: () => ({
-          deviceId: mockVideoDevices[0].deviceId,
-        }),
-      },
-    ],
+    getVideoTracks: () => [track],
   } as MediaStream;
 };
