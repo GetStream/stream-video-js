@@ -1,13 +1,12 @@
 import { FC } from 'react';
 import classnames from 'classnames';
-import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { Call } from '@stream-io/video-react-sdk';
 
 import ScreenShareParticipants from '../ScreenShareParticipants';
 import MeetingParticipants from '../MeetingParticipants';
 
 import TourPanel from '../TourPanel';
 import Notifications from '../Notifications';
-import ParticipantsPanel from '../ParticipantsPanel';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 import { useTourContext } from '../../contexts/TourContext';
@@ -17,14 +16,12 @@ import styles from './Meeting.module.css';
 
 export type Props = {
   call: Call;
-  participants: StreamVideoParticipant[];
   isScreenSharing?: boolean;
   participantsAmount: number;
 };
 
 export const Meeting: FC<Props> = ({
   call,
-  participants,
   isScreenSharing,
   participantsAmount,
 }) => {
@@ -49,14 +46,6 @@ export const Meeting: FC<Props> = ({
   return (
     <>
       <Notifications className={styles.notifications} />
-      {participantsPanelVisibility &&
-      (breakpoint === 'xs' || breakpoint === 'sm') ? (
-        <ParticipantsPanel
-          className={styles.participantsPanel}
-          callId={call.id}
-          participants={participants}
-        />
-      ) : null}
       <div className={contentClasses}>
         <div className={stageClasses}>
           {isScreenSharing ? (

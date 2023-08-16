@@ -3,6 +3,12 @@ id: call-top-view
 title: CallTopView
 ---
 
+import ParticipantsInfoBadge from '../../common-content/ui-components/call/call-content/participants-info-badge.mdx';
+import OnBackPressed from '../../common-content/ui-components/call/call-content/on-back-pressed.mdx';
+import OnParticipantInfoPress from '../../common-content/ui-components/call/call-content/on-participant-info-press.mdx';
+import CallTopViewTitle from '../../common-content/ui-components/call/call-top-view/title.mdx';
+import CallTopViewStyle from '../../common-content/ui-components/call/call-top-view/style.mdx';
+
 The `CallTopView` represents the header component that gives the user more information when in a call, while adding a few actions they can trigger while the call is active. The header is useful for showing the call name or title, as well as the state, such as if the user is fully connected to the call or not.
 It has a back button by default and a participant info badge.
 
@@ -34,43 +40,23 @@ const VideoCallUI = () => {
 
 ### `onBackPressed`
 
-| Type                        |
-| --------------------------- |
-| `() => void` \| `undefined` |
-
-Handler to be called when the back button is pressed in the CallTopView.
+<OnBackPressed />
 
 ### `onParticipantInfoPress`
 
-| Type                        |
-| --------------------------- |
-| `() => void` \| `undefined` |
-
-Handler to be called when the Participant icon is pressed in the CallTopView.
+<OnParticipantInfoPress />
 
 ### `title`
 
-| Type                    |
-| ----------------------- |
-| `string` \| `undefined` |
-
-Title to be rendered at the center of the Header.
+<CallTopViewTitle />
 
 ### `style`
 
-| Type                                                       |
-| ---------------------------------------------------------- |
-| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
-
-Style to override the container of the `CallTopView`.
+<CallTopViewStyle />
 
 ### `ParticipantsInfoBadge`
 
-| Type                          | Default Value                                                                                                                                                         |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ComponentType`\| `undefined` | [`ParticipantsInfoBadge`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallTopView/ParticipantsInfoBadge.tsx) |
-
-Component to customize the ParticipantInfoBadge of the CallTopView.
+<ParticipantsInfoBadge />
 
 ## Customization
 

@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.4...@stream-io/video-styling-0.1.5) (2023-08-15)
+
+
+### Bug Fixes
+
+* **styling:** disable video pointer events ([#919](https://github.com/GetStream/stream-video-js/issues/919)) ([6e030ef](https://github.com/GetStream/stream-video-js/commit/6e030efda54a909ff33c0843a29c3704008dc180))
+
 ### [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.3...@stream-io/video-styling-0.1.4) (2023-06-29)
 
 

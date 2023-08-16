@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.378](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.377...@stream-io/video-react-native-sdk-0.0.1-alpha.378) (2023-08-16)
+
+
+
+## [0.0.1-alpha.377](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.376...@stream-io/video-react-native-sdk-0.0.1-alpha.377) (2023-08-16)
+
+
+### Bug Fixes
+
+* **react-native:** remove processing from background modes ([a208ad2](https://github.com/GetStream/stream-video-js/commit/a208ad2e5b33bc78559128435e0f41cf99a332a7))
+
+
+
+## [0.0.1-alpha.376](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.375...@stream-io/video-react-native-sdk-0.0.1-alpha.376) (2023-08-15)
+
+
+
+## [0.0.1-alpha.375](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.374...@stream-io/video-react-native-sdk-0.0.1-alpha.375) (2023-08-14)
+
+
+### Bug Fixes
+
+* **react-native:** downgrade webrtc version to 106 from 111 ([f4e58e2](https://github.com/GetStream/stream-video-js/commit/f4e58e29795ccdc20b1561e936a336b46c91d0f7))
+
+
+
+## [0.0.1-alpha.374](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.373...@stream-io/video-react-native-sdk-0.0.1-alpha.374) (2023-08-14)
+
+
+
 ## [0.0.1-alpha.373](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.372...@stream-io/video-react-native-sdk-0.0.1-alpha.373) (2023-08-14)
 
 

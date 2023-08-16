@@ -1,3 +1,4 @@
+export * from './CallContent';
 export * from './CallTopView';
 export * from './CallLayout';
 export * from './CallControls';

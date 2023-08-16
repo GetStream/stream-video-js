@@ -30,9 +30,7 @@
 
 /* FIXME: use tailwind variable for screen size (or get rid of tailwind) */
 @media (max-width: 768px) {
-  .animated.visible.participantsPanel {
-    height: 50%;
-
+  .animated.expanded.participantsPanel {
     .content.participantsPanel {
       display: flex;
       flex-direction: column;
