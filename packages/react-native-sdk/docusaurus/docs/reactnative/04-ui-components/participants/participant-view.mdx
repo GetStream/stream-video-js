@@ -1,0 +1,115 @@
+---
+id: participant-view
+title: ParticipantView
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ParticipantCameraOn from '../../assets/04-ui-components/participant-camera-on.png';
+import ParticipantCameraOff from '../../assets/04-ui-components/participant-camera-off.png';
+
+import Participant from '../../common-content/ui-components/participant/participant-view/participant.mdx';
+import VideoMode from '../../common-content/ui-components/participant/participant-view/video-mode.mdx';
+import IsVisible from '../../common-content/ui-components/participant/participant-view/is-visible.mdx';
+import ParticipantViewStyle from '../../common-content/ui-components/participant/participant-view/style.mdx';
+
+import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
+import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
+import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
+import ParticipantVideoFallback from '../../common-content/ui-components/call/call-content/participant-video-fallback.mdx';
+import VideoRenderer from '../../common-content/ui-components/call/call-content/video-renderer.mdx';
+
+The `ParticipantView` component renders a participant's video and displays related information of the participant. It can also be used to display the screen sharing view.
+
+It displays the participant info such as
+
+- Name
+- Audio/video mute/unmute state
+- Reaction
+- Network quality indicator
+
+It can toggle between video and avatar based on the participant's video state. It also provides action buttons (for example, to unpin the participant).
+
+:::note
+It is used as a building block to render individual item of participants in [CallContent](../call/call-content.mdx) and [CallParticipantsList](../call/call-participants-list.mdx).
+:::
+
+<ImageShowcase
+  items={[
+    {
+      image: ParticipantCameraOn,
+      caption: 'Participant Camera On',
+      alt: 'Participant Camera On',
+    },
+    {
+      image: ParticipantCameraOff,
+      caption: 'Participant Camera Off',
+      alt: 'Participant Camera Off',
+    },
+  ]}
+/>
+
+## General Usage
+
+In order to use the `ParticipantView` as a standalone component, you should use the following code:
+
+```tsx
+import {
+  ParticipantView,
+  useParticipants,
+} from '@stream-io/video-react-native-sdk';
+
+const App = () => {
+  const participants = useParticipants();
+
+  // Here to show the demo, we pass only first participant. You can pass any of the participant.
+  return <ParticipantView participant={participants[0]} />;
+};
+```
+
+## Props
+
+### `participant`
+
+<Participant />
+
+### `videoMode`
+
+<VideoMode />
+
+### `style`
+
+<ParticipantViewStyle />
+
+### `isVisible`
+
+<IsVisible />
+
+### `ParticipantLabel`
+
+<ParticipantLabel />
+
+### `ParticipantReaction`
+
+<ParticipantReaction />
+
+### `ParticipantVideoFallback`
+
+<ParticipantVideoFallback />
+
+### `ParticipantNetworkQualityIndicator`
+
+<ParticipantNetworkQualityIndicator />
+
+### `VideoRenderer`
+
+<VideoRenderer />
+
+## Customization
+
+Our [UI cookbook](../../../ui-cookbook/overview) tells all the important information about the component customizations.
+
+- [Video fallback](../../../ui-cookbook/participant-video-fallback)
+- [Connection Quality Indicator](../../../ui-cookbook/connection-quality-indicator)
+- [Custom Label](../../../ui-cookbook/participant-label)
+- [Video Renderer](../../../ui-cookbook/video-renderer)
+- [Reaction](../../../ui-cookbook/participant-reaction)

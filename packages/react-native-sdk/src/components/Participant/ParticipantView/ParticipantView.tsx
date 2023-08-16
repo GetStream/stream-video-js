@@ -15,15 +15,15 @@ export type ParticipantVideoType = 'video' | 'screen';
  */
 export type ParticipantViewProps = {
   /**
-   * The participant that will be displayed
+   * The participant that will be displayed.
    */
   participant: StreamVideoParticipant;
   /**
-   * The video kind that will be displayed
+   * The video kind that will be displayed.
    */
   videoMode: ParticipantVideoType;
   /**
-   * Any custom style to be merged with the participant view
+   * Any custom style to be merged with the participant view.
    */
   style?: StyleProp<ViewStyle>;
   /**

@@ -12,7 +12,7 @@ import { useMediaStreamManagement } from '../../../providers';
 import { Z_INDEX } from '../../../constants';
 
 /**
- * Props to be passed for the VideoRenderer component.
+ * Props for the VideoRenderer component.
  */
 export type VideoRendererProps = Pick<
   ParticipantViewProps,
@@ -20,7 +20,9 @@ export type VideoRendererProps = Pick<
 >;
 
 /**
- * Lower level component, that represents only the video part (wrapper around the WebRTC)
+ * This component is used to display the video of the participant and fallback when the video is muted.
+ *
+ * It internally used `RTCView` to render video stream.
  */
 export const VideoRenderer = ({
   videoMode,
