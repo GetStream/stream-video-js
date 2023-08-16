@@ -99,90 +99,43 @@ When set to true, the audio stream will not be played even if it is available.
 
 ### `ParticipantLabel`
 
-| Type                          |
-| ----------------------------- |
-| `ComponentType`\| `undefined` |
+| Type                          | Default Value                                                                                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantLabel`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantLabel.tsx) |
 
 Component to customize the Label of the participant.
 
 ### `ParticipantReaction`
 
-| Type                          |
-| ----------------------------- |
-| `ComponentType`\| `undefined` |
+| Type                          | Default Value                                                                                                                                                                |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantReaction`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantReaction.tsx) |
 
 Component to customize the component that displays the reaction of the participant.
 
 ### `ParticipantVideoFallback`
 
-| Type                          |
-| ----------------------------- |
-| `ComponentType`\| `undefined` |
+| Type                          | Default Value                                                                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantVideoFallback`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantVideoFallback.tsx) |
 
 Component to customize the video fallback of the participant, when the video is disabled.
 
 ### `ParticipantNetworkQualityIndicator`
 
-| Type                          |
-| ----------------------------- |
-| `ComponentType`\| `undefined` |
+| Type                          | Default Value                                                                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`ParticipantNetworkQualityIndicator`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/ParticipantNetworkQualityIndicator.tsx) |
 
 Component to customize the network quality indicator of the participant.
 
 ### `VideoRenderer`
 
-| Type                          |
-| ----------------------------- |
-| `ComponentType`\| `undefined` |
+| Type                          | Default Value                                                                                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`VideoRenderer`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Participant/ParticipantView/VideoRenderer.tsx) |
 
 Component to customize the video component of the participant. It is also responsible to display the [`ParticipantVideoFallback`](#participantvideofallback).
-
-## Built-in components
-
-### `ParticipantLabel`
-
-This component is used to display the participant label that contains the participant name, video/audio mute/unmute status.
-
-| Type          | Type                                                                                                            | Description                                                                                          |
-| ------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `participant` | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) | The participant whose info be displayed.                                                             |
-| `videoMode`   | `video` \| `screen`                                                                                             | The type of the participant stream to be rendered. Eg: screen sharing or participant's video stream. |
-
-### `ParticipantReaction`
-
-This component is used to display the current participant reaction.
-
-| Type                   | Type                                                                                                            | Description                                                              | Default Value |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------- |
-| `participant`          | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) | The participant whose info be displayed.                                 |               |
-| `hideAfterTimeoutInMs` | `number` \| `undefined`                                                                                         | The duration(in milliseconds) after which the reaction should disappear. | 5500          |
-
-### `ParticipantVideoFallback`
-
-This component is used to customize the video fallback of the participant, when the video is disabled.
-
-| Type          | Type                                                                                                            | Description                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `participant` | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) | The participant whose info be displayed. |
-
-### `ParticipantNetworkQualityIndicator`
-
-This component is used to display the network quality indicator of the participant.
-
-| Type          | Type                                                                                                            | Description                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `participant` | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) | The participant whose info be displayed. |
-
-### `VideoRenderer`
-
-This component is used to display the video of the participant. It is also responsible to display the [`ParticipantVideoFallback`](#participantvideofallback-1).
-
-| Type                       | Type                                                                                                            | Description                                                                                            |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `participant`              | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) | The participant whose info be displayed.                                                               |
-| `videoMode`                | `video` \| `screen`                                                                                             | The type of the participant stream to be rendered. Eg: screen sharing or participant's video stream.   |
-| `isVisible`                | `boolean`                                                                                                       | When set to false, the video stream will not be shown even if it is available.                         |
-| `ParticipantVideoFallback` | `ComponentType`\|`undefined`                                                                                    | This component is used to customize the video fallback of the participant, when the video is disabled. |
 
 ## Customization
 
