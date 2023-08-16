@@ -31,36 +31,33 @@ import {
 import { CallingState } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 
-export type CallContentComponentProps = Pick<
-  CallControlProps,
-  'onHangupCallHandler'
-> &
-  Pick<
-    CallParticipantsGridProps,
-    | 'CallParticipantsList'
-    | 'LocalParticipantView'
-    | 'ParticipantLabel'
-    | 'ParticipantNetworkQualityIndicator'
-    | 'ParticipantReaction'
-    | 'ParticipantVideoFallback'
-    | 'ParticipantView'
-    | 'VideoRenderer'
-  > & {
-    /**
-     * Component to customize the CallTopView component.
-     */
-    CallTopView?: React.ComponentType<CallTopViewProps>;
-    /**
-     * Component to customize the CallControls component.
-     */
-    CallControls?: React.ComponentType<CallControlProps>;
-  };
+export type CallParticipantsComponentProps = Pick<
+  CallParticipantsGridProps,
+  | 'CallParticipantsList'
+  | 'LocalParticipantView'
+  | 'ParticipantLabel'
+  | 'ParticipantNetworkQualityIndicator'
+  | 'ParticipantReaction'
+  | 'ParticipantVideoFallback'
+  | 'ParticipantView'
+  | 'VideoRenderer'
+> & {
+  /**
+   * Component to customize the CallTopView component.
+   */
+  CallTopView?: React.ComponentType<CallTopViewProps>;
+  /**
+   * Component to customize the CallControls component.
+   */
+  CallControls?: React.ComponentType<CallControlProps>;
+};
 
-export type CallContentProps = Pick<
-  CallTopViewProps,
-  'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
-> &
-  CallContentComponentProps & {
+export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
+  Pick<
+    CallTopViewProps,
+    'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
+  > &
+  CallParticipantsComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
      */
@@ -103,7 +100,7 @@ export const CallContent = ({
     };
   }, []);
 
-  const participantViewProps: CallContentComponentProps = {
+  const participantViewProps: CallParticipantsComponentProps = {
     CallParticipantsList,
     LocalParticipantView,
     ParticipantLabel,
