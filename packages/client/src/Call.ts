@@ -1099,6 +1099,24 @@ export class Call {
   };
 
   /**
+   * Pauses the given track type to the call, if it is currently being published.
+   * Underlying track will be disabled.
+   */
+  pauseTrack = async (trackType: TrackType) => {
+    this.logger('info', `pauseTrack ${TrackType[trackType]}`);
+    await this.publisher?.pauseTrack(trackType);
+  };
+
+  /**
+   * Resumes the given track type to the call, if it is currently being published.
+   * Underlying track will be enabled.
+   */
+  resumeTrack = async (trackType: TrackType) => {
+    this.logger('info', `resumeTrack ${TrackType[trackType]}`);
+    await this.publisher?.resumeTrack(trackType);
+  };
+
+  /**
    * Update track subscription configuration for one or more participants.
    * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
    * You can only subscribe for tracks after the participant started publishing the given kind of track.

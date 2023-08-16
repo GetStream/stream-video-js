@@ -184,6 +184,42 @@ export class Publisher {
   };
 
   /**
+   * Disables the given track type and informs the SFU
+   */
+  pauseTrack = (trackType: TrackType) => {
+    const transceiver = this.pc
+      .getTransceivers()
+      .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+    if (
+      transceiver &&
+      transceiver.sender.track &&
+      transceiver.sender.track.readyState === 'live'
+    ) {
+      if (!transceiver.sender.track.enabled) return;
+      transceiver.sender.track.enabled = false;
+      return this.sfuClient.updateMuteState(trackType, true);
+    }
+  };
+
+  /**
+   * Enables the given track type and informs the SFU
+   */
+  resumeTrack = (trackType: TrackType) => {
+    const transceiver = this.pc
+      .getTransceivers()
+      .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+    if (
+      transceiver &&
+      transceiver.sender.track &&
+      transceiver.sender.track.readyState === 'live'
+    ) {
+      if (!transceiver.sender.track.enabled) return;
+      transceiver.sender.track.enabled = true;
+      return this.sfuClient.updateMuteState(trackType, false);
+    }
+  };
+
+  /**
    * Starts publishing the given track of the given media stream.
    *
    * Consecutive calls to this method will replace the stream.
