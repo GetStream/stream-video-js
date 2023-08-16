@@ -34,7 +34,7 @@ The [`CallRecordingList`](https://github.com/GetStream/stream-video-js/tree/main
 ```tsx
 import { CallRecording, CallRecordingList } from '@stream-io/video-react-sdk';
 
-const CallRecordings = () => {
+const MyCallRecordings = () => {
   let callRecordings: CallRecording[];
 
   return <CallRecordingList callRecordings={callRecordings} />;
@@ -55,9 +55,10 @@ Component rendering title and call recordings count as well as a button to query
 
 #### Props
 
-| Name             | Description                    | Type              |
-| ---------------- | ------------------------------ | ----------------- |
-| `callRecordings` | Array of CallRecording objects | `CallRecording[]` |
+| Name             | Description                                                                               | Type              |
+| ---------------- | ----------------------------------------------------------------------------------------- | ----------------- |
+| `callRecordings` | Array of CallRecording objects                                                            | `CallRecording[]` |
+| `onRefresh`      | Callback to invoke once the "refresh" button is clicked. Usually, you'll reload the data. | `() => void`      |
 
 ### CallRecordingListItem
 
@@ -140,3 +141,11 @@ Custom component to be rendered when `loading` is true.
 ## Customization
 
 The `CallRecordingList` component accepts UI components as [props](#props-4) to override parts of the displayed UI. It's also possible to build your own call recordings UI from scratch.
+
+### `onRefresh`
+
+| Type         |
+| ------------ |
+| `() => void` |
+
+An callback to invoke once the "refresh" button is clicked. Usually, you'll reload the data.

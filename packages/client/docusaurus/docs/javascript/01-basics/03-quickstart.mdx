@@ -134,9 +134,7 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
 
 const renderAudio = (participant: StreamVideoParticipant) => {
   // We don't render audio for local participant
-  if (participant.isLocalParticipant) {
-    return null;
-  }
+  if (participant.isLocalParticipant) return;
 
   let audioEl = document.getElementById(
     `audio-${participant.sessionId}`,
@@ -196,11 +194,9 @@ const renderAudioButton = (call: Call) => {
   audioButton.innerText = 'Turn off mic';
 
   audioButton.addEventListener('click', async () => {
-    const participant = call.state.localParticipant;
-    if (!participant) {
-      return;
-    }
-    if (participant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
+    const { localParticipant } = call.state;
+    if (!localParticipant) return;
+    if (localParticipant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
       await call.stopPublish(SfuModels.TrackType.AUDIO);
       audioButton.innerText = 'Turn on mic';
     } else {
@@ -218,11 +214,9 @@ const renderVideoButton = (call: Call) => {
   videoButton.innerText = 'Turn off camera';
 
   videoButton.addEventListener('click', async () => {
-    const participant = call.state.localParticipant;
-    if (!participant) {
-      return;
-    }
-    if (participant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
+    const { localParticipant } = call.state;
+    if (!localParticipant) return;
+    if (localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
       await call.stopPublish(SfuModels.TrackType.VIDEO);
       videoButton.innerText = 'Turn on camera';
     } else {

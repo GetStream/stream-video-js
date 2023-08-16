@@ -11,10 +11,10 @@ import { ViewerControls } from './ui/ViewerControls';
 import { Lobby } from './ui/Lobby';
 
 export const HLSLivestreamUI = () => {
-  const { useIsCallBroadcastingInProgress, useCallMetadata } =
+  const { useIsCallBroadcastingInProgress, useCallEgress } =
     useCallStateHooks();
   const isBroadcasting = useIsCallBroadcastingInProgress();
-  const metadata = useCallMetadata();
+  const egress = useCallEgress();
   const hls = useMemo(() => new HLS(), []);
 
   const [autoJoin, setAutoJoin] = useState(false);
@@ -23,8 +23,8 @@ export const HLSLivestreamUI = () => {
   useEffect(() => {
     if (!videoRef) return;
     let timeoutId: NodeJS.Timeout;
-    if (autoJoin && isBroadcasting && metadata && metadata.egress.hls) {
-      const { playlist_url } = metadata.egress.hls;
+    if (autoJoin && isBroadcasting && egress && egress.hls) {
+      const { playlist_url } = egress.hls;
       hls.on(HLS.Events.ERROR, (e, data) => {
         console.error('HLS error, attempting to recover', e, data);
 
@@ -42,7 +42,7 @@ export const HLSLivestreamUI = () => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [autoJoin, hls, isBroadcasting, metadata, videoRef]);
+  }, [autoJoin, hls, isBroadcasting, egress, videoRef]);
 
   useEffect(() => {
     if (!videoRef) return;

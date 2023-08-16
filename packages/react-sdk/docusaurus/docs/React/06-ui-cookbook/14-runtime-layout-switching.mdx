@@ -13,7 +13,7 @@ In this guide, we'll introduce a concept component called `Stage` that'll handle
 import {
   PaginatedGridLayout,
   SpeakerLayout,
-  useHasOngoingScreenshare,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 const LayoutMap = {
@@ -34,6 +34,7 @@ const LayoutMap = {
 export const Stage = () => {
   const [selectedLayout, setSelectedLayout] =
     useState<keyof typeof LayoutMap>('PaginatedGrid');
+  const { useHasOngoingScreenshare } = useCallStateHooks();
   const hasOngoingScreenshare = useHasOngoingScreenshare();
 
   const LayoutComponent = LayoutMap[selectedLayout].component;

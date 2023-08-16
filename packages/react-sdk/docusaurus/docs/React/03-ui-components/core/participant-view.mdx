@@ -27,19 +27,18 @@ Please note that we suggest not to create a custom `ParticipantView` component a
 You can use the `ParticipantView` component to create your own call layout:
 
 ```tsx
-import {
-  ParticipantView,
-  useParticipants,
-} from '@stream-io/video-react-sdk';
+import { ParticipantView, useCallStateHooks } from '@stream-io/video-react-sdk';
 
-const CallUI = () => {
+const MyCallUI = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
-
   return (
-    {participants.map((p) => (
-      // highlight-next-line
-      <ParticipantView participant={p} key={p.sessionId} />
-    ))}
+    <>
+      {participants.map((p) => (
+        // highlight-next-line
+        <ParticipantView participant={p} key={p.sessionId} />
+      ))}
+    </>
   );
 };
 ```

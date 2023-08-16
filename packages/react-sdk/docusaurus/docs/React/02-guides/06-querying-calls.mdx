@@ -27,7 +27,7 @@ Sorting is supported on these fields below:
 ```typescript
 let client: StreamVideoClient;
 
-client.queryCalls({
+await client.queryCalls({
   sort: [{ field: 'starts_at', direction: -1 }],
   limit: 10,
   watch: true,
@@ -39,7 +39,7 @@ It's possible to provide multiple sort parameters:
 ```typescript
 let client: StreamVideoClient;
 
-client.queryCalls({
+await client.queryCalls({
   sort: [
     { field: 'starts_at', direction: -1 },
     { field: 'created_at', direction: 1 },
@@ -77,7 +77,7 @@ Here are some example filters:
 let client: StreamVideoClient;
 
 const inNext30mins = 1000 * 60 * 60 * 30;
-client.queryCalls({
+await client.queryCalls({
   filter_conditions: {
     starts_at: {
       $gt: new Date(Date.now() + inNext30mins).toISOString(),
@@ -94,7 +94,7 @@ client.queryCalls({
 ```typescript
 let client: StreamVideoClient;
 
-client.queryCalls({
+await client.queryCalls({
   filter_conditions: {
     'custom.color': 'red',
   },
@@ -114,7 +114,7 @@ TODO;
 ```typescript
 let client: StreamVideoClient;
 
-client.queryCalls({
+await client.queryCalls({
   filter_conditions: {
     $or: [
       {
@@ -153,11 +153,12 @@ const callQuery = {
   limit: 10,
   watch: true,
 };
+
 const response = await client.queryCalls(callQuery);
 
 // Go to next page
-client.queryCalls({ ...callQuery, next: response.next });
+await client.queryCalls({ ...callQuery, next: response.next });
 
 // Go to prev page
-client.queryCalls({ ...callQuery, prev: response.prev });
+await client.queryCalls({ ...callQuery, prev: response.prev });
 ```

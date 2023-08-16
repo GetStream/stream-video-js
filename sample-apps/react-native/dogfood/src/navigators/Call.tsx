@@ -22,7 +22,7 @@ const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const CallPanel = () => {
   const call = useCall();
-  const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
+  const isCallCreatedByMe = call?.isCreatedByMe;
 
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -57,7 +57,7 @@ const Calls = () => {
   const calls = useCalls();
 
   const handleMoreCalls = useCallback(async () => {
-    const lastCallCreatedBy = calls[1].data?.created_by;
+    const lastCallCreatedBy = calls[1]?.state.createdBy;
     Alert.alert(
       `Incoming call from ${
         lastCallCreatedBy?.name ?? lastCallCreatedBy?.id

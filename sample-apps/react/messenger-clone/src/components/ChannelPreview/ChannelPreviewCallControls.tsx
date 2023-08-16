@@ -10,11 +10,12 @@ import { useChatContext } from 'stream-chat-react';
 export const ChannelPreviewCallControls = () => {
   const { channel: activeChannel } = useChatContext();
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
+  const { useCallCallingState, useCallCustomData } = useCallStateHooks();
+  const customData = useCallCustomData();
   const callingState = useCallCallingState();
 
   const callingToActiveChannel =
-    activeChannel && call && activeChannel.cid === call.data?.custom.channelCid;
+    activeChannel && call && activeChannel.cid === customData.channelCid;
 
   const isRinging = callingState === CallingState.RINGING;
 

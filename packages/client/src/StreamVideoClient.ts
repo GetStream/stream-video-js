@@ -217,16 +217,15 @@ export class StreamVideoClient {
         }
 
         this.logger('info', `New call created and registered: ${call.cid}`);
-        this.writeableStateStore.registerCall(
-          new Call({
-            streamClient: this.streamClient,
-            type: call.type,
-            id: call.id,
-            metadata: call,
-            members,
-            clientStore: this.writeableStateStore,
-          }),
-        );
+        const newCall = new Call({
+          streamClient: this.streamClient,
+          type: call.type,
+          id: call.id,
+          members,
+          clientStore: this.writeableStateStore,
+        });
+        newCall.state.updateFromCallResponse(call);
+        this.writeableStateStore.registerCall(newCall);
       }),
     );
 
@@ -246,7 +245,6 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
-        const prevMetadata = prevCall?.state.metadata;
         await prevCall?.leave();
         // we create a new call
         const theCall = new Call({
@@ -256,8 +254,8 @@ export class StreamVideoClient {
           members,
           clientStore: this.writeableStateStore,
           ringing: true,
-          metadata: prevMetadata,
         });
+        theCall.state.updateFromCallResponse(call);
         // we fetch the latest metadata for the call from the server
         await theCall.get();
         this.writeableStateStore.registerCall(theCall);
@@ -357,12 +355,12 @@ export class StreamVideoClient {
         streamClient: this.streamClient,
         id: c.call.id,
         type: c.call.type,
-        metadata: c.call,
         members: c.members,
         ownCapabilities: c.own_capabilities,
         watching: data.watch,
         clientStore: this.writeableStateStore,
       });
+      call.state.updateFromCallResponse(c.call);
       if (data.watch) {
         this.writeableStateStore.registerCall(call);
       }
@@ -374,10 +372,9 @@ export class StreamVideoClient {
     };
   };
 
-  queryUsers = async () => {
-    console.log('Querying users is not implemented yet.');
-  };
-
+  /**
+   * Returns a list of available data centers available for hosting calls.
+   */
   edges = async () => {
     return this.streamClient.get<GetEdgesResponse>(`/edges`);
   };

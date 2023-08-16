@@ -31,9 +31,9 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-client.queryCalls({
-    ...
-    watch: true
+await client.queryCalls({
+  // ...
+  watch: true,
 });
 ```
 
@@ -44,7 +44,7 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-client.call('default', 'test-call').join();
+await client.call('default', 'test-call').join();
 ```
 
 3. Watch a call:
@@ -54,9 +54,9 @@ import { StreamVideoClient } from '@stream-io/video-client';
 
 let client: StreamVideoClient;
 
-client.call('default', 'test-call').getOrCreate();
+await client.call('default', 'test-call').getOrCreate();
 // or
-client.call('default', 'test-call').get();
+await client.call('default', 'test-call').get();
 ```
 
 The list of call events:

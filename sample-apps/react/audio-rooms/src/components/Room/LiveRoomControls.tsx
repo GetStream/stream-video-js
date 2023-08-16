@@ -29,9 +29,9 @@ export const LiveRoomControls = ({
   openRequestsList,
 }: LiveRoomControlsProps) => {
   const call = useCall();
-  const { useCallMetadata, useCallCallingState, useLocalParticipant } =
+  const { useCallCustomData, useCallCallingState, useLocalParticipant } =
     useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const customData = useCallCustomData();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();
   const localParticipant = useLocalParticipant();
@@ -44,7 +44,7 @@ export const LiveRoomControls = ({
 
   const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
 
-  const isSpeaker = (callMetadata?.custom as CustomCallData).speakerIds?.some(
+  const isSpeaker = (customData as CustomCallData).speakerIds?.some(
     (id) => id === connectedUser?.id,
   );
   const isAudioMute = !localParticipant?.publishedTracks.includes(

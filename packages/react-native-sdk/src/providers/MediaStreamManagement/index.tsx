@@ -102,9 +102,9 @@ const MediaStreamContext =
  */
 export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
   const call = useCall();
-  const { useLocalParticipant, useCallCallingState, useCallMetadata } =
+  const { useLocalParticipant, useCallCallingState, useCallSettings } =
     useCallStateHooks();
-  const settings = useCallMetadata()?.settings;
+  const settings = useCallSettings();
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
   const videoDevices = useStreamVideoStoreValue((store) => store.videoDevices);
@@ -124,7 +124,7 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     const hasUserPermission = !!call?.permissionsContext?.hasPermission(
       OwnCapability.SEND_AUDIO,
     );
-    const metaDataSettings = call?.data?.settings?.audio.mic_default_on;
+    const metaDataSettings = call?.state.settings?.audio.mic_default_on;
     if (metaDataSettings !== undefined) {
       return hasNativePermission && hasUserPermission && metaDataSettings;
     }
@@ -136,7 +136,7 @@ export const MediaStreamManagement = ({ children }: PropsWithChildren<{}>) => {
     const hasUserPermission = !!call?.permissionsContext?.hasPermission(
       OwnCapability.SEND_VIDEO,
     );
-    const metaDataSettings = call?.data?.settings?.video.camera_default_on;
+    const metaDataSettings = call?.state.settings?.video.camera_default_on;
     if (metaDataSettings !== undefined) {
       return hasNativePermission && hasUserPermission && metaDataSettings;
     }

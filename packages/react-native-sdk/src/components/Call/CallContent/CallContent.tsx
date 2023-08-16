@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
-  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
   CallTopViewProps,
+  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
 } from '../CallTopView';
 import {
   CallParticipantsGrid,
@@ -11,22 +11,19 @@ import {
   CallParticipantsSpotlight,
 } from '../CallLayout';
 import {
-  CallControls as DefaultCallControls,
   CallControlProps,
+  CallControls as DefaultCallControls,
 } from '../CallControls';
 import { CallParticipantsList as DefaultCallParticipantsList } from '../CallParticipantsList';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
-  useCall,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
-import {
+  LocalParticipantView as DefaultLocalParticipantView,
+  ParticipantLabel as DefaultParticipantLabel,
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
   ParticipantReaction as DefaultParticipantReaction,
-  ParticipantLabel as DefaultParticipantLabel,
   ParticipantVideoFallback as DefaultParticipantVideoFallback,
-  VideoRenderer as DefaultVideoRenderer,
   ParticipantView as DefaultParticipantView,
-  LocalParticipantView as DefaultLocalParticipantView,
+  VideoRenderer as DefaultVideoRenderer,
 } from '../../Participant';
 import { CallingState } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
@@ -81,6 +78,7 @@ export const CallContent = ({
   CallControls = DefaultCallControls,
   layout,
 }: CallContentProps) => {
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
   /**

@@ -3,11 +3,9 @@ title: Custom Label
 description: How to make your own custom label
 ---
 
-
 import ImageShowcase from '@site/src/components/ImageShowcase';
 import DefaultParticipantLabelMuted from '../assets/06-ui-cookbook/03-custom-label/default-participant-label-muted.png';
-import DefaultParticipantLabelConnectionDominantSpeaker
-  from '../assets/06-ui-cookbook/03-custom-label/default-user-label-connection-dominant-speaker.png';
+import DefaultParticipantLabelConnectionDominantSpeaker from '../assets/06-ui-cookbook/03-custom-label/default-user-label-connection-dominant-speaker.png';
 
 There may be a plethora of designs for label that is displayed above the participant video. The SDK's [default label shows](../../ui-components/core/participant-view):
 
@@ -74,12 +72,13 @@ export const CustomParticipantViewUI = () => {
 Now we can pass this custom `ParticipantViewUI` component down to our call layout components or directly to `ParticipantView` component in our custom call layout as described in the aforementioned [ParticipantView customizations guide](../participant-view-customizations).
 
 ```tsx
-import { useParticipants } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { CustomParticipantViewUI } from '../ParticipantViewUI';
 import { CustomVideoPlaceholder } from '../VideoPlaceholder';
 
 export const CustomCallLayout = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
 
   return (

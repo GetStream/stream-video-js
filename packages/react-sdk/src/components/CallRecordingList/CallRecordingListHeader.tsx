@@ -1,28 +1,24 @@
 import { CallRecording } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button';
 
 export type CallRecordingListHeaderProps = {
   /** Array of CallRecording objects */
   callRecordings: CallRecording[];
+  /** Callback to be invoked when the refresh button is clicked */
+  onRefresh?: () => void;
 };
 
 export const CallRecordingListHeader = ({
   callRecordings,
+  onRefresh,
 }: CallRecordingListHeaderProps) => {
-  const activeCall = useCall();
-
   return (
     <div className="str-video__call-recording-list__header">
       <div className="str-video__call-recording-list__title">
         <span>Call Recordings</span>
         {callRecordings.length ? <span>({callRecordings.length})</span> : null}
       </div>
-      <IconButton
-        icon="refresh"
-        title="Refresh"
-        onClick={() => activeCall?.queryRecordings()}
-      />
+      <IconButton icon="refresh" title="Refresh" onClick={onRefresh} />
     </div>
   );
 };
