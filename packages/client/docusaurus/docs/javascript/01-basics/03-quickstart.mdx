@@ -44,14 +44,9 @@ For an easy setup, you can copy the following credentials to use for the tutoria
 Once we join a call, we can start publishing audio and video:
 
 ```typescript
-import { getAudioStream, getVideoStream } from '@stream-io/video-client';
-
 call.join({ create: true }).then(async () => {
-  const audioStream = await getAudioStream();
-  const videoStream = await getVideoStream();
-
-  call.publishAudioStream(audioStream);
-  call.publishVideoStream(videoStream);
+  call.camera.enable();
+  call.microphone.enable();
 });
 ```
 
@@ -182,28 +177,18 @@ container.appendChild(controls.videoButton);
 This is how the `renderControls` method looks like:
 
 ```typescript
-import {
-  Call,
-  getAudioStream,
-  getVideoStream,
-  SfuModels,
-} from '@stream-io/video-client';
+import { Call } from '@stream-io/video-client';
 
 const renderAudioButton = (call: Call) => {
   const audioButton = document.createElement('button');
-  audioButton.innerText = 'Turn off mic';
 
   audioButton.addEventListener('click', async () => {
-    const { localParticipant } = call.state;
-    if (!localParticipant) return;
-    if (localParticipant.publishedTracks.includes(SfuModels.TrackType.AUDIO)) {
-      await call.stopPublish(SfuModels.TrackType.AUDIO);
-      audioButton.innerText = 'Turn on mic';
-    } else {
-      const audioStream = await getAudioStream();
-      await call.publishAudioStream(audioStream);
-      audioButton.innerText = 'Turn off mic';
-    }
+    await call.microphone.toggle();
+  });
+
+  call.microphone.state.status$.subscribe((status) => {
+    audioButton.innerText =
+      status === 'enabled' ? 'Turn off mic' : 'Turn on mic';
   });
 
   return audioButton;
@@ -211,19 +196,14 @@ const renderAudioButton = (call: Call) => {
 
 const renderVideoButton = (call: Call) => {
   const videoButton = document.createElement('button');
-  videoButton.innerText = 'Turn off camera';
 
   videoButton.addEventListener('click', async () => {
-    const { localParticipant } = call.state;
-    if (!localParticipant) return;
-    if (localParticipant.publishedTracks.includes(SfuModels.TrackType.VIDEO)) {
-      await call.stopPublish(SfuModels.TrackType.VIDEO);
-      videoButton.innerText = 'Turn on camera';
-    } else {
-      const videoStream = await getVideoStream();
-      await call.publishVideoStream(videoStream);
-      videoButton.innerText = 'Turn off camera';
-    }
+    await call.camera.toggle();
+  });
+
+  call.camera.state.status$.subscribe((status) => {
+    videoButton.innerText =
+      status === 'enabled' ? 'Turn off camera' : 'Turn on camera';
   });
 
   return videoButton;
