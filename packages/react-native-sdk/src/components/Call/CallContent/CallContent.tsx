@@ -15,10 +15,7 @@ import {
   CallControlProps,
 } from '../CallControls';
 import { CallParticipantsList as DefaultCallParticipantsList } from '../CallParticipantsList';
-import {
-  useCall,
-  useHasOngoingScreenShare,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
   ParticipantReaction as DefaultParticipantReaction,
@@ -81,6 +78,7 @@ export const CallContent = ({
   CallControls = DefaultCallControls,
   layout,
 }: CallContentProps) => {
+  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
   /**

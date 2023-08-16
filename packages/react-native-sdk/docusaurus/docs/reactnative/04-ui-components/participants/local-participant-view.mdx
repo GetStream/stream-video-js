@@ -3,6 +3,13 @@ id: local-participant-view
 title: LocalParticipantView
 ---
 
+import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
+import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
+import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
+import ParticipantVideoFallback from '../../common-content/ui-components/call/call-content/participant-video-fallback.mdx';
+import VideoRenderer from '../../common-content/ui-components/call/call-content/video-renderer.mdx';
+import ParticipantView from '../../common-content/ui-components/call/call-content/participant-view.mdx';
+
 LocalParticipantView displays the local video stream of the local participant. It is a floating view by default that can be dragged in the call area.
 
 When the video is muted, the video muted icon is shown in a disabled background.
@@ -24,3 +31,50 @@ const App = () => {
   return <LocalParticipantView />;
 };
 ```
+
+## Props
+
+### `alignment`
+
+Determines where the floating participant video will be placed.
+
+- 0 for top-left.
+- 1 for top-right.
+- 2 for bottom-left.
+- 3 for bottom-right.
+
+| Type                | Default value  |
+| ------------------- | -------------- |
+| `0` \|`1`\|`2`\|`3` | `top-right(0)` |
+
+### `style`
+
+This prop is used to override the root container style of the component.
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+
+### `ParticipantLabel`
+
+<ParticipantLabel />
+
+### `ParticipantReaction`
+
+<ParticipantReaction />
+
+### `ParticipantNetworkQualityIndicator`
+
+<ParticipantNetworkQualityIndicator />
+
+### `ParticipantVideoFallback`
+
+<ParticipantVideoFallback />
+
+### `ParticipantView`
+
+<ParticipantView />
+
+### `VideoRenderer`
+
+<VideoRenderer />

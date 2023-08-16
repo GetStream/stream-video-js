@@ -51,23 +51,27 @@ export const CallParticipantsGrid = ({
 
   const participants = showFloatingView ? remoteParticipants : allParticipants;
 
+  const participantProps = {
+    ParticipantView,
+    ParticipantLabel,
+    ParticipantNetworkQualityIndicator,
+    ParticipantReaction,
+    ParticipantVideoFallback,
+    VideoRenderer,
+  };
+
   return (
     <View
       style={styles.container}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
-      {showFloatingView && LocalParticipantView && <LocalParticipantView />}
+      {showFloatingView && LocalParticipantView && (
+        <LocalParticipantView {...participantProps} />
+      )}
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
-          ParticipantLabel={ParticipantLabel}
-          ParticipantNetworkQualityIndicator={
-            ParticipantNetworkQualityIndicator
-          }
-          ParticipantReaction={ParticipantReaction}
-          ParticipantVideoFallback={ParticipantVideoFallback}
-          ParticipantView={ParticipantView}
-          VideoRenderer={VideoRenderer}
+          {...participantProps}
         />
       )}
     </View>

@@ -55,6 +55,14 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _remoteParticipants?.length === 0;
 
+  const participantProps = {
+    ParticipantLabel,
+    ParticipantNetworkQualityIndicator,
+    ParticipantReaction,
+    ParticipantVideoFallback,
+    VideoRenderer,
+  };
+
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
@@ -65,13 +73,7 @@ export const CallParticipantsSpotlight = ({
           participant={participantInSpotlight}
           style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
-          ParticipantLabel={ParticipantLabel}
-          ParticipantNetworkQualityIndicator={
-            ParticipantNetworkQualityIndicator
-          }
-          ParticipantReaction={ParticipantReaction}
-          ParticipantVideoFallback={ParticipantVideoFallback}
-          VideoRenderer={VideoRenderer}
+          {...participantProps}
         />
       )}
       {!isUserAloneInCall && (
@@ -82,14 +84,8 @@ export const CallParticipantsSpotlight = ({
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
               horizontal
-              ParticipantLabel={ParticipantLabel}
-              ParticipantNetworkQualityIndicator={
-                ParticipantNetworkQualityIndicator
-              }
-              ParticipantReaction={ParticipantReaction}
-              ParticipantVideoFallback={ParticipantVideoFallback}
               ParticipantView={ParticipantView}
-              VideoRenderer={VideoRenderer}
+              {...participantProps}
             />
           )}
         </View>
