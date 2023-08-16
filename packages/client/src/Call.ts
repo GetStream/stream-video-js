@@ -9,7 +9,11 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
+import {
+  GoAwayReason,
+  SdkType,
+  TrackType,
+} from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -108,7 +112,7 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails } from './client-details';
+import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
 import { CameraManager } from './devices/CameraManager';
 import { MicrophoneManager } from './devices/MicrophoneManager';
@@ -926,8 +930,11 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      this.initCamera();
-      this.initMic();
+      // React uses a different device management for now
+      if (getSdkInfo()?.type !== SdkType.REACT) {
+        this.initCamera();
+        this.initMic();
+      }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
       // we schedule a fast subscription update for all remote participants
