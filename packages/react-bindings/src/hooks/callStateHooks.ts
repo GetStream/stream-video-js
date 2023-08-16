@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 import {
+  Call,
+  CallState,
+  CameraManagerState,
+  Comparator,
+  MicrophoneManagerState,
   CallIngressResponse,
   CallSessionResponse,
   CallSettingsResponse,
-  CallState,
   CallStatsReport,
-  Comparator,
   EgressResponse,
   MemberResponse,
   StreamVideoParticipant,
@@ -309,4 +312,51 @@ export const useParticipantCount = () => {
 export const useAnonymousParticipantCount = () => {
   const { anonymousParticipantCount$ } = useCallState();
   return useObservableValue(anonymousParticipantCount$);
+};
+
+/**
+ * Returns the camera state of the current call.
+ *
+ * @category Camera Manager State
+ *
+ */
+export const useCameraState = () => {
+  const call = useCall();
+
+  const {
+    camera = {
+      state: new CameraManagerState(),
+    },
+  } = call as Call;
+
+  const status = useObservableValue(camera.state.status$);
+  const direction = useObservableValue(camera.state.direction$);
+
+  return {
+    status,
+    direction,
+  };
+};
+
+/**
+ * Returns the microphone state of the current call.
+ *
+ * @category Microphone Manager State
+ */
+export const useMicrophoneState = () => {
+  const call = useCall();
+
+  const {
+    microphone = {
+      state: new MicrophoneManagerState(),
+    },
+  } = call as Call;
+
+  const status = useObservableValue(microphone.state.status$);
+  const selectedDevice = useObservableValue(microphone.state.selectedDevice$);
+
+  return {
+    status,
+    selectedDevice,
+  };
 };

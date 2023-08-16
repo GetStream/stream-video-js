@@ -3,10 +3,15 @@ import React, { PropsWithChildren } from 'react';
 import { Call } from '@stream-io/video-client';
 import { useAndroidKeepCallAliveEffect, usePermissionRequest } from '../hooks';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
-import { MediaStreamManagement } from './MediaStreamManagement';
+import {
+  MediaDevicesInitialState,
+  MediaStreamManagement,
+} from './MediaStreamManagement';
 
 export type StreamCallProps = {
   call: Call;
+
+  mediaDeviceInitialState?: MediaDevicesInitialState;
 };
 /**
  * StreamCall is a wrapper component that orchestrates the call life cycle logic and
@@ -17,11 +22,12 @@ export type StreamCallProps = {
  */
 export const StreamCall = ({
   call,
+  mediaDeviceInitialState = {},
   children,
 }: PropsWithChildren<StreamCallProps>) => {
   return (
     <StreamCallProvider call={call}>
-      <MediaStreamManagement>
+      <MediaStreamManagement {...mediaDeviceInitialState}>
         <PermissionRequest />
         <AndroidKeepCallAlive />
         <IosInformCallkeepCallEnd />

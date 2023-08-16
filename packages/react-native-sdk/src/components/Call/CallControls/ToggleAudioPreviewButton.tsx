@@ -1,8 +1,6 @@
 import React from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../../../theme';
-import { Mic, MicOff } from '../../../icons';
 import { useMediaStreamManagement } from '../../../providers';
+import { ToggleAudioPublishingButton } from './ToggleAudioPublishingButton';
 
 /**
  * Props for the Toggle Audio preview button
@@ -21,16 +19,9 @@ export type ToggleAudioPreviewButtonProps = {
 export const ToggleAudioPreviewButton = ({
   onPressHandler,
 }: ToggleAudioPreviewButtonProps) => {
-  const { initialAudioEnabled, toggleInitialAudioMuteState } =
-    useMediaStreamManagement();
+  const { toggleInitialAudioMuteState } = useMediaStreamManagement();
 
-  const MicIcon = !initialAudioEnabled ? (
-    <MicOff color={theme.light.static_white} />
-  ) : (
-    <Mic color={theme.light.static_black} />
-  );
-
-  const toggleAudioPreviewHandler = () => {
+  const onPress = () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -38,24 +29,5 @@ export const ToggleAudioPreviewButton = ({
     toggleInitialAudioMuteState();
   };
 
-  return (
-    <CallControlsButton
-      onPress={toggleAudioPreviewHandler}
-      color={
-        initialAudioEnabled
-          ? theme.light.static_white
-          : theme.light.static_black
-      }
-      style={[
-        theme.button.md,
-        {
-          shadowColor: initialAudioEnabled
-            ? theme.light.static_white
-            : theme.light.static_black,
-        },
-      ]}
-    >
-      {MicIcon}
-    </CallControlsButton>
-  );
+  return <ToggleAudioPublishingButton onPressHandler={onPress} />;
 };
