@@ -12,11 +12,11 @@ on:
     branches:
       - main
     paths-ignore:
-      - '!**/docusaurus/**'
+      - '**/docusaurus/**'
   pull_request:
     types: [opened, synchronize, reopened]
     paths-ignore:
-      - '!**/docusaurus/**'
+      - '**/docusaurus/**'
 
 jobs:
   test-and-build:
