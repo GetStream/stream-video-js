@@ -50,29 +50,29 @@ Here is an excerpt of the available call state hooks:
 | Name                              | Description                                                                                                   |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `useCall`                         | The `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls. |
-| `useIsCallRecordingInProgress`    | It's' `true` if the call is being recorded.                                                                   |
-| `useIsCallBroadcastingInProgress` | It's `true` if the call is being broadcasted.                                                                 |
-| `useIsCallLive`                   | It's `true` if the call is currently live.                                                                    |
-| `useIsCallTranscribingInProgress` | It's `true` if the call is being transcribed.                                                                 |
 | `useCallBlockedUserIds`           | The list of blocked user IDs.                                                                                 |
-| `useCallMembers`                  | The list of call members                                                                                      |
 | `useCallCallingState`             | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
 | `useCallCreatedAt`                | The time the call was created.                                                                                |
-| `useCallStartedAt`                | The actual start time of the current call session.                                                            |
-| `useCallStartsAt`                 | The scheduled start time of the call.                                                                         |
-| `useCallUpdatedAt`                | The time the call was last updated.                                                                           |
 | `useCallCreatedBy`                | The user that created the call.                                                                               |
-| `useCallEndedBy`                  | The user that ended the call.                                                                                 |
 | `useCallCustomData`               | The custom data attached to the call.                                                                         |
 | `useCallEgress`                   | The egress information of the call.                                                                           |
+| `useCallEndedBy`                  | The user that ended the call.                                                                                 |
 | `useCallIngress`                  | The ingress information of the call.                                                                          |
+| `useCallMembers`                  | The list of call members                                                                                      |
 | `useCallSession`                  | The information for the current call session.                                                                 |
 | `useCallSettings`                 | The settings of the call.                                                                                     |
+| `useCallStartedAt`                | The actual start time of the current call session.                                                            |
+| `useCallStartsAt`                 | The scheduled start time of the call.                                                                         |
 | `useCallStatsReport`              | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
-| `useHasOngoingScreenShare`        | It will return `true` if at least one participant is sharing their screen.                                    |
+| `useCallUpdatedAt`                | The time the call was last updated.                                                                           |
 | `useDominantSpeaker`              | The participant that is the current dominant speaker of the call.                                             |
-| `useOwnCapabilities`              | The capabilities of the local participant.                                                                    |
+| `useHasOngoingScreenShare`        | It will return `true` if at least one participant is sharing their screen.                                    |
 | `useHasPermissions`               | Returns `true` if the local participant has all the given permissions.                                        |
+| `useIsCallBroadcastingInProgress` | It's `true` if the call is being broadcasted.                                                                 |
+| `useIsCallLive`                   | It's `true` if the call is currently live.                                                                    |
+| `useIsCallRecordingInProgress`    | It's' `true` if the call is being recorded.                                                                   |
+| `useIsCallTranscribingInProgress` | It's `true` if the call is being transcribed.                                                                 |
+| `useOwnCapabilities`              | The capabilities of the local participant.                                                                    |
 
 In your IDE of choice, you can see the full list if you destructure the `useCallStateHooks` object:
 

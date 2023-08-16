@@ -40,29 +40,29 @@ Here are is an excerpt of the call state properties:
 
 | Reactive value           | Static value            | Description                                                                                                  |
 | ------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `members$`               | `members`               | The list of call members                                                                                     |
-| `callingState$`          | `callingState`          | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.               |
-| `startedAt$`             | `startedAt`             | The actual start time of the current call session.                                                           |
-| `callStatsReport$`       | `callStatsReport`       | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval. |
-| `hasOngoingScreenShare$` | `hasOngoingScreenShare` | It will return `true` if at least one participant is sharing their screen.                                   |
-| `custom$`                | `custom`                | Custom data attached to the call.                                                                            |
-| `dominantSpeaker$`       | `dominantSpeaker`       | The participant that is the current dominant speaker of the call.                                            |
-| `ownCapabilities$`       | `ownCapabilities`       | The capabilities of the local participant.                                                                   |
-| `pinnedParticipants$`    | `pinnedParticipants`    | The participants that are currently pinned.                                                                  |
 | `backstage$`             | `backstage`             | `true` when the call runs in `backstage` mode                                                                |
 | `blockedUserIds$`        | `blockedUserIds`        | The list of blocked user IDs.                                                                                |
+| `callingState$`          | `callingState`          | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.               |
+| `callStatsReport$`       | `callStatsReport`       | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval. |
 | `createdAt$`             | `createdAt`             | The time the call was created.                                                                               |
-| `endedAt$`               | `endedAt`               | The time the call was ended.                                                                                 |
-| `startsAt$`              | `startsAt`              | The time the call is scheduled to start.                                                                     |
-| `updatedAt$`             | `updatedAt`             | The time the call was updated.                                                                               |
 | `createdBy$`             | `createdBy`             | The user who created the call.                                                                               |
-| `endedBy$`               | `endedBy`               | The user who ended the call.                                                                                 |
+| `custom$`                | `custom`                | Custom data attached to the call.                                                                            |
+| `dominantSpeaker$`       | `dominantSpeaker`       | The participant that is the current dominant speaker of the call.                                            |
 | `egress$`                | `egress`                | The egress data of the call (for broadcasting and livestreaming).                                            |
+| `endedAt$`               | `endedAt`               | The time the call was ended.                                                                                 |
+| `endedBy$`               | `endedBy`               | The user who ended the call.                                                                                 |
+| `hasOngoingScreenShare$` | `hasOngoingScreenShare` | It will return `true` if at least one participant is sharing their screen.                                   |
 | `ingress$`               | `ingress`               | The ingress data of the call (for broadcasting and livestreaming).                                           |
+| `members$`               | `members`               | The list of call members                                                                                     |
+| `ownCapabilities$`       | `ownCapabilities`       | The capabilities of the local participant.                                                                   |
+| `pinnedParticipants$`    | `pinnedParticipants`    | The participants that are currently pinned.                                                                  |
 | `recording$`             | `recording`             | The recording state of the call.                                                                             |
 | `session$`               | `session`               | The data for the current call session.                                                                       |
 | `settings$`              | `settings`              | The settings of the call.                                                                                    |
+| `startedAt$`             | `startedAt`             | The actual start time of the current call session.                                                           |
+| `startsAt$`              | `startsAt`              | The time the call is scheduled to start.                                                                     |
 | `transcribing$`          | `transcribing`          | The transcribing state of the call.                                                                          |
+| `updatedAt$`             | `updatedAt`             | The time the call was updated.                                                                               |
 
 :::note
 Your IDE of choice may help you to discover the other properties of the call state.
