@@ -21,11 +21,7 @@ import {
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
-import {
-  removeCodec,
-  setPreferredCodec,
-  toggleDtx,
-} from '../helpers/sdp-munging';
+import { toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
