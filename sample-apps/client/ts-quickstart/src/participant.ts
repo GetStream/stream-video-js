@@ -1,8 +1,4 @@
-import {
-  StreamVideoParticipant,
-  Call,
-  SfuModels,
-} from '@stream-io/video-client';
+import { StreamVideoParticipant, Call } from '@stream-io/video-client';
 
 // The quickstart uses fixed video dimensions for simplification
 const videoDimension = {
@@ -10,10 +6,13 @@ const videoDimension = {
   height: 250,
 };
 
+const map = new Map<string, HTMLVideoElement>();
+
 const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
-  let videoEl = document.getElementById(
-    `video-${participant.sessionId}`,
-  ) as HTMLVideoElement | null;
+  const id = `video-${participant.sessionId}`;
+
+  let videoEl = (document.getElementById(id) ??
+    map.get(id)) as HTMLVideoElement | null;
 
   if (!videoEl) {
     videoEl = document.createElement('video');
@@ -23,25 +22,18 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     videoEl.height = videoDimension.height;
     videoEl.playsInline = true;
     videoEl.autoplay = true;
-  }
-  if (videoEl.srcObject !== participant.videoStream) {
-    videoEl.srcObject = participant.videoStream || null;
-  }
-  if (
-    !participant.isLocalParticipant &&
-    participant.publishedTracks.includes(SfuModels.TrackType.VIDEO) &&
-    !participant.videoDimension
-  ) {
-    // We need to subscribe to video tracks
-    // We provide the rendered video dimension to save bandwidth
-    call.updateSubscriptionsPartial('video', {
-      [participant.sessionId]: {
-        dimension: {
-          width: videoDimension.width,
-          height: videoDimension.height,
-        },
-      },
-    });
+
+    // simple memoization map to reuse video elements later
+    map.set(id, videoEl);
+
+    if (!participant.isLocalParticipant) {
+      // registers subscription updates
+      call.registerVideoElement(videoEl, 'video', participant.sessionId);
+    }
+
+    if (videoEl.srcObject !== participant.videoStream) {
+      videoEl.srcObject = participant.videoStream || null;
+    }
   }
 
   return videoEl;

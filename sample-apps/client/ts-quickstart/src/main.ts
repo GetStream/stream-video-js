@@ -1,5 +1,6 @@
 import './style.css';
 import { StreamVideoClient, User } from '@stream-io/video-client';
+import { decode } from 'js-base64';
 import { renderParticipant } from './participant';
 import { renderControls } from './controls';
 import {
@@ -8,9 +9,20 @@ import {
 } from './device-selector';
 import { isMobile } from './mobile';
 
+const searchParams = new URLSearchParams(window.location.search);
+const extractPayloadFromToken = (token: string) => {
+  const [, payload] = token.split('.');
+
+  if (!payload) throw new Error('Malformed token, missing payload');
+
+  return (JSON.parse(decode(payload)) ?? {}) as Record<string, unknown>;
+};
+
 const apiKey = import.meta.env.VITE_STREAM_API_KEY;
-const token = import.meta.env.VITE_STREAM_USER_TOKEN;
-const user: User = { id: import.meta.env.VITE_STREAM_USER_ID };
+const token = searchParams.get('ut') ?? import.meta.env.VITE_STREAM_USER_TOKEN;
+const user: User = {
+  id: extractPayloadFromToken(token)['user_id'] as string,
+};
 
 const client = new StreamVideoClient({
   apiKey,

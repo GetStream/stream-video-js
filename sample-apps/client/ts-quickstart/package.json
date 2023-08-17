@@ -9,7 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-client": "workspace:^",
+    "js-base64": "^3.7.5"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^1.0.1",
