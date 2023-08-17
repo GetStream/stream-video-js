@@ -171,6 +171,21 @@ describe('InputMediaDeviceManager.test', () => {
     expect(spy.mock.calls.length).toBe(1);
   });
 
+  it('should resume', async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.enable();
+    await manager.disable();
+    await manager.resume();
+
+    expect(manager.enable).not.toHaveBeenCalledTimes(2);
+
+    await manager.disable();
+    await manager.resume();
+
+    expect(manager.enable).not.toHaveBeenCalledTimes(2);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
