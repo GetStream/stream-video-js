@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
@@ -8,10 +8,6 @@ import { theme } from '../../../theme';
 import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
-import {
-  VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
-} from '../ParticipantView';
 
 export type LocalParticipantViewAlignment =
   | 'top-left'
@@ -60,7 +56,7 @@ export const LocalParticipantView = ({
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantView,
-  VideoRenderer = DefaultVideoRenderer,
+  VideoRenderer,
 }: LocalParticipantViewProps) => {
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
@@ -79,19 +75,6 @@ export const LocalParticipantView = ({
     width: number;
     height: number;
   }>();
-
-  const FloatingVideoRenderer = useCallback(
-    (props: VideoRendererProps) => {
-      // zOrder is set to 1 to make sure the local participant's video is always on top
-      return (
-        <VideoRenderer
-          {...props}
-          videoZOrder={props.videoZOrder === undefined ? 1 : props.videoZOrder}
-        />
-      );
-    },
-    [VideoRenderer],
-  );
 
   if (!localParticipant) {
     return null;
@@ -134,7 +117,10 @@ export const LocalParticipantView = ({
               }
               ParticipantReaction={ParticipantReaction}
               ParticipantVideoFallback={CustomLocalParticipantViewVideoFallback}
-              VideoRenderer={FloatingVideoRenderer}
+              VideoRenderer={VideoRenderer}
+              // video z order must be one above the one used in grid view
+              // (which uses the default: 0)
+              videoZOrder={1}
             />
           )}
         </FloatingView>
