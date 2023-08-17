@@ -1846,6 +1846,10 @@ export class Call {
       );
     };
 
+    const p_ = this.state.findParticipantBySessionId(sessionId);
+
+    if (!p_) return;
+
     const participant$ = this.state.participantLookupBySessionId$.pipe(
       map(
         (lookupTable) =>
@@ -1859,60 +1863,85 @@ export class Call {
 
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
-    const visibilityStateSubscription = participant$
-      .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
-      .subscribe((v) => {
-        // skip initial trigger
-        if (!viewportVisibilityState) {
-          return (viewportVisibilityState =
-            v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
-        }
+    const visibilityStateSubscription = p_.isLocalParticipant
+      ? null
+      : participant$
+          .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
+          .subscribe((v) => {
+            // skip initial trigger
+            if (!viewportVisibilityState) {
+              return (viewportVisibilityState =
+                v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
+            }
 
-        if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
-          return doUpdate(DebounceType.MEDIUM, null);
-        }
+            if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
+              return doUpdate(DebounceType.MEDIUM, null);
+            }
 
-        doUpdate(DebounceType.MEDIUM);
-      });
+            doUpdate(DebounceType.MEDIUM);
+          });
 
     let lastDimensions: string | undefined;
-    const resizeObserver = new ResizeObserver(() => {
-      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
+    const resizeObserver = p_.isLocalParticipant
+      ? null
+      : new ResizeObserver(() => {
+          const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
 
-      // skip initial trigger
-      if (!lastDimensions) {
-        return (lastDimensions = currentDimensions);
-      }
+          // skip initial trigger
+          if (!lastDimensions) {
+            return (lastDimensions = currentDimensions);
+          }
 
-      if (
-        lastDimensions === currentDimensions ||
-        viewportVisibilityState === VisibilityState.INVISIBLE
-      )
-        return;
+          if (
+            lastDimensions === currentDimensions ||
+            viewportVisibilityState === VisibilityState.INVISIBLE
+          )
+            return;
 
-      doUpdate(DebounceType.SLOW);
-      lastDimensions = currentDimensions;
-    });
-    resizeObserver.observe(videoElement);
+          doUpdate(DebounceType.SLOW);
+          lastDimensions = currentDimensions;
+        });
+    resizeObserver?.observe(videoElement);
 
-    const publishedTracksSubscription = participant$
+    const publishedTracksSubscription = p_.isLocalParticipant
+      ? null
+      : participant$
+          .pipe(
+            distinctUntilKeyChanged('publishedTracks'),
+            map((p) =>
+              p.publishedTracks.includes(
+                kind === 'video' ? TrackType.VIDEO : TrackType.SCREEN_SHARE,
+              ),
+            ),
+            distinctUntilChanged(),
+          )
+          .subscribe((isPublishing) => {
+            doUpdate(DebounceType.IMMEDIATE, isPublishing ? undefined : null);
+          });
+
+    // TODO: to discuss - I'm not sure if I like it here
+    const streamSubscription = participant$
       .pipe(
-        distinctUntilKeyChanged('publishedTracks'),
-        map((p) =>
-          p.publishedTracks.includes(
-            kind === 'video' ? TrackType.VIDEO : TrackType.SCREEN_SHARE,
-          ),
+        distinctUntilKeyChanged(
+          kind === 'video' ? 'videoStream' : 'screenShareStream',
         ),
-        distinctUntilChanged(),
       )
-      .subscribe((isPublishing) => {
-        doUpdate(DebounceType.IMMEDIATE, isPublishing ? undefined : null);
+      .subscribe((p) => {
+        const source = kind === 'video' ? p.videoStream : p.screenShareStream;
+        if (videoElement.srcObject === source) return;
+
+        setTimeout(() => {
+          videoElement.srcObject = source ?? null;
+        }, 0);
       });
+    videoElement.playsInline = true;
+    videoElement.autoplay = true;
 
     const cleanup = () => {
-      visibilityStateSubscription.unsubscribe();
-      publishedTracksSubscription.unsubscribe();
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
+      visibilityStateSubscription?.unsubscribe();
+      publishedTracksSubscription?.unsubscribe();
+      streamSubscription.unsubscribe();
     };
 
     this.leaveCallHooks.add(cleanup);

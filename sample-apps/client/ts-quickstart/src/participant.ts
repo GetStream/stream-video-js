@@ -20,20 +20,12 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
-    videoEl.playsInline = true;
-    videoEl.autoplay = true;
 
     // simple memoization map to reuse video elements later
     map.set(id, videoEl);
 
-    if (!participant.isLocalParticipant) {
-      // registers subscription updates
-      call.registerVideoElement(videoEl, 'video', participant.sessionId);
-    }
-
-    if (videoEl.srcObject !== participant.videoStream) {
-      videoEl.srcObject = participant.videoStream || null;
-    }
+    // registers subscription updates and stream changes
+    call.registerVideoElement(videoEl, 'video', participant.sessionId);
   }
 
   return videoEl;

@@ -103,12 +103,12 @@ export const Video = ({
     !videoPlaying;
 
   useEffect(() => {
-    if (!call || !videoElement || kind === 'none' || isLocalParticipant) return;
+    if (!call || !videoElement || kind === 'none') return;
 
     const cleanup = call.registerVideoElement(videoElement, kind, sessionId);
 
-    return () => cleanup();
-  }, [call, kind, sessionId, videoElement, isLocalParticipant]);
+    return () => cleanup?.();
+  }, [call, kind, sessionId, videoElement]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
@@ -134,9 +134,8 @@ export const Video = ({
 
   return (
     <>
-      <BaseVideo
+      <video
         {...rest}
-        stream={stream}
         className={clsx(className, 'str-video__video', {
           'str-video__video--tall': !isWideMode,
           'str-video__video--mirror': isLocalParticipant && kind === 'video',
