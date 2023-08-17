@@ -198,6 +198,10 @@ export class CallState {
    */
   hasOngoingScreenShare$: Observable<boolean>;
 
+  participantLookupBySessionId$: Observable<
+    Record<string, StreamVideoLocalParticipant | StreamVideoParticipant>
+  >;
+
   /**
    * The latest stats report of the current call.
    * When stats gathering is enabled, this observable will emit a new value
@@ -347,6 +351,17 @@ export class CallState {
         ),
       ),
       distinctUntilChanged(),
+    );
+
+    this.participantLookupBySessionId$ = this.participants$.pipe(
+      map((participants) => {
+        return participants.reduce<
+          Record<string, StreamVideoLocalParticipant | StreamVideoParticipant>
+        >((lookupTable, participant) => {
+          lookupTable[participant.sessionId] ??= participant;
+          return lookupTable;
+        }, {});
+      }),
     );
 
     this.startedAt$ = this.startedAtSubject.asObservable();
@@ -739,23 +754,15 @@ export class CallState {
    */
   findParticipantBySessionId = (
     sessionId: string,
-  ): StreamVideoParticipant | undefined => {
-    return this.participants.find((p) => p.sessionId === sessionId);
+  ): StreamVideoParticipant | StreamVideoLocalParticipant | undefined => {
+    return this.getCurrentValue(this.participantLookupBySessionId$)[sessionId];
   };
 
   /**
    * Returns a new lookup table of participants indexed by their session ID.
    */
   getParticipantLookupBySessionId = () => {
-    return this.participants.reduce<{
-      [sessionId: string]:
-        | StreamVideoParticipant
-        | StreamVideoLocalParticipant
-        | undefined;
-    }>((lookupTable, participant) => {
-      lookupTable[participant.sessionId] = participant;
-      return lookupTable;
-    }, {});
+    return this.getCurrentValue(this.participantLookupBySessionId$);
   };
 
   /**

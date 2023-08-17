@@ -74,6 +74,7 @@ import {
   DebounceType,
   JoinCallData,
   PublishOptions,
+  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -82,6 +83,7 @@ import {
 import {
   BehaviorSubject,
   debounce,
+  distinctUntilChanged,
   distinctUntilKeyChanged,
   filter,
   map,
@@ -1844,20 +1846,21 @@ export class Call {
       );
     };
 
+    const participant$ = this.state.participantLookupBySessionId$.pipe(
+      map(
+        (lookupTable) =>
+          lookupTable[sessionId] as
+            | StreamVideoParticipant
+            | StreamVideoLocalParticipant,
+      ),
+      distinctUntilChanged(),
+      takeWhile((participant) => !!participant),
+    );
+
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
-    const subscription = this.state.participants$
-      .pipe(
-        map(
-          (participants) =>
-            // this might be very bad for the performance just to get appropriate participant
-            participants.find(
-              (participant) => participant.sessionId === sessionId,
-            ) as StreamVideoParticipant,
-        ),
-        takeWhile((participant) => !!participant),
-        distinctUntilKeyChanged('viewportVisibilityState'),
-      )
+    const visibilityStateSubscription = participant$
+      .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
       .subscribe((v) => {
         // skip initial trigger
         if (!viewportVisibilityState) {
@@ -1892,11 +1895,23 @@ export class Call {
     });
     resizeObserver.observe(videoElement);
 
-    // do initial update on mount
-    doUpdate(DebounceType.IMMEDIATE);
+    const publishedTracksSubscription = participant$
+      .pipe(
+        distinctUntilKeyChanged('publishedTracks'),
+        map((p) =>
+          p.publishedTracks.includes(
+            kind === 'video' ? TrackType.VIDEO : TrackType.SCREEN_SHARE,
+          ),
+        ),
+        distinctUntilChanged(),
+      )
+      .subscribe((isPublishing) => {
+        doUpdate(DebounceType.IMMEDIATE, isPublishing ? undefined : null);
+      });
 
     const cleanup = () => {
-      subscription.unsubscribe();
+      visibilityStateSubscription.unsubscribe();
+      publishedTracksSubscription.unsubscribe();
       resizeObserver.disconnect();
     };
 
