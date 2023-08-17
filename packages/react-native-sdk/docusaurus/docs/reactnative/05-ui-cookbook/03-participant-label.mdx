@@ -3,92 +3,70 @@ title: Participant Label
 description: How to make your own custom participant label
 ---
 
-There may be a lot of designs for participant's label that can be displayed above the participant video. The SDK's default label shows:
+Stream's UI components provide a participant label, which displays participant's basic information, such as name, and the status of the microphone by default like the image below:
 
-- The participant's name
-- The microphone and camera mute status
-- The dominant speaker label
-- The connection quality indicator
-
-Preview of the Default Participant Label Component:
-
-![Preview of the Default LocalParticipant component](../assets/05-ui-cookbook/participant-label-default.png)
+![Preview of the Default Participant Label component](../assets/05-ui-cookbook/03-participant-label/participant-label-default.png)
 
 It is expected that the default component may not meet all the requirements of your design/app. Therefore, we will look into ways, how to customize/create a participant label in this tutorial.
 
 ## Custom Participant Label
 
-To customize the Participant Label, you can use the following hooks:
+You can customize the participant label by implementing your own label component and passing it to the [`CallContent`](../../ui-components/call/call-content) component.
+
+![Preview of the Custom Participant Label component](../assets/05-ui-cookbook/03-participant-label/participant-label-custom.png)
+
+```tsx
+import { Text, StyleSheet } from 'react-native';
+import {
+  StreamVideoParticipant,
+  ParticipantLabelProps,
+} from '@stream-io/video-react-native-sdk';
+
+// A custom ParticipantLabel component that shows participant's name and if its a dominant speaker
+const CustomParticipantLabel = ({ participant }: ParticipantLabelProps) => {
+  const participantLabel = participant?.name ?? participant?.id;
+
+  return <Text style={styles.label}>{participantLabel}</Text>;
+};
+
+const styles = StyleSheet.create({
+  label: {
+    backgroundColor: 'gray',
+    padding: 10,
+    borderRadius: 10,
+    color: 'white',
+  },
+});
+```
+
+## Final Steps
+
+Now this can be passed to the [`ParticipantLabel`](../../ui-components/call/call-content/#participantlabel) prop of the [`CallContent`](../../ui-components/call/call-content) component, as follows:
+
+```tsx {13}
+import {
+  Call,
+  CallContent,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      <CallContent ParticipantLabel={CustomParticipantLabel} />
+    </StreamCall>
+  );
+};
+```
+
+:::note
+To get the participant data, you can use the following hooks from the `useCallStateHooks`:
 
 - `useParticipants` hook that provides all the necessary details of all the participants.
 - `useRemoteParticipants` hook that provides all the details of the participants other than the local participant.
 - `useConnectedUser` or `useLocalParticipant` provides the details of the local or connected participant.
 
-![Preview of the Custom LocalParticipant component](../assets/05-ui-cookbook/participant-label-custom.png)
-
-An example is shown below using `useParticipants`:
-
-```tsx
-import { Text, View } from 'react-native';
-import {
-  StreamVideoParticipant,
-  StreamVideoLocalParticipant,
-  useParticipants,
-} from '@stream-io/video-react-native-sdk';
-
-// A custom ParticipantLabel component that shows participant's name and if its a dominant speaker
-const ParticipantLabel = ({
-  participant,
-}: {
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
-}) => {
-  const participantLabel = participant?.name ?? participant?.id;
-
-  return (
-    <View>
-      <Text numberOfLines={1}>{participantLabel}</Text>
-      {participant.isDominantSpeaker &&
-        {
-          /* Show relevant component */
-        }}
-    </View>
-  );
-};
-
-const Participant = () => {
-  const participants = useParticipants();
-
-  return (
-    <View>
-      {participants.map((participant) => {
-        // Code for your custom participant
-        return (
-          <View>
-            {/* ParticipantLabel is rendered as a sub component here */}
-            <ParticipantLabel participant={participant} />
-          </View>
-        );
-      })}
-    </View>
-  );
-};
-```
-
-An example using the `useConnectedUser` hook is shown below. This can be useful while designing the Participant label component for the Lobby component:
-
-```tsx
-import { Text, View } from 'react-native';
-import { useConnectedUser } from '@stream-io/video-react-native-sdk';
-
-const ParticipantLabel = () => {
-  const connectedUser = useConnectedUser();
-  const participantLabel = connectedUser?.name ?? connectedUser?.id;
-
-  return (
-    <View>
-      <Text numberOfLines={1}>{participantLabel}</Text>
-      {/* Add your custom component here */}
-    </View>
-  );
-};
-```
+:::
