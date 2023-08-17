@@ -7,7 +7,6 @@ import {
   CallControlsComponent,
   CallControlsComponentProps,
 } from './CallControlsComponent';
-import { appTheme } from '../theme';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
@@ -44,6 +43,7 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
+        layout={'spotlight'}
         onBackPressed={onBackPressed}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}
@@ -58,7 +58,6 @@ export const ActiveCall = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: appTheme.colors.dark_gray,
     flex: 1,
   },
 });
