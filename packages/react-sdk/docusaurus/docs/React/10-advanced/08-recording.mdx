@@ -10,8 +10,8 @@ This documentation article serves as a guide for implementing a call recording f
 
 ## Recording calls
 
-The `Call` objects exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
-To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
+The `Call` object exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
+To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well when we want to provide visual clues about the recording state. We have to be aware, that it can take a few moments until a call recording starts. We recommend creating a state for signaling that the call recording is starting, but has not begun yet.
 
 ```tsx
 import { useCallback, useEffect, useState } from 'react';
@@ -26,14 +26,17 @@ export const CustomCallRecordButton = () => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
   useEffect(() => {
-    // we wait until call.recording_started/stopped event to flips the
-    // `isCallRecordingInProgress` state variable.
-    // Once the flip happens, we remove the loading indicator
-    setIsAwaitingResponse((isAwaiting) => {
-      if (isAwaiting) return false;
-      return isAwaiting;
-    });
-  }, [isCallRecordingInProgress]);
+    if (!call) return;
+    // we wait until call.recording_started/stopped event
+    // to remove the loading indicator
+    const eventHandlers = [
+      call.on('call.recording_started', () => setIsAwaitingResponse(false)),
+      call.on('call.recording_stopped', () => setIsAwaitingResponse(false)),
+    ];
+    return () => {
+      eventHandlers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [call]);
 
   const toggleRecording = useCallback(async () => {
     try {
@@ -58,7 +61,7 @@ export const CustomCallRecordButton = () => {
 
 ### Permissions
 
-To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles component [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) that renders its children only if the user has sufficient permissions. The SDK's [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton) makes use of the [`Restricted`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk/src/wrappers/Restricted) component.
+To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles component [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) that renders its children only if the user has sufficient permissions. The SDK's [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton) makes use of the [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) component.
 
 To learn more about permissions, take a look at our [permissions guide](../../guides/permissions-and-moderation).
 
