@@ -5,9 +5,15 @@ import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
-import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
+import { FloatingViewAlignment } from './FloatingView/common';
+
+export type LocalParticipantViewAlignment =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
 
 /**
  * Props to be passed for the LocalVideoView component.
@@ -24,7 +30,7 @@ export type LocalParticipantViewProps = Pick<
   /**
    * Determines where the floating participant video will be placed.
    */
-  alignment?: FloatingViewAlignment;
+  alignment?: LocalParticipantViewAlignment;
   /**
    * Custom style to be merged with the local participant view.
    */
@@ -45,7 +51,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
  * A component to render the local participant's video.
  */
 export const LocalParticipantView = ({
-  alignment = FloatingViewAlignment.topRight,
+  alignment = 'top-right',
   style,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -54,6 +60,16 @@ export const LocalParticipantView = ({
 }: LocalParticipantViewProps) => {
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
+
+  const floatingAlignmentMap: Record<
+    LocalParticipantViewAlignment,
+    FloatingViewAlignment
+  > = {
+    'top-left': FloatingViewAlignment.topLeft,
+    'top-right': FloatingViewAlignment.topRight,
+    'bottom-left': FloatingViewAlignment.bottomLeft,
+    'bottom-right': FloatingViewAlignment.bottomRight,
+  };
 
   const [containerDimensions, setContainerDimensions] = React.useState<{
     width: number;
@@ -88,7 +104,7 @@ export const LocalParticipantView = ({
         <FloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
-          initialAlignment={alignment}
+          initialAlignment={floatingAlignmentMap[alignment]}
         >
           {ParticipantView && (
             <ParticipantView
