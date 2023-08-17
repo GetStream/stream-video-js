@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.2...@stream-io/video-react-bindings-0.2.3) (2023-08-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+
+### Features
+
+* use new device API in RN SDK and move to @stream-io/react-native-webrtc ([#925](https://github.com/GetStream/stream-video-js/issues/925)) ([8442d82](https://github.com/GetStream/stream-video-js/commit/8442d821a8eb97cb4be6e6d71b64337c04a86a15))
+
 ### [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.1...@stream-io/video-react-bindings-0.2.2) (2023-08-16)
 
 ### Dependency Updates
