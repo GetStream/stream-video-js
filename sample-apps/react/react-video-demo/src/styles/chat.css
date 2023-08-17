@@ -11,13 +11,12 @@
   --str-chat__channel-background-color: #000;
   --str-chat__message-input-background-color: var(--color-video-grey-800);
 
-
   --str-chat__message-reactions-option-selected-background-color: #272a30;
   --str-chat__own-message-reaction-color: #ffffff;
   --str-chat__own-message-reaction-background-color: #121416;
   --str-chat__avatar-background-color: #005fff;
 
-  --str-chat__message-textarea-color: #72767E;
+  --str-chat__message-textarea-color: #72767e;
   --str-chat__message-send-disabled-color: #272a30;
   --str-chat__message-bubble-background-color: #272a30;
   --str-chat__own-message-bubble-background-color: #272a30;
@@ -36,6 +35,42 @@
   height: calc(100% - 60px);
   flex: 1;
   display: flex;
+}
+
+.str-chat__reaction-selector .str-chat__message-reactions-options {
+  @apply flex flex-nowrap;
+}
+
+@media screen(md) {
+  .str-chat__reaction-selector .str-chat__message-reactions-options {
+    @apply flex flex-wrap;
+    border-radius: 12px;
+  }
+
+  .str-chat__reaction-selector
+    .str-chat__message-reactions-options
+    .str-chat__message-reactions-option {
+    @apply mt-2;
+  }
+}
+
+@media screen(lg) {
+  .str-chat__reaction-selector .str-chat__message-reactions-options {
+    @apply flex flex-nowrap;
+    border-radius: 12px;
+  }
+
+  .str-chat__reaction-selector
+    .str-chat__message-reactions-options
+    .str-chat__message-reactions-option {
+    @apply mt-0;
+  }
+}
+
+@media screen(md) {
+  .str-chat__message--other .str-chat__message-inner {
+    margin-inline-end: 0;
+  }
 }
 
 .str-chat__message-input {
@@ -82,10 +117,9 @@
           z-index: 1;
         }
         .str-chat__message-textarea-emoji-picker {
-          display: none!important;
+          display: none !important;
         }
       }
-
     }
 
     .str-chat__send-button-container {
@@ -119,7 +153,6 @@
   }
 }
 
-
 .str-chat__list {
   position: absolute;
   left: 0;
@@ -127,6 +160,7 @@
   top: 0;
   bottom: 0;
   overflow: auto;
+  overflow-x: hidden;
 }
 
 .str-chat__message-actions-box:not(
@@ -197,8 +231,6 @@
 .str-chat__list-notifications {
   display: none;
 }
-
-
 
 .str-chat__edit-message-form
   .str-chat__edit-message-form-options
