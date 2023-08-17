@@ -198,8 +198,8 @@ Your backend typically generates the `user` and `token` on sign-up or login.
 The most important step to review is how we create the call. Stream uses the same call object for livestreaming, audio rooms and video calling. Have a look at the code snippet below:
 
 ```ts
-const call = client.call('livestream', callId);
-await call.join({ create: true });
+const myCall = client.call('livestream', callId);
+await myCall.join({ create: true });
 ```
 
 To create the first call object, specify the call type as **livestream** and provide a unique `callId`. The `livestream` call type comes with default settings that are usually suitable for live streams, but you can customize features, permissions, and settings in the dashboard. Additionally, the dashboard allows you to create new call types as required.
@@ -223,7 +223,6 @@ In `App.tsx` replace the `LivestreamUI` component with the following code:
 
 ```tsx
 import { useCall, useCallStateHooks, useIncallManager, VideoRenderer } from '@stream-io/video-react-native-sdk';
-import { RTCView } from 'react-native-webrtc';
 import { Button, Text, StyleSheet } from 'react-native';
 
 const LivestreamUI = () => {
