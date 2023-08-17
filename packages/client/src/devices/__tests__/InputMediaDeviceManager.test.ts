@@ -7,6 +7,14 @@ import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
+import { disposeOfMediaStream } from '../devices';
+
+vi.mock('../devices.ts', () => {
+  console.log('MOCKING devices');
+  return {
+    disposeOfMediaStream: vi.fn(),
+  };
+});
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -24,8 +32,8 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public pause = vi.fn();
-  public resume = vi.fn();
+  public muteTracks = vi.fn();
+  public unmuteTracks = vi.fn();
 
   constructor(call: Call) {
     super(call, new TestInputMediaDeviceManagerState());
@@ -92,14 +100,14 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.state.status).toBe('disabled');
   });
 
-  it('disable camera - after joined to call', async () => {
+  it('disable device - after joined to call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
     await manager.enable();
 
     await manager.disable();
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith();
+    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
   });
 
   it('toggle device', async () => {
@@ -124,15 +132,26 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.publishStream).not.toHaveBeenCalled();
   });
 
+  it('select device when status is enabled', async () => {
+    await manager.enable();
+    const prevStream = manager.state.mediaStream;
+
+    const deviceId = mockVideoDevices[1].deviceId;
+    await manager.select(deviceId);
+
+    expect(disposeOfMediaStream).toHaveBeenCalledWith(prevStream);
+  });
+
   it('select device when status is enabled and in call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
     await manager.enable();
 
     const deviceId = mockVideoDevices[1].deviceId;
+    console.log('select device');
     await manager.select(deviceId);
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith();
+    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
     expect(manager.getStream).toHaveBeenCalledWith({
       deviceId,
     });

@@ -28,7 +28,11 @@ export abstract class InputMediaDeviceManagerState {
    */
   status$: Observable<InputDeviceStatus>;
 
-  constructor() {
+  constructor(
+    public readonly disableMode:
+      | 'stop-tracks'
+      | 'disable-tracks' = 'stop-tracks',
+  ) {
     this.mediaStream$ = this.mediaStreamSubject.asObservable();
     this.selectedDevice$ = this.selectedDeviceSubject
       .asObservable()
