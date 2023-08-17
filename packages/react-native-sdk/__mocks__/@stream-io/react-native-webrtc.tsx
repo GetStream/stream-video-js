@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import { ComponentTestIds } from '../src/constants/TestIds';
+import { ComponentTestIds } from '../../src/constants/TestIds';
 
 export const MediaStream = undefined;
 
