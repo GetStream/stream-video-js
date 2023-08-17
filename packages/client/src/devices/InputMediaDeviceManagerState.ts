@@ -11,6 +11,10 @@ export abstract class InputMediaDeviceManagerState {
   protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
+  /**
+   * @internal
+   */
+  prevStatus: InputDeviceStatus;
 
   /**
    * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
@@ -37,7 +41,9 @@ export abstract class InputMediaDeviceManagerState {
     this.selectedDevice$ = this.selectedDeviceSubject
       .asObservable()
       .pipe(distinctUntilChanged());
-    this.status$ = this.statusSubject.asObservable();
+    this.status$ = this.statusSubject
+      .asObservable()
+      .pipe(distinctUntilChanged());
   }
 
   /**

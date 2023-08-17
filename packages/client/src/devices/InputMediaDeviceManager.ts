@@ -1,4 +1,4 @@
-import { Observable, pairwise, take } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -41,6 +41,7 @@ export abstract class InputMediaDeviceManager<
     if (this.state.status === 'disabled') {
       return;
     }
+    this.state.prevStatus = this.state.status;
     await this.muteStream(this.state.disableMode === 'stop-tracks');
     this.state.setStatus('disabled');
   }
@@ -49,13 +50,12 @@ export abstract class InputMediaDeviceManager<
    * If status was previously enabled, it will reenable the device.
    */
   async resume() {
-    this.state.status$
-      .pipe(pairwise(), take(1))
-      .subscribe(async ([prevStatus, currentStatus]) => {
-        if (prevStatus === 'enabled' && currentStatus === 'disabled') {
-          await this.enable();
-        }
-      });
+    if (
+      this.state.prevStatus === 'enabled' &&
+      this.state.status === 'disabled'
+    ) {
+      this.enable();
+    }
   }
 
   /**

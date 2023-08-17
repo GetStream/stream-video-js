@@ -148,7 +148,6 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.enable();
 
     const deviceId = mockVideoDevices[1].deviceId;
-    console.log('select device');
     await manager.select(deviceId);
 
     expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
@@ -171,19 +170,29 @@ describe('InputMediaDeviceManager.test', () => {
     expect(spy.mock.calls.length).toBe(1);
   });
 
-  it('should resume', async () => {
+  it('should resume previously enabled state', async () => {
     vi.spyOn(manager, 'enable');
 
     await manager.enable();
-    await manager.disable();
-    await manager.resume();
 
-    expect(manager.enable).not.toHaveBeenCalledTimes(2);
+    expect(manager.enable).toHaveBeenCalledTimes(1);
 
     await manager.disable();
     await manager.resume();
 
-    expect(manager.enable).not.toHaveBeenCalledTimes(2);
+    expect(manager.enable).toHaveBeenCalledTimes(2);
+  });
+
+  it(`shouldn't resume if previous state is disabled`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.disable();
+
+    expect(manager.enable).not.toHaveBeenCalled();
+
+    await manager.resume();
+
+    expect(manager.enable).not.toHaveBeenCalled();
   });
 
   afterEach(() => {
