@@ -11,10 +11,26 @@ import {
 } from '../types';
 import { CallStatsReport } from '../stats/types';
 import {
-  CallRecording,
+  BlockedUserEvent,
+  CallBroadcastingStartedEvent,
+  CallIngressResponse,
+  CallMemberAddedEvent,
+  CallMemberRemovedEvent,
+  CallMemberUpdatedEvent,
+  CallMemberUpdatedPermissionEvent,
+  CallReactionEvent,
   CallResponse,
+  CallSessionParticipantJoinedEvent,
+  CallSessionParticipantLeftEvent,
+  CallSessionResponse,
+  CallSettingsResponse,
+  EgressResponse,
   MemberResponse,
   OwnCapability,
+  UnblockedUserEvent,
+  UpdatedCallPermissionsEvent,
+  UserResponse,
+  VideoEvent,
 } from '../gen/coordinator';
 import { Pin, TrackType } from '../gen/video/sfu/models/models';
 import { Comparator } from '../sorting';
@@ -82,88 +98,47 @@ export enum CallingState {
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
 export class CallState {
-  /**
-   * The raw call metadata object, as defined on the backend.
-   *
-   * @internal
-   */
-  private metadataSubject = new BehaviorSubject<CallResponse | undefined>(
+  private backstageSubject = new BehaviorSubject<boolean>(false);
+  private blockedUserIdsSubject = new BehaviorSubject<string[]>([]);
+  private createdAtSubject = new BehaviorSubject<Date>(new Date());
+  private endedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
+  private startsAtSubject = new BehaviorSubject<Date | undefined>(undefined);
+  private updatedAtSubject = new BehaviorSubject<Date>(new Date());
+  private createdBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
-
-  /**
-   * The list of members of the current call.
-   *
-   * @internal
-   */
+  private customSubject = new BehaviorSubject<Record<string, any>>({});
+  private egressSubject = new BehaviorSubject<EgressResponse | undefined>(
+    undefined,
+  );
+  private ingressSubject = new BehaviorSubject<CallIngressResponse | undefined>(
+    undefined,
+  );
+  private recordingSubject = new BehaviorSubject<boolean>(false);
+  private sessionSubject = new BehaviorSubject<CallSessionResponse | undefined>(
+    undefined,
+  );
+  private settingsSubject = new BehaviorSubject<
+    CallSettingsResponse | undefined
+  >(undefined);
+  private transcribingSubject = new BehaviorSubject<boolean>(false);
+  private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
+    undefined,
+  );
   private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
-
-  /**
-   * The list of capabilities of the current user.
-   *
-   * @private
-   */
   private ownCapabilitiesSubject = new BehaviorSubject<OwnCapability[]>([]);
-
-  /**
-   * The calling state.
-   *
-   * @internal
-   */
   private callingStateSubject = new BehaviorSubject<CallingState>(
     CallingState.UNKNOWN,
   );
-
-  /**
-   * The time the call session actually started.
-   *
-   * @internal
-   */
   private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
-
-  /**
-   * The server-side counted number of participants connected to the current call.
-   * This number includes the anonymous participants as well.
-   *
-   * @internal
-   */
   private participantCountSubject = new BehaviorSubject<number>(0);
-
-  /**
-   * The server-side counted number of anonymous participants connected to the current call.
-   * This number excludes the regular participants.
-   *
-   * @internal
-   */
   private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
-
-  /**
-   * All participants of the current call (including the logged-in user).
-   *
-   * @internal
-   */
   private participantsSubject = new BehaviorSubject<
     (StreamVideoParticipant | StreamVideoLocalParticipant)[]
   >([]);
-
-  /**
-   * The latest stats report of the current call.
-   * When stats gathering is enabled, this observable will emit a new value
-   * at a regular (configurable) interval.
-   *
-   * Consumers of this observable can implement their own batching logic
-   * in case they want to show historical stat data.
-   *
-   * @internal
-   */
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
-
-  /**
-   * Emits a list of details about recordings performed for the current call.
-   */
-  private callRecordingListSubject = new BehaviorSubject<CallRecording[]>([]);
 
   // Derived state
 
@@ -234,16 +209,6 @@ export class CallState {
   callStatsReport$: Observable<CallStatsReport | undefined>;
 
   /**
-   * Emits a list of details about recordings performed for the current call
-   */
-  callRecordingList$: Observable<CallRecording[]>;
-
-  /**
-   * The raw call metadata object, as defined on the backend.
-   */
-  metadata$: Observable<CallResponse | undefined>;
-
-  /**
    * The list of members in the current call.
    */
   members$: Observable<MemberResponse[]>;
@@ -258,6 +223,81 @@ export class CallState {
    */
   callingState$: Observable<CallingState>;
 
+  /**
+   * The backstage state.
+   */
+  backstage$: Observable<boolean>;
+
+  /**
+   * Will provide the list of blocked user IDs.
+   */
+  blockedUserIds$: Observable<string[]>;
+
+  /**
+   * Will provide the time when this call has been created.
+   */
+  createdAt$: Observable<Date>;
+
+  /**
+   * Will provide the time when this call has been ended.
+   */
+  endedAt$: Observable<Date | undefined>;
+
+  /**
+   * Will provide the time when this call has been scheduled to start.
+   */
+  startsAt$: Observable<Date | undefined>;
+
+  /**
+   * Will provide the time when this call has been updated.
+   */
+  updatedAt$: Observable<Date>;
+
+  /**
+   * Will provide the user who created this call.
+   */
+  createdBy$: Observable<UserResponse | undefined>;
+
+  /**
+   * Will provide the custom data of this call.
+   */
+  custom$: Observable<Record<string, any>>;
+
+  /**
+   * Will provide the egress data of this call.
+   */
+  egress$: Observable<EgressResponse | undefined>;
+
+  /**
+   * Will provide the ingress data of this call.
+   */
+  ingress$: Observable<CallIngressResponse | undefined>;
+
+  /**
+   * Will provide the recording state of this call.
+   */
+  recording$: Observable<boolean>;
+
+  /**
+   * Will provide the session data of this call.
+   */
+  session$: Observable<CallSessionResponse | undefined>;
+
+  /**
+   * Will provide the settings of this call.
+   */
+  settings$: Observable<CallSettingsResponse | undefined>;
+
+  /**
+   * Will provide the transcribing state of this call.
+   */
+  transcribing$: Observable<boolean>;
+
+  /**
+   * Will provide the user who ended this call.
+   */
+  endedBy$: Observable<UserResponse | undefined>;
+
   readonly logger: Logger;
 
   /**
@@ -268,12 +308,18 @@ export class CallState {
   private sortParticipantsBy: Comparator<StreamVideoParticipant> =
     SortingPreset.defaultSortPreset;
 
+  private readonly eventHandlers: {
+    [EventType in VideoEvent['type']]:
+      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
+      | undefined;
+  };
+
   /**
    * Creates a new instance of the CallState class.
    *
    */
   constructor() {
-    this.logger = getLogger(['call-state']);
+    this.logger = getLogger(['CallState']);
     this.participants$ = this.participantsSubject.pipe(
       map((ps) => ps.sort(this.sortParticipantsBy)),
     );
@@ -295,11 +341,11 @@ export class CallState {
     );
 
     this.hasOngoingScreenShare$ = this.participants$.pipe(
-      map((participants) => {
-        return participants.some((p) =>
+      map((participants) =>
+        participants.some((p) =>
           p.publishedTracks.includes(TrackType.SCREEN_SHARE),
-        );
-      }),
+        ),
+      ),
       distinctUntilChanged(),
     );
 
@@ -309,11 +355,67 @@ export class CallState {
       this.anonymousParticipantCountSubject.asObservable();
 
     this.callStatsReport$ = this.callStatsReportSubject.asObservable();
-    this.callRecordingList$ = this.callRecordingListSubject.asObservable();
-    this.metadata$ = this.metadataSubject.asObservable();
     this.members$ = this.membersSubject.asObservable();
     this.ownCapabilities$ = this.ownCapabilitiesSubject.asObservable();
     this.callingState$ = this.callingStateSubject.asObservable();
+
+    this.backstage$ = this.backstageSubject.asObservable();
+    this.blockedUserIds$ = this.blockedUserIdsSubject.asObservable();
+    this.createdAt$ = this.createdAtSubject.asObservable();
+    this.endedAt$ = this.endedAtSubject.asObservable();
+    this.startsAt$ = this.startsAtSubject.asObservable();
+    this.updatedAt$ = this.updatedAtSubject.asObservable();
+    this.createdBy$ = this.createdBySubject.asObservable();
+    this.custom$ = this.customSubject.asObservable();
+    this.egress$ = this.egressSubject.asObservable();
+    this.ingress$ = this.ingressSubject.asObservable();
+    this.recording$ = this.recordingSubject.asObservable();
+    this.session$ = this.sessionSubject.asObservable();
+    this.settings$ = this.settingsSubject.asObservable();
+    this.transcribing$ = this.transcribingSubject.asObservable();
+    this.endedBy$ = this.endedBySubject.asObservable();
+
+    this.eventHandlers = {
+      // these events are not updating the call state:
+      'call.permission_request': undefined,
+      'call.user_muted': undefined,
+      'connection.error': undefined,
+      'connection.ok': undefined,
+      'health.check': undefined,
+      custom: undefined,
+
+      // events that update call state:
+      'call.accepted': (e) => this.updateFromCallResponse(e.call),
+      'call.created': (e) => this.updateFromCallResponse(e.call),
+      'call.notification': (e) => this.updateFromCallResponse(e.call),
+      'call.rejected': (e) => this.updateFromCallResponse(e.call),
+      'call.ring': (e) => this.updateFromCallResponse(e.call),
+      'call.live_started': (e) => this.updateFromCallResponse(e.call),
+      'call.updated': (e) => this.updateFromCallResponse(e.call),
+      'call.session_started': (e) => this.updateFromCallResponse(e.call),
+      'call.session_ended': (e) => this.updateFromCallResponse(e.call),
+      'call.ended': (e) => {
+        this.updateFromCallResponse(e.call);
+        this.setCurrentValue(this.endedBySubject, e.user);
+      },
+      'call.recording_started': () =>
+        this.setCurrentValue(this.recordingSubject, true),
+      'call.recording_stopped': () =>
+        this.setCurrentValue(this.recordingSubject, false),
+      'call.broadcasting_started': this.updateFromBroadcastStarted,
+      'call.broadcasting_stopped': this.updateFromBroadcastStopped,
+      'call.session_participant_joined':
+        this.updateFromSessionParticipantJoined,
+      'call.session_participant_left': this.updateFromSessionParticipantLeft,
+      'call.blocked_user': this.blockUser,
+      'call.unblocked_user': this.unblockUser,
+      'call.permissions_updated': this.updateOwnCapabilities,
+      'call.member_added': this.updateFromMemberAdded,
+      'call.member_removed': this.updateFromMemberRemoved,
+      'call.member_updated': this.updateMembers,
+      'call.member_updated_permission': this.updateMembers,
+      'call.reaction_new': this.updateParticipantReaction,
+    };
   }
 
   /**
@@ -474,23 +576,6 @@ export class CallState {
   };
 
   /**
-   * The list of call recordings.
-   */
-  get callRecordingsList() {
-    return this.getCurrentValue(this.callRecordingList$);
-  }
-
-  /**
-   * Sets the list of call recordings.
-   *
-   * @internal
-   * @param recordings the list of call recordings.
-   */
-  setCallRecordingsList = (recordings: Patch<CallRecording[]>) => {
-    return this.setCurrentValue(this.callRecordingListSubject, recordings);
-  };
-
-  /**
    * The call stats report.
    */
   get callStatsReport() {
@@ -505,24 +590,6 @@ export class CallState {
    */
   setCallStatsReport = (report: Patch<CallStatsReport | undefined>) => {
     return this.setCurrentValue(this.callStatsReportSubject, report);
-  };
-
-  /**
-   * The metadata of the current call.
-   */
-  get metadata() {
-    return this.getCurrentValue(this.metadata$);
-  }
-
-  /**
-   * Sets the metadata of the current call.
-   *
-   * @internal
-   *
-   * @param metadata the metadata to set.
-   */
-  setMetadata = (metadata: Patch<CallResponse | undefined>) => {
-    return this.setCurrentValue(this.metadataSubject, metadata);
   };
 
   /**
@@ -558,6 +625,111 @@ export class CallState {
   setOwnCapabilities = (capabilities: Patch<OwnCapability[]>) => {
     return this.setCurrentValue(this.ownCapabilitiesSubject, capabilities);
   };
+
+  /**
+   * The backstage state.
+   */
+  get backstage() {
+    return this.getCurrentValue(this.backstage$);
+  }
+
+  /**
+   * Will provide the list of blocked user IDs.
+   */
+  get blockedUserIds() {
+    return this.getCurrentValue(this.blockedUserIds$);
+  }
+
+  /**
+   * Will provide the time when this call has been created.
+   */
+  get createdAt() {
+    return this.getCurrentValue(this.createdAt$);
+  }
+
+  /**
+   * Will provide the time when this call has been ended.
+   */
+  get endedAt() {
+    return this.getCurrentValue(this.endedAt$);
+  }
+
+  /**
+   * Will provide the time when this call has been scheduled to start.
+   */
+  get startsAt() {
+    return this.getCurrentValue(this.startsAt$);
+  }
+
+  /**
+   * Will provide the time when this call has been updated.
+   */
+  get updatedAt() {
+    return this.getCurrentValue(this.updatedAt$);
+  }
+
+  /**
+   * Will provide the user who created this call.
+   */
+  get createdBy() {
+    return this.getCurrentValue(this.createdBy$);
+  }
+
+  /**
+   * Will provide the custom data of this call.
+   */
+  get custom() {
+    return this.getCurrentValue(this.custom$);
+  }
+
+  /**
+   * Will provide the egress data of this call.
+   */
+  get egress() {
+    return this.getCurrentValue(this.egress$);
+  }
+
+  /**
+   * Will provide the ingress data of this call.
+   */
+  get ingress() {
+    return this.getCurrentValue(this.ingress$);
+  }
+
+  /**
+   * Will provide the recording state of this call.
+   */
+  get recording() {
+    return this.getCurrentValue(this.recording$);
+  }
+
+  /**
+   * Will provide the session data of this call.
+   */
+  get session() {
+    return this.getCurrentValue(this.session$);
+  }
+
+  /**
+   * Will provide the settings of this call.
+   */
+  get settings() {
+    return this.getCurrentValue(this.settings$);
+  }
+
+  /**
+   * Will provide the transcribing state of this call.
+   */
+  get transcribing() {
+    return this.getCurrentValue(this.transcribing$);
+  }
+
+  /**
+   * Will provide the user who ended this call.
+   */
+  get endedBy() {
+    return this.getCurrentValue(this.endedBy$);
+  }
 
   /**
    * Will try to find the participant with the given sessionId in the current call.
@@ -680,6 +852,20 @@ export class CallState {
   };
 
   /**
+   * Updates the call state with the data received from the server.
+   *
+   * @internal
+   *
+   * @param event the video event that our backend sent us.
+   */
+  updateFromEvent = (event: VideoEvent) => {
+    const update = this.eventHandlers[event.type];
+    if (update) {
+      update(event as any);
+    }
+  };
+
+  /**
    * Updates the participant pinned state with server side pinning data.
    *
    * @param pins the latest pins from the server.
@@ -718,5 +904,175 @@ export class CallState {
         return participant;
       }),
     );
+  };
+
+  /**
+   * Updates the call state with the data received from the server.
+   *
+   * @internal
+   *
+   * @param call the call response from the server.
+   */
+  updateFromCallResponse = (call: CallResponse) => {
+    this.setCurrentValue(this.backstageSubject, call.backstage);
+    this.setCurrentValue(this.blockedUserIdsSubject, call.blocked_user_ids);
+    this.setCurrentValue(this.createdAtSubject, new Date(call.created_at));
+    this.setCurrentValue(this.updatedAtSubject, new Date(call.updated_at));
+    this.setCurrentValue(
+      this.startsAtSubject,
+      call.starts_at ? new Date(call.starts_at) : undefined,
+    );
+    this.setCurrentValue(
+      this.endedAtSubject,
+      call.ended_at ? new Date(call.ended_at) : undefined,
+    );
+    this.setCurrentValue(this.createdBySubject, call.created_by);
+    this.setCurrentValue(this.customSubject, call.custom);
+    this.setCurrentValue(this.egressSubject, call.egress);
+    this.setCurrentValue(this.ingressSubject, call.ingress);
+    this.setCurrentValue(this.recordingSubject, call.recording);
+    this.setCurrentValue(this.sessionSubject, call.session);
+    this.setCurrentValue(this.settingsSubject, call.settings);
+    this.setCurrentValue(this.transcribingSubject, call.transcribing);
+  };
+
+  private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
+    this.setCurrentValue(this.membersSubject, (members) =>
+      members.filter((m) => event.members.indexOf(m.user_id) === -1),
+    );
+  };
+
+  private updateFromMemberAdded = (event: CallMemberAddedEvent) => {
+    this.setCurrentValue(this.membersSubject, (members) => [
+      ...members,
+      ...event.members,
+    ]);
+  };
+
+  private updateFromBroadcastStopped = () => {
+    this.setCurrentValue(this.egressSubject, (egress) => ({
+      ...egress!,
+      broadcasting: false,
+    }));
+  };
+
+  private updateFromBroadcastStarted = (
+    event: CallBroadcastingStartedEvent,
+  ) => {
+    this.setCurrentValue(this.egressSubject, (egress) => ({
+      ...egress!,
+      broadcasting: true,
+      hls: {
+        ...egress!.hls,
+        playlist_url: event.hls_playlist_url,
+      },
+    }));
+  };
+
+  private updateFromSessionParticipantLeft = (
+    event: CallSessionParticipantLeftEvent,
+  ) => {
+    this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) {
+        this.logger(
+          'warn',
+          `Received call.session_participant_left event but no session is available.`,
+          event,
+        );
+        return session;
+      }
+      const { participants, participants_count_by_role } = session;
+      const { user, user_session_id } = event.participant;
+      return {
+        ...session,
+        participants: participants.filter(
+          (p) => p.user_session_id !== user_session_id,
+        ),
+        participants_count_by_role: {
+          ...participants_count_by_role,
+          [user.role]: Math.max(
+            0,
+            (participants_count_by_role[user.role] || 0) - 1,
+          ),
+        },
+      };
+    });
+  };
+
+  private updateFromSessionParticipantJoined = (
+    event: CallSessionParticipantJoinedEvent,
+  ) => {
+    this.setCurrentValue(this.sessionSubject, (session) => {
+      if (!session) {
+        this.logger(
+          'warn',
+          `Received call.session_participant_joined event but no session is available.`,
+          event,
+        );
+        return session;
+      }
+      const { participants, participants_count_by_role } = session;
+      const { user } = event.participant;
+      return {
+        ...session,
+        participants: [...participants, event.participant],
+        participants_count_by_role: {
+          ...participants_count_by_role,
+          [user.role]: (participants_count_by_role[user.role] || 0) + 1,
+        },
+      };
+    });
+  };
+
+  private updateMembers = (
+    event: CallMemberUpdatedEvent | CallMemberUpdatedPermissionEvent,
+  ) => {
+    this.setCurrentValue(this.membersSubject, (members) =>
+      members.map((member) => {
+        const memberUpdate = event.members.find(
+          (m) => m.user_id === member.user_id,
+        );
+        return memberUpdate ? memberUpdate : member;
+      }),
+    );
+  };
+
+  private updateParticipantReaction = (event: CallReactionEvent) => {
+    const { user, custom, type, emoji_code } = event.reaction;
+    this.setParticipants((participants) => {
+      return participants.map((p) => {
+        // skip if the reaction is not for this participant
+        if (p.userId !== user.id) return p;
+        // update the participant with the new reaction
+        return {
+          ...p,
+          reaction: {
+            type,
+            emoji_code,
+            custom,
+          },
+        };
+      });
+    });
+  };
+
+  private unblockUser = (event: UnblockedUserEvent) => {
+    this.setCurrentValue(this.blockedUserIdsSubject, (current) => {
+      if (!current) return current;
+      return current.filter((id) => id !== event.user.id);
+    });
+  };
+
+  private blockUser = (event: BlockedUserEvent) => {
+    this.setCurrentValue(this.blockedUserIdsSubject, (current) => [
+      ...(current || []),
+      event.user.id,
+    ]);
+  };
+
+  private updateOwnCapabilities = (event: UpdatedCallPermissionsEvent) => {
+    if (event.user.id === this.localParticipant?.userId) {
+      this.setCurrentValue(this.ownCapabilitiesSubject, event.own_capabilities);
+    }
   };
 }

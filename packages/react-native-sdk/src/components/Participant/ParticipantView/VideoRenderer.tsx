@@ -1,14 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 import { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
   SfuModels,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallCallingState } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../../providers';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
 
 /**
@@ -31,10 +30,11 @@ export const VideoRenderer = ({
   ParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
+  const { useCallCallingState, useCameraState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const pendingVideoLayoutRef = useRef<SfuModels.VideoDimension>();
   const subscribedVideoLayoutRef = useRef<SfuModels.VideoDimension>();
-  const { isCameraOnFrontFacingMode } = useMediaStreamManagement();
+  const { direction } = useCameraState();
   const {
     isLocalParticipant,
     sessionId,
@@ -53,7 +53,7 @@ export const VideoRenderer = ({
   const hasJoinedCall = callingState === CallingState.JOINED;
   const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
   const videoStreamToRender = isScreenSharing ? screenShareStream : videoStream;
-  const mirror = isLocalParticipant && isCameraOnFrontFacingMode;
+  const mirror = isLocalParticipant && direction === 'front';
 
   /**
    * This effect updates the participant's viewportVisibilityState

@@ -16,7 +16,7 @@ You can send a reaction using the `sendReaction` method of a `Call` instance.
 ```typescript
 const call: Call;
 
-call.sendReaction({ type: 'raised-hand' });
+await call.sendReaction({ type: 'raised-hand' });
 ```
 
 The value of the `type` attribute can be any string.
@@ -26,7 +26,7 @@ It's also possible to provide additional data for the reaction:
 ```typescript
 const call: Call;
 
-call.sendReaction({
+await call.sendReaction({
   type: 'raised-hand',
   emoji_code: ':raise-hand:',
   custom: { clearAfterTimeout: true },
@@ -44,7 +44,7 @@ Reactions are only delivered to clients that are [watching the call](../../advan
 The [participant state](../../guides/call-and-participant-state/#observe-participant-state) will contain the latest reaction of each participant:
 
 ```typescript
-const participants = call.state.participants;
+const { participants } = call.state;
 // or subscribe to call.state.participants$
 
 const reactions = participants.map((p) => p.reaction);
@@ -55,7 +55,7 @@ const reactions = participants.map((p) => p.reaction);
 If you're using the [participant state](../../guides/call-and-participant-state/#observe-participant-state) for receiving reactions, you can also clear the latest reaction using the `resetReaction` method:
 
 ```typescript
-const participants = call.state.participants;
+const { participants } = call.state;
 // or subscribe to call.state.participants$
 
 call.resetReaction(participants[0].sessionId);
@@ -72,7 +72,7 @@ You can use the `sendCustomEvent` method of the `Call` instance to send custom e
 ```typescript
 const call: Call;
 
-call.sendCustomEvent({
+await call.sendCustomEvent({
   type: 'draw',
   x: 10,
   y: 30,

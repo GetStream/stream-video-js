@@ -37,8 +37,7 @@ The following code shows how to publish from your device's camera.
 Let's open `App.tsx` and replace its contents with the following code:
 
 ```tsx title=App.tsx
-import { useEffect, useState } from 'react';
-import { Call, StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
 
 const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
 const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
@@ -52,42 +51,15 @@ const user: User = {
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-export default function App() {
-  const [client, setClient] = useState<StreamVideoClient>();
-  const [call, setCall] = useState<Call>();
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('livestream', callId);
+call.join({ create: true });
 
-  useEffect(() => {
-    const myClient = new StreamVideoClient({ apiKey, user, token });
-    setClient(myClient);
-    return () => {
-      myClient.disconnectUser();
-      setClient(undefined);
-    };
-  }, []);
+export const App = () => {
+  return <MyLivestreamUI />;
+};
 
-  useEffect(() => {
-    if (!client) return;
-    const myCall = client.call('livestream', callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error(`Failed to join the call`, err);
-    });
-
-    setCall(myCall);
-
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error(`Failed to leave the call`, err);
-      });
-    };
-  }, [client]);
-
-  if (!client || !call) return null;
-
-  return <LivestreamUI />;
-}
-
-export const LivestreamUI = () => {
+export const MyLivestreamUI = () => {
   return <div>TODO: render video</div>;
 };
 ```
@@ -129,21 +101,11 @@ const user: User = {
 #### Client setup
 
 Next, we initialize the client by passing the API Key, user and user token.
-Note that we're using the `useEffect` hook to initialize the client in a `React.StrictMode` compatible way.
 
 ```ts
-import { useEffect, useState } from 'react';
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
-const [client, setClient] = useState<StreamVideoClient>();
-useEffect(() => {
-  const myClient = new StreamVideoClient({ apiKey, user, token });
-  setClient(myClient);
-  return () => {
-    myClient.disconnectUser();
-    setClient(undefined);
-  };
-}, []);
+const client = new StreamVideoClient({ apiKey, user, token });
 ```
 
 #### Create and join call
@@ -153,29 +115,8 @@ Stream uses the same call object for livestreaming, audio rooms and video callin
 Have a look at the code snippet below:
 
 ```ts
-import { useEffect, useState } from 'react';
-import { Call, StreamVideoClient } from '@stream-io/video-react-sdk';
-
-// the client created in the previous step
-const [client, setClient] = useState<StreamVideoClient>();
-
-const [call, setCall] = useState<Call>();
-useEffect(() => {
-  if (!client) return;
-  const myCall = client.call('livestream', callId);
-  myCall.join({ create: true }).catch((err) => {
-    console.error(`Failed to join the call`, err);
-  });
-
-  setCall(myCall);
-
-  return () => {
-    setCall(undefined);
-    myCall.leave().catch((err) => {
-      console.error(`Failed to leave the call`, err);
-    });
-  };
-}, [client]);
+const call = client.call('livestream', callId);
+await call.join({ create: true });
 ```
 
 To create the first call object, specify the call type as `livestream` and provide a unique `callId`.
@@ -188,8 +129,12 @@ For more information, check the [Call Types](../../guides/configuring-call-types
 Finally, using `call.join({ create: true })` will not only create the call object on our servers but also initiate the real-time transport for audio and video.
 This allows for seamless and immediate engagement in the livestream.
 
-Note that you can also add members to a call and assign them different roles.
-For more information, see the [Joining & Creating Calls](../../guides/joining-and-creating-calls/).
+:::note
+You can also add members to a call and assign them different roles.
+
+Also, in production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide.
+:::
 
 ### Step 3 - Rendering the video
 
@@ -200,17 +145,21 @@ In `App.tsx` replace the `LivestreamUI` component with the following code:
 ```tsx
 import {
   useCall,
-  useLocalParticipant,
-  useParticipantCount,
-  useIsCallLive,
+  useCallStateHooks,
   ParticipantView,
 } from '@stream-io/video-react-sdk';
 
 // add styles for the video UI
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
-export const LivestreamUI = () => {
+export const MyLivestreamUI = () => {
   const call = useCall();
+  const {
+    useIsCallLive,
+    useLocalParticipant,
+    useParticipantCount,
+    // ... more hooks
+  } = useCallStateHooks();
   const totalParticipants = useParticipantCount();
   const localParticipant = useLocalParticipant();
   const isCallLive = useIsCallLive();
@@ -265,12 +214,22 @@ Let's take a moment to review the code above.
 You can see we use a few hooks to get the call state. The most important ones are:
 
 ```ts
+// `useCallStateHooks` exposes a collection of hooks
+// that make it easy to access call state.
+// Your IDE may help you with the discovery of these hooks.
+const {
+  useIsCallLive,
+  useLocalParticipant,
+  useParticipantCount,
+  // ... more hooks
+} = useCallStateHooks();
+
 const totalParticipants = useParticipantCount();
 const localParticipant = useLocalParticipant();
 const isCallLive = useIsCallLive();
 ```
 
-The [Call & Participant state](../../guides/call-and-participant-state/) lists all available hoos you can use for accessing call and participant state.
+The [Call & Participant state](../../guides/call-and-participant-state/) lists all available hooks you can use for accessing call and participant state.
 
 The layout is built using standard React DOM elements.
 The [ParticipantView](../../ui-components/core/participant-view/) component is provided by Stream's React Video SDK.
@@ -297,6 +256,11 @@ await call.goLive({
 });
 ```
 
+:::note
+Because of simplicity, in this tutorial, we are skipping some of the best practices for building a production ready app.
+Take a look at our sample app linked at the end of this tutorial for a more complete example.
+:::
+
 ### Step 4 - (Optional) Publishing RTMP using OBS
 
 The example above showed how to publish your device camera to the livestream.
@@ -307,10 +271,11 @@ So let's see how to publish using RTMPs. Feel free to skip this step if you don'
 #### Log the URL & Stream Key
 
 ```ts
-import { useCallMetadata } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-const metadata = useCallMetadata();
-const rtmpURL = metadata?.ingress?.rtmp.address;
+const { useCallIngress } = useCallStateHooks();
+const ingress = useCallIngress();
+const rtmpURL = ingress?.rtmp.address;
 const streamKey = `${apiKey}/${token}`;
 
 console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
@@ -348,14 +313,17 @@ One option to start HLS is to set the `start_hls` parameter to `true` in the `ca
 If you want to explicitly start it, when you are live, you can use the following method:
 
 ```ts
-import { useCall, useCallMetadata } from '@stream-io/video-react-sdk';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 const call = useCall();
 await call.startHLS();
+// or alternatively:
+// await call.goLive({ start_hls: true });
 
 // take the URL to the M3U8 playlist
-const metadata = useCallMetadata();
-const playlistUrl = metadata?.egress?.hls?.playlistUrl;
+const { useCallEgress } = useCallStateHooks();
+const egress = useCallEgress();
+const playlistUrl = egress?.hls?.playlist_url;
 console.log('HLS playlist url:', playlistUrl);
 ```
 
@@ -386,7 +354,7 @@ To recap what we've learned:
 - The call type `"livestream"` controls which features are enabled and how permissions are setup
 - The livestream by default enables "backstage" mode. This allows you and your co-hosts to setup your mic and camera before allowing people in
 - When you join a call, realtime communication is setup for audio & video: `await call.join()`
-- Call state `call.state` and helper state access hooks make it easy to build your own UI
+- Call state `call.state` and helper state access hooks exposed through `useCallStateHooks` make it easy to build your own UI
 
 We've used [Stream's Livestream API](https://getstream.io/video/livestreaming/),
 which means calls run on a global edge network of video servers.

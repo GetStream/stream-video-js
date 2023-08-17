@@ -12,8 +12,7 @@ import { useLocalVideoStream } from '../../hooks';
 import { Avatar } from '../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE } from '../../constants';
-import { useMediaStreamManagement } from '../../providers/MediaStreamManagement';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
 
@@ -43,16 +42,15 @@ type LobbyProps = {
 };
 
 export const Lobby = ({ joinCallButton }: LobbyProps) => {
-  const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const { initialVideoEnabled, isCameraOnFrontFacingMode } =
-    useMediaStreamManagement();
-  const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
+  const { useCameraState, useCallSession } = useCallStateHooks();
+  const { direction, status: cameraStatus } = useCameraState();
+  const localVideoStream = useLocalVideoStream();
+  const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
   const call = useCall();
-  const { useCallMetadata } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const session = useCallSession();
   const { t } = useI18n();
-  const participantsCount = callMetadata?.session?.participants.length;
+  const participantsCount = session?.participants.length;
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -73,7 +71,7 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
               <View style={styles.topView} />
               {isVideoAvailable ? (
                 <RTCView
-                  mirror={isCameraOnFrontFacingMode}
+                  mirror={direction === 'front'}
                   streamURL={localVideoStream?.toURL()}
                   objectFit="cover"
                   style={StyleSheet.absoluteFillObject}
@@ -116,14 +114,15 @@ export const Lobby = ({ joinCallButton }: LobbyProps) => {
 
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
+  const { useMicrophoneState } = useCallStateHooks();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled } = useMediaStreamManagement();
+  const { status: micStatus } = useMicrophoneState();
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
         {participantLabel}
       </Text>
-      {!initialAudioEnabled && (
+      {micStatus === 'disabled' && (
         <View style={[styles.svgContainerStyle, theme.icon.xs]}>
           <MicOff color={theme.light.error} />
         </View>

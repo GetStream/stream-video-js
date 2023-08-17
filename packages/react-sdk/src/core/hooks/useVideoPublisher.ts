@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { map } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   CallingState,
   getVideoStream,
@@ -34,7 +34,7 @@ export const useVideoPublisher = ({
     useCallState,
     useCallCallingState,
     useLocalParticipant,
-    useCallMetadata,
+    useCallSettings,
   } = useCallStateHooks();
   const callState = useCallState();
   const callingState = useCallCallingState();
@@ -49,8 +49,8 @@ export const useVideoPublisher = ({
     SfuModels.TrackType.VIDEO,
   );
 
-  const metadata = useCallMetadata();
-  const videoSettings = metadata?.settings.video;
+  const settings = useCallSettings();
+  const videoSettings = settings?.video;
   const targetResolution = videoSettings?.target_resolution;
   const publishVideoStream = useCallback(async () => {
     if (!call) return;

@@ -32,12 +32,16 @@ type RoomUIProps = {
 export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   const call = useCall();
   const {
-    useCallMetadata,
+    useCallCustomData,
     useCallCallingState,
     useLocalParticipant,
     useParticipants,
+    useCallEndedAt,
+    useIsCallLive,
   } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const customData = useCallCustomData();
+  const endedAt = useCallEndedAt();
+  const isLive = useIsCallLive();
   const callingState = useCallCallingState();
   const localParticipant = useLocalParticipant();
   const participants = useParticipants();
@@ -52,7 +56,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
     title,
     hosts = [],
     speakerIds = [],
-  } = (callMetadata?.custom || {}) as CustomCallData;
+  } = (customData || {}) as CustomCallData;
 
   const [showRoomList, setShowRoomList] = useState(false);
 
@@ -122,11 +126,11 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   if (!call) return null;
 
   const showLobby =
-    (!canJoinBackstage || (canJoinBackstage && !callMetadata?.backstage)) &&
-    !callMetadata?.ended_at &&
+    (!canJoinBackstage || (canJoinBackstage && !isLive)) &&
+    !endedAt &&
     ![CallingState.JOINED].includes(callingState);
 
-  const isRoomEnded = !!callMetadata?.ended_at;
+  const isRoomEnded = !!endedAt;
 
   return (
     <>

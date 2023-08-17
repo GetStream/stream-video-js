@@ -1,20 +1,6 @@
-import { StreamVideoEvent } from '../coordinator/connection/types';
 import { CallState } from '../store';
 import { SfuEvent } from '../gen/video/sfu/event/events';
 import { OwnCapability } from '../gen/coordinator';
-
-/**
- * Event handler that watches for `call.permissions_updated` events
- */
-export const watchCallPermissionsUpdated = (state: CallState) => {
-  return function onCallPermissionsUpdated(event: StreamVideoEvent) {
-    if (event.type !== 'call.permissions_updated') return;
-    const { localParticipant } = state;
-    if (event.user.id === localParticipant?.userId) {
-      state.setOwnCapabilities(event.own_capabilities);
-    }
-  };
-};
 
 /**
  * Event handler that watches for `callGrantsUpdated` events.

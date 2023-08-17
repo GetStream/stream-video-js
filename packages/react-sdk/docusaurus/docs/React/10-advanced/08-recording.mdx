@@ -15,15 +15,13 @@ To determine, whether a call recording is in progress, we use `useIsCallRecordin
 
 ```tsx
 import { useCallback, useEffect, useState } from 'react';
-import {
-  useCall,
-  useIsCallRecordingInProgress,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { LoadingIndicator } from '../LoadingIndicator';
 
 export const CustomCallRecordButton = () => {
   const call = useCall();
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
@@ -76,108 +74,10 @@ The call recording data can be retrieved by calling the `Call` method `queryReco
 Multiple calls can be recorded during a single call session, but a single call CID can be reused for multiple sessions, too.
 :::
 
-With every call to `call.queryRecordings()`, the call state is updated with the latest array of `CallRecording` objects. The latest value is then always emitted through the `useCallRecordings` hook.
-
-:::warning
-The call recording list has to be queried explicitly and is not automatically updated at any stage of a call.
-:::
-
-If we wanted to keep and up-to-date list of call recordings during an active call, we would need to query them at the start of the call as well as with every [`call.recording_stopped` event](../events).
-
 :::note
-The call recording is not immediately available when the `call.recording_stopped` event is delivered. It may take 30 or more seconds for a recording to be available. Therefore, polling mechanism has to be introduced to check, whether the latest list of call recordings returned from the query contains a new item.
+The call recording is not immediately available when the `call.recording_stopped` event is delivered.
+It may take 30 or more seconds for a recording to be available, advertised by emitting `call.recording_ready` event.
 :::
-
-```tsx
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import {
-  CallRecording,
-  CallRecordingList,
-  IconButton,
-  MenuToggle,
-  ToggleMenuButtonProps,
-  useCall,
-  useCallRecordings,
-  useStreamVideoClient,
-} from '@stream-io/video-react-sdk';
-
-const MAX_NUMBER_POLL_REQUESTS = 6;
-const POLL_INTERVAL_MS = 10 * 1000;
-
-export const CallRecordings = () => {
-  const callRecordings = useCallRecordings();
-  const client = useStreamVideoClient();
-  const activeCall = useCall();
-
-  const [loadingCallRecordings, setLoadingCallRecordings] = useState(false);
-  const recordingPollRequestsCount = useRef(0);
-  const recordingPollRequestsInterval = useRef<
-    ReturnType<typeof setInterval> | undefined
-  >();
-
-  useEffect(() => {
-    if (!(client && activeCall && callRecordings)) return;
-
-    const scheduleCallRecordingPolling = () => {
-      setLoadingCallRecordings(true);
-
-      if (recordingPollRequestsInterval.current) {
-        clearInterval(recordingPollRequestsInterval.current);
-      }
-
-      recordingPollRequestsInterval.current = setInterval(async () => {
-        let recordings: CallRecording[] = [];
-        try {
-          const response = await activeCall.queryRecordings();
-          recordings = response.recordings;
-        } catch (e) {
-          console.error('Failed to query recordings', e);
-        } finally {
-          recordingPollRequestsCount.current++;
-          const hasNewRecordings = callRecordings.length < recordings.length;
-
-          if (
-            recordingPollRequestsCount.current === MAX_NUMBER_POLL_REQUESTS ||
-            hasNewRecordings
-          ) {
-            clearInterval(recordingPollRequestsInterval.current);
-            setLoadingCallRecordings(false);
-          }
-        }
-      }, POLL_INTERVAL_MS);
-    };
-
-    // register a polling mechanism once the recording has been stopped
-    client.on('call.recording_stopped', scheduleCallRecordingPolling);
-
-    return () => {
-      client.off('call.recording_stopped', scheduleCallRecordingPolling);
-    };
-  }, [client, activeCall, callRecordings]);
-
-  return (
-    <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
-      {/* Display recordings data in a list */}
-      <CallRecordingList
-        callRecordings={callRecordings}
-        loading={loadingCallRecordings}
-      />
-    </MenuToggle>
-  );
-};
-
-const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  ({ menuShown }, ref) => {
-    return (
-      <IconButton
-        icon="call-recordings"
-        ref={ref}
-        title={menuShown ? 'Close' : 'Call recordings'}
-      />
-    );
-  },
-);
-```
 
 ## Call recording listing SDK components
 

@@ -24,7 +24,7 @@ By default, the `LocalParticipantView` renders in a floating mode.
 
 In order to use the `LocalParticipantView` as a standalone component, you should use the following code:
 
-```tsx
+```tsx {4}
 import { LocalParticipantView } from '@stream-io/video-react-native-sdk';
 
 const App = () => {
@@ -36,16 +36,11 @@ const App = () => {
 
 ### `alignment`
 
-Determines where the floating participant video will be placed.
+Determines where the floating participant video will be placed initially.
 
-- 0 for top-left.
-- 1 for top-right.
-- 2 for bottom-left.
-- 3 for bottom-right.
-
-| Type                | Default value  |
-| ------------------- | -------------- |
-| `0` \|`1`\|`2`\|`3` | `top-right(0)` |
+| Type                                                    | Default value |
+| ------------------------------------------------------- | ------------- |
+| `top-left` \|`top-right`\|`bottom-left`\|`bottom-right` | `top-right`   |
 
 ### `style`
 

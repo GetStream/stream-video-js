@@ -3,7 +3,6 @@ id: permission-notification
 title: Permission notification
 ---
 
-import ImageShowcase from '@site/src/components/ImageShowcase';
 import PermissionGrantedNotification from '../../assets/03-ui-components/permission-requests/permission-granted-notification.png';
 
 The default component used to display permission grant notifications is based on `Notification` component. It is just a popover displaying text. The text displayed is customisable.
@@ -27,8 +26,13 @@ The default component used to display permission grant notifications is based on
 The `PermissionNotification` component is used by some call controls buttons. Here we demonstrate, how it can be used in a button that toggles the audio:
 
 ```tsx
-import { OwnCapability, PermissionNotification, Restricted, useToggleAudioMuteState } from '@stream-io/video-react-sdk';
-import Icon from '../Icon';
+import {
+  OwnCapability,
+  PermissionNotification,
+  Restricted,
+  useToggleAudioMuteState,
+} from '@stream-io/video-react-sdk';
+import MyIcon from '../Icon';
 
 export type ToggleAudioPublishingButtonProps = {
   // props ...
@@ -37,8 +41,6 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
-
-
   const { toggleAudioMuteState: handleClick, isAwaitingApproval } =
     useToggleAudioMuteState();
 
@@ -51,10 +53,9 @@ export const ToggleAudioPublishingButton = (
         messageAwaitingApproval="Awaiting for an approval to speak."
         messageRevoked="You can no longer speak."
       >
-        <TheButton
-          onClick={handleClick}
-          {/* more props ... */}
-        ><Icon/></TheButton>
+        <MyButton onClick={handleClick}>
+          <MyIcon />
+        </MyButton>
       </PermissionNotification>
     </Restricted>
   );

@@ -2,20 +2,14 @@ import { Avatar, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { Stack, Typography } from '@mui/material';
 
 export const ParticipantsPreview = () => {
-  const { useCallMetadata } = useCallStateHooks();
-  const callMetadata = useCallMetadata();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
 
-  if (
-    !(
-      callMetadata?.session?.participants &&
-      callMetadata?.session?.participants.length
-    )
-  )
-    return null;
+  if (!session?.participants || session?.participants.length === 0) return null;
   return (
     <Stack sx={{ gap: '0.75rem', margin: 0 }}>
       <Typography variant="body1">
-        Already in this call ({callMetadata.session.participants.length}):
+        Already in this call ({session.participants.length}):
       </Typography>
       <Stack
         direction="row"
@@ -25,7 +19,7 @@ export const ParticipantsPreview = () => {
           overflowY: 'auto',
         }}
       >
-        {callMetadata.session.participants.map((participant) => {
+        {session.participants.map((participant) => {
           const displayName =
             participant.user.name ?? participant.user.id ?? 'Unknown user';
           return (

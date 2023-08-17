@@ -1,8 +1,6 @@
 import React from 'react';
-import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../../../theme';
-import { Video, VideoSlash } from '../../../icons';
 import { useMediaStreamManagement } from '../../../providers';
+import { ToggleVideoPublishingButton } from './ToggleVideoPublishingButton';
 
 /**
  * Props for the Toggle Video preview button
@@ -21,16 +19,9 @@ export type ToggleVideoPreviewButtonProps = {
 export const ToggleVideoPreviewButton = ({
   onPressHandler,
 }: ToggleVideoPreviewButtonProps) => {
-  const { initialVideoEnabled, toggleInitialVideoMuteState } =
-    useMediaStreamManagement();
+  const { toggleInitialVideoMuteState } = useMediaStreamManagement();
 
-  const VideoIcon = !initialVideoEnabled ? (
-    <VideoSlash color={theme.light.static_white} />
-  ) : (
-    <Video color={theme.light.static_black} />
-  );
-
-  const toggleVideoPreviewHandler = () => {
+  const onPress = () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -38,24 +29,5 @@ export const ToggleVideoPreviewButton = ({
     toggleInitialVideoMuteState();
   };
 
-  return (
-    <CallControlsButton
-      onPress={toggleVideoPreviewHandler}
-      color={
-        initialVideoEnabled
-          ? theme.light.static_white
-          : theme.light.static_black
-      }
-      style={[
-        theme.button.md,
-        {
-          shadowColor: initialVideoEnabled
-            ? theme.light.static_white
-            : theme.light.static_black,
-        },
-      ]}
-    >
-      {VideoIcon}
-    </CallControlsButton>
-  );
+  return <ToggleVideoPublishingButton onPressHandler={onPress} />;
 };

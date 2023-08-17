@@ -11,6 +11,8 @@
 #import <PushKit/PushKit.h>
 #import "RNVoipPushNotificationManager.h"
 
+#import "StreamVideoReactNative.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
@@ -62,6 +64,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  [StreamVideoReactNative setup];
   [FIRApp configure];
   [RNCallKeep setup:@{
     @"appName": @"Stream React Native Video SDK Sample App",
