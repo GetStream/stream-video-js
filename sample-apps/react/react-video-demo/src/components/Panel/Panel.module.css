@@ -4,7 +4,7 @@
 }
 
 
-.root.open.fulllHeight {
+.root.expanded {
   flex: 1;
   min-height: 0;
 }
@@ -30,8 +30,12 @@
 
 /* FIXME: use tailwind variable for screen size (or get rid of tailwind) */
 @media (max-width: 768px) {
-  .animated.visible.participantsPanel {
-    height: 50%;
+  .animated.expanded.participantsPanel {
+    .content.participantsPanel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
   }
 }
 
@@ -44,7 +48,8 @@
 }
 
 .header.canCollapse {
-  @apply flex justify-between items-center;
+  @apply items-center;
+  cursor: pointer;
 }
 
 .arrow {

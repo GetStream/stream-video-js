@@ -31,7 +31,7 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
-client.queryCalls({
+await client.queryCalls({
     ...
     watch: true
 });
@@ -44,7 +44,8 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
-client.call('default', 'test-call').join();
+const call = client.call('default', 'test-call');
+await call.join();
 ```
 
 3. Watch a call:
@@ -54,9 +55,9 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
-client.call('default', 'test-call').getOrCreate();
+await client.call('default', 'test-call').getOrCreate();
 // or
-client.call('default', 'test-call').get();
+await client.call('default', 'test-call').get();
 ```
 
 The list of call events:
@@ -103,7 +104,10 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to all events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import {
+  StreamVideoClient,
+  StreamVideoEvent,
+} from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
@@ -119,7 +123,10 @@ unsubscribe();
 Subscribing to `call.created` events:
 
 ```typescript
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import {
+  StreamVideoClient,
+  StreamVideoEvent,
+} from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
@@ -147,7 +154,7 @@ The `on` method returns a method that can be called to unsubscribe from WebSocke
 Subscribing to `call.reaction_new` event.
 
 ```typescript
-import { Call } from '@stream-io/video-react-sdk';
+import { Call, StreamVideoEvent } from '@stream-io/video-react-sdk';
 
 let call: Call;
 

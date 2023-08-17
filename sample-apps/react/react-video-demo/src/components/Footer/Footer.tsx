@@ -1,37 +1,39 @@
-import { FC, useEffect } from 'react';
+import { useEffect } from 'react';
 import classnames from 'classnames';
 import { isMobile, isTablet } from 'mobile-device-detect';
+import { StreamChat } from 'stream-chat';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
 import { PanelButton } from '../ControlButton';
 import {
   Chat,
-  People,
-  Options,
   Leave,
+  Like,
+  LoadingSpinner,
+  Options,
+  People,
   Record,
   ShareScreen,
   Stop,
-  LoadingSpinner,
-  Like,
 } from '../Icons';
 import Portal from '../Portal';
 import SettingsPanel from '../SettingsPanel';
 import ReactionsPanel from '../ReactionsPanel';
+import { NewMessageNotification } from '../NewMessageNotification';
 
 import { useModalContext } from '../../contexts/ModalContext';
-import { usePanelContext } from '../../contexts/PanelContext';
+import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
 
-export type Props = {
+export type FooterProps = {
   call: any;
   isCallActive: boolean;
-  callId: string;
   handleStartRecording: () => void;
   handleStopRecording: () => void;
   toggleShareScreen: () => void;
+  chatClient?: StreamChat | null;
   isRecording?: boolean;
   isAwaitingRecording?: boolean;
   isScreenSharing?: boolean;
@@ -40,9 +42,9 @@ export type Props = {
   leave(): void;
 };
 
-export const Footer: FC<Props> = ({
+export const Footer = ({
   call,
-  callId,
+  chatClient,
   handleStartRecording,
   handleStopRecording,
   toggleShareScreen,
@@ -52,24 +54,21 @@ export const Footer: FC<Props> = ({
   unreadMessages,
   participantCount,
   leave,
-}) => {
-  const { isVisible } = useModalContext();
+}: FooterProps) => {
+  const { showModal } = useModalContext();
   const {
-    isChatVisible,
-    isParticipantsVisible,
+    chatPanelVisibility,
+    participantsPanelVisibility,
     isSettingsVisible,
     isReactionVisible,
-    toggleChat,
-    toggleParticipants,
-    toggleSettings,
-    toggleReaction,
+    toggleHide,
   } = usePanelContext();
 
   useEffect(() => {
-    if (isVisible && isSettingsVisible) {
-      toggleSettings();
+    if (showModal) {
+      toggleHide('device-settings');
     }
-  }, [isVisible]);
+  }, [showModal, toggleHide]);
 
   const recordClassNames = classnames(styles.record, {
     [styles.recording]: isRecording,
@@ -83,12 +82,12 @@ export const Footer: FC<Props> = ({
           className={styles.settings}
           portalId="settings"
           showPanel={isSettingsVisible}
-          onClick={() => toggleSettings()}
+          onClick={() => toggleHide('device-settings')}
           label="More"
           panel={
             <Portal className={styles.settingsPortal} selector="settings">
               <SettingsPanel
-                callId={callId}
+                callId={call.id}
                 toggleRecording={
                   !isRecording ? handleStartRecording : handleStopRecording
                 }
@@ -137,7 +136,7 @@ export const Footer: FC<Props> = ({
           className={styles.reactions}
           portalId="reactions"
           showPanel={isReactionVisible}
-          onClick={() => toggleReaction()}
+          onClick={() => toggleHide('reaction')}
           label="Reaction"
           panel={
             <Portal className={styles.reactionsPortal} selector="reactions">
@@ -160,27 +159,41 @@ export const Footer: FC<Props> = ({
         </Button>
       </div>
       <div className={styles.toggles}>
-        <Button
-          className={styles.chat}
-          label="Chat"
-          color={isChatVisible ? 'active' : 'secondary'}
-          shape="square"
-          onClick={() => toggleChat()}
+        <NewMessageNotification
+          chatClient={chatClient}
+          channelWatched
+          disableOnChatOpen={chatPanelVisibility === PANEL_VISIBILITY.expanded}
         >
-          <Chat />
-          {unreadMessages && unreadMessages > 0 ? (
-            <span className={styles.chatCounter}>{unreadMessages}</span>
-          ) : null}
-        </Button>
+          <Button
+            className={styles.chat}
+            label="Chat"
+            color={
+              chatPanelVisibility !== PANEL_VISIBILITY.hidden
+                ? 'active'
+                : 'secondary'
+            }
+            shape="square"
+            onClick={() => toggleHide('chat')}
+          >
+            <Chat />
+            {unreadMessages && unreadMessages > 0 ? (
+              <span className={styles.chatCounter}>{unreadMessages}</span>
+            ) : null}
+          </Button>
+        </NewMessageNotification>
         <Button
           label="Participants"
           className={styles.participants}
-          color={isParticipantsVisible ? 'active' : 'secondary'}
+          color={
+            participantsPanelVisibility !== PANEL_VISIBILITY.hidden
+              ? 'active'
+              : 'secondary'
+          }
           shape="square"
-          onClick={toggleParticipants}
+          onClick={() => toggleHide('participant-list')}
         >
           <People />
-          {!isParticipantsVisible &&
+          {!participantsPanelVisibility &&
           participantCount &&
           participantCount > 1 ? (
             <span className={styles.participantCounter}>

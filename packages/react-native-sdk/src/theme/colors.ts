@@ -16,7 +16,7 @@ const colors: ColorType = {
     static_white: palette.grey50,
     static_overlay: palette.grey950 + opacityToHex(0.85),
     static_grey: palette.grey700,
-    disabled: palette.grey400,
+    disabled: palette.grey600,
     text_low_emphasis: palette.grey500,
     text_high_emphasis: palette.grey950,
     controls_bg: palette.grey50,

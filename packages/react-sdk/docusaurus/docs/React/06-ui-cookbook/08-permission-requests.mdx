@@ -33,7 +33,7 @@ Let's start with a simple call UI where we create an `audio_room` call.
 import {
   StreamVideo,
   StreamCall,
-  CallParticipantsView,
+  SpeakerLayout,
   CallControls,
   useCall,
   StreamTheme,
@@ -47,29 +47,28 @@ export default function App() {
     <StreamTheme>
       <StreamVideo client={client}>
         <StreamCall call={call}>
-          <CallUI />
+          <MyCallUI />
         </StreamCall>
       </StreamVideo>
     </StreamTheme>
   );
 }
 
-const CallUI = () => {
+const MyCallUI = () => {
   const call = useCall();
-
   return (
     <div>
-      <PermissionRequestNotifications />
-      <CallParticipantsView call={call} />
+      <MyPermissionRequestNotifications />
+      <SpeakerLayout />
       <CallControls />
-      <PermissionRequests />
+      <MyPermissionRequests />
     </div>
   );
 };
 
-const PermissionRequests = () => {};
+const MyPermissionRequests = () => {};
 
-const PermissionRequestNotifications = () => {};
+const MyPermissionRequestNotifications = () => {};
 ```
 
 :::note
@@ -85,19 +84,23 @@ To follow along with the guide, don't forget to turn off backstage mode so other
 ```typescript
 let call: Call;
 
-call.goLive();
+await call.goLive();
 ```
 
 ## Request permission
 
-In this step we will implement the `PermissionRequests` and the `PermissionRequestButton` components to send permission requests.
+In this step we will implement the `MyPermissionRequests` and the `MyPermissionRequestButton` components to send permission requests.
 
-For readability the code snippet only contains the `PermissionRequests` and the `PermissionRequestButton` implementation, the [full example](#finished-example) is available at the end of the guide.
+For readability the code snippet only contains the `MyPermissionRequests` and the `MyPermissionRequestButton` implementation, the [full example](#finished-example) is available at the end of the guide.
 
 ```tsx
-import { useRequestPermission } from '@stream-io/video-react-sdk';
+import {
+  useRequestPermission,
+  useHasPermissions,
+  OwnCapability,
+} from '@stream-io/video-react-sdk';
 
-const PermissionRequestButton = ({ children, capability }) => {
+const MyPermissionRequestButton = ({ children, capability }) => {
   const {
     requestPermission,
     hasPermission,
@@ -114,7 +117,7 @@ const PermissionRequestButton = ({ children, capability }) => {
   );
 };
 
-const PermissionRequests = () => {
+const MyPermissionRequests = () => {
   const call = useCall();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
@@ -126,15 +129,15 @@ const PermissionRequests = () => {
 
   return (
     <div>
-      <PermissionRequestButton capability={OwnCapability.SEND_AUDIO}>
+      <MyPermissionRequestButton capability={OwnCapability.SEND_AUDIO}>
         Request audio permission
-      </PermissionRequestButton>
-      <PermissionRequestButton capability={OwnCapability.SEND_VIDEO}>
+      </MyPermissionRequestButton>
+      <MyPermissionRequestButton capability={OwnCapability.SEND_VIDEO}>
         Request video permission
-      </PermissionRequestButton>
-      <PermissionRequestButton capability={OwnCapability.SCREENSHARE}>
+      </MyPermissionRequestButton>
+      <MyPermissionRequestButton capability={OwnCapability.SCREENSHARE}>
         Request screen share permission
-      </PermissionRequestButton>
+      </MyPermissionRequestButton>
       {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'}
       {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'}
       {canShareScreen
@@ -153,13 +156,14 @@ Let's unpack the above code snippet:
 
 ## Receive permission requests
 
-In this step we will implement the `PermissionRequestNotifications` component to receive permission requests.
+In this step we will implement the `MyPermissionRequestNotifications` component to receive permission requests.
 
-For readability, the code snippet only contains the `PermissionRequestNotifications` implementation, the [full example](#finished-example) is available at the end of the guide.
+For readability, the code snippet only contains the `MyPermissionRequestNotifications` implementation, the [full example](#finished-example) is available at the end of the guide.
 
 ```tsx
-const PermissionRequestNotifications = () => {
+const MyPermissionRequestNotifications = () => {
   const call = useCall();
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
@@ -239,7 +243,8 @@ import {
   StreamVideo,
   StreamVideoEvent,
   useCall,
-  useLocalParticipant,
+  useCallStateHooks,
+  useRequestPermission,
   useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
@@ -252,27 +257,27 @@ export default function App() {
     <StreamTheme>
       <StreamVideo client={client}>
         <StreamCall call={call}>
-          <CallUI />
+          <MyCallUI />
         </StreamCall>
       </StreamVideo>
     </StreamTheme>
   );
 }
 
-const CallUI = () => {
+const MyCallUI = () => {
   const call = useCall();
 
   return (
     <div>
-      <PermissionRequestNotifications />
+      <MyPermissionRequestNotifications />
       <CallParticipantsView call={call} />
       <CallControls />
-      <PermissionRequests />
+      <MyPermissionRequests />
     </div>
   );
 };
 
-const PermissionRequestButton = ({ children, capability }) => {
+const MyPermissionRequestButton = ({ children, capability }) => {
   const {
     requestPermission,
     hasPermission,
@@ -289,7 +294,7 @@ const PermissionRequestButton = ({ children, capability }) => {
   );
 };
 
-const PermissionRequests = () => {
+const MyPermissionRequests = () => {
   const call = useCall();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
@@ -301,15 +306,15 @@ const PermissionRequests = () => {
 
   return (
     <div>
-      <PermissionRequestButton capability={OwnCapability.SEND_AUDIO}>
+      <MyPermissionRequestButton capability={OwnCapability.SEND_AUDIO}>
         Request audio permission
-      </PermissionRequestButton>
-      <PermissionRequestButton capability={OwnCapability.SEND_VIDEO}>
+      </MyPermissionRequestButton>
+      <MyPermissionRequestButton capability={OwnCapability.SEND_VIDEO}>
         Request video permission
-      </PermissionRequestButton>
-      <PermissionRequestButton capability={OwnCapability.SCREENSHARE}>
+      </MyPermissionRequestButton>
+      <MyPermissionRequestButton capability={OwnCapability.SCREENSHARE}>
         Request screen share permission
-      </PermissionRequestButton>
+      </MyPermissionRequestButton>
       {canSendAudio ? 'Allowed to send audio' : 'Not allowed to send audio'}
       {canSendVideo ? 'Allowed to send video' : 'Not allowed to send video'}
       {canShareScreen
@@ -319,8 +324,9 @@ const PermissionRequests = () => {
   );
 };
 
-const PermissionRequestNotifications = () => {
+const MyPermissionRequestNotifications = () => {
   const call = useCall();
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,

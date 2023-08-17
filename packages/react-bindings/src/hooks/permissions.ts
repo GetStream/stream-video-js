@@ -11,7 +11,7 @@ import { useObservableValue } from './useObservableValue';
  */
 export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
   const capabilities = useOwnCapabilities();
-  return permissions.every((permission) => capabilities.includes(permission));
+  return permissions.every((permission) => capabilities?.includes(permission));
 };
 
 /**
@@ -19,7 +19,7 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
  *
  * @category Call State
  */
-export const useOwnCapabilities = (): OwnCapability[] => {
+export const useOwnCapabilities = (): OwnCapability[] | undefined => {
   const { ownCapabilities$ } = useCallState();
   return useObservableValue(ownCapabilities$);
 };

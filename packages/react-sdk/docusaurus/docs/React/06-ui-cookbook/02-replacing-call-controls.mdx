@@ -99,14 +99,14 @@ export const CustomCancelCallButton = ({
 Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
 
 ```tsx
-import { useCallback } from 'react';
 import {
   SfuModels,
-  useLocalParticipant,
+  useCallStateHooks,
   useToggleAudioMuteState,
 } from '@stream-io/video-react-sdk';
 
 export const CustomToggleAudioPublishingButton = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   // Check, whether the audio input stream is already being published to Stream's server
   const isAudioMute = !localParticipant?.publishedTracks.includes(
@@ -156,14 +156,14 @@ export const CustomToggleAudioPreviewButton = () => {
 To toggle video input the approach is analogous to that of audio input.
 
 ```tsx
-import { useCallback } from 'react';
 import {
   SfuModels,
-  useLocalParticipant,
+  useCallStateHooks,
   useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 
 export const CustomToggleVideoPublishingButton = () => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   // Check, whether the video input stream is already being published to Stream's server
   const isVideoMute = !localParticipant?.publishedTracks.includes(
@@ -216,12 +216,13 @@ import {
   getScreenShareStream,
   SfuModels,
   useCall,
-  useLocalParticipant,
-  useHasOngoingScreenShare,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const CustomScreenShareButton = () => {
   const call = useCall();
+  const { useLocalParticipant, useHasOngoingScreenShare } = useCallStateHooks();
+
   const localParticipant = useLocalParticipant();
   // determine, whether somebody else is sharing their screen
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
@@ -267,11 +268,13 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   LoadingIndicator,
   useCall,
-  useIsCallRecordingInProgress,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const CustomRecordCallButton = () => {
   const call = useCall();
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
+
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 

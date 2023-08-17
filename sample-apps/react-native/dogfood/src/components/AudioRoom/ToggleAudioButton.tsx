@@ -6,15 +6,12 @@ import {
   useConnectedUser,
   useHasPermissions,
   useIncallManager,
-  useMediaStreamManagement,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-native';
 
 export default function ToggleAudioButton() {
   useIncallManager({ media: 'audio', auto: true });
-  const { publishAudioStream, stopPublishingAudio } =
-    useMediaStreamManagement();
   const call = useCall();
   const connectedUser = useConnectedUser();
 
@@ -50,12 +47,12 @@ export default function ToggleAudioButton() {
       setIsAwaitingAudioApproval(false);
       // automatically publish/unpublish audio stream based on the new permissions
       if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
-        publishAudioStream();
+        call.microphone.enable();
       } else {
-        stopPublishingAudio();
+        call.microphone.disable();
       }
     });
-  }, [call, connectedUser, publishAudioStream, stopPublishingAudio]);
+  }, [call, connectedUser]);
 
   if (
     isAwaitingAudioApproval ||
@@ -76,11 +73,11 @@ export default function ToggleAudioButton() {
           console.log('RequestPermissions failed', err);
         });
     } else if (isMuted) {
-      publishAudioStream().catch((err) => {
+      call?.microphone.enable().catch((err) => {
         console.error('Error publishing audio stream', err);
       });
     } else {
-      stopPublishingAudio();
+      call?.microphone.disable();
     }
   };
 

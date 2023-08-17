@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 import { v1 as uuid } from 'uuid';
 
@@ -7,7 +7,6 @@ import {
   getScreenShareStream,
   SfuModels,
   useCallStateHooks,
-  useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
 import Header from '../../Header';
@@ -21,7 +20,6 @@ import MeetingLayout from '../../Layout/MeetingLayout';
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
 import { useTourContext } from '../../../contexts/TourContext';
-import { usePanelContext } from '../../../contexts/PanelContext';
 import { useNotificationContext } from '../../../contexts/NotificationsContext';
 
 import { tour } from '../../../../data/tour';
@@ -30,57 +28,40 @@ import type { ConnectionError } from 'src/hooks/useChatClient';
 
 import '@stream-io/video-styling/dist/css/styles.css';
 
-export type Props = {
-  loading?: boolean;
+export type MeetingViewProps = {
   call: Call;
-  callId: string;
-  callType: string;
   isCallActive: boolean;
-  logo: string;
   setCallHasEnded(ended: boolean): void;
   chatClient?: StreamChat | null;
   chatConnectionError?: ConnectionError;
 };
 
-export type Meeting = {
-  call?: Call;
-  loading?: boolean;
-};
-
-export const View: FC<Props & Meeting> = ({
-  logo,
+export const MeetingView = ({
   call,
-  callId,
-  callType,
   isCallActive,
   setCallHasEnded,
   chatClient,
   chatConnectionError,
-}) => {
-  const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
-    useState(false);
-
-  const [unread, setUnread] = useState<number>(0);
-
-  const cid = `videocall:${callId}`;
-  const channelWatched = useWatchChannel({ chatClient, channelId: callId });
-
-  const { setSteps } = useTourContext();
-  const { isChatVisible } = usePanelContext();
-  const { addNotification } = useNotificationContext();
-
-  const client = useStreamVideoClient();
+}: MeetingViewProps) => {
   const {
-    useCallStatsReport,
     useLocalParticipant,
     useParticipants,
     useIsCallRecordingInProgress,
     useHasOngoingScreenShare,
   } = useCallStateHooks();
   const participants = useParticipants();
-  const statsReport = useCallStatsReport();
   const localParticipant = useLocalParticipant();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
+  const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
+    useState(false);
+
+  const [unread, setUnread] = useState<number>(0);
+
+  const cid = `videocall:${call.id}`;
+  const channelWatched = useWatchChannel({ chatClient, channelId: call.id });
+
+  const { setSteps } = useTourContext();
+  const { addNotification } = useNotificationContext();
 
   const remoteScreenShare = useHasOngoingScreenShare();
 
@@ -94,37 +75,29 @@ export const View: FC<Props & Meeting> = ({
 
   useEffect(() => {
     setSteps(tour);
-  }, []);
+  }, [setSteps]);
 
   useEffect(() => {
     if (!chatClient || !channelWatched) return;
 
+    const channel = chatClient.activeChannels[cid];
     const handleEvent = () => {
-      const channel = chatClient.activeChannels[cid];
-
-      setUnread(channel?.countUnread() ?? 0);
+      const count = channel?.countUnread() ?? 0;
+      setUnread(count);
     };
 
-    handleEvent();
-
+    channel.on('notification.mark_read', handleEvent);
     chatClient.on('message.new', handleEvent);
     chatClient.on('message.updated', handleEvent);
     chatClient.on('message.deleted', handleEvent);
 
     return () => {
+      channel.off('notification.mark_read', handleEvent);
       chatClient.off('message.new', handleEvent);
       chatClient.off('message.updated', handleEvent);
       chatClient.off('message.deleted', handleEvent);
     };
   }, [chatClient, channelWatched, cid]);
-
-  useEffect(() => {
-    if (!chatClient || !channelWatched) return;
-
-    if (isChatVisible && unread !== 0) {
-      setUnread(0);
-    }
-  }, [chatClient, channelWatched, cid, isChatVisible, unread]);
 
   useEffect(() => {
     setIsAwaitingRecordingResponse((isAwaiting) => {
@@ -136,7 +109,7 @@ export const View: FC<Props & Meeting> = ({
   const leave = useCallback(() => {
     call.leave();
     setCallHasEnded(true);
-  }, []);
+  }, [call, setCallHasEnded]);
 
   const toggleShareScreen = useCallback(async () => {
     if (!isScreenSharing) {
@@ -155,7 +128,7 @@ export const View: FC<Props & Meeting> = ({
     setIsAwaitingRecordingResponse(true);
     if (!isCallRecordingInProgress) {
       try {
-        await client?.call(callType, callId).startRecording();
+        await call.startRecording();
       } catch (error) {
         addNotification({
           id: uuid(),
@@ -165,36 +138,29 @@ export const View: FC<Props & Meeting> = ({
         setIsAwaitingRecordingResponse(false);
       }
     }
-  }, [callId, client, isCallRecordingInProgress, callType, call]);
+  }, [addNotification, call, isCallRecordingInProgress]);
 
   const handleStopRecording = useCallback(async () => {
     if (isCallRecordingInProgress) {
-      await client?.call(callType, callId).stopRecording();
+      await call.stopRecording();
     }
-  }, [callId, client, isCallRecordingInProgress, callType]);
+  }, [call, isCallRecordingInProgress]);
 
   return (
     <MeetingLayout
-      callId={callId}
+      callId={call.id}
       chatClient={chatClient}
       chatConnectionError={chatConnectionError}
       header={
         <Header
-          logo={logo}
-          callId={callId}
+          callId={call.id}
           isCallActive={isCallActive}
           participants={participants}
-          participantCount={participants?.length}
-          latency={
-            statsReport
-              ? statsReport?.publisherStats?.averageRoundTripTimeInMs
-              : 0
-          }
         />
       }
       sidebar={
         <Sidebar
-          callId={callId}
+          callId={call.id}
           chatClient={chatClient}
           chatConnectionError={chatConnectionError}
           participants={participants}
@@ -202,6 +168,7 @@ export const View: FC<Props & Meeting> = ({
       }
       footer={
         <Footer
+          chatClient={chatClient}
           handleStartRecording={handleStartRecording}
           handleStopRecording={handleStopRecording}
           isAwaitingRecording={isAwaitingRecordingResponse}
@@ -211,7 +178,6 @@ export const View: FC<Props & Meeting> = ({
           isScreenSharing={isScreenSharing}
           isRecording={isCallRecordingInProgress}
           leave={leave}
-          callId={callId}
           unreadMessages={unread}
           participantCount={participants?.length}
         />
@@ -220,15 +186,8 @@ export const View: FC<Props & Meeting> = ({
       <Meeting
         isScreenSharing={isScreenSharing}
         call={call}
-        callId={callId}
         participantsAmount={participants?.length}
-        participants={participants}
       />
     </MeetingLayout>
   );
-};
-
-export const MeetingView: FC<Props> = (props) => {
-  const { call: activeCall, ...rest } = props;
-  return <View call={activeCall} {...rest} />;
 };

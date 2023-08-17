@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
   CallingState,
@@ -7,7 +6,6 @@ import {
   IconButton,
   LoadingIndicator,
   Notification,
-  useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { CallHeaderTitle } from './CallHeaderTitle';
@@ -23,7 +21,6 @@ export const ActiveCallHeader = ({
   onMenuItemClick: setLayout,
 }: LayoutSelectorProps) => {
   const { setOpen } = useSettings();
-  const activeCall = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isOffline = callingState === CallingState.OFFLINE;
@@ -31,12 +28,6 @@ export const ActiveCallHeader = ({
   const isJoining = callingState === CallingState.JOINING;
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
-
-  useEffect(() => {
-    activeCall?.queryRecordings().catch((e) => {
-      console.error('Failed to query recordings', e);
-    });
-  }, [activeCall]);
 
   return (
     <>

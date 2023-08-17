@@ -10,12 +10,10 @@ import {
 import {
   Call,
   CallingState,
-  GetEdgesResponse,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
-import { FeatureCollection, Geometry } from 'geojson';
 
 import LobbyView from './components/Views/LobbyView';
 import MeetingView from './components/Views/MeetingView';
@@ -25,24 +23,20 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 import { PanelProvider } from './contexts/PanelContext';
-
-import { createGeoJsonFeatures } from './utils/useCreateGeoJsonFeatures';
 import {
   DeviceSettingsCaptor,
   getStoredDeviceSettings,
   LocalDeviceSettings,
 } from './utils/useDeviceStorage';
+import { getURLCredentials } from './utils/getURLCredentials';
 
 import { UserContextProvider, useUserContext } from './contexts/UserContext';
 import { useCreateStreamChatClient } from './hooks/useChatClient';
-import { getURLCredentials } from './utils/getURLCredentials';
+import { useEdges } from './hooks/useEdges';
 
 import { tour } from '../data/tour';
 
 import './App.css';
-
-// This could be exported. No need to prop-drill a constant.
-const logo = `${import.meta.env.BASE_URL}images/icons/stream-logo.svg`;
 
 const config: Config = {
   dictionaries: [adjectives],
@@ -57,15 +51,13 @@ const Init = () => {
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [storedDeviceSettings, setStoredDeviceSettings] =
     useState<LocalDeviceSettings>();
-  const [edges, setEdges] = useState<FeatureCollection<Geometry>>();
-  const [fastestEdge] = useState<{
-    id: string;
-    latency: number;
-  }>();
+
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
 
   const [client, setClient] = useState<StreamVideoClient>();
+
+  const { edges, fastestEdge } = useEdges(client);
 
   useEffect(() => {
     const _client = new StreamVideoClient({
@@ -126,17 +118,6 @@ const Init = () => {
     getSettings();
   }, []);
 
-  useEffect(() => {
-    async function fetchEdges() {
-      if (!client) return;
-      const response: GetEdgesResponse = await client.edges();
-      const features = createGeoJsonFeatures(response.edges);
-      setEdges(features);
-    }
-
-    fetchEdges();
-  }, [client]);
-
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
     try {
@@ -180,10 +161,7 @@ const Init = () => {
                   <TourProvider>
                     {activeCall && (
                       <MeetingView
-                        logo={logo}
                         call={activeCall}
-                        callId={callId}
-                        callType={callType}
                         isCallActive={isCallActive}
                         setCallHasEnded={setCallHasEnded}
                         chatClient={chatClient}
@@ -195,7 +173,6 @@ const Init = () => {
               </NotificationProvider>
             ) : (
               <LobbyView
-                logo={logo}
                 user={user}
                 callId={callId || ''}
                 edges={edges}

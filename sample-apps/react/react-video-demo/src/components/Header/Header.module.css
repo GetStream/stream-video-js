@@ -3,6 +3,7 @@
   grid-template-rows: 1fr;
   grid-template-columns: 1fr 100px 1fr;
   grid-template-areas: 'participants elapsed latency';
+  padding-inline: 0.75rem;
 }
 .callIdentification {
   grid-area: participants;

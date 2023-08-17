@@ -23,7 +23,7 @@ cd VideoCallExample
 
 ### Step 2 - Install the SDK and declare permissions
 
-In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
+To install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
 ```bash title=Terminal
 yarn add @stream-io/video-react-native-sdk
@@ -167,7 +167,7 @@ export default function App() {
   );
 }
 
-export const VideoCallUI = () => {
+const VideoCallUI = () => {
   const call = useCall();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();

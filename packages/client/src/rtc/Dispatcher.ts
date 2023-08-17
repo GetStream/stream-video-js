@@ -1,4 +1,4 @@
-import { CallEventTypes, Logger } from '../coordinator/connection/types';
+import { EventTypes, Logger } from '../coordinator/connection/types';
 import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 
@@ -26,7 +26,7 @@ const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
 };
 
 export const isSfuEvent = (
-  eventName: SfuEventKinds | CallEventTypes,
+  eventName: SfuEventKinds | EventTypes,
 ): eventName is SfuEventKinds => {
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };

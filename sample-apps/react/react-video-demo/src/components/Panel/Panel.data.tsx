@@ -1,7 +1,6 @@
-import { Props } from './Panel';
+import { PanelProps } from './Panel';
 
-export const KichinSink: Props = {
+export const KichinSink: PanelProps = {
   title: 'Im a title',
-  children: <div>Children</div>,
   isFocused: true,
 };
