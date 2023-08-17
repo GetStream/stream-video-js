@@ -25,6 +25,7 @@ const colors: ColorType = {
     overlay_dark: palette.grey950 + opacityToHex(0.6),
     bars: palette.grey50,
     content_bg: palette.grey950 + opacityToHex(0.05),
+    dark_gray: palette.grey800,
   },
   dark: {
     primary: palette.blue500,
@@ -43,6 +44,7 @@ const colors: ColorType = {
     overlay_dark: palette.grey50 + opacityToHex(0.6),
     bars: palette.grey900,
     content_bg: palette.grey950 + opacityToHex(0.05),
+    dark_gray: palette.grey800,
   },
 };
 
