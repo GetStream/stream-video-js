@@ -1,6 +1,6 @@
 import { StyleProp, ViewStyle } from 'react-native';
 
-export const enum FloatingViewAlignment {
+export enum FloatingViewAlignment {
   // Aligns the floating view to the top left corner.
   topLeft,
 

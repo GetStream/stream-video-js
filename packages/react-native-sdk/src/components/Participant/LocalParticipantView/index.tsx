@@ -1,35 +1,76 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { SfuModels } from '@stream-io/video-client';
 import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import { theme } from '../../../theme';
-import { useDebouncedValue } from '../../../utils/hooks';
-import { ParticipantReaction } from '../ParticipantView/ParticipantReaction';
-import { FloatingViewAlignment } from './FloatingView/common';
 import FloatingView from './FloatingView';
-import { RTCView } from '@stream-io/react-native-webrtc';
+import { CallParticipantsListProps } from '../../Call';
+import { FloatingViewAlignment } from './FloatingView/common';
+
+export type LocalParticipantViewAlignment =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
 
 /**
  * Props to be passed for the LocalVideoView component.
  */
-export type LocalParticipantViewProps = {};
+export type LocalParticipantViewProps = Pick<
+  CallParticipantsListProps,
+  | 'ParticipantLabel'
+  | 'ParticipantNetworkQualityIndicator'
+  | 'ParticipantReaction'
+  | 'ParticipantVideoFallback'
+  | 'ParticipantView'
+  | 'VideoRenderer'
+> & {
+  /**
+   * Determines where the floating participant video will be placed.
+   */
+  alignment?: LocalParticipantViewAlignment;
+  /**
+   * Custom style to be merged with the local participant view.
+   */
+  style?: StyleProp<ViewStyle>;
+};
+
+const CustomLocalParticipantViewVideoFallback = () => {
+  return (
+    <View style={styles.videoFallback}>
+      <View style={theme.icon.md}>
+        <VideoSlash color={theme.light.static_white} />
+      </View>
+    </View>
+  );
+};
 
 /**
  * A component to render the local participant's video.
  */
-export const LocalParticipantView = () => {
-  const { useLocalParticipant, useCameraState } = useCallStateHooks();
+export const LocalParticipantView = ({
+  alignment = 'top-right',
+  style,
+  ParticipantNetworkQualityIndicator,
+  ParticipantReaction,
+  ParticipantView,
+  VideoRenderer,
+}: LocalParticipantViewProps) => {
+  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-  const { direction } = useCameraState();
-  const isCameraOnFrontFacingMode = direction === 'front';
-  // it takes a few milliseconds for the camera stream to actually switch
-  const debouncedCameraOnFrontFacingMode = useDebouncedValue(
-    isCameraOnFrontFacingMode,
-    300,
-  );
+
+  const floatingAlignmentMap: Record<
+    LocalParticipantViewAlignment,
+    FloatingViewAlignment
+  > = {
+    'top-left': FloatingViewAlignment.topLeft,
+    'top-right': FloatingViewAlignment.topRight,
+    'bottom-left': FloatingViewAlignment.bottomLeft,
+    'bottom-right': FloatingViewAlignment.bottomRight,
+  };
+
   const [containerDimensions, setContainerDimensions] = React.useState<{
     width: number;
     height: number;
@@ -38,15 +79,6 @@ export const LocalParticipantView = () => {
   if (!localParticipant) {
     return null;
   }
-
-  const isVideoMuted = !localParticipant.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-
-  // when camera is switching show a blank stream
-  // otherwise the camera stream will be shown in wrong mirror state for a few milliseconds
-  const showBlankStream =
-    isCameraOnFrontFacingMode !== debouncedCameraOnFrontFacingMode;
 
   return (
     <View
@@ -72,28 +104,22 @@ export const LocalParticipantView = () => {
         <FloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
-          initialAlignment={FloatingViewAlignment.topRight}
+          initialAlignment={floatingAlignmentMap[alignment]}
         >
-          <View style={styles.floatingViewContainer}>
-            <View style={styles.topView}>
-              <ParticipantReaction participant={localParticipant} />
-            </View>
-            {isVideoMuted ? (
-              <View style={theme.icon.md}>
-                <VideoSlash color={theme.light.static_white} />
-              </View>
-            ) : showBlankStream ? (
-              <View style={styles.videoStream} />
-            ) : (
-              <RTCView
-                mirror={debouncedCameraOnFrontFacingMode}
-                streamURL={localParticipant.videoStream?.toURL()}
-                style={styles.videoStream}
-                // zOrder should higher than the zOrder used in the ParticipantView
-                zOrder={Z_INDEX.IN_MIDDLE}
-              />
-            )}
-          </View>
+          {ParticipantView && (
+            <ParticipantView
+              participant={localParticipant}
+              videoMode={'video'}
+              style={[styles.floatingViewContainer, style]}
+              ParticipantLabel={undefined}
+              ParticipantNetworkQualityIndicator={
+                ParticipantNetworkQualityIndicator
+              }
+              ParticipantReaction={ParticipantReaction}
+              ParticipantVideoFallback={CustomLocalParticipantViewVideoFallback}
+              VideoRenderer={VideoRenderer}
+            />
+          )}
         </FloatingView>
       )}
     </View>
@@ -101,14 +127,18 @@ export const LocalParticipantView = () => {
 };
 
 const styles = StyleSheet.create({
+  floatingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    margin: theme.padding.md,
+    // Needed to make the view on top and draggable
+    zIndex: Z_INDEX.IN_MIDDLE,
+  },
   floatingViewContainer: {
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
     backgroundColor: theme.light.static_grey,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: theme.light.static_black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -117,20 +147,10 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
-  videoStream: {
-    height: LOCAL_VIDEO_VIEW_STYLE.height,
-    width: LOCAL_VIDEO_VIEW_STYLE.width,
-  },
-  topView: {
-    position: 'absolute',
-    top: theme.spacing.sm,
-    left: theme.spacing.sm,
-    zIndex: Z_INDEX.IN_FRONT,
-  },
-  floatingContainer: {
+  videoFallback: {
     ...StyleSheet.absoluteFillObject,
-    margin: theme.padding.md,
-    // Needed to make the view on top and draggable
-    zIndex: Z_INDEX.IN_MIDDLE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.light.disabled,
   },
 });

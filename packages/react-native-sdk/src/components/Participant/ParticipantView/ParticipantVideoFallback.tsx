@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.light.disabled,
+    backgroundColor: theme.light.static_grey,
     ...StyleSheet.absoluteFillObject,
   },
   label: {

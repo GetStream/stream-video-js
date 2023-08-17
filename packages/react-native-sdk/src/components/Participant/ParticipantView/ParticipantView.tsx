@@ -23,7 +23,7 @@ export type ParticipantViewProps = {
    */
   videoMode: ParticipantVideoType;
   /**
-   * Any custom style to be merged with the participant view.
+   * Custom style to be merged with the participant view.
    */
   style?: StyleProp<ViewStyle>;
   /**
@@ -73,7 +73,6 @@ export const ParticipantView = (props: ParticipantViewProps) => {
   } = props;
 
   const { isSpeaking, userId } = participant;
-
   const isScreenSharing = videoMode === 'screen';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && styles.isSpeaking;
@@ -112,9 +111,8 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
     padding: theme.padding.xs,
-    borderColor: theme.light.overlay,
-    borderWidth: 2,
     overflow: 'hidden',
+    margin: 2,
   },
   bottomView: {
     flexDirection: 'row',
