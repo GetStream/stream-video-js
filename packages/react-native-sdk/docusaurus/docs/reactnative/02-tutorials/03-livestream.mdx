@@ -137,20 +137,9 @@ const user: User = {
 
 const myClient = new StreamVideoClient({ apiKey, user, token });
 const myCall = myClient.call('livestream', callId);
+myCall.join({ create: true });
 
 export default function App() {
-  useEffect(() => {
-    myCall.join({ create: true }).catch((err) => {
-      console.error('Failed to join the call', err);
-    });
-
-    return () => {
-      myCall.leave().catch((err) => {
-        console.error('Failed to leave the call', err);
-      });
-    };
-  }, []);
-
   return (
     <StreamVideo client={myClient} language="en">
       <StreamCall call={myCall}>
@@ -210,12 +199,7 @@ The most important step to review is how we create the call. Stream uses the sam
 
 ```ts
 const myCall = client.call('livestream', callId);
-
-useEffect(() => {
-  myCall.join({ create: true }).catch((err) => {
-    console.error('Failed to join the call', err);
-  });
-}, []);
+await myCall.join({ create: true });
 ```
 
 To create the first call object, specify the call type as **livestream** and provide a unique `callId`. The `livestream` call type comes with default settings that are usually suitable for live streams, but you can customize features, permissions, and settings in the dashboard. Additionally, the dashboard allows you to create new call types as required.
@@ -224,6 +208,13 @@ Finally, using `call.join(create = true)` will not only create the call object o
 
 Note that you can also add members to a call and assign them different roles. For more information, see the [Joining & Creating Calls](../../core/joining-and-creating-calls/) docs.
 
+:::note
+You can also add members to a call and assign them different roles.
+
+Also, in production-grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../core/joining-and-creating-calls/) guide.
+:::
+
 ### Step 4 - Rendering the video
 
 In this step, we're going to build a UI for showing your local video with a button to start the livestream.
@@ -231,8 +222,7 @@ In this step, we're going to build a UI for showing your local video with a butt
 In `App.tsx` replace the `LivestreamUI` component with the following code:
 
 ```tsx
-import { useCall, useCallStateHooks, useIncallManager } from '@stream-io/video-react-native-sdk';
-import { RTCView } from 'react-native-webrtc';
+import { useCall, useCallStateHooks, useIncallManager, VideoRenderer } from '@stream-io/video-react-native-sdk';
 import { Button, Text, StyleSheet } from 'react-native';
 
 const LivestreamUI = () => {
@@ -245,17 +235,16 @@ const LivestreamUI = () => {
   const localParticipant = useLocalParticipant();
   const isCallLive = useIsCallLive();
 
-  // Automatically route audio to devices as relevant for watching videos.
+  // Automatically route audio to speaker devices as relevant for watching videos.
   useIncallManager({ media: 'video', auto: true });
 
   return (
     <View style={styles.flexed}>
       <Text style={styles.text}>Live: {totalParticipants}</Text>
       <View style={styles.flexed}>
-        <RTCView
-          style={styles.flexed}
-          streamURL={localParticipant?.videoStream?.toURL()}
-        />
+        {localParticipant && (
+          <VideoRenderer participant={localParticipant} videoMode="video" />
+        )}
       </View>
       <View style={styles.bottomBar}>
         {isCallLive ? (
@@ -323,7 +312,7 @@ There are many possibilities and the [call and participant state](../../core/cal
 
 The layout is built using standard React Native components.
 The `RTCView` component is provided by `react-native-webrtc` library. You can use it for rendering the local and remote video.
-The `useIncallManager` hook is used to automatically route audio to devices as relevant for watching videos.
+The `useIncallManager` hook is used to automatically route audio to speaker devices as relevant for watching videos.
 
 #### Backstage mode
 
@@ -355,11 +344,13 @@ So let's see how to publish using RTMPs. Feel free to skip this step if you don'
 #### Log the URL & Stream Key
 
 ```ts
-const { useCallMetadata } = useCallStateHooks();
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
-const metadata = useCallMetadata();
+const { useCallIngress } = useCallStateHooks();
+
+const ingress = useCallIngress();
 // highlight-start
-const rtmpURL = metadata?.ingress?.rtmp.address;
+const rtmpURL = ingress?.rtmp.address;
 const streamKey = `${apiKey}/${token}`;
 // highlight-end
 
@@ -398,15 +389,18 @@ One option to start HLS is to set the `start_hls` parameter to `true` in the `ca
 If you want to explicitly start it, when you are live, you can use the following method:
 
 ```ts
-import { useCall, useCallMetadata } from '@stream-io/video-react-sdk';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 const call = useCall();
 await call.startHLS();
+// or alternatively:
+// await call.goLive({ start_hls: true });
 
 // take the URL to the M3U8 playlist
-const metadata = useCallMetadata();
+const { useCallEgress } = useCallStateHooks();
+const egress = useCallEgress();
 // highlight-next-line
-const playlistUrl = metadata?.egress?.hls?.playlistUrl;
+const playlistUrl = egress?.hls?.playlist_url;
 console.log('HLS playlist url:', playlistUrl);
 ```
 

@@ -26,7 +26,7 @@ export type VideoRendererProps = Pick<
 export const VideoRenderer = ({
   videoMode,
   participant,
-  isVisible,
+  isVisible = true,
   ParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
