@@ -37,7 +37,12 @@ The following code shows how to publish from your device's camera.
 Let's open `App.tsx` and replace its contents with the following code:
 
 ```tsx title=App.tsx
-import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import {
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
 
 const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
 const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
@@ -56,7 +61,13 @@ const call = client.call('livestream', callId);
 call.join({ create: true });
 
 export const App = () => {
-  return <MyLivestreamUI />;
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <MyLivestreamUI />
+      </StreamCall>
+    </StreamVideo>
+  );
 };
 
 export const MyLivestreamUI = () => {
