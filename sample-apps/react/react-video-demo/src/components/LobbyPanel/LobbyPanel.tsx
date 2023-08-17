@@ -13,6 +13,7 @@ import { PoweredBy } from '../PoweredBy/PoweredBy';
 import JoinContainer from '../JoinContainer';
 
 import styles from './LobbyPanel.module.css';
+import { set } from 'date-fns';
 
 export type Props = {
   joinCall(): void;
@@ -65,18 +66,21 @@ export const LobbyPanel: FC<Props> = ({
 }) => {
   const [permissionsErrorComponent, setPermissionsErrorComponent] =
     useState<any>(() =>
-      permissionsEnabled ? (
-        <DisabledVideoPreview name={user.name} />
-      ) : (
+      permissionsEnabled === false || permissionsEnabled === undefined ? (
         <EnableBrowserSettings />
+      ) : (
+        <DisabledVideoPreview name={user.name} />
       ),
     );
 
   useEffect(() => {
-    if (!permissionsEnabled) {
+    console.log('lalal enabled', permissionsEnabled);
+    if (permissionsEnabled === false || permissionsEnabled === undefined) {
       setPermissionsErrorComponent(<EnableBrowserSettings />);
+    } else {
+      setPermissionsErrorComponent(<DisabledVideoPreview name={user.name} />);
     }
-  }, [permissionsEnabled]);
+  }, [permissionsEnabled, user]);
 
   const { initialAudioEnabled } = useMediaDevices();
 
@@ -115,8 +119,8 @@ export const LobbyPanel: FC<Props> = ({
         </div>
 
         <VideoPreview
-          DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
-          NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
+          DisabledVideoPreview={() => permissionsErrorComponent}
+          NoCameraPreview={() => permissionsErrorComponent}
           StartingCameraPreview={() => permissionsErrorComponent}
           VideoErrorPreview={() => permissionsErrorComponent}
         />

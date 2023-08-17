@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { v1 as uuidv1 } from 'uuid';
+import {
+  MediaPermissionsError,
+  MediaPermissionsErrorType,
+  requestMediaPermissions,
+} from 'mic-check';
 
 import {
   adjectives,
@@ -51,6 +56,9 @@ const Init = () => {
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [storedDeviceSettings, setStoredDeviceSettings] =
     useState<LocalDeviceSettings>();
+  const [permissionsEnabled, setPermissionsEnabled] = useState<
+    boolean | undefined
+  >(undefined);
 
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
@@ -58,6 +66,16 @@ const Init = () => {
   const [client, setClient] = useState<StreamVideoClient>();
 
   const { edges, fastestEdge } = useEdges(client);
+
+  useEffect(() => {
+    requestMediaPermissions()
+      .then(() => {
+        setPermissionsEnabled(true);
+      })
+      .catch(() => {
+        setPermissionsEnabled(false);
+      });
+  }, []);
 
   useEffect(() => {
     const _client = new StreamVideoClient({
@@ -138,14 +156,20 @@ const Init = () => {
     return null;
   }
 
+  console.log('enabled?', permissionsEnabled);
+
   if (storedDeviceSettings) {
     return (
       <StreamVideo client={client}>
         <StreamCall
           call={activeCall}
           mediaDevicesProviderProps={{
-            initialVideoEnabled: !storedDeviceSettings?.isVideoMute,
-            initialAudioEnabled: !storedDeviceSettings?.isAudioMute,
+            initialVideoEnabled: permissionsEnabled
+              ? !storedDeviceSettings?.isVideoMute
+              : false,
+            initialAudioEnabled: permissionsEnabled
+              ? !storedDeviceSettings?.isAudioMute
+              : false,
             initialAudioInputDeviceId:
               storedDeviceSettings?.selectedAudioInputDeviceId,
             initialVideoInputDeviceId:
@@ -179,6 +203,7 @@ const Init = () => {
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
+                permissionsEnabled={permissionsEnabled}
               />
             )}
           </ModalProvider>
