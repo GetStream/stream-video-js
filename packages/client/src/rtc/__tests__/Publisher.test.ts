@@ -139,12 +139,78 @@ describe('Publisher', () => {
     expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
 
     // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO);
+    await publisher.unpublishStream(TrackType.VIDEO, true);
     expect(newTrack.stop).toHaveBeenCalled();
     expect(state.localParticipant?.publishedTracks).not.toContain(
       TrackType.VIDEO,
     );
     expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
+  });
+
+  it('can publish and un-pubish with just enabling and disabling tracks', async () => {
+    const mediaStream = new MediaStream();
+    const track = new MediaStreamTrack();
+    mediaStream.addTrack(track);
+
+    state.setParticipants([
+      // @ts-ignore
+      {
+        isLocalParticipant: true,
+        userId: 'test-user-id',
+        sessionId: sessionId,
+        publishedTracks: [],
+      },
+    ]);
+
+    vi.spyOn(track, 'getSettings').mockReturnValue({
+      width: 640,
+      height: 480,
+      deviceId: 'test-device-id',
+    });
+
+    const transceiver = new RTCRtpTransceiver();
+    vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+    vi.spyOn(publisher['pc'], 'addTransceiver').mockReturnValue(transceiver);
+    vi.spyOn(publisher['pc'], 'getTransceivers').mockReturnValue([transceiver]);
+
+    sfuClient.updateMuteState = vi.fn();
+
+    // initial publish
+    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+
+    expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id');
+    expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
+    expect(state.localParticipant?.videoStream).toEqual(mediaStream);
+    expect(transceiver.setCodecPreferences).toHaveBeenCalled();
+    expect(sfuClient.updateMuteState).toHaveBeenCalledWith(
+      TrackType.VIDEO,
+      false,
+    );
+
+    expect(track.addEventListener).toHaveBeenCalledWith(
+      'ended',
+      expect.any(Function),
+    );
+
+    // stop publishing
+    await publisher.unpublishStream(TrackType.VIDEO, false);
+    expect(track.stop).not.toHaveBeenCalled();
+    expect(track.enabled).toBe(false);
+    expect(state.localParticipant?.publishedTracks).not.toContain(
+      TrackType.VIDEO,
+    );
+    expect(state.localParticipant?.videoStream).toBeUndefined();
+
+    const addEventListenerSpy = vi.spyOn(track, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(track, 'removeEventListener');
+
+    // start publish again
+    await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
+
+    expect(track.enabled).toBe(true);
+    // republishing the same stream should use the previously registered event handlers
+    expect(removeEventListenerSpy).not.toHaveBeenCalled();
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
   describe('Publisher migration', () => {
