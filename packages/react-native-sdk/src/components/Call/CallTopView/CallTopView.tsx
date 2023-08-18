@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
@@ -16,6 +16,14 @@ import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 export type CallTopViewProps = {
+  /**
+   * Height of the CallTopView.
+   */
+  callTopViewHeight?: number;
+  /**
+   * Set state function to set the height of CallTopView.
+   */
+  setCallTopViewHeight?: React.Dispatch<React.SetStateAction<number>>;
   /**
    * Handler to be called when the back button is pressed in the CallTopView.
    * @returns void
@@ -41,6 +49,8 @@ export type CallTopViewProps = {
 };
 
 export const CallTopView = ({
+  callTopViewHeight,
+  setCallTopViewHeight,
   onBackPressed,
   onParticipantInfoPress,
   title,
@@ -50,18 +60,19 @@ export const CallTopView = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
-  const [headerHeight, setHeaderHeight] = useState<number>(0);
   const isCallReconnecting = callingState === CallingState.RECONNECTING;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height } = event.nativeEvent.layout;
-    setHeaderHeight(height);
+    if (setCallTopViewHeight) {
+      setCallTopViewHeight(height);
+    }
   };
 
   return (
     <View style={[styles.container, style]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
-      <TopViewBackground height={headerHeight} width={'100%'} />
+      <TopViewBackground height={callTopViewHeight} width={'100%'} />
       <View style={styles.topView} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (

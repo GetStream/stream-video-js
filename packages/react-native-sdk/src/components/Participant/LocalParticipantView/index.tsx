@@ -35,6 +35,11 @@ export type LocalParticipantViewProps = Pick<
    * Custom style to be merged with the local participant view.
    */
   style?: StyleProp<ViewStyle>;
+  /**
+   * The topInset prop allows you to precisely control the vertical positioning of the Local Participant View's floating video display.
+   * By default, it takes the value of the `CallTopView` height.
+   * */
+  topInset?: number;
 };
 
 const CustomLocalParticipantViewVideoFallback = () => {
@@ -57,6 +62,7 @@ export const LocalParticipantView = ({
   ParticipantReaction,
   ParticipantView,
   VideoRenderer,
+  topInset,
 }: LocalParticipantViewProps) => {
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
@@ -80,10 +86,20 @@ export const LocalParticipantView = ({
     return null;
   }
 
+  const floatingContainerStyles = [
+    styles.floatingContainer,
+    /**
+     * The `margin` contains the value such that the container doesn't touch the edge of the screen.
+     *
+     * Now, for the `topInset`, we need to deduct that margin that we add since it will already be applied.
+     **/
+    { margin: theme.margin.md, top: topInset ? topInset - theme.margin.md : 0 },
+  ];
+
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={styles.floatingContainer}
+      style={floatingContainerStyles}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -129,7 +145,6 @@ export const LocalParticipantView = ({
 const styles = StyleSheet.create({
   floatingContainer: {
     ...StyleSheet.absoluteFillObject,
-    margin: theme.padding.md,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
   },

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
@@ -78,6 +78,7 @@ export const CallContent = ({
   CallControls = DefaultCallControls,
   layout,
 }: CallContentProps) => {
+  const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
@@ -113,6 +114,8 @@ export const CallContent = ({
     <View style={styles.container}>
       <View style={styles.container}>
         <CallTopView
+          callTopViewHeight={callTopViewHeight}
+          setCallTopViewHeight={setCallTopViewHeight}
           onBackPressed={onBackPressed}
           onParticipantInfoPress={onParticipantInfoPress}
           ParticipantsInfoBadge={ParticipantsInfoBadge}
@@ -120,7 +123,10 @@ export const CallContent = ({
         {showSpotlightLayout ? (
           <CallParticipantsSpotlight {...participantViewProps} />
         ) : (
-          <CallParticipantsGrid {...participantViewProps} />
+          <CallParticipantsGrid
+            {...participantViewProps}
+            topInset={callTopViewHeight}
+          />
         )}
       </View>
       <CallControls onHangupCallHandler={onHangupCallHandler} />

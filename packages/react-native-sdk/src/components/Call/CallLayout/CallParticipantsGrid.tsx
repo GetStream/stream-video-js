@@ -27,6 +27,11 @@ export type CallParticipantsGridProps = Pick<
    * Component to customize the CallParticipantsList.
    */
   CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
+  /**
+   * The topInset prop allows you to precisely control the vertical positioning of the Local Participant View's floating video display.
+   * By default, it takes the value of the `CallTopView` height
+   * */
+  topInset?: number;
 };
 
 /**
@@ -41,6 +46,7 @@ export const CallParticipantsGrid = ({
   ParticipantView,
   VideoRenderer,
   LocalParticipantView,
+  topInset,
 }: CallParticipantsGridProps) => {
   const { useRemoteParticipants, useParticipants } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
@@ -67,7 +73,7 @@ export const CallParticipantsGrid = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
       {showFloatingView && LocalParticipantView && (
-        <LocalParticipantView {...participantProps} />
+        <LocalParticipantView {...participantProps} topInset={topInset} />
       )}
       {CallParticipantsList && (
         <CallParticipantsList
