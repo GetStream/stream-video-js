@@ -76,3 +76,4 @@ APNs
 SFUs
 RTMPs
 broadcasted
+com.streamvideo.reactnative.StreamVideoReactNative
