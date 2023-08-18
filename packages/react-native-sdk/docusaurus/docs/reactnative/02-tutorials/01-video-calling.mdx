@@ -32,22 +32,63 @@ yarn add @stream-io/video-react-native-sdk
 The SDK requires installing some peer dependencies. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add react-native-webrtc react-native-device-info \
+yarn add @stream-io/react-native-webrtc react-native-device-info \
    react-native-incall-manager react-native-svg \
    @react-native-community/netinfo @notifee/react-native
 npx pod-install
 ```
 
+#### Add Stream Video SDK's setup method
+
+##### Android
+
+Add the following in your `MainApplication.java` file:
+
+```java
+// highlight-next-line
+import com.streamvideo.reactnative.StreamVideoReactNative;
+
+public class MainApplication extends Application implements ReactApplication {
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    // highlight-next-line
+    StreamVideoReactNative.setup();
+    // the rest..
+  }
+}
+```
+
+##### iOS
+
+Add the following in your `AppDelegate.m` or `AppDelegate.mm` file:
+
+```c
+// highlight-next-line
+#import "StreamVideoReactNative.h"
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // highlight-next-line
+  [StreamVideoReactNative setup];
+
+  // the rest..
+}
+```
+
 #### Declare permissions
 
-#### iOS
+##### iOS
 
 Add the following keys and values to `Info.plist` file:
 
 - `Privacy - Camera Usage Description` - "`VideoCallExample` requires camera access to capture and transmit video"
 - `Privacy - Microphone Usage Description` - "`VideoCallExample` requires microphone access to capture and transmit audio"
 
-#### Android
+##### Android
 
 In `AndroidManifest.xml` add the following permissions before the `<application>` section.
 
@@ -81,16 +122,16 @@ For simplicity, in this tutorial, we do not cover about managing native runtime 
 
 In `android/app/build.gradle` add the following inside the `android` section:
 
-```
+```java
 compileOptions {
 	sourceCompatibility JavaVersion.VERSION_1_8
-	targetCompatibility JavaVersion.VERSION_1_8
+	targetCompatibility JavaVersion.VERSION_11
 }
 ```
 
 In `android/gradle.properties` add the following:
 
-```
+```groovy
 android.enableDexingArtifactTransform.desugaring=false
 ```
 
