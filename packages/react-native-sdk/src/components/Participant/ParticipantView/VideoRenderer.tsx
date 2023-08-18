@@ -9,6 +9,7 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
+import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 
 /**
  * Props for the VideoRenderer component.
@@ -27,7 +28,7 @@ export const VideoRenderer = ({
   videoMode,
   participant,
   isVisible = true,
-  ParticipantVideoFallback,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
 }: VideoRendererProps) => {
   const call = useCall();
   const { useCallCallingState, useCameraState } = useCallStateHooks();

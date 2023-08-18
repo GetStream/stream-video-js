@@ -43,7 +43,7 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
-        layout={'spotlight'}
+        layout={'grid'}
         onBackPressed={onBackPressed}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}

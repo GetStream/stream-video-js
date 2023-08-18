@@ -2,45 +2,44 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
+import {
+  CallParticipantsList as DefaultCallParticipantsList,
+  CallParticipantsListProps,
+  CallParticipantsListComponentProps,
+} from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { LocalParticipantViewProps } from '../../Participant';
+import {
+  LocalParticipantView as DefaultLocalParticipantView,
+  LocalParticipantViewProps,
+} from '../../Participant';
 import { theme } from '../../../theme';
 
 /**
  * Props for the CallParticipantsGrid component.
  */
-export type CallParticipantsGridProps = Pick<
-  CallParticipantsListProps,
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
+export type CallParticipantsGridProps = CallParticipantsListComponentProps & {
   /**
    * Component to customize the LocalParticipantView.
    */
-  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
+  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps> | null;
   /**
    * Component to customize the CallParticipantsList.
    */
-  CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
+  CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
 };
 
 /**
  * Component used to display the list of participants in a grid mode.
  */
 export const CallParticipantsGrid = ({
-  CallParticipantsList,
+  CallParticipantsList = DefaultCallParticipantsList,
+  LocalParticipantView = DefaultLocalParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
-  LocalParticipantView,
 }: CallParticipantsGridProps) => {
   const { useRemoteParticipants, useParticipants } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
@@ -52,7 +51,7 @@ export const CallParticipantsGrid = ({
 
   const participants = showFloatingView ? remoteParticipants : allParticipants;
 
-  const participantProps = {
+  const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,
     ParticipantLabel,
     ParticipantNetworkQualityIndicator,
@@ -67,12 +66,12 @@ export const CallParticipantsGrid = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
       {showFloatingView && LocalParticipantView && (
-        <LocalParticipantView {...participantProps} />
+        <LocalParticipantView {...participantViewProps} />
       )}
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
-          {...participantProps}
+          {...participantViewProps}
         />
       )}
     </View>

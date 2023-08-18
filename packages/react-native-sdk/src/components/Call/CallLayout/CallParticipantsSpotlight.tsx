@@ -9,25 +9,26 @@ import { StyleSheet, View } from 'react-native';
 import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
+import {
+  CallParticipantsList as DefaultCallParticipantsList,
+  CallParticipantsListProps,
+  CallParticipantsListComponentProps,
+} from '../CallParticipantsList/CallParticipantsList';
+import {
+  ParticipantView as DefaultParticipantView,
+  ParticipantViewComponentProps,
+} from '../../Participant';
 
 /**
  * Props for the CallParticipantsSpotlight component.
  */
-export type CallParticipantsSpotlightProps = Pick<
-  CallParticipantsListProps,
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
-  /**
-   * Component to customize the CallParticipantsList.
-   */
-  CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
-};
+export type CallParticipantsSpotlightProps =
+  CallParticipantsListComponentProps & {
+    /**
+     * Component to customize the CallParticipantsList.
+     */
+    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+  };
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -37,12 +38,12 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
  * This can be used when you want to render the screen sharing stream.
  */
 export const CallParticipantsSpotlight = ({
-  CallParticipantsList,
+  CallParticipantsList = DefaultCallParticipantsList,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantVideoFallback,
-  ParticipantView,
+  ParticipantView = DefaultParticipantView,
   VideoRenderer,
 }: CallParticipantsSpotlightProps) => {
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
@@ -55,12 +56,17 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _remoteParticipants?.length === 0;
 
-  const participantProps = {
+  const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
     ParticipantNetworkQualityIndicator,
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
+  };
+
+  const callParticipantsListProps: CallParticipantsListComponentProps = {
+    ...participantViewProps,
+    ParticipantView,
   };
 
   return (
@@ -73,7 +79,7 @@ export const CallParticipantsSpotlight = ({
           participant={participantInSpotlight}
           style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
-          {...participantProps}
+          {...participantViewProps}
         />
       )}
       {!isUserAloneInCall && (
@@ -84,8 +90,7 @@ export const CallParticipantsSpotlight = ({
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
               horizontal
-              ParticipantView={ParticipantView}
-              {...participantProps}
+              {...callParticipantsListProps}
             />
           )}
         </View>
