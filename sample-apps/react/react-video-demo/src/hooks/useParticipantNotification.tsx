@@ -16,12 +16,7 @@ export const useParticipantNotification = () => {
 
   const { addNotification } = useNotificationContext();
 
-  const {
-    useHasPermissions,
-    useConnectedUser,
-    useLocalParticipant,
-    useRemoteParticipants,
-  } = useCallStateHooks();
+  const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
 
   useEffect(() => {
