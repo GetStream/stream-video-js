@@ -152,7 +152,7 @@ import {
   StreamCall,
   User,
 } from '@stream-io/video-react-native-sdk';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { SafeAreaView, Text } from 'react-native';
 
 // for simplicity, we assume that permission was granted through the native settings app
@@ -173,60 +173,20 @@ const user: User = {
   image: `https://getstream.io/random_png/?id=${userId}&name=Santhosh`,
 };
 
-export default function App() {
-  const [client, setClient] = useState<StreamVideoClient>();
-  const [call, setCall] = useState<Call>();
-  useEffect(() => {
-    const _client = new StreamVideoClient({
-      apiKey,
-      token,
-      user,
-    });
-    setClient(_client);
-
-    return () => {
-      _client.disconnectUser();
-      setClient(undefined);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!client) {
-      return;
-    }
-    const _call = client.call('audio_room', callId);
-    _call
-      .join({
-        create: true,
-        data: {
-          members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
-          custom: {
-            title: 'React Native test',
-            description: 'We are doing a test of react native audio rooms',
-          },
-        },
-      })
-      .catch((err) => {
-        console.error('Error joining the call', err);
-        setCall(undefined);
-      })
-      .then(() => {
-        console.log('Successfully joined the call');
-      });
-    setCall(_call);
-
-    return () => {
-      if (_call.state.callingState !== CallingState.LEFT) {
-        _call.leave();
-      }
-      setCall(undefined);
-    };
-  }, [client]);
-
-  if (!client || !call) {
-    return null;
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('audio_room', callId);
+call.join({
+  create: true,
+  data: {
+    members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
+    custom: {
+      title: 'React Native test',
+      description: 'We are doing a test of react native audio rooms',
+    },
   }
+});
 
+export default function App() {
   return (
     <StreamVideo client={client} language="en">
       <StreamCall call={call}>
@@ -265,65 +225,34 @@ Next, we initialize the client by passing the API Key, user and user token.
 ```ts
 import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
-const [client, setClient] = useState<StreamVideoClient>();
-
-useEffect(() => {
-  const _client = new StreamVideoClient({
-    apiKey,
-    token,
-    user,
-  });
-  setClient(_client);
-
-  return () => {
-    client.disconnectUser();
-    setClient(undefined);
-  };
-}, []);
+const client = new StreamVideoClient({ apiKey, user, token });
 ```
 #### Create and join call​
 
 After the user and client are created, we create a call like this:
 
 ```ts
-const [call, setCall] = useState<Call>();
-useEffect(() => {
-  if (!client) {
-    return;
+const call = client.call('audio_room', callId);
+call.join({
+  create: true,
+  data: {
+    members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
+    custom: {
+      title: 'React Native test',
+      description: 'We are doing a test of react native audio rooms',
+    },
   }
-  const _call = client.call('audio_room', callId);
-  _call
-    .join({
-      create: true,
-      data: {
-        members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
-        custom: {
-          title: 'React Native test',
-          description: 'We are doing a test of react native audio rooms',
-        },
-      },
-    })
-    .catch((err) => {
-      console.error(`Error joining the call`, err);
-      setCall(undefined);
-    })
-    .then(() => {
-      console.log(`Successfully joined the call`);
-    });
-  setCall(_call);
-
-  return () => {
-    if (_call.state.callingState !== CallingState.LEFT) {
-      _call.leave();
-    }
-    setCall(undefined);
-  };
-}, [client]);
+});
 ```
 
 - This joins and creates a call with the type: `audio_room` and the specified `callId`
 - The users with id `john_smith` and `jane_doe` are added as members to the call
 - And we set the `title` and `description` custom field on the call object
+
+:::note
+In production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide.
+:::
 
 #### Credentials
 
@@ -401,14 +330,14 @@ export default function AudioRoom() {
 Let us add the component to show the call descriptions:
 
 ```tsx title=src/DescriptionPanel.tsx
-import { useCallMetadata } from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 
 export const DescriptionPanel = () => {
-  const metadata = useCallMetadata();
-  const custom = metadata?.custom;
-  const participantsCount = metadata?.session?.participants?.length ?? 0;
+  const { useCallCustomData, useParticipants } = useCallStateHooks();
+  const custom = useCallCustomData();
+  const participants = useParticipants();
 
   return (
     <View style={styles.container}>
@@ -417,7 +346,7 @@ export const DescriptionPanel = () => {
         {custom?.description ?? '<Description>'}
       </Text>
       <Text style={styles.participantsCount}>
-        {`${participantsCount} Participants`}
+        {`${participants.length} Participants`}
       </Text>
     </View>
   );
@@ -460,7 +389,7 @@ Let's add the `ParticipantsPanel` component:
 import React, { useCallback } from 'react';
 import {
   StreamVideoParticipant,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import {
   FlatList,
@@ -474,6 +403,7 @@ import {
 type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
 
 export function ParticipantsPanel() {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
     useCallback(({ item: participantItem }) => {
@@ -541,7 +471,7 @@ import {
   OwnCapability,
   Restricted,
   useCall,
-  useIsCallLive,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { Button } from 'react-native';
@@ -549,9 +479,9 @@ import { Button } from 'react-native';
 export default function LiveButtons() {
   // this utility hook returns the call object from the <StreamCall /> context
   const call = useCall();
-  // this utility hook is a wrapper around the `call.state.metadata$` observable,
-  // and it will emit a new value whenever the call goes live or stops being live.
+  // will emit a new value whenever the call goes live or stops being live.
   // we can use it to update the button text or adjust any other UI elements
+  const { useIsCallLive } = useCallStateHooks();
   const isLive = useIsCallLive();
 
   return (
@@ -633,7 +563,7 @@ import {
   useConnectedUser,
   useHasPermissions,
   useIncallManager,
-  useLocalParticipant,
+  useCallStateHooks,
   useMediaStreamManagement,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
@@ -645,6 +575,7 @@ export default function ToggleAudioButton() {
 
   const { publishAudioStream, stopPublishingAudio } =
     useMediaStreamManagement();
+  const { useLocalParticipant } = useCallStateHooks();
   const call = useCall();
   const connectedUser = useConnectedUser();
 
