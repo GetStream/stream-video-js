@@ -1,14 +1,7 @@
-import { PropsWithChildren, createContext, useContext, useMemo } from 'react';
+import { PropsWithChildren, createContext, useContext } from 'react';
 import { decode } from 'js-base64';
-import queryString from 'qs';
 
-import { DEFAULT_LAYOUT_ID, LayoutType, SpotlightMode } from './layouts';
-import { CSSProperties } from 'react';
-
-const DEFAULT_USER_ID = 'egress';
-const DEFAULT_CALL_TYPE = 'default';
-
-export type ConfigurationValue = {
+type ConfigurationValue = {
   base_url?: string;
   api_key: string;
   token: string;
@@ -16,32 +9,57 @@ export type ConfigurationValue = {
   call_id: string;
   call_type: string;
 
-  // TODO: implement
-  fontFamily?: string;
+  options: {
+    video?: {
+      background_color?: string;
+      scale_mode?: 'fill' | 'fit';
+      screenshare_scale_mode?: 'fill' | 'fit';
+    };
+    logo?: {
+      image_url?: string;
+      horizontal_position?: 'center' | 'left' | 'right';
+      vertical_position?: 'center' | 'left' | 'right';
+    };
+    participant?: {
+      label_display?: boolean;
+      label_text_color?: string;
+      label_background_color?: string;
+      label_display_border?: boolean;
+      label_border_radius?: string;
+      label_border_color?: string;
+      label_horizontal_position?: 'center' | 'left' | 'right';
+      label_vertical_position?: 'center' | 'left' | 'right';
 
-  layout: {
-    type: LayoutType;
-    spotlightMode: SpotlightMode;
-    gridSize: number;
-  };
-  title?: {
-    text?: string;
-    style?: CSSProperties;
-  };
-  logo?: {
-    url?: string;
-    style?: CSSProperties;
-  };
-  background?: {
-    style: CSSProperties;
+      // participant_border_color: string;
+      // participant_border_radius: string;
+      // participant_border_width: string;
+      participant_highlight_border_color?: string; // talking
+      placeholder_background_color?: string;
+    };
+
+    layout?: {
+      // used with any layout
+      size_percentage?: number;
+
+      main?: 'grid' | 'dominant_speaker' | 'spotlight'; // | 'mobile'
+      screenshare?: 'spotlight' | 'dominant_speaker';
+
+      // grid-specific
+      gap?: string;
+      page_size?: number;
+      // dominant_speaker-specific (single-participant)
+      mode?: 'shuffle' | 'default';
+      // spotlight-specific
+      bar_position?: 'top' | 'right' | 'bottom' | 'left';
+    };
   };
 };
 
-const ConfigurationContext = createContext<ConfigurationValue>(
+export const ConfigurationContext = createContext<ConfigurationValue>(
   {} as ConfigurationValue,
 );
 
-const extractPayloadFromToken = (token: string) => {
+export const extractPayloadFromToken = (token: string) => {
   const [, payload] = token.split('.');
 
   if (!payload) throw new Error('Malformed token, missing payload');
@@ -50,67 +68,3 @@ const extractPayloadFromToken = (token: string) => {
 };
 
 export const useConfigurationContext = () => useContext(ConfigurationContext);
-
-export const ConfigurationContextProvider = ({
-  children,
-}: PropsWithChildren) => {
-  const value = useMemo<ConfigurationValue>(() => {
-    // apply crucial defaults
-    const {
-      // TODO: rename these to support camelCase
-      api_key = import.meta.env.VITE_STREAM_API_KEY,
-      token = import.meta.env.VITE_STREAM_USER_TOKEN,
-      user_id = DEFAULT_USER_ID,
-      call_type = DEFAULT_CALL_TYPE,
-
-      // TODO: drop support for these later
-      grid_size,
-      spotlight_mode,
-
-      ...rest
-    } = queryString.parse(window.location.search, {
-      allowDots: true,
-      comma: true,
-      ignoreQueryPrefix: true,
-    });
-
-    if (!api_key || !token)
-      throw new Error(
-        "Missing either 'api_key' or 'token', check either your .env file or search parameters",
-      );
-
-    // TODO: remove once we drop support for string based layout attribute
-    if (typeof rest.layout === 'string') {
-      // @ts-ignore
-      rest.layout = {
-        type: rest.layout,
-      };
-    }
-
-    if (!rest.layout) {
-      rest.layout = {};
-    }
-
-    // @ts-expect-error
-    rest.layout.type ??= DEFAULT_LAYOUT_ID;
-    // @ts-expect-error
-    rest.layout.spotlightMode ??= spotlight_mode ?? DEFAULT_LAYOUT_ID;
-    // @ts-expect-error
-    rest.layout.gridSize ??= grid_size ?? 25;
-
-    return {
-      api_key,
-      token,
-      user_id: extractPayloadFromToken(token as string).user_id || user_id,
-      call_type,
-
-      ...rest,
-    } as unknown as ConfigurationValue;
-  }, []);
-
-  return (
-    <ConfigurationContext.Provider value={value}>
-      {children}
-    </ConfigurationContext.Provider>
-  );
-};

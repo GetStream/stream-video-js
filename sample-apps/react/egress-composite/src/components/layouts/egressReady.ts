@@ -1,4 +1,4 @@
-import { useNotifyEgressReady } from '../hooks/useNotifyEgress';
+import { useNotifyEgressReady } from '../../hooks/useNotifyEgress';
 import { useEffect, useState } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-react-sdk';
 

@@ -1,4 +1,4 @@
-import { CSSProperties, PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import {
   Call,
   CallingState,
@@ -7,13 +7,13 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from './ConfigurationContext';
-import layoutPairMap from './layouts';
 import { EgressReadyNotificationProvider } from './hooks/useNotifyEgress';
+
 import './CompositeApp.scss';
+import { UIDispatcher, LogoAndTitleOverlay } from './components';
 
 export const CompositeApp = () => {
   const {
@@ -83,82 +83,14 @@ export const CompositeApp = () => {
             </StreamCallProvider>
           )}
         </EgressReadyNotificationProvider>
+        {/* <StyleComponent /> */}
       </StreamThemeWrapper>
     </StreamVideo>
   );
 };
 
-const UIDispatcher = () => {
-  const { layout } = useConfigurationContext();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
-  const hasScreenShare = useHasOngoingScreenShare();
-  const { DefaultView, ScreenShareView } = layoutPairMap[layout.type];
-
-  return hasScreenShare ? <ScreenShareView /> : <DefaultView />;
-};
-
-const DEFAULT_BACKGROUND_STYLE: CSSProperties = {
-  background:
-    'linear-gradient(0deg, rgba(17,17,18,1) 0%, rgba(32,32,36,1) 50%, rgba(52,52,52,1) 100%)',
-};
-
-const DEFAULT_LOGO_STYLE: CSSProperties = {
-  position: 'absolute',
-  bottom: 10,
-  right: 10,
-  width: 200,
-};
-
-const DEFAULT_TITLE_STYLE: CSSProperties = {
-  position: 'absolute',
-  top: 10,
-  left: 10,
-  fontSize: 30,
-  padding: 10,
-};
-
 const StreamThemeWrapper = ({ children }: PropsWithChildren) => {
-  const { background: { style } = {} } = useConfigurationContext();
+  // TODO: background style
 
-  return (
-    <StreamTheme style={{ ...DEFAULT_BACKGROUND_STYLE, ...style }}>
-      {children}
-    </StreamTheme>
-  );
-};
-
-const LogoAndTitleOverlay = () => {
-  const {
-    title: { text, style: titleStyle } = {},
-    logo: { url, style: logoStyle } = {},
-  } = useConfigurationContext();
-
-  return (
-    <div
-      style={{
-        top: 0,
-        left: 0,
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      {text?.length && (
-        <div
-          data-test-id="title"
-          style={{ ...DEFAULT_TITLE_STYLE, ...titleStyle }}
-        >
-          {text}
-        </div>
-      )}
-      {url && (
-        <img
-          data-test-id="logo"
-          src={url}
-          style={{ ...DEFAULT_LOGO_STYLE, ...logoStyle }}
-          alt="logo"
-        />
-      )}
-    </div>
-  );
+  return <StreamTheme>{children}</StreamTheme>;
 };
