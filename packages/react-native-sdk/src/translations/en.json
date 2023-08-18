@@ -7,5 +7,7 @@
   "You": "You",
   "Reconnecting...": "Reconnecting...",
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
-  "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen"
+  "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
+  "Microphone Permission Required To Enable Audio": "Microphone permission not granted, can not enable audio",
+  "Camera Permission Required To Enable Video": "Camera permission not granted, can not enable video"
 }
