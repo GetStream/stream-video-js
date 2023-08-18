@@ -1,4 +1,4 @@
-import { PropsWithChildren, createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
 
 type ConfigurationValue = {

@@ -43,16 +43,16 @@ window.StreamCompositeApp = {
   },
 };
 
-(() => {
-  const v = document.createElement('script');
-  v.innerHTML = `window.StreamCompositeApp.configureAndRender({
-    call_id: "0oPvqrMsyUMj",
-    options: {
-      layout: {
-        main: "grid",
-        mode: "shuffle"
-      }
-    }
-  });`;
-  document.head.appendChild(v);
-})();
+// (() => {
+//   const v = document.createElement('script');
+//   v.innerHTML = `window.StreamCompositeApp.configureAndRender({
+//     call_id: "0oPvqrMsyUMj",
+//     options: {
+//       layout: {
+//         main: "grid",
+//         mode: "shuffle"
+//       }
+//     }
+//   });`;
+//   document.head.appendChild(v);
+// })();
