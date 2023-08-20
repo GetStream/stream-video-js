@@ -9,3 +9,4 @@ export * from './ToggleCameraFaceButton';
 export * from './ChatButton';
 export * from './ReactionButton';
 export * from './CallControls';
+export * from './LobbyControls';
