@@ -90,12 +90,14 @@ describe('StreamVideoClient', () => {
 
   it('API calls should be hold until auth is done - guest user', async () => {
     const user: User = {
-      id: 'jane-guest',
+      id: `jane-${generateUUIDv4()}`,
       type: 'guest',
     };
 
     client.connectUser(user);
-    const response = await client.queryCalls({});
+    const response = await client.queryCalls({
+      filter_conditions: { members: { $in: [user.id] } },
+    });
 
     expect(response.calls).toBeDefined();
   });
