@@ -17,6 +17,7 @@ export type ColorScheme = {
   overlay_dark: string;
   bars: string;
   content_bg: string;
+  dark_gray: string;
 };
 
 export type ColorType = Record<'light' | 'dark', ColorScheme>;

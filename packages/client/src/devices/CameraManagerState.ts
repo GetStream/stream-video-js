@@ -15,7 +15,7 @@ export class CameraManagerState extends InputMediaDeviceManagerState {
   direction$: Observable<CameraDirection>;
 
   constructor() {
-    super();
+    super('stop-tracks');
     this.direction$ = this.directionSubject
       .asObservable()
       .pipe(distinctUntilChanged());

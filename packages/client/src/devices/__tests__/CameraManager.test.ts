@@ -8,7 +8,6 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
-import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -83,7 +82,10 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
+      TrackType.VIDEO,
+      true,
+    );
   });
 
   it('flip', async () => {
@@ -129,18 +131,6 @@ describe('CameraManager', () => {
     expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
       deviceId,
     });
-  });
-
-  it('should pause and resume tracks', async () => {
-    await manager.enable();
-
-    manager.pause();
-
-    expect(manager.state.mediaStream?.getVideoTracks()[0].enabled).toBe(false);
-
-    manager.resume();
-
-    expect(manager.state.mediaStream?.getVideoTracks()[0].enabled).toBe(true);
   });
 
   afterEach(() => {

@@ -118,6 +118,9 @@ export const LocalParticipantView = ({
               ParticipantReaction={ParticipantReaction}
               ParticipantVideoFallback={CustomLocalParticipantViewVideoFallback}
               VideoRenderer={VideoRenderer}
+              // video z order must be one above the one used in grid view
+              // (which uses the default: 0)
+              videoZOrder={1}
             />
           )}
         </FloatingView>

@@ -1,0 +1,84 @@
+---
+id: recording
+title: Recording
+description: Recording
+---
+
+One highly sought-after feature in many communication applications is call recording. Whether it's for legal compliance, quality assurance, or simply for future reference, the ability to record calls is essential in numerous scenarios.
+
+This documentation article serves as a guide for implementing a call recording feature in your application. We will explore the technical aspects and best practices involved in capturing and storing recording data during calls.
+
+## Recording calls
+
+The `Call` object exposes the call recording API. To start recording, we simply invoke `call.startRecording()`. To stop recording, we use `call.stopRecording()`.
+To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well when we want to provide visual clues about the recording state. We have to be aware, that it can take a few moments until a call recording starts. We recommend creating a state for signaling that the call recording is starting, but has not begun yet.
+
+```tsx
+import React, { useCallback, useEffect, useState } from 'react';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+import { ActivityIndicator, Button } from 'react-native';
+
+export const CustomCallRecordButton = () => {
+  const call = useCall();
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
+  const isCallRecordingInProgress = useIsCallRecordingInProgress();
+  const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
+
+  useEffect(() => {
+    if (!call) {
+      return;
+    }
+    // we wait until call.recording_started/stopped event
+    // to remove the loading indicator
+    const eventHandlers = [
+      call.on('call.recording_started', () => setIsAwaitingResponse(false)),
+      call.on('call.recording_stopped', () => setIsAwaitingResponse(false)),
+    ];
+    return () => {
+      eventHandlers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [call]);
+
+  const toggleRecording = useCallback(async () => {
+    try {
+      setIsAwaitingResponse(true);
+      if (isCallRecordingInProgress) {
+        await call?.stopRecording();
+      } else {
+        await call?.startRecording();
+      }
+    } catch (e) {
+      console.error('Failed start recording', e);
+    }
+  }, [call, isCallRecordingInProgress]);
+
+  return isAwaitingResponse ? (
+    <ActivityIndicator />
+  ) : (
+    <Button
+      onPress={toggleRecording}
+      title={`${isCallRecordingInProgress ? 'Stop' : 'Start'} Recording`}
+    />
+  );
+};
+```
+
+### Permissions
+
+To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles the [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) component. It renders its children only if the user has sufficient permissions.
+
+To learn more about permissions, take a look at our [permissions guide](../../core/permissions-and-moderation).
+
+## Acquiring call recordings data
+
+The call recording data can be retrieved by calling the `Call` method `queryRecordings()`. By default, it retrieves all the call recordings for a given call (call CID). However, it accepts a single argument `callSessionId` that allows us to retrieve only recordings done during a single call session. The method returns `ListRecordingsResponse` that carries an array of `CallRecording` objects accessible through `recordings` key.
+
+:::note
+Multiple calls can be recorded during a single call session, but a single call CID can be reused for multiple sessions, too.
+:::
+
+:::note
+The call recording is not immediately available when the `call.recording_stopped` event is delivered.
+It may take 30 or more seconds for a recording to be available, advertised by emitting `call.recording_ready` event.
+:::

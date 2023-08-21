@@ -283,6 +283,9 @@ export class Publisher {
         previousTrack.removeEventListener('ended', handleTrackEnded);
         track.addEventListener('ended', handleTrackEnded);
       }
+      if (!track.enabled) {
+        track.enabled = true;
+      }
       await transceiver.sender.replaceTrack(track);
     }
 
@@ -298,8 +301,9 @@ export class Publisher {
    * Stops publishing the given track type to the SFU, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
+   * @param stopTrack specifies whether track should be stopped or just disabled
    */
-  unpublishStream = async (trackType: TrackType) => {
+  unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
@@ -308,7 +312,9 @@ export class Publisher {
       transceiver.sender.track &&
       transceiver.sender.track.readyState === 'live'
     ) {
-      transceiver.sender.track.stop();
+      stopTrack
+        ? transceiver.sender.track.stop()
+        : (transceiver.sender.track.enabled = false);
       return this.notifyTrackMuteStateChanged(
         undefined,
         transceiver.sender.track,
