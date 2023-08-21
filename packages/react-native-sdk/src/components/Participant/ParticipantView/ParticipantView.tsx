@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
   bottomView: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   isSpeaking: {
     borderColor: theme.light.primary,
