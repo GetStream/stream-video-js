@@ -13,6 +13,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useBrowserMediaPermissions,
 } from '@stream-io/video-react-sdk';
 
 import LobbyView from './components/Views/LobbyView';
@@ -58,6 +59,10 @@ const Init = () => {
   const [client, setClient] = useState<StreamVideoClient>();
 
   const { edges, fastestEdge } = useEdges(client);
+
+  const { hasBrowserMediaPermissions, isAwaitingPermission } =
+    useBrowserMediaPermissions();
+  console.log({ hasBrowserMediaPermissions, isAwaitingPermission });
 
   useEffect(() => {
     const _client = new StreamVideoClient({
@@ -191,6 +196,9 @@ const Init = () => {
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
+                browserPermissionsEnabled={
+                  hasBrowserMediaPermissions && !isAwaitingPermission
+                }
               />
             )}
           </ModalProvider>
