@@ -4,7 +4,7 @@ import {
   setOSInfo,
   SfuModels,
 } from '@stream-io/video-client';
-import { getDeviceInfoLib } from './device-info/libs';
+import { getExpoDeviceInfoLib, getRNDeviceInfoLib } from './device-info/libs';
 import { Platform } from 'react-native';
 import { version } from '../../version';
 
@@ -18,19 +18,28 @@ export const setClientDetails = () => {
     patch,
   });
 
-  const deviceInfo = getDeviceInfoLib();
+  const RNDeviceInfo = getRNDeviceInfoLib();
+  const expoDeviceInfo = getExpoDeviceInfoLib();
 
   setOSInfo({
     name: Platform.OS,
-    version: deviceInfo.getSystemVersion(),
-    architecture: deviceInfo.supportedAbisSync().join(','),
+    version: RNDeviceInfo
+      ? RNDeviceInfo.getSystemVersion()
+      : expoDeviceInfo.osVersion!!,
+    architecture: RNDeviceInfo
+      ? RNDeviceInfo.supportedAbisSync().join(',')
+      : expoDeviceInfo.supportedCpuArchitectures?.join(',')!!,
   });
 
   setDeviceInfo({
     // Apple iPhone SE Handset, Google sdk_gphone64_x86_64 Handset
-    name: `${deviceInfo.getManufacturerSync()} ${
-      deviceInfo.getModel() ?? deviceInfo.getDeviceId()
-    } ${deviceInfo.getDeviceType()}`,
+    name: RNDeviceInfo
+      ? `${RNDeviceInfo.getManufacturerSync()} ${
+          RNDeviceInfo.getModel() ?? RNDeviceInfo.getDeviceId()
+        } ${RNDeviceInfo.getDeviceType()}`
+      : `${expoDeviceInfo.manufacturer} ${
+          expoDeviceInfo.modelId ?? expoDeviceInfo.deviceName
+        } ${expoDeviceInfo.deviceType}`,
     version: '',
   });
 };
