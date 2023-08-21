@@ -1,3 +1,4 @@
+export * from './useBrowserMediaPermissions';
 export * from './useFloatingUIPreset';
 export * from './useScrollPosition';
 export * from './useToggleAudioMuteState';
