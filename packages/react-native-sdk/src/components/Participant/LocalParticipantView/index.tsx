@@ -116,6 +116,9 @@ export const LocalParticipantView = ({
               participant={localParticipant}
               videoMode={'video'}
               style={[styles.floatingViewContainer, style]}
+              // video z order must be one above the one used in grid view
+              // (which uses the default: 0)
+              videoZOrder={1}
               {...participantViewProps}
             />
           )}

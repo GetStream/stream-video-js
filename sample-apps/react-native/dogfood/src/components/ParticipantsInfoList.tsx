@@ -31,6 +31,7 @@ import { appTheme } from '../theme';
 import { ParticipantActions } from './ParticipantActions';
 import { generateParticipantTitle } from '../utils';
 import { Z_INDEX } from '../constants';
+import { ButtonTestIds } from '../constants/TestIds';
 
 export interface ParticipantsInfoListProps {
   /**
@@ -121,6 +122,7 @@ export const ParticipantsInfoList = ({
               <Pressable
                 onPress={onCloseCallParticipantsVisible}
                 style={styles.closePressable}
+                testID={ButtonTestIds.EXIT_PARTICIPANTS_INFO}
               >
                 <Cross color={appTheme.colors.primary} style={theme.icon.xs} />
               </Pressable>

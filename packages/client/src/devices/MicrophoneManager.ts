@@ -21,25 +21,16 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   protected publishStream(stream: MediaStream): Promise<void> {
     return this.call.publishAudioStream(stream);
   }
-  protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(TrackType.AUDIO);
+  protected stopPublishStream(stopTracks: boolean): Promise<void> {
+    return this.call.stopPublish(TrackType.AUDIO, stopTracks);
   }
 
-  /**
-   * Disables the audio tracks of the microphone
-   */
-  pause() {
-    this.state.mediaStream?.getAudioTracks().forEach((track) => {
-      track.enabled = false;
-    });
+  protected muteTracks(): void {
+    this.state.mediaStream
+      ?.getAudioTracks()
+      .forEach((t) => (t.enabled = false));
   }
-
-  /**
-   * (Re)enables the audio tracks of the microphone
-   */
-  resume() {
-    this.state.mediaStream?.getAudioTracks().forEach((track) => {
-      track.enabled = true;
-    });
+  protected unmuteTracks(): void {
+    this.state.mediaStream?.getAudioTracks().forEach((t) => (t.enabled = true));
   }
 }
