@@ -3,6 +3,7 @@ import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { StreamVideoServerClient } from '../StreamVideoServerClient';
+import { User } from '../coordinator/connection/types';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -85,6 +86,18 @@ describe('StreamVideoClient', () => {
     expect(params['connection_id']).toBe(
       client.streamClient._getConnectionID(),
     );
+  });
+
+  it('API calls should be hold until auth is done - guest user', async () => {
+    const user: User = {
+      id: 'jane-guest',
+      type: 'guest',
+    };
+
+    client.connectUser(user);
+    const response = await client.queryCalls({});
+
+    expect(response.calls).toBeDefined();
   });
 
   afterEach(() => {
