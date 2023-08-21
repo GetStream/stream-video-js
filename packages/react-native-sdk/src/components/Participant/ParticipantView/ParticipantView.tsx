@@ -19,6 +19,15 @@ export type ParticipantViewProps = {
    */
   participant: StreamVideoParticipant;
   /**
+   * The zOrder for the video that will be displayed.
+   * For example, a video call
+   * application usually needs a maximum of two zOrder values: 0 for the
+   * remote video(s) which appear in the background, and 1 for the local
+   * video(s) which appear above the remote video(s).
+   * @default 0
+   */
+  videoZOrder?: number;
+  /**
    * The video kind that will be displayed.
    */
   videoMode: ParticipantVideoType;
@@ -70,6 +79,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
     VideoRenderer,
     ParticipantNetworkQualityIndicator,
     ParticipantVideoFallback,
+    videoZOrder = 0,
   } = props;
 
   const { isSpeaking, userId } = participant;
@@ -93,6 +103,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           participant={participant}
           videoMode={videoMode}
           ParticipantVideoFallback={ParticipantVideoFallback}
+          videoZOrder={videoZOrder}
         />
       )}
       <View style={styles.bottomView}>

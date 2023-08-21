@@ -1092,10 +1092,11 @@ export class Call {
    *
    *
    * @param trackType the track type to stop publishing.
+   * @param stopTrack if `true` the track will be stopped, else it will be just disabled
    */
-  stopPublish = async (trackType: TrackType) => {
+  stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
     this.logger('info', `stopPublish ${TrackType[trackType]}`);
-    await this.publisher?.unpublishStream(trackType);
+    await this.publisher?.unpublishStream(trackType, stopTrack);
   };
 
   /**

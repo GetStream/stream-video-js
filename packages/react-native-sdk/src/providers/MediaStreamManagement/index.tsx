@@ -62,14 +62,14 @@ export const MediaStreamManagement = ({
 }: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
 
-  // Pause/Resume video stream tracks when app goes to background/foreground
+  // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
   useAppStateListener(
     () => {
       call?.camera?.resume();
     },
     () => {
-      call?.camera?.pause();
+      call?.camera?.disable();
     },
   );
 

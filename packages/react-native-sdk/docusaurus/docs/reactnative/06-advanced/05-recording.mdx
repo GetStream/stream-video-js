@@ -14,10 +14,10 @@ The `Call` object exposes the call recording API. To start recording, we simply 
 To determine, whether a call recording is in progress, we use `useIsCallRecordingInProgress` hook. This may serve us well when we want to provide visual clues about the recording state. We have to be aware, that it can take a few moments until a call recording starts. We recommend creating a state for signaling that the call recording is starting, but has not begun yet.
 
 ```tsx
-import { useCallback, useEffect, useState } from 'react';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
-import { LoadingIndicator } from '../LoadingIndicator';
+import { ActivityIndicator, Button } from 'react-native';
 
 export const CustomCallRecordButton = () => {
   const call = useCall();
@@ -26,7 +26,9 @@ export const CustomCallRecordButton = () => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
 
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      return;
+    }
     // we wait until call.recording_started/stopped event
     // to remove the loading indicator
     const eventHandlers = [
@@ -47,27 +49,26 @@ export const CustomCallRecordButton = () => {
         await call?.startRecording();
       }
     } catch (e) {
-      console.error(`Failed start recording`, e);
+      console.error('Failed start recording', e);
     }
   }, [call, isCallRecordingInProgress]);
 
   return isAwaitingResponse ? (
-    <LoadingIndicator />
+    <ActivityIndicator />
   ) : (
-    <button onClick={toggleRecording}>{/* Button content */}</button>
+    <Button
+      onPress={toggleRecording}
+      title={`${isCallRecordingInProgress ? 'Stop' : 'Start'} Recording`}
+    />
   );
 };
 ```
 
 ### Permissions
 
-To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles component [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) that renders its children only if the user has sufficient permissions. The SDK's [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton) makes use of the [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) component.
+To start and stop recording, the user has to have corresponding permissions. We therefore encourage the integrators to check the permissions before allowing users to execute a given action. The SDK bundles the [`Restricted`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-bindings/src/wrappers/Restricted.tsx) component. It renders its children only if the user has sufficient permissions.
 
-To learn more about permissions, take a look at our [permissions guide](../../guides/permissions-and-moderation).
-
-### Call recording SDK components
-
-The React SDK comes with [`RecordCallButton`](../../ui-components/call/call-controls/#recordcallbutton), that takes care of initiating the call recording.
+To learn more about permissions, take a look at our [permissions guide](../../core/permissions-and-moderation).
 
 ## Acquiring call recordings data
 
@@ -81,7 +82,3 @@ Multiple calls can be recorded during a single call session, but a single call C
 The call recording is not immediately available when the `call.recording_stopped` event is delivered.
 It may take 30 or more seconds for a recording to be available, advertised by emitting `call.recording_ready` event.
 :::
-
-## Call recording listing SDK components
-
-The React SDK provides [`CallRecordingList`](../../ui-components/call/call-recordings-list) component to display call recordings.
