@@ -926,8 +926,12 @@ export class Call {
 
       // React uses a different device management for now
       if (getSdkInfo()?.type !== SdkType.REACT) {
-        await this.initCamera();
-        await this.initMic();
+        try {
+          await this.initCamera();
+          await this.initMic();
+        } catch (error) {
+          this.logger('warn', 'Camera and/or mic init failed during join call');
+        }
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
