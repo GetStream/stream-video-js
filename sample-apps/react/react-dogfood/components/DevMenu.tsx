@@ -52,9 +52,45 @@ export const DevMenu = () => {
           <Divider />
           <LogPublisherStats />
           <LogSubscriberStats />
+          <Divider />
+          <StartStopBroadcasting />
         </MenuList>
       </Menu>
     </div>
+  );
+};
+
+const StartStopBroadcasting = () => {
+  const call = useCall();
+  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
+  const isBroadcasting = useIsCallBroadcastingInProgress();
+  return (
+    <MenuItem
+      onClick={() => {
+        if (!call) return;
+        if (isBroadcasting) {
+          call.stopHLS().catch((err) => {
+            console.error(`Failed to start broadcasting`, err);
+          });
+        } else {
+          call
+            .startHLS()
+            .then((res) => {
+              console.log(`Broadcasting started: ${res.playlist_url}`);
+            })
+            .catch((err) => {
+              console.error(`Failed to stop broadcasting`, err);
+            });
+        }
+      }}
+    >
+      <ListItemIcon>
+        {isBroadcasting ? <EndBroadcastIcon /> : <StartBroadcastIcon />}
+      </ListItemIcon>
+      <ListItemText>
+        {isBroadcasting ? 'Stop broadcasting' : 'Start broadcasting'}
+      </ListItemText>
+    </MenuItem>
   );
 };
 
