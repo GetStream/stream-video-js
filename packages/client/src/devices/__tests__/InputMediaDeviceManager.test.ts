@@ -195,6 +195,23 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.enable).not.toHaveBeenCalled();
   });
 
+  it(`shouldn't resume if it were disabled while in pause`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.enable();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+
+    // first call is pause
+    await manager.disable();
+    // second call is for example mute from call admin
+    await manager.disable();
+
+    await manager.resume();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
