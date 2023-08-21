@@ -152,16 +152,7 @@ export class StreamVideoClient {
     };
     if (user.type === 'guest') {
       connectUser = async () => {
-        const response = await this.createGuestUser({
-          user: {
-            ...user,
-            role: 'guest',
-          },
-        });
-        return this.streamClient.connectUser(
-          response.user,
-          response.access_token,
-        );
+        return this.streamClient.connectGuestUser(user);
       };
     }
     this.connectionPromise = this.disconnectionPromise
