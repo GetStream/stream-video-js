@@ -1846,43 +1846,44 @@ export class Call {
       );
     };
 
-    const p_ = this.state.findParticipantBySessionId(sessionId);
+    const matchedParticipant = this.state.findParticipantBySessionId(sessionId);
 
-    if (!p_) return;
+    if (!matchedParticipant) return;
 
-    const participant$ = this.state.participantLookupBySessionId$.pipe(
+    const participant$ = this.state.participants$.pipe(
       map(
-        (lookupTable) =>
-          lookupTable[sessionId] as
-            | StreamVideoParticipant
-            | StreamVideoLocalParticipant,
+        (participants) =>
+          participants.find(
+            (participant) => participant.sessionId === sessionId,
+          ) as StreamVideoLocalParticipant | StreamVideoParticipant,
       ),
-      distinctUntilChanged(),
       takeWhile((participant) => !!participant),
+      distinctUntilChanged(),
     );
 
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
-    const visibilityStateSubscription = p_.isLocalParticipant
-      ? null
-      : participant$
-          .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
-          .subscribe((v) => {
-            // skip initial trigger
-            if (!viewportVisibilityState) {
-              return (viewportVisibilityState =
-                v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
-            }
+    const viewportVisibilityStateSubscription =
+      matchedParticipant.isLocalParticipant
+        ? null
+        : participant$
+            .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
+            .subscribe((v) => {
+              // skip initial trigger
+              if (!viewportVisibilityState) {
+                return (viewportVisibilityState =
+                  v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
+              }
 
-            if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
-              return doUpdate(DebounceType.MEDIUM, null);
-            }
+              if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
+                return doUpdate(DebounceType.MEDIUM, null);
+              }
 
-            doUpdate(DebounceType.MEDIUM);
-          });
+              doUpdate(DebounceType.MEDIUM);
+            });
 
     let lastDimensions: string | undefined;
-    const resizeObserver = p_.isLocalParticipant
+    const resizeObserver = matchedParticipant.isLocalParticipant
       ? null
       : new ResizeObserver(() => {
           const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
@@ -1903,7 +1904,7 @@ export class Call {
         });
     resizeObserver?.observe(videoElement);
 
-    const publishedTracksSubscription = p_.isLocalParticipant
+    const publishedTracksSubscription = matchedParticipant.isLocalParticipant
       ? null
       : participant$
           .pipe(
@@ -1938,10 +1939,10 @@ export class Call {
     videoElement.autoplay = true;
 
     const cleanup = () => {
-      resizeObserver?.disconnect();
-      visibilityStateSubscription?.unsubscribe();
+      viewportVisibilityStateSubscription?.unsubscribe();
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
+      resizeObserver?.disconnect();
     };
 
     this.leaveCallHooks.add(cleanup);
