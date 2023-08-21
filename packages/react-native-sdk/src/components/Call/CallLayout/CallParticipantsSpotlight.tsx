@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: theme.padding.sm,
-    backgroundColor: theme.light.static_grey,
+    backgroundColor: theme.light.dark_gray,
   },
   fullScreen: {
     flex: 1,

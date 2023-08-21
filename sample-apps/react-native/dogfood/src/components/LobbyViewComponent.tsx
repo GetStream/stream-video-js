@@ -1,6 +1,11 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Lobby, theme, useI18n } from '@stream-io/video-react-native-sdk';
-import React from 'react';
+import {
+  JoinCallButton,
+  Lobby,
+  theme,
+  useI18n,
+} from '@stream-io/video-react-native-sdk';
+import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
@@ -10,19 +15,24 @@ type LobbyViewComponentType = NativeStackScreenProps<
   'MeetingScreen' | 'GuestMeetingScreen'
 > & {
   callId: string;
-  onCallJoinHandler: () => void;
+  onJoinCallHandler: () => void;
 };
 
 export const LobbyViewComponent = ({
   callId,
   navigation,
   route,
-  onCallJoinHandler,
+  onJoinCallHandler,
 }: LobbyViewComponentType) => {
   const { t } = useI18n();
+
+  const JoinCallButtonComponent = useCallback(() => {
+    return <JoinCallButton onPressHandler={onJoinCallHandler} />;
+  }, [onJoinCallHandler]);
+
   return (
     <View style={[StyleSheet.absoluteFill, styles.container]}>
-      <Lobby joinCallButton={{ onPressHandler: onCallJoinHandler }} />
+      <Lobby JoinCallButton={JoinCallButtonComponent} />
       {route.name === 'MeetingScreen' ? (
         <Pressable
           style={styles.anonymousButton}

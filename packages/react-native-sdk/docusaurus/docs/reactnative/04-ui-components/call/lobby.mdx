@@ -14,44 +14,41 @@ Lobby is a component that is designed to make your entrance and invite experienc
 
 ## General usage
 
-```tsx
+```tsx {9}
 import { useCallback } from 'react';
 import { Lobby, useCall } from '@stream-io/video-react-native-sdk';
 
 const LobbyComponent = () => {
-  let call = useCall();
+  const onJoinCallHandler = () => {
+    // Handle what should happen after the call is joined. Eg: navigation, etc.
+  };
 
-  const onCallJoinHandler = useCallback(async () => {
-    try {
-      // Handle what should happen before joining the call. Eg: showing loader, etc.
-      await call?.join({ create: true });
-      // Handle what should happen after the call is joined. Eg: navigation, etc.
-    } catch (error) {
-      // Handle the case when there is an error while joining the call
-    }
-  }, [call]);
-
-  // highlight-next-line
-  return <Lobby joinCallButton={{ onPressHandler: onCallJoinHandler }} />;
+  return <Lobby onJoinCallHandler={onJoinCallHandler} />;
 };
 ```
 
 ## Props
 
-### `joinCallButton`
+### `onJoinCallHandler`
 
-| Type                                |
-| ----------------------------------- |
-| [JoinCallButton](#joincallbutton-1) |
+Handler to be called when the call is joined using the join button in the Lobby.
 
-Prop for the join call button that contains all the necessary elements to make it functional.
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
 
-## Button Prop
+### `LobbyControls`
+
+Prop to customize the media controls in the Lobby component entirely.
+
+| Type                          | Default Value                                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ComponentType`\| `undefined` | [`LobbyControls`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/LobbyControls.tsx) |
 
 ### `JoinCallButton`
 
-This handles the joining of the call from the app. It can be also used to show user feedback before/after joining or handling errors, as in the example of [General usage](#general-usage) above.
+Prop to customize the Join call button in the Lobby component.
 
-| Name             | Description                                           | Type         |
-| ---------------- | ----------------------------------------------------- | ------------ |
-| `onPressHandler` | Callback to be called when the join button is pressed | `() => void` |
+| Type                          | Default Value                                                                                                                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ComponentType`\| `undefined` | [`LobbyControls`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/Lobby/JoinCallButton.tsx) |

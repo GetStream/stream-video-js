@@ -5,6 +5,7 @@ import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { LocalParticipantViewProps } from '../../Participant';
+import { theme } from '../../../theme';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -81,5 +82,6 @@ export const CallParticipantsGrid = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.light.dark_gray,
   },
 });

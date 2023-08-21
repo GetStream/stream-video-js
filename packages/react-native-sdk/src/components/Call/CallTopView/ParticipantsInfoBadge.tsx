@@ -5,6 +5,7 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { theme } from '../../../theme';
 import { Z_INDEX } from '../../../constants';
 import { CallTopViewProps } from '..';
+import { ButtonTestIds } from '../../../constants/TestIds';
 
 /**
  * Props for the ParticipantsInfoBadge component.
@@ -31,6 +32,7 @@ export const ParticipantsInfoBadge = ({
         { ...styles.container, opacity: pressed ? 0.2 : 1 },
       ]}
       disabled={!onParticipantInfoPress}
+      testID={ButtonTestIds.PARTICIPANTS_INFO}
     >
       <View style={theme.icon.md}>
         <Participants color={theme.light.static_white} />

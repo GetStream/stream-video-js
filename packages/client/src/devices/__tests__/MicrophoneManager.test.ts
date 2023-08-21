@@ -81,19 +81,20 @@ describe('MicrophoneManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
+      TrackType.AUDIO,
+      false,
+    );
   });
 
-  it('should pause and resume tracks', async () => {
+  it('disable-enable mic should set track.enabled', async () => {
     await manager.enable();
 
-    manager.pause();
+    expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(true);
 
-    expect(manager.state.mediaStream?.getAudioTracks()[0].enabled).toBe(false);
+    await manager.disable();
 
-    manager.resume();
-
-    expect(manager.state.mediaStream?.getAudioTracks()[0].enabled).toBe(true);
+    expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(false);
   });
 
   afterEach(() => {
