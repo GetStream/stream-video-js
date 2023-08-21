@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
 
-type ConfigurationValue = {
+export type ConfigurationValue = {
   base_url?: string;
   api_key: string;
   token: string;
@@ -64,7 +64,12 @@ export const extractPayloadFromToken = (token: string) => {
 
   if (!payload) throw new Error('Malformed token, missing payload');
 
-  return (JSON.parse(decode(payload)) ?? {}) as Record<string, unknown>;
+  try {
+    return (JSON.parse(decode(payload)) ?? {}) as Record<string, unknown>;
+  } catch (e) {
+    console.log('Error parsing token payload', e);
+    return {};
+  }
 };
 
 export const useConfigurationContext = () => useContext(ConfigurationContext);
