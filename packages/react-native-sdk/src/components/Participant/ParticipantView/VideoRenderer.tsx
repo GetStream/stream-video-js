@@ -8,6 +8,7 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 
 /**
  * Props for the VideoRenderer component.
@@ -30,7 +31,7 @@ export const VideoRenderer = ({
   videoMode,
   participant,
   isVisible = true,
-  ParticipantVideoFallback,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
   videoZOrder = 0,
 }: VideoRendererProps) => {
   const call = useCall();
