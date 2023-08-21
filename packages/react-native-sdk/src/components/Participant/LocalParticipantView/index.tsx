@@ -8,6 +8,10 @@ import { theme } from '../../../theme';
 import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
+import {
+  ParticipantView as DefaultParticipantView,
+  ParticipantViewComponentProps,
+} from '../ParticipantView';
 
 export type LocalParticipantViewAlignment =
   | 'top-left'
@@ -18,24 +22,17 @@ export type LocalParticipantViewAlignment =
 /**
  * Props to be passed for the LocalVideoView component.
  */
-export type LocalParticipantViewProps = Pick<
-  CallParticipantsListProps,
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
-  /**
-   * Determines where the floating participant video will be placed.
-   */
-  alignment?: LocalParticipantViewAlignment;
-  /**
-   * Custom style to be merged with the local participant view.
-   */
-  style?: StyleProp<ViewStyle>;
-};
+export type LocalParticipantViewProps = ParticipantViewComponentProps &
+  Pick<CallParticipantsListProps, 'ParticipantView'> & {
+    /**
+     * Determines where the floating participant video will be placed.
+     */
+    alignment?: LocalParticipantViewAlignment;
+    /**
+     * Custom style to be merged with the local participant view.
+     */
+    style?: StyleProp<ViewStyle>;
+  };
 
 const CustomLocalParticipantViewVideoFallback = () => {
   return (
@@ -53,9 +50,9 @@ const CustomLocalParticipantViewVideoFallback = () => {
 export const LocalParticipantView = ({
   alignment = 'top-right',
   style,
+  ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
-  ParticipantView,
   VideoRenderer,
 }: LocalParticipantViewProps) => {
   const { useLocalParticipant } = useCallStateHooks();
@@ -79,6 +76,14 @@ export const LocalParticipantView = ({
   if (!localParticipant) {
     return null;
   }
+
+  const participantViewProps: ParticipantViewComponentProps = {
+    ParticipantLabel: null,
+    ParticipantNetworkQualityIndicator,
+    ParticipantReaction,
+    ParticipantVideoFallback: CustomLocalParticipantViewVideoFallback,
+    VideoRenderer,
+  };
 
   return (
     <View
@@ -111,16 +116,10 @@ export const LocalParticipantView = ({
               participant={localParticipant}
               videoMode={'video'}
               style={[styles.floatingViewContainer, style]}
-              ParticipantLabel={undefined}
-              ParticipantNetworkQualityIndicator={
-                ParticipantNetworkQualityIndicator
-              }
-              ParticipantReaction={ParticipantReaction}
-              ParticipantVideoFallback={CustomLocalParticipantViewVideoFallback}
-              VideoRenderer={VideoRenderer}
               // video z order must be one above the one used in grid view
               // (which uses the default: 0)
               videoZOrder={1}
+              {...participantViewProps}
             />
           )}
         </FloatingView>
