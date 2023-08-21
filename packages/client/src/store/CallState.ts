@@ -98,7 +98,7 @@ export enum CallingState {
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
 export class CallState {
-  private backstageSubject = new BehaviorSubject<boolean>(false);
+  private backstageSubject = new BehaviorSubject<boolean>(true);
   private blockedUserIdsSubject = new BehaviorSubject<string[]>([]);
   private createdAtSubject = new BehaviorSubject<Date>(new Date());
   private endedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
