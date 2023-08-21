@@ -131,6 +131,8 @@ For more information, check the [Call Types](../../guides/configuring-call-types
 Finally, using `call.join({ create: true })` will not only create the call object on our servers but also initiate the real-time transport for audio and video.
 This allows for seamless and immediate engagement in the livestream.
 
+`call.camera.enable()` and `call.microphone.enable()` will start publishing the user's audio and video.
+
 :::note
 You can also add members to a call and assign them different roles.
 
@@ -241,7 +243,7 @@ export const renderVideo = (participant: StreamVideoParticipant) => {
 Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world.
 This makes it possible to reach a large audience in realtime.
 
-Now let's press **Start Livestream** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
+Now let's press **Go live** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
 
 <TokenSnippet sampleApp="livestream" displayStyle="join" />
 
@@ -334,12 +336,6 @@ await call.startHLS();
 // or alternatively:
 // await call.goLive({ start_hls: true });
 
-// take the URL to the M3U8 playlist
-const { useCallEgress } = useCallStateHooks();
-const egress = useCallEgress();
-const playlistUrl = egress?.hls?.playlist_url;
-console.log('HLS playlist url:', playlistUrl);
-
 call.state.egress$.subscribe((egress) => {
   if (egress?.hls?.playlist_url) {
     console.log('HLS playlist url:', egress?.hls?.playlist_url);
@@ -351,7 +347,10 @@ You can view the HLS video feed using any HLS capable video player.
 
 ### See it all in action
 
-// TODO
+You can use the following CodeSandbox playgrounds to test streaming:
+
+- [Host application](https://codesandbox.io/s/javascript-livestream-host-3hs4vt)
+- [Viewer application](https://codesandbox.io/s/javascript-livestream-viewer-lwzgmw)
 
 ### Step 7 - Advanced Features
 
