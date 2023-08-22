@@ -1,9 +1,12 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
 
+import { ColorValue } from 'react-native';
+
 type Props = {
-  color: string;
+  color: ColorValue;
 };
+
 
 export const Mic = ({ color }: Props) => (
   <Svg viewBox="0 0 22 28">

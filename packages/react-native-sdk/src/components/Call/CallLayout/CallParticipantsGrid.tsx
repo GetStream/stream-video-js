@@ -12,7 +12,7 @@ import {
   LocalParticipantView as DefaultLocalParticipantView,
   LocalParticipantViewProps,
 } from '../../Participant';
-import { theme } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -41,6 +41,9 @@ export const CallParticipantsGrid = ({
   ParticipantView,
   VideoRenderer,
 }: CallParticipantsGridProps) => {
+  const {
+    theme: { colors, callParticipantsGrid },
+  } = useTheme();
   const { useRemoteParticipants, useParticipants } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
   const allParticipants = useParticipants();
@@ -62,7 +65,11 @@ export const CallParticipantsGrid = ({
 
   return (
     <View
-      style={styles.container}
+      style={[
+        styles.container,
+        { backgroundColor: colors.dark_gray },
+        callParticipantsGrid.container,
+      ]}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
       {showFloatingView && LocalParticipantView && (
@@ -81,6 +88,5 @@ export const CallParticipantsGrid = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.light.dark_gray,
   },
 });

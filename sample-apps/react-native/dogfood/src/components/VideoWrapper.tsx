@@ -46,7 +46,29 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient} translationsOverrides={translations}>
+    <StreamVideo
+      client={videoClient}
+      translationsOverrides={translations}
+      style={{
+        colors: {
+          static_black: '#ffffff',
+        },
+        callControlsButton: {
+          container: {
+            backgroundColor: 'red',
+          },
+          svgContainer: {
+            height: 24,
+            width: 24,
+          },
+        },
+        callParticipantsSpotlight: {
+          spotlightContainer: {
+            flex: 6,
+          },
+        },
+      }}
+    >
       {children}
     </StreamVideo>
   );

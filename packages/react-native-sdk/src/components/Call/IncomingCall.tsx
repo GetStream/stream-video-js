@@ -6,10 +6,10 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
-import { theme } from '../../theme';
 import { RejectCallButton } from './CallControls/RejectCallButton';
 import { AcceptCallButton } from './CallControls/AcceptCallButton';
 import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /**
  * The props for the Accept Call button in the IncomingCall component.
@@ -56,15 +56,27 @@ export const IncomingCall = ({
   rejectCallButton,
 }: IncomingCallType) => {
   const { t } = useI18n();
+  const {
+    theme: { colors, incomingCall, typefaces },
+  } = useTheme();
 
   return (
     <Background>
-      <View style={styles.content}>
+      <View style={[styles.content, incomingCall.content]}>
         <UserInfo />
-        <Text style={styles.incomingCallText}>{t('Incoming Call...')}</Text>
+        <Text
+          style={[
+            styles.incomingCallText,
+            { color: colors.static_white },
+            typefaces.heading6,
+            incomingCall.incomingCallText,
+          ]}
+        >
+          {t('Incoming Call...')}
+        </Text>
       </View>
 
-      <View style={styles.buttonGroup}>
+      <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
         <RejectCallButton onPressHandler={rejectCallButton?.onPressHandler} />
         <ToggleVideoPreviewButton />
         <AcceptCallButton onPressHandler={acceptCallButton?.onPressHandler} />
@@ -76,6 +88,9 @@ export const IncomingCall = ({
 const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const {
+    theme: { colors, incomingCall },
+  } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
@@ -93,31 +108,42 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
         source={{
           uri: avatarsToShow[0],
         }}
-        style={[StyleSheet.absoluteFill, styles.background]}
+        style={[
+          StyleSheet.absoluteFill,
+          styles.background,
+          { backgroundColor: colors.static_grey },
+          incomingCall.background,
+        ]}
       >
         {children}
       </ImageBackground>
     );
   }
   return (
-    <View style={[StyleSheet.absoluteFill, styles.background]}>{children}</View>
+    <View
+      style={[
+        StyleSheet.absoluteFill,
+        styles.background,
+        { backgroundColor: colors.static_grey },
+        incomingCall.background,
+      ]}
+    >
+      {children}
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   background: {
-    backgroundColor: theme.light.static_grey,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
-    paddingVertical: 2 * theme.margin.xl,
+    paddingVertical: 64,
   },
   content: {},
   incomingCallText: {
-    marginTop: theme.margin.md,
+    marginTop: 16,
     textAlign: 'center',
-    color: theme.light.static_white,
-    ...theme.fonts.heading6,
   },
   buttonGroup: {
     flexDirection: 'row',

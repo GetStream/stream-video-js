@@ -9,6 +9,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { MediaDevices } from './MediaDevices';
 import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
+import { DeepPartial, ThemeProvider } from '../contexts/ThemeContext';
+import { Theme } from '../theme/theme';
 
 /**
  *
@@ -18,7 +20,12 @@ import { translations } from '../translations';
  * @category Client State
  */
 export const StreamVideo = (
-  props: PropsWithChildren<StreamVideoProps & StreamI18nProviderProps>,
+  props: PropsWithChildren<
+    StreamVideoProps &
+      StreamI18nProviderProps & {
+        style?: DeepPartial<Theme>;
+      }
+  >,
 ) => {
   const {
     client,
@@ -26,6 +33,7 @@ export const StreamVideo = (
     translationsOverrides = translations,
     i18nInstance,
     language,
+    style,
   } = props;
 
   /**
@@ -56,11 +64,13 @@ export const StreamVideo = (
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
     >
-      <StreamVideoStoreProvider>
-        <MediaDevices />
-        <PushRegister />
-        {children}
-      </StreamVideoStoreProvider>
+      <ThemeProvider style={style}>
+        <StreamVideoStoreProvider>
+          <MediaDevices />
+          <PushRegister />
+          {children}
+        </StreamVideoStoreProvider>
+      </ThemeProvider>
     </StreamVideoProvider>
   );
 };

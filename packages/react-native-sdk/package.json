@@ -30,6 +30,7 @@
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "intl-pluralrules": "2.0.1",
+    "lodash.merge": "^4.6.2",
     "react-native-url-polyfill": "2.0.0",
     "text-encoding-polyfill": "0.6.7"
   },
@@ -80,6 +81,7 @@
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@types/jest": "^29.5.1",
+    "@types/lodash.merge": "^4",
     "@types/react": "18.0.26",
     "@types/react-native": "^0.70.4",
     "@types/react-native-incall-manager": "^3.2.1",

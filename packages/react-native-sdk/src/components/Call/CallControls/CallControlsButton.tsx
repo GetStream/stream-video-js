@@ -1,13 +1,13 @@
 import React from 'react';
 import {
+  ColorValue,
   Pressable,
   PressableProps,
-  StyleProp,
   StyleSheet,
   View,
-  ViewStyle,
 } from 'react-native';
-import { theme } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
+import { Theme } from '../../../theme/theme';
 
 interface CallControlsButtonProps {
   /**
@@ -17,7 +17,7 @@ interface CallControlsButtonProps {
   /**
    * The background color of the button rendered.
    */
-  color?: string;
+  color?: ColorValue;
   /**
    * Boolean to enable/disable the button
    */
@@ -25,11 +25,8 @@ interface CallControlsButtonProps {
   /**
    * Style to the Pressable button.
    */
-  style?: StyleProp<ViewStyle>;
-  /**
-   * Style of the SVG rendered inside the button.
-   */
-  svgContainerStyle?: StyleProp<ViewStyle>;
+  style?: Theme['callControlsButton'];
+  size?: number;
   /**
    * Accessibility label for the button.
    */
@@ -41,9 +38,6 @@ interface CallControlsButtonProps {
   onLayout?: View['props']['onLayout'];
 }
 
-const DEFAULT_ICON_SIZE = theme.icon.md;
-const DEFAULT_BUTTON_SIZE = theme.button.sm;
-
 export const CallControlsButton = (
   props: React.PropsWithChildren<CallControlsButtonProps>,
 ) => {
@@ -51,22 +45,35 @@ export const CallControlsButton = (
     onPress,
     children,
     disabled,
-    color,
-    style,
-    svgContainerStyle,
+    color: colorProp,
+    style: styleProp,
+    size,
     testID,
     onLayout,
   } = props;
 
+  const {
+    theme: {
+      variants: { buttonSizes },
+      colors,
+      callControlsButton: { container },
+    },
+  } = useTheme();
+
   const pressableStyle: PressableProps['style'] = ({ pressed }) => [
-    DEFAULT_BUTTON_SIZE,
     styles.container,
     {
-      backgroundColor: color,
+      backgroundColor: disabled
+        ? colors.disabled
+        : colorProp || colors.static_white,
       opacity: pressed ? 0.2 : 1,
+      height: size || buttonSizes.sm,
+      width: size || buttonSizes.sm,
+      borderRadius: (size || buttonSizes.sm) / 2,
+      borderColor: colors.content_bg,
     },
-    style,
-    disabled ? styles.disabledStyle : null,
+    styleProp?.container ?? null,
+    container,
   ];
 
   return (
@@ -77,7 +84,15 @@ export const CallControlsButton = (
       testID={testID}
       onLayout={onLayout}
     >
-      <View style={[DEFAULT_ICON_SIZE, svgContainerStyle ?? null]}>
+      <View
+        style={[
+          {
+            height: (size || buttonSizes.sm) / 2 - 5,
+            width: (size || buttonSizes.sm) / 2 - 5,
+          },
+          styleProp?.svgContainer ?? null,
+        ]}
+      >
         {children}
       </View>
     </Pressable>
@@ -88,7 +103,6 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: theme.light.content_bg,
     alignItems: 'center',
     // For iOS
     shadowColor: '#000',
@@ -101,8 +115,5 @@ const styles = StyleSheet.create({
 
     // For android
     elevation: 6,
-  },
-  disabledStyle: {
-    backgroundColor: theme.light.disabled,
   },
 });

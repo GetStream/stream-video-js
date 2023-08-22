@@ -46,6 +46,7 @@ export const ActiveCall = ({
         onBackPressed={onBackPressed}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}
+        layout={'spotlight'}
       />
       <ParticipantsInfoList
         isCallParticipantsInfoVisible={isCallParticipantsVisible}

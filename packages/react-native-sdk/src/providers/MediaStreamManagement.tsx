@@ -10,9 +10,9 @@ import { useCall } from '@stream-io/video-react-bindings';
 import {
   isCameraPermissionGranted$,
   isMicPermissionGranted$,
-} from '../../utils/StreamVideoRN/permissions';
+} from '../utils/StreamVideoRN/permissions';
 import { Alert } from 'react-native';
-import { useAppStateListener } from '../../utils/hooks';
+import { useAppStateListener } from '../utils/hooks';
 
 export type MediaDevicesInitialState = {
   /**
