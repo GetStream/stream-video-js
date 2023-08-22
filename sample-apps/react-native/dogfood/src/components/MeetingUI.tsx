@@ -40,7 +40,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     setShow('lobby');
   };
 
-  const onCallJoinHandler = useCallback(async () => {
+  const onJoinCallHandler = useCallback(async () => {
     try {
       setShow('loading');
       await call?.join({ create: true });
@@ -92,7 +92,7 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
     return (
       <LobbyViewComponent
         callId={callId}
-        onCallJoinHandler={onCallJoinHandler}
+        onJoinCallHandler={onJoinCallHandler}
         navigation={navigation}
         route={route}
       />

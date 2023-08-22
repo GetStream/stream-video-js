@@ -106,6 +106,18 @@ const Init = () => {
   }, [client]);
 
   useEffect(() => {
+    const appleItunesAppMeta = document
+      .getElementsByTagName('meta')
+      .namedItem('apple-itunes-app');
+    if (appleItunesAppMeta) {
+      appleItunesAppMeta.setAttribute(
+        'content',
+        `app-id=1644313060, app-argument=${window.location.href}`,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     setSteps(tour);
   }, []);
 

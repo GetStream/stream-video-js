@@ -7,7 +7,10 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { ParticipantsInfoBadgeProps } from './ParticipantsInfoBadge';
+import {
+  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
+  ParticipantsInfoBadgeProps,
+} from './ParticipantsInfoBadge';
 import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { TopViewBackground } from '../../../icons';
@@ -36,15 +39,15 @@ export type CallTopViewProps = {
   /**
    * Component to customize the ParticipantInfoBadge of the CallTopView.
    */
-  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps>;
+  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps> | null;
 };
 
 export const CallTopView = ({
   onBackPressed,
   onParticipantInfoPress,
   title,
-  ParticipantsInfoBadge,
   style,
+  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const { useCallCallingState } = useCallStateHooks();

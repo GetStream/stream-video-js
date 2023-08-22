@@ -8,14 +8,18 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { Z_INDEX } from '../../../constants';
+import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 
 /**
  * Props for the VideoRenderer component.
  */
 export type VideoRendererProps = Pick<
   ParticipantViewProps,
-  'ParticipantVideoFallback' | 'videoMode' | 'participant' | 'isVisible'
+  | 'ParticipantVideoFallback'
+  | 'videoMode'
+  | 'participant'
+  | 'isVisible'
+  | 'videoZOrder'
 >;
 
 /**
@@ -27,7 +31,8 @@ export const VideoRenderer = ({
   videoMode,
   participant,
   isVisible = true,
-  ParticipantVideoFallback,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  videoZOrder = 0,
 }: VideoRendererProps) => {
   const call = useCall();
   const { useCallCallingState, useCameraState } = useCallStateHooks();
@@ -175,8 +180,7 @@ export const VideoRenderer = ({
           streamURL={videoStreamToRender?.toURL()}
           mirror={mirror}
           objectFit={isScreenSharing ? 'contain' : 'cover'}
-          // zOrder should lower than the zOrder used in the floating LocalParticipantView
-          zOrder={Z_INDEX.IN_BACK}
+          zOrder={videoZOrder}
         />
       ) : (
         ParticipantVideoFallback && (

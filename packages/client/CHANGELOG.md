@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.5](https://github.com/GetStream/stream-video-js/compare/client0.3.4...client0.3.5) (2023-08-22)
+
+
+### Bug Fixes
+
+* Change the backtage default value to true ([#969](https://github.com/GetStream/stream-video-js/issues/969)) ([5aff8b4](https://github.com/GetStream/stream-video-js/commit/5aff8b4695373de660d625a4945e300d1ff90610))
+
+### [0.3.4](https://github.com/GetStream/stream-video-js/compare/client0.3.3...client0.3.4) (2023-08-21)
+
+
+### Bug Fixes
+
+* guest auth didn't wait for some API calls ([#965](https://github.com/GetStream/stream-video-js/issues/965)) ([5d9e1c6](https://github.com/GetStream/stream-video-js/commit/5d9e1c6ebb09901a8f3e12c435736e0640af62dc))
+
+### [0.3.3](https://github.com/GetStream/stream-video-js/compare/client0.3.2...client0.3.3) (2023-08-18)
+
+
+### Features
+
+* Disable doesn't stop audio tracks ([#950](https://github.com/GetStream/stream-video-js/issues/950)) ([c348f34](https://github.com/GetStream/stream-video-js/commit/c348f34818f0e123e70b9471637ddd64411ebc08))
+
 ### [0.3.2](https://github.com/GetStream/stream-video-js/compare/client0.3.1...client0.3.2) (2023-08-16)
 
 

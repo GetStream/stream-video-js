@@ -2,33 +2,29 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
-import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
+import {
+  CallParticipantsList as DefaultCallParticipantsList,
+  CallParticipantsListProps,
+  CallParticipantsListComponentProps,
+} from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { theme } from '../../../theme';
 
 /**
  * Props for the CallParticipantsGrid component.
  */
-export type CallParticipantsGridProps = Pick<
-  CallParticipantsListProps,
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
+export type CallParticipantsGridProps = CallParticipantsListComponentProps & {
   /**
    * Component to customize the CallParticipantsList.
    */
-  CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
+  CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
 };
 
 /**
  * Component used to display the list of participants in a grid mode.
  */
 export const CallParticipantsGrid = ({
-  CallParticipantsList,
+  CallParticipantsList = DefaultCallParticipantsList,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -46,7 +42,7 @@ export const CallParticipantsGrid = ({
 
   const participants = showFloatingView ? remoteParticipants : allParticipants;
 
-  const participantProps = {
+  const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,
     ParticipantLabel,
     ParticipantNetworkQualityIndicator,
@@ -63,7 +59,7 @@ export const CallParticipantsGrid = ({
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
-          {...participantProps}
+          {...participantViewProps}
         />
       )}
     </View>
