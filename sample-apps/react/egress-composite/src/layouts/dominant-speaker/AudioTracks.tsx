@@ -10,9 +10,8 @@ export const AudioTracks = (props: {
       {participants.map((participant) => (
         <Audio
           key={participant.sessionId}
-          audioStream={participant.audioStream}
+          participant={participant}
           muted={participant.sessionId === dominantSpeaker?.sessionId}
-          data-userId={participant.userId}
         />
       ))}
     </div>

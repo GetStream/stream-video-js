@@ -1791,6 +1791,14 @@ export class Call {
       void this.microphone.enable();
     }
   }
+
+  /**
+   * Will begin tracking the given element for visibility changes within the
+   * configured viewport element (`call.setViewport`).
+   *
+   * @param element the element to track.
+   * @param sessionId the session id.
+   */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
     sessionId: string,
@@ -1816,38 +1824,47 @@ export class Call {
     };
   };
 
+  /**
+   * Sets the viewport element to track bound video elements for visibility.
+   *
+   * @param element the viewport element.
+   */
   setViewport = <T extends HTMLElement>(element: T) => {
     return this.viewportTracker.setViewport(element);
   };
 
-  registerVideoElement = (
+  /**
+   * Binds a DOM <video> element to the given session id.
+   * This method will make sure that the video element will play
+   * the correct video stream for the given session id.
+   *
+   * Under the hood, it would also keep track of the video element dimensions
+   * and update the subscription accordingly in order to optimize the bandwidth.
+   *
+   * If a "viewport" is configured, the video element will be automatically
+   * tracked for visibility and the subscription will be updated accordingly.
+   *
+   * @param videoElement the video element to bind to.
+   * @param sessionId the session id.
+   * @param kind the kind of video.
+   */
+  bindVideoElement = (
     videoElement: HTMLVideoElement,
-    kind: 'video' | 'screen',
     sessionId: string,
+    kind: 'video' | 'screen',
   ) => {
-    const doUpdate = (
+    const requestVideoWithDimensions = (
       debounceType: DebounceType,
-      dimension?: VideoDimension | null,
+      dimension: VideoDimension | undefined,
     ) => {
       this.updateSubscriptionsPartial(
         kind,
-        {
-          [sessionId]: {
-            dimension:
-              dimension === null
-                ? undefined
-                : {
-                    height: videoElement.clientHeight,
-                    width: videoElement.clientWidth,
-                  },
-          },
-        },
+        { [sessionId]: { dimension } },
         debounceType,
       );
     };
 
     const matchedParticipant = this.state.findParticipantBySessionId(sessionId);
-
     if (!matchedParticipant) return;
 
     const participant$ = this.state.participants$.pipe(
@@ -1871,15 +1888,22 @@ export class Call {
             .subscribe((v) => {
               // skip initial trigger
               if (!viewportVisibilityState) {
-                return (viewportVisibilityState =
-                  v.viewportVisibilityState ?? VisibilityState.UNKNOWN);
+                viewportVisibilityState =
+                  v.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+                return;
               }
 
               if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
-                return doUpdate(DebounceType.MEDIUM, null);
+                return requestVideoWithDimensions(
+                  DebounceType.MEDIUM,
+                  undefined,
+                );
               }
 
-              doUpdate(DebounceType.MEDIUM);
+              requestVideoWithDimensions(DebounceType.MEDIUM, {
+                width: videoElement.clientWidth,
+                height: videoElement.clientHeight,
+              });
             });
 
     let lastDimensions: string | undefined;
@@ -1890,7 +1914,8 @@ export class Call {
 
           // skip initial trigger
           if (!lastDimensions) {
-            return (lastDimensions = currentDimensions);
+            lastDimensions = currentDimensions;
+            return;
           }
 
           if (
@@ -1899,7 +1924,10 @@ export class Call {
           )
             return;
 
-          doUpdate(DebounceType.SLOW);
+          requestVideoWithDimensions(DebounceType.SLOW, {
+            width: videoElement.clientWidth,
+            height: videoElement.clientHeight,
+          });
           lastDimensions = currentDimensions;
         });
     resizeObserver?.observe(videoElement);
@@ -1917,7 +1945,18 @@ export class Call {
             distinctUntilChanged(),
           )
           .subscribe((isPublishing) => {
-            doUpdate(DebounceType.IMMEDIATE, isPublishing ? undefined : null);
+            if (isPublishing) {
+              // trigger immediate update, the participant just started
+              // to publish a track.
+              requestVideoWithDimensions(DebounceType.IMMEDIATE, {
+                width: videoElement.clientWidth,
+                height: videoElement.clientHeight,
+              });
+            } else {
+              // trigger immediate update, the participant just stopped
+              // publishing a track.
+              requestVideoWithDimensions(DebounceType.IMMEDIATE, undefined);
+            }
           });
 
     // TODO: to discuss - I'm not sure if I like it here
@@ -1929,10 +1968,13 @@ export class Call {
       )
       .subscribe((p) => {
         const source = kind === 'video' ? p.videoStream : p.screenShareStream;
-        if (videoElement.srcObject === source) return;
+        if (videoElement.srcObject === source || !source) return;
 
         setTimeout(() => {
-          videoElement.srcObject = source ?? null;
+          videoElement.srcObject = source;
+          videoElement.play().catch((e) => {
+            this.logger('warn', `Failed to play stream`, e);
+          });
         }, 0);
       });
     videoElement.playsInline = true;
@@ -1943,6 +1985,67 @@ export class Call {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
+    };
+
+    this.leaveCallHooks.add(cleanup);
+
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
+    };
+  };
+
+  /**
+   * Binds a DOM <audio> element to the given session id.
+   *
+   * This method will make sure that the audio element will
+   * play the correct audio stream for the given session id.
+   *
+   * @param audioElement the audio element to bind to.
+   * @param sessionId the session id.
+   * @returns a cleanup function that will unbind the audio element.
+   */
+  bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
+    const participant = this.state.findParticipantBySessionId(sessionId);
+    if (!participant || participant.isLocalParticipant) return;
+
+    const participant$ = this.state.participants$.pipe(
+      map(
+        (participants) =>
+          participants.find((p) => p.sessionId === sessionId) as
+            | StreamVideoLocalParticipant
+            | StreamVideoParticipant,
+      ),
+      takeWhile((p) => !!p),
+      distinctUntilChanged(),
+    );
+
+    const updateMediaStreamSubscription = participant$
+      .pipe(distinctUntilKeyChanged('audioStream'))
+      .subscribe((p) => {
+        const source = p.audioStream;
+        if (audioElement.srcObject === source || !source) return;
+
+        setTimeout(() => {
+          audioElement.srcObject = source;
+          audioElement.play().catch((e) => {
+            this.logger('warn', `Failed to play stream`, e);
+          });
+        });
+      });
+
+    const sinkIdSubscription = this.state.localParticipant$.subscribe((p) => {
+      if (p && p.audioOutputDeviceId && 'setSinkId' in audioElement) {
+        // @ts-expect-error setSinkId is not yet in the lib
+        audioElement.setSinkId(p.audioOutputDeviceId);
+      }
+    });
+
+    audioElement.autoplay = true;
+
+    const cleanup = () => {
+      sinkIdSubscription.unsubscribe();
+      updateMediaStreamSubscription.unsubscribe();
     };
 
     this.leaveCallHooks.add(cleanup);

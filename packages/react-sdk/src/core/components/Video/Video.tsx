@@ -14,7 +14,6 @@ import {
   DefaultVideoPlaceholder,
   VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
-import { BaseVideo } from './BaseVideo';
 import { useCall } from '@stream-io/video-react-bindings';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
@@ -104,10 +103,10 @@ export const Video = ({
 
   useEffect(() => {
     if (!call || !videoElement || kind === 'none') return;
-
-    const cleanup = call.registerVideoElement(videoElement, kind, sessionId);
-
-    return () => cleanup?.();
+    const cleanup = call.bindVideoElement(videoElement, sessionId, kind);
+    return () => {
+      cleanup?.();
+    };
   }, [call, kind, sessionId, videoElement]);
 
   const [isWideMode, setIsWideMode] = useState(true);

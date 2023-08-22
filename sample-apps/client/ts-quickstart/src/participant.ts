@@ -1,4 +1,4 @@
-import { StreamVideoParticipant, Call } from '@stream-io/video-client';
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 
 // The quickstart uses fixed video dimensions for simplification
 const videoDimension = {
@@ -25,13 +25,13 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     map.set(id, videoEl);
 
     // registers subscription updates and stream changes
-    call.registerVideoElement(videoEl, 'video', participant.sessionId);
+    call.bindVideoElement(videoEl, participant.sessionId, 'video');
   }
 
   return videoEl;
 };
 
-const renderAudio = (participant: StreamVideoParticipant) => {
+const renderAudio = (call: Call, participant: StreamVideoParticipant) => {
   // We don't render audio for local participant
   if (participant.isLocalParticipant) {
     return null;
@@ -44,11 +44,9 @@ const renderAudio = (participant: StreamVideoParticipant) => {
   if (!audioEl) {
     audioEl = document.createElement('audio');
     audioEl.id = `audio-${participant.sessionId}`;
-    audioEl.autoplay = true;
-  }
 
-  if (audioEl.srcObject !== participant.audioStream) {
-    audioEl.srcObject = participant.audioStream || null;
+    // registers subscription updates and stream changes for audio
+    call.bindAudioElement(audioEl, participant.sessionId);
   }
 
   return audioEl;
@@ -59,7 +57,7 @@ export const renderParticipant = (
   participant: StreamVideoParticipant,
 ) => {
   return {
-    audioEl: renderAudio(participant),
+    audioEl: renderAudio(call, participant),
     videoEl: renderVideo(call, participant),
   };
 };

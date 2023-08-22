@@ -13,7 +13,6 @@ import {
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
@@ -87,15 +86,12 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     ref,
   ) => {
     const {
-      audioStream,
       isLocalParticipant,
       isSpeaking,
       isDominantSpeaker,
       publishedTracks,
       sessionId,
     } = participant;
-    const { useLocalParticipant } = useCallStateHooks();
-    const localParticipant = useLocalParticipant();
 
     const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
     const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
@@ -165,10 +161,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         <ParticipantViewContext.Provider value={participantViewContextValue}>
           {/* mute the local participant, as we don't want to hear ourselves */}
           {!isLocalParticipant && !muteAudio && (
-            <Audio
-              sinkId={localParticipant?.audioOutputDeviceId}
-              audioStream={audioStream}
-            />
+            <Audio participant={participant} />
           )}
           <Video
             VideoPlaceholder={VideoPlaceholder}

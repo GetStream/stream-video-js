@@ -5,36 +5,34 @@ import {
   useRef,
 } from 'react';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
 
 export type AudioProps = DetailedHTMLProps<
   AudioHTMLAttributes<HTMLAudioElement>,
   HTMLAudioElement
-> &
-  Pick<StreamVideoParticipant, 'audioStream'> & {
-    sinkId?: string;
-  };
+> & {
+  participant: StreamVideoParticipant;
+};
 
-// TODO: rename to BaseAudio
-export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
+export const Audio = ({ participant, ...rest }: AudioProps) => {
+  const call = useCall();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { userId, sessionId } = participant;
   useEffect(() => {
-    const $el = audioRef.current;
-    if (!($el && audioStream)) return;
-
-    $el.srcObject = audioStream;
+    if (!call || !audioRef.current) return;
+    const cleanup = call.bindAudioElement(audioRef.current, sessionId);
     return () => {
-      $el.srcObject = null;
+      cleanup?.();
     };
-  }, [audioStream]);
+  }, [call, sessionId]);
 
-  useEffect(() => {
-    const $el = audioRef.current;
-    if (!$el || !sinkId) return;
-
-    if (($el as any).setSinkId) {
-      ($el as any).setSinkId(sinkId);
-    }
-  }, [sinkId]);
-
-  return <audio autoPlay ref={audioRef} {...rest} />;
+  return (
+    <audio
+      autoPlay
+      {...rest}
+      ref={audioRef}
+      data-user-id={userId}
+      data-session-id={sessionId}
+    />
+  );
 };

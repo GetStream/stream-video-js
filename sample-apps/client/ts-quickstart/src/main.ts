@@ -31,6 +31,7 @@ const client = new StreamVideoClient({
 });
 
 const callId =
+  searchParams.get('call_id') ||
   import.meta.env.VITE_STREAM_CALL_ID ||
   (new Date().getTime() + Math.round(Math.random() * 100)).toString();
 const call = client.call('default', callId);
