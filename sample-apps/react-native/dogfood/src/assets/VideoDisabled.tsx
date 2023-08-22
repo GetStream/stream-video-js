@@ -7,7 +7,6 @@ type Props = {
   color: ColorValue;
 };
 
-
 export const VideoDisabled = ({ color }: Props) => (
   <Svg viewBox="0 0 24 24">
     <Path

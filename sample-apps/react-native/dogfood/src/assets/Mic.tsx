@@ -7,7 +7,6 @@ type Props = {
   color: ColorValue;
 };
 
-
 export const Mic = ({ color }: Props) => (
   <Svg viewBox="0 0 22 28">
     <Path

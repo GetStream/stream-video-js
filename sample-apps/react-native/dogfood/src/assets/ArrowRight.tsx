@@ -7,7 +7,6 @@ type Props = {
   color: ColorValue;
 };
 
-
 export const ArrowRight = ({ color }: Props) => (
   <Svg viewBox="0 0 8 15">
     <Path
