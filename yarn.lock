@@ -7842,6 +7842,7 @@ __metadata:
     "@stream-io/react-native-webrtc": ^104.0.1
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": ~18.0.14
+    "@types/react-native-incall-manager": ^4
     expo: ~48.0.18
     expo-constants: ~14.2.1
     expo-linking: ~4.0.1
@@ -7856,6 +7857,7 @@ __metadata:
     react-native-device-info: ^10.8.0
     react-native-dotenv: ^3.4.9
     react-native-gesture-handler: ~2.9.0
+    react-native-incall-manager: ^4.1.0
     react-native-reanimated: ~2.14.4
     react-native-safe-area-context: 4.5.0
     react-native-screens: ~3.20.0
@@ -8761,6 +8763,13 @@ __metadata:
   version: 3.2.1
   resolution: "@types/react-native-incall-manager@npm:3.2.1"
   checksum: 53cd1ae3a08a11337d27147e86337de0750bd6941fe21285247de62036f6db0aa3f72bb4275cfbdd0a57a8adc3e213546c19eea15af180d154cc66f9737fcf01
+  languageName: node
+  linkType: hard
+
+"@types/react-native-incall-manager@npm:^4":
+  version: 4.0.0
+  resolution: "@types/react-native-incall-manager@npm:4.0.0"
+  checksum: 2e242f7c8e89f1639c9a293b056437c222d699efc2fd41683836f006da26fce9683f0f63563efa5dcc95b53eb61d2d1182e454e5eab89277ef3a77a625b01c13
   languageName: node
   linkType: hard
 
@@ -26848,7 +26857,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-incall-manager@npm:4.1.0":
+"react-native-incall-manager@npm:4.1.0, react-native-incall-manager@npm:^4.1.0":
   version: 4.1.0
   resolution: "react-native-incall-manager@npm:4.1.0"
   peerDependencies:
