@@ -59,8 +59,4 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  topView: {
-    width: '100%',
-    backgroundColor: 'gray',
-  },
 });
