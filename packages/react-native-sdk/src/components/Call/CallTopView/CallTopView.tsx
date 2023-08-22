@@ -7,7 +7,10 @@ import {
   ViewStyle,
   Pressable,
 } from 'react-native';
-import { ParticipantsInfoBadgeProps } from './ParticipantsInfoBadge';
+import {
+  ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
+  ParticipantsInfoBadgeProps,
+} from './ParticipantsInfoBadge';
 import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { Z_INDEX } from '../../../constants';
@@ -37,7 +40,7 @@ export type CallTopViewProps = {
   /**
    * Component to customize the ParticipantInfoBadge of the CallTopView.
    */
-  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps>;
+  ParticipantsInfoBadge?: React.ComponentType<ParticipantsInfoBadgeProps> | null;
 };
 
 export const CallTopView = ({
@@ -45,7 +48,7 @@ export const CallTopView = ({
   onParticipantInfoPress,
   title,
   style,
-  ParticipantsInfoBadge,
+  ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
