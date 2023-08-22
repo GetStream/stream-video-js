@@ -43,7 +43,6 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
-        layout={'spotlight'}
         onBackPressed={onBackPressed}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}
@@ -59,5 +58,9 @@ export const ActiveCall = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  topView: {
+    width: '100%',
+    backgroundColor: 'gray',
   },
 });

@@ -1,29 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
   Text,
+  Pressable,
   StyleProp,
   ViewStyle,
-  Pressable,
 } from 'react-native';
 import { ParticipantsInfoBadgeProps } from './ParticipantsInfoBadge';
 import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
-import { Z_INDEX } from '../../../constants';
 import { TopViewBackground } from '../../../icons';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 
 export type CallTopViewProps = {
-  /**
-   * Height of the CallTopView.
-   */
-  callTopViewHeight?: number;
-  /**
-   * Set state function to set the height of CallTopView.
-   */
-  setCallTopViewHeight?: React.Dispatch<React.SetStateAction<number>>;
   /**
    * Handler to be called when the back button is pressed in the CallTopView.
    * @returns void
@@ -49,14 +40,13 @@ export type CallTopViewProps = {
 };
 
 export const CallTopView = ({
-  callTopViewHeight,
-  setCallTopViewHeight,
   onBackPressed,
   onParticipantInfoPress,
   title,
-  style,
   ParticipantsInfoBadge,
+  style,
 }: CallTopViewProps) => {
+  const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
@@ -70,7 +60,7 @@ export const CallTopView = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={style}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
       <TopViewBackground height={callTopViewHeight} width={'100%'} />
       <View style={styles.topView} onLayout={onLayout}>
@@ -112,16 +102,11 @@ export const CallTopView = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    zIndex: Z_INDEX.IN_FRONT,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
   topView: {
     position: 'absolute',
     flexDirection: 'row',
-    paddingVertical: theme.padding.lg,
+    paddingTop: theme.padding.lg,
+    paddingBottom: theme.padding.md,
     alignItems: 'center',
   },
   backIcon: {

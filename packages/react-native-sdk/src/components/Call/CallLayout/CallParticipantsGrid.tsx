@@ -4,7 +4,6 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { CallParticipantsListProps } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { LocalParticipantViewProps } from '../../Participant';
 import { theme } from '../../../theme';
 
 /**
@@ -20,18 +19,9 @@ export type CallParticipantsGridProps = Pick<
   | 'VideoRenderer'
 > & {
   /**
-   * Component to customize the LocalParticipantView.
-   */
-  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
-  /**
    * Component to customize the CallParticipantsList.
    */
   CallParticipantsList?: React.ComponentType<CallParticipantsListProps>;
-  /**
-   * The topInset prop allows you to precisely control the vertical positioning of the Local Participant View's floating video display.
-   * By default, it takes the value of the `CallTopView` height
-   * */
-  topInset?: number;
 };
 
 /**
@@ -45,8 +35,6 @@ export const CallParticipantsGrid = ({
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
-  LocalParticipantView,
-  topInset,
 }: CallParticipantsGridProps) => {
   const { useRemoteParticipants, useParticipants } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
@@ -72,9 +60,6 @@ export const CallParticipantsGrid = ({
       style={styles.container}
       testID={ComponentTestIds.CALL_PARTICIPANTS_GRID}
     >
-      {showFloatingView && LocalParticipantView && (
-        <LocalParticipantView {...participantProps} topInset={topInset} />
-      )}
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}

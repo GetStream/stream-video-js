@@ -35,11 +35,6 @@ export type LocalParticipantViewProps = Pick<
    * Custom style to be merged with the local participant view.
    */
   style?: StyleProp<ViewStyle>;
-  /**
-   * The topInset prop allows you to precisely control the vertical positioning of the Local Participant View's floating video display.
-   * By default, it takes the value of the `CallTopView` height.
-   * */
-  topInset?: number;
 };
 
 const CustomLocalParticipantViewVideoFallback = () => {
@@ -62,7 +57,6 @@ export const LocalParticipantView = ({
   ParticipantReaction,
   ParticipantView,
   VideoRenderer,
-  topInset,
 }: LocalParticipantViewProps) => {
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
@@ -86,15 +80,7 @@ export const LocalParticipantView = ({
     return null;
   }
 
-  const floatingContainerStyles = [
-    styles.floatingContainer,
-    /**
-     * The `margin` contains the value such that the container doesn't touch the edge of the screen.
-     *
-     * Now, for the `topInset`, we need to deduct that margin that we add since it will already be applied.
-     **/
-    { margin: theme.margin.md, top: topInset ? topInset - theme.margin.md : 0 },
-  ];
+  const floatingContainerStyles = [styles.floatingContainer, style];
 
   return (
     <View
@@ -144,9 +130,10 @@ export const LocalParticipantView = ({
 
 const styles = StyleSheet.create({
   floatingContainer: {
-    ...StyleSheet.absoluteFillObject,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
+    flex: 1,
+    margin: theme.margin.sm,
   },
   floatingViewContainer: {
     height: LOCAL_VIDEO_VIEW_STYLE.height,
