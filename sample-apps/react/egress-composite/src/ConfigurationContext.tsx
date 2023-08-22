@@ -8,6 +8,8 @@ export type ConfigurationValue = {
   user_id: string;
   call_id: string;
   call_type: string;
+  ext_css?: string;
+  layout: 'single-participant' | 'grid' | 'dominant_speaker' | 'spotlight' | 'mobile';
 
   options: {
     video?: {
