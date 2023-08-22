@@ -20,8 +20,8 @@ import { useIncallManager } from '../../../hooks';
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
 import {
-  LocalParticipantView as DefaultLocalParticipantView,
-  LocalParticipantViewProps,
+  FloatingParticipantView as DefaultFloatingParticipantView,
+  FloatingParticipantViewProps,
   ParticipantViewComponentProps,
 } from '../../Participant';
 
@@ -44,9 +44,9 @@ export type CallParticipantsComponentProps = Pick<
    */
   CallControls?: React.ComponentType<CallControlProps>;
   /**
-   * Component to customize the LocalParticipantView.
+   * Component to customize the FloatingParticipantView.
    */
-  LocalParticipantView?: React.ComponentType<LocalParticipantViewProps>;
+  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps>;
 };
 
 export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
@@ -68,7 +68,7 @@ export const CallContent = ({
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
-  LocalParticipantView = DefaultLocalParticipantView,
+  FloatingParticipantView = DefaultFloatingParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
@@ -137,8 +137,8 @@ export const CallContent = ({
               ParticipantsInfoBadge={ParticipantsInfoBadge}
             />
           )}
-          {showFloatingView && LocalParticipantView && (
-            <LocalParticipantView {...participantViewProps} />
+          {showFloatingView && FloatingParticipantView && (
+            <FloatingParticipantView {...participantViewProps} />
           )}
         </View>
 
