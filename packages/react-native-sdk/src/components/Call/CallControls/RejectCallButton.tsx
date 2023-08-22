@@ -35,7 +35,11 @@ export const RejectCallButton = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
-    theme: { colors, rejectCallButton },
+    theme: {
+      colors,
+      rejectCallButton,
+      variants: { buttonSizes },
+    },
   } = useTheme();
   const rejectCallHandler = async () => {
     if (onPressHandler) {
@@ -59,8 +63,8 @@ export const RejectCallButton = ({
     <CallControlsButton
       onPress={rejectCallHandler}
       color={colors.error}
+      size={buttonSizes.lg}
       // TODO: check what to do about this random style prop
-      // style={theme.button.lg}
       // svgContainerStyle={theme.icon.lg}
       style={rejectCallButton}
     >

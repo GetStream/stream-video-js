@@ -31,21 +31,13 @@ export const ChatButton = ({
   unreadBadgeCount,
 }: ChatButtonProps) => {
   const {
-    theme: { colors },
+    theme: { colors, chatButton },
   } = useTheme();
   return (
-    // TODO: check if this View can be dropped
-    <View>
-      <CallControlsButton
-        onPress={onPressHandler}
-        // TODO: check what to do about this random style prop
-        // svgContainerStyle={styles.svgContainerStyle}
-      >
-        {/* Move this to CallControlsButton */}
-        <UnreadBadgeCountIndicator count={unreadBadgeCount} />
-        <Chat color={colors.static_black} />
-      </CallControlsButton>
-    </View>
+    <CallControlsButton onPress={onPressHandler} style={chatButton}>
+      <UnreadBadgeCountIndicator count={unreadBadgeCount} />
+      <Chat color={colors.static_black} />
+    </CallControlsButton>
   );
 };
 
@@ -82,9 +74,6 @@ const UnreadBadgeCountIndicator = ({
 };
 
 const styles = StyleSheet.create({
-  // svgContainerStyle: {
-  //   paddingTop: theme.padding.xs,
-  // },
   chatBadge: {
     borderRadius: 30,
     position: 'absolute',

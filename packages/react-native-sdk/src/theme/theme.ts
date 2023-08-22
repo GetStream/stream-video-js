@@ -55,11 +55,19 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
+  toggleAudioPreviewButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
   toggleAudioPublishingButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
   toggleCameraFaceButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
+  toggleVideoPreviewButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
@@ -262,11 +270,19 @@ export const defaultTheme: Theme = {
     container: {},
     svgContainer: {},
   },
+  toggleAudioPreviewButton: {
+    container: {},
+    svgContainer: {},
+  },
   toggleAudioPublishingButton: {
     container: {},
     svgContainer: {},
   },
   toggleCameraFaceButton: {
+    container: {},
+    svgContainer: {},
+  },
+  toggleVideoPreviewButton: {
     container: {},
     svgContainer: {},
   },
