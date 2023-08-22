@@ -1,35 +1,43 @@
 import {
+  CallContent,
   CallingState,
-  useCall,
+  Lobby,
+  StreamVideoRN,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
-import { Button, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthProgressLoader } from './AuthProgressLoader';
+import { StyleSheet } from 'react-native';
 
 export const MeetingUI = () => {
-  const call = useCall();
-
-  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
+  const router = useRouter();
+  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const participantCount = useParticipantCount();
 
-  const onJoinCallHandler = async () => {
-    try {
-      console.log(call?.id);
-      await call?.join({ create: true });
-    } catch (error) {
-      console.log(error);
-    }
+  StreamVideoRN.setPermissions({
+    isCameraPermissionGranted: true,
+    isMicPermissionGranted: true,
+  });
+
+  const onHangupCallHandler = () => {
+    router.back();
   };
 
   if (callingState === CallingState.IDLE) {
-    return <Button title="Join" onPress={onJoinCallHandler} />;
-  }
-  if (callingState !== CallingState.JOINED) {
-    return <Text style={{ fontSize: 30, color: 'black' }}>Loading...</Text>;
+    return <Lobby />;
+  } else if (callingState === CallingState.JOINING) {
+    return <AuthProgressLoader />;
   }
   return (
-    <Text style={{ fontSize: 30, color: 'black' }}>
-      Call "{call?.id}" has {participantCount} participants
-    </Text>
+    <SafeAreaView style={styles.container}>
+      <CallContent onHangupCallHandler={onHangupCallHandler} />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

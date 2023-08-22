@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import InCallManager from 'react-native-incall-manager';
+import { getRNIncallManagerLib } from '../utils/incall-manager/lib';
 
 export type IncallManagerProps = {
   media: 'audio' | 'video';
@@ -16,8 +16,15 @@ export type IncallManagerProps = {
  *  */
 export const useIncallManager = ({ auto, media }: IncallManagerProps) => {
   useEffect(() => {
-    InCallManager.start({ media, auto });
+    const incallManagerLib = getRNIncallManagerLib();
+    if (incallManagerLib) {
+      incallManagerLib.start({ media, auto });
+    }
 
-    return () => InCallManager.stop();
+    return () => {
+      if (incallManagerLib) {
+        incallManagerLib.stop();
+      }
+    };
   }, [auto, media]);
 };

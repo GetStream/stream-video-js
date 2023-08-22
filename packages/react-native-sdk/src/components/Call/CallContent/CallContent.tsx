@@ -16,7 +16,7 @@ import {
 } from '../CallControls';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
-import { useIncallManager } from '../../../hooks';
+import { useIncallManager } from '../../../hooks/useIncallManager';
 import { CallParticipantsListComponentProps } from '../CallParticipantsList';
 import { ParticipantViewComponentProps } from '../../Participant';
 

@@ -47,7 +47,7 @@ export const Lobby = ({
 }: LobbyProps) => {
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSession } = useCallStateHooks();
-  const { direction, status: cameraStatus } = useCameraState();
+  const { status: cameraStatus } = useCameraState();
   const localVideoStream = useLocalVideoStream();
   const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
   const call = useCall();
@@ -63,17 +63,15 @@ export const Lobby = ({
 
   return (
     <View style={styles.container}>
+      <Text style={styles.heading}>{t('Before Joining')}</Text>
+      <Text style={styles.subHeading}>{t('Setup your audio and video')}</Text>
       {connectedUser && (
         <>
-          <Text style={styles.heading}>{t('Before Joining')}</Text>
-          <Text style={styles.subHeading}>
-            {t('Setup your audio and video')}
-          </Text>
           <View style={styles.videoView}>
             <View style={styles.topView} />
             {isVideoAvailable ? (
               <RTCView
-                mirror={direction === 'front'}
+                mirror={true}
                 streamURL={localVideoStream?.toURL()}
                 objectFit="cover"
                 style={StyleSheet.absoluteFillObject}
@@ -130,7 +128,7 @@ const ParticipantStatus = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
     paddingHorizontal: theme.padding.md,

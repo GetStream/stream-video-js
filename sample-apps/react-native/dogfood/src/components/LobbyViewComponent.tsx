@@ -31,7 +31,7 @@ export const LobbyViewComponent = ({
   }, [onJoinCallHandler]);
 
   return (
-    <View style={[StyleSheet.absoluteFill, styles.container]}>
+    <View style={styles.container}>
       <Lobby JoinCallButton={JoinCallButtonComponent} />
       {route.name === 'MeetingScreen' ? (
         <Pressable
@@ -66,11 +66,15 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.static_grey,
   },
   anonymousButton: {
-    alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     marginBottom: appTheme.spacing.lg,
   },
   anonymousButtonText: {
     ...theme.fonts.heading6,
     color: appTheme.colors.primary,
+    textAlign: 'center',
   },
 });

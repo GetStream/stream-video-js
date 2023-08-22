@@ -3,23 +3,21 @@ import {
   StreamVideo,
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
+import { useAppContext } from '../context/AppContext';
+import { STREAM_API_KEY } from 'react-native-dotenv';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
+  const { user } = useAppContext();
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
+  const apiKey = STREAM_API_KEY;
 
   useEffect(() => {
-    const user = {
-      id: 'Kir_Kanos',
-      name: 'Kir Kanos',
-    };
-    const token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiS2lyX0thbm9zIiwiaXNzIjoicHJvbnRvIiwic3ViIjoidXNlci9LaXJfS2Fub3MiLCJpYXQiOjE2OTI1OTI5MjAsImV4cCI6MTY5MzE5NzcyNX0.iKokvnHxYics1atxuljejrqfpTtOpfZNal8ESX-gJX4';
     const _videoClient = new StreamVideoClient({
-      apiKey: 'mmhfdzb5evj2',
+      apiKey,
       user,
-      token,
+      token: user?.custom?.token,
       options: { logLevel: 'warn' },
     });
     setVideoClient(_videoClient);
@@ -28,7 +26,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient.disconnectUser();
       setVideoClient(undefined);
     };
-  }, []);
+  }, [user, apiKey]);
 
   if (!videoClient) {
     return null;
