@@ -3,7 +3,7 @@ import { useConfigurationContext } from '../ConfigurationContext';
 export const LogoAndTitleOverlay = () => {
   const { options } = useConfigurationContext();
 
-  const image_url = options?.logo?.image_url;
+  const image_url = options['logo.image_url'];
 
   return (
     <div

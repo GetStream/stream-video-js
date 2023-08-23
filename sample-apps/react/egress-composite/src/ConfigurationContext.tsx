@@ -3,57 +3,53 @@ import { decode } from 'js-base64';
 
 export type ConfigurationValue = {
   base_url?: string;
+
   api_key: string;
-  token: string;
-  user_id: string;
-  call_id: string;
   call_type: string;
+  call_id: string;
+  token: string;
+  user_id: string; // pulled from the token payload
+
   ext_css?: string;
-  layout: 'single-participant' | 'grid' | 'dominant_speaker' | 'spotlight' | 'mobile';
+
+  layout?: 'grid' | 'single_participant' | 'spotlight' | 'mobile';
+  screenshare_layout?: 'single_participant' | 'spotlight';
 
   options: {
-    video?: {
-      background_color?: string;
-      scale_mode?: 'fill' | 'fit';
-      screenshare_scale_mode?: 'fill' | 'fit';
-    };
-    logo?: {
-      image_url?: string;
-      horizontal_position?: 'center' | 'left' | 'right';
-      vertical_position?: 'center' | 'left' | 'right';
-    };
-    participant?: {
-      label_display?: boolean;
-      label_text_color?: string;
-      label_background_color?: string;
-      label_display_border?: boolean;
-      label_border_radius?: string;
-      label_border_color?: string;
-      label_horizontal_position?: 'center' | 'left' | 'right';
-      label_vertical_position?: 'center' | 'left' | 'right';
+    'video.background_color'?: string;
+    'video.scale_mode'?: 'fill' | 'fit';
+    'video.screenshare_scale_mode'?: 'fill' | 'fit';
 
-      // participant_border_color: string;
-      // participant_border_radius: string;
-      // participant_border_width: string;
-      participant_highlight_border_color?: string; // talking
-      placeholder_background_color?: string;
-    };
+    'logo.image_url'?: string;
+    'logo.horizontal_position'?: 'center' | 'left' | 'right';
+    'logo.vertical_position'?: 'center' | 'left' | 'right';
 
-    layout?: {
-      // used with any layout
-      size_percentage?: number;
+    'participant.label_display'?: boolean;
+    'participant.label_text_color'?: string;
+    'participant.label_background_color'?: string;
+    'participant.label_display_border'?: boolean;
+    'participant.label_border_radius'?: string;
+    'participant.label_border_color'?: string;
+    'participant.label_horizontal_position'?: 'center' | 'left' | 'right';
+    'participant.label_vertical_position'?: 'center' | 'left' | 'right';
 
-      main?: 'grid' | 'dominant_speaker' | 'spotlight'; // | 'mobile'
-      screenshare?: 'spotlight' | 'dominant_speaker';
+    // participant_border_color: string;
+    // participant_border_radius: string;
+    // participant_border_width: string;
+    'participant.participant_highlight_border_color'?: string; // talking
+    'participant.placeholder_background_color'?: string;
 
-      // grid-specific
-      gap?: string;
-      page_size?: number;
-      // dominant_speaker-specific (single-participant)
-      mode?: 'shuffle' | 'default';
-      // spotlight-specific
-      bar_position?: 'top' | 'right' | 'bottom' | 'left';
-    };
+    // used with any layout
+    'layout.size_percentage'?: number;
+
+    // grid-specific
+    'layout.grid.gap'?: string;
+    'layout.grid.page_size'?: number;
+    // dominant_speaker-specific (single-participant)
+    'layout.single_participant.mode'?: 'shuffle' | 'default';
+    'layout.single_participant.shuffle_delay'?: number;
+    // spotlight-specific
+    'layout.spotlight.bar_position'?: 'top' | 'right' | 'bottom' | 'left';
   };
 };
 
