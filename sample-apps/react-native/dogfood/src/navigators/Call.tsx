@@ -44,7 +44,13 @@ const Calls = () => {
   }
 
   return (
-    <StreamCall call={firstCall}>
+    <StreamCall
+      call={firstCall}
+      mediaDeviceInitialState={{
+        initialAudioEnabled: false,
+        initialVideoEnabled: false,
+      }}
+    >
       <SafeAreaView style={[styles.container, { top }]}>
         <RingingCallContent />
       </SafeAreaView>
