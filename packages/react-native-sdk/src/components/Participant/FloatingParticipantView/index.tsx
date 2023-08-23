@@ -4,7 +4,6 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
-import { theme } from '../../../theme';
 import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
@@ -12,6 +11,7 @@ import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../ParticipantView';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export type FloatingParticipantViewAlignment =
   | 'top-left'
@@ -35,10 +35,24 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
   };
 
 const CustomLocalParticipantViewVideoFallback = () => {
+  const {
+    theme: {
+      colors,
+      localParticipantsView,
+      variants: { iconSizes },
+    },
+  } = useTheme();
+
   return (
-    <View style={styles.videoFallback}>
-      <View style={theme.icon.md}>
-        <VideoSlash color={theme.light.static_white} />
+    <View
+      style={[
+        styles.videoFallback,
+        { backgroundColor: colors.disabled },
+        localParticipantsView.videoFallback,
+      ]}
+    >
+      <View style={{ height: iconSizes.md, width: iconSizes.md }}>
+        <VideoSlash color={colors.static_white} />
       </View>
     </View>
   );
@@ -55,6 +69,9 @@ export const FloatingParticipantView = ({
   ParticipantReaction,
   VideoRenderer,
 }: FloatingParticipantViewProps) => {
+  const {
+    theme: { colors, localParticipantsView },
+  } = useTheme();
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
 
@@ -88,7 +105,7 @@ export const FloatingParticipantView = ({
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={[styles.floatingContainer, style]}
+      style={[styles.container, localParticipantsView.container]}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -115,7 +132,15 @@ export const FloatingParticipantView = ({
             <ParticipantView
               participant={localParticipant}
               videoMode={'video'}
-              style={[styles.floatingViewContainer, style]}
+              style={[
+                styles.participantViewContainer,
+                style,
+                {
+                  backgroundColor: colors.static_grey,
+                  shadowColor: colors.static_black,
+                },
+                localParticipantsView.participantViewContainer,
+              ]}
               // video z order must be one above the one used in grid view
               // (which uses the default: 0)
               videoZOrder={1}
@@ -129,18 +154,16 @@ export const FloatingParticipantView = ({
 };
 
 const styles = StyleSheet.create({
-  floatingContainer: {
+  container: {
+    margin: 8,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
     flex: 1,
-    margin: theme.margin.sm,
   },
-  floatingViewContainer: {
+  participantViewContainer: {
     height: FLOATING_VIDEO_VIEW_STYLE.height,
     width: FLOATING_VIDEO_VIEW_STYLE.width,
     borderRadius: FLOATING_VIDEO_VIEW_STYLE.borderRadius,
-    backgroundColor: theme.light.static_grey,
-    shadowColor: theme.light.static_black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -153,6 +176,5 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.light.disabled,
   },
 });

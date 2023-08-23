@@ -926,8 +926,12 @@ export class Call {
 
       // React uses a different device management for now
       if (getSdkInfo()?.type !== SdkType.REACT) {
-        this.initCamera();
-        this.initMic();
+        try {
+          await this.initCamera();
+          await this.initMic();
+        } catch (error) {
+          this.logger('warn', 'Camera and/or mic init failed during join call');
+        }
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1713,7 +1717,7 @@ export class Call {
     );
   };
 
-  private initCamera() {
+  private async initCamera() {
     if (
       this.state.localParticipant?.videoStream ||
       !this.permissionsContext.hasPermission('send-video')
@@ -1747,11 +1751,11 @@ export class Call {
       this.camera.state.status === undefined &&
       this.state.settings?.video.camera_default_on
     ) {
-      void this.camera.enable();
+      await this.camera.enable();
     }
   }
 
-  private initMic() {
+  private async initMic() {
     if (
       this.state.localParticipant?.audioStream ||
       !this.permissionsContext.hasPermission('send-audio')
@@ -1776,7 +1780,7 @@ export class Call {
       this.microphone.state.status === undefined &&
       this.state.settings?.audio.mic_default_on
     ) {
-      void this.microphone.enable();
+      await this.microphone.enable();
     }
   }
 }

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
 
+import { ColorValue } from 'react-native';
+
 type Props = {
-  color: string;
+  color: ColorValue;
 };
 
 export const ArrowRight = ({ color }: Props) => (

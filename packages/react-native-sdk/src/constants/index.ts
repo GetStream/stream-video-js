@@ -1,10 +1,9 @@
-import { theme } from '../theme';
 import { StreamVideoConfig } from '../utils/StreamVideoRN/types';
 
 export const FLOATING_VIDEO_VIEW_STYLE = {
   height: 140,
   width: 80,
-  borderRadius: theme.rounded.sm,
+  borderRadius: 10,
 };
 
 export const LOBBY_VIDEO_VIEW_HEIGHT = 280;

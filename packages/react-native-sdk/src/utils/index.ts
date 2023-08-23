@@ -1,5 +1,3 @@
-import { theme } from '../theme';
-
 // Utility to join strings with commas and 'and'
 export const generateCallTitle = (
   memberUserIds: string[],
@@ -36,10 +34,6 @@ export const getInitialsOfName = (name: string) => {
     initials += names[names.length - 1].substring(0, 1).toUpperCase();
   }
   return initials;
-};
-
-export const muteStatusColor = (status: boolean) => {
-  return status ? theme.light.overlay_dark : theme.light.static_white;
 };
 
 export * from './StreamVideoRN';

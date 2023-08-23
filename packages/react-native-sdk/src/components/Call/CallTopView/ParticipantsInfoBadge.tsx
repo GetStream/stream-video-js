@@ -2,10 +2,10 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Participants } from '../../../icons';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
 import { Z_INDEX } from '../../../constants';
 import { CallTopViewProps } from '..';
 import { ButtonTestIds } from '../../../constants/TestIds';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the ParticipantsInfoBadge component.
@@ -22,6 +22,14 @@ export type ParticipantsInfoBadgeProps = Pick<
 export const ParticipantsInfoBadge = ({
   onParticipantInfoPress,
 }: ParticipantsInfoBadgeProps) => {
+  const {
+    theme: {
+      colors,
+      participantInfoBadge,
+      typefaces,
+      variants: { iconSizes },
+    },
+  } = useTheme();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
 
@@ -29,16 +37,42 @@ export const ParticipantsInfoBadge = ({
     <Pressable
       onPress={onParticipantInfoPress}
       style={({ pressed }) => [
-        { ...styles.container, opacity: pressed ? 0.2 : 1 },
+        styles.container,
+        { opacity: pressed ? 0.2 : 1 },
+        participantInfoBadge.container,
       ]}
       disabled={!onParticipantInfoPress}
       testID={ButtonTestIds.PARTICIPANTS_INFO}
     >
-      <View style={theme.icon.md}>
-        <Participants color={theme.light.static_white} />
+      <View
+        style={[
+          { height: iconSizes.md, width: iconSizes.md },
+          participantInfoBadge.participantsIconContainer,
+        ]}
+      >
+        <Participants color={colors.static_white} />
       </View>
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{participantCount}</Text>
+      <View
+        style={[
+          styles.participantCountContainer,
+          {
+            backgroundColor: colors.text_low_emphasis,
+          },
+          participantInfoBadge.participantCountContainer,
+        ]}
+      >
+        <Text
+          style={[
+            styles.participantCountText,
+            {
+              color: colors.static_white,
+            },
+            typefaces.subtitle,
+            participantInfoBadge.participantsCountText,
+          ]}
+        >
+          {participantCount}
+        </Text>
       </View>
     </Pressable>
   );
@@ -48,19 +82,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
   },
-  badge: {
+  participantCountContainer: {
     justifyContent: 'center',
-    paddingHorizontal: theme.padding.sm,
-    backgroundColor: theme.light.text_low_emphasis,
-    borderRadius: theme.rounded.xl,
+    paddingHorizontal: 8,
+    borderRadius: 30,
     zIndex: Z_INDEX.IN_FRONT,
-    bottom: theme.spacing.xl,
-    right: theme.spacing.xl,
+    bottom: 12,
+    right: 12,
   },
-  badgeText: {
+  participantCountText: {
     includeFontPadding: false,
-    color: theme.light.static_white,
     textAlign: 'center',
-    ...theme.fonts.subtitle,
   },
 });

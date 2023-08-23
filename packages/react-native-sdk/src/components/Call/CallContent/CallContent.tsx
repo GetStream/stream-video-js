@@ -24,6 +24,7 @@ import {
   FloatingParticipantViewProps,
   ParticipantViewComponentProps,
 } from '../../Participant';
+import { useTheme } from '../../../contexts';
 
 export type CallParticipantsComponentProps = Pick<
   CallParticipantsGridProps,
@@ -38,15 +39,15 @@ export type CallParticipantsComponentProps = Pick<
   /**
    * Component to customize the CallTopView component.
    */
-  CallTopView?: React.ComponentType<CallTopViewProps>;
+  CallTopView?: React.ComponentType<CallTopViewProps> | null;
   /**
    * Component to customize the CallControls component.
    */
-  CallControls?: React.ComponentType<CallControlProps>;
+  CallControls?: React.ComponentType<CallControlProps> | null;
   /**
    * Component to customize the FloatingParticipantView.
    */
-  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps>;
+  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
 };
 
 export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
@@ -78,6 +79,9 @@ export const CallContent = ({
   VideoRenderer,
   layout,
 }: CallContentProps) => {
+  const {
+    theme: { callContent },
+  } = useTheme();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const { useRemoteParticipants } = useCallStateHooks();
@@ -127,9 +131,9 @@ export const CallContent = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.container}>
-        <View style={styles.view}>
+    <View style={[styles.container, callContent.container]}>
+      <View style={[styles.container, callContent.callParticipantsContainer]}>
+        <View style={[styles.view, callContent.topContainer]}>
           {CallTopView && (
             <CallTopView
               onBackPressed={onBackPressed}
