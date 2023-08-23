@@ -26,11 +26,9 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
 
   useEffect(() => {
     if (!scrollWrapper) return;
-
-    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
-
+    const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
-  }, [scrollWrapper, call.viewportTracker]);
+  }, [scrollWrapper, call]);
 
   const scrollUpClickHandler = () => {
     scrollWrapper?.scrollBy({ top: -150, behavior: 'smooth' });

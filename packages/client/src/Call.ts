@@ -13,7 +13,6 @@ import {
   GoAwayReason,
   SdkType,
   TrackType,
-  VideoDimension,
 } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
@@ -74,7 +73,6 @@ import {
   DebounceType,
   JoinCallData,
   PublishOptions,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -83,8 +81,6 @@ import {
 import {
   BehaviorSubject,
   debounce,
-  distinctUntilChanged,
-  distinctUntilKeyChanged,
   filter,
   map,
   pairwise,
@@ -100,7 +96,7 @@ import {
   createStatsReporter,
   StatsReporter,
 } from './stats/state-store-stats-reporter';
-import { ViewportTracker } from './helpers/ViewportTracker';
+import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
@@ -119,19 +115,12 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraManager } from './devices/CameraManager';
-import { MicrophoneManager } from './devices/MicrophoneManager';
-import { CameraDirection } from './devices/CameraManagerState';
+import { CameraDirection, CameraManager, MicrophoneManager } from './devices';
 
 /**
  * An object representation of a `Call`.
  */
 export class Call {
-  /**
-   * ViewportTracker instance
-   */
-  readonly viewportTracker = new ViewportTracker();
-
   /**
    * The type of the call.
    */
@@ -167,6 +156,11 @@ export class Call {
    * Device manager for the microhpone
    */
   readonly microphone: MicrophoneManager;
+
+  /**
+   * The DynascaleManager instance.
+   */
+  readonly dynascaleManager = new DynascaleManager(this);
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -1803,25 +1797,7 @@ export class Call {
     element: T,
     sessionId: string,
   ) => {
-    const cleanup = this.viewportTracker.observe(element, (entry) => {
-      this.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState:
-          // observer triggers when element is "moved" to be a fullscreen element
-          // keep it VISIBLE if that happens to prevent fullscreen with placeholder
-          entry.isIntersecting || document.fullscreenElement === element
-            ? VisibilityState.VISIBLE
-            : VisibilityState.INVISIBLE,
-      }));
-    });
-
-    return () => {
-      cleanup();
-      this.state.updateParticipant(sessionId, (p) => ({
-        ...p,
-        viewportVisibilityState: VisibilityState.UNKNOWN,
-      }));
-    };
+    return this.dynascaleManager.trackElementVisibility(element, sessionId);
   };
 
   /**
@@ -1830,7 +1806,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.viewportTracker.setViewport(element);
+    return this.dynascaleManager.setViewport(element);
   };
 
   /**
@@ -1853,145 +1829,17 @@ export class Call {
     sessionId: string,
     kind: 'video' | 'screen',
   ) => {
-    const requestVideoWithDimensions = (
-      debounceType: DebounceType,
-      dimension: VideoDimension | undefined,
-    ) => {
-      this.updateSubscriptionsPartial(
-        kind,
-        { [sessionId]: { dimension } },
-        debounceType,
-      );
-    };
-
-    const matchedParticipant = this.state.findParticipantBySessionId(sessionId);
-    if (!matchedParticipant) return;
-
-    const participant$ = this.state.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find(
-            (participant) => participant.sessionId === sessionId,
-          ) as StreamVideoLocalParticipant | StreamVideoParticipant,
-      ),
-      takeWhile((participant) => !!participant),
-      distinctUntilChanged(),
+    const unbind = this.dynascaleManager.bindVideoElement(
+      videoElement,
+      sessionId,
+      kind,
     );
 
-    // keep copy for resize observer handler
-    let viewportVisibilityState: VisibilityState | undefined;
-    const viewportVisibilityStateSubscription =
-      matchedParticipant.isLocalParticipant
-        ? null
-        : participant$
-            .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
-            .subscribe((v) => {
-              // skip initial trigger
-              if (!viewportVisibilityState) {
-                viewportVisibilityState =
-                  v.viewportVisibilityState ?? VisibilityState.UNKNOWN;
-                return;
-              }
-
-              if (v.viewportVisibilityState === VisibilityState.INVISIBLE) {
-                return requestVideoWithDimensions(
-                  DebounceType.MEDIUM,
-                  undefined,
-                );
-              }
-
-              requestVideoWithDimensions(DebounceType.MEDIUM, {
-                width: videoElement.clientWidth,
-                height: videoElement.clientHeight,
-              });
-            });
-
-    let lastDimensions: string | undefined;
-    const resizeObserver = matchedParticipant.isLocalParticipant
-      ? null
-      : new ResizeObserver(() => {
-          const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
-
-          // skip initial trigger
-          if (!lastDimensions) {
-            lastDimensions = currentDimensions;
-            return;
-          }
-
-          if (
-            lastDimensions === currentDimensions ||
-            viewportVisibilityState === VisibilityState.INVISIBLE
-          )
-            return;
-
-          requestVideoWithDimensions(DebounceType.SLOW, {
-            width: videoElement.clientWidth,
-            height: videoElement.clientHeight,
-          });
-          lastDimensions = currentDimensions;
-        });
-    resizeObserver?.observe(videoElement);
-
-    const publishedTracksSubscription = matchedParticipant.isLocalParticipant
-      ? null
-      : participant$
-          .pipe(
-            distinctUntilKeyChanged('publishedTracks'),
-            map((p) =>
-              p.publishedTracks.includes(
-                kind === 'video' ? TrackType.VIDEO : TrackType.SCREEN_SHARE,
-              ),
-            ),
-            distinctUntilChanged(),
-          )
-          .subscribe((isPublishing) => {
-            if (isPublishing) {
-              // trigger immediate update, the participant just started
-              // to publish a track.
-              requestVideoWithDimensions(DebounceType.IMMEDIATE, {
-                width: videoElement.clientWidth,
-                height: videoElement.clientHeight,
-              });
-            } else {
-              // trigger immediate update, the participant just stopped
-              // publishing a track.
-              requestVideoWithDimensions(DebounceType.IMMEDIATE, undefined);
-            }
-          });
-
-    const streamSubscription = participant$
-      .pipe(
-        distinctUntilKeyChanged(
-          kind === 'video' ? 'videoStream' : 'screenShareStream',
-        ),
-      )
-      .subscribe((p) => {
-        const source = kind === 'video' ? p.videoStream : p.screenShareStream;
-        if (videoElement.srcObject === source) return;
-        setTimeout(() => {
-          videoElement.srcObject = source ?? null;
-          if (videoElement.srcObject) {
-            videoElement.play().catch((e) => {
-              this.logger('warn', `Failed to play stream`, e);
-            });
-          }
-        }, 0);
-      });
-    videoElement.playsInline = true;
-    videoElement.autoplay = true;
-
-    const cleanup = () => {
-      viewportVisibilityStateSubscription?.unsubscribe();
-      publishedTracksSubscription?.unsubscribe();
-      streamSubscription.unsubscribe();
-      resizeObserver?.disconnect();
-    };
-
-    this.leaveCallHooks.add(cleanup);
-
+    if (!unbind) return;
+    this.leaveCallHooks.add(unbind);
     return () => {
-      this.leaveCallHooks.delete(cleanup);
-      cleanup();
+      this.leaveCallHooks.delete(unbind);
+      unbind();
     };
   };
 
@@ -2006,53 +1854,16 @@ export class Call {
    * @returns a cleanup function that will unbind the audio element.
    */
   bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
-    const participant = this.state.findParticipantBySessionId(sessionId);
-    if (!participant || participant.isLocalParticipant) return;
-
-    const participant$ = this.state.participants$.pipe(
-      map(
-        (participants) =>
-          participants.find((p) => p.sessionId === sessionId) as
-            | StreamVideoLocalParticipant
-            | StreamVideoParticipant,
-      ),
-      takeWhile((p) => !!p),
-      distinctUntilChanged(),
+    const unbind = this.dynascaleManager.bindAudioElement(
+      audioElement,
+      sessionId,
     );
 
-    const updateMediaStreamSubscription = participant$
-      .pipe(distinctUntilKeyChanged('audioStream'))
-      .subscribe((p) => {
-        const source = p.audioStream;
-        if (audioElement.srcObject === source || !source) return;
-
-        setTimeout(() => {
-          audioElement.srcObject = source;
-          audioElement.play().catch((e) => {
-            this.logger('warn', `Failed to play stream`, e);
-          });
-        });
-      });
-
-    const sinkIdSubscription = this.state.localParticipant$.subscribe((p) => {
-      if (p && p.audioOutputDeviceId && 'setSinkId' in audioElement) {
-        // @ts-expect-error setSinkId is not yet in the lib
-        audioElement.setSinkId(p.audioOutputDeviceId);
-      }
-    });
-
-    audioElement.autoplay = true;
-
-    const cleanup = () => {
-      sinkIdSubscription.unsubscribe();
-      updateMediaStreamSubscription.unsubscribe();
-    };
-
-    this.leaveCallHooks.add(cleanup);
-
+    if (!unbind) return;
+    this.leaveCallHooks.add(unbind);
     return () => {
-      this.leaveCallHooks.delete(cleanup);
-      cleanup();
+      this.leaveCallHooks.delete(unbind);
+      unbind();
     };
   };
 }
