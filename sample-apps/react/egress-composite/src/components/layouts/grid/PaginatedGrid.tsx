@@ -9,7 +9,7 @@ import './PaginatedGrid.scss';
 export const PaginatedGrid = () => {
   // const setParticipantVideoRef = useEgressReadyWhenAnyParticipantMounts();
   const {
-    options: { layout: { page_size = 20 } = {} },
+    options: { 'layout.grid.page_size': pageSize = 20 },
   } = useConfigurationContext();
 
   return (
@@ -22,7 +22,7 @@ export const PaginatedGrid = () => {
           />
         }
         excludeLocalParticipant
-        groupSize={page_size}
+        groupSize={pageSize}
       />
     </div>
   );
