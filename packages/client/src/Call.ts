@@ -1719,8 +1719,12 @@ export class Call {
 
   private async initCamera() {
     // Wait for any in progress camera operation
-    this.camera.enablePromise ? await this.camera.enablePromise : null;
-    this.camera.disablePromise ? await this.camera.disablePromise : null;
+    if (this.camera.enablePromise) {
+      await this.camera.enablePromise;
+    }
+    if (this.camera.disablePromise) {
+      await this.camera.disablePromise;
+    }
 
     if (
       this.state.localParticipant?.videoStream ||
@@ -1765,10 +1769,12 @@ export class Call {
 
   private async initMic() {
     // Wait for any in progress mic operation
-    this.microphone.enablePromise ? await this.microphone.enablePromise : null;
-    this.microphone.disablePromise
-      ? await this.microphone.disablePromise
-      : null;
+    if (this.microphone.enablePromise) {
+      await this.microphone.enablePromise;
+    }
+    if (this.microphone.disablePromise) {
+      await this.microphone.disablePromise;
+    }
 
     if (
       this.state.localParticipant?.audioStream ||
