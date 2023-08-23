@@ -134,6 +134,7 @@ export const CallTopView = ({
 const styles = StyleSheet.create({
   content: {
     position: 'absolute',
+    top: 0,
     flexDirection: 'row',
     paddingTop: 24,
     paddingBottom: 12,

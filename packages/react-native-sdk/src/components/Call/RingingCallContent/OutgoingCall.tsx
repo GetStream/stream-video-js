@@ -44,7 +44,6 @@ export const OutgoingCall = ({
 
   return (
     <>
-      {CallTopView && <CallTopView />}
       <View
         style={[
           StyleSheet.absoluteFill,
@@ -52,7 +51,8 @@ export const OutgoingCall = ({
           outgoingCall.container,
         ]}
       >
-        <View>
+        {CallTopView && <CallTopView />}
+        <View style={[styles.content, outgoingCall.content]}>
           <UserInfo />
           <Text
             style={[
@@ -65,7 +65,14 @@ export const OutgoingCall = ({
             {t('Calling...')}
           </Text>
         </View>
-        {OutgoingCallControls && <OutgoingCallControls />}
+        <View
+          style={[
+            styles.outgoingCallControls,
+            outgoingCall.outgoingCallControls,
+          ]}
+        >
+          {OutgoingCallControls && <OutgoingCallControls />}
+        </View>
       </View>
       <Background />
     </>
@@ -111,17 +118,23 @@ const Background = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    zIndex: Z_INDEX.IN_MIDDLE,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    paddingVertical: 64,
-  },
   background: {
     flex: 1,
+  },
+  container: {
+    zIndex: Z_INDEX.IN_MIDDLE,
+  },
+  content: {
+    paddingTop: 8,
   },
   callingText: {
     marginTop: 16,
     textAlign: 'center',
+  },
+  outgoingCallControls: {
+    position: 'absolute',
+    bottom: 64,
+    left: 0,
+    right: 0,
   },
 });

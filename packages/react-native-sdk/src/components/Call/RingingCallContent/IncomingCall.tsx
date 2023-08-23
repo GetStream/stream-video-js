@@ -61,13 +61,16 @@ export const IncomingCall = ({
           {t('Incoming Call...')}
         </Text>
       </View>
-
-      {IncomingCallControls && (
-        <IncomingCallControls
-          onAcceptCallHandler={onAcceptCallHandler}
-          onRejectCallHandler={onRejectCallHandler}
-        />
-      )}
+      <View
+        style={[styles.incomingCallControls, incomingCall.incomingCallControls]}
+      >
+        {IncomingCallControls && (
+          <IncomingCallControls
+            onAcceptCallHandler={onAcceptCallHandler}
+            onRejectCallHandler={onRejectCallHandler}
+          />
+        )}
+      </View>
     </Background>
   );
 };
@@ -122,14 +125,19 @@ const Background: React.FunctionComponent<{ children: React.ReactNode }> = ({
 
 export const styles = StyleSheet.create({
   background: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    paddingVertical: 64,
+    flex: 1,
   },
-  content: {},
+  content: {
+    paddingTop: 8,
+  },
   incomingCallText: {
     marginTop: 16,
     textAlign: 'center',
+  },
+  incomingCallControls: {
+    position: 'absolute',
+    bottom: 64,
+    left: 0,
+    right: 0,
   },
 });
