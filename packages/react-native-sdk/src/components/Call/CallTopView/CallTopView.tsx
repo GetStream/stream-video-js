@@ -3,16 +3,15 @@ import {
   View,
   StyleSheet,
   Text,
+  Pressable,
   StyleProp,
   ViewStyle,
-  Pressable,
 } from 'react-native';
 import {
   ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
   ParticipantsInfoBadgeProps,
 } from './ParticipantsInfoBadge';
 import { Back } from '../../../icons/Back';
-import { Z_INDEX } from '../../../constants';
 import { TopViewBackground } from '../../../icons';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
@@ -50,6 +49,7 @@ export const CallTopView = ({
   style: styleProp,
   ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
+  const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
   const {
     theme: {
       colors,
@@ -61,18 +61,19 @@ export const CallTopView = ({
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
-  const [headerHeight, setHeaderHeight] = useState<number>(0);
   const isCallReconnecting = callingState === CallingState.RECONNECTING;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
     const { height } = event.nativeEvent.layout;
-    setHeaderHeight(height);
+    if (setCallTopViewHeight) {
+      setCallTopViewHeight(height);
+    }
   };
 
   return (
-    <View style={[styles.container, styleProp, callTopView.container]}>
+    <View style={[styleProp, callTopView.container]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
-      <TopViewBackground height={headerHeight} width={'100%'} />
+      <TopViewBackground height={callTopViewHeight} width={'100%'} />
       <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (
@@ -131,16 +132,12 @@ export const CallTopView = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    zIndex: Z_INDEX.IN_FRONT,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-  },
   content: {
     position: 'absolute',
+    top: 0,
     flexDirection: 'row',
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 12,
     alignItems: 'center',
   },
   backIconContainer: {

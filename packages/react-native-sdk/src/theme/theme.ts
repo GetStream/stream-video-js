@@ -36,6 +36,7 @@ export type Theme = {
   callContent: {
     container: ViewStyle;
     callParticipantsContainer: ViewStyle;
+    topContainer: ViewStyle;
   };
   callControls: {
     container: ViewStyle;
@@ -148,6 +149,7 @@ export type Theme = {
     background: ViewStyle;
     content: ViewStyle;
     incomingCallText: TextStyle;
+    incomingCallControls: ViewStyle;
     buttonGroup: ViewStyle;
   };
   joiningCallIndicator: {
@@ -156,7 +158,9 @@ export type Theme = {
   outgoingCall: {
     container: ViewStyle;
     background: ViewStyle;
+    content: ViewStyle;
     callingText: TextStyle;
+    outgoingCallControls: ViewStyle;
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
   };
@@ -258,6 +262,7 @@ export const defaultTheme: Theme = {
   callContent: {
     container: {},
     callParticipantsContainer: {},
+    topContainer: {},
   },
   callControls: {
     container: {},
@@ -369,12 +374,15 @@ export const defaultTheme: Theme = {
     background: {},
     content: {},
     incomingCallText: {},
+    incomingCallControls: {},
     buttonGroup: {},
   },
   outgoingCall: {
     container: {},
     background: {},
+    content: {},
     callingText: {},
+    outgoingCallControls: {},
     buttonGroup: {},
     deviceControlButtons: {},
   },

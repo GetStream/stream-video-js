@@ -17,25 +17,38 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
-import { CallParticipantsListComponentProps } from '../CallParticipantsList';
-import { ParticipantViewComponentProps } from '../../Participant';
+import { Z_INDEX } from '../../../constants';
+import { useDebouncedValue } from '../../../utils/hooks';
+import {
+  FloatingParticipantView as DefaultFloatingParticipantView,
+  FloatingParticipantViewProps,
+  ParticipantViewComponentProps,
+} from '../../Participant';
 import { useTheme } from '../../../contexts';
 
-export type CallParticipantsComponentProps =
-  CallParticipantsListComponentProps &
-    Pick<
-      CallParticipantsGridProps,
-      'CallParticipantsList' | 'LocalParticipantView'
-    > & {
-      /**
-       * Component to customize the CallTopView component.
-       */
-      CallTopView?: React.ComponentType<CallTopViewProps> | null;
-      /**
-       * Component to customize the CallControls component.
-       */
-      CallControls?: React.ComponentType<CallControlProps> | null;
-    };
+export type CallParticipantsComponentProps = Pick<
+  CallParticipantsGridProps,
+  | 'CallParticipantsList'
+  | 'ParticipantLabel'
+  | 'ParticipantNetworkQualityIndicator'
+  | 'ParticipantReaction'
+  | 'ParticipantVideoFallback'
+  | 'ParticipantView'
+  | 'VideoRenderer'
+> & {
+  /**
+   * Component to customize the CallTopView component.
+   */
+  CallTopView?: React.ComponentType<CallTopViewProps> | null;
+  /**
+   * Component to customize the CallControls component.
+   */
+  CallControls?: React.ComponentType<CallControlProps> | null;
+  /**
+   * Component to customize the FloatingParticipantView.
+   */
+  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+};
 
 export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
   Pick<
@@ -56,13 +69,13 @@ export const CallContent = ({
   CallParticipantsList,
   CallTopView = DefaultCallTopView,
   CallControls = DefaultCallControls,
+  FloatingParticipantView = DefaultFloatingParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantVideoFallback,
   ParticipantView,
   ParticipantsInfoBadge,
-  LocalParticipantView,
   VideoRenderer,
   layout,
 }: CallContentProps) => {
@@ -71,7 +84,15 @@ export const CallContent = ({
   } = useTheme();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
+  const { useRemoteParticipants } = useCallStateHooks();
+
+  const _remoteParticipants = useRemoteParticipants();
+  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const showFloatingView =
+    remoteParticipants.length > 0 && remoteParticipants.length < 3;
+
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+
   /**
    * This hook is used to handle IncallManager specs of the application.
    */
@@ -101,7 +122,6 @@ export const CallContent = ({
     ...participantViewProps,
     ParticipantView,
     CallParticipantsList,
-    LocalParticipantView,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
@@ -113,13 +133,19 @@ export const CallContent = ({
   return (
     <View style={[styles.container, callContent.container]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
-        {CallTopView && (
-          <CallTopView
-            onBackPressed={onBackPressed}
-            onParticipantInfoPress={onParticipantInfoPress}
-            ParticipantsInfoBadge={ParticipantsInfoBadge}
-          />
-        )}
+        <View style={[styles.view, callContent.topContainer]}>
+          {CallTopView && (
+            <CallTopView
+              onBackPressed={onBackPressed}
+              onParticipantInfoPress={onParticipantInfoPress}
+              ParticipantsInfoBadge={ParticipantsInfoBadge}
+            />
+          )}
+          {showFloatingView && FloatingParticipantView && (
+            <FloatingParticipantView {...participantViewProps} />
+          )}
+        </View>
+
         {showSpotlightLayout ? (
           <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
         ) : (
@@ -135,4 +161,8 @@ export const CallContent = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  view: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: Z_INDEX.IN_FRONT,
+  },
 });

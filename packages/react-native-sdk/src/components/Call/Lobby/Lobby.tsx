@@ -10,7 +10,7 @@ import {
 import { useLocalVideoStream } from '../../../hooks';
 import { Avatar } from '../../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { LOCAL_VIDEO_VIEW_STYLE } from '../../../constants';
+import { LOBBY_VIDEO_VIEW_HEIGHT } from '../../../constants';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
 import {
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   videoContainer: {
-    height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
-    borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
+    height: LOBBY_VIDEO_VIEW_HEIGHT,
+    borderRadius: 20,
     justifyContent: 'space-between',
     alignItems: 'center',
     overflow: 'hidden',

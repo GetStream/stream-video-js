@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { LOCAL_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
+import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import FloatingView from './FloatingView';
@@ -13,7 +13,7 @@ import {
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 
-export type LocalParticipantViewAlignment =
+export type FloatingParticipantViewAlignment =
   | 'top-left'
   | 'top-right'
   | 'bottom-left'
@@ -22,14 +22,14 @@ export type LocalParticipantViewAlignment =
 /**
  * Props to be passed for the LocalVideoView component.
  */
-export type LocalParticipantViewProps = ParticipantViewComponentProps &
+export type FloatingParticipantViewProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListProps, 'ParticipantView'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
-    alignment?: LocalParticipantViewAlignment;
+    alignment?: FloatingParticipantViewAlignment;
     /**
-     * Custom style to be merged with the local participant view.
+     * Custom style to be merged with the floating participant view.
      */
     style?: StyleProp<ViewStyle>;
   };
@@ -59,16 +59,16 @@ const CustomLocalParticipantViewVideoFallback = () => {
 };
 
 /**
- * A component to render the local participant's video.
+ * A component to render the floating participant's video.
  */
-export const LocalParticipantView = ({
+export const FloatingParticipantView = ({
   alignment = 'top-right',
   style,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   VideoRenderer,
-}: LocalParticipantViewProps) => {
+}: FloatingParticipantViewProps) => {
   const {
     theme: { colors, localParticipantsView },
   } = useTheme();
@@ -76,7 +76,7 @@ export const LocalParticipantView = ({
   const localParticipant = useLocalParticipant();
 
   const floatingAlignmentMap: Record<
-    LocalParticipantViewAlignment,
+    FloatingParticipantViewAlignment,
     FloatingViewAlignment
   > = {
     'top-left': FloatingViewAlignment.topLeft,
@@ -155,15 +155,15 @@ export const LocalParticipantView = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
-    margin: 12,
+    margin: 8,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
+    flex: 1,
   },
   participantViewContainer: {
-    height: LOCAL_VIDEO_VIEW_STYLE.height,
-    width: LOCAL_VIDEO_VIEW_STYLE.width,
-    borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
+    height: FLOATING_VIDEO_VIEW_STYLE.height,
+    width: FLOATING_VIDEO_VIEW_STYLE.width,
+    borderRadius: FLOATING_VIDEO_VIEW_STYLE.borderRadius,
     shadowOffset: {
       width: 0,
       height: 2,
