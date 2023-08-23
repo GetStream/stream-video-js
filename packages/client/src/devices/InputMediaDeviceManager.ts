@@ -38,10 +38,10 @@ export abstract class InputMediaDeviceManager<
    * @returns
    */
   async disable() {
+    this.state.prevStatus = this.state.status;
     if (this.state.status === 'disabled') {
       return;
     }
-    this.state.prevStatus = this.state.status;
     await this.muteStream(this.state.disableMode === 'stop-tracks');
     this.state.setStatus('disabled');
   }
