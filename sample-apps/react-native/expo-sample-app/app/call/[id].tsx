@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native';
 import {
@@ -37,7 +37,13 @@ export default function MeetingScreen() {
   }
 
   return (
-    <StreamCall call={call}>
+    <StreamCall
+      call={call}
+      mediaDeviceInitialState={{
+        initialAudioEnabled: false,
+        initialVideoEnabled: false,
+      }}
+    >
       <Stack.Screen options={{ title: 'Meeting Screen', headerShown: false }} />
       <MeetingUI />
     </StreamCall>

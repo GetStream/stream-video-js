@@ -1,3 +1,4 @@
+import React from 'react';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import {
   StreamVideo,
@@ -17,7 +18,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     const _videoClient = new StreamVideoClient({
       apiKey,
       user,
-      token: user?.custom?.token,
+      tokenProvider: user?.custom?.token,
       options: { logLevel: 'warn' },
     });
     setVideoClient(_videoClient);

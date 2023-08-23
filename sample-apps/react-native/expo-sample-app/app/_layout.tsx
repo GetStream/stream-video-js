@@ -1,3 +1,4 @@
+import React from 'react';
 import { Stack } from 'expo-router';
 import { UsersList } from '../components/UsersList';
 import { VideoWrapper } from '../components/VideoWrapper';
