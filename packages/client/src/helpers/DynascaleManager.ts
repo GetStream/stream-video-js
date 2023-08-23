@@ -234,6 +234,11 @@ export class DynascaleManager {
     videoElement.playsInline = true;
     videoElement.autoplay = true;
 
+    // explicitly marking the element as muted will allow autoplay to work
+    // without prior user interaction:
+    // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+    videoElement.muted = true;
+
     return () => {
       viewportVisibilityStateSubscription?.unsubscribe();
       publishedTracksSubscription?.unsubscribe();
