@@ -141,11 +141,17 @@ export type Theme = {
     container: ViewStyle;
     videoStream: ViewStyle;
   };
+  ringingCallContent: {
+    container: ViewStyle;
+  };
   incomingCall: {
     background: ViewStyle;
     content: ViewStyle;
     incomingCallText: TextStyle;
     buttonGroup: ViewStyle;
+  };
+  joiningCallIndicator: {
+    container: ViewStyle;
   };
   outgoingCall: {
     container: ViewStyle;
@@ -372,6 +378,8 @@ export const defaultTheme: Theme = {
     buttonGroup: {},
     deviceControlButtons: {},
   },
+  ringingCallContent: { container: {} },
+  joiningCallIndicator: { container: {} },
   callTopView: {
     container: {},
     content: {},
