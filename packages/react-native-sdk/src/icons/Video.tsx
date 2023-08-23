@@ -1,8 +1,9 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
+import { ColorValue } from 'react-native/types';
 
 type Props = {
-  color: string;
+  color: ColorValue;
 };
 
 export const Video = ({ color }: Props) => (

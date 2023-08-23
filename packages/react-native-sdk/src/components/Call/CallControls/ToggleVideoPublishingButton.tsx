@@ -6,9 +6,8 @@ import {
   useCallStateHooks,
 } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
-import { muteStatusColor } from '../../../utils';
-import { theme } from '../../../theme';
 import { Video, VideoSlash } from '../../../icons';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the Toggle Video publishing button
@@ -30,7 +29,9 @@ export const ToggleVideoPublishingButton = ({
   const call = useCall();
   const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
-
+  const {
+    theme: { colors },
+  } = useTheme();
   const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
@@ -43,12 +44,14 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={muteStatusColor(status === 'disabled')}
+        color={
+          status === 'disabled' ? colors.overlay_dark : colors.static_white
+        }
       >
         {status === 'disabled' ? (
-          <VideoSlash color={theme.light.static_white} />
+          <VideoSlash color={colors.static_white} />
         ) : (
-          <Video color={theme.light.static_black} />
+          <Video color={colors.static_black} />
         )}
       </CallControlsButton>
     </Restricted>

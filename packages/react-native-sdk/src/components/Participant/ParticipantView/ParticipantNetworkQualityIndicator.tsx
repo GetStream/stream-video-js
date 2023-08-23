@@ -1,10 +1,10 @@
 import { StyleSheet, View } from 'react-native';
 import { Path, Svg } from 'react-native-svg';
-import { theme } from '../../../theme';
 import { SfuModels } from '@stream-io/video-client';
 import React from 'react';
 import { Z_INDEX } from '../../../constants';
 import { ParticipantViewProps } from './ParticipantView';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the NetworkQualityIndicator component.
@@ -14,36 +14,56 @@ export type ParticipantNetworkQualityIndicatorProps = Pick<
   'participant'
 >;
 
-/**
- * This component is used to display the network quality indicator of the participant.
- */
-const connectionQualitySignalColors: Record<
-  SfuModels.ConnectionQuality,
-  string[]
-> = {
-  0: [
-    theme.light.static_white,
-    theme.light.static_white,
-    theme.light.static_white,
-  ],
-  1: [theme.light.error, theme.light.static_white, theme.light.static_white],
-  2: [theme.light.primary, theme.light.primary, theme.light.static_white],
-  3: [theme.light.primary, theme.light.primary, theme.light.primary],
-};
-
-export const ParticipantNetworkQualityIndicator = ({
-  participant,
-}: ParticipantNetworkQualityIndicatorProps) => {
+const useConnectionQualitySignalColors = (
+  participant: ParticipantViewProps['participant'],
+) => {
+  const {
+    theme: { colors },
+  } = useTheme();
   const { connectionQuality } = participant;
   if (!connectionQuality) {
     return null;
   }
 
-  const connectionQualityColors =
-    connectionQualitySignalColors[connectionQuality];
+  switch (connectionQuality) {
+    case SfuModels.ConnectionQuality.EXCELLENT:
+      return [colors.primary, colors.primary, colors.primary];
+    case SfuModels.ConnectionQuality.GOOD:
+      return [colors.primary, colors.primary, colors.static_white];
+    case SfuModels.ConnectionQuality.POOR:
+      return [colors.error, colors.static_white, colors.static_white];
+    default:
+      return null;
+  }
+};
 
+export const ParticipantNetworkQualityIndicator = ({
+  participant,
+}: ParticipantNetworkQualityIndicatorProps) => {
+  const {
+    theme: {
+      colors,
+      variants: { iconSizes },
+      participantNetworkQualityIndicator,
+    },
+  } = useTheme();
+  const connectionQualityColors = useConnectionQualitySignalColors(participant);
+
+  if (!connectionQualityColors) {
+    return null;
+  }
   return (
-    <View style={[styles.container, theme.icon.lg]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.static_overlay,
+          height: iconSizes.lg,
+          width: iconSizes.lg,
+        },
+        participantNetworkQualityIndicator.container,
+      ]}
+    >
       <Svg viewBox="0 0 34 34" fill={'none'}>
         <Path
           d="M 9.97559 22.3379 L 9.97559 19.616"
@@ -78,7 +98,6 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_FRONT,
     alignSelf: 'flex-end',
-    backgroundColor: theme.light.static_overlay,
-    borderRadius: theme.rounded.xs,
+    borderRadius: 5,
   },
 });
