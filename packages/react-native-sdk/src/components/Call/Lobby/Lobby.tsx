@@ -7,7 +7,6 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
 import { useLocalVideoStream } from '../../../hooks';
 import { Avatar } from '../../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
@@ -18,6 +17,7 @@ import {
   JoinCallButton as DefaultJoinCallButton,
   JoinCallButtonProps,
 } from './JoinCallButton';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the Lobby Component.
@@ -45,6 +45,9 @@ export const Lobby = ({
   LobbyControls = DefaultLobbyControls,
   JoinCallButton = DefaultJoinCallButton,
 }: LobbyProps) => {
+  const {
+    theme: { colors, lobby, typefaces },
+  } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSession } = useCallStateHooks();
   const { direction, status: cameraStatus } = useCameraState();
@@ -62,15 +65,41 @@ export const Lobby = ({
   } as StreamVideoParticipant;
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_grey },
+        lobby.container,
+      ]}
+    >
       {connectedUser && (
         <>
-          <Text style={styles.heading}>{t('Before Joining')}</Text>
-          <Text style={styles.subHeading}>
+          <Text
+            style={[
+              styles.heading,
+              { color: colors.static_white },
+              typefaces.heading4,
+              lobby.heading,
+            ]}
+          >
+            {t('Before Joining')}
+          </Text>
+          <Text
+            style={[
+              styles.subHeading,
+              { color: colors.text_low_emphasis },
+              typefaces.subtitle,
+            ]}
+          >
             {t('Setup your audio and video')}
           </Text>
-          <View style={styles.videoView}>
-            <View style={styles.topView} />
+          <View
+            style={[
+              styles.videoContainer,
+              { backgroundColor: colors.disabled },
+              lobby.videoContainer,
+            ]}
+          >
             {isVideoAvailable ? (
               <RTCView
                 mirror={direction === 'front'}
@@ -79,7 +108,7 @@ export const Lobby = ({
                 style={StyleSheet.absoluteFillObject}
               />
             ) : (
-              <View style={styles.avatar}>
+              <View style={[styles.avatarContainer, lobby.avatarContainer]}>
                 <Avatar participant={connectedUserAsParticipant} />
               </View>
             )}
@@ -88,8 +117,20 @@ export const Lobby = ({
           {LobbyControls && <LobbyControls />}
         </>
       )}
-      <View style={styles.info}>
-        <Text style={styles.infoText}>
+      <View
+        style={[
+          styles.infoContainer,
+          { backgroundColor: colors.static_overlay },
+          lobby.infoContainer,
+        ]}
+      >
+        <Text
+          style={[
+            { color: colors.static_white },
+            typefaces.subtitleBold,
+            lobby.infoText,
+          ]}
+        >
           {t('You are about to join a call with id {{ callId }}.', {
             callId: call?.id,
           }) +
@@ -110,18 +151,51 @@ export const Lobby = ({
 };
 
 const ParticipantStatus = () => {
+  const {
+    theme: {
+      colors,
+      typefaces,
+      lobby,
+      variants: { iconSizes },
+    },
+  } = useTheme();
   const connectedUser = useConnectedUser();
   const { useMicrophoneState } = useCallStateHooks();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
   const { status: micStatus } = useMicrophoneState();
   return (
-    <View style={styles.status}>
-      <Text style={styles.userNameLabel} numberOfLines={1}>
+    <View
+      style={[
+        styles.participantStatusContainer,
+        {
+          backgroundColor: colors.static_overlay,
+        },
+        lobby.participantStatusContainer,
+      ]}
+    >
+      <Text
+        style={[
+          styles.userNameLabel,
+          { color: colors.static_white },
+          typefaces.caption,
+          lobby.userNameLabel,
+        ]}
+        numberOfLines={1}
+      >
         {participantLabel}
       </Text>
       {micStatus === 'disabled' && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <MicOff color={theme.light.error} />
+        <View
+          style={[
+            styles.audioMutedIconContainer,
+            {
+              height: iconSizes.xs,
+              width: iconSizes.xs,
+            },
+            lobby.audioMutedIconContainer,
+          ]}
+        >
+          <MicOff color={colors.error} />
         </View>
       )}
     </View>
@@ -131,58 +205,43 @@ const ParticipantStatus = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.light.static_grey,
     justifyContent: 'center',
-    paddingHorizontal: theme.padding.md,
+    paddingHorizontal: 12,
   },
   heading: {
-    color: theme.light.static_white,
     textAlign: 'center',
-    ...theme.fonts.heading4,
   },
   subHeading: {
-    color: theme.light.text_low_emphasis,
-    ...theme.fonts.subtitle,
-    marginBottom: theme.margin.md,
+    marginBottom: 16,
     textAlign: 'center',
   },
-  videoView: {
-    backgroundColor: theme.light.disabled,
+  videoContainer: {
     height: LOCAL_VIDEO_VIEW_STYLE.height * 2,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius * 2,
     justifyContent: 'space-between',
     alignItems: 'center',
     overflow: 'hidden',
-    padding: theme.padding.sm,
+    padding: 8,
   },
-  topView: {},
-  info: {
-    backgroundColor: theme.light.static_overlay,
-    padding: theme.padding.md,
-    borderRadius: theme.rounded.sm,
+  infoContainer: {
+    padding: 12,
+    borderRadius: 10,
   },
-  infoText: {
-    color: theme.light.static_white,
-    ...theme.fonts.subtitleBold,
-  },
-  status: {
+  participantStatusContainer: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.padding.sm,
-    borderRadius: theme.rounded.xs,
-    backgroundColor: theme.light.static_overlay,
+    padding: 8,
+    borderRadius: 5,
   },
-  avatar: {
+  avatarContainer: {
     flex: 2,
     justifyContent: 'center',
   },
   userNameLabel: {
     flexShrink: 1,
-    color: theme.light.static_white,
-    ...theme.fonts.caption,
   },
-  svgContainerStyle: {
-    marginLeft: theme.margin.sm,
+  audioMutedIconContainer: {
+    marginLeft: 8,
   },
 });

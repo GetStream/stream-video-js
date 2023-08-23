@@ -1,8 +1,8 @@
 import { useCall } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../../../theme';
 import { Phone } from '../../../icons';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * The props for the Accept Call button.
@@ -30,6 +30,13 @@ export const AcceptCallButton = ({
   onAcceptCallHandler,
 }: AcceptCallButtonProps) => {
   const call = useCall();
+  const {
+    theme: {
+      colors,
+      variants: { buttonSizes },
+      acceptCallButton,
+    },
+  } = useTheme();
   const acceptCallHandler = async () => {
     if (onPressHandler) {
       onPressHandler();
@@ -48,11 +55,11 @@ export const AcceptCallButton = ({
   return (
     <CallControlsButton
       onPress={acceptCallHandler}
-      color={theme.light.info}
-      style={theme.button.lg}
-      svgContainerStyle={theme.icon.lg}
+      color={colors.info}
+      size={buttonSizes.lg}
+      style={acceptCallButton}
     >
-      <Phone color={theme.light.static_white} />
+      <Phone color={colors.static_white} />
     </CallControlsButton>
   );
 };

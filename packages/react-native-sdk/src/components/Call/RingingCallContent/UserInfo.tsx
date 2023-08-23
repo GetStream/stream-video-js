@@ -6,7 +6,7 @@ import {
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { UserResponse } from '@stream-io/video-client';
-import { theme } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 enum AvatarModes {
   small = 'sm',
@@ -32,6 +32,14 @@ export const UserInfo = ({
   includeSelf = false,
   totalMembersToShow = 3,
 }: UserInfoType) => {
+  const {
+    theme: {
+      colors,
+      typefaces,
+      variants: { avatarSizes },
+      userInfo,
+    },
+  } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
@@ -68,17 +76,17 @@ export const UserInfo = ({
   const mode = avatarSizeModes[memberUserIds.length] || AvatarModes.small;
 
   const avatarStyles = {
-    height: theme.avatar[mode],
-    width: theme.avatar[mode],
-    borderRadius: theme.avatar[mode] / 2,
+    height: avatarSizes[mode],
+    width: avatarSizes[mode],
+    borderRadius: avatarSizes[mode] / 2,
   };
 
   const fontStyleByMembersCount =
-    memberUserIds.length > 1 ? theme.fonts.heading5 : theme.fonts.heading4;
+    memberUserIds.length > 1 ? typefaces.heading5 : typefaces.heading4;
 
   return (
-    <View style={styles.userInfo}>
-      <View style={styles.avatarGroup}>
+    <View style={[styles.container, userInfo.container]}>
+      <View style={[styles.avatarGroup, userInfo.avatarGroup]}>
         {membersToShow.map((memberToShow) => {
           if (!memberToShow.image) {
             return null;
@@ -95,15 +103,23 @@ export const UserInfo = ({
           );
         })}
       </View>
-      <Text style={[styles.name, fontStyleByMembersCount]}>{callTitle}</Text>
+      <Text
+        style={[
+          styles.name,
+          fontStyleByMembersCount,
+          { color: colors.static_white },
+          userInfo.name,
+        ]}
+      >
+        {callTitle}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  userInfo: {
-    paddingHorizontal:
-      Platform.OS === 'android' ? theme.padding.xl * 4 : theme.padding.xl * 2,
+  container: {
+    paddingHorizontal: Platform.OS === 'android' ? 128 : 64,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -115,8 +131,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   name: {
-    color: theme.light.static_white,
     textAlign: 'center',
-    marginTop: theme.margin.xl,
+    marginTop: 32,
   },
 });

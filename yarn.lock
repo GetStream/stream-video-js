@@ -7231,6 +7231,7 @@ __metadata:
     "@testing-library/jest-native": ^5.4.2
     "@testing-library/react-native": ^12.1.2
     "@types/jest": ^29.5.1
+    "@types/lodash.merge": ^4
     "@types/react": 18.0.26
     "@types/react-native": ^0.70.4
     "@types/react-native-incall-manager": ^3.2.1
@@ -7238,6 +7239,7 @@ __metadata:
     "@types/rimraf": ^3.0.2
     intl-pluralrules: 2.0.1
     jest: ^29.5.0
+    lodash.merge: ^4.6.2
     react-native: 0.71.8
     react-native-callkeep: 4.3.11
     react-native-device-info: ^10.6.0
@@ -7783,6 +7785,22 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: 8381e7b9590b4f59fd1d690c827a34f212d1e55e3463b4750ab6ff16f6bf29e2b66d552f2eb95a3f353a1cbf2740be59fbdebb1efb53b8392795728c2e9e6a50
+  languageName: node
+  linkType: hard
+
+"@types/lodash.merge@npm:^4":
+  version: 4.6.7
+  resolution: "@types/lodash.merge@npm:4.6.7"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: 94cd6fb8e606756a28f45d63c658aacfbce11a151f7fa322c4a3e87aa50d8bf26e0ae8cba0250070a7c5a6792fc51f79abf4c648bbb1850692be386cd76cd0ca
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.14.197
+  resolution: "@types/lodash@npm:4.14.197"
+  checksum: 53d7567d1704de76cf33266c78062e0fd722d4b846e5b1417d0b6ef0ee41c0d9c451b92bc34f73d5f1fcc45c7d36511e92f6f47a9279b48157ba60a92ddaa078
   languageName: node
   linkType: hard
 

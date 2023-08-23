@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from '../../../contexts';
 import { AcceptCallButton } from './AcceptCallButton';
 import { RejectCallButton } from './RejectCallButton';
 import { ToggleVideoPreviewButton } from './ToggleVideoPreviewButton';
@@ -22,11 +23,14 @@ export const IncomingCallControls = ({
   onAcceptCallHandler,
   onRejectCallHandler,
 }: IncomingCallControlsProps) => {
+  const {
+    theme: { incomingCall },
+  } = useTheme();
   return (
-    <View style={styles.buttonGroup}>
-      <RejectCallButton onRejectCallHandler={onRejectCallHandler} />
+    <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
+      <RejectCallButton onPressHandler={onRejectCallHandler} />
       <ToggleVideoPreviewButton />
-      <AcceptCallButton onAcceptCallHandler={onAcceptCallHandler} />
+      <AcceptCallButton onPressHandler={onAcceptCallHandler} />
     </View>
   );
 };

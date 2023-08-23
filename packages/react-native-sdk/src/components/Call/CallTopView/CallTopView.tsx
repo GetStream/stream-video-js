@@ -11,12 +11,12 @@ import {
   ParticipantsInfoBadge as DefaultParticipantsInfoBadge,
   ParticipantsInfoBadgeProps,
 } from './ParticipantsInfoBadge';
-import { theme } from '../../../theme';
 import { Back } from '../../../icons/Back';
 import { Z_INDEX } from '../../../constants';
 import { TopViewBackground } from '../../../icons';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CallingState } from '@stream-io/video-client';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export type CallTopViewProps = {
   /**
@@ -47,9 +47,17 @@ export const CallTopView = ({
   onBackPressed,
   onParticipantInfoPress,
   title,
-  style,
+  style: styleProp,
   ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
+  const {
+    theme: {
+      colors,
+      typefaces,
+      variants: { iconSizes },
+      callTopView,
+    },
+  } = useTheme();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const { t } = useI18n();
@@ -62,36 +70,55 @@ export const CallTopView = ({
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, styleProp, callTopView.container]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
       <TopViewBackground height={headerHeight} width={'100%'} />
-      <View style={styles.topView} onLayout={onLayout}>
+      <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (
             <Pressable
               style={({ pressed }) => [
-                theme.icon.md,
-                styles.backIcon,
-                { opacity: pressed ? 0.2 : 1 },
+                styles.backIconContainer,
+                {
+                  opacity: pressed ? 0.2 : 1,
+                  height: iconSizes.md,
+                  width: iconSizes.md,
+                },
+                callTopView.backIconContainer,
               ]}
               onPress={onBackPressed}
             >
-              <Back color={theme.light.static_white} />
+              <Back color={colors.static_white} />
             </Pressable>
           )}
         </View>
-        <View style={styles.centerElement}>
+        <View style={[styles.centerElement, callTopView.centerElement]}>
           {title ? (
-            <Text style={styles.title} numberOfLines={1}>
+            <Text
+              style={[
+                { color: colors.static_white },
+                typefaces.subtitleBold,
+                callTopView.title,
+              ]}
+              numberOfLines={1}
+            >
               {title}
             </Text>
           ) : (
             isCallReconnecting && (
-              <Text style={styles.title}>{t('Reconnecting...')}</Text>
+              <Text
+                style={[
+                  { color: colors.static_white },
+                  typefaces.subtitleBold,
+                  callTopView.title,
+                ]}
+              >
+                {t('Reconnecting...')}
+              </Text>
             )
           )}
         </View>
-        <View style={styles.rightElement}>
+        <View style={[styles.rightElement, callTopView.rightElement]}>
           {ParticipantsInfoBadge && (
             <ParticipantsInfoBadge
               onParticipantInfoPress={onParticipantInfoPress}
@@ -110,15 +137,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  topView: {
+  content: {
     position: 'absolute',
     flexDirection: 'row',
-    paddingVertical: theme.padding.lg,
+    paddingVertical: 24,
     alignItems: 'center',
   },
-  backIcon: {
+  backIconContainer: {
     // Added to compensate the participant badge surface area
-    marginLeft: theme.margin.sm,
+    marginLeft: 8,
   },
   leftElement: {
     flex: 1,
@@ -132,9 +159,5 @@ const styles = StyleSheet.create({
   rightElement: {
     flex: 1,
     alignItems: 'flex-end',
-  },
-  title: {
-    ...theme.fonts.subtitleBold,
-    color: theme.light.static_white,
   },
 });

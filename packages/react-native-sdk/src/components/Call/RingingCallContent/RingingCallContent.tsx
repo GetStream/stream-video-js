@@ -16,6 +16,7 @@ import {
   OutgoingCallProps,
 } from './OutgoingCall';
 import { JoiningCallIndicator as DefaultJoiningCallIndicator } from './JoiningCallIndicator';
+import { useTheme } from '../../../contexts';
 
 /**
  * Props for the RingingCallContent component
@@ -74,8 +75,11 @@ export const RingingCallPanel = ({
  * Component to show the Incoming, Outgoing and CalContent component depending upon the Call states when the call is in ringing mode.
  */
 export const RingingCallContent = () => {
+  const {
+    theme: { ringingCallContent },
+  } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, ringingCallContent.container]}>
       <RingingCallPanel />
     </View>
   );

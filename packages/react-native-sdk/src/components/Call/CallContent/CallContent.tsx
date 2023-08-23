@@ -19,6 +19,7 @@ import { CallingState } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 import { CallParticipantsListComponentProps } from '../CallParticipantsList';
 import { ParticipantViewComponentProps } from '../../Participant';
+import { useTheme } from '../../../contexts';
 
 export type CallParticipantsComponentProps =
   CallParticipantsListComponentProps &
@@ -65,6 +66,9 @@ export const CallContent = ({
   VideoRenderer,
   layout,
 }: CallContentProps) => {
+  const {
+    theme: { callContent },
+  } = useTheme();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
@@ -107,8 +111,8 @@ export const CallContent = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.container}>
+    <View style={[styles.container, callContent.container]}>
+      <View style={[styles.container, callContent.callParticipantsContainer]}>
         {CallTopView && (
           <CallTopView
             onBackPressed={onBackPressed}

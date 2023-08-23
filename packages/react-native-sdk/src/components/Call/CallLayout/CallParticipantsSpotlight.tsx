@@ -6,7 +6,6 @@ import {
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -18,6 +17,7 @@ import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../../Participant';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -46,6 +46,9 @@ export const CallParticipantsSpotlight = ({
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
 }: CallParticipantsSpotlightProps) => {
+  const {
+    theme: { colors, callParticipantsSpotlight },
+  } = useTheme();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
@@ -72,18 +75,39 @@ export const CallParticipantsSpotlight = ({
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.dark_gray,
+        },
+        callParticipantsSpotlight.container,
+      ]}
     >
       {participantInSpotlight && ParticipantView && (
         <ParticipantView
           participant={participantInSpotlight}
-          style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
+          style={
+            isUserAloneInCall
+              ? [
+                  styles.fullScreenSpotlightContainer,
+                  callParticipantsSpotlight.fullScreenSpotlightContainer,
+                ]
+              : [
+                  styles.spotlightContainer,
+                  callParticipantsSpotlight.spotlightContainer,
+                ]
+          }
           videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
           {...participantViewProps}
         />
       )}
       {!isUserAloneInCall && (
-        <View style={styles.participantVideoContainer}>
+        <View
+          style={[
+            styles.callParticipantsListContainer,
+            callParticipantsSpotlight.callParticipantsListContainer,
+          ]}
+        >
           {CallParticipantsList && (
             <CallParticipantsList
               participants={
@@ -102,20 +126,19 @@ export const CallParticipantsSpotlight = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: theme.padding.sm,
-    backgroundColor: theme.light.dark_gray,
+    paddingVertical: 8,
   },
-  fullScreen: {
+  fullScreenSpotlightContainer: {
     flex: 1,
   },
-  participantView: {
+  spotlightContainer: {
     flex: 2,
     overflow: 'hidden',
-    borderRadius: theme.rounded.sm,
-    marginHorizontal: theme.padding.sm,
-    marginBottom: theme.padding.sm,
+    borderRadius: 10,
+    marginHorizontal: 8,
+    marginBottom: 8,
   },
-  participantVideoContainer: {
+  callParticipantsListContainer: {
     flex: 1,
   },
 });

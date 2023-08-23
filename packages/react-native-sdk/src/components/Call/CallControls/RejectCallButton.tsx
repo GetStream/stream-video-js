@@ -1,9 +1,9 @@
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../../../theme';
 import { PhoneDown } from '../../../icons';
 import { CallingState } from '@stream-io/video-client';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * The props for the Reject Call button.
@@ -34,6 +34,13 @@ export const RejectCallButton = ({
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const {
+    theme: {
+      colors,
+      rejectCallButton,
+      variants: { buttonSizes },
+    },
+  } = useTheme();
   const rejectCallHandler = async () => {
     if (onPressHandler) {
       onPressHandler();
@@ -55,11 +62,13 @@ export const RejectCallButton = ({
   return (
     <CallControlsButton
       onPress={rejectCallHandler}
-      color={theme.light.error}
-      style={theme.button.lg}
-      svgContainerStyle={theme.icon.lg}
+      color={colors.error}
+      size={buttonSizes.lg}
+      // TODO: check what to do about this random style prop
+      // svgContainerStyle={theme.icon.lg}
+      style={rejectCallButton}
     >
-      <PhoneDown color={theme.light.static_white} />
+      <PhoneDown color={colors.static_white} />
     </CallControlsButton>
   );
 };

@@ -2,18 +2,18 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { useLocalVideoStream } from '../../../hooks/useLocalVideoStream';
-import { theme } from '../../../theme';
 import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { RTCView } from '@stream-io/react-native-webrtc';
-import {
-  CallTopView as DefaultCallTopView,
-  CallTopViewProps,
-} from '../CallTopView';
+import { useTheme } from '../../../contexts/ThemeContext';
 import {
   OutgoingCallControls as DefaultOutgoingCallControls,
   OutgoingCallControlsProps,
 } from '../CallControls';
+import {
+  CallTopView as DefaultCallTopView,
+  CallTopViewProps,
+} from '../CallTopView';
 
 /**
  * Props for the OutgoingCall Component.
@@ -37,15 +37,33 @@ export const OutgoingCall = ({
   CallTopView = DefaultCallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
 }: OutgoingCallProps) => {
+  const {
+    theme: { colors, typefaces, outgoingCall },
+  } = useTheme();
   const { t } = useI18n();
 
   return (
     <>
       {CallTopView && <CallTopView />}
-      <View style={[StyleSheet.absoluteFill, styles.container]}>
+      <View
+        style={[
+          StyleSheet.absoluteFill,
+          styles.container,
+          outgoingCall.container,
+        ]}
+      >
         <View>
           <UserInfo />
-          <Text style={styles.callingText}>{t('Calling...')}</Text>
+          <Text
+            style={[
+              styles.callingText,
+              { color: colors.static_white },
+              typefaces.heading6,
+              outgoingCall.callingText,
+            ]}
+          >
+            {t('Calling...')}
+          </Text>
         </View>
         {OutgoingCallControls && <OutgoingCallControls />}
       </View>
@@ -55,15 +73,33 @@ export const OutgoingCall = ({
 };
 
 const Background = () => {
+  const {
+    theme: { colors, outgoingCall },
+  } = useTheme();
+
   const localVideoStream = useLocalVideoStream();
   const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
 
   if (status === 'disabled' || !localVideoStream) {
-    return <View style={styles.background} />;
+    return (
+      <View
+        style={[
+          styles.background,
+          { backgroundColor: colors.static_grey },
+          outgoingCall.background,
+        ]}
+      />
+    );
   }
   return (
-    <View style={styles.background}>
+    <View
+      style={[
+        styles.background,
+        { backgroundColor: colors.static_grey },
+        outgoingCall.background,
+      ]}
+    >
       <RTCView
         streamURL={localVideoStream?.toURL()}
         zOrder={Z_INDEX.IN_BACK}
@@ -79,16 +115,13 @@ const styles = StyleSheet.create({
     zIndex: Z_INDEX.IN_MIDDLE,
     flexDirection: 'column',
     justifyContent: 'space-between',
-    paddingVertical: 2 * theme.margin.xl,
+    paddingVertical: 64,
   },
   background: {
-    backgroundColor: theme.light.static_grey,
     flex: 1,
   },
   callingText: {
-    marginTop: theme.margin.md,
+    marginTop: 16,
     textAlign: 'center',
-    color: theme.light.static_white,
-    ...theme.fonts.heading6,
   },
 });

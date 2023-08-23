@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from '../../../contexts';
 import { HangUpCallButton } from './HangupCallButton';
 import { ToggleAudioPreviewButton } from './ToggleAudioPreviewButton';
 import { ToggleVideoPreviewButton } from './ToggleVideoPreviewButton';
@@ -17,13 +18,18 @@ export type OutgoingCallControlsProps = {
 export const OutgoingCallControls = ({
   onHangupCallHandler,
 }: OutgoingCallControlsProps) => {
+  const {
+    theme: { outgoingCall },
+  } = useTheme();
   return (
-    <View style={styles.buttonGroup}>
-      <View style={styles.deviceControlButtons}>
+    <View style={[styles.buttonGroup, outgoingCall.buttonGroup]}>
+      <View
+        style={[styles.deviceControlButtons, outgoingCall.deviceControlButtons]}
+      >
         <ToggleAudioPreviewButton />
         <ToggleVideoPreviewButton />
       </View>
-      <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
+      <HangUpCallButton onPressHandler={onHangupCallHandler} />
     </View>
   );
 };

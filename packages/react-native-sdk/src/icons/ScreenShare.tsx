@@ -1,9 +1,10 @@
 import React from 'react';
 import Svg, { Mask, Path } from 'react-native-svg';
+import { ColorValue } from 'react-native/types';
 import { IconTestIds } from '../constants/TestIds';
 
 type Props = {
-  color: string;
+  color: ColorValue;
 };
 
 export const ScreenShare = ({ color }: Props) => {
