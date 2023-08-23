@@ -1,0 +1,71 @@
+---
+id: ringing-call-content
+title: RingingCallContent
+---
+
+import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
+
+The `RingingCallContent` lets you easily build UI when you're calling or ringing other people in an app. It's used to show more information about the participants you're calling, as well as give you the option to cancel the call before anyone accepts.
+
+Based on the call's ringing state and a call type, the RingingCallContent provides a list of participants, with their avatars and names, or a background with the avatar of the person you're calling, if it's a 1:1 conversation.
+
+Let's see how to show the RingingCallContent UI.
+
+## Usage
+
+To use the `RingingCallContent` you can do the following:
+
+```tsx {11}
+import {
+  useCalls,
+  RingingCallContent,
+} from '@stream-io/video-react-native-sdk';
+
+const Call = () => {
+  const calls = useCalls();
+
+  return (
+    <StreamCall call={call[0]}>
+      <RingingCallContent />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `IncomingCall`
+
+Prop to customize the `IncomingCall` component. This component is rendered when an incoming call is received.
+
+| Type                          | Default Value                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`IncomingCall`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/RingingCallContent/IncomingCall.tsx) |
+
+### `OutgoingCall`
+
+Prop to customize the `OutgoingCall` component. This component is rendered when someone is called.
+
+| Type                          | Default Value                                                                                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`OutgoingCall`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/RingingCallContent/OutgoingCall.tsx) |
+
+### `CallTopView`
+
+<CallTopView />
+
+### `CallContent`
+
+Prop to customize the accepted CallContent component in the RingingCallContent. This is shown after the call is accepted. By default it renders the [`CallContent`](../call-content) component.
+
+| Type                          | Default Value                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`CallContent`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallContent/CallContent.tsx) |
+
+### `JoiningCallIndicator`
+
+Prop to customize the `JoiningCallIndicator` component in the RingingCallContent. It is shown when the call is accepted and is waiting to be joined.
+
+| Type                          | Default Value                                                                                                                                                              |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`JoiningCallIndicator`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/RingingCallContent/JoiningCallIndicator.tsx) |

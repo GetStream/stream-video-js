@@ -6,45 +6,28 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { UserInfo } from './UserInfo';
-import { theme } from '../../theme';
-import { RejectCallButton } from './CallControls/RejectCallButton';
-import { AcceptCallButton } from './CallControls/AcceptCallButton';
-import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
-
-/**
- * The props for the Accept Call button in the IncomingCall component.
- */
-type AcceptCallButtonProps = {
-  /**
-   * Handler to be called when the accept call button is pressed.
-   * @returns void
-   */
-  onPressHandler?: () => void;
-};
-
-/**
- * The props for the Reject Call button in the IncomingCall component.
- */
-type RejectCallButtonProps = {
-  /**
-   * Handler to be called when the reject call button is pressed.
-   * @returns void
-   */
-  onPressHandler?: () => void;
-};
+import { theme } from '../../../theme';
+import {
+  CallTopView as DefaultCallTopView,
+  CallTopViewProps,
+} from '../CallTopView';
+import {
+  IncomingCallControls as DefaultIncomingCallControls,
+  IncomingCallControlsProps,
+} from '../CallControls';
 
 /**
  * Props for the IncomingCall Component.
  */
-export type IncomingCallType = {
+export type IncomingCallProps = IncomingCallControlsProps & {
   /**
-   * Accept Call Button Props to be passed as an object
+   * Prop to customize the CallTopView component in the IncomingCall component.
    */
-  acceptCallButton?: AcceptCallButtonProps;
+  CallTopView?: React.ComponentType<CallTopViewProps> | null;
   /**
-   * Reject Call Button Props to be passed as an object
+   * Prop to customize the IncomingCall controls.
    */
-  rejectCallButton?: RejectCallButtonProps;
+  IncomingCallControls?: React.ComponentType<IncomingCallControlsProps> | null;
 };
 
 /**
@@ -52,23 +35,27 @@ export type IncomingCallType = {
  * Used when the user is receiving a call.
  */
 export const IncomingCall = ({
-  acceptCallButton,
-  rejectCallButton,
-}: IncomingCallType) => {
+  onAcceptCallHandler,
+  onRejectCallHandler,
+  CallTopView = DefaultCallTopView,
+  IncomingCallControls = DefaultIncomingCallControls,
+}: IncomingCallProps) => {
   const { t } = useI18n();
 
   return (
     <Background>
+      {CallTopView && <CallTopView />}
       <View style={styles.content}>
         <UserInfo />
         <Text style={styles.incomingCallText}>{t('Incoming Call...')}</Text>
       </View>
 
-      <View style={styles.buttonGroup}>
-        <RejectCallButton onPressHandler={rejectCallButton?.onPressHandler} />
-        <ToggleVideoPreviewButton />
-        <AcceptCallButton onPressHandler={acceptCallButton?.onPressHandler} />
-      </View>
+      {IncomingCallControls && (
+        <IncomingCallControls
+          onAcceptCallHandler={onAcceptCallHandler}
+          onRejectCallHandler={onRejectCallHandler}
+        />
+      )}
     </Background>
   );
 };

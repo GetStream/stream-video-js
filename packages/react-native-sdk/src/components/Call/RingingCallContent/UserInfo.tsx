@@ -1,12 +1,12 @@
 import React from 'react';
 import { Image, Platform, StyleSheet, Text, View } from 'react-native';
-import { generateCallTitle } from '../../utils';
+import { generateCallTitle } from '../../../utils';
 import {
   useCallStateHooks,
   useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import { UserResponse } from '@stream-io/video-client';
-import { theme } from '../../theme';
+import { theme } from '../../../theme';
 
 enum AvatarModes {
   small = 'sm',

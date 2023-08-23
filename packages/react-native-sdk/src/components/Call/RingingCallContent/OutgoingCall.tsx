@@ -1,49 +1,53 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { UserInfo } from './UserInfo';
-import { useLocalVideoStream } from '../../hooks/useLocalVideoStream';
-import { theme } from '../../theme';
-import { Z_INDEX } from '../../constants';
-import {
-  HangUpCallButton,
-  HangUpCallButtonProps,
-} from './CallControls/HangupCallButton';
+import { useLocalVideoStream } from '../../../hooks/useLocalVideoStream';
+import { theme } from '../../../theme';
+import { Z_INDEX } from '../../../constants';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { RTCView } from '@stream-io/react-native-webrtc';
-import { ToggleAudioPreviewButton } from './CallControls/ToggleAudioPreviewButton';
-import { ToggleVideoPreviewButton } from './CallControls/ToggleVideoPreviewButton';
+import {
+  CallTopView as DefaultCallTopView,
+  CallTopViewProps,
+} from '../CallTopView';
+import {
+  OutgoingCallControls as DefaultOutgoingCallControls,
+  OutgoingCallControlsProps,
+} from '../CallControls';
 
 /**
  * Props for the OutgoingCall Component.
  */
-export type OutgoingCallProps = {
+export type OutgoingCallProps = OutgoingCallControlsProps & {
   /**
-   * HangUp Call Button Props to be passed as an object
+   * Prop to customize the CallTopView component in the IncomingCall component.
    */
-  hangupCallButton?: HangUpCallButtonProps;
+  CallTopView?: React.ComponentType<CallTopViewProps> | null;
+  /**
+   * Prop to customize the OutgoingCall controls.
+   */
+  OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
 };
 
 /**
  * An outgoing call with the callee's avatar, name, caller's camera in background, reject and mute buttons.
  * Used after the user has initiated a call.
  */
-export const OutgoingCall = ({ hangupCallButton }: OutgoingCallProps) => {
+export const OutgoingCall = ({
+  CallTopView = DefaultCallTopView,
+  OutgoingCallControls = DefaultOutgoingCallControls,
+}: OutgoingCallProps) => {
   const { t } = useI18n();
 
   return (
     <>
+      {CallTopView && <CallTopView />}
       <View style={[StyleSheet.absoluteFill, styles.container]}>
         <View>
           <UserInfo />
           <Text style={styles.callingText}>{t('Calling...')}</Text>
         </View>
-        <View style={styles.buttonGroup}>
-          <View style={styles.deviceControlButtons}>
-            <ToggleAudioPreviewButton />
-            <ToggleVideoPreviewButton />
-          </View>
-          <HangUpCallButton onPressHandler={hangupCallButton?.onPressHandler} />
-        </View>
+        {OutgoingCallControls && <OutgoingCallControls />}
       </View>
       <Background />
     </>
@@ -86,13 +90,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: theme.light.static_white,
     ...theme.fonts.heading6,
-  },
-  buttonGroup: {
-    alignItems: 'center',
-  },
-  deviceControlButtons: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
   },
 });
