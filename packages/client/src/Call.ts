@@ -1959,7 +1959,6 @@ export class Call {
             }
           });
 
-    // TODO: to discuss - I'm not sure if I like it here
     const streamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
@@ -1968,13 +1967,14 @@ export class Call {
       )
       .subscribe((p) => {
         const source = kind === 'video' ? p.videoStream : p.screenShareStream;
-        if (videoElement.srcObject === source || !source) return;
-
+        if (videoElement.srcObject === source) return;
         setTimeout(() => {
-          videoElement.srcObject = source;
-          videoElement.play().catch((e) => {
-            this.logger('warn', `Failed to play stream`, e);
-          });
+          videoElement.srcObject = source ?? null;
+          if (videoElement.srcObject) {
+            videoElement.play().catch((e) => {
+              this.logger('warn', `Failed to play stream`, e);
+            });
+          }
         }, 0);
       });
     videoElement.playsInline = true;
