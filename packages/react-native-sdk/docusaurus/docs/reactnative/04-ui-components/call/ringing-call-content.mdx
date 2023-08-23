@@ -3,6 +3,12 @@ id: ringing-call-content
 title: RingingCallContent
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import IncomingCall from '../../assets/04-ui-components/call/ringing-call-content/incoming-call.png';
+import OutgoingCall from '../../assets/04-ui-components/call/ringing-call-content/outgoing-call.png';
+import JoiningCallIndicator from '../../assets/04-ui-components/call/ringing-call-content/joining-call-indicator.png';
+import CallContent from '../../assets/04-ui-components/call/ringing-call-content/call-content.png';
+
 import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
 
 The `RingingCallContent` lets you easily build UI when you're calling or ringing other people in an app. It's used to show more information about the participants you're calling, as well as give you the option to cancel the call before anyone accepts.
@@ -10,6 +16,31 @@ The `RingingCallContent` lets you easily build UI when you're calling or ringing
 Based on the call's ringing state and a call type, the RingingCallContent provides a list of participants, with their avatars and names, or a background with the avatar of the person you're calling, if it's a 1:1 conversation.
 
 Let's see how to show the RingingCallContent UI.
+
+<ImageShowcase
+  items={[
+    {
+      image: IncomingCall,
+      caption: 'Incoming Call',
+      alt: 'Incoming Call',
+    },
+    {
+      image: OutgoingCall,
+      caption: 'Outgoing Call',
+      alt: 'Outgoing Call',
+    },
+    {
+      image: JoiningCallIndicator,
+      caption: 'Joining Call Indicator',
+      alt: 'Joining Call Indicator',
+    },
+    {
+      image: CallContent,
+      caption: 'Call Content',
+      alt: 'Call Content',
+    },
+  ]}
+/>
 
 ## Usage
 
