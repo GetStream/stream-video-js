@@ -4,6 +4,7 @@ import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../../utils';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Theme } from '../../theme/theme';
 
 /**
  * Props to be passed for the Avatar component.
@@ -19,6 +20,26 @@ export interface AvatarProps {
    * The default value is `100`
    */
   size?: number;
+  /**
+   * Custom style to be merged with the avatar.
+   * @example
+   * ```
+   * <Avatar
+   *  participant={participant}
+   *  style={{
+   *   container: {
+   *    backgroundColor: 'red',
+   *   },
+   *   image: {
+   *    borderRadius: 10,
+   *   },
+   *   text: {
+   *     color: 'white',
+   *   },
+   *   }}
+   * />
+   */
+  style?: Theme['avatar'];
 }
 
 /**
@@ -29,6 +50,7 @@ export const Avatar = (props: AvatarProps) => {
   const {
     participant: { userId, image, name },
     size = 100,
+    style: styleProp,
   } = props;
   const {
     theme: { avatar, colors, typefaces },
@@ -51,6 +73,7 @@ export const Avatar = (props: AvatarProps) => {
           backgroundColor: colors.primary,
         },
         avatar.container,
+        styleProp?.container,
       ]}
     >
       {imageUrl ? (
@@ -59,7 +82,7 @@ export const Avatar = (props: AvatarProps) => {
           source={{
             uri: imageUrl,
           }}
-          style={[styles.image, avatar.image]}
+          style={[styles.image, avatar.image, styleProp?.image]}
         />
       ) : (
         <Text
@@ -68,6 +91,7 @@ export const Avatar = (props: AvatarProps) => {
             { fontSize: size / 2, color: colors.bars },
             typefaces.heading6,
             avatar.text,
+            styleProp?.text,
           ]}
           numberOfLines={1}
         >

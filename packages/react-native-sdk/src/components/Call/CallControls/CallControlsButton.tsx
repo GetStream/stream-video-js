@@ -26,6 +26,9 @@ interface CallControlsButtonProps {
    * Style to the Pressable button.
    */
   style?: Theme['callControlsButton'];
+  /**
+   * Sets the height, width and border-radius (half the value) of the button.
+   */
   size?: number;
   /**
    * Accessibility label for the button.

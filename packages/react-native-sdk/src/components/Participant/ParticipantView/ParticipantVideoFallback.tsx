@@ -48,7 +48,14 @@ export const ParticipantVideoFallback = ({
           {participantLabel}
         </Text>
       ) : (
-        <Avatar participant={participant} />
+        <Avatar
+          participant={participant}
+          style={{
+            container: participantVideoFallback.avatarContainer,
+            image: participantVideoFallback.avatarImage,
+            text: participantVideoFallback.avatarText,
+          }}
+        />
       )}
     </View>
   );

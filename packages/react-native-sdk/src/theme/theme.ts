@@ -128,6 +128,9 @@ export type Theme = {
   participantVideoFallback: {
     container: ViewStyle;
     label: TextStyle;
+    avatarContainer: ViewStyle;
+    avatarText: TextStyle;
+    avatarImage: ImageStyle;
   };
   participantView: {
     container: ViewStyle;
@@ -337,6 +340,9 @@ export const defaultTheme: Theme = {
   participantVideoFallback: {
     container: {},
     label: {},
+    avatarContainer: {},
+    avatarText: {},
+    avatarImage: {},
   },
   participantView: {
     container: {},
