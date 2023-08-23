@@ -35,6 +35,7 @@ export type Theme = {
   };
   callContent: {
     container: ViewStyle;
+    callParticipantsContainer: ViewStyle;
   };
   callControls: {
     container: ViewStyle;
@@ -80,8 +81,8 @@ export type Theme = {
     label: TextStyle;
   };
   localParticipantsView: {
-    floatingContainer: ViewStyle;
-    floatingViewContainer: ViewStyle;
+    container: ViewStyle;
+    participantViewContainer: ViewStyle;
     videoFallback: ViewStyle;
   };
   chatButton: {
@@ -94,6 +95,7 @@ export type Theme = {
   callParticipantsSpotlight: {
     container: ViewStyle;
     fullScreenSpotlightContainer: ViewStyle;
+    callParticipantsListContainer: ViewStyle;
     spotlightContainer: ViewStyle;
   };
   lobby: {
@@ -246,6 +248,7 @@ export const defaultTheme: Theme = {
   },
   callContent: {
     container: {},
+    callParticipantsContainer: {},
   },
   callControls: {
     container: {},
@@ -296,6 +299,7 @@ export const defaultTheme: Theme = {
   callParticipantsSpotlight: {
     container: {},
     fullScreenSpotlightContainer: {},
+    callParticipantsListContainer: {},
     spotlightContainer: {},
   },
   lobby: {
@@ -311,8 +315,8 @@ export const defaultTheme: Theme = {
     audioMutedIconContainer: {},
   },
   localParticipantsView: {
-    floatingContainer: {},
-    floatingViewContainer: {},
+    container: {},
+    participantViewContainer: {},
     videoFallback: {},
   },
   participantLabel: {

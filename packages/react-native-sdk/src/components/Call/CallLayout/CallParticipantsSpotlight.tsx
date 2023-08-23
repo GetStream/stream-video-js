@@ -102,7 +102,12 @@ export const CallParticipantsSpotlight = ({
         />
       )}
       {!isUserAloneInCall && (
-        <View style={styles.callParticipantsListContainer}>
+        <View
+          style={[
+            styles.callParticipantsListContainer,
+            callParticipantsSpotlight.callParticipantsListContainer,
+          ]}
+        >
           {CallParticipantsList && (
             <CallParticipantsList
               participants={

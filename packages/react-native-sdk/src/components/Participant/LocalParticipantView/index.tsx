@@ -105,10 +105,7 @@ export const LocalParticipantView = ({
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={[
-        styles.floatingContainer,
-        localParticipantsView.floatingContainer,
-      ]}
+      style={[styles.container, localParticipantsView.container]}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -136,13 +133,13 @@ export const LocalParticipantView = ({
               participant={localParticipant}
               videoMode={'video'}
               style={[
-                styles.floatingViewContainer,
+                styles.participantViewContainer,
                 style,
                 {
                   backgroundColor: colors.static_grey,
                   shadowColor: colors.static_black,
                 },
-                localParticipantsView.floatingViewContainer,
+                localParticipantsView.participantViewContainer,
               ]}
               // video z order must be one above the one used in grid view
               // (which uses the default: 0)
@@ -157,13 +154,13 @@ export const LocalParticipantView = ({
 };
 
 const styles = StyleSheet.create({
-  floatingContainer: {
+  container: {
     ...StyleSheet.absoluteFillObject,
     margin: 12,
     // Needed to make the view on top and draggable
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  floatingViewContainer: {
+  participantViewContainer: {
     height: LOCAL_VIDEO_VIEW_STYLE.height,
     width: LOCAL_VIDEO_VIEW_STYLE.width,
     borderRadius: LOCAL_VIDEO_VIEW_STYLE.borderRadius,
