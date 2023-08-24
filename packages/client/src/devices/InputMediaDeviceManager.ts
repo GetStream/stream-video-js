@@ -139,10 +139,19 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(stopTracks);
-      // This is a noop in most cases because stopPublishStream will dispose the media stream
-      // This handles the rare edge-case when we were joined to a call, but weren't publishing even though the device was enabled
       if (stopTracks) {
-        disposeOfMediaStream(this.state.mediaStream);
+        // This is a noop in most cases because stopPublishStream will dispose the media stream
+        // This handles the rare edge-case when we were joined to a call, but weren't publishing even though the device was enabled
+        if (this.state.mediaStream.active) {
+          disposeOfMediaStream(this.state.mediaStream);
+        } else {
+          // The published won't do this
+          // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
+          if (typeof stream.release === 'function') {
+            // @ts-expect-error
+            stream.release();
+          }
+        }
       }
     } else if (this.state.mediaStream) {
       stopTracks
