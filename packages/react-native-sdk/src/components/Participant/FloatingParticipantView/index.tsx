@@ -4,7 +4,6 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
-import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
@@ -12,6 +11,7 @@ import {
   ParticipantViewComponentProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
+import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
 
 export type FloatingParticipantViewAlignment =
   | 'top-left'
@@ -123,7 +123,7 @@ export const FloatingParticipantView = ({
       }}
     >
       {containerDimensions && (
-        <FloatingView
+        <AnimatedFloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
           initialAlignment={floatingAlignmentMap[alignment]}
@@ -147,7 +147,7 @@ export const FloatingParticipantView = ({
               {...participantViewProps}
             />
           )}
-        </FloatingView>
+        </AnimatedFloatingView>
       )}
     </View>
   );
