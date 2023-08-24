@@ -30,14 +30,17 @@ jobs:
       matrix:
         application:
           - name: messenger-clone-react
+            folder: messenger-clone
             project-id: prj_FNUiw2FtWJEDVHP5XttyLQmGw39n
             populate-tokens: true
           - name: zoom-clone-react
+            folder: zoom-clone
             project-id: prj_y2GjsUXNvW7MdQ0EpJVG0FBNNovL
             populate-tokens: true
           - name: egress-composite
             project-id: prj_R6DLpP2Gxc0aRHGEopQWE8tveNDX
           - name: livestream-app-react
+            folder: livestream-app
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
@@ -60,6 +63,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: dorny/paths-filter@v2.11.1
+        id: changes
+        with:
+          filters: |
+            sample-apps:
+              - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
+
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -74,26 +84,22 @@ jobs:
         run: yarn workspace @stream-io/${{ matrix.application.name }} scripts:populate-tokens
 
       - name: Build packages
-        run: NODE_ENV=production yarn build:react:deps
+        env:
+          NODE_ENV: production
+        run: yarn build:react:deps
 
       ### Vercel deployment (Preview) ###
-      - name: Vercel Pull Configuration (Preview)
+      - name: Vercel Pull/Build/Deploy (Preview)
         if: ${{ github.ref_name != 'main' }}
-        run: yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Build (Preview)
-        if: ${{ github.ref_name != 'main' }}
-        run: yarn vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Deploy (Preview)
-        if: ${{ github.ref_name != 'main' }}
-        run: yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        run: >
+          yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel build --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       ### Vercel deployment (Production) ###
-      - name: Vercel Pull Configuration (Production)
-        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
-        run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Build (Production)
-        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
-        run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Vercel Deploy (Production)
-        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
-        run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Vercel Pull/Build/Deploy (Production)
+        if: ${{ github.ref_name == 'main' && steps.changes.outputs.sample-apps == 'true' }}
+        run: >
+          yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
