@@ -30,8 +30,16 @@ export const ParticipantsInfoBadge = ({
       variants: { iconSizes },
     },
   } = useTheme();
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useCallMembers } = useCallStateHooks();
   const participantCount = useParticipantCount();
+  const members = useCallMembers();
+
+  /**
+   * We show member's length if Incoming and Outgoing Call Views are rendered.
+   * Else we show the count of the participants that are in the call.
+   * Since the members count also includes caller/callee, we reduce the count by 1.
+   **/
+  const count = participantCount || members.length - 1;
 
   return (
     <Pressable
@@ -71,7 +79,7 @@ export const ParticipantsInfoBadge = ({
             participantInfoBadge.participantsCountText,
           ]}
         >
-          {participantCount}
+          {count}
         </Text>
       </View>
     </Pressable>
