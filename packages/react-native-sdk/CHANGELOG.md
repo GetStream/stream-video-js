@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.384](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.383...@stream-io/video-react-native-sdk-0.0.1-alpha.384) (2023-08-24)
+
+
+### Bug Fixes
+
+* **react-native:** bring FloatingParticipantView vertically down below CallTopView ([#957](https://github.com/GetStream/stream-video-js/issues/957)) ([84a250e](https://github.com/GetStream/stream-video-js/commit/84a250e8f2829e27d7c05705a731dd2a5f3e2a44))
+* **react-native:** broken e2e tests ([#961](https://github.com/GetStream/stream-video-js/issues/961)) ([5a8265e](https://github.com/GetStream/stream-video-js/commit/5a8265ea0748a229c68fcf7f0f3c1827d599d5f5))
+* **react-native:** broken tests ([#946](https://github.com/GetStream/stream-video-js/issues/946)) ([63e2629](https://github.com/GetStream/stream-video-js/commit/63e26296d29ce2cf8b6af33b8917c20105725357))
+* **react-native:** floating video must be one zOrder above the grid  ([#953](https://github.com/GetStream/stream-video-js/issues/953)) ([6fac2e5](https://github.com/GetStream/stream-video-js/commit/6fac2e53fde35b3c8cc5bbaf26cf8c2d0018127f))
+* **react-native:** participant label should check for sfu mute state ([#958](https://github.com/GetStream/stream-video-js/issues/958)) ([90d3dd4](https://github.com/GetStream/stream-video-js/commit/90d3dd4a9f2af6ba47eaeb1fa7fdcd85aa9dd0f2))
+* **react-native:** styles for Participant Grid and Layout mode ([#952](https://github.com/GetStream/stream-video-js/issues/952)) ([cba5dd1](https://github.com/GetStream/stream-video-js/commit/cba5dd14f834443844f2b518adfab311d93c247e))
+* **react-native:** use the new hooks in livestream docs ([#949](https://github.com/GetStream/stream-video-js/issues/949)) ([3782190](https://github.com/GetStream/stream-video-js/commit/3782190a684a8f5b94ff8af6197750e86ae625bf))
+
+
+### Features
+
+* Disable doesn't stop audio tracks ([#950](https://github.com/GetStream/stream-video-js/issues/950)) ([c348f34](https://github.com/GetStream/stream-video-js/commit/c348f34818f0e123e70b9471637ddd64411ebc08))
+* **react-native:** lobby customization ([#963](https://github.com/GetStream/stream-video-js/issues/963)) ([3174ef3](https://github.com/GetStream/stream-video-js/commit/3174ef35402e86a4233a7b435252470786085f63))
+* **react-native:** RingingCallContent and related improvements ([#976](https://github.com/GetStream/stream-video-js/issues/976)) ([5f218cb](https://github.com/GetStream/stream-video-js/commit/5f218cbfb31a834c0c7acca17897e54a186d2c99))
+* theming support ([#975](https://github.com/GetStream/stream-video-js/issues/975)) ([adcc340](https://github.com/GetStream/stream-video-js/commit/adcc3409ad6a40e9ba732b28d434f42aaa7e8f4f))
+* use new device API in RN SDK and move to @stream-io/react-native-webrtc ([#925](https://github.com/GetStream/stream-video-js/issues/925)) ([8442d82](https://github.com/GetStream/stream-video-js/commit/8442d821a8eb97cb4be6e6d71b64337c04a86a15))
+
+
+
 ## [0.0.1-alpha.383](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.382...@stream-io/video-react-native-sdk-0.0.1-alpha.383) (2023-08-16)
 
 
