@@ -9,8 +9,14 @@ import {
 } from './MediaStreamManagement';
 
 export type StreamCallProps = {
+  /**
+   * Stream Call instance propagated to the component's children as a part of StreamCallContext.
+   * Children can access it with useCall() hook.
+   */
   call: Call;
-
+  /**
+   * Provides the initial status of the media devices(audio/video) to the `MediaStreamManagement`.
+   */
   mediaDeviceInitialState?: MediaDevicesInitialState;
 };
 /**

@@ -29,7 +29,15 @@ export const App = () => {
 ### `call`
 
 | Type   |
-|--------|
+| ------ |
 | `Call` |
 
 Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
+
+### `mediaDeviceInitialState`
+
+Provides the initial status of the media devices(audio and video) to the `MediaStreamManagement`.
+
+| Type                                                                                      |
+| ----------------------------------------------------------------------------------------- |
+| `{initialAudioEnabled: boolean`\|`undefined, initialVideoEnabled: boolean`\|`undefined }` |
