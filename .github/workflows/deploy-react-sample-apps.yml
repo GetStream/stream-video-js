@@ -36,7 +36,7 @@ jobs:
             project-id: prj_y2GjsUXNvW7MdQ0EpJVG0FBNNovL
             populate-tokens: true
           - name: egress-composite
-            project-id: prj_y9JDolEfVxWC50c4h71UxIL7XNXz
+            project-id: prj_R6DLpP2Gxc0aRHGEopQWE8tveNDX
           - name: livestream-app-react
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
