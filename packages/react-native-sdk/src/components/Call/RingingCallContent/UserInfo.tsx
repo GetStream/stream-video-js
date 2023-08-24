@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Platform, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { generateCallTitle } from '../../../utils';
 import {
   useCallStateHooks,
@@ -46,15 +46,16 @@ export const UserInfo = ({
 
   // take the first N members to show their avatars
   const membersToShow: UserResponse[] = (members || [])
+    .filter((user) => user.user_id !== connectedUser?.id || includeSelf)
     .slice(0, totalMembersToShow)
-    .map(({ user }) => user)
-    .filter((user) => user.id !== connectedUser?.id || includeSelf);
+    .map(({ user }) => user);
+
   if (
     includeSelf &&
     !membersToShow.find((user) => user.id === connectedUser?.id)
   ) {
     // if the current user is not in the initial batch of members,
-    // add it to the beginning of the list
+    // replace the first item in membersToShow array with the current user
     const self = members.find(({ user }) => user.id === connectedUser?.id);
     if (self) {
       membersToShow.splice(0, 1, self.user);
@@ -79,6 +80,7 @@ export const UserInfo = ({
     height: avatarSizes[mode],
     width: avatarSizes[mode],
     borderRadius: avatarSizes[mode] / 2,
+    marginVertical: 4,
   };
 
   const fontStyleByMembersCount =
@@ -119,7 +121,7 @@ export const UserInfo = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Platform.OS === 'android' ? 128 : 64,
+    paddingHorizontal: 64,
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',

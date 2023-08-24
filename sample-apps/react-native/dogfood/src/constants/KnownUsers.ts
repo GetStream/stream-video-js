@@ -1,8 +1,8 @@
 export const KnownUsers = [
   {
-    id: 'steve',
-    name: 'Steve Galilli',
-    image: 'https://ca.slack-edge.com/T02RM6X6B-U039J798FJ7-894cf1f07326-512',
+    id: 'vishal',
+    name: 'Vishal Narkhede',
+    image: 'https://ca.slack-edge.com/T02RM6X6B-UHGDQJ8A0-b4a6ca584e05-512',
   },
   {
     id: 'khushal',
