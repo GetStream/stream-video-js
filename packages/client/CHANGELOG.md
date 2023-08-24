@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.7](https://github.com/GetStream/stream-video-js/compare/client0.3.6...client0.3.7) (2023-08-24)
+
+
+### Features
+
+* apply target resolution to video feed, sync camera/mic init ([#977](https://github.com/GetStream/stream-video-js/issues/977)) ([8ee6488](https://github.com/GetStream/stream-video-js/commit/8ee64882ebd4911445242beef5fd3148372283e3))
+
 ### [0.3.6](https://github.com/GetStream/stream-video-js/compare/client0.3.5...client0.3.6) (2023-08-23)
 
 
