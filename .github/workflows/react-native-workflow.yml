@@ -233,7 +233,7 @@ jobs:
     name: Deploy Android
     needs: test_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/android-redme-issue-test' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
