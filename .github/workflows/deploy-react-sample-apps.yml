@@ -89,11 +89,11 @@ jobs:
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull Configuration (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
         run: yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Build (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
         run: yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Vercel Deploy (Production)
-        if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' || matrix.application.name == 'egress-composite' }}
         run: yarn vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
