@@ -8,7 +8,10 @@ The `<StreamVideo />` provider makes the [client and its state](../../../core/ca
 ## General usage
 
 ```tsx
-import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-native-sdk';
+import {
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
 
 export const App = () => {
   const client = new StreamVideoClient(/* ... */);
@@ -26,32 +29,40 @@ export const App = () => {
 
 ### `client`
 
-| Type                |
-|---------------------|
-| `StreamVideoClient` |
-
 `StreamVideoClient` instance propagated to the component's children as a part of `StreamVideoContext`. Children can access it with `useStreamVideoClient()` hook.
 
+| Type                |
+| ------------------- |
+| `StreamVideoClient` |
+
 ### `i18nInstance`
+
+The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).
 
 | Type                        |
 | --------------------------- |
 | `StreamI18n` \| `undefined` |
 
-The `StreamI18n` instance to use, if `undefined` is provided, a new instance will be created. For more information, see our [Internationalization guide](../../../advanced/i18n/).
-
 ### `language`
+
+The language to translate UI labels. For more information, see our [Internationalization guide](../../../advanced/i18n/).
 
 | Type                    | Default |
 | ----------------------- | ------- |
 | `string` \| `undefined` | en      |
 
-The language to translate UI labels. For more information, see our [Internationalization guide](../../../advanced/i18n/).
-
 ### `translationsOverrides`
+
+Custom translations that will be merged with the defaults provided by the library. For more information, see our [Internationalization guide](../../../advanced/i18n/).
 
 | Type                             |
 | -------------------------------- |
 | `TranslationsMap` \| `undefined` |
 
-Custom translations that will be merged with the defaults provided by the library. For more information, see our [Internationalization guide](../../../advanced/i18n/).
+### `style`
+
+Prop to apply styles/theme to all of the inner components.
+
+| Type                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------- |
+| [`Theme`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/theme/theme.ts) \| `undefined` |
