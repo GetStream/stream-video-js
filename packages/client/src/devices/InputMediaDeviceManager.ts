@@ -139,6 +139,11 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(stopTracks);
+      // This is a noop in most cases because stopPublishStream will dispose the media stream
+      // This handles the rare edge-case when we were joined to a call, but weren't publishing even though the device was enabled
+      if (stopTracks) {
+        disposeOfMediaStream(this.state.mediaStream);
+      }
     } else if (this.state.mediaStream) {
       stopTracks
         ? disposeOfMediaStream(this.state.mediaStream)

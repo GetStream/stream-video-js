@@ -301,9 +301,44 @@ export class Call {
             permission as OwnCapability,
           );
           if (!hasPermission && this.publisher.isPublishing(trackType)) {
-            this.stopPublish(trackType).catch((err) => {
-              this.logger('error', `Error stopping publish ${trackType}`, err);
-            });
+            this.stopPublish(trackType)
+              .catch((err) => {
+                this.logger(
+                  'error',
+                  `Error stopping publish ${trackType}`,
+                  err,
+                );
+              })
+              .then(() => {
+                if (
+                  trackType === TrackType.VIDEO &&
+                  this.camera.state.status === 'enabled'
+                ) {
+                  this.camera
+                    .disable()
+                    .catch((err) =>
+                      this.logger(
+                        'error',
+                        `Error disabling camera after pemission revoked`,
+                        err,
+                      ),
+                    );
+                }
+                if (
+                  trackType === TrackType.AUDIO &&
+                  this.microphone.state.status === 'enabled'
+                ) {
+                  this.microphone
+                    .disable()
+                    .catch((err) =>
+                      this.logger(
+                        'error',
+                        `Error disabling microphone after pemission revoked`,
+                        err,
+                      ),
+                    );
+                }
+              });
           }
         }
       }),
