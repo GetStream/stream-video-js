@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
 import { StreamVideoRN } from '../../../utils';
 import { Z_INDEX } from '../../../constants';
 import { ParticipantViewProps } from './ParticipantView';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the ParticipantReaction component.
@@ -31,6 +31,13 @@ export const ParticipantReaction = ({
   const { supportedReactions } = StreamVideoRN.getConfig();
   const { reaction, sessionId } = participant;
   const call = useCall();
+  const {
+    theme: {
+      typefaces,
+      variants: { iconSizes },
+      participantReaction,
+    },
+  } = useTheme();
   const [isShowing, setIsShowing] = useState<boolean>(false);
 
   useEffect(() => {
@@ -59,17 +66,31 @@ export const ParticipantReaction = ({
     if (typeof currentReaction?.icon !== 'string') {
       component = currentReaction?.icon;
     } else {
-      component = <Text style={styles.reaction}>{currentReaction.icon}</Text>;
+      component = (
+        <Text style={[participantReaction.reaction, typefaces.heading6]}>
+          {currentReaction.icon}
+        </Text>
+      );
     }
   }
 
-  return <View style={[styles.container, theme.icon.md]}>{component}</View>;
+  return (
+    <View
+      style={[
+        styles.container,
+        {
+          height: iconSizes.md,
+          width: iconSizes.md,
+        },
+        participantReaction.container,
+      ]}
+    >
+      {component}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  reaction: {
-    ...theme.fonts.heading6,
-  },
   container: {
     alignSelf: 'flex-start',
     zIndex: Z_INDEX.IN_FRONT,

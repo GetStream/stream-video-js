@@ -2,8 +2,9 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { getInitialsOfName } from '../../utils';
-import { theme } from '../../theme';
 import { ComponentTestIds, ImageTestIds } from '../../constants/TestIds';
+import { useTheme } from '../../contexts/ThemeContext';
+import { Theme } from '../../theme/theme';
 
 /**
  * Props to be passed for the Avatar component.
@@ -19,6 +20,26 @@ export interface AvatarProps {
    * The default value is `100`
    */
   size?: number;
+  /**
+   * Custom style to be merged with the avatar.
+   * @example
+   * ```
+   * <Avatar
+   *  participant={participant}
+   *  style={{
+   *   container: {
+   *    backgroundColor: 'red',
+   *   },
+   *   image: {
+   *    borderRadius: 10,
+   *   },
+   *   text: {
+   *     color: 'white',
+   *   },
+   *   }}
+   * />
+   */
+  style?: Theme['avatar'];
 }
 
 /**
@@ -28,9 +49,12 @@ export interface AvatarProps {
 export const Avatar = (props: AvatarProps) => {
   const {
     participant: { userId, image, name },
-    size = theme.avatar.sm,
+    size = 100,
+    style: styleProp,
   } = props;
-
+  const {
+    theme: { avatar, colors, typefaces },
+  } = useTheme();
   const userDetails = name || userId;
   const userLabel = userDetails ? getInitialsOfName(userDetails) : '?';
 
@@ -38,12 +62,19 @@ export const Avatar = (props: AvatarProps) => {
   return (
     <View
       testID={ComponentTestIds.PARTICIPANT_AVATAR}
-      style={{
-        ...styles.container,
-        borderRadius: size / 2,
-        height: size,
-        width: size,
-      }}
+      style={[
+        styles.container,
+        {
+          borderRadius: size / 2,
+          height: size,
+          width: size,
+        },
+        {
+          backgroundColor: colors.primary,
+        },
+        avatar.container,
+        styleProp?.container,
+      ]}
     >
       {imageUrl ? (
         <Image
@@ -51,10 +82,19 @@ export const Avatar = (props: AvatarProps) => {
           source={{
             uri: imageUrl,
           }}
-          style={styles.image}
+          style={[styles.image, avatar.image, styleProp?.image]}
         />
       ) : (
-        <Text style={{ ...styles.text, fontSize: size / 2 }} numberOfLines={1}>
+        <Text
+          style={[
+            styles.text,
+            { fontSize: size / 2, color: colors.bars },
+            typefaces.heading6,
+            avatar.text,
+            styleProp?.text,
+          ]}
+          numberOfLines={1}
+        >
           {userLabel}
         </Text>
       )}
@@ -64,7 +104,6 @@ export const Avatar = (props: AvatarProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: theme.light.primary,
     justifyContent: 'center',
     overflow: 'hidden',
   },
@@ -72,8 +111,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   text: {
-    color: theme.light.bars,
     textAlign: 'center',
-    ...theme.fonts.heading4,
   },
 });

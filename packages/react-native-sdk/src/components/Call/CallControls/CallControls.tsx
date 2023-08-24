@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
-import { theme } from '../../../theme';
 import { ToggleAudioPublishingButton } from './ToggleAudioPublishingButton';
 import { ToggleVideoPublishingButton } from './ToggleVideoPublishingButton';
 import { ToggleCameraFaceButton } from './ToggleCameraFaceButton';
 import { Z_INDEX } from '../../../constants';
 import { HangUpCallButton } from './HangupCallButton';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the CallControls Component.
@@ -26,8 +26,18 @@ export const CallControls = ({
   style,
   onHangupCallHandler,
 }: CallControlProps) => {
+  const {
+    theme: { colors, callControls },
+  } = useTheme();
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_grey },
+        style,
+        callControls.container,
+      ]}
+    >
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
@@ -38,10 +48,9 @@ export const CallControls = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: theme.padding.md,
+    paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     zIndex: Z_INDEX.IN_FRONT,
-    backgroundColor: theme.light.static_grey,
   },
 });

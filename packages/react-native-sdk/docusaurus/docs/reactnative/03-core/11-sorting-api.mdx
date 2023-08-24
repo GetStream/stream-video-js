@@ -171,11 +171,12 @@ For this purpose, we have extended the built-in `useParticipants` hook with a `s
 
 ```ts
 import {
-  useParticipants,
   combineComparators,
   name,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
+const { useParticipants } = useCallStateHooks();
 // this will override the call's default sorting criteria
 // and will return a list of participants sorted by name
 const participants = useParticipants({ sortBy: name });
@@ -197,6 +198,7 @@ In case you need to use a stateful comparator, please make sure to memoize it us
 const myStatelessComparator = combineComparators(/* ... */);
 
 export const MyComponent = () => {
+  const { useParticipants } = useCallStateHooks();
   // component scope
   const participants1 = useParticipants({ sortBy: myStatelessComparator });
 

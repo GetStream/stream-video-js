@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { OwnCapability } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../constants/TestIds';
-import { theme } from '../../../theme';
 import { Reaction } from '../../../icons';
 import { ReactionsPicker } from './internal/ReactionsPicker';
 import { StreamVideoRN } from '../../../utils';
 import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the Reaction button
@@ -28,7 +28,9 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
     useState<boolean>(false);
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
     useState<LayoutRectangle>();
-
+  const {
+    theme: { colors },
+  } = useTheme();
   // This is for the reaction picker
   const onReactionsButtonLayout = (event: LayoutChangeEvent) => {
     const layout = event.nativeEvent.layout;
@@ -60,10 +62,9 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
         <CallControlsButton
           testID={ButtonTestIds.REACTION}
           onPress={reactionButtonHandler}
-          color={theme.light.static_white}
           onLayout={onReactionsButtonLayout}
         >
-          <Reaction color={theme.light.static_black} />
+          <Reaction color={colors.static_black} />
         </CallControlsButton>
       </Restricted>
       {showReactionsPicker && (

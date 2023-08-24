@@ -19,3 +19,4 @@ As such, this application accepts certain configuration parameters to be provide
 ## Run
 
 - `yarn start`
+- open browser
