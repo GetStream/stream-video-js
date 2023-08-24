@@ -1,14 +1,14 @@
-.screen-share-container {
+.dominant-speaker-screen-share__container {
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  .screen-share-player {
+  .dominant-speaker-screen-share__player {
     flex: 1;
   }
 
-  .current-speaker {
+  .dominant-speaker-screen-share__current-speaker {
     position: absolute;
     width: 240px;
     right: 10px;

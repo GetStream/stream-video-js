@@ -6,7 +6,7 @@ import {
   Video,
 } from '@stream-io/video-react-sdk';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
-import './ScreenShare.scss';
+import './DominantSpeakerScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeakerScreenShare = () => {
@@ -26,9 +26,9 @@ export const DominantSpeakerScreenShare = () => {
 
   return (
     <>
-      <div className="screen-share-container">
+      <div className="dominant-speaker-screen-share__container">
         <Video
-          className="screen-share-player"
+          className="dominant-speaker-screen-share__player"
           participant={screenSharingParticipant}
           kind="screen"
           autoPlay
@@ -39,7 +39,7 @@ export const DominantSpeakerScreenShare = () => {
           Presenter:{' '}
           {screenSharingParticipant.name || screenSharingParticipant.userId}
         </span>
-        <div className="current-speaker">
+        <div className="dominant-speaker-screen-share__current-speaker">
           <ParticipantView
             participant={screenSharingParticipant}
             ParticipantViewUI={
