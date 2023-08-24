@@ -108,6 +108,10 @@ export class DynascaleManager {
     sessionId: string,
     kind: 'video' | 'screen',
   ) => {
+    const boundParticipant =
+      this.call.state.findParticipantBySessionId(sessionId);
+    if (!boundParticipant) return;
+
     const requestVideoWithDimensions = (
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
@@ -118,10 +122,6 @@ export class DynascaleManager {
         debounceType,
       );
     };
-
-    const matchedParticipant =
-      this.call.state.findParticipantBySessionId(sessionId);
-    if (!matchedParticipant) return;
 
     const participant$ = this.call.state.participants$.pipe(
       map(
@@ -137,7 +137,7 @@ export class DynascaleManager {
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
     const viewportVisibilityStateSubscription =
-      matchedParticipant.isLocalParticipant
+      boundParticipant.isLocalParticipant
         ? null
         : participant$
             .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
@@ -163,7 +163,7 @@ export class DynascaleManager {
             });
 
     let lastDimensions: string | undefined;
-    const resizeObserver = matchedParticipant.isLocalParticipant
+    const resizeObserver = boundParticipant.isLocalParticipant
       ? null
       : new ResizeObserver(() => {
           const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
@@ -188,7 +188,7 @@ export class DynascaleManager {
         });
     resizeObserver?.observe(videoElement);
 
-    const publishedTracksSubscription = matchedParticipant.isLocalParticipant
+    const publishedTracksSubscription = boundParticipant.isLocalParticipant
       ? null
       : participant$
           .pipe(
@@ -276,13 +276,15 @@ export class DynascaleManager {
       .pipe(distinctUntilKeyChanged('audioStream'))
       .subscribe((p) => {
         const source = p.audioStream;
-        if (audioElement.srcObject === source || !source) return;
+        if (audioElement.srcObject === source) return;
 
         setTimeout(() => {
-          audioElement.srcObject = source;
-          audioElement.play().catch((e) => {
-            this.logger('warn', `Failed to play stream`, e);
-          });
+          audioElement.srcObject = source ?? null;
+          if (audioElement.srcObject) {
+            audioElement.play().catch((e) => {
+              this.logger('warn', `Failed to play stream`, e);
+            });
+          }
         });
       });
 
