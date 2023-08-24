@@ -50,6 +50,7 @@ export type ConfigurationValue = {
     'layout.single_participant.shuffle_delay'?: number;
     // spotlight-specific
     'layout.spotlight.bar_position'?: 'top' | 'right' | 'bottom' | 'left';
+    'layout.spotlight.bar_limit'?: number;
   };
 };
 

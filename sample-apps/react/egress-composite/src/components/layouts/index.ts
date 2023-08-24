@@ -1,8 +1,9 @@
 import { ComponentType } from 'react';
-import { PaginatedGrid } from './grid/PaginatedGrid';
-import { DominantSpeaker } from './dominant-speaker/DominantSpeaker';
-import { DominantSpeakerScreenShare } from './dominant-speaker';
+
 import { ConfigurationValue } from '../../ConfigurationContext';
+import { DominantSpeaker, DominantSpeakerScreenShare } from './DominantSpeaker';
+import { PaginatedGrid } from './PaginatedGrid';
+import { Spotlight } from './Spotlight';
 
 export type LayoutType = Exclude<ConfigurationValue['layout'], undefined>;
 
@@ -13,6 +14,6 @@ export const layoutMap: Record<
 > = {
   single_participant: [DominantSpeaker, DominantSpeakerScreenShare],
   grid: [PaginatedGrid],
-  spotlight: [() => null],
+  spotlight: [Spotlight, Spotlight],
   mobile: [() => null],
 };

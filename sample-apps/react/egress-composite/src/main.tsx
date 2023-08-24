@@ -46,8 +46,8 @@ window.setupLayout = (configuration: ConfigurationValue) => {
 //   const v = document.createElement('script');
 //   v.innerHTML = `window.setupLayout({
 //     call_id: "<call_id>",
-//     layout: "single_participant",
-//     screenshare_layout: "single_participant",
+//     layout: "grid",
+//     screenshare_layout: "spotlight",
 
 //     options: {
 //       "logo.image_url": "https://theme.zdassets.com/theme_assets/9442057/efc3820e436f9150bc8cf34267fff4df052a1f9c.png",
