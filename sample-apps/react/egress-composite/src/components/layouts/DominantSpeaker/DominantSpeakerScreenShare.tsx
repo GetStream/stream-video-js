@@ -30,7 +30,7 @@ export const DominantSpeakerScreenShare = () => {
         <Video
           className="dominant-speaker-screen-share__player"
           participant={screenSharingParticipant}
-          kind="screen"
+          videoMode="screen"
           autoPlay
           muted
           refs={{ setVideoElement, setVideoPlaceholderElement }}

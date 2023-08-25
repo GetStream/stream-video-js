@@ -49,18 +49,25 @@ export class DynascaleManager {
    *
    * @param element the element to track.
    * @param sessionId the session id.
+   * @param videoMode the kind of video.
    * @returns Untrack.
    */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
     sessionId: string,
+    videoMode: 'video' | 'screen',
   ) => {
+    const propToUpdate: keyof StreamVideoParticipant =
+      videoMode === 'video'
+        ? 'viewportVisibilityState'
+        : 'screenShareViewportVisibilityState';
+
     const cleanup = this.viewportTracker.observe(element, (entry) => {
       this.call.state.updateParticipant(sessionId, (participant) => ({
         ...participant,
-        viewportVisibilityState:
-          // observer triggers when the element is "moved" to be a fullscreen element
-          // keep it VISIBLE if that happens to prevent fullscreen with placeholder
+        // observer triggers when the element is "moved" to be a fullscreen element
+        // keep it VISIBLE if that happens to prevent fullscreen with placeholder
+        [propToUpdate]:
           entry.isIntersecting || document.fullscreenElement === element
             ? VisibilityState.VISIBLE
             : VisibilityState.INVISIBLE,
@@ -74,7 +81,7 @@ export class DynascaleManager {
       // can still function normally (runtime layout switching)
       this.call.state.updateParticipant(sessionId, (participant) => ({
         ...participant,
-        viewportVisibilityState: VisibilityState.UNKNOWN,
+        [propToUpdate]: VisibilityState.UNKNOWN,
       }));
     };
   };
@@ -101,23 +108,23 @@ export class DynascaleManager {
    *
    * @param videoElement the video element to bind to.
    * @param sessionId the session id.
-   * @param kind the kind of video.
+   * @param videoMode the kind of video.
    */
   bindVideoElement = (
     videoElement: HTMLVideoElement,
     sessionId: string,
-    kind: 'video' | 'screen',
+    videoMode: 'video' | 'screen',
   ) => {
     const boundParticipant =
       this.call.state.findParticipantBySessionId(sessionId);
     if (!boundParticipant) return;
 
-    const requestVideoWithDimensions = (
+    const requestTrackWithDimensions = (
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
     ) => {
       this.call.updateSubscriptionsPartial(
-        kind,
+        videoMode,
         { [sessionId]: { dimension } },
         debounceType,
       );
@@ -135,28 +142,31 @@ export class DynascaleManager {
     );
 
     // keep copy for resize observer handler
-    let viewportVisibilityState: VisibilityState | undefined;
+    let visibilityState: VisibilityState | undefined;
+    const propToTrack: keyof StreamVideoParticipant =
+      videoMode === 'video'
+        ? 'viewportVisibilityState'
+        : 'screenShareViewportVisibilityState';
     const viewportVisibilityStateSubscription =
       boundParticipant.isLocalParticipant
         ? null
         : participant$
-            .pipe(distinctUntilKeyChanged('viewportVisibilityState'))
+            .pipe(distinctUntilKeyChanged(propToTrack))
             .subscribe((p) => {
               // skip initial trigger
-              if (!viewportVisibilityState) {
-                viewportVisibilityState =
-                  p.viewportVisibilityState ?? VisibilityState.UNKNOWN;
+              if (!visibilityState) {
+                visibilityState = p[propToTrack] ?? VisibilityState.UNKNOWN;
                 return;
               }
 
-              if (p.viewportVisibilityState === VisibilityState.INVISIBLE) {
-                return requestVideoWithDimensions(
+              if (p[propToTrack] === VisibilityState.INVISIBLE) {
+                return requestTrackWithDimensions(
                   DebounceType.MEDIUM,
                   undefined,
                 );
               }
 
-              requestVideoWithDimensions(DebounceType.MEDIUM, {
+              requestTrackWithDimensions(DebounceType.MEDIUM, {
                 width: videoElement.clientWidth,
                 height: videoElement.clientHeight,
               });
@@ -176,11 +186,12 @@ export class DynascaleManager {
 
           if (
             lastDimensions === currentDimensions ||
-            viewportVisibilityState === VisibilityState.INVISIBLE
-          )
+            visibilityState === VisibilityState.INVISIBLE
+          ) {
             return;
+          }
 
-          requestVideoWithDimensions(DebounceType.SLOW, {
+          requestTrackWithDimensions(DebounceType.SLOW, {
             width: videoElement.clientWidth,
             height: videoElement.clientHeight,
           });
@@ -195,7 +206,9 @@ export class DynascaleManager {
             distinctUntilKeyChanged('publishedTracks'),
             map((p) =>
               p.publishedTracks.includes(
-                kind === 'video' ? TrackType.VIDEO : TrackType.SCREEN_SHARE,
+                videoMode === 'video'
+                  ? TrackType.VIDEO
+                  : TrackType.SCREEN_SHARE,
               ),
             ),
             distinctUntilChanged(),
@@ -203,24 +216,25 @@ export class DynascaleManager {
           .subscribe((isPublishing) => {
             if (isPublishing) {
               // the participant just started to publish a track
-              requestVideoWithDimensions(DebounceType.IMMEDIATE, {
+              requestTrackWithDimensions(DebounceType.IMMEDIATE, {
                 width: videoElement.clientWidth,
                 height: videoElement.clientHeight,
               });
             } else {
               // the participant just stopped publishing a track
-              requestVideoWithDimensions(DebounceType.IMMEDIATE, undefined);
+              requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
             }
           });
 
     const streamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
-          kind === 'video' ? 'videoStream' : 'screenShareStream',
+          videoMode === 'video' ? 'videoStream' : 'screenShareStream',
         ),
       )
       .subscribe((p) => {
-        const source = kind === 'video' ? p.videoStream : p.screenShareStream;
+        const source =
+          videoMode === 'video' ? p.videoStream : p.screenShareStream;
         if (videoElement.srcObject === source) return;
         setTimeout(() => {
           videoElement.srcObject = source ?? null;

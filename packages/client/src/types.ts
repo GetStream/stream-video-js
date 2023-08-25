@@ -84,6 +84,13 @@ export interface StreamVideoParticipant extends Participant {
    * @default VisibilityState.UNKNOWN
    */
   viewportVisibilityState?: VisibilityState;
+
+  /**
+   * The visibility state of the participant's screen share element
+   * within the pre-configured viewport.
+   * @default VisibilityState.UNKNOWN
+   */
+  screenShareViewportVisibilityState?: VisibilityState;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {

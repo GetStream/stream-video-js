@@ -52,6 +52,7 @@ describe('DynascaleManager', () => {
       const untrack = dynascaleManager.trackElementVisibility(
         element,
         'session-id',
+        'video',
       );
 
       expect(visibilityHandler).toBeDefined();

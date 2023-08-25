@@ -59,7 +59,7 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
               <Video
                 className="str-video__screen-share"
                 participant={firstScreenSharingParticipant}
-                kind="screen"
+                videoMode="screen"
                 autoPlay
                 muted
               />

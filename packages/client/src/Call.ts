@@ -911,6 +911,7 @@ export class Call {
           const participant: StreamVideoParticipant = Object.assign(p, {
             isLocalParticipant: p.sessionId === sfuClient.sessionId,
             viewportVisibilityState: VisibilityState.UNKNOWN,
+            screenShareViewportVisibilityState: VisibilityState.UNKNOWN,
           });
           // We need to preserve the local state of the participant
           // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
@@ -1813,12 +1814,18 @@ export class Call {
    *
    * @param element the element to track.
    * @param sessionId the session id.
+   * @param videoMode the video mode.
    */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
     sessionId: string,
+    videoMode: 'video' | 'screen',
   ) => {
-    return this.dynascaleManager.trackElementVisibility(element, sessionId);
+    return this.dynascaleManager.trackElementVisibility(
+      element,
+      sessionId,
+      videoMode,
+    );
   };
 
   /**

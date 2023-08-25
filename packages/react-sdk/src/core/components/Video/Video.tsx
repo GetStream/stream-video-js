@@ -17,7 +17,7 @@ import {
 import { useCall } from '@stream-io/video-react-bindings';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
-  kind: 'video' | 'screen' | 'none';
+  videoMode: 'video' | 'screen' | 'none';
   participant: StreamVideoParticipant;
   /**
    * Override the default UI that's visible when a participant turned off their video.
@@ -30,7 +30,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
 };
 
 export const Video = ({
-  kind,
+  videoMode,
   participant,
   className,
   VideoPlaceholder = DefaultVideoPlaceholder,
@@ -43,71 +43,49 @@ export const Video = ({
     screenShareStream,
     publishedTracks,
     viewportVisibilityState,
+    screenShareViewportVisibilityState,
     isLocalParticipant,
     userId,
   } = participant;
 
   const call = useCall();
-
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
 
-  // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
-
   const stream =
-    kind === 'none'
+    videoMode === 'none'
       ? undefined
-      : kind === 'video'
+      : videoMode === 'video'
       ? videoStream
       : screenShareStream;
 
-  // TODO: handle track muting
-  // useEffect(() => {
-  //   if (!stream) return;
-
-  //   const [track] = stream.getVideoTracks();
-  //   setVideoTrackMuted(track.muted);
-
-  //   const handleMute = () => {
-  //     setVideoTrackMuted(true);
-  //   };
-  //   const handleUnmute = () => {
-  //     setVideoTrackMuted(false);
-  //   };
-
-  //   track.addEventListener('mute', handleMute);
-  //   track.addEventListener('unmute', handleUnmute);
-
-  //   return () => {
-  //     track.removeEventListener('mute', handleMute);
-  //     track.removeEventListener('unmute', handleUnmute);
-  //   };
-  // }, [stream]);
-
   const isPublishingTrack =
-    kind === 'none'
+    videoMode === 'none'
       ? false
       : publishedTracks.includes(
-          kind === 'video'
+          videoMode === 'video'
             ? SfuModels.TrackType.VIDEO
             : SfuModels.TrackType.SCREEN_SHARE,
         );
 
-  const displayPlaceholder =
-    !isPublishingTrack ||
-    (viewportVisibilityState === VisibilityState.INVISIBLE &&
-      !screenShareStream) ||
-    !videoPlaying;
+  const isInvisible =
+    videoMode === 'none'
+      ? true
+      : videoMode === 'video'
+      ? viewportVisibilityState === VisibilityState.INVISIBLE
+      : screenShareViewportVisibilityState === VisibilityState.INVISIBLE;
+
+  const displayPlaceholder = !isPublishingTrack || isInvisible || !videoPlaying;
 
   useEffect(() => {
-    if (!call || !videoElement || kind === 'none') return;
-    const cleanup = call.bindVideoElement(videoElement, sessionId, kind);
+    if (!call || !videoElement || videoMode === 'none') return;
+    const cleanup = call.bindVideoElement(videoElement, sessionId, videoMode);
     return () => {
       cleanup?.();
     };
-  }, [call, kind, sessionId, videoElement]);
+  }, [call, videoMode, sessionId, videoElement]);
 
   const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
@@ -137,8 +115,9 @@ export const Video = ({
         {...rest}
         className={clsx(className, 'str-video__video', {
           'str-video__video--tall': !isWideMode,
-          'str-video__video--mirror': isLocalParticipant && kind === 'video',
-          'str-video__video--screen-share': kind === 'screen',
+          'str-video__video--mirror':
+            isLocalParticipant && videoMode === 'video',
+          'str-video__video--screen-share': videoMode === 'screen',
         })}
         data-user-id={userId}
         data-session-id={sessionId}

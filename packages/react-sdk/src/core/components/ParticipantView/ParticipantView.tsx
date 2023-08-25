@@ -110,6 +110,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     useTrackElementVisibility({
       sessionId,
       trackedElement,
+      videoMode,
     });
 
     const participantViewContextValue = useMemo(
@@ -166,7 +167,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
           <Video
             VideoPlaceholder={VideoPlaceholder}
             participant={participant}
-            kind={videoMode}
+            videoMode={videoMode}
             refs={videoRefs}
             autoPlay
           />

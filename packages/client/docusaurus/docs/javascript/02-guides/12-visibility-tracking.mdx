@@ -22,6 +22,7 @@ const myParticipantElement = document.getElementById('my-participant-element');
 const untrack = call.trackElementVisibility(
   myParticipantElement,
   participant.sessionId,
+  'video', // or 'screen' if you want to track screen share visibility
 );
 ```
 
@@ -51,15 +52,25 @@ Visibility state is available in the participant's state:
 ```js
 import { VisibilityState } from '@stream-io/video-client';
 
-const { participants } = call.state;
-participants.forEach((participant) => {
-  const { viewportVisibilityState } = participant;
+call.state.participants.forEach((participant) => {
+  const { viewportVisibilityState, screenShareVisibilityState } = participant;
+
+  // The participant's video visibility in the viewport
   if (viewportVisibilityState === VisibilityState.VISIBLE) {
-    // The participant is visible on the screen
+    // The participant is visible in the viewport
   } else if (viewportVisibilityState === VisibilityState.INVISIBLE) {
-    // The participant is not visible on the screen
+    // The participant is not visible in the viewport
   } else if (viewportVisibilityState === VisibilityState.UNKNOWN) {
-    // The participant's visibility is unknown
+    // The participant's visibility in the viewport
+  }
+
+  // The participant's screen share visibility in the viewport
+  if (screenShareVisibilityState === VisibilityState.VISIBLE) {
+    // The participant's screen share is visible in the viewport
+  } else if (screenShareVisibilityState === VisibilityState.INVISIBLE) {
+    // The participant's screen share is not visible in the viewport
+  } else if (screenShareVisibilityState === VisibilityState.UNKNOWN) {
+    // The participant's screen share visibility in the viewport
   }
 });
 ```
