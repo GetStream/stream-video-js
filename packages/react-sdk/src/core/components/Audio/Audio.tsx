@@ -1,36 +1,33 @@
-import {
-  AudioHTMLAttributes,
-  DetailedHTMLProps,
-  useEffect,
-  useRef,
-} from 'react';
+import { ComponentPropsWithoutRef, useEffect, useState } from 'react';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 
-export type AudioProps = DetailedHTMLProps<
-  AudioHTMLAttributes<HTMLAudioElement>,
-  HTMLAudioElement
-> & {
+export type AudioProps = ComponentPropsWithoutRef<'audio'> & {
   participant: StreamVideoParticipant;
 };
 
 export const Audio = ({ participant, ...rest }: AudioProps) => {
   const call = useCall();
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+    null,
+  );
   const { userId, sessionId } = participant;
+
   useEffect(() => {
-    if (!call || !audioRef.current) return;
-    const cleanup = call.bindAudioElement(audioRef.current, sessionId);
+    if (!call || !audioElement) return;
+
+    const cleanup = call.bindAudioElement(audioElement, sessionId);
+
     return () => {
       cleanup?.();
     };
-  }, [call, sessionId]);
+  }, [call, sessionId, audioElement]);
 
   return (
     <audio
       autoPlay
       {...rest}
-      ref={audioRef}
+      ref={setAudioElement}
       data-user-id={userId}
       data-session-id={sessionId}
     />
