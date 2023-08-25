@@ -269,6 +269,24 @@ export class Call {
 
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
+
+    this.state.localParticipant$.subscribe(async (p) => {
+      // Soft remote mutes
+      if (
+        !p?.publishedTracks.includes(TrackType.VIDEO) &&
+        this.publisher?.isPublishing(TrackType.VIDEO)
+      ) {
+        await this.camera.disable();
+        this.stopPublish(TrackType.VIDEO);
+      }
+      if (
+        !p?.publishedTracks.includes(TrackType.AUDIO) &&
+        this.publisher?.isPublishing(TrackType.AUDIO)
+      ) {
+        await this.microphone.disable();
+        this.stopPublish(TrackType.AUDIO);
+      }
+    });
   }
 
   private registerEffects() {

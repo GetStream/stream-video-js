@@ -310,17 +310,24 @@ export class Publisher {
     if (
       transceiver &&
       transceiver.sender.track &&
-      transceiver.sender.track.readyState === 'live'
+      (stopTrack
+        ? transceiver.sender.track.readyState === 'live'
+        : transceiver.sender.track.enabled)
     ) {
       stopTrack
         ? transceiver.sender.track.stop()
         : (transceiver.sender.track.enabled = false);
-      return this.notifyTrackMuteStateChanged(
-        undefined,
-        transceiver.sender.track,
-        trackType,
-        true,
-      );
+      // We don't need to notify SFU if unpublishing in response to remote soft mute
+      if (!this.state.localParticipant?.publishedTracks.includes(trackType)) {
+        return;
+      } else {
+        return this.notifyTrackMuteStateChanged(
+          undefined,
+          transceiver.sender.track,
+          trackType,
+          true,
+        );
+      }
     }
   };
 
@@ -333,7 +340,11 @@ export class Publisher {
     const transceiverForTrackType = this.transceiverRegistry[trackType];
     if (transceiverForTrackType && transceiverForTrackType.sender) {
       const sender = transceiverForTrackType.sender;
-      return !!sender.track && sender.track.readyState === 'live';
+      return (
+        !!sender.track &&
+        sender.track.readyState === 'live' &&
+        sender.track.enabled
+      );
     }
     return false;
   };
