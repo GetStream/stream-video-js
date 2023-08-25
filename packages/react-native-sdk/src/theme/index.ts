@@ -5,3 +5,5 @@ export const colorPallet: Theme = {
   light: colors,
   dark: darkThemeColors,
 };
+
+export * from './theme';
