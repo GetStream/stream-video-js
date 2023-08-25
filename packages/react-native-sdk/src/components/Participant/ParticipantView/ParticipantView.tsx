@@ -68,7 +68,7 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
   /**
    * The video kind that will be displayed.
    */
-  videoMode: ParticipantVideoType;
+  videoMode?: ParticipantVideoType;
   /**
    * Custom style to be merged with the participant view.
    */
@@ -88,7 +88,7 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
  */
 export const ParticipantView = ({
   participant,
-  videoMode,
+  videoMode = 'video',
   isVisible = true,
   style,
   ParticipantLabel = DefaultParticipantLabel,
