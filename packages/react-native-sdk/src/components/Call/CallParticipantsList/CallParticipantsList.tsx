@@ -109,7 +109,10 @@ export const CallParticipantsList = ({
       if (!oldVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.VISIBLE,
+          viewportVisibilityState: {
+            video: VisibilityState.VISIBLE,
+            screen: VisibilityState.UNKNOWN,
+          },
         };
       }
     });
@@ -117,7 +120,10 @@ export const CallParticipantsList = ({
       if (!newVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.INVISIBLE,
+          viewportVisibilityState: {
+            video: VisibilityState.VISIBLE,
+            screen: VisibilityState.UNKNOWN,
+          },
         };
       }
     });

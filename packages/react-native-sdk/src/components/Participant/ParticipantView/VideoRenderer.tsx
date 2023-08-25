@@ -11,6 +11,11 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
 
+const DEFAULT_VIEWPORT_VISIBILITY_STATE = {
+  screen: VisibilityState.UNKNOWN,
+  video: VisibilityState.UNKNOWN,
+} as const;
+
 /**
  * Props for the VideoRenderer component.
  */
@@ -73,17 +78,23 @@ export const VideoRenderer = ({
       return;
     }
     if (!isVisible) {
-      if (viewportVisibilityState !== VisibilityState.VISIBLE) {
+      if (viewportVisibilityState?.video !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
-          viewportVisibilityState: VisibilityState.VISIBLE,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            video: VisibilityState.VISIBLE,
+          },
         }));
       }
     } else {
-      if (viewportVisibilityState !== VisibilityState.INVISIBLE) {
+      if (viewportVisibilityState?.video !== VisibilityState.INVISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
-          viewportVisibilityState: VisibilityState.INVISIBLE,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            video: VisibilityState.INVISIBLE,
+          },
         }));
       }
       if (subscribedVideoLayoutRef.current) {
