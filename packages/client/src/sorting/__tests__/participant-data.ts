@@ -18,7 +18,10 @@ export const participants = (): StreamVideoParticipant[] => [
     audioLevel: 0,
     image: '',
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
   {
     // Presenter, video, audio
@@ -33,7 +36,10 @@ export const participants = (): StreamVideoParticipant[] => [
     audioLevel: 0,
     image: '',
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
   {
     // Muted
@@ -48,7 +54,10 @@ export const participants = (): StreamVideoParticipant[] => [
     audioLevel: 0,
     image: '',
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
   {
     // Dominant speaker
@@ -63,7 +72,10 @@ export const participants = (): StreamVideoParticipant[] => [
     audioLevel: 0,
     image: '',
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
   {
     // Presenter only
@@ -78,7 +90,10 @@ export const participants = (): StreamVideoParticipant[] => [
     audioLevel: 0,
     image: '',
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
   {
     // pinned
@@ -97,6 +112,9 @@ export const participants = (): StreamVideoParticipant[] => [
       pinnedAt: Date.now(),
     },
     roles: [],
-    viewportVisibilityState: VisibilityState.VISIBLE,
+    viewportVisibilityState: {
+      video: VisibilityState.VISIBLE,
+      screen: VisibilityState.VISIBLE,
+    },
   },
 ];

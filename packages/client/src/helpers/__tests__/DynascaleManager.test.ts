@@ -248,7 +248,10 @@ describe('DynascaleManager', () => {
         userId: 'user-id',
         sessionId: 'session-id',
         publishedTracks: [],
-        viewportVisibilityState: VisibilityState.UNKNOWN,
+        viewportVisibilityState: {
+          video: VisibilityState.UNKNOWN,
+          screen: VisibilityState.UNKNOWN,
+        },
       });
 
       const updateSubscription = vi.spyOn(call, 'updateSubscriptionsPartial');
@@ -266,7 +269,10 @@ describe('DynascaleManager', () => {
       );
 
       call.state.updateParticipant('session-id', {
-        viewportVisibilityState: VisibilityState.VISIBLE,
+        viewportVisibilityState: {
+          video: VisibilityState.VISIBLE,
+          screen: VisibilityState.UNKNOWN,
+        },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
@@ -283,7 +289,10 @@ describe('DynascaleManager', () => {
       );
 
       call.state.updateParticipant('session-id', {
-        viewportVisibilityState: VisibilityState.INVISIBLE,
+        viewportVisibilityState: {
+          video: VisibilityState.INVISIBLE,
+          screen: VisibilityState.UNKNOWN,
+        },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
@@ -293,7 +302,10 @@ describe('DynascaleManager', () => {
       );
 
       call.state.updateParticipant('session-id', {
-        viewportVisibilityState: VisibilityState.UNKNOWN,
+        viewportVisibilityState: {
+          video: VisibilityState.UNKNOWN,
+          screen: VisibilityState.UNKNOWN,
+        },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
@@ -318,7 +330,10 @@ describe('DynascaleManager', () => {
         userId: 'user-id',
         sessionId: 'session-id',
         publishedTracks: [TrackType.VIDEO],
-        viewportVisibilityState: VisibilityState.VISIBLE,
+        viewportVisibilityState: {
+          video: VisibilityState.VISIBLE,
+          screen: VisibilityState.UNKNOWN,
+        },
       });
 
       let updateSubscription = vi.spyOn(call, 'updateSubscriptionsPartial');

@@ -53,23 +53,23 @@ Visibility state is available in the participant's state:
 import { VisibilityState } from '@stream-io/video-client';
 
 call.state.participants.forEach((participant) => {
-  const { viewportVisibilityState, screenShareVisibilityState } = participant;
+  const { viewportVisibilityState } = participant;
 
   // The participant's video visibility in the viewport
-  if (viewportVisibilityState === VisibilityState.VISIBLE) {
+  if (viewportVisibilityState.video === VisibilityState.VISIBLE) {
     // The participant is visible in the viewport
-  } else if (viewportVisibilityState === VisibilityState.INVISIBLE) {
+  } else if (viewportVisibilityState.video === VisibilityState.INVISIBLE) {
     // The participant is not visible in the viewport
-  } else if (viewportVisibilityState === VisibilityState.UNKNOWN) {
+  } else if (viewportVisibilityState.video === VisibilityState.UNKNOWN) {
     // The participant's visibility in the viewport
   }
 
   // The participant's screen share visibility in the viewport
-  if (screenShareVisibilityState === VisibilityState.VISIBLE) {
+  if (viewportVisibilityState.screen === VisibilityState.VISIBLE) {
     // The participant's screen share is visible in the viewport
-  } else if (screenShareVisibilityState === VisibilityState.INVISIBLE) {
+  } else if (viewportVisibilityState.screen === VisibilityState.INVISIBLE) {
     // The participant's screen share is not visible in the viewport
-  } else if (screenShareVisibilityState === VisibilityState.UNKNOWN) {
+  } else if (viewportVisibilityState.screen === VisibilityState.UNKNOWN) {
     // The participant's screen share visibility in the viewport
   }
 });

@@ -43,7 +43,6 @@ export const Video = ({
     screenShareStream,
     publishedTracks,
     viewportVisibilityState,
-    screenShareViewportVisibilityState,
     isLocalParticipant,
     userId,
   } = participant;
@@ -73,11 +72,8 @@ export const Video = ({
         );
 
   const isInvisible =
-    videoMode === 'none'
-      ? true
-      : videoMode === 'video'
-      ? viewportVisibilityState === VisibilityState.INVISIBLE
-      : screenShareViewportVisibilityState === VisibilityState.INVISIBLE;
+    videoMode === 'none' ||
+    viewportVisibilityState?.[videoMode] === VisibilityState.INVISIBLE;
 
   const displayPlaceholder = !isPublishingTrack || isInvisible || !videoPlaying;
 

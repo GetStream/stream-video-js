@@ -16,8 +16,8 @@ import {
 // This ensures stable sorting when all participants are visible.
 const ifInvisibleBy = conditional(
   (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
-    a.viewportVisibilityState === VisibilityState.INVISIBLE ||
-    b.viewportVisibilityState === VisibilityState.INVISIBLE,
+    a.viewportVisibilityState?.video === VisibilityState.INVISIBLE ||
+    b.viewportVisibilityState?.video === VisibilityState.INVISIBLE,
 );
 
 /**

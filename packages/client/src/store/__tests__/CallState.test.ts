@@ -97,8 +97,8 @@ describe('CallState', () => {
 
       const ifInvisibleBy = conditional(
         (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
-          a.viewportVisibilityState === VisibilityState.INVISIBLE ||
-          b.viewportVisibilityState === VisibilityState.INVISIBLE,
+          a.viewportVisibilityState?.video === VisibilityState.INVISIBLE ||
+          b.viewportVisibilityState?.video === VisibilityState.INVISIBLE,
       );
       state.setSortParticipantsBy(ifInvisibleBy(name));
 
@@ -107,7 +107,8 @@ describe('CallState', () => {
       expect(state.participants).toEqual([Z, B, C, D]);
 
       // Z is invisible, so, the normal sorting is applied and Z is pushed to the end
-      Z.viewportVisibilityState = VisibilityState.INVISIBLE;
+      // @ts-expect-error
+      Z.viewportVisibilityState.video = VisibilityState.INVISIBLE;
       state.setParticipants([Z, B, C, D]);
       expect(state.participants).toEqual([B, C, D, Z]);
     });

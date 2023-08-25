@@ -15,6 +15,11 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 
+const DEFAULT_VIEWPORT_VISIBILITY_STATE = {
+  screen: VisibilityState.UNKNOWN,
+  video: VisibilityState.UNKNOWN,
+} as const;
+
 /**
  * A manager class that handles dynascale related tasks like:
  *
@@ -57,20 +62,19 @@ export class DynascaleManager {
     sessionId: string,
     videoMode: 'video' | 'screen',
   ) => {
-    const propToUpdate: keyof StreamVideoParticipant =
-      videoMode === 'video'
-        ? 'viewportVisibilityState'
-        : 'screenShareViewportVisibilityState';
-
     const cleanup = this.viewportTracker.observe(element, (entry) => {
       this.call.state.updateParticipant(sessionId, (participant) => ({
         ...participant,
         // observer triggers when the element is "moved" to be a fullscreen element
         // keep it VISIBLE if that happens to prevent fullscreen with placeholder
-        [propToUpdate]:
-          entry.isIntersecting || document.fullscreenElement === element
-            ? VisibilityState.VISIBLE
-            : VisibilityState.INVISIBLE,
+        viewportVisibilityState: {
+          ...(participant.viewportVisibilityState ??
+            DEFAULT_VIEWPORT_VISIBILITY_STATE),
+          [videoMode]:
+            entry.isIntersecting || document.fullscreenElement === element
+              ? VisibilityState.VISIBLE
+              : VisibilityState.INVISIBLE,
+        },
       }));
     });
 
@@ -81,7 +85,11 @@ export class DynascaleManager {
       // can still function normally (runtime layout switching)
       this.call.state.updateParticipant(sessionId, (participant) => ({
         ...participant,
-        [propToUpdate]: VisibilityState.UNKNOWN,
+        viewportVisibilityState: {
+          ...(participant.viewportVisibilityState ??
+            DEFAULT_VIEWPORT_VISIBILITY_STATE),
+          [videoMode]: VisibilityState.UNKNOWN,
+        },
       }));
     };
   };
@@ -142,24 +150,26 @@ export class DynascaleManager {
     );
 
     // keep copy for resize observer handler
-    let visibilityState: VisibilityState | undefined;
-    const propToTrack: keyof StreamVideoParticipant =
-      videoMode === 'video'
-        ? 'viewportVisibilityState'
-        : 'screenShareViewportVisibilityState';
+    let viewportVisibilityState: VisibilityState | undefined;
     const viewportVisibilityStateSubscription =
       boundParticipant.isLocalParticipant
         ? null
         : participant$
-            .pipe(distinctUntilKeyChanged(propToTrack))
-            .subscribe((p) => {
+            .pipe(
+              map((p) => p.viewportVisibilityState?.[videoMode]),
+              distinctUntilChanged(),
+            )
+            .subscribe((nextViewportVisibilityState) => {
               // skip initial trigger
-              if (!visibilityState) {
-                visibilityState = p[propToTrack] ?? VisibilityState.UNKNOWN;
+              if (!viewportVisibilityState) {
+                viewportVisibilityState =
+                  nextViewportVisibilityState ?? VisibilityState.UNKNOWN;
                 return;
               }
+              viewportVisibilityState =
+                nextViewportVisibilityState ?? VisibilityState.UNKNOWN;
 
-              if (p[propToTrack] === VisibilityState.INVISIBLE) {
+              if (nextViewportVisibilityState === VisibilityState.INVISIBLE) {
                 return requestTrackWithDimensions(
                   DebounceType.MEDIUM,
                   undefined,
@@ -186,7 +196,7 @@ export class DynascaleManager {
 
           if (
             lastDimensions === currentDimensions ||
-            visibilityState === VisibilityState.INVISIBLE
+            viewportVisibilityState === VisibilityState.INVISIBLE
           ) {
             return;
           }
