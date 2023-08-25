@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.389](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.388...@stream-io/video-react-native-sdk-0.0.1-alpha.389) (2023-08-25)
+
+
+### Bug Fixes
+
+* drop reanimated floating view component ([#993](https://github.com/GetStream/stream-video-js/issues/993)) ([31dd227](https://github.com/GetStream/stream-video-js/commit/31dd227f2381c66a597119512864fac24ef2170a))
+* **react-native:** call content participants layout ([#999](https://github.com/GetStream/stream-video-js/issues/999)) ([c08be02](https://github.com/GetStream/stream-video-js/commit/c08be02ab1c8b62c9736c86f0076f3e2f9ed4811))
+* **react-native:** don't show FloatingParticipantView in spotlight mode ([#998](https://github.com/GetStream/stream-video-js/issues/998)) ([de676b9](https://github.com/GetStream/stream-video-js/commit/de676b9017881cd64b81b368b79f552c7cddb6aa))
+* **react-native:** fix user-info design ([#991](https://github.com/GetStream/stream-video-js/issues/991)) ([486e82c](https://github.com/GetStream/stream-video-js/commit/486e82ca0f972a5c7ba69e173313afa3ca9d587c))
+
+
+### Features
+
+* **react-native:** export Theme from SDK ([#997](https://github.com/GetStream/stream-video-js/issues/997)) ([78ec49f](https://github.com/GetStream/stream-video-js/commit/78ec49f14b20cebacd361f43df7eab1e3184f06d))
+
+
+
 ## [0.0.1-alpha.388](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.387...@stream-io/video-react-native-sdk-0.0.1-alpha.388) (2023-08-24)
 
 
