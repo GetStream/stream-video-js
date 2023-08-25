@@ -49,10 +49,12 @@ export const Video = ({
   } = participant;
 
   const call = useCall();
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
+  // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [isWideMode, setIsWideMode] = useState(true);
 
   const stream =
     videoMode === 'none'
@@ -81,29 +83,33 @@ export const Video = ({
 
   useEffect(() => {
     if (!call || !videoElement || videoMode === 'none') return;
+
     const cleanup = call.bindVideoElement(videoElement, sessionId, videoMode);
+
     return () => {
       cleanup?.();
     };
   }, [call, videoMode, sessionId, videoElement]);
 
-  const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
     if (!stream || !videoElement) return;
 
-    setVideoPlaying(!videoElement.paused);
+    const handlePlayPause = () => {
+      setVideoPlaying(!videoElement.paused);
 
-    const calculateVideoRatio = () => {
-      setVideoPlaying(true);
       const [track] = stream.getVideoTracks();
       if (!track) return;
 
+      // TODO: find out why track dimensions aren't coming in
       const { width = 0, height = 0 } = track.getSettings();
-      setIsWideMode(width > height);
+      setIsWideMode(width >= height);
     };
-    videoElement.addEventListener('play', calculateVideoRatio);
+
+    videoElement.addEventListener('play', handlePlayPause);
+    videoElement.addEventListener('pause', handlePlayPause);
     return () => {
-      videoElement.removeEventListener('play', calculateVideoRatio);
+      videoElement.removeEventListener('play', handlePlayPause);
+      videoElement.removeEventListener('pause', handlePlayPause);
     };
   }, [stream, videoElement]);
 
