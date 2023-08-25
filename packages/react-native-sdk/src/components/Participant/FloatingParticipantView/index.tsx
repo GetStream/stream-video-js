@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
@@ -9,6 +8,7 @@ import { FloatingViewAlignment } from './FloatingView/common';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
+  ParticipantViewProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
@@ -23,7 +23,8 @@ export type FloatingParticipantViewAlignment =
  * Props to be passed for the LocalVideoView component.
  */
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
-  Pick<CallParticipantsListProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListProps, 'ParticipantView'> &
+  Pick<ParticipantViewProps, 'participant'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
@@ -63,6 +64,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
  */
 export const FloatingParticipantView = ({
   alignment = 'top-right',
+  participant,
   style,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
@@ -72,8 +74,6 @@ export const FloatingParticipantView = ({
   const {
     theme: { colors, localParticipantsView },
   } = useTheme();
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
 
   const floatingAlignmentMap: Record<
     FloatingParticipantViewAlignment,
@@ -89,10 +89,6 @@ export const FloatingParticipantView = ({
     width: number;
     height: number;
   }>();
-
-  if (!localParticipant) {
-    return null;
-  }
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: null,
@@ -130,7 +126,7 @@ export const FloatingParticipantView = ({
         >
           {ParticipantView && (
             <ParticipantView
-              participant={localParticipant}
+              participant={participant}
               videoMode={'video'}
               style={[
                 styles.participantViewContainer,
