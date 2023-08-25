@@ -88,10 +88,12 @@ export const CallContent = ({
 
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  const showFloatingView =
-    remoteParticipants.length > 0 && remoteParticipants.length < 3;
-
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+
+  const showFloatingView =
+    !showSpotlightLayout &&
+    remoteParticipants.length > 0 &&
+    remoteParticipants.length < 3;
 
   /**
    * This hook is used to handle IncallManager specs of the application.
@@ -132,26 +134,23 @@ export const CallContent = ({
 
   return (
     <View style={[styles.container, callContent.container]}>
-      <View style={[styles.container, callContent.callParticipantsContainer]}>
-        <View style={[styles.view, callContent.topContainer]}>
-          {CallTopView && (
-            <CallTopView
-              onBackPressed={onBackPressed}
-              onParticipantInfoPress={onParticipantInfoPress}
-              ParticipantsInfoBadge={ParticipantsInfoBadge}
-            />
-          )}
-          {showFloatingView && FloatingParticipantView && (
-            <FloatingParticipantView {...participantViewProps} />
-          )}
-        </View>
-
-        {showSpotlightLayout ? (
-          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-        ) : (
-          <CallParticipantsGrid {...callParticipantsGridProps} />
+      <View style={[styles.view, callContent.topContainer]}>
+        {CallTopView && (
+          <CallTopView
+            onBackPressed={onBackPressed}
+            onParticipantInfoPress={onParticipantInfoPress}
+            ParticipantsInfoBadge={ParticipantsInfoBadge}
+          />
+        )}
+        {showFloatingView && FloatingParticipantView && (
+          <FloatingParticipantView {...participantViewProps} />
         )}
       </View>
+      {showSpotlightLayout ? (
+        <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+      ) : (
+        <CallParticipantsGrid {...callParticipantsGridProps} />
+      )}
       {CallControls && (
         <CallControls onHangupCallHandler={onHangupCallHandler} />
       )}
