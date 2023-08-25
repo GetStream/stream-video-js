@@ -62,7 +62,6 @@ const Init = () => {
 
   const { hasBrowserMediaPermissions, isAwaitingPermission } =
     useBrowserMediaPermissions();
-  console.log({ hasBrowserMediaPermissions, isAwaitingPermission });
 
   useEffect(() => {
     const _client = new StreamVideoClient({
