@@ -7,7 +7,7 @@ The `<StreamVideo />` provider makes the [client and its state](../../../core/ca
 
 ## General usage
 
-```tsx
+```tsx {10,12}
 import {
   StreamVideo,
   StreamVideoClient,
@@ -17,7 +17,6 @@ export const App = () => {
   const client = new StreamVideoClient(/* ... */);
 
   return (
-    // highlight-next-line
     <StreamVideo client={client}>
       <MyUI />
     </StreamVideo>
@@ -61,7 +60,7 @@ Custom translations that will be merged with the defaults provided by the librar
 
 ### `style`
 
-Prop to apply styles/theme to all of the inner components.
+Prop to apply [styles/theme](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/theme/theme.ts) to all of the inner components.
 
 | Type                                                                                                                          |
 | ----------------------------------------------------------------------------------------------------------------------------- |
