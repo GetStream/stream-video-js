@@ -65,21 +65,21 @@ describe('DynascaleManager', () => {
       visibilityHandler({ isIntersecting: true });
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState,
+          ?.viewportVisibilityState?.video,
       ).toBe(VisibilityState.VISIBLE);
 
       // test becoming invisible
       visibilityHandler({ isIntersecting: false });
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState,
+          ?.viewportVisibilityState?.video,
       ).toBe(VisibilityState.INVISIBLE);
 
       // test track reset
       untrack();
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState,
+          ?.viewportVisibilityState?.video,
       ).toBe(VisibilityState.UNKNOWN);
     });
   });
