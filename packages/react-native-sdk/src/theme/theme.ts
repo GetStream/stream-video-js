@@ -35,7 +35,7 @@ export type Theme = {
   };
   callContent: {
     container: ViewStyle;
-
+    callParticipantsContainer: ViewStyle;
     topContainer: ViewStyle;
   };
   callControls: {
@@ -261,6 +261,7 @@ export const defaultTheme: Theme = {
   },
   callContent: {
     container: {},
+    callParticipantsContainer: {},
     topContainer: {},
   },
   callControls: {

@@ -134,23 +134,26 @@ export const CallContent = ({
 
   return (
     <View style={[styles.container, callContent.container]}>
-      <View style={[styles.view, callContent.topContainer]}>
-        {CallTopView && (
-          <CallTopView
-            onBackPressed={onBackPressed}
-            onParticipantInfoPress={onParticipantInfoPress}
-            ParticipantsInfoBadge={ParticipantsInfoBadge}
-          />
-        )}
-        {showFloatingView && FloatingParticipantView && (
-          <FloatingParticipantView {...participantViewProps} />
+      <View style={[styles.container, callContent.callParticipantsContainer]}>
+        <View style={[styles.view, callContent.topContainer]}>
+          {CallTopView && (
+            <CallTopView
+              onBackPressed={onBackPressed}
+              onParticipantInfoPress={onParticipantInfoPress}
+              ParticipantsInfoBadge={ParticipantsInfoBadge}
+            />
+          )}
+          {showFloatingView && FloatingParticipantView && (
+            <FloatingParticipantView {...participantViewProps} />
+          )}
+        </View>
+        {showSpotlightLayout ? (
+          <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
+        ) : (
+          <CallParticipantsGrid {...callParticipantsGridProps} />
         )}
       </View>
-      {showSpotlightLayout ? (
-        <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
-      ) : (
-        <CallParticipantsGrid {...callParticipantsGridProps} />
-      )}
+
       {CallControls && (
         <CallControls onHangupCallHandler={onHangupCallHandler} />
       )}
