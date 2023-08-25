@@ -8,6 +8,7 @@ import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
 import { disposeOfMediaStream } from '../devices';
+import { TrackType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices');
@@ -36,7 +37,7 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public unmuteTracks = vi.fn();
 
   constructor(call: Call) {
-    super(call, new TestInputMediaDeviceManagerState());
+    super(call, new TestInputMediaDeviceManagerState(), TrackType.VIDEO);
   }
 }
 

@@ -7,7 +7,7 @@ import { TrackType } from '../gen/video/sfu/models/models';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   constructor(call: Call) {
-    super(call, new MicrophoneManagerState());
+    super(call, new MicrophoneManagerState(), TrackType.AUDIO);
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {

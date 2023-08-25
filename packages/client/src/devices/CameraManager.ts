@@ -12,7 +12,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   };
 
   constructor(call: Call) {
-    super(call, new CameraManagerState());
+    super(call, new CameraManagerState(), TrackType.VIDEO);
   }
 
   /**
@@ -59,6 +59,10 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         height !== this.targetResolution.height
       )
         await this.applySettingsToStream();
+      this.logger(
+        'debug',
+        `${width}x${height} target resolution applied to media stream`,
+      );
     }
   }
 

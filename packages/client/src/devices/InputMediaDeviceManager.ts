@@ -4,6 +4,9 @@ import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { disposeOfMediaStream } from './devices';
 import { isReactNative } from '../helpers/platforms';
+import { Logger } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
@@ -16,7 +19,15 @@ export abstract class InputMediaDeviceManager<
    * @internal
    */
   disablePromise?: Promise<void>;
-  constructor(protected readonly call: Call, public readonly state: T) {}
+  logger: Logger;
+
+  constructor(
+    protected readonly call: Call,
+    public readonly state: T,
+    protected readonly trackType: TrackType,
+  ) {
+    this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+  }
 
   /**
    * Lists the available audio/video devices
@@ -137,6 +148,7 @@ export abstract class InputMediaDeviceManager<
     if (!this.state.mediaStream) {
       return;
     }
+    this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(stopTracks);
       if (this.state.mediaStream.active) {
@@ -167,6 +179,7 @@ export abstract class InputMediaDeviceManager<
   }
 
   private async unmuteStream() {
+    this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (this.state.mediaStream) {
       stream = this.state.mediaStream;
