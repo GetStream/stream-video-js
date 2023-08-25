@@ -1,0 +1,78 @@
+---
+title: Playing Video and Audio
+description: Learn how to correctly play participants' video and audio.
+---
+
+In this guide, we'll learn how to render and play participants' video and audio by using the JS SDK provided primitives.
+
+## Playing Video
+
+Our JS SDK exposes a low-level method that binds a video element to a participant's video track.
+This method can be found in `call.bindVideoElement`. It takes three arguments:
+
+- the video element to bind to
+- the participant's `sessionId`
+- the kind of video track to bind to (either `video` or `screen` for screen sharing)
+
+This method needs to be called only once, usually after the element is mounted in the DOM.
+
+```js
+let videoElement = document.getElementById('my-video-element');
+if (!videoElement) {
+  videoElement = document.createElement('video');
+  videoElement.id = 'my-video-element';
+  document.body.appendChild(videoElement);
+
+  // bind the video element to the participant's video track
+  // use the returned `unbind()` function to unbind the video element
+  const unbind = call.bindVideoElement(
+    videoElement,
+    participant.sessionId,
+    'video',
+  );
+}
+```
+
+### Playing Screen Sharing
+
+Similar to the _Rendering Video_, a screenshare track can be rendered like this:
+
+```js
+let screenElement = document.getElementById('my-screenshare-element');
+if (!screenElement) {
+  screenElement = document.createElement('video');
+  screenElement.id = 'my-screenshare-element';
+  document.body.appendChild(screenElement);
+
+  // bind the video element to the participant's screen track
+  // use the returned `unbind()` function to unbind the video element
+  const unbind = call.bindVideoElement(
+    screenElement,
+    participant.sessionId,
+    'screen', // note the 'screen' argument
+  );
+}
+```
+
+### Playing Audio
+
+Our JS SDK exposes a low-level method that binds an audio element to a participant's audio track.
+This method can be found in `call.bindAudioElement`. It takes two arguments:
+
+- the audio element to bind to
+- the participant's `sessionId`
+
+This method needs to be called only once, usually after the element is mounted in the DOM.
+
+```js
+let audioElement = document.getElementById('my-audio-element');
+if (!audioElement) {
+  audioElement = document.createElement('audio');
+  audioElement.id = 'my-audio-element';
+  document.body.appendChild(audioElement);
+
+  // bind the audio element to the participant's audio track
+  // use the returned `unbind()` function to unbind the audio element
+  const unbind = call.bindAudioElement(audioElement, participant.sessionId);
+}
+```

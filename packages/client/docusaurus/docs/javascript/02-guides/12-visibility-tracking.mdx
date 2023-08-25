@@ -1,0 +1,65 @@
+---
+title: Participant visibility tracking
+description: Learn how to set up participant visibility tracking the screen.
+---
+
+Depending on the UI layout of your call, some participants may not be visible on the screen at all times.
+This is especially true for large calls with many participants. We can optimize the performance and bandwidth usage of our SDK
+by only subscribing to video for participants that are visible on the screen or within a certain viewport.
+
+To help you keep track of which participants are visible on the screen, our SDK provides a few helpers.
+
+## Setup a visibility tracker
+
+Any DOM element can be tracked for visibility. In a typical scenario, that would be the element that wraps the participant's "box".
+You can register a visibility tracker with the SDK by calling the `call.trackElementVisibility` method:
+
+```js
+const myParticipantElement = document.getElementById('my-participant-element');
+
+// Track the visibility of the participant's element
+// you can use the returned function to stop tracking an element.
+const untrack = call.trackElementVisibility(
+  myParticipantElement,
+  participant.sessionId,
+);
+```
+
+## Setup a viewport
+
+In our context, a _Viewport_ is a section/container on the screen that wraps participant's video elements.
+Typically, this is a scrollable container. You can register a viewport with the SDK by calling the `call.setViewport` method:
+
+```js
+const viewport = document.getElementById('my-participant-container');
+
+// sets the viewport
+// you can use the returned function to unset the viewport.
+const unset = call.setViewport(viewport);
+```
+
+## Access the visible participants
+
+Every participant can have three visibility states:
+
+- `VISIBLE` - the participant is visible on the screen
+- `INVISIBLE` - the participant is not visible on the screen
+- `UNKNOWN` - the participant's visibility is unknown (e.g. the participant is not tracked)
+
+Visibility state is available in the participant's state:
+
+```js
+import { VisibilityState } from '@stream-io/video-client';
+
+const { participants } = call.state;
+participants.forEach((participant) => {
+  const { viewportVisibilityState } = participant;
+  if (viewportVisibilityState === VisibilityState.VISIBLE) {
+    // The participant is visible on the screen
+  } else if (viewportVisibilityState === VisibilityState.INVISIBLE) {
+    // The participant is not visible on the screen
+  } else if (viewportVisibilityState === VisibilityState.UNKNOWN) {
+    // The participant's visibility is unknown
+  }
+});
+```

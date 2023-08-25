@@ -20,11 +20,7 @@ const apiKey = 'your-api-key';
 const token = 'authentication-token';
 const user: User = { id: 'user-id' };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
+const client = new StreamVideoClient({ apiKey, token, user });
 
 const call = client.call('default', 'call-id');
 
@@ -80,11 +76,7 @@ call.state.participants$.subscribe((participants) => {
 Now let's see what happens in the `renderParticipant` method, because that's what does the heavy lifting:
 
 ```typescript
-import {
-  StreamVideoParticipant,
-  Call,
-  SfuModels,
-} from '@stream-io/video-client';
+import { StreamVideoParticipant, Call } from '@stream-io/video-client';
 
 // The quickstart uses fixed video dimensions for simplification
 const videoDimension = {
@@ -102,32 +94,20 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
-    videoEl.autoplay = true;
-  }
-  if (videoEl.srcObject !== participant.videoStream) {
-    videoEl.srcObject = participant.videoStream || null;
-  }
-  if (
-    !participant.isLocalParticipant &&
-    participant.publishedTracks.includes(SfuModels.TrackType.VIDEO) &&
-    !participant.videoDimension
-  ) {
-    // We need to subscribe to video tracks
-    // We provide the rendered video dimension to save bandwidth
-    call.updateSubscriptionsPartial('video', {
-      [participant.sessionId]: {
-        dimension: {
-          width: videoDimension.width,
-          height: videoDimension.height,
-        },
-      },
-    });
+    // bind the video element to the participant
+    // that way, our SDK will automatically render the video and
+    // make sure the element stays in sync with the participant's state
+    const unbind = call.bindVideoElement(
+      videoEl,
+      participant.sessionId,
+      'video',
+    );
   }
 
   return videoEl;
 };
 
-const renderAudio = (participant: StreamVideoParticipant) => {
+const renderAudio = (call: Call, participant: StreamVideoParticipant) => {
   // We don't render audio for local participant
   if (participant.isLocalParticipant) return;
 
@@ -138,11 +118,10 @@ const renderAudio = (participant: StreamVideoParticipant) => {
   if (!audioEl) {
     audioEl = document.createElement('audio');
     audioEl.id = `audio-${participant.sessionId}`;
-    audioEl.autoplay = true;
-  }
-
-  if (audioEl.srcObject !== participant.audioStream) {
-    audioEl.srcObject = participant.audioStream || null;
+    // bind the audio element to the participant
+    // that way, our SDK will automatically play the audio and
+    // make sure the element stays in sync with the participant's state
+    const unbind = call.bindAudioElement(audioEl, participant.sessionId);
   }
 
   return audioEl;
@@ -153,7 +132,7 @@ export const renderParticipant = (
   participant: StreamVideoParticipant,
 ) => {
   return {
-    audioEl: renderAudio(participant),
+    audioEl: renderAudio(call, participant),
     videoEl: renderVideo(call, participant),
   };
 };

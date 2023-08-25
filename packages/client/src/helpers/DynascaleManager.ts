@@ -49,7 +49,7 @@ export class DynascaleManager {
    *
    * @param element the element to track.
    * @param sessionId the session id.
-   * @returns a cleanup function that will stop tracking the element.
+   * @returns Untrack.
    */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
