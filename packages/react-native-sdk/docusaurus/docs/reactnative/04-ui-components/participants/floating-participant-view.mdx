@@ -21,10 +21,15 @@ When the video is muted, the video muted icon is shown in a disabled background.
 In order to use the `FloatingParticipantView` as a standalone component, you should use the following code:
 
 ```tsx {4}
-import { FloatingParticipantView } from '@stream-io/video-react-native-sdk';
+import {
+  FloatingParticipantView,
+  useCallStateHooks,
+} from '@stream-io/video-react-native-sdk';
 
 const App = () => {
-  return <FloatingParticipantView />;
+  const { useLocalParticipant } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
+  return <FloatingParticipantView participant={localParticipant} />;
 };
 ```
 
@@ -37,6 +42,14 @@ Determines where the floating participant video will be placed initially.
 | Type                                                    | Default value |
 | ------------------------------------------------------- | ------------- |
 | `top-left` \|`top-right`\|`bottom-left`\|`bottom-right` | `top-right`   |
+
+### `participant`
+
+The participant to be rendered in the `FloatingParticipantView`.
+
+| Type                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------------------------------- |
+| [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts)\|`undefined` |
 
 ### `style`
 

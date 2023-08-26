@@ -84,9 +84,10 @@ export const CallContent = ({
   } = useTheme();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
-  const { useRemoteParticipants } = useCallStateHooks();
+  const { useRemoteParticipants, useLocalParticipant } = useCallStateHooks();
 
   const _remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
@@ -144,7 +145,10 @@ export const CallContent = ({
             />
           )}
           {showFloatingView && FloatingParticipantView && (
-            <FloatingParticipantView {...participantViewProps} />
+            <FloatingParticipantView
+              participant={localParticipant}
+              {...participantViewProps}
+            />
           )}
         </View>
         {showSpotlightLayout ? (
