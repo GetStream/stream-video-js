@@ -2,10 +2,7 @@ import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'react-native',
-  setupFilesAfterEnv: [
-    '<rootDir>/jest-setup.ts',
-    '<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js',
-  ],
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/__tests__/mocks/',
     '<rootDir>/__tests__/utils/',
