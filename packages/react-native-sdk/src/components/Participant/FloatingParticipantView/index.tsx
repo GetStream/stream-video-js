@@ -8,10 +8,10 @@ import { FloatingViewAlignment } from './FloatingView/common';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
-  ParticipantViewProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
   | 'top-left'
@@ -23,12 +23,15 @@ export type FloatingParticipantViewAlignment =
  * Props to be passed for the LocalVideoView component.
  */
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
-  Pick<CallParticipantsListProps, 'ParticipantView'> &
-  Pick<ParticipantViewProps, 'participant'> & {
+  Pick<CallParticipantsListProps, 'ParticipantView'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
     alignment?: FloatingParticipantViewAlignment;
+    /**
+     * The participant to be rendered in the FloatingParticipantView
+     */
+    participant?: StreamVideoParticipant;
     /**
      * Custom style to be merged with the floating participant view.
      */
@@ -97,6 +100,10 @@ export const FloatingParticipantView = ({
     ParticipantVideoFallback: CustomLocalParticipantViewVideoFallback,
     VideoRenderer,
   };
+
+  if (!participant) {
+    return null;
+  }
 
   return (
     <View

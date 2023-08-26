@@ -144,7 +144,7 @@ export const CallContent = ({
               ParticipantsInfoBadge={ParticipantsInfoBadge}
             />
           )}
-          {showFloatingView && FloatingParticipantView && localParticipant && (
+          {showFloatingView && FloatingParticipantView && (
             <FloatingParticipantView
               participant={localParticipant}
               {...participantViewProps}
