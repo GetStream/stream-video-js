@@ -29,11 +29,7 @@ import {
 const App = () => {
   const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-  return (
-    localParticipant && (
-      <FloatingParticipantView participant={localParticipant} />
-    )
-  );
+  return <FloatingParticipantView participant={localParticipant} />;
 };
 ```
 
