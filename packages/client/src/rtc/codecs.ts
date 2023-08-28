@@ -1,5 +1,3 @@
-import { isReactNative } from '../helpers/platforms';
-import { removeCodec, setPreferredCodec } from '../helpers/sdp-munging';
 import { getLogger } from '../logger';
 
 export const getPreferredCodecs = (
@@ -77,16 +75,6 @@ export const getGenericSdp = async (
 
   const offer = await tempPc.createOffer();
   let sdp = offer.sdp ?? '';
-
-  if (isReactNative()) {
-    if (preferredVideoCodec) {
-      sdp = setPreferredCodec(sdp, 'video', preferredVideoCodec);
-    }
-    sdp = setPreferredCodec(sdp, 'audio', preferredAudioCodec);
-    if (audioCodecToRemove) {
-      sdp = removeCodec(sdp, 'audio', audioCodecToRemove);
-    }
-  }
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop();
