@@ -2,7 +2,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   JoinCallButton,
   Lobby,
-  theme,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import React, { useCallback } from 'react';
@@ -73,7 +72,8 @@ const styles = StyleSheet.create({
     marginBottom: appTheme.spacing.lg,
   },
   anonymousButtonText: {
-    ...theme.fonts.heading6,
+    fontSize: 20,
+    fontWeight: '500',
     color: appTheme.colors.primary,
     textAlign: 'center',
   },

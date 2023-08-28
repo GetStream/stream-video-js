@@ -926,8 +926,12 @@ export class Call {
 
       // React uses a different device management for now
       if (getSdkInfo()?.type !== SdkType.REACT) {
-        this.initCamera();
-        this.initMic();
+        try {
+          await this.initCamera();
+          await this.initMic();
+        } catch (error) {
+          this.logger('warn', 'Camera and/or mic init failed during join call');
+        }
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1713,7 +1717,15 @@ export class Call {
     );
   };
 
-  private initCamera() {
+  private async initCamera() {
+    // Wait for any in progress camera operation
+    if (this.camera.enablePromise) {
+      await this.camera.enablePromise;
+    }
+    if (this.camera.disablePromise) {
+      await this.camera.disablePromise;
+    }
+
     if (
       this.state.localParticipant?.videoStream ||
       !this.permissionsContext.hasPermission('send-video')
@@ -1722,36 +1734,48 @@ export class Call {
     }
 
     // Set camera direction if it's not yet set
-    // This will also start publishing if camera is enabled
     if (!this.camera.state.direction && !this.camera.state.selectedDevice) {
       let defaultDirection: CameraDirection = 'front';
       const backendSetting = this.state.settings?.video.camera_facing;
       if (backendSetting) {
         defaultDirection = backendSetting === 'front' ? 'front' : 'back';
       }
-      this.camera.selectDirection(defaultDirection);
-    } else if (this.camera.state.status === 'enabled') {
-      // Publish already started media streams (this is the case if there is a lobby screen before join)
-      // Wait for media stream
-      this.camera.state.mediaStream$
-        .pipe(takeWhile((s) => s === undefined, true))
-        .subscribe((stream) => {
-          if (!this.state.localParticipant?.videoStream) {
-            this.publishVideoStream(stream!);
-          }
-        });
+      this.camera.state.setDirection(defaultDirection);
     }
 
-    // Apply backend config (this is the case if there is no lobby screen before join)
+    // Set target resolution
+    const targetResolution = this.state.settings?.video.target_resolution;
+    if (targetResolution) {
+      await this.camera.selectTargetResolution(targetResolution);
+    }
+
+    // Publish already that was set before we joined
+    if (
+      this.camera.state.status === 'enabled' &&
+      this.camera.state.mediaStream &&
+      !this.publisher?.isPublishing(TrackType.VIDEO)
+    ) {
+      await this.publishVideoStream(this.camera.state.mediaStream);
+    }
+
+    // Start camera if backend config speicifies, and there is no local setting
     if (
       this.camera.state.status === undefined &&
       this.state.settings?.video.camera_default_on
     ) {
-      void this.camera.enable();
+      await this.camera.enable();
     }
   }
 
-  private initMic() {
+  private async initMic() {
+    // Wait for any in progress mic operation
+    if (this.microphone.enablePromise) {
+      await this.microphone.enablePromise;
+    }
+    if (this.microphone.disablePromise) {
+      await this.microphone.disablePromise;
+    }
+
     if (
       this.state.localParticipant?.audioStream ||
       !this.permissionsContext.hasPermission('send-audio')
@@ -1759,24 +1783,21 @@ export class Call {
       return;
     }
 
-    // Publish already started media streams (this is the case if there is a lobby screen before join)
-    if (this.microphone.state.status === 'enabled') {
-      // Wait for media stream
-      this.microphone.state.mediaStream$
-        .pipe(takeWhile((s) => s === undefined, true))
-        .subscribe((stream) => {
-          if (!this.state.localParticipant?.audioStream) {
-            this.publishAudioStream(stream!);
-          }
-        });
+    // Publish media stream that was set before we joined
+    if (
+      this.microphone.state.status === 'enabled' &&
+      this.microphone.state.mediaStream &&
+      !this.publisher?.isPublishing(TrackType.AUDIO)
+    ) {
+      this.publishAudioStream(this.microphone.state.mediaStream);
     }
 
-    // Apply backend config (this is the case if there is no lobby screen before join)
+    // Start mic if backend config speicifies, and there is no local setting
     if (
       this.microphone.state.status === undefined &&
       this.state.settings?.audio.mic_default_on
     ) {
-      void this.microphone.enable();
+      await this.microphone.enable();
     }
   }
 }

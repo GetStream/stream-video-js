@@ -2,7 +2,7 @@ import React from 'react';
 import { LobbyProps } from './Lobby';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { theme } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the Join Call Button in the Lobby component.
@@ -18,6 +18,9 @@ export const JoinCallButton = ({
   onJoinCallHandler,
   onPressHandler,
 }: JoinCallButtonProps) => {
+  const {
+    theme: { colors, typefaces, joinCallButton },
+  } = useTheme();
   const { t } = useI18n();
   const call = useCall();
 
@@ -37,22 +40,37 @@ export const JoinCallButton = ({
   };
 
   return (
-    <Pressable style={styles.joinButton} onPress={onPress}>
-      <Text style={styles.joinButtonText}>{t('Join')}</Text>
+    <Pressable
+      style={[
+        styles.container,
+        { backgroundColor: colors.primary },
+        joinCallButton.container,
+      ]}
+      onPress={onPress}
+    >
+      <Text
+        style={[
+          styles.label,
+          {
+            color: colors.static_white,
+          },
+          typefaces.subtitleBold,
+          joinCallButton.label,
+        ]}
+      >
+        {t('Join')}
+      </Text>
     </Pressable>
   );
 };
 
 const styles = StyleSheet.create({
-  joinButton: {
-    backgroundColor: theme.light.primary,
-    borderRadius: theme.rounded.sm,
-    marginTop: theme.margin.md,
-    paddingVertical: theme.padding.sm,
+  container: {
+    borderRadius: 10,
+    marginTop: 16,
+    paddingVertical: 8,
   },
-  joinButtonText: {
-    color: theme.light.static_white,
+  label: {
     textAlign: 'center',
-    ...theme.fonts.subtitleBold,
   },
 });

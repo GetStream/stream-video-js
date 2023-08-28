@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
-import { theme } from '../../../theme';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
 import { SfuModels } from '@stream-io/video-client';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the ParticipantLabel component.
@@ -23,6 +23,21 @@ export const ParticipantLabel = ({
   participant,
   videoMode,
 }: ParticipantLabelProps) => {
+  const {
+    theme: {
+      colors,
+      typefaces,
+      variants: { iconSizes },
+      participantLabel: {
+        container,
+        userNameLabel,
+        audioMutedIconContainer,
+        videoMutedIconContainer,
+        pinIconContainer,
+        screenShareIconContainer,
+      },
+    },
+  } = useTheme();
   const { name, userId, pin, publishedTracks, sessionId, isLocalParticipant } =
     participant;
   const call = useCall();
@@ -40,13 +55,34 @@ export const ParticipantLabel = ({
   if (videoMode === 'screen') {
     return (
       <View
-        style={styles.status}
+        style={[
+          styles.container,
+          { backgroundColor: colors.static_overlay },
+          container,
+        ]}
         testID={ComponentTestIds.PARTICIPANT_SCREEN_SHARING}
       >
-        <View style={[{ marginRight: theme.margin.sm }, theme.icon.md]}>
-          <ScreenShare color={theme.light.static_white} />
+        <View
+          style={[
+            styles.screenShareIconContainer,
+            {
+              height: iconSizes.md,
+              width: iconSizes.md,
+            },
+            screenShareIconContainer,
+          ]}
+        >
+          <ScreenShare color={colors.static_white} />
         </View>
-        <Text style={styles.userNameLabel} numberOfLines={1}>
+        <Text
+          style={[
+            styles.userNameLabel,
+            { color: colors.static_white },
+            typefaces.caption,
+            userNameLabel,
+          ]}
+          numberOfLines={1}
+        >
           {t('{{ userName }} is sharing their screen', {
             userName: participantLabel,
           })}
@@ -56,26 +92,65 @@ export const ParticipantLabel = ({
   }
 
   return (
-    <View style={styles.status}>
-      <Text style={styles.userNameLabel} numberOfLines={1}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_overlay },
+        container,
+      ]}
+    >
+      <Text
+        style={[
+          styles.userNameLabel,
+          { color: colors.static_white },
+          typefaces.caption,
+          userNameLabel,
+        ]}
+        numberOfLines={1}
+      >
         {participantLabel}
       </Text>
       {isAudioMuted && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <MicOff color={theme.light.error} />
+        <View
+          style={[
+            styles.audioMutedIconContainer,
+            {
+              height: iconSizes.xs,
+              width: iconSizes.xs,
+            },
+            audioMutedIconContainer,
+          ]}
+        >
+          <MicOff color={colors.error} />
         </View>
       )}
       {isVideoMuted && (
-        <View style={[styles.svgContainerStyle, theme.icon.xs]}>
-          <VideoSlash color={theme.light.error} />
+        <View
+          style={[
+            styles.videoMutedIconContainer,
+            {
+              height: iconSizes.xs,
+              width: iconSizes.xs,
+            },
+            videoMutedIconContainer,
+          ]}
+        >
+          <VideoSlash color={colors.error} />
         </View>
       )}
       {isPinningEnabled && (
         <Pressable
-          style={[styles.svgContainerStyle, theme.icon.xs]}
+          style={[
+            styles.pinIconContainer,
+            {
+              height: iconSizes.xs,
+              width: iconSizes.xs,
+            },
+            pinIconContainer,
+          ]}
           onPress={unPinParticipantHandler}
         >
-          <PinVertical color={theme.light.static_white} />
+          <PinVertical color={colors.static_white} />
         </Pressable>
       )}
     </View>
@@ -83,21 +158,27 @@ export const ParticipantLabel = ({
 };
 
 const styles = StyleSheet.create({
-  status: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.padding.sm,
-    borderRadius: theme.rounded.xs,
-    backgroundColor: theme.light.static_overlay,
+    padding: 8,
+    borderRadius: 5,
     flexShrink: 1,
     zIndex: Z_INDEX.IN_FRONT,
   },
   userNameLabel: {
     flexShrink: 1,
-    color: theme.light.static_white,
-    ...theme.fonts.caption,
   },
-  svgContainerStyle: {
-    marginLeft: theme.margin.xs,
+  screenShareIconContainer: {
+    marginRight: 8,
+  },
+  audioMutedIconContainer: {
+    marginLeft: 4,
+  },
+  videoMutedIconContainer: {
+    marginLeft: 4,
+  },
+  pinIconContainer: {
+    marginLeft: 4,
   },
 });

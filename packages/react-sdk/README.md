@@ -53,36 +53,32 @@ Here are some of the features we support:
 
 ## Roadmap
 
-### 0.2 milestone
-- [x] ICE restarts
-- [x] React hooks for permissions management
-- [x] Server-side participant pinning
-
-### 0.3 milestone
-- [ ] Fast-reconnects
-- [ ] SFU retries
-- [ ] Enhanced device management API
-- [ ] Enhanced SDK build system
-- [ ] Increase test coverage
-
 ### 0.4 milestone
-- [ ] Performance and bundle-size optimizations
+- [X] Enhanced device management API
+- [X] Composite layout for streaming and recording
+- [ ] Screenshare Audio
 - [ ] Hardware-accelerated video encoding on supported platforms
-- [ ] E2E testing platform
 - [ ] Typescript generics enhancements
-- [ ] Call analytics / stats
-- [ ] Logging 2.0
+- [ ] Fast-reconnects
+- [X] SFU retries
 
 ### 0.5 milestone
 - [ ] Enhanced UI components and theming
-- [ ] Composite layout for streaming and recording
+- [ ] Enhanced SDK build system
+- [ ] Video and audio filters
+- [ ] Performance and bundle-size optimizations
+- [ ] Dynascale: turn off incoming video when the browser is in the background
+- [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
+- [ ] Call analytics / stats
+- [ ] Logging 2.0
+- [ ] E2E testing platform
+
+### 0.6 milestone
 - [ ] Break-out rooms
 - [ ] Waiting rooms
 - [ ] Transcriptions
 - [ ] Closed captions
-- [ ] Video and audio filters
-- [ ] Dynascale: turn off incoming video when the browser is in the background
-- [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
+
 
 ## Contributing
 

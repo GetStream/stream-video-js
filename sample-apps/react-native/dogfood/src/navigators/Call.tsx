@@ -2,59 +2,24 @@ import React, { useCallback, useEffect } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
-  CallingState,
-  IncomingCall,
-  OutgoingCall,
+  RingingCallContent,
   StreamCall,
-  useCall,
   useCalls,
-  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
-import { Alert, StyleSheet, View } from 'react-native';
-import { ActiveCall } from '../components/ActiveCall';
+import { Alert, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
-import { appTheme } from '../theme';
-import { AuthenticationProgress } from '../components/AuthenticatingProgress';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
-const CallPanel = () => {
-  const call = useCall();
-  const isCallCreatedByMe = call?.isCreatedByMe;
-
-  const { useCallCallingState } = useCallStateHooks();
-  const callingState = useCallCallingState();
-
-  switch (callingState) {
-    case CallingState.RINGING:
-      return isCallCreatedByMe ? (
-        <View style={styles.container}>
-          <OutgoingCall />
-        </View>
-      ) : (
-        <IncomingCall />
-      );
-    case CallingState.JOINED:
-      return (
-        <View style={styles.container}>
-          <ActiveCall />
-        </View>
-      );
-    case CallingState.JOINING:
-      return (
-        <View style={styles.container}>
-          <AuthenticationProgress />
-        </View>
-      );
-    default:
-      return null;
-  }
-};
-
 const Calls = () => {
   const calls = useCalls();
+  const { top } = useSafeAreaInsets();
 
   const handleMoreCalls = useCallback(async () => {
     const lastCallCreatedBy = calls[1]?.state.createdBy;
@@ -79,8 +44,16 @@ const Calls = () => {
   }
 
   return (
-    <StreamCall call={firstCall}>
-      <CallPanel />
+    <StreamCall
+      call={firstCall}
+      mediaDeviceInitialState={{
+        initialAudioEnabled: false,
+        initialVideoEnabled: false,
+      }}
+    >
+      <SafeAreaView style={[styles.container, { top }]}>
+        <RingingCallContent />
+      </SafeAreaView>
     </StreamCall>
   );
 };
@@ -103,6 +76,5 @@ export const Call = () => {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: appTheme.colors.static_grey,
   },
 });

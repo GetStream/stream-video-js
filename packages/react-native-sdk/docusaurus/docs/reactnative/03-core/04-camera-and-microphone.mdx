@@ -10,90 +10,60 @@ Handling audio and video devices in a your application means working with `Media
 
 ### Call settings
 
-The default state of the camera is determined by the settings in the call object. The settings can be retrieved using the hook `useCallMetadata`:
+The default state of the camera is determined by the settings in the call object.
 
 ```ts
-const metadata = useCallMetadata();
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-metadata?.settings?.video.camera_default_on;
+const { useCallSettings } = useCallStateHooks();
+const settings = useCallSettings();
+
+settings?.video.camera_default_on;
 ```
 
-### Manage the camera facing mode
+:::note
+Make sure, `call.get()` is called at least once in the application, after the call is created.
+:::
 
-We can get the facing mode state of the camera and the function to toggle the state using the hook `useMediaStreamManagement`:
+### Start-Stop Camera
 
-```ts
-const { toggleCameraFacingMode, isCameraOnFrontFacingMode } = useMediaStreamManagement();;
+We can use the functions `camera.enable()` and `camera.disable()` to control the publishing and un-publishing our video stream.
 
-console.log(`Camera facingMode ${isCameraOnFrontFacingMode ? 'user' : 'environment'}`);
-toggleCameraFacingMode();
-```
-
-### Manage video publishing
-
-We can use functions from the hook `useMediaStreamManagement` for publishing and un-publishing our video stream:
+Alternatively, you can use `camera.toggle()`.
 
 ```ts
-const { publishVideoStream, stopPublishingVideo } = useMediaStreamManagement();;
+const call = useCall();
 
-publishVideoStream(); 
+call.camera.enable();
+call.camera.disable();
 // or
-stopPublishingVideo();
+call.camera.toggle();
 ```
 
-### Video mute state
-We can get the mute state of our video stream bu checking if our tracks are being published:
+### Manage Camera Facing Mode
+
+We can toggle the camera face from front to back and vice-versa using `camera.flip()` function inside the call object derived from `useCall` hook.
 
 ```ts
-const localParticipant = useLocalParticipant();
+const call = useCall();
 
-const isVideoMute = !localParticipant?.publishedTracks.includes(
-  SfuModels.TrackType.VIDEO,
-);
-```
-## Microphone management
-
-### Call settings
-The default state of the microphone is determined by the settings in the call object. The settings can be retrieved using the hook `useCallMetadata`:
-
-```ts
-const metadata = useCallMetadata();
-
-metadata?.settings?.audio.mic_default_on;
-```
-### Manage audio publishing
-We can use functions from the hook `useMediaStreamManagement` for publishing and un-publishing our audio stream:
-
-```ts
-const { publishAudioStream, stopPublishingAudio } = useMediaStreamManagement();
-
-publishAudioStream(); 
-// or
-stopPublishingAudio();
+call.camera.flip();
 ```
 
-### Audio mute state
-
-We can get the mute state of our video stream bu checking if our tracks are being published:
+We can get the facing mode state of the camera by:
 
 ```ts
-const localParticipant = useLocalParticipant();
-
-const isAudioMute = !localParticipant?.publishedTracks.includes(
-  SfuModels.TrackType.AUDIO,
-);
+const { useCameraState } = useCallStateHooks();
+const { direction } = useCameraState(); // direction returns 'front' or 'back'.
 ```
 
-## Previewing and manage states before joining a call
+### Video mute status
 
-Before joining a call, user may need to preview their streams and decide their mute status. We provide utility functions in the hook `useMediaStreamManagement` for this.
-
-### Initial mute states
-
-The following state variables and toggle functions can be used to determine the mute status of the streams before joining a call:
+We can get the mute state of our video stream by checking the `status` value returned from the `useCameraState` hook:
 
 ```ts
-const { initialAudioEnabled, initialVideoEnabled, toggleInitialAudioMuteState, toggleInitialVideoMuteState } = useMediaStreamManagement();
+const { useCameraState } = useCallStateHooks();
+const { status } = useCameraState(); // status returns enabled, disabled or undefined
 ```
 
 ### Show Video Preview
@@ -102,12 +72,85 @@ We can get the video stream from the camera using the utility hook `useLocalVide
 
 ```tsx
 import { RTCView } from 'react-native-webrtc';
+import { useLocalVideoStream } from '@stream-io/video-react-native-sdk';
 
 const localVideoStream = useLocalVideoStream();
 
-return (
-  <RTCView
-    streamURL={localVideoStream?.toURL()}
-  />
-);
+return <RTCView streamURL={localVideoStream?.toURL()} />;
+```
+
+## Microphone management
+
+### Call settings
+
+The default state of the microphone is determined by the settings in the call object.
+
+```ts
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCallSettings } = useCallStateHooks();
+const settings = useCallSettings();
+
+settings?.audio.mic_default_on;
+```
+
+:::note
+Make sure, `call.get()` is called at least once in the application, after the call is created.
+:::
+
+### Start-Stop Microphone
+
+We can use the functions `microphone.enable()` and `microphone.disable()` to control the publishing and un-publishing our audio stream:
+
+Alternatively, you can use `microphone.toggle()`.
+
+```ts
+const call = useCall();
+
+call.microphone.enable();
+call.microphone.disable();
+// or
+call.microphone.toggle();
+```
+
+### Audio mute status
+
+We can get the mute state of our audio stream by checking the `status` value returned from the `useMicrophoneState` hook:
+
+```ts
+const { useMicrophoneState } = useCallStateHooks();
+const { status } = useMicrophoneState(); // status returns enabled, disabled or undefined
+```
+
+## Client-side settings
+
+Before joining a call, user may need to preview their streams and decide their mute status. We provide utility functions in the hook `useMediaStreamManagement` for this.
+
+### Initial mute status
+
+The initial status of the camera and mic can be pre-selected by the following:
+
+```tsx {7-10}
+export const App = () => {
+  const call = /* ... */;
+
+  return (
+    <StreamCall
+      call={call}
+      mediaDeviceInitialState={{
+        initialVideoEnabled: true, // This will override the camera initial mute status from call settings
+        initialAudioEnabled: false, // This will override the microphone initial mute status from call settings
+      }}
+    >
+      <MyUI />
+    </StreamCall>
+  );
+};
+```
+
+Also, The following toggle functions can be used to toggle the mute/unmute status of the streams before joining a call:
+
+```ts
+const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
+  useMediaStreamManagement();
 ```

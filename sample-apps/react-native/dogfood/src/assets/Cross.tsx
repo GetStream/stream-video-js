@@ -1,8 +1,9 @@
 import React from 'react';
 import { Svg, Path, SvgProps } from 'react-native-svg';
+import { ColorValue } from 'react-native/types';
 
 type Props = {
-  color: string;
+  color: ColorValue;
 } & Pick<SvgProps, 'style'>;
 
 export const Cross = ({ color, style }: Props) => (
