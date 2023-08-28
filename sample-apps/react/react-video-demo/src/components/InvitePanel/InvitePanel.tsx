@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { Copy, Reload, UserChecked } from '../Icons';
 import Panel from '../Panel';
 
-import { useUserContext } from '../../contexts/UserContext';
+import { usePanelContext, PANEL_VISIBILITY } from '../../contexts/PanelContext';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
 
@@ -84,15 +84,20 @@ export const InvitePanel = ({
   isFocused,
   callId,
 }: InvitePanelProps) => {
-  const [showQr, setShowQr] = useState(false);
-  const { qr } = useUserContext();
+  const [showQr, setShowQr] = useState(true);
   const breakpoint = useBreakpoint();
 
+  const { qrCodeVisibility } = usePanelContext();
+
   useEffect(() => {
-    if (breakpoint === 'lg') {
-      setShowQr(true);
+    if (qrCodeVisibility === PANEL_VISIBILITY.collapsed) {
+      setShowQr(false);
+    } else {
+      if (breakpoint === 'lg') {
+        setShowQr(true);
+      }
     }
-  }, [breakpoint]);
+  }, [breakpoint, qrCodeVisibility]);
 
   const handleToggleDisplayQr = useCallback(() => {
     setShowQr((prev) => !prev);
@@ -110,7 +115,6 @@ export const InvitePanel = ({
 
   const qrCodeContent = new URL(window.location.toString());
   qrCodeContent.searchParams.set('id', callId);
-  qrCodeContent.searchParams.set('qr', qr || 'true');
 
   return (
     <Panel
