@@ -6,6 +6,7 @@ import { Z_INDEX } from '../../../constants';
 import { CallTopViewProps } from '..';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallingState } from '@stream-io/video-client';
 
 /**
  * Props for the ParticipantsInfoBadge component.
@@ -30,16 +31,23 @@ export const ParticipantsInfoBadge = ({
       variants: { iconSizes },
     },
   } = useTheme();
-  const { useParticipantCount, useCallMembers } = useCallStateHooks();
+  const { useParticipantCount, useCallMembers, useCallCallingState } =
+    useCallStateHooks();
   const participantCount = useParticipantCount();
   const members = useCallMembers();
+  const callingState = useCallCallingState();
 
+  let count = 0;
   /**
    * We show member's length if Incoming and Outgoing Call Views are rendered.
    * Else we show the count of the participants that are in the call.
    * Since the members count also includes caller/callee, we reduce the count by 1.
    **/
-  const count = participantCount || members.length - 1;
+  if (callingState === CallingState.RINGING) {
+    count = members.length - 1;
+  } else {
+    count = participantCount;
+  }
 
   return (
     <Pressable
