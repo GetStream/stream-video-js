@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.390](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.389...@stream-io/video-react-native-sdk-0.0.1-alpha.390) (2023-08-28)
+
+
+### Features
+
+* **react-native:** pass participant as prop in FloatingParticipantView ([#1001](https://github.com/GetStream/stream-video-js/issues/1001)) ([682bd4d](https://github.com/GetStream/stream-video-js/commit/682bd4dec3c54187d730f58b85a91159ed77d27c))
+
+
+
 ## [0.0.1-alpha.389](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.388...@stream-io/video-react-native-sdk-0.0.1-alpha.389) (2023-08-25)
 
 
