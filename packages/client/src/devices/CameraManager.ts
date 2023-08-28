@@ -89,12 +89,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     return this.call.stopPublish(TrackType.VIDEO, stopTracks);
   }
 
-  protected muteTracks(): void {
-    this.state.mediaStream
-      ?.getVideoTracks()
-      .forEach((t) => (t.enabled = false));
-  }
-  protected unmuteTracks(): void {
-    this.state.mediaStream?.getVideoTracks().forEach((t) => (t.enabled = true));
+  protected getTrack() {
+    return this.state.mediaStream?.getVideoTracks()[0];
   }
 }

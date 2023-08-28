@@ -271,20 +271,33 @@ export class Call {
     this.microphone = new MicrophoneManager(this);
 
     this.state.localParticipant$.subscribe(async (p) => {
-      // Soft remote mutes
+      // Mute via device manager
+      // If integrator doesn't use device manager, we mute using stopPublish
       if (
         !p?.publishedTracks.includes(TrackType.VIDEO) &&
         this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
+        this.logger(
+          'info',
+          `Local participant's video track is muted remotely`,
+        );
         await this.camera.disable();
-        this.stopPublish(TrackType.VIDEO);
+        if (this.publisher.isPublishing(TrackType.VIDEO)) {
+          this.stopPublish(TrackType.VIDEO);
+        }
       }
       if (
         !p?.publishedTracks.includes(TrackType.AUDIO) &&
         this.publisher?.isPublishing(TrackType.AUDIO)
       ) {
+        this.logger(
+          'info',
+          `Local participant's audio track is muted remotely`,
+        );
         await this.microphone.disable();
-        this.stopPublish(TrackType.AUDIO);
+        if (this.publisher.isPublishing(TrackType.AUDIO)) {
+          this.stopPublish(TrackType.AUDIO);
+        }
       }
     });
   }
@@ -319,6 +332,7 @@ export class Call {
             permission as OwnCapability,
           );
           if (!hasPermission && this.publisher.isPublishing(trackType)) {
+            // Stop tracks, then udate device manager status
             this.stopPublish(trackType)
               .catch((err) => {
                 this.logger(
