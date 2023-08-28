@@ -50,10 +50,11 @@ In order to use the `ParticipantView` as a standalone component, you should use 
 ```tsx
 import {
   ParticipantView,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 const App = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
 
   // Here to show the demo, we pass only first participant. You can pass any of the participant.
@@ -75,9 +76,9 @@ The participant to be rendered in the `ParticipantView`.
 
 The type of the participant stream to be rendered. Eg: screen sharing or participant's video stream.
 
-| Type                |
-| ------------------- |
-| `video` \| `screen` |
+| Type                | Default Value |
+| ------------------- | ------------- |
+| `video` \| `screen` | `video`       |
 
 ### `style`
 

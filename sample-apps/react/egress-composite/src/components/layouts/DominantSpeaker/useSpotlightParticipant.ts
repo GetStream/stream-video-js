@@ -4,19 +4,21 @@ import {
   StreamVideoParticipant,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useAppConfig } from '../../hooks/useAppConfig';
+import { useConfigurationContext } from '../../../ConfigurationContext';
 
 export const useSpotlightParticipant = () => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
     useState<StreamVideoParticipant>();
 
-  const { spotlightMode } = useAppConfig();
   const { useDominantSpeaker, useRemoteParticipants } = useCallStateHooks();
+  const {
+    options: { 'layout.single_participant.mode': mode },
+  } = useConfigurationContext();
   const dominantSpeaker = useDominantSpeaker();
   const allParticipants = useRemoteParticipants();
   useEffect(() => {
     let shuffleId: NodeJS.Timeout;
-    if (spotlightMode === 'shuffle') {
+    if (mode === 'shuffle') {
       shuffleId = setInterval(() => {
         const randomParticipant =
           allParticipants[Math.floor(Math.random() * allParticipants.length)];
@@ -35,7 +37,7 @@ export const useSpotlightParticipant = () => {
     return () => {
       clearInterval(shuffleId);
     };
-  }, [allParticipants, dominantSpeaker, spotlightMode]);
+  }, [allParticipants, dominantSpeaker, mode]);
 
   return speakerInSpotlight;
 };

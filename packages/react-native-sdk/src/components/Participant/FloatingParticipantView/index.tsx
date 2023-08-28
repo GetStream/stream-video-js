@@ -1,10 +1,8 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
-import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
@@ -12,6 +10,8 @@ import {
   ParticipantViewComponentProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
+import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
   | 'top-left'
@@ -28,6 +28,10 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
      * Determines where the floating participant video will be placed.
      */
     alignment?: FloatingParticipantViewAlignment;
+    /**
+     * The participant to be rendered in the FloatingParticipantView
+     */
+    participant?: StreamVideoParticipant;
     /**
      * Custom style to be merged with the floating participant view.
      */
@@ -63,6 +67,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
  */
 export const FloatingParticipantView = ({
   alignment = 'top-right',
+  participant,
   style,
   ParticipantView = DefaultParticipantView,
   ParticipantNetworkQualityIndicator,
@@ -72,8 +77,6 @@ export const FloatingParticipantView = ({
   const {
     theme: { colors, localParticipantsView },
   } = useTheme();
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
 
   const floatingAlignmentMap: Record<
     FloatingParticipantViewAlignment,
@@ -90,10 +93,6 @@ export const FloatingParticipantView = ({
     height: number;
   }>();
 
-  if (!localParticipant) {
-    return null;
-  }
-
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: null,
     ParticipantNetworkQualityIndicator,
@@ -101,6 +100,10 @@ export const FloatingParticipantView = ({
     ParticipantVideoFallback: CustomLocalParticipantViewVideoFallback,
     VideoRenderer,
   };
+
+  if (!participant) {
+    return null;
+  }
 
   return (
     <View
@@ -123,14 +126,14 @@ export const FloatingParticipantView = ({
       }}
     >
       {containerDimensions && (
-        <FloatingView
+        <AnimatedFloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
           initialAlignment={floatingAlignmentMap[alignment]}
         >
           {ParticipantView && (
             <ParticipantView
-              participant={localParticipant}
+              participant={participant}
               videoMode={'video'}
               style={[
                 styles.participantViewContainer,
@@ -147,7 +150,7 @@ export const FloatingParticipantView = ({
               {...participantViewProps}
             />
           )}
-        </FloatingView>
+        </AnimatedFloatingView>
       )}
     </View>
   );

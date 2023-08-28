@@ -29,7 +29,7 @@ export type VideoRendererProps = Pick<
  * It internally used `RTCView` to render video stream.
  */
 export const VideoRenderer = ({
-  videoMode,
+  videoMode = 'video',
   participant,
   isVisible = true,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,

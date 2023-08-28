@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
-import './Spotlight.scss';
+import './DominantSpeaker.scss';
 import { AudioTracks } from './AudioTracks';
 
 export const DominantSpeaker = () => {
@@ -24,7 +24,7 @@ export const DominantSpeaker = () => {
   if (!activeCall) return <h2>No active call</h2>;
   return (
     <>
-      <div className="spotlight-container">
+      <div className="dominant-speaker__container">
         {speakerInSpotlight && (
           <ParticipantView
             participant={speakerInSpotlight}
