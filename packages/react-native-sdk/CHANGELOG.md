@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.392](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.391...@stream-io/video-react-native-sdk-0.0.1-alpha.392) (2023-08-28)
+
+
+### Bug Fixes
+
+* **react-native:** Call Top View participants count in the badge when showing Incoming/Outgoing call views ([#992](https://github.com/GetStream/stream-video-js/issues/992)) ([b7a3615](https://github.com/GetStream/stream-video-js/commit/b7a361534cd37df2418f3b12ea13da3a2e391710))
+
+
+
 ## [0.0.1-alpha.391](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.390...@stream-io/video-react-native-sdk-0.0.1-alpha.391) (2023-08-28)
 
 
