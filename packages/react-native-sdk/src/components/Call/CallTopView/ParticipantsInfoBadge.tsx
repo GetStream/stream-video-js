@@ -49,6 +49,10 @@ export const ParticipantsInfoBadge = ({
     count = participantCount;
   }
 
+  if (count === 0) {
+    return null;
+  }
+
   return (
     <Pressable
       onPress={onParticipantInfoPress}
