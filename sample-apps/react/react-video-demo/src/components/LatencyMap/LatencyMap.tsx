@@ -86,69 +86,86 @@ export const LatencyMap: FC<Props> = ({
   useEffect(() => {
     let appendMarkerTimer: ReturnType<typeof setTimeout>;
 
-    if (map.current && !loading && source) {
-      map.current.addSource('servers', {
-        type: 'geojson',
-        data: {
-          ...source,
-          features: [],
-        },
-      });
+    if (map.current && !loading) {
+      const serverSource = map.current.getSource('servers');
 
-      let lazyloadFeatures = source.features.sort(() => Math.random() - 0.5);
-
-      if (map.current.getSource('servers')) {
-        const mapSource: any = map.current.getSource('servers');
-
-        function appendMarker() {
-          if (lazyloadFeatures.length > 0) {
-            const [feature, ...rest] = lazyloadFeatures;
-            lazyloadFeatures = rest;
-            mapSource.setData({
-              type: 'FeatureCollection',
-              features: [...mapSource._data.features, feature],
-            });
-            appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
-          }
-        }
-
-        appendMarker();
+      if (serverSource) {
+        return;
       }
-    }
 
-    return () => {
-      clearTimeout(appendMarkerTimer);
-    };
+      if (source) {
+        map.current.addSource('servers', {
+          type: 'geojson',
+          data: {
+            ...source,
+            features: [],
+          },
+        });
+
+        let lazyloadFeatures = source.features.sort(() => Math.random() - 0.5);
+
+        if (map.current.getSource('servers')) {
+          const mapSource: any = map.current.getSource('servers');
+
+          function appendMarker() {
+            if (lazyloadFeatures.length > 0) {
+              const [feature, ...rest] = lazyloadFeatures;
+              lazyloadFeatures = rest;
+              mapSource.setData({
+                type: 'FeatureCollection',
+                features: [...mapSource._data.features, feature],
+              });
+              appendMarkerTimer = setTimeout(appendMarker, Math.random() * 150);
+            }
+          }
+
+          appendMarker();
+        }
+      }
+
+      return () => {
+        clearTimeout(appendMarkerTimer);
+      };
+    }
   }, [map, loading, source]);
 
   useEffect(() => {
-    if (map.current && !loading && source) {
-      map.current.addLayer({
-        id: 'servers-visualise',
-        type: 'circle',
-        source: 'servers',
-        paint: {
-          'circle-color': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            '#20E070',
-            '#2F7DEB',
-          ],
-          'circle-radius': 4,
-          'circle-stroke-width': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            8,
-            0,
-          ],
-          'circle-stroke-color': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            'rgba(30, 177, 20, 0.2)',
-            'transparent',
-          ],
-        },
-      });
+    if (map.current && !loading) {
+      const serverSource = map.current.getSource('servers');
+      const layerSource = map.current.getLayer('servers-visualise');
+
+      if (layerSource) {
+        return;
+      }
+
+      if (source && serverSource) {
+        map.current.addLayer({
+          id: 'servers-visualise',
+          type: 'circle',
+          source: 'servers',
+          paint: {
+            'circle-color': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              '#20E070',
+              '#2F7DEB',
+            ],
+            'circle-radius': 4,
+            'circle-stroke-width': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              8,
+              0,
+            ],
+            'circle-stroke-color': [
+              'case',
+              ['boolean', ['feature-state', 'hover'], false],
+              'rgba(30, 177, 20, 0.2)',
+              'transparent',
+            ],
+          },
+        });
+      }
     }
   }, [map, loading, source]);
 
