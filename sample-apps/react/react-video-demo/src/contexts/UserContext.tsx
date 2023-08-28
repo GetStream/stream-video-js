@@ -18,7 +18,6 @@ type UserContextValue = {
   tokenProvider: TokenProvider;
   user: User;
   token?: string;
-  qr?: string;
 };
 
 const UserContext = createContext<UserContextValue>({
@@ -33,7 +32,7 @@ const UserContext = createContext<UserContextValue>({
   },
 });
 export const UserContextProvider = ({ children }: ChildrenOnly) => {
-  const { api_key: urlApiKey, token, qr } = getURLCredentials();
+  const { api_key: urlApiKey, token } = getURLCredentials();
   const user = useMemo(generateUser, []);
   const [authInProgress, setAuthInProgress] = useState(false);
   const apiKey = urlApiKey ?? envApiKey;
@@ -63,7 +62,7 @@ export const UserContextProvider = ({ children }: ChildrenOnly) => {
 
   return (
     <UserContext.Provider
-      value={{ apiKey, authInProgress, token, tokenProvider, user, qr }}
+      value={{ apiKey, authInProgress, token, tokenProvider, user }}
     >
       {children}
     </UserContext.Provider>

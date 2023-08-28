@@ -112,6 +112,7 @@ const Background = () => {
         zOrder={Z_INDEX.IN_BACK}
         style={StyleSheet.absoluteFill}
         mirror
+        objectFit="cover"
       />
     </View>
   );

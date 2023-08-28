@@ -63,7 +63,7 @@ export const Panel = forwardRef<any, PropsWithChildren<PanelProps>>(
 
     const headingClassName = classnames(styles.header, {
       [styles.canCollapse]: !!toggleCollapse,
-      [styles.open]: visible,
+      [styles.open]: expanded,
     });
 
     const arrowClassName = classnames(styles.arrow, {
