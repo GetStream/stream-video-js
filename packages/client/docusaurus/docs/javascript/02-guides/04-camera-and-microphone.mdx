@@ -176,16 +176,43 @@ Follow our [Playing Video and Audio guide](../../guides/playing-video-and-audio/
 
 #### Lobby preview
 
-This is how you can show a visual representation about the sound level coming from the user's selected microphone:
+On lobby screens a common UX pattern is to show a visual indicator of the detected audio levels coming from the selected microphone. Here is an example of how you can do that:
+
+```html
+<progress id="volume" max="100" min="0" value="70"></progress>
+```
 
 ```typescript
-// Code example coming soon 🏗️
+let cleanup: Function | undefined;
+call.microphone.state.mediaStream$.subscribe(async (mediaStream) => {
+  console.log(mediaStream);
+  const progressBar = document.getElementById('volume') as HTMLProgressElement;
+  if (mediaStream) {
+    cleanup = createSoundDetector(
+      mediaStream,
+      (event) => {
+        progressBar.value = event.audioLevel;
+      },
+      { detectionFrequencyInMs: 100 },
+    );
+  } else {
+    await cleanup?.();
+    progressBar.value = 0;
+  }
+});
 ```
 
 ### Speaking while muted notification
 
+When the microphone is disabled, the client will automatically start monitoring audio levels, to detect if the user is speaking.
+
+This is how you can subscribe to these notifications:
+
 ```typescript
-// This feature is coming soon 🏗️
+call.microphone.state.speakingWhileMuted; // current value
+call.microphone.state.speakingWhileMuted$.subscribe((isSpeaking) => {
+  console.log(`You're muted, unmute yourself to speak`);
+}); // Reactive value
 ```
 
 ## Speaker management

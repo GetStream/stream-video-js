@@ -141,7 +141,7 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getTrack(): undefined | MediaStreamTrack;
 
-  private async muteStream(stopTracks: boolean = true) {
+  protected async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
       return;
     }
@@ -191,7 +191,7 @@ export abstract class InputMediaDeviceManager<
     stopTracks ? this.stopTrack() : this.muteTrack();
   }
 
-  private async unmuteStream() {
+  protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (this.state.mediaStream && this.getTrack()?.readyState === 'live') {

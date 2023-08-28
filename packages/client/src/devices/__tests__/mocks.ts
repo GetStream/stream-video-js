@@ -79,6 +79,10 @@ export const mockAudioStream = () => {
       deviceId: mockAudioDevices[0].deviceId,
     }),
     enabled: true,
+    readyState: 'live',
+    stop: () => {
+      track.readyState = 'eneded';
+    },
   };
   return {
     getAudioTracks: () => [track],
