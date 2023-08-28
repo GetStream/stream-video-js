@@ -3,6 +3,10 @@ id: call-participants-list
 title: CallParticipantsList
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CallParticipantsListVertical from '../../assets/04-ui-components/call/call-participants-list/vertical.png';
+import CallParticipantsListHorizontal from '../../assets/04-ui-components/call/call-participants-list/horizontal.png';
+
 import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
 import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
 import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
@@ -18,7 +22,20 @@ This component depends on a flex container to calculate the width and height of 
 
 Our [CallContent](./call-content.mdx) component internally uses `CallParticipantsList` inside [`CallParticipantsGrid`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallLayout/CallParticipantsGrid.tsx) and [`CallParticipantsSpotlight`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallLayout/CallParticipantsSpotlight.tsx) components.
 
-![Preview of the CallParticipantsList component.](../../assets/04-ui-components/call-participants-list.png)
+<ImageShowcase
+  items={[
+    {
+      image: CallParticipantsListVertical,
+      caption: 'Call Participants List Vertical',
+      alt: 'Call Participants List Vertical',
+    },
+    {
+      image: CallParticipantsListHorizontal,
+      caption: 'Call Participants List Horizontal',
+      alt: 'Call Participants List Horizontal',
+    },
+  ]}
+/>
 
 ## General Usage
 

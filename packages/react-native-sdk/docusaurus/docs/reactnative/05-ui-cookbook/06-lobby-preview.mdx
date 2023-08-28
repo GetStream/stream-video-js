@@ -38,7 +38,7 @@ Then we can use the following hooks:
 - useCallMetadata
 
 :::note
-The initial call information using `useCallMetadata` hook can only be retrieved by the `get` or `getOrCreate` method of a Call instance.
+The initial call information can be retrieved by the `get` or `getOrCreate` method of a Call instance.
 
 You can register an effect at the same place for the same, where you create the call(`client.call`).
 
@@ -92,7 +92,7 @@ import {
   StreamVideoParticipant,
   useConnectedUser,
   useLocalVideoStream,
-  useMediaStreamManagement,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
@@ -101,7 +101,9 @@ import { RTCView } from 'react-native-webrtc';
 export const LocalVideoRenderer = () => {
   const localVideoStream = useLocalVideoStream();
   const connectedUser = useConnectedUser();
-  const isVideoAvailable = !!localVideoStream;
+  const { useCameraState } = useCallStateHooks();
+  const { status: cameraStatus } = useMicrophoneState();
+  const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -129,14 +131,15 @@ export const LocalVideoRenderer = () => {
 const ParticipantStatus = () => {
   const connectedUser = useConnectedUser();
   const participantLabel = connectedUser?.name ?? connectedUser?.id;
-  const { initialAudioEnabled } = useMediaStreamManagement();
+  const { useMicrophoneState } = useCallStateHooks();
+  const { status: microphoneStatus } = useMicrophoneState();
 
   return (
     <View style={styles.status}>
       <Text style={styles.userNameLabel} numberOfLines={1}>
         {participantLabel}
       </Text>
-      {!initialAudioEnabled && (
+      {microphoneStatus === 'disabled' && (
         <View style={styles.svgContainerStyle}>
           <Text>(Mic off)</Text>
         </View>
@@ -176,7 +179,7 @@ const styles = StyleSheet.create({
 
 ### Media Stream Management
 
-To control audio or video mute status in the Lobby, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+To control audio or video mute status in the Lobby, you can use the `useCameraState` and `useMicrophoneState` hooks from the `useCallStateHooks`, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
 
 <ImageShowcase
   items={[
@@ -199,8 +202,9 @@ The button's created will orchestrate the video preview in the [Video Input Prev
 You can add this in the code above:
 
 ```tsx
-const { initialVideoEnabled } = useMediaStreamManagement();
-const isVideoAvailable = !!localVideoStream && initialVideoEnabled;
+const { useMicrophoneState, useCameraState } = useCallStateHooks();
+const { status: cameraStatus } = useCameraState();
+const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
 ```
 
 :::
@@ -210,41 +214,43 @@ We can go through the usage through the following example:
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
+import {
+  useCallStateHooks,
+  useMediaStreamManagement,
+} from '@stream-io/video-react-native-sdk';
 
 export const MediaStreamButtonGroup = () => {
-  const {
-    initialAudioEnabled,
-    initialVideoEnabled,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-  } = useMediaStreamManagement();
+  const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
+    useMediaStreamManagement();
+  const { useMicrophoneState, useCameraState } = useCallStateHooks();
+  const { status: microphoneStatus } = useMicrophoneState();
+  const { status: cameraStatus } = useCameraState();
 
   const audioButtonStyles = [
     styles.button,
     {
-      backgroundColor: !initialAudioEnabled ? '#080707dd' : 'white',
+      backgroundColor: microphoneStatus === 'disabled' ? '#080707dd' : 'white',
     },
   ];
 
   const videoButtonStyles = [
     styles.button,
     {
-      backgroundColor: !initialVideoEnabled ? '#080707dd' : 'white',
+      backgroundColor: cameraStatus === 'disabled' ? '#080707dd' : 'white',
     },
   ];
 
   const audioButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !initialAudioEnabled ? 'white' : '#080707dd',
+      color: microphoneStatus === 'disabled' ? 'white' : '#080707dd',
     },
   ];
 
   const videoButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !initialVideoEnabled ? 'white' : '#080707dd',
+      color: cameraStatus === 'disabled' ? 'white' : '#080707dd',
     },
   ];
 
@@ -254,7 +260,7 @@ export const MediaStreamButtonGroup = () => {
         onPress={toggleInitialAudioMuteState}
         style={audioButtonStyles}
       >
-        {initialAudioEnabled ? (
+        {microphoneStatus === 'enabled' ? (
           <Text style={audioButtonTextStyles}>Audio on</Text>
         ) : (
           <Text style={audioButtonTextStyles}>Audio off</Text>
@@ -264,7 +270,7 @@ export const MediaStreamButtonGroup = () => {
         onPress={toggleInitialVideoMuteState}
         style={videoButtonStyles}
       >
-        {initialVideoEnabled ? (
+        {cameraStatus === 'enabled' ? (
           <Text style={videoButtonTextStyles}>Video on</Text>
         ) : (
           <Text style={videoButtonTextStyles}>Video off</Text>
@@ -299,27 +305,23 @@ We can retrieve the list of members, that already joined the call (participants)
 
 ```tsx title="LobbyParticipantsPreview.tsx"
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { useCallMetadata } from '@stream-io/video-react-native-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 export const LobbyParticipantsPreview = () => {
-  const callMetadata = useCallMetadata();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
 
-  if (
-    !(
-      callMetadata?.session?.participants &&
-      callMetadata?.session?.participants.length
-    )
-  ) {
+  if (!(session?.participants && session?.participants.length)) {
     return null;
   }
 
   return (
     <View>
       <Text style={styles.infoText}>
-        Already in call ({callMetadata.session.participants.length}):
+        Already in call ({session.participants.length}):
       </Text>
       <View style={styles.userInfo}>
-        {callMetadata.session.participants.map((participant) => (
+        {session.participants.map((participant) => (
           <View key={participant.user.id}>
             <Image
               source={{ uri: participant.user.image }}

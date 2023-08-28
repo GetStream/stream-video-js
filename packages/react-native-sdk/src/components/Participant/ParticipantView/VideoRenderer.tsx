@@ -8,6 +8,8 @@ import {
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the VideoRenderer component.
@@ -27,12 +29,15 @@ export type VideoRendererProps = Pick<
  * It internally used `RTCView` to render video stream.
  */
 export const VideoRenderer = ({
-  videoMode,
+  videoMode = 'video',
   participant,
   isVisible = true,
-  ParticipantVideoFallback,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
   videoZOrder = 0,
 }: VideoRendererProps) => {
+  const {
+    theme: { videoRenderer },
+  } = useTheme();
   const call = useCall();
   const { useCallCallingState, useCameraState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -172,10 +177,13 @@ export const VideoRenderer = ({
   };
 
   return (
-    <View onLayout={onLayout} style={styles.container}>
+    <View
+      onLayout={onLayout}
+      style={[styles.container, videoRenderer.container]}
+    >
       {canShowVideo ? (
         <RTCView
-          style={styles.videoStream}
+          style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender?.toURL()}
           mirror={mirror}
           objectFit={isScreenSharing ? 'contain' : 'cover'}

@@ -30,11 +30,13 @@ import {
   StreamClientOptions,
   StreamVideoEvent,
   TokenOrProvider,
+  User,
   UserWithId,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
 import { version } from '../../../version';
 import { getLocationHint } from './location';
+import { CreateGuestRequest, CreateGuestResponse } from '../../gen/coordinator';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -70,6 +72,7 @@ export class StreamClient {
   resolveConnectionId?: Function;
   rejectConnectionId?: Function;
   connectionIdPromise?: Promise<string | undefined>;
+  guestUserCreatePromise?: Promise<CreateGuestResponse>;
   private nextRequestAbortController: AbortController | null = null;
 
   /**
@@ -402,6 +405,30 @@ export class StreamClient {
     this.resolveConnectionId = undefined;
   };
 
+  connectGuestUser = async (user: User & { type: 'guest' }) => {
+    this.guestUserCreatePromise = this.doAxiosRequest<
+      CreateGuestResponse,
+      CreateGuestRequest
+    >(
+      'post',
+      '/guest',
+      {
+        user: {
+          ...user,
+          role: 'guest',
+        },
+      },
+      { publicEndpoint: true },
+    );
+
+    const response = await this.guestUserCreatePromise;
+    this.guestUserCreatePromise.finally(
+      () => (this.guestUserCreatePromise = undefined),
+    );
+
+    return this.connectUser(response.user, response.access_token);
+  };
+
   /**
    * connectAnonymousUser - Set an anonymous user and open a WebSocket connection
    */
@@ -524,6 +551,7 @@ export class StreamClient {
     if (!options.publicEndpoint) {
       await Promise.all([
         this.tokenManager.tokenReady(),
+        this.guestUserCreatePromise,
         this.connectionIdPromise,
       ]);
     }

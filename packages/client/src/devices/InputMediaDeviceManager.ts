@@ -8,6 +8,14 @@ import { isReactNative } from '../helpers/platforms';
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
 > {
+  /**
+   * @internal
+   */
+  enablePromise?: Promise<void>;
+  /**
+   * @internal
+   */
+  disablePromise?: Promise<void>;
   constructor(protected readonly call: Call, public readonly state: T) {}
 
   /**
@@ -28,24 +36,54 @@ export abstract class InputMediaDeviceManager<
     if (this.state.status === 'enabled') {
       return;
     }
-    await this.startStream();
-    this.state.setStatus('enabled');
+    this.enablePromise = this.unmuteStream();
+    try {
+      await this.enablePromise;
+      this.state.setStatus('enabled');
+    } catch (error) {
+      this.enablePromise = undefined;
+      throw error;
+    }
   }
 
   /**
    * Stops camera/microphone
+   *
    * @returns
    */
   async disable() {
+    this.state.prevStatus = this.state.status;
     if (this.state.status === 'disabled') {
       return;
     }
-    await this.stopStream();
-    this.state.setStatus('disabled');
+    this.disablePromise = this.muteStream(
+      this.state.disableMode === 'stop-tracks',
+    );
+    try {
+      await this.disablePromise;
+      this.state.setStatus('disabled');
+      this.disablePromise = undefined;
+    } catch (error) {
+      this.disablePromise = undefined;
+      throw error;
+    }
+  }
+
+  /**
+   * If status was previously enabled, it will reenable the device.
+   */
+  async resume() {
+    if (
+      this.state.prevStatus === 'enabled' &&
+      this.state.status === 'disabled'
+    ) {
+      this.enable();
+    }
   }
 
   /**
    * If current device statis is disabled, it will enable the device, else it will disable it.
+   *
    * @returns
    */
   async toggle() {
@@ -76,14 +114,10 @@ export abstract class InputMediaDeviceManager<
 
   protected async applySettingsToStream() {
     if (this.state.status === 'enabled') {
-      await this.stopStream();
-      await this.startStream();
+      await this.muteStream();
+      await this.unmuteStream();
     }
   }
-
-  abstract pause(): void;
-
-  abstract resume(): void;
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
@@ -93,26 +127,37 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract publishStream(stream: MediaStream): Promise<void>;
 
-  protected abstract stopPublishStream(): Promise<void>;
+  protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
 
-  private async stopStream() {
+  protected abstract muteTracks(): void;
+
+  protected abstract unmuteTracks(): void;
+
+  private async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
       return;
     }
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream();
+      await this.stopPublishStream(stopTracks);
     } else if (this.state.mediaStream) {
-      disposeOfMediaStream(this.state.mediaStream);
+      stopTracks
+        ? disposeOfMediaStream(this.state.mediaStream)
+        : this.muteTracks();
     }
-    this.state.setMediaStream(undefined);
+    if (stopTracks) {
+      this.state.setMediaStream(undefined);
+    }
   }
 
-  private async startStream() {
+  private async unmuteStream() {
+    let stream: MediaStream;
     if (this.state.mediaStream) {
-      return;
+      stream = this.state.mediaStream;
+      this.unmuteTracks();
+    } else {
+      const constraints = { deviceId: this.state.selectedDevice };
+      stream = await this.getStream(constraints);
     }
-    const constraints = { deviceId: this.state.selectedDevice };
-    const stream = await this.getStream(constraints);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }

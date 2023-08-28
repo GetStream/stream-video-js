@@ -13,11 +13,14 @@ import {
   StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
-import { ParticipantViewProps } from '../../Participant/ParticipantView';
+import {
+  ParticipantView as DefaultParticipantView,
+  ParticipantViewComponentProps,
+  ParticipantViewProps,
+} from '../../Participant/ParticipantView';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -28,17 +31,18 @@ const VIEWABILITY_CONFIG: FlatListProps['viewabilityConfig'] = {
   itemVisiblePercentThreshold: 60,
 };
 
+export type CallParticipantsListComponentProps =
+  ParticipantViewComponentProps & {
+    /**
+     * Component to customize the participant view.
+     */
+    ParticipantView?: React.ComponentType<ParticipantViewProps> | null;
+  };
+
 /**
  * Props of the CallParticipantsList component
  */
-export type CallParticipantsListProps = Pick<
-  ParticipantViewProps,
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'VideoRenderer'
-> & {
+export type CallParticipantsListProps = CallParticipantsListComponentProps & {
   /**
    * The list of participants to display in the list
    */
@@ -52,10 +56,6 @@ export type CallParticipantsListProps = Pick<
    * If true, the list will be displayed in horizontal scrolling mode
    */
   horizontal?: boolean;
-  /**
-   * Component to customize the participant view.
-   */
-  ParticipantView?: React.ComponentType<ParticipantViewProps>;
 };
 
 /**
@@ -68,11 +68,11 @@ export const CallParticipantsList = ({
   numberOfColumns = 2,
   horizontal,
   participants,
+  ParticipantView = DefaultParticipantView,
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   ParticipantVideoFallback,
-  ParticipantView,
   VideoRenderer,
 }: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
@@ -159,6 +159,14 @@ export const CallParticipantsList = ({
     return style;
   }, [itemWidth, itemHeight, horizontal]);
 
+  const participantProps: ParticipantViewComponentProps = {
+    ParticipantLabel,
+    ParticipantNetworkQualityIndicator,
+    ParticipantReaction,
+    ParticipantVideoFallback,
+    VideoRenderer,
+  };
+
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
       const isVisible = viewableParticipantSessionIds.current.has(
@@ -172,13 +180,7 @@ export const CallParticipantsList = ({
               style={itemContainerStyle}
               videoMode="video"
               isVisible={isVisible}
-              ParticipantLabel={ParticipantLabel}
-              ParticipantNetworkQualityIndicator={
-                ParticipantNetworkQualityIndicator
-              }
-              ParticipantReaction={ParticipantReaction}
-              ParticipantVideoFallback={ParticipantVideoFallback}
-              VideoRenderer={VideoRenderer}
+              {...participantProps}
             />
           )}
         </>
@@ -203,13 +205,7 @@ export const CallParticipantsList = ({
                 style={styles.flexed}
                 videoMode="video"
                 key={keyExtractor(participant, index)}
-                ParticipantLabel={ParticipantLabel}
-                ParticipantNetworkQualityIndicator={
-                  ParticipantNetworkQualityIndicator
-                }
-                ParticipantReaction={ParticipantReaction}
-                ParticipantVideoFallback={ParticipantVideoFallback}
-                VideoRenderer={VideoRenderer}
+                {...participantProps}
               />
             )
           );
@@ -242,8 +238,8 @@ const styles = StyleSheet.create({
   },
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-    marginHorizontal: theme.margin.sm,
-    borderRadius: theme.rounded.sm,
+    marginHorizontal: 8,
+    borderRadius: 10,
   },
 });
 
@@ -283,8 +279,8 @@ function calculateParticipantViewSize({
 
   let itemWidth = containerWidth / numberOfColumns;
   if (horizontal) {
-    // in horizontal mode we apply margin to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - theme.margin.sm * 2;
+    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
+    itemWidth = itemWidth - 8 * 2;
   }
 
   return { itemHeight, itemWidth };

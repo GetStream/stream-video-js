@@ -8,7 +8,6 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
-import { CallSettingsResponse } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -54,6 +53,8 @@ describe('CameraManager', () => {
 
     expect(getVideoStream).toHaveBeenCalledWith({
       deviceId: undefined,
+      width: 1280,
+      height: 720,
     });
   });
 
@@ -83,7 +84,10 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
+      TrackType.VIDEO,
+      true,
+    );
   });
 
   it('flip', async () => {
@@ -99,12 +103,18 @@ describe('CameraManager', () => {
 
     await manager.enable();
 
-    expect(getVideoStream).toHaveBeenCalledWith({ deviceId: undefined });
+    expect(getVideoStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+      width: 1280,
+      height: 720,
+    });
 
     await manager.selectDirection('front');
 
     expect(getVideoStream).toHaveBeenCalledWith({
       deviceId: undefined,
+      width: 1280,
+      height: 720,
       facingMode: 'user',
     });
 
@@ -113,6 +123,8 @@ describe('CameraManager', () => {
     expect(getVideoStream).toHaveBeenCalledWith({
       deviceId: undefined,
       facingMode: 'environment',
+      width: 1280,
+      height: 720,
     });
   });
 
@@ -121,26 +133,55 @@ describe('CameraManager', () => {
 
     await manager.flip();
 
-    expect(getVideoStream).toHaveBeenCalledWith({ facingMode: 'environment' });
+    expect(getVideoStream).toHaveBeenCalledWith({
+      facingMode: 'environment',
+      width: 1280,
+      height: 720,
+    });
 
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
     expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
       deviceId,
+      width: 1280,
+      height: 720,
     });
   });
 
-  it('should pause and resume tracks', async () => {
+  it(`should set target resolution, but shouldn't change device status`, async () => {
+    manager['targetResolution'] = { width: 640, height: 480 };
+
+    expect(manager.state.status).toBe(undefined);
+
+    await manager.selectTargetResolution({ width: 1280, height: 720 });
+
+    const targetResolution = manager['targetResolution'];
+
+    expect(targetResolution.width).toBe(1280);
+    expect(targetResolution.height).toBe(720);
+    expect(manager.state.status).toBe(undefined);
+  });
+
+  it('should apply target resolution to existing media stream track', async () => {
+    await manager.enable();
+    await manager.selectTargetResolution({ width: 640, height: 480 });
+
+    expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
+      deviceId: mockVideoDevices[0].deviceId,
+      width: 640,
+      height: 480,
+    });
+  });
+
+  it(`should do nothing if existing track has the correct resolution`, async () => {
     await manager.enable();
 
-    manager.pause();
+    expect(getVideoStream).toHaveBeenCalledOnce();
 
-    expect(manager.state.mediaStream?.getVideoTracks()[0].enabled).toBe(false);
+    await manager.selectTargetResolution({ width: 1280, height: 720 });
 
-    manager.resume();
-
-    expect(manager.state.mediaStream?.getVideoTracks()[0].enabled).toBe(true);
+    expect(getVideoStream).toHaveBeenCalledOnce();
   });
 
   afterEach(() => {

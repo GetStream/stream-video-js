@@ -50,6 +50,7 @@ npx pod-install
 
 Add the following in your `MainApplication.java` file:
 
+<!-- vale off -->
 ```java
 // highlight-next-line
 import com.streamvideo.reactnative.StreamVideoReactNative;
@@ -65,6 +66,7 @@ public class MainApplication extends Application implements ReactApplication {
   }
 }
 ```
+<!-- vale on -->
 
 ##### iOS
 
@@ -147,7 +149,7 @@ The following code shows how to publish from your device's camera.
 Let's open `App.tsx` and replace its contents with the following code:
 
 ```tsx title=App.tsx
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   StreamCall,
   StreamVideo,

@@ -49,6 +49,7 @@ Reactions are only delivered to clients that are [watching the call](../../advan
 The [participant state](../../core/call-and-participant-state/#observe-participant-state) will contain the latest reaction of each participant:
 
 ```typescript
+const { useParticipants } = useCallStateHooks();
 const participants = useParticipants();
 
 const reactions = participants.map((p) => p.reaction);
@@ -62,6 +63,7 @@ If you're using the [participant state](../../guides/call-and-participant-state/
 
 ```typescript
 const call: Call;
+const { useParticipants } = useCallStateHooks();
 const participants = useParticipants();
 
 call.resetReaction(participants[0].sessionId);

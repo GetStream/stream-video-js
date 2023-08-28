@@ -8,8 +8,8 @@ import {
   SfuModels,
   StreamReaction,
   StreamVideoParticipant,
-  VideoPlaceholderProps,
   useCallStateHooks,
+  VideoPlaceholderProps,
 } from '@stream-io/video-react-sdk';
 
 import { MicMuted, Signal } from '../Icons';
@@ -158,7 +158,7 @@ export const Participant: FC<Props> = ({
         <Overlay
           connectionQualityAsString={connectionQualityAsString}
           connectionQuality={connectionQuality}
-          name={participant.name}
+          name={participant.name || participant.userId}
           hasAudio={hasAudio}
           reaction={reaction}
           call={call}

@@ -1,0 +1,257 @@
+---
+id: runtime-layout-switching
+title: Runtime layout switching
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ParticipantLayoutGrid from '../assets/05-ui-cookbook/14-runtime-layout-switching/grid.png';
+import ParticipantLayoutSpotlight from '../assets/05-ui-cookbook/14-runtime-layout-switching/spotlight.png';
+
+Runtime Layout Switching is basically switching the participant's layout from the app. We currently support switching between `grid` and `spotlight` layout modes through our SDK.
+
+<ImageShowcase
+  items={[
+    {
+      image: ParticipantLayoutGrid,
+      caption: 'Participant Layout Grid',
+      alt: 'Participant Layout Grid',
+    },
+    {
+      image: ParticipantLayoutSpotlight,
+      caption: 'Participant Layout Spotlight',
+      alt: 'Participant Layout Spotlight',
+    },
+  ]}
+/>
+
+## Switching the layout from the App
+
+To switch the layout from the app we can take the help of the [`layout`](../../ui-components/call/call-content/#mode) prop of the [CallContent](../../ui-components/call/call-content) component.
+
+We will create a state variable in the app to track the state of the current layout and pass the state to the [`layout`](../../ui-components/call/call-content/#mode) prop of the [CallContent](../../ui-components/call/call-content) component. This is done below:
+
+```tsx {6,12}
+import React, { useState } from 'react';
+import { Call, CallContent } from '@stream-io/video-react-native-sdk';
+import { StyleSheet, View } from 'react-native';
+
+const VideoCallUI = () => {
+  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      <CallContent layout={selectedLayout} />
+    </StreamCall>
+  );
+};
+```
+
+## Creating `CallTopView` with layout switch button
+
+### Creating the Layout switching Modal/Component
+
+We will create a component that renders the Button which on press opens up a Modal to switch the Layout. Clicking on the layout item will switch the layout and set the state for the `selectedLayout` state in the `VideoCallUI` component that we created above.
+
+![Preview of the Layout Switch Modal and Button](../assets/05-ui-cookbook/14-runtime-layout-switching/runtime-layout-switching-modal.png)
+
+```tsx
+import React, { useState } from 'react';
+import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
+import GridIconSvg from '../assets/GridIconSvg';
+import { CallContentProps } from '@stream-io/video-react-native-sdk';
+
+type Layout = CallContentProps['mode'];
+
+// Component for Individual Layout Item
+const LayoutSelectionItem = ({
+  layout,
+  selectedLayout,
+  setSelectedLayout,
+  closeModal,
+}: {
+  layout: Layout;
+  selectedLayout: Layout;
+  setSelectedLayout: (mode: Layout) => void;
+  closeModal: () => void;
+}) => {
+  if (!layout) {
+    return null;
+  }
+
+  return (
+    <Pressable
+      onPress={() => {
+        setSelectedLayout(layout);
+        closeModal();
+      }}
+      style={styles.modalButton}
+    >
+      <Text
+        style={[
+          styles.modalText,
+          {
+            color: selectedLayout === layout ? '#005FFF' : '#ffffff',
+          },
+        ]}
+      >
+        {layout[0].toUpperCase() + layout.substring(1)}
+      </Text>
+    </Pressable>
+  );
+};
+
+// The Component that renders a Button which on click opens up the Modal with options to choose the Layout
+export const ParticipantsLayoutSwitchButton = ({
+  selectedLayout,
+  setSelectedLayout,
+}: {
+  selectedLayout: Layout;
+  setSelectedLayout: (m: Layout) => void;
+}) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const closeModal = () => setModalVisible(false);
+
+  return (
+    <>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <Pressable
+          style={styles.centeredView}
+          onPress={() => setModalVisible(false)}
+        >
+          <View style={styles.modalView} onStartShouldSetResponder={() => true}>
+            <LayoutSelectionItem
+              layout="grid"
+              selectedLayout={selectedLayout}
+              setSelectedLayout={setSelectedLayout}
+              closeModal={closeModal}
+            />
+            <LayoutSelectionItem
+              layout="spotlight"
+              selectedLayout={selectedLayout}
+              setSelectedLayout={setSelectedLayout}
+              closeModal={closeModal}
+            />
+          </View>
+        </Pressable>
+      </Modal>
+
+      <View style={styles.buttonsContainer}>
+        <Pressable
+          onPress={() => setModalVisible(true)}
+          style={styles.gridButton}
+        >
+          <GridIconSvg />
+        </Pressable>
+      </View>
+    </>
+  );
+};
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: '#272A30',
+    borderRadius: 20,
+    padding: 12,
+    alignItems: 'flex-start',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  gridButton: {
+    height: 30,
+    width: 30,
+  },
+  modalButton: {
+    padding: 16,
+  },
+  modalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  buttonsContainer: {
+    paddingHorizontal: 8,
+  },
+});
+```
+
+### Creating a custom `CallTopView`
+
+We will create a custom `CallTopView` component that renders the `ParticipantsLayoutSwitchButton` as follows.
+
+We need to make sure the props `selectedLayout` and `setSelectedLayout` passed from the component that renders the [`CallContent`](../../ui-components/call/call-content).
+
+```tsx
+type Layout = 'grid' | 'spotlight';
+
+const CallTopViewComponent = ({
+  selectedLayout,
+  setSelectedLayout,
+}: {
+  selectedLayout: Layout;
+  setSelectedLayout: React.Dispatch<React.SetStateAction<Layout>>;
+}) => {
+  return (
+    <View style={styles.topView}>
+      <ParticipantsLayoutSwitchButton
+        selectedLayout={selectedLayout}
+        setSelectedLayout={setSelectedLayout}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  topView: {
+    width: '100%',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+});
+```
+
+Finally we pass the `CallTopViewComponent` created above to the [`CallContent`](../../ui-components/call/call-content) component as follows:
+
+```tsx
+import React, { useCallback, useState } from 'react';
+import { Call, CallContent } from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  const [selectedLayout, setSelectedLayout] = useState<Layout>('grid');
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  const CustomCallTopView = useCallback(() => {
+    return (
+      <CallTopViewComponent
+        selectedLayout={selectedLayout}
+        setSelectedLayout={setSelectedLayout}
+      />
+    );
+  }, [selectedLayout, setSelectedLayout]);
+
+  return (
+    <StreamCall call={call}>
+      <CallContent layout={selectedLayout} CallTopView={CustomCallTopView} />
+    </StreamCall>
+  );
+};
+```

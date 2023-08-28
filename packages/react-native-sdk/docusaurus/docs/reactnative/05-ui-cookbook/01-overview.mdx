@@ -23,12 +23,16 @@ export const CookbookCard = ({ title, link, img }) => (
 );
 
 import CallControls from '../assets/05-ui-cookbook/02-replacing-call-controls/call-controls.png';
-import ParticipantLabel from '../assets/05-ui-cookbook/participant-label-custom.png';
-import ConnectionQualityIndicator from '../assets/05-ui-cookbook/connection-quality-indicator-custom.png';
+import CallTopView from '../assets/05-ui-cookbook/04-replacing-call-top-view/call-top-view-custom.png';
+import ParticipantLabel from '../assets/05-ui-cookbook/03-participant-label/participant-label-custom.png';
 import IncomingCall from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/incoming-call.png';
 import OutgoingCall from '../assets/05-ui-cookbook/05-incoming-and-outgoing-call/outgoing-call.png';
 import Lobby from '../assets/05-ui-cookbook/06-lobby-preview/lobby.png';
-import RuntimeLayoutSwitching from '../assets/05-ui-cookbook/runtime-layout-switching-modal.png';
+import VideoFallback from '../assets/05-ui-cookbook/07-video-fallback/video-fallback-custom.png';
+import VideoRenderer from '../assets/05-ui-cookbook/08-video-renderer/video-renderer-custom.png';
+import Reaction from '../assets/05-ui-cookbook/09-reactions/reaction-custom.png';
+import NetworkQualityIndicator from '../assets/05-ui-cookbook/10-network-quality-indicator/network-quality-indicator-custom.png';
+import RuntimeLayoutSwitching from '../assets/05-ui-cookbook/14-runtime-layout-switching/runtime-layout-switching-modal.png';
 
 Stream Video React Native UI components are highly customizable and allow you to fully customize/remake the components with ease according to your design requirements.
 
@@ -48,9 +52,9 @@ This UI Cookbook will walk you through how to customize each component in your v
     img={ParticipantLabel}
   ></CookbookCard>
   <CookbookCard
-    title="Connection Quality Indicator"
-    link="../../ui-cookbook/connection-quality-indicator"
-    img={ConnectionQualityIndicator}
+    title="CallTopView"
+    link="../../ui-cookbook/replacing-call-top-view"
+    img={CallTopView}
   ></CookbookCard>
   <CookbookCard
     title="Incoming Call"
@@ -66,6 +70,26 @@ This UI Cookbook will walk you through how to customize each component in your v
     title="Lobby"
     link="../../ui-cookbook/lobby-preview"
     img={Lobby}
+  ></CookbookCard>
+  <CookbookCard
+    title="Network Quality Indicator"
+    link="../../ui-cookbook/network-quality-indicator"
+    img={NetworkQualityIndicator}
+  ></CookbookCard>
+  <CookbookCard
+    title="Video Fallback"
+    link="../../ui-cookbook/video-fallback"
+    img={VideoFallback}
+  ></CookbookCard>
+  <CookbookCard
+    title="Video Renderer"
+    link="../../ui-cookbook/video-renderer"
+    img={VideoRenderer}
+  ></CookbookCard>
+  <CookbookCard
+    title="Reactions"
+    link="../../ui-cookbook/reactions"
+    img={Reaction}
   ></CookbookCard>
   <CookbookCard
     title="Runtime Layout Switching"

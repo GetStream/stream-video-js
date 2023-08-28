@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { theme, useCall, useI18n } from '@stream-io/video-react-native-sdk';
+import { useCall, useI18n } from '@stream-io/video-react-native-sdk';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MeetingStackParamList } from '../../../types';
@@ -83,7 +83,8 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   title: {
-    ...theme.fonts.heading4,
+    fontSize: 34,
+    fontWeight: '400',
     color: appTheme.colors.static_white,
     textAlign: 'center',
   },

@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
 
 ### Media Stream Management
 
-To control audio or video mute status in the Incoming and Outgoing call component, you can use the `useMediaStreamManagement` hook, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
+To control audio or video mute status in the Lobby, you can use the `useCameraState` and `useMicrophoneState` hooks from the `useCallStateHooks`, that orchestrates the local state of the device within the SDK and handles streaming of the media effectively.
 
 <ImageShowcase
   items={[
@@ -136,41 +136,43 @@ We can go through the usage through the following example:
 ```tsx title="MediaStreamButtonGroup.tsx"
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
-import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
+import {
+  useCallStateHooks,
+  useMediaStreamManagement,
+} from '@stream-io/video-react-native-sdk';
 
 export const MediaStreamButtonGroup = () => {
-  const {
-    initialAudioEnabled,
-    initialVideoEnabled,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-  } = useMediaStreamManagement();
+  const { toggleInitialAudioMuteState, toggleInitialVideoMuteState } =
+    useMediaStreamManagement();
+  const { useMicrophoneState, useCameraState } = useCallStateHooks();
+  const { status: microphoneStatus } = useMicrophoneState();
+  const { status: cameraStatus } = useCameraState();
 
   const audioButtonStyles = [
     styles.button,
     {
-      backgroundColor: !initialAudioEnabled ? '#080707dd' : 'white',
+      backgroundColor: microphoneStatus === 'disabled' ? '#080707dd' : 'white',
     },
   ];
 
   const videoButtonStyles = [
     styles.button,
     {
-      backgroundColor: !initialVideoEnabled ? '#080707dd' : 'white',
+      backgroundColor: cameraStatus === 'disabled' ? '#080707dd' : 'white',
     },
   ];
 
   const audioButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !initialAudioEnabled ? 'white' : '#080707dd',
+      color: microphoneStatus === 'disabled' ? 'white' : '#080707dd',
     },
   ];
 
   const videoButtonTextStyles = [
     styles.mediaButtonText,
     {
-      color: !initialVideoEnabled ? 'white' : '#080707dd',
+      color: cameraStatus === 'disabled' ? 'white' : '#080707dd',
     },
   ];
 
@@ -180,7 +182,7 @@ export const MediaStreamButtonGroup = () => {
         onPress={toggleInitialAudioMuteState}
         style={audioButtonStyles}
       >
-        {initialAudioEnabled ? (
+        {microphoneStatus === 'enabled' ? (
           <Text style={audioButtonTextStyles}>Audio on</Text>
         ) : (
           <Text style={audioButtonTextStyles}>Audio off</Text>
@@ -190,7 +192,7 @@ export const MediaStreamButtonGroup = () => {
         onPress={toggleInitialVideoMuteState}
         style={videoButtonStyles}
       >
-        {initialVideoEnabled ? (
+        {cameraStatus === 'enabled' ? (
           <Text style={videoButtonTextStyles}>Video on</Text>
         ) : (
           <Text style={videoButtonTextStyles}>Video off</Text>
@@ -369,6 +371,8 @@ const styles = StyleSheet.create({
 ```
 
 ## Assembling it all together
+
+You can assemble the components into a single component as below or choose to pass the components in the respective customization props of the [`IncomingCall`](../../ui-components/call/incoming-call/#props)/[`OutgoingCall`](../../ui-components/call/outgoing-call/#props) component.
 
 <ImageShowcase
   items={[

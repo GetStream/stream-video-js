@@ -1,19 +1,57 @@
 import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { StreamVideoParticipant } from '@stream-io/video-client';
-import { theme } from '../../../theme';
-import { ParticipantNetworkQualityIndicatorProps } from './ParticipantNetworkQualityIndicator';
-import { ParticipantReactionProps } from './ParticipantReaction';
-import { ParticipantLabelProps } from './ParticipantLabel';
-import { ParticipantVideoFallbackProps } from './ParticipantVideoFallback';
-import { VideoRendererProps } from './VideoRenderer';
+import {
+  ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
+  ParticipantNetworkQualityIndicatorProps,
+} from './ParticipantNetworkQualityIndicator';
+import {
+  ParticipantReaction as DefaultParticipantReaction,
+  ParticipantReactionProps,
+} from './ParticipantReaction';
+import {
+  ParticipantLabel as DefaultParticipantLabel,
+  ParticipantLabelProps,
+} from './ParticipantLabel';
+import {
+  ParticipantVideoFallback as DefaultParticipantVideoFallback,
+  ParticipantVideoFallbackProps,
+} from './ParticipantVideoFallback';
+import {
+  VideoRenderer as DefaultVideoRenderer,
+  VideoRendererProps,
+} from './VideoRenderer';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export type ParticipantVideoType = 'video' | 'screen';
+
+export type ParticipantViewComponentProps = {
+  /**
+   * Component to customize the Label of the participant.
+   */
+  ParticipantLabel?: ComponentType<ParticipantLabelProps> | null;
+  /**
+   * Component to customize the reaction container of the participant.
+   */
+  ParticipantReaction?: ComponentType<ParticipantReactionProps> | null;
+  /**
+   * Component to customize the video fallback of the participant, when the video is disabled.
+   */
+  ParticipantVideoFallback?: ComponentType<ParticipantVideoFallbackProps> | null;
+  /**
+   * Component to customize the network quality indicator of the participant.
+   */
+  ParticipantNetworkQualityIndicator?: ComponentType<ParticipantNetworkQualityIndicatorProps> | null;
+  /**
+   * Component to customize the video component of the participant.
+   */
+  VideoRenderer?: ComponentType<VideoRendererProps> | null;
+};
 
 /**
  * Props to be passed for the Participant component.
  */
-export type ParticipantViewProps = {
+export type ParticipantViewProps = ParticipantViewComponentProps & {
   /**
    * The participant that will be displayed.
    */
@@ -30,7 +68,7 @@ export type ParticipantViewProps = {
   /**
    * The video kind that will be displayed.
    */
-  videoMode: ParticipantVideoType;
+  videoMode?: ParticipantVideoType;
   /**
    * Custom style to be merged with the participant view.
    */
@@ -41,26 +79,6 @@ export type ParticipantViewProps = {
    * @default true
    */
   isVisible?: boolean;
-  /**
-   * Component to customize the Label of the participant.
-   */
-  ParticipantLabel?: ComponentType<ParticipantLabelProps>;
-  /**
-   * Component to customize the reaction container of the participant.
-   */
-  ParticipantReaction?: ComponentType<ParticipantReactionProps>;
-  /**
-   * Component to customize the video fallback of the participant, when the video is disabled.
-   */
-  ParticipantVideoFallback?: ComponentType<ParticipantVideoFallbackProps>;
-  /**
-   * Component to customize the network quality indicator of the participant.
-   */
-  ParticipantNetworkQualityIndicator?: ComponentType<ParticipantNetworkQualityIndicatorProps>;
-  /**
-   * Component to customize the video component of the participant.
-   */
-  VideoRenderer?: ComponentType<VideoRendererProps>;
 };
 
 /**
@@ -68,24 +86,31 @@ export type ParticipantViewProps = {
  * and additional info. By an absence of a video track or when isVisible is truthy,
  * only an avatar and audio track will be rendered.
  */
-export const ParticipantView = (props: ParticipantViewProps) => {
+export const ParticipantView = ({
+  participant,
+  videoMode = 'video',
+  isVisible = true,
+  style,
+  ParticipantLabel = DefaultParticipantLabel,
+  ParticipantReaction = DefaultParticipantReaction,
+  VideoRenderer = DefaultVideoRenderer,
+  ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
+  ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  videoZOrder = 0,
+}: ParticipantViewProps) => {
   const {
-    participant,
-    videoMode,
-    isVisible = true,
-    style,
-    ParticipantLabel,
-    ParticipantReaction,
-    VideoRenderer,
-    ParticipantNetworkQualityIndicator,
-    ParticipantVideoFallback,
-    videoZOrder = 0,
-  } = props;
-
+    theme: { colors, participantView },
+  } = useTheme();
   const { isSpeaking, userId } = participant;
   const isScreenSharing = videoMode === 'screen';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
-  const speakerStyle = applySpeakerStyle && styles.isSpeaking;
+  const speakerStyle = applySpeakerStyle && [
+    styles.highligtedContainer,
+    {
+      borderColor: colors.primary,
+    },
+    participantView.highligtedContainer,
+  ];
 
   return (
     <View
@@ -106,7 +131,7 @@ export const ParticipantView = (props: ParticipantViewProps) => {
           videoZOrder={videoZOrder}
         />
       )}
-      <View style={styles.bottomView}>
+      <View style={[styles.footerContainer, participantView.footerContainer]}>
         {ParticipantLabel && (
           <ParticipantLabel participant={participant} videoMode={videoMode} />
         )}
@@ -121,16 +146,16 @@ export const ParticipantView = (props: ParticipantViewProps) => {
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-    padding: theme.padding.xs,
+    padding: 4,
     overflow: 'hidden',
     margin: 2,
   },
-  bottomView: {
+  footerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  isSpeaking: {
-    borderColor: theme.light.primary,
+  highligtedContainer: {
     borderWidth: 2,
   },
 });

@@ -1,10 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CallControlsButton } from './CallControlsButton';
-import { theme } from '../../../theme';
 import { Chat } from '../../../icons';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { Z_INDEX } from '../../../constants';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * The props for the Chat Button in the Call Controls.
@@ -30,17 +30,14 @@ export const ChatButton = ({
   onPressHandler,
   unreadBadgeCount,
 }: ChatButtonProps) => {
+  const {
+    theme: { colors, chatButton },
+  } = useTheme();
   return (
-    <View>
-      <CallControlsButton
-        color={theme.light.static_white}
-        onPress={onPressHandler}
-        svgContainerStyle={styles.svgContainerStyle}
-      >
-        <UnreadBadgeCountIndicator count={unreadBadgeCount} />
-        <Chat color={theme.light.static_black} />
-      </CallControlsButton>
-    </View>
+    <CallControlsButton onPress={onPressHandler} style={chatButton}>
+      <UnreadBadgeCountIndicator count={unreadBadgeCount} />
+      <Chat color={colors.static_black} />
+    </CallControlsButton>
   );
 };
 
@@ -49,6 +46,10 @@ const UnreadBadgeCountIndicator = ({
 }: {
   count: ChatButtonProps['unreadBadgeCount'];
 }) => {
+  const {
+    theme: { colors, typefaces },
+  } = useTheme();
+
   // Don't show badge if count is 0 or undefined
   if (!count) {
     return null;
@@ -57,20 +58,24 @@ const UnreadBadgeCountIndicator = ({
   return (
     <View
       testID={ComponentTestIds.CHAT_UNREAD_BADGE_COUNT_INDICATOR}
-      style={styles.chatBadge}
+      style={(styles.chatBadge, { backgroundColor: colors.error })}
     >
-      <Text style={styles.chatBadgeText}>{count}</Text>
+      <Text
+        style={
+          (styles.chatBadgeText,
+          { color: colors.static_white },
+          typefaces.bodyBold)
+        }
+      >
+        {count}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  svgContainerStyle: {
-    paddingTop: theme.padding.xs,
-  },
   chatBadge: {
-    backgroundColor: theme.light.error,
-    borderRadius: theme.rounded.xl,
+    borderRadius: 30,
     position: 'absolute',
     left: 15,
     bottom: 20,
@@ -80,8 +85,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chatBadgeText: {
-    color: theme.light.static_white,
     textAlign: 'center',
-    ...theme.fonts.bodyBold,
   },
 });

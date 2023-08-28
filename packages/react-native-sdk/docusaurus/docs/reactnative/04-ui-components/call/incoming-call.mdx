@@ -3,13 +3,15 @@ id: incoming-call
 title: IncomingCall
 ---
 
+import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
+
 IncomingCall represents the incoming call state and the UI when a user receives a call from someone else.
 
 It represents the details of the user calling you, allows accepting or rejecting the call, etc.
 
 It is customizable using our UI cookbook guide on [Custom Incoming/Outgoing Call components](../../05-ui-cookbook/05-incoming-and-outcoming-call.mdx).
 
-![Preview of the IncomingCall component.](../../assets/04-ui-components/incoming-call.png)
+![Preview of the IncomingCall component.](../../assets/04-ui-components/call/incoming-call/incoming-call.png)
 
 ## General Usage
 
@@ -47,36 +49,30 @@ const Call = () => {
 
 ## Props
 
-### `acceptCallButton`
+### `onAcceptCallHandler`
 
-Prop for the accept call button that contains all the necessary elements to make it functional.
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
 
-| Type                                    |
-| --------------------------------------- |
-| [AcceptCallButton](#acceptcallbutton-1) |
+Handler to be executed when an incoming call is accepted.
 
-### `rejectCallButton`
+### `onRejectCallHandler`
 
-| Type                                    |
-| --------------------------------------- |
-| [RejectCallButton](#rejectcallbutton-1) |
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
 
-Prop for the reject call button that contains all the necessary elements to make it functional.
+Handler to be executed when an incoming call is rejected.
 
-## Button Prop
+### `CallTopView`
 
-### `AcceptCallButton`
+<CallTopView />
 
-| Name             | Description                                             | Type                        |
-| ---------------- | ------------------------------------------------------- | --------------------------- |
-| `onPressHandler` | Callback to be called when the accept button is pressed | `() => void` \| `undefined` |
+### `IncomingCallControls`
 
-This overrides the default `onPress` event of the accept button.
+Prop to customize the Incoming call controls in the `IncomingCall` component.
 
-### `RejectCallButton`
-
-| Name             | Description                                             | Type                        |
-| ---------------- | ------------------------------------------------------- | --------------------------- |
-| `onPressHandler` | Callback to be called when the reject button is pressed | `() => void` \| `undefined` |
-
-This overrides the default `onPress` event of the reject button.
+| Type                          | Default Value                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`IncomingCallControls`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/IncomingCallControls.tsx) |

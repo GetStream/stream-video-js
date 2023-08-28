@@ -4,8 +4,9 @@ title: CallContent
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import CallContentGrid from '../../assets/04-ui-components/call-content-grid.png';
-import CallContentSpotlight from '../../assets/04-ui-components/call-content-spotlight.png';
+import CallContentGrid from '../../assets/04-ui-components/call/call-content/call-content-grid.png';
+import CallContentGrid3Participants from '../../assets/04-ui-components/call/call-content/call-content-grid-3-participants.png';
+import CallContentSpotlight from '../../assets/04-ui-components/call/call-content/call-content-spotlight.png';
 
 import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
 import CallControls from '../../common-content/ui-components/call/call-content/call-controls.mdx';
@@ -19,7 +20,7 @@ import ParticipantVideoFallback from '../../common-content/ui-components/call/ca
 import VideoRenderer from '../../common-content/ui-components/call/call-content/video-renderer.mdx';
 import OnHangupCallHandler from '../../common-content/ui-components/call/call-content/on-hangup-call-handler.mdx';
 import ParticipantView from '../../common-content/ui-components/call/call-content/participant-view.mdx';
-import LocalParticipantView from '../../common-content/ui-components/call/call-content/local-participant-view.mdx';
+import FloatingParticipantView from '../../common-content/ui-components/call/call-content/floating-participant-view.mdx';
 import CallParticipantsList from '../../common-content/ui-components/call/call-content/call-participants-list.mdx';
 
 The `CallContent` is the highest-level UI component that allows you to build your own call screen with full UI elements. So you don't need to take care much about each feature that you need to build a video call screen with this component.
@@ -41,6 +42,11 @@ Based on the call state, the CallContent provides a list or grid of participants
       image: CallContentGrid,
       caption: 'Call Content Grid',
       alt: 'Call Content Grid',
+    },
+    {
+      image: CallContentGrid3Participants,
+      caption: 'Call Content Grid 3 Participants',
+      alt: 'Call Content Grid 3 Participants',
     },
     {
       image: CallContentSpotlight,
@@ -131,9 +137,9 @@ When a screen is shared, the layout automatically changes to `spotlight` mode.
 
 <ParticipantView />
 
-### `LocalParticipantView`
+### `FloatingParticipantView`
 
-<LocalParticipantView />
+<FloatingParticipantView />
 
 ### `CallParticipantsList`
 

@@ -8,7 +8,6 @@ import { act, render, screen, within } from '../utils/RNTLTools';
 import {
   CallParticipantsGrid,
   CallParticipantsList,
-  LocalParticipantView,
   ParticipantView,
   VideoRenderer,
 } from '../../src/components';
@@ -43,7 +42,6 @@ describe('CallParticipantsGrid', () => {
       <CallParticipantsGrid
         CallParticipantsList={CallParticipantsList}
         ParticipantView={ParticipantView}
-        LocalParticipantView={LocalParticipantView}
         VideoRenderer={VideoRenderer}
       />,
       {
@@ -59,11 +57,6 @@ describe('CallParticipantsGrid', () => {
     const participant1 = within(
       screen.getByTestId(`participant-${P_IDS.REMOTE_1}-is-not-speaking`),
     );
-
-    // shows the local participant floating view?
-    expect(
-      await screen.findByTestId(ComponentTestIds.LOCAL_PARTICIPANT),
-    ).toBeVisible();
 
     expect(
       participant1.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
@@ -123,9 +116,7 @@ describe('CallParticipantsGrid', () => {
     await simulateOnViewableItemsChanged(visibleParticipantsItems);
 
     // Locating and verifying that all ParticipantViews are rendered
-    const localParticipant = within(
-      screen.getByTestId(`participant-${P_IDS.LOCAL_1}-is-not-speaking`),
-    );
+
     const participant2 = within(
       screen.getByTestId(`participant-${P_IDS.REMOTE_2}-is-not-speaking`),
     );
@@ -134,9 +125,6 @@ describe('CallParticipantsGrid', () => {
     );
 
     // Verifying that the local partic.'s video/audio are rendered within their respective participant
-    expect(
-      localParticipant.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
-    ).toHaveProp('streamURL', 'video-test-url');
     expect(
       participant2.getByTestId(ComponentTestIds.PARTICIPANT_MEDIA_STREAM),
     ).toHaveProp('streamURL', 'video-test-url');

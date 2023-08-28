@@ -6,6 +6,11 @@ import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
+  private targetResolution = {
+    width: 1280,
+    height: 720,
+  };
+
   constructor(call: Call) {
     super(call, new CameraManagerState());
   }
@@ -32,12 +37,39 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     this.selectDirection(newDirection);
   }
 
+  /**
+   * @internal
+   */
+  async selectTargetResolution(resolution: { width: number; height: number }) {
+    this.targetResolution.height = resolution.height;
+    this.targetResolution.width = resolution.width;
+    if (this.enablePromise) {
+      try {
+        await this.enablePromise;
+      } catch (error) {
+        // couldn't enable device, target resolution will be applied the next time user attempts to start the device
+      }
+    }
+    if (this.state.status === 'enabled') {
+      const { width, height } = this.state
+        .mediaStream!.getVideoTracks()[0]
+        ?.getSettings();
+      if (
+        width !== this.targetResolution.width ||
+        height !== this.targetResolution.height
+      )
+        await this.applySettingsToStream();
+    }
+  }
+
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices();
   }
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
+    constraints.width = this.targetResolution.width;
+    constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
     // Device id has higher priority
     if (!constraints.deviceId && this.state.direction) {
@@ -49,25 +81,16 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected publishStream(stream: MediaStream): Promise<void> {
     return this.call.publishVideoStream(stream);
   }
-  protected stopPublishStream(): Promise<void> {
-    return this.call.stopPublish(TrackType.VIDEO);
+  protected stopPublishStream(stopTracks: boolean): Promise<void> {
+    return this.call.stopPublish(TrackType.VIDEO, stopTracks);
   }
 
-  /**
-   * Disables the video tracks of the camera
-   */
-  pause() {
-    this.state.mediaStream?.getVideoTracks().forEach((track) => {
-      track.enabled = false;
-    });
+  protected muteTracks(): void {
+    this.state.mediaStream
+      ?.getVideoTracks()
+      .forEach((t) => (t.enabled = false));
   }
-
-  /**
-   * (Re)enables the video tracks of the camera
-   */
-  resume() {
-    this.state.mediaStream?.getVideoTracks().forEach((track) => {
-      track.enabled = true;
-    });
+  protected unmuteTracks(): void {
+    this.state.mediaStream?.getVideoTracks().forEach((t) => (t.enabled = true));
   }
 }

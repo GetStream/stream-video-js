@@ -44,6 +44,7 @@ npx pod-install
 
 Add the following in your `MainApplication.java` file:
 
+<!-- vale off -->
 ```java
 // highlight-next-line
 import com.streamvideo.reactnative.StreamVideoReactNative;
@@ -59,6 +60,7 @@ public class MainApplication extends Application implements ReactApplication {
   }
 }
 ```
+<!-- vale on -->
 
 ##### iOS
 
@@ -142,17 +144,15 @@ Open up `src/App.tsx` and replace it with this code:
 ```tsx title="App.tsx"
 import {
   StreamVideoClient,
-  Call,
   CallingState,
   StreamVideo,
   StreamCall,
   User,
   useCall,
-  useCallCallingState,
-  useParticipantCount,
+  useCallStateHooks,
   StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { SafeAreaView, Text } from 'react-native';
 
 // for simplicity, we assume that permission was granted through the native settings app
@@ -174,33 +174,14 @@ const user: User = {
 };
 
 const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', callId);
+call.join({ create: true });
 
 export default function App() {
-  const [call, setCall] = useState<Call>();
-  useEffect(() => {
-    const myCall = client.call('default', callId);
-    myCall.join({ create: true }).catch((err) => {
-      console.error('Failed to join the call', err);
-    });
-
-    setCall(myCall);
-
-    return () => {
-      setCall(undefined);
-      myCall.leave().catch((err) => {
-        console.error('Failed to leave the call', err);
-      });
-    };
-  }, []);
-
-  if (!call) {
-    return null;
-  }
-
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
           <VideoCallUI />
         </SafeAreaView>
       </StreamCall>
@@ -210,6 +191,8 @@ export default function App() {
 
 const VideoCallUI = () => {
   const call = useCall();
+
+  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
 
@@ -256,33 +239,29 @@ const client = new StreamVideoClient({ apiKey, user, token });
 After the user and client are created, we create a call like this:
 
 ```ts
-const [call, setCall] = useState<Call>();
-useEffect(() => {
-  const myCall = client.call('default', callId);
-  myCall.join({ create: true }).catch((err) => {
-    console.error(`Failed to join the call`, err);
-  });
-
-  setCall(myCall);
-
-  return () => {
-    setCall(undefined);
-    myCall.leave().catch((err) => {
-      console.error(`Failed to leave the call`, err);
-    });
-  };
-}, []);
+const call = client.call('default', callId);
+await call.join({ create: true });
 ```
 
 As soon as you use `call.join()` the connection for video & audio is setup.
+
+:::note
+In production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../core/joining-and-creating-calls/) guide.
+:::
+
+#### Rendering the UI
 
 Lastly, the UI is rendered by observing the call state through the state hooks (participants and connection states):
 
 ```tsx
 import {
-  useCallCallingState,
-  useParticipantCount,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
+
+// all call state hooks are available in the useCallStateHooks() object
+// your IDE should help you to explore all of them
+const { useCallCallingState, useParticipantCount } = useCallStateHooks();
 
 const callingState = useCallCallingState();
 const participantCount = useParticipantCount();
@@ -311,9 +290,7 @@ In your app, you'll see the text update to 2 participants. Let's keep the browse
 
 ### Step 5 - Rendering Video
 
-In this step, we are going to add the participant's view which displays the participants' video and audio stream and other related info. We also add a call controls that allows the user to control their streaming settings of audio and video.
-
-To do this we use `CallContent` and `CallControls` components.
+In this step, we are going to add the participant's view which displays the participants' video and audio stream and other related info. It will also add buttons that allow the user to control their streaming settings of audio and video.
 
 The `CallContent` adds the following things to the UI automatically:
 
@@ -322,14 +299,14 @@ The `CallContent` adds the following things to the UI automatically:
 - Layout support for multiple participants.
 - Labels for the participant names, media stream on/off status.
 - A floating local video view.
-
-The `CallControls` adds the toggle audio/video button, switch camera button and the hang up call button automatically.
+- Buttons to toggle audio/video and to flip the camera.
+- Button to hang up the call.
 
 Update the `VideoCallUI` component as below:
 
 ```tsx title="src/App.tsx"
 // ... omitted imports
-import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
+import { CallContent } from '@stream-io/video-react-native-sdk';
 
 // ... omitted code
 
@@ -338,8 +315,6 @@ const VideoCallUI = () => {
     <>
       // highlight-next-line
       <CallContent />
-      // highlight-next-line
-      <CallControls />
     </>
   );
 };
@@ -348,59 +323,7 @@ const VideoCallUI = () => {
 Now when you run the app, you'll see your local video in a floating video element and the video from your other browser tab. You should also see the buttons to control the streaming settings. The end result should look like this:
 
 ![Preview of the video view](../assets/02-tutorials/01-video-calling/video-call.png)
-
-### Step 6 - Full Video Calling UI
-
-Next, we will add the `ParticipantsInfoBadge`, to make our UI complete. It is responsible to handle the following:
-
-- Show the number of participants in the form of a badge.
-- Show the information about the participants in a list with the name, and status of media streaming.
-- Show available options within the call like pinning a participant, enabling/disabling audio/video, etc.
-
-Update the `VideoCallUI` component as below:
-
-```tsx title="src/App.tsx"
-// ... omitted imports
-import { View, StyleSheet } from 'react-native';
-import {
-  CallContent,
-  CallControls,
-  ParticipantsInfoBadge,
-} from '@stream-io/video-react-native-sdk';
-
-// ... omitted code
-
-const VideoCallUI = () => {
-  return (
-    <>
-      // highlight-start
-      <View style={styles.icons}>
-        <ParticipantsInfoBadge />
-      </View>
-      // highlight-end
-      <CallContent />
-      <CallControls />
-    </>
-  );
-};
-
-const styles = StyleSheet.create({
-  icons: {
-    position: 'absolute',
-    right: 16,
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 2,
-  },
-});
-```
-
-Now when you run the app and tap the icon on the top right you should see the list of participants in the call. The end result should look like this:
-
-![Preview of the list of participants](../assets/02-tutorials/01-video-calling/video-call-participants-info.png)
-
-### Step 7 - Customizing the UI
+### Step 6 - Customizing the UI
 
 You can customize the UI by:
 
@@ -419,9 +342,7 @@ To recap what we've learned about Stream video calling:
 - The call type ("default" in the above case) controls which features are enabled and how permissions are setup
 - When you join a call, real-time communication is set up for audio & video calling: (`call.join()`)
 - State-related hooks such as `useCallCallingState` make it easy to build your own UI
-- `CallContent` is the component that renders audio and video
-- `CallControls`is the component that renders buttons to control streaming options
-- `ParticipantsInfoBadge` is the component that can be used to show the list of participants
+- `CallContent` is the component that renders audio and video and adds buttons to control streaming options 
 
 We've used [Stream's Video Calling API](https://getstream.io/video/), which means calls run on a global edge network of video servers. By being closer to your users the latency and reliability of calls are better. The React Native SDK enables you to build in-app video calling, audio rooms and livestreaming in days.
 

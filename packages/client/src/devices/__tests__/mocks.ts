@@ -89,6 +89,8 @@ export const mockVideoStream = () => {
   const track = {
     getSettings: () => ({
       deviceId: mockVideoDevices[0].deviceId,
+      width: 1280,
+      height: 720,
     }),
     enabled: true,
   };

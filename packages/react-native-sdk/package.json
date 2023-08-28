@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.0.1-alpha.383",
+  "version": "0.0.1-alpha.389",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,10 @@
   "files": [
     "dist",
     "src",
+    "ios",
+    "android",
     "index.ts",
+    "stream-video-react-native.podspec",
     "package.json",
     "README.md",
     "LICENSE",
@@ -30,6 +33,7 @@
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "intl-pluralrules": "2.0.1",
+    "lodash.merge": "^4.6.2",
     "react-native-url-polyfill": "2.0.0",
     "text-encoding-polyfill": "0.6.7"
   },
@@ -59,12 +63,6 @@
     "react-native-callkeep": {
       "optional": true
     },
-    "react-native-gesture-handler": {
-      "optional": true
-    },
-    "react-native-reanimated": {
-      "optional": true
-    },
     "react-native-voip-push-notification": {
       "optional": true
     }
@@ -80,6 +78,7 @@
     "@testing-library/jest-native": "^5.4.2",
     "@testing-library/react-native": "^12.1.2",
     "@types/jest": "^29.5.1",
+    "@types/lodash.merge": "^4",
     "@types/react": "18.0.26",
     "@types/react-native": "^0.70.4",
     "@types/react-native-incall-manager": "^3.2.1",
@@ -89,9 +88,7 @@
     "react-native": "0.71.8",
     "react-native-callkeep": "4.3.11",
     "react-native-device-info": "^10.6.0",
-    "react-native-gesture-handler": "2.8.0",
     "react-native-incall-manager": "^4.0.0",
-    "react-native-reanimated": "2.7.0",
     "react-native-svg": "^13.6.0",
     "react-native-voip-push-notification": "3.3.1",
     "react-test-renderer": "^18.2.0",

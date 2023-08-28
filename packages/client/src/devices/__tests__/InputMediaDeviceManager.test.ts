@@ -7,6 +7,14 @@ import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
+import { disposeOfMediaStream } from '../devices';
+
+vi.mock('../devices.ts', () => {
+  console.log('MOCKING devices');
+  return {
+    disposeOfMediaStream: vi.fn(),
+  };
+});
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -24,8 +32,8 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public pause = vi.fn();
-  public resume = vi.fn();
+  public muteTracks = vi.fn();
+  public unmuteTracks = vi.fn();
 
   constructor(call: Call) {
     super(call, new TestInputMediaDeviceManagerState());
@@ -92,14 +100,14 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.state.status).toBe('disabled');
   });
 
-  it('disable camera - after joined to call', async () => {
+  it('disable device - after joined to call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
     await manager.enable();
 
     await manager.disable();
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith();
+    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
   });
 
   it('toggle device', async () => {
@@ -124,6 +132,16 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.publishStream).not.toHaveBeenCalled();
   });
 
+  it('select device when status is enabled', async () => {
+    await manager.enable();
+    const prevStream = manager.state.mediaStream;
+
+    const deviceId = mockVideoDevices[1].deviceId;
+    await manager.select(deviceId);
+
+    expect(disposeOfMediaStream).toHaveBeenCalledWith(prevStream);
+  });
+
   it('select device when status is enabled and in call', async () => {
     // @ts-expect-error
     manager['call'].state.callingState = CallingState.JOINED;
@@ -132,7 +150,7 @@ describe('InputMediaDeviceManager.test', () => {
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
-    expect(manager.stopPublishStream).toHaveBeenCalledWith();
+    expect(manager.stopPublishStream).toHaveBeenCalledWith(true);
     expect(manager.getStream).toHaveBeenCalledWith({
       deviceId,
     });
@@ -150,6 +168,48 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.select(deviceId);
 
     expect(spy.mock.calls.length).toBe(1);
+  });
+
+  it('should resume previously enabled state', async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.enable();
+
+    expect(manager.enable).toHaveBeenCalledTimes(1);
+
+    await manager.disable();
+    await manager.resume();
+
+    expect(manager.enable).toHaveBeenCalledTimes(2);
+  });
+
+  it(`shouldn't resume if previous state is disabled`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.disable();
+
+    expect(manager.enable).not.toHaveBeenCalled();
+
+    await manager.resume();
+
+    expect(manager.enable).not.toHaveBeenCalled();
+  });
+
+  it(`shouldn't resume if it were disabled while in pause`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.enable();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+
+    // first call is pause
+    await manager.disable();
+    // second call is for example mute from call admin
+    await manager.disable();
+
+    await manager.resume();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
   });
 
   afterEach(() => {
