@@ -3,6 +3,9 @@ id: floating-participant-view
 title: FloatingParticipantView
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CameraEnabled from '../../assets/04-ui-components/participants/floating-participant-view/enabled.png';
+import CameraDisabled from '../../assets/04-ui-components/participants/floating-participant-view/disabled.png';
 import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
 import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
 import ParticipantNetworkQualityIndicator from '../../common-content/ui-components/call/call-content/participant-network-quality-indicator.mdx';
@@ -12,9 +15,22 @@ import ParticipantView from '../../common-content/ui-components/call/call-conten
 
 FloatingParticipantView displays the local video stream of the local participant. It is a floating view that can be dragged in the call area.
 
-When the video is muted, the video muted icon is shown in a disabled background.
+<ImageShowcase
+  items={[
+    {
+      image: CameraEnabled,
+      caption: 'Floating Participant View Camera Enabled',
+      alt: 'Floating Participant View Camera Enabled',
+    },
+    {
+      image: CameraDisabled,
+      caption: 'Floating Participant View Camera Disabled',
+      alt: 'Floating Participant View Camera Disabled',
+    },
+  ]}
+/>
 
-![Preview of the FloatingParticipantView component in floating mode.](../../assets/04-ui-components/floating-participant-view.jpg)
+When the video is muted, the video muted icon is shown in a disabled background.
 
 ## General Usage
 
