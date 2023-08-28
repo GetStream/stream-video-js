@@ -332,7 +332,7 @@ export class Call {
             permission as OwnCapability,
           );
           if (!hasPermission && this.publisher.isPublishing(trackType)) {
-            // Stop tracks, then udate device manager status
+            // Stop tracks, then notify device manager
             this.stopPublish(trackType)
               .catch((err) => {
                 this.logger(
