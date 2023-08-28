@@ -13,6 +13,7 @@
 
 .str-video {
   color: var(--str-video__text-color1);
+  position: relative;
 }
 
 body {
@@ -24,7 +25,6 @@ body {
 }
 
 #root {
-  max-width: 1920px;
   margin: 0 auto;
   text-align: center;
 }

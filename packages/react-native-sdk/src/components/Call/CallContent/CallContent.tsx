@@ -84,14 +84,17 @@ export const CallContent = ({
   } = useTheme();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
-  const { useRemoteParticipants } = useCallStateHooks();
+  const { useRemoteParticipants, useLocalParticipant } = useCallStateHooks();
 
   const _remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  const showFloatingView =
-    remoteParticipants.length > 0 && remoteParticipants.length < 3;
-
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
+
+  const showFloatingView =
+    !showSpotlightLayout &&
+    remoteParticipants.length > 0 &&
+    remoteParticipants.length < 3;
 
   /**
    * This hook is used to handle IncallManager specs of the application.
@@ -142,16 +145,19 @@ export const CallContent = ({
             />
           )}
           {showFloatingView && FloatingParticipantView && (
-            <FloatingParticipantView {...participantViewProps} />
+            <FloatingParticipantView
+              participant={localParticipant}
+              {...participantViewProps}
+            />
           )}
         </View>
-
         {showSpotlightLayout ? (
           <CallParticipantsSpotlight {...callParticipantsSpotlightProps} />
         ) : (
           <CallParticipantsGrid {...callParticipantsGridProps} />
         )}
       </View>
+
       {CallControls && (
         <CallControls onHangupCallHandler={onHangupCallHandler} />
       )}

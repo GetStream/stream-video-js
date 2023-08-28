@@ -8,6 +8,14 @@ import { isReactNative } from '../helpers/platforms';
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
 > {
+  /**
+   * @internal
+   */
+  enablePromise?: Promise<void>;
+  /**
+   * @internal
+   */
+  disablePromise?: Promise<void>;
   constructor(protected readonly call: Call, public readonly state: T) {}
 
   /**
@@ -28,8 +36,14 @@ export abstract class InputMediaDeviceManager<
     if (this.state.status === 'enabled') {
       return;
     }
-    await this.unmuteStream();
-    this.state.setStatus('enabled');
+    this.enablePromise = this.unmuteStream();
+    try {
+      await this.enablePromise;
+      this.state.setStatus('enabled');
+    } catch (error) {
+      this.enablePromise = undefined;
+      throw error;
+    }
   }
 
   /**
@@ -42,8 +56,17 @@ export abstract class InputMediaDeviceManager<
     if (this.state.status === 'disabled') {
       return;
     }
-    await this.muteStream(this.state.disableMode === 'stop-tracks');
-    this.state.setStatus('disabled');
+    this.disablePromise = this.muteStream(
+      this.state.disableMode === 'stop-tracks',
+    );
+    try {
+      await this.disablePromise;
+      this.state.setStatus('disabled');
+      this.disablePromise = undefined;
+    } catch (error) {
+      this.disablePromise = undefined;
+      throw error;
+    }
   }
 
   /**

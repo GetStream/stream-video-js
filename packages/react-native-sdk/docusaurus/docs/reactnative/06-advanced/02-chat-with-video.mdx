@@ -77,7 +77,7 @@ It is essential for you to wrap the [`GestureHandlerRootView`](https://getstream
 
 `GestureHandlerRootView` should be wrapped into the root of your application as follows:
 
-```tsx title="App.tsx"
+```tsx title="App.tsx" {16,22}
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
@@ -93,14 +93,12 @@ export default function App() {
   // ...
 
   return (
-    // highlight-next-line
     <GestureHandlerRootView style={styles.container}>
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <VideoCallUI />
         </StreamCall>
       </StreamVideo>
-      // highlight-next-line
     </GestureHandlerRootView>
   );
 }
@@ -217,7 +215,7 @@ The `apiKey`, `userData` and the `tokenProvider` comes up from the `ChatWrapper`
 
 If we extend our [Video Calling Tutorial](../../tutorials/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
 
-```tsx title="App.tsx"
+```tsx title="App.tsx" {16,24}
 import React, { useEffect, useState } from 'react';
 import {
   Call,
@@ -233,7 +231,6 @@ export default function App() {
   // ...
 
   return (
-    // highlight-next-line
     <ChatWrapper>
       <GestureHandlerRootView style={styles.container}>
         <StreamVideo client={client}>
@@ -242,7 +239,6 @@ export default function App() {
           </StreamCall>
         </StreamVideo>
       </GestureHandlerRootView>
-      // highlight-next-line
     </ChatWrapper>
   );
 }
@@ -318,36 +314,61 @@ const styles = StyleSheet.create({
 
 ### Step 3: Open the chat window
 
-To do this, we will take use of the [`chatButton`](../../ui-components/call/call-controls/#chatbutton) prop of the [`CallControls`](../../ui-components/call/call-controls) component.
+To do this, we will create a custom CallControls using the [`ChatButton`](../../ui-components/call/call-controls/#chatbutton) component.
 
-The `chatButton` prop is an object that takes up an `onPressHandler`, which is responsible to perform an action when the button is pressed. In our case, it's the opening of the `ChatScreen`.
+The `ChatButton` component takes up an `onPressHandler`, which is responsible to perform an action when the button is pressed. In our case, it's the opening of the `ChatScreen`.
 
-![Preview of the call controls with chat button](../assets/06-advanced/02-chat-integration/call-controls-chat.png)
+![Preview of the call controls with chat button](../assets/06-advanced/02-chat-integration/call-controls-chat.png).
 
 In the VideoCallUI component of our [Video Calling Tutorial](../../tutorials/video-calling/), we will add the above:
 
-```tsx title="src/components/VideoCallUI.tsx"
+```tsx title="src/components/VideoCallUI.tsx" {13-16,25,35-38,40-42,46}
 import React from 'react';
-import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import {
+  CallContent,
+  ChatButton,
+  HangUpCallButton,
+  ReactionButton,
+  ToggleAudioPublishingButton,
+  ToggleCameraFaceButton,
+  ToggleVideoPublishingButton,
+} from '@stream-io/video-react-native-sdk';
+
+export type CallControlsComponentProps = {
+  onChatOpenHandler?: () => void;
+  onHangupCallHandler?: () => void;
+};
+
+export const CallControlsComponent = ({
+  onChatOpenHandler,
+  onHangupCallHandler,
+}: CallControlsComponentProps) => {
+  return (
+    <View style={styles.callControlsWrapper}>
+      <ReactionButton />
+      <ChatButton onPressHandler={onChatOpenHandler} />
+      <ToggleVideoPublishingButton />
+      <ToggleAudioPublishingButton />
+      <ToggleCameraFaceButton />
+      <HangUpCallButton onPressHandler={onHangupCallHandler} />
+    </View>
+  );
+};
 
 export const VideoCallUI = () => {
-  // highlight-next-line
-  const openChatWindow = () => {
+  const onChatOpenHandler = () => {
     // handle how to open the Chat window/screen. You can use this to navigate to the chat screen, open a modal, etc.
     // highlight-next-line
   };
 
+  const CustomControlsComponent = useCallback(() => {
+    return <CallControlsComponent onChatOpenHandler={onChatOpenHandler} />;
+  }, [onChatOpenHandler]);
+
   return (
     <SafeAreaView style={styles.container}>
-      <CallContent />
-      <CallControls
-        // highlight-start
-        chatButton={{
-          onPressHandler: openChatWindow,
-        }}
-        // highlight-end
-      />
+      <CallContent CallControls={CustomControlsComponent} />
     </SafeAreaView>
   );
 };
@@ -355,6 +376,13 @@ export const VideoCallUI = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#272A30',
+  },
+  callControlsWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingVertical: 12,
+    zIndex: 2,
     backgroundColor: '#272A30',
   },
 });
@@ -450,39 +478,57 @@ Make sure to clean up/unsubscribe to all the events when the hook un-mounts.
 
 Finally, we will pass the unread count to our component by using the `unreadBadgeCountIndicator` key of the [`chatButton`](../../ui-components/call/call-controls/#chatbutton) prop of [`CallControls`](../../ui-components/call/call-controls) component.
 
-```tsx title="src/components/VideoCallUI.tsx"
+```tsx title="src/components/VideoCallUI.tsx" {8,14,21,29-30,40}
 import React from 'react';
-import { CallContent, CallControls } from '@stream-io/video-react-native-sdk';
-import { SafeAreaView, StyleSheet } from 'react-native';
-import { useChannelWatch } from '../hooks/useChannelWatch';
-import { useUnreadCount } from '../hooks/useUnreadCount';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { CallContent, ChatButton } from '@stream-io/video-react-native-sdk';
 
-export const VideoCallUI = () => {
-  // ...
-  // highlight-next-line
-  const channelWatched = useChannelWatch();
-  // highlight-next-line
-  const unreadBadgeCountIndicator = useUnreadCount({ channelWatched });
+export type CallControlsComponentProps = {
+  onChatOpenHandler?: () => void;
+  onHangupCallHandler?: () => void;
+  unreadBadgeCount?: number;
+};
 
+export const CallControlsComponent = ({
+  onChatOpenHandler,
+  onHangupCallHandler,
+  unreadBadgeCount,
+}: CallControlsComponentProps) => {
   return (
-    <SafeAreaView style={styles.container}>
-      <CallContent />
-      <CallControls
-        chatButton={{
-          // highlight-next-line
-          unreadBadgeCountIndicator,
-        }}
+    <View style={styles.callControlsWrapper}>
+      // ...
+      <ChatButton
+        onPressHandler={onChatOpenHandler}
+        unreadBadgeCount={unreadBadgeCount}
       />
-    </SafeAreaView>
+      // ...
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#272A30',
-  },
-});
+export const VideoCallUI = () => {
+  const channelWatched = useChannelWatch();
+  const unreadBadgeCount = useUnreadCount({ channelWatched });
+  const onChatOpenHandler = () => {
+    // handle how to open the Chat window/screen. You can use this to navigate to the chat screen, open a modal, etc.
+    // highlight-next-line
+  };
+
+  const CustomControlsComponent = useCallback(() => {
+    return (
+      <CallControlsComponent
+        onChatOpenHandler={onChatOpenHandler}
+        unreadBadgeCount={unreadBadgeCount}
+      />
+    );
+  }, [onChatOpenHandler]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <CallContent CallControls={CustomControlsComponent} />
+    </SafeAreaView>
+  );
+};
 ```
 
 ## Adding Video into Chat
@@ -974,7 +1020,7 @@ To pass the call and provide it to the components within the hierarchy we use th
 
 We can use the following to create a `Calls` component that can later be passed down the hierarchy in the app.
 
-```tsx src="src/components/Calls.tsx"
+```tsx src="src/components/Calls.tsx" {31,39}
 import React, { useCallback, useEffect } from 'react';
 import { StreamCall, useCalls } from '@stream-io/video-react-native-sdk';
 import { Alert } from 'react-native';
@@ -1004,7 +1050,17 @@ export const Calls = () => {
     return null;
   }
 
-  return <StreamCall call={firstCall}>{/* Rest of the code */}</StreamCall>;
+  return (
+    <StreamCall
+      call={firstCall}
+      mediaDeviceInitialState={{
+        initialAudioEnabled: false,
+        initialVideoEnabled: false,
+      }}
+    >
+      {/* Rest of the code */}
+    </StreamCall>
+  );
 };
 ```
 
@@ -1014,102 +1070,16 @@ We currently support one call at a time, and therefore we show an alert, if a us
 This is the reason why we pass `calls[0]` to the `StreamCall` component, for now.
 :::
 
-### Step 5: Creating the Call Panel
+### Step 5: Using the `RingingCallContent`
 
-Our application should intercept to the states of the call and show the appropriate UI for the call.
+We can use the [`RingingCallContent`](../../ui-components/call/ringing-call-content) component to intercept the calling states and show the appropriate(Incoming, Outgoing, JoiningCallIndicator and CallContent) components.
 
-The following states can exist for a call:
-
-- Ringing - This is when we show the incoming or the outgoing call view to the user as a new call is received or sent.
-- Joined - The call is joined. This is when we can show the Call UI.
-- Joining - This is when we can show a activity loader until when the call is joined.
-
-To intercept this states, we use the `useCallCallingState` hook provided from the SDK.
-
-We can create the call panel as follows:
-
-```tsx title="src/components/CallPanel.tsx"
+```tsx title="src/components/Calls.tsx" {28}
 import {
-  CallingState,
-  CallControls,
-  CallContent,
-  IncomingCall,
-  OutgoingCall,
-  useCall,
-  useCallCallingState,
+  StreamCall,
+  useCalls,
+  RingingCallContent,
 } from '@stream-io/video-react-native-sdk';
-import { ActivityIndicator, SafeAreaView } from 'react-native';
-
-export const CallPanel = () => {
-  const call = useCall();
-  const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
-
-  const callingState = useCallCallingState();
-
-  switch (callingState) {
-    case CallingState.RINGING:
-      return isCallCreatedByMe ? (
-        <View style={styles.container}>
-          <OutgoingCall />
-        </View>
-      ) : (
-        <IncomingCall />
-      );
-    case CallingState.JOINED:
-      return (
-        <SafeAreaView style={styles.container}>
-          <CallContent />
-          <CallControls />
-        </SafeAreaView>
-      );
-    case CallingState.JOINING:
-      return (
-        <SafeAreaView style={styles.container}>
-          <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />
-        </SafeAreaView>
-      );
-    default:
-      return null;
-  }
-};
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
-```
-
-Here, we use the [`IncomingCall`](../../ui-components/call/incoming-call/), [`OutgoingCall`](../../ui-components/call/outgoing-call/) to show the incoming and outgoing call component when the call is in ringing mode. We show the [`OutgoingCall`](../../ui-components/call/outgoing-call/) when the call is created by me, and the [`IncomingCall`](../../ui-components/call/incoming-call/) when the call is not created by me and is received from someone else. To do that we use the following snippet above using the `useCall` hook:
-
-```tsx
-const call = useCall();
-const isCallCreatedByMe = call?.data?.created_by.id === call?.currentUserId;
-```
-
-<ImageShowcase
-  items={[
-    {
-      image: OutgoingCall,
-      caption: 'John Calls Alice',
-      alt: 'Outgoing Call',
-    },
-    {
-      image: IncomingCall,
-      caption: 'Alice Receives a call from John',
-      alt: 'Incoming Call',
-    },
-  ]}
-/>
-
-To show the joined call UI, we use the [`CallContent`](../../ui-components/call/call-content/) and the [`CallControls`](../../ui-components/call/call-controls/) component from the SDK.
-
-![Preview of the Active call screen](../assets/06-advanced/02-chat-integration/active-call.png)
-
-Now, we pass the `CallPanel` created above as a child of the `Calls` component:
-
-```tsx title="src/components/Calls.tsx"
-import { StreamCall, useCalls } from '@stream-io/video-react-native-sdk';
 import { CallPanel } from 'src/components/CallPanel';
 
 export const Calls = () => {
@@ -1124,12 +1094,25 @@ export const Calls = () => {
   }
 
   return (
-    <StreamCall call={firstCall}>
-      // highlight-next-line
-      <CallPanel />
+    <StreamCall
+      call={firstCall}
+      mediaDeviceInitialState={{
+        initialAudioEnabled: false,
+        initialVideoEnabled: false,
+      }}
+    >
+      <View style={styles.container}>
+        <RingingCallContent />
+      </View>
     </StreamCall>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
 ```
 
 ### Step 6: Creating the Channel Header with ability to Create Call
@@ -1142,11 +1125,8 @@ Creating a Channel Header is fairly simple, you can create a component and pass 
 <Stack.Screen
   name="ChannelScreen"
   component={ChannelScreen}
-  // highlight-next-line
   options={{
-    // highlight-next-line
     header: ChannelHeaderComponent,
-    // highlight-next-line
   }}
 />
 ```

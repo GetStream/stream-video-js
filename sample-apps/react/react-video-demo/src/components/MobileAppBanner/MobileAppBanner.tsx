@@ -1,12 +1,19 @@
-import styles from './MobileAppBanner.module.css';
-import classNames from 'classnames';
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { useCall } from '@stream-io/video-react-sdk';
+import classNames from 'classnames';
 
-export const MobileAppBanner = (props: {
+import styles from './MobileAppBanner.module.css';
+
+export type Props = {
   platform: 'android' | 'ios';
   className?: string;
   onDismiss?: () => void;
+};
+
+export const MobileAppBanner: FC<Props> = ({
+  className,
+  platform,
+  onDismiss,
 }) => {
   const call = useCall();
   const [isVisible, setIsVisible] = useState(true);
@@ -39,7 +46,7 @@ export const MobileAppBanner = (props: {
   };
 
   return (
-    <div className={classNames(styles.mobileBanner, props.className)}>
+    <div className={classNames(styles.mobileBanner, className)}>
       <h2 className={styles.tryNativeHeading}>Try Native!</h2>
       <p className={styles.infoText}>
         We see you are using a mobile device.
@@ -47,7 +54,7 @@ export const MobileAppBanner = (props: {
         Why don't you give it a try to one of our native mobile apps:
       </p>
       <div className="flex flex-wrap flex-col xs:flex-row justify-center gap-2 w-full">
-        {(platformLinks[props.platform] || [])
+        {(platformLinks[platform] || [])
           .filter((app) => app.active)
           .map((link) => (
             <a
@@ -71,7 +78,7 @@ export const MobileAppBanner = (props: {
         onClick={(e) => {
           e.preventDefault();
           setIsVisible(false);
-          props.onDismiss?.();
+          onDismiss?.();
         }}
       >
         Dismiss

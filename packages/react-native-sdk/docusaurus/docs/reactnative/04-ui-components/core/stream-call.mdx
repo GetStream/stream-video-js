@@ -7,7 +7,7 @@ The `<StreamCall />` component is a declarative component wrapper around `Call` 
 
 ## General usage
 
-```tsx
+```tsx {9,11}
 import {
   StreamCall,
 } from '@stream-io/video-react-native-sdk';
@@ -16,7 +16,6 @@ export const App = () => {
   const call = /* ... */;
 
   return (
-    // highlight-next-line
     <StreamCall call={call}>
       <MyUI />
     </StreamCall>

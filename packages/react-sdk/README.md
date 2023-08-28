@@ -54,13 +54,13 @@ Here are some of the features we support:
 ## Roadmap
 
 ### 0.4 milestone
-- [ ] Enhanced device management API
-- [ ] Composite layout for streaming and recording
+- [X] Enhanced device management API
+- [X] Composite layout for streaming and recording
 - [ ] Screenshare Audio
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] Typescript generics enhancements
 - [ ] Fast-reconnects
-- [ ] SFU retries
+- [X] SFU retries
 
 ### 0.5 milestone
 - [ ] Enhanced UI components and theming
