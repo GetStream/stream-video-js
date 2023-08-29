@@ -107,8 +107,7 @@ describe('CallState', () => {
       expect(state.participants).toEqual([Z, B, C, D]);
 
       // Z is invisible, so, the normal sorting is applied and Z is pushed to the end
-      // @ts-expect-error
-      Z.viewportVisibilityState.video = VisibilityState.INVISIBLE;
+      Z.viewportVisibilityState!.videoTrack = VisibilityState.INVISIBLE;
       state.setParticipants([Z, B, C, D]);
       expect(state.participants).toEqual([B, C, D, Z]);
     });
