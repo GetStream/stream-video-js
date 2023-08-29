@@ -186,7 +186,7 @@ export const VideoRenderer = ({
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender?.toURL()}
           mirror={mirror}
-          objectFit={isScreenSharing ? 'contain' : 'cover'}
+          objectFit={'contain'}
           zOrder={videoZOrder}
         />
       ) : (
