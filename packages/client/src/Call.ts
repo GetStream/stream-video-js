@@ -76,6 +76,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VideoTrackType,
   VisibilityState,
 } from './types';
 import {
@@ -911,8 +912,8 @@ export class Call {
           const participant: StreamVideoParticipant = Object.assign(p, {
             isLocalParticipant: p.sessionId === sfuClient.sessionId,
             viewportVisibilityState: {
-              video: VisibilityState.UNKNOWN,
-              screen: VisibilityState.UNKNOWN,
+              videoTrack: VisibilityState.UNKNOWN,
+              screenShareTrack: VisibilityState.UNKNOWN,
             },
           });
           // We need to preserve the local state of the participant
@@ -1117,15 +1118,29 @@ export class Call {
    * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
    * You can only subscribe for tracks after the participant started publishing the given kind of track.
    *
-   * @param kind the kind of subscription to update.
+   * @param trackType the kind of subscription to update.
    * @param changes the list of subscription changes to do.
    * @param type the debounce type to use for the update.
    */
   updateSubscriptionsPartial = (
-    kind: 'video' | 'screen',
+    trackType: VideoTrackType | 'video' | 'screen',
     changes: SubscriptionChanges,
     type: DebounceType = DebounceType.SLOW,
   ) => {
+    if (trackType === 'video') {
+      this.logger(
+        'warn',
+        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'videoTrack'`,
+      );
+      trackType = 'videoTrack';
+    } else if (trackType === 'screen') {
+      this.logger(
+        'warn',
+        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'screenShareTrack'`,
+      );
+      trackType = 'screenShareTrack';
+    }
+
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
@@ -1136,9 +1151,9 @@ export class Call {
             change.dimension.width = Math.ceil(change.dimension.width);
           }
           const prop: keyof StreamVideoParticipant | undefined =
-            kind === 'video'
+            trackType === 'videoTrack'
               ? 'videoDimension'
-              : kind === 'screen'
+              : trackType === 'screenShareTrack'
               ? 'screenShareDimension'
               : undefined;
           if (prop) {
@@ -1162,9 +1177,9 @@ export class Call {
     type: DebounceType = DebounceType.SLOW,
   ) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    participants.forEach((p) => {
+    for (const p of participants) {
       // we don't want to subscribe to our own tracks
-      if (p.isLocalParticipant) return;
+      if (p.isLocalParticipant) continue;
 
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
@@ -1189,7 +1204,7 @@ export class Call {
           dimension: p.screenShareDimension,
         });
       }
-    });
+    }
     // schedule update
     this.trackSubscriptionsSubject.next({ type, data: subscriptions });
   };
@@ -1822,17 +1837,17 @@ export class Call {
    *
    * @param element the element to track.
    * @param sessionId the session id.
-   * @param videoMode the video mode.
+   * @param trackType the video mode.
    */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
     sessionId: string,
-    videoMode: 'video' | 'screen',
+    trackType: VideoTrackType,
   ) => {
     return this.dynascaleManager.trackElementVisibility(
       element,
       sessionId,
-      videoMode,
+      trackType,
     );
   };
 
@@ -1858,17 +1873,17 @@ export class Call {
    *
    * @param videoElement the video element to bind to.
    * @param sessionId the session id.
-   * @param kind the kind of video.
+   * @param trackType the kind of video.
    */
   bindVideoElement = (
     videoElement: HTMLVideoElement,
     sessionId: string,
-    kind: 'video' | 'screen',
+    trackType: VideoTrackType,
   ) => {
     const unbind = this.dynascaleManager.bindVideoElement(
       videoElement,
       sessionId,
-      kind,
+      trackType,
     );
 
     if (!unbind) return;
@@ -1887,7 +1902,6 @@ export class Call {
    *
    * @param audioElement the audio element to bind to.
    * @param sessionId the session id.
-   * @returns a cleanup function that will unbind the audio element.
    */
   bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
     const unbind = this.dynascaleManager.bindAudioElement(

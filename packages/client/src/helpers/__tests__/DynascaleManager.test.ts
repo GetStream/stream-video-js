@@ -52,7 +52,7 @@ describe('DynascaleManager', () => {
       const untrack = dynascaleManager.trackElementVisibility(
         element,
         'session-id',
-        'video',
+        'videoTrack',
       );
 
       expect(visibilityHandler).toBeDefined();
@@ -65,21 +65,21 @@ describe('DynascaleManager', () => {
       visibilityHandler({ isIntersecting: true });
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.video,
+          ?.viewportVisibilityState?.videoTrack,
       ).toBe(VisibilityState.VISIBLE);
 
       // test becoming invisible
       visibilityHandler({ isIntersecting: false });
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.video,
+          ?.viewportVisibilityState?.videoTrack,
       ).toBe(VisibilityState.INVISIBLE);
 
       // test track reset
       untrack();
       expect(
         call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.video,
+          ?.viewportVisibilityState?.videoTrack,
       ).toBe(VisibilityState.UNKNOWN);
     });
   });
@@ -154,7 +154,7 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindVideoElement(
         videoElement,
         'session-id',
-        'video',
+        'videoTrack',
       );
 
       expect(videoElement.autoplay).toBe(true);
@@ -162,7 +162,7 @@ describe('DynascaleManager', () => {
       expect(videoElement.playsInline).toBe(true);
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.IMMEDIATE,
       );
@@ -172,7 +172,7 @@ describe('DynascaleManager', () => {
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         {
           'session-id': {
             dimension: {
@@ -189,7 +189,7 @@ describe('DynascaleManager', () => {
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.IMMEDIATE,
       );
@@ -213,7 +213,7 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindVideoElement(
         videoElement,
         'session-id',
-        'video',
+        'videoTrack',
       );
 
       const mediaStream = new MediaStream();
@@ -225,7 +225,7 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         {
           'session-id': {
             dimension: {
@@ -249,8 +249,8 @@ describe('DynascaleManager', () => {
         sessionId: 'session-id',
         publishedTracks: [],
         viewportVisibilityState: {
-          video: VisibilityState.UNKNOWN,
-          screen: VisibilityState.UNKNOWN,
+          videoTrack: VisibilityState.UNKNOWN,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
       });
 
@@ -259,24 +259,24 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindVideoElement(
         videoElement,
         'session-id',
-        'video',
+        'videoTrack',
       );
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.IMMEDIATE,
       );
 
       call.state.updateParticipant('session-id', {
         viewportVisibilityState: {
-          video: VisibilityState.VISIBLE,
-          screen: VisibilityState.UNKNOWN,
+          videoTrack: VisibilityState.VISIBLE,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         {
           'session-id': {
             dimension: {
@@ -290,26 +290,26 @@ describe('DynascaleManager', () => {
 
       call.state.updateParticipant('session-id', {
         viewportVisibilityState: {
-          video: VisibilityState.INVISIBLE,
-          screen: VisibilityState.UNKNOWN,
+          videoTrack: VisibilityState.INVISIBLE,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.MEDIUM,
       );
 
       call.state.updateParticipant('session-id', {
         viewportVisibilityState: {
-          video: VisibilityState.UNKNOWN,
-          screen: VisibilityState.UNKNOWN,
+          videoTrack: VisibilityState.UNKNOWN,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
       });
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         {
           'session-id': {
             dimension: {
@@ -331,8 +331,8 @@ describe('DynascaleManager', () => {
         sessionId: 'session-id',
         publishedTracks: [TrackType.VIDEO],
         viewportVisibilityState: {
-          video: VisibilityState.VISIBLE,
-          screen: VisibilityState.UNKNOWN,
+          videoTrack: VisibilityState.VISIBLE,
+          screenShareTrack: VisibilityState.UNKNOWN,
         },
       });
 
@@ -355,11 +355,11 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindVideoElement(
         videoElement,
         'session-id',
-        'video',
+        'videoTrack',
       );
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         {
           'session-id': {
             dimension: {
@@ -380,7 +380,7 @@ describe('DynascaleManager', () => {
       resizeObserverCallback();
 
       expect(updateSubscription).toHaveBeenCalledWith(
-        'video',
+        'videoTrack',
         { 'session-id': { dimension: { width: 101, height: 101 } } },
         DebounceType.SLOW,
       );

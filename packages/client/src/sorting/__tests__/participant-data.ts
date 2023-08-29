@@ -19,8 +19,8 @@ export const participants = (): StreamVideoParticipant[] => [
     image: '',
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
   {
@@ -37,8 +37,8 @@ export const participants = (): StreamVideoParticipant[] => [
     image: '',
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
   {
@@ -55,8 +55,8 @@ export const participants = (): StreamVideoParticipant[] => [
     image: '',
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
   {
@@ -73,8 +73,8 @@ export const participants = (): StreamVideoParticipant[] => [
     image: '',
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
   {
@@ -91,8 +91,8 @@ export const participants = (): StreamVideoParticipant[] => [
     image: '',
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
   {
@@ -113,8 +113,8 @@ export const participants = (): StreamVideoParticipant[] => [
     },
     roles: [],
     viewportVisibilityState: {
-      video: VisibilityState.VISIBLE,
-      screen: VisibilityState.VISIBLE,
+      videoTrack: VisibilityState.VISIBLE,
+      screenShareTrack: VisibilityState.VISIBLE,
     },
   },
 ];

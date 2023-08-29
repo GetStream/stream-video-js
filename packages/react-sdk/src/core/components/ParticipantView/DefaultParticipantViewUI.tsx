@@ -68,7 +68,7 @@ export const DefaultParticipantViewUI = ({
   menuPlacement = 'bottom-end',
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
-  const { participant, participantViewElement, videoMode, videoElement } =
+  const { participant, participantViewElement, trackType, videoElement } =
     useParticipantViewContext();
   const { publishedTracks } = participant;
 
@@ -79,14 +79,15 @@ export const DefaultParticipantViewUI = ({
   if (
     participant.isLocalParticipant &&
     hasScreenShare &&
-    videoMode === 'screen'
-  )
+    trackType === 'screenShareTrack'
+  ) {
     return (
       <>
         <DefaultScreenShareOverlay />
         <ParticipantDetails indicatorsVisible={indicatorsVisible} />
       </>
     );
+  }
 
   return (
     <>

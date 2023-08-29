@@ -24,8 +24,8 @@ export const watchParticipantJoined = (state: CallState) => {
         participant,
         {
           viewportVisibilityState: {
-            video: VisibilityState.UNKNOWN,
-            screen: VisibilityState.UNKNOWN,
+            videoTrack: VisibilityState.UNKNOWN,
+            screenShareTrack: VisibilityState.UNKNOWN,
           },
         },
       ),

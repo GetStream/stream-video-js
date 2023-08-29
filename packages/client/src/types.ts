@@ -79,14 +79,9 @@ export interface StreamVideoParticipant extends Participant {
   reaction?: StreamReaction;
 
   /**
-   * The visibility state of the participant's video & screen share element
-   * within the pre-configured viewport.
-   * @default VisibilityState.UNKNOWN
+   * The visibility state of the participant's tracks within a defined viewport.
    */
-  viewportVisibilityState?: {
-    video: VisibilityState;
-    screen: VisibilityState;
-  };
+  viewportVisibilityState?: Record<VideoTrackType, VisibilityState>;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
@@ -111,6 +106,8 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    */
   audioOutputDeviceId?: string;
 }
+
+export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
 
 /**
  * Represents a participant's pin state.

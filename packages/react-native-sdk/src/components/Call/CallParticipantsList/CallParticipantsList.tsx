@@ -110,8 +110,8 @@ export const CallParticipantsList = ({
         mustUpdate = true;
         participantPatches[key] = {
           viewportVisibilityState: {
-            video: VisibilityState.VISIBLE,
-            screen: VisibilityState.UNKNOWN,
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
           },
         };
       }
@@ -121,8 +121,8 @@ export const CallParticipantsList = ({
         mustUpdate = true;
         participantPatches[key] = {
           viewportVisibilityState: {
-            video: VisibilityState.VISIBLE,
-            screen: VisibilityState.UNKNOWN,
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
           },
         };
       }
@@ -184,7 +184,7 @@ export const CallParticipantsList = ({
             <ParticipantView
               participant={participant}
               style={itemContainerStyle}
-              videoMode="video"
+              trackType="videoTrack"
               isVisible={isVisible}
               {...participantProps}
             />
@@ -209,7 +209,7 @@ export const CallParticipantsList = ({
               <ParticipantView
                 participant={participant}
                 style={styles.flexed}
-                videoMode="video"
+                trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 {...participantProps}
               />

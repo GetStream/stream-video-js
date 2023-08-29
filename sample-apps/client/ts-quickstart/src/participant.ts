@@ -25,7 +25,7 @@ const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
     map.set(id, videoEl);
 
     // registers subscription updates and stream changes
-    call.bindVideoElement(videoEl, participant.sessionId, 'video');
+    call.bindVideoElement(videoEl, participant.sessionId, 'videoTrack');
   }
 
   return videoEl;

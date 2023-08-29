@@ -3,6 +3,7 @@ import {
   DebounceType,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
+  VideoTrackType,
   VisibilityState,
 } from '../types';
 import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
@@ -15,9 +16,12 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 
-const DEFAULT_VIEWPORT_VISIBILITY_STATE = {
-  screen: VisibilityState.UNKNOWN,
-  video: VisibilityState.UNKNOWN,
+const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
+  VideoTrackType,
+  VisibilityState
+> = {
+  videoTrack: VisibilityState.UNKNOWN,
+  screenShareTrack: VisibilityState.UNKNOWN,
 } as const;
 
 /**
@@ -54,28 +58,34 @@ export class DynascaleManager {
    *
    * @param element the element to track.
    * @param sessionId the session id.
-   * @param videoMode the kind of video.
+   * @param trackType the kind of video.
    * @returns Untrack.
    */
   trackElementVisibility = <T extends HTMLElement>(
     element: T,
     sessionId: string,
-    videoMode: 'video' | 'screen',
+    trackType: VideoTrackType,
   ) => {
     const cleanup = this.viewportTracker.observe(element, (entry) => {
-      this.call.state.updateParticipant(sessionId, (participant) => ({
-        ...participant,
+      this.call.state.updateParticipant(sessionId, (participant) => {
+        const previousVisibilityState =
+          participant.viewportVisibilityState ??
+          DEFAULT_VIEWPORT_VISIBILITY_STATE;
+
         // observer triggers when the element is "moved" to be a fullscreen element
         // keep it VISIBLE if that happens to prevent fullscreen with placeholder
-        viewportVisibilityState: {
-          ...(participant.viewportVisibilityState ??
-            DEFAULT_VIEWPORT_VISIBILITY_STATE),
-          [videoMode]:
-            entry.isIntersecting || document.fullscreenElement === element
-              ? VisibilityState.VISIBLE
-              : VisibilityState.INVISIBLE,
-        },
-      }));
+        const isVisible =
+          entry.isIntersecting || document.fullscreenElement === element
+            ? VisibilityState.VISIBLE
+            : VisibilityState.INVISIBLE;
+        return {
+          ...participant,
+          viewportVisibilityState: {
+            ...previousVisibilityState,
+            [trackType]: isVisible,
+          },
+        };
+      });
     });
 
     return () => {
@@ -83,14 +93,18 @@ export class DynascaleManager {
       // reset visibility state to UNKNOWN upon cleanup
       // so that the layouts that are not actively observed
       // can still function normally (runtime layout switching)
-      this.call.state.updateParticipant(sessionId, (participant) => ({
-        ...participant,
-        viewportVisibilityState: {
-          ...(participant.viewportVisibilityState ??
-            DEFAULT_VIEWPORT_VISIBILITY_STATE),
-          [videoMode]: VisibilityState.UNKNOWN,
-        },
-      }));
+      this.call.state.updateParticipant(sessionId, (participant) => {
+        const previousVisibilityState =
+          participant.viewportVisibilityState ??
+          DEFAULT_VIEWPORT_VISIBILITY_STATE;
+        return {
+          ...participant,
+          viewportVisibilityState: {
+            ...previousVisibilityState,
+            [trackType]: VisibilityState.UNKNOWN,
+          },
+        };
+      });
     };
   };
 
@@ -116,12 +130,12 @@ export class DynascaleManager {
    *
    * @param videoElement the video element to bind to.
    * @param sessionId the session id.
-   * @param videoMode the kind of video.
+   * @param trackType the kind of video.
    */
   bindVideoElement = (
     videoElement: HTMLVideoElement,
     sessionId: string,
-    videoMode: 'video' | 'screen',
+    trackType: VideoTrackType,
   ) => {
     const boundParticipant =
       this.call.state.findParticipantBySessionId(sessionId);
@@ -132,7 +146,7 @@ export class DynascaleManager {
       dimension: VideoDimension | undefined,
     ) => {
       this.call.updateSubscriptionsPartial(
-        videoMode,
+        trackType,
         { [sessionId]: { dimension } },
         debounceType,
       );
@@ -156,7 +170,7 @@ export class DynascaleManager {
         ? null
         : participant$
             .pipe(
-              map((p) => p.viewportVisibilityState?.[videoMode]),
+              map((p) => p.viewportVisibilityState?.[trackType]),
               distinctUntilChanged(),
             )
             .subscribe((nextViewportVisibilityState) => {
@@ -216,7 +230,7 @@ export class DynascaleManager {
             distinctUntilKeyChanged('publishedTracks'),
             map((p) =>
               p.publishedTracks.includes(
-                videoMode === 'video'
+                trackType === 'videoTrack'
                   ? TrackType.VIDEO
                   : TrackType.SCREEN_SHARE,
               ),
@@ -239,12 +253,12 @@ export class DynascaleManager {
     const streamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
-          videoMode === 'video' ? 'videoStream' : 'screenShareStream',
+          trackType === 'videoTrack' ? 'videoStream' : 'screenShareStream',
         ),
       )
       .subscribe((p) => {
         const source =
-          videoMode === 'video' ? p.videoStream : p.screenShareStream;
+          trackType === 'videoTrack' ? p.videoStream : p.screenShareStream;
         if (videoElement.srcObject === source) return;
         setTimeout(() => {
           videoElement.srcObject = source ?? null;

@@ -97,8 +97,8 @@ describe('CallState', () => {
 
       const ifInvisibleBy = conditional(
         (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
-          a.viewportVisibilityState?.video === VisibilityState.INVISIBLE ||
-          b.viewportVisibilityState?.video === VisibilityState.INVISIBLE,
+          a.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE ||
+          b.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE,
       );
       state.setSortParticipantsBy(ifInvisibleBy(name));
 
