@@ -1125,6 +1125,31 @@ const styles = StyleSheet.create({
 
 </Tabs>
 
+:::info
+By default, the audio source is set to the device's speaker.
+However, if you wish for the app to seamlessly switch between the earphone and speaker,
+you can make use of the `useIncallManager` hook provided by the SDK. This hook internally utilizes
+[react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager#usage) library for this purpose.
+
+```tsx title="src/ToggleMicButton.tsx"
+
+import {
+  ...
+  // highlight-next-line
+  useIncallManager,
+} from '@stream-io/video-react-native-sdk';
+
+export const ToggleMicButton = () => {
+  // start incall manager
+  // Please read more about `media` and `auto` options in the documentation of react-native-incall-manager
+  // https://github.com/react-native-webrtc/react-native-incall-manager#usage
+  // highlight-next-line
+  useIncallManager({media: 'video', auto: true});
+  ...
+}
+```
+:::
+
 If you refresh the app, you should be able to toggle live mode and mute/unmute the microphone.
 
 ![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-controls.png)
@@ -1248,31 +1273,6 @@ export const ToggleMicButton = () => {
   );
 };
 ```
-
-:::info
-By default, the audio source is set to the device's speaker.
-However, if you wish for the app to seamlessly switch between the earphone and speaker,
-you can make use of the `useIncallManager` hook provided by the SDK. This hook internally utilizes
-[react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager#usage) library for this purpose.
-
-```tsx title="src/ToggleMicButton.tsx"
-
-import {
-  ...
-  // highlight-next-line
-  useIncallManager,
-} from '@stream-io/video-react-native-sdk';
-
-export const ToggleMicButton = () => {
-  // start incall manager
-  // Please read more about `media` and `auto` options in the documentation of react-native-incall-manager
-  // https://github.com/react-native-webrtc/react-native-incall-manager#usage
-  // highlight-next-line
-  useIncallManager({media: 'video', auto: true});
-  ...
-}
-```
-:::
 
 Let's proceed to add an event listener for the event `call.permissions_updated`.
 This will keep the current user informed about any changes in permissions, whether they are granted or rejected by hosts or speakers.
