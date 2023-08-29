@@ -352,6 +352,20 @@ export class Publisher {
     return false;
   };
 
+  /**
+   * Returns true if the given track type is currently live
+   *
+   * @param trackType the track type to check.
+   */
+  isLive = (trackType: TrackType): boolean => {
+    const transceiverForTrackType = this.transceiverRegistry[trackType];
+    if (transceiverForTrackType && transceiverForTrackType.sender) {
+      const sender = transceiverForTrackType.sender;
+      return !!sender.track && sender.track.readyState === 'live';
+    }
+    return false;
+  };
+
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
     track: MediaStreamTrack,

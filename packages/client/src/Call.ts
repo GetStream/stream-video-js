@@ -331,7 +331,11 @@ export class Call {
           const hasPermission = this.permissionsContext.hasPermission(
             permission as OwnCapability,
           );
-          if (!hasPermission && this.publisher.isPublishing(trackType)) {
+          if (
+            !hasPermission &&
+            (this.publisher.isPublishing(trackType) ||
+              this.publisher.isLive(trackType))
+          ) {
             // Stop tracks, then notify device manager
             this.stopPublish(trackType)
               .catch((err) => {
@@ -1176,7 +1180,10 @@ export class Call {
    * @param stopTrack if `true` the track will be stopped, else it will be just disabled
    */
   stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
-    this.logger('info', `stopPublish ${TrackType[trackType]}`);
+    this.logger(
+      'info',
+      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
+    );
     await this.publisher?.unpublishStream(trackType, stopTrack);
   };
 
