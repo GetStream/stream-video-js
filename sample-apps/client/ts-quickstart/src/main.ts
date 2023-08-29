@@ -1,7 +1,7 @@
 import './style.css';
 import { StreamVideoClient, User } from '@stream-io/video-client';
 import { decode } from 'js-base64';
-import { renderParticipant } from './participant';
+import { cleanupParticipant, renderParticipant } from './participant';
 import { renderControls } from './controls';
 import {
   renderAudioDeviceSelector,
@@ -24,18 +24,13 @@ const user: User = {
   id: extractPayloadFromToken(token)['user_id'] as string,
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
-
 const callId =
   searchParams.get('call_id') ||
   import.meta.env.VITE_STREAM_CALL_ID ||
   (new Date().getTime() + Math.round(Math.random() * 100)).toString();
-const call = client.call('default', callId);
 
+const client = new StreamVideoClient({ apiKey, token, user });
+const call = client.call('default', callId);
 call.join({ create: true }).then(async () => {
   // render mic and camera controls
   const controls = renderControls(call);
@@ -58,18 +53,23 @@ window.addEventListener('beforeunload', () => {
 });
 
 const parentContainer = document.getElementById('participants')!;
+call.setViewport(parentContainer);
 
 call.state.participants$.subscribe((participants) => {
-  const participantElements = participants.map((participant) =>
-    renderParticipant(call, participant),
-  );
+  // render / update existing participants
+  participants.forEach((participant) => {
+    renderParticipant(call, participant, parentContainer);
+  });
 
-  // Update UI
-  parentContainer.innerHTML = '';
-  participantElements
-    .flatMap((e) => [e.audioEl, e.videoEl])
-    .filter((el) => !!el)
+  // Remove stale elements for stale participants
+  parentContainer
+    .querySelectorAll<HTMLMediaElement>('video, audio')
     .forEach((el) => {
-      parentContainer.appendChild(el!);
+      const sessionId = el.dataset.sessionId!;
+      const participant = participants.find((p) => p.sessionId === sessionId);
+      if (!participant) {
+        cleanupParticipant(sessionId);
+        el.remove();
+      }
     });
 });

@@ -6,58 +6,98 @@ const videoDimension = {
   height: 250,
 };
 
-const map = new Map<string, HTMLVideoElement>();
+const videoBindingsCache = new Map<string, Function | undefined>();
+const videoTrackingCache = new Map<string, Function | undefined>();
+const audioBindingsCache = new Map<string, Function | undefined>();
 
-const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
+const renderVideo = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
   const id = `video-${participant.sessionId}`;
-
-  let videoEl = (document.getElementById(id) ??
-    map.get(id)) as HTMLVideoElement | null;
-
+  let videoEl = document.getElementById(id) as HTMLVideoElement | null;
   if (!videoEl) {
     videoEl = document.createElement('video');
     videoEl.style.setProperty('object-fit', 'contain');
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
+    videoEl.dataset.sessionId = participant.sessionId;
 
-    // simple memoization map to reuse video elements later
-    map.set(id, videoEl);
+    parentContainer.appendChild(videoEl);
+
+    const untrack = call.trackElementVisibility(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
+
+    // keep reference to untrack function to call it later
+    videoTrackingCache.set(id, untrack);
 
     // registers subscription updates and stream changes
-    call.bindVideoElement(videoEl, participant.sessionId, 'videoTrack');
-  }
+    const unbind = call.bindVideoElement(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
 
-  return videoEl;
+    // keep reference to unbind function to call it later
+    videoBindingsCache.set(id, unbind);
+  }
 };
 
-const renderAudio = (call: Call, participant: StreamVideoParticipant) => {
+const renderAudio = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
   // We don't render audio for local participant
-  if (participant.isLocalParticipant) {
-    return null;
-  }
+  if (participant.isLocalParticipant) return;
 
-  let audioEl = document.getElementById(
-    `audio-${participant.sessionId}`,
-  ) as HTMLAudioElement | null;
-
+  const id = `audio-${participant.sessionId}`;
+  let audioEl = document.getElementById(id) as HTMLAudioElement | null;
   if (!audioEl) {
     audioEl = document.createElement('audio');
-    audioEl.id = `audio-${participant.sessionId}`;
+    audioEl.id = id;
+    audioEl.dataset.sessionId = participant.sessionId;
+
+    parentContainer.appendChild(audioEl);
 
     // registers subscription updates and stream changes for audio
-    call.bindAudioElement(audioEl, participant.sessionId);
-  }
+    const unbind = call.bindAudioElement(audioEl, participant.sessionId);
 
-  return audioEl;
+    // keep reference to unbind function to call it later
+    audioBindingsCache.set(id, unbind);
+  }
 };
 
 export const renderParticipant = (
   call: Call,
   participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
 ) => {
-  return {
-    audioEl: renderAudio(call, participant),
-    videoEl: renderVideo(call, participant),
-  };
+  renderAudio(call, participant, parentContainer);
+  renderVideo(call, participant, parentContainer);
+};
+
+export const cleanupParticipant = (sessionId: string) => {
+  const unbindVideo = videoBindingsCache.get(`video-${sessionId}`);
+  if (unbindVideo) {
+    unbindVideo();
+    videoBindingsCache.delete(`video-${sessionId}`);
+  }
+
+  const untrackVideo = videoTrackingCache.get(`video-${sessionId}`);
+  if (untrackVideo) {
+    untrackVideo();
+    videoTrackingCache.delete(`video-${sessionId}`);
+  }
+
+  const unbindAudio = audioBindingsCache.get(`audio-${sessionId}`);
+  if (unbindAudio) {
+    unbindAudio();
+    audioBindingsCache.delete(`audio-${sessionId}`);
+  }
 };
