@@ -21,6 +21,7 @@ const renderVideo = (
     videoEl = document.createElement('video');
     videoEl.style.setProperty('object-fit', 'contain');
     videoEl.id = `video-${participant.sessionId}`;
+    videoEl.muted = true;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
     videoEl.dataset.sessionId = participant.sessionId;
