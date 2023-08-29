@@ -10,7 +10,7 @@ import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 import homeScreenImg from '../assets/02-tutorials/02-audio-room/home-screen.png'
 import audioRoomEmptyImg from '../assets/02-tutorials/02-audio-room/active-room-empty.png'
 
-This tutorial aims to guide you through the process of creating an audio room experience reminiscent of platforms such as Twitter Spaces or Clubhouse. The final outcome, as depicted in the image below, will encompass the following functionalities:
+This tutorial aims to guide you through the process of creating an audio room experience reminiscent of platforms such as Twitter Spaces or Clubhouse. The outcome, as depicted in the image below, will encompass the following functionalities:
 
 - Backstage Mode: Initiate the call with your co-hosts, allowing for pre-live discussions.
 - Global Edge Network: Calls operate on Stream's worldwide edge network, ensuring low latency and scalability.
@@ -126,11 +126,22 @@ If you plan to also support Bluetooth devices then also add the following.
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-Add the following keys and values to `Info.plist` file:
+Add the following keys and values to `Info.plist` file, under `dict` tag.
 
 ```plist title="Info.plist"
-<key>NSMicrophoneUsageDescription</key>
-<string>$(PRODUCT_NAME) would like to use your microphone</string>
+<plist version="1.0">
+<dict>
+  ...
+  <key>CFBundleName</key>
+  <string>$(PRODUCT_NAME)</string>
+  // added-block-start
+  <key>NSMicrophoneUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to use your microphone</string>
+  // added-block-end
+  ...
+</dict>
+</plist>
+
 ```
 
 </TabItem>
@@ -179,8 +190,7 @@ Before we dive deep into writing code, there are two concepts you should be fami
 In the case of React Native Video SDK, you will need to provide this client instance to the top level `StreamVideo` component.
 This component will then provide the client instance to all the child components using React Context.
 
-You can use `new StreamVideoClient` constructor to create an instance of video client and connect the user (using websocket) to the Stream Video service.
-This will enable the user to create a call, receive calls, get list of calls etc. This should be ideally done at sign in stage of the application.
+Using client, you can create a call, receive calls, get list of calls etc. This should be ideally done at sign in stage of the application.
 
 ```tsx
 const client = new StreamVideoClient({ apiKey, user, token });
@@ -213,37 +223,34 @@ await client.connectUser(user, token);
 In the context of Stream video/audio service, a `call` refers to an instance of the [`Call` class](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/Call.ts#L125) and is utilized for performing call-specific actions, such as joining a call, muting participants, leaving a call, and more.
 You will need to supply this `call` instance to the `StreamCall` component.
 
-It's important to note that you don't need to directly create a `Call` instance yourself. Instead, you can employ the `client.call` method to generate a call instance.
-For instance, the subsequent example illustrates how to create a call instance of the audio_room type. Detailed information about various call types can be found in the [Call Types](../../core/configuring-call-types) guide.
+The following example illustrates how to create a call instance of the `audio_room` type.
+Detailed information about various call types can be found in the [Call Types](../../core/configuring-call-types) guide.
 
 ```tsx
 const call = client.call('audio_room', callId);
 ```
 
 Subsequently, the `call.join` method can be utilized to enter the call identified by the given `callId`.
-In practical scenarios, if the call doesn't already exist, you might need to create one prior to joining.
-To address this, you can pass the `create: true` parameter to the `call.join` method.
-Additionally, any custom data can be supplied to the call by providing it through the data parameter of the `call.join` method.
 
 A call of type audio_room can exist in either of two states: backstage and live.
 
 - During the backstage mode, only the host and designated speakers have permission to join the call.
 - In the live mode, anyone can join the call.
 
-To configure these permissions, adjustments can be made within the application's dashboard under the "Roles and Permissions" section.
+From the dashboard you can disable backstage mode or fine tune the permissions for backstage mode.
 
 For designating roles to call participants, you can specify the role through the data.members parameter of the call.join method.
 
 ```tsx
 // User joins the call
 call.join({
-  create: true,
+  create: true, // create the call if it doesn't exist
   data: {
     members: [
       { user_id: 'john_smith' },
       { user_id: 'jane_doe', role: 'speaker' }
     ],
-    custom: {
+    custom: { // custom data set on call
       title: 'React Native test',
       description: 'Conducting a test of React Native audio rooms',
     },
@@ -416,9 +423,6 @@ To make this tutorial easier to follow we have generated a user token for you. P
 
 Within this configuration, we will establish a `StreamVideoClient` instance and facilitate the user's connection to the Stream Video service.
 This process will be encapsulated within a distinct hook to ensure the app's lifecycle is effectively managed.
-It's crucial to highlight that when both the user and token information are supplied,
-the newly created `StreamVideoClient` will establish a WebSocket connection with the Stream Video service.
-Therefore, it becomes imperative to properly disconnect the user when the app component is unmounted.
 This specific action should ideally be incorporated into the user's sign-in flow.
 
 Create a file named `useCreateVideoClient.ts` within the `src` folder and copy the following content into it:
@@ -437,6 +441,7 @@ export const useCreateVideoClient = (user: UserType, token: string) => {
     setClient(new StreamVideoClient({apiKey, user, token}));
 
     return () => {
+      // Disconnect from websocket when component unmounts
       client?.disconnectUser();
     };
   }, []);
@@ -448,7 +453,7 @@ export const useCreateVideoClient = (user: UserType, token: string) => {
 
 Once this is done, we can use the hook to create the video client and provide it to the `StreamVideo` component.
 `StreamVideo` component is provided by the SDK and it will provide the client instance to all the child components using React Context.
-It needs to go at the top of the call related components.
+It needs to go at the top of the component tree.
 
 ```tsx title="App.tsx" {3-5,9-16,18-20,23,27}
 ...
@@ -593,7 +598,7 @@ export const AudioRoomScreen = (
 
 Please note the difference between `call.join` and `call.goLive` methods. With `call.join()` a user has joined the call and is part of the audio room now.
 This is called a backstage mode, where only the host and speakers are allowed to interact. User needs to have permission to join the backstage mode, which we will explore later in the tutorial.
-For regular user or audiance of the audio room, the call will be live when host calls `call.goLive()`.
+For regular user or audience of the audio room, the call will be live when host calls `call.goLive()`.
 This makes it easy to try out your room and talk to your co-hosts before going live. You can enable or disable the usage of backstage mode in the dashboard.
 
 For now we will call `call.goLive()` immediately after joining the call, so that we can test the audio room.
@@ -1154,7 +1159,7 @@ If you refresh the app, you should be able to toggle live mode and mute/unmute t
 
 ![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-controls.png)
 
-## Step 6 - Requesting permission to speak
+## Step 7 - Requesting permission to speak
 
 In real audio room applications, a participant may need to request permission to speak from the host or speakers.
 And host or speakers can grant or deny the request using `call.grantPermissions` or `call.revokePermissions` methods.
@@ -1453,7 +1458,7 @@ Now, for the purpose of testing:
 
 ![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-permissions.png)
 
-## Step 7 - Leave the call
+## Step 8 - Leave the call
 
 User can leave the call by calling `call.leave()` method.
 Lets add this functionality to "Leave Audio Room" button.
