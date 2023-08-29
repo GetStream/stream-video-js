@@ -1,6 +1,5 @@
 import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
-import { isReactNative } from '../helpers/platforms';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -17,16 +16,7 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
 
     this.speakingWhileMuted$ = this.speakingWhileMutedSubject
       .asObservable()
-      .pipe(
-        map((v) => {
-          if (isReactNative()) {
-            throw new Error('This feature is not supported in React Native');
-          } else {
-            return v;
-          }
-        }),
-        distinctUntilChanged(),
-      );
+      .pipe(distinctUntilChanged());
   }
 
   /**
@@ -35,9 +25,6 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
    * This feature is not available in the React Native SDK.
    */
   get speakingWhileMuted() {
-    if (isReactNative()) {
-      throw new Error('This feature is not supported in React Native');
-    }
     return this.getCurrentValue(this.speakingWhileMuted$);
   }
 
