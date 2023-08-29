@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, distinctUntilChanged, map } from 'rxjs';
+import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
