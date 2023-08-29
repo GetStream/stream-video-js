@@ -1245,6 +1245,8 @@ export class Call {
    *
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
+   *
+   * @deprecated use `call.speaker` instead
    */
   setAudioOutputDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;
