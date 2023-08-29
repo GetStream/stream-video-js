@@ -22,7 +22,7 @@ const myParticipantElement = document.getElementById('my-participant-element');
 const untrack = call.trackElementVisibility(
   myParticipantElement,
   participant.sessionId,
-  'video', // or 'screen' if you want to track screen share visibility
+  'videoTrack', // or 'screenShareTrack' if you want to track screen share visibility
 );
 ```
 
@@ -41,11 +41,11 @@ const unset = call.setViewport(viewport);
 
 ## Access the visible participants
 
-Every participant can have three visibility states:
+Every participant can have three visibility states for its video and screen share tracks:
 
-- `VISIBLE` - the participant is visible on the screen
-- `INVISIBLE` - the participant is not visible on the screen
-- `UNKNOWN` - the participant's visibility is unknown (e.g. the participant is not tracked)
+- `VISIBLE` - the track is visible on the screen
+- `INVISIBLE` - the track is not visible on the screen
+- `UNKNOWN` - the track's visibility is unknown (e.g. the participant is not tracked)
 
 Visibility state is available in the participant's state:
 
@@ -56,21 +56,29 @@ call.state.participants.forEach((participant) => {
   const { viewportVisibilityState } = participant;
 
   // The participant's video visibility in the viewport
-  if (viewportVisibilityState.video === VisibilityState.VISIBLE) {
-    // The participant is visible in the viewport
-  } else if (viewportVisibilityState.video === VisibilityState.INVISIBLE) {
-    // The participant is not visible in the viewport
-  } else if (viewportVisibilityState.video === VisibilityState.UNKNOWN) {
-    // The participant's visibility in the viewport
+  switch (viewportVisibilityState.videoTrack) {
+    case VisibilityState.VISIBLE:
+      // The participant's video track is visible in the viewport
+      break;
+    case VisibilityState.INVISIBLE:
+      // The participant's video track is not visible in the viewport
+      break;
+    case VisibilityState.UNKNOWN:
+      // The participant's video track visibility in the viewport is unknown
+      break;
   }
 
   // The participant's screen share visibility in the viewport
-  if (viewportVisibilityState.screen === VisibilityState.VISIBLE) {
-    // The participant's screen share is visible in the viewport
-  } else if (viewportVisibilityState.screen === VisibilityState.INVISIBLE) {
-    // The participant's screen share is not visible in the viewport
-  } else if (viewportVisibilityState.screen === VisibilityState.UNKNOWN) {
-    // The participant's screen share visibility in the viewport
+  switch (viewportVisibilityState.screenShareTrack) {
+    case VisibilityState.VISIBLE:
+      // The participant's screen share track is visible in the viewport
+      break;
+    case VisibilityState.INVISIBLE:
+      // The participant's screen share track is not visible in the viewport
+      break;
+    case VisibilityState.UNKNOWN:
+      // The participant's screen share track visibility in the viewport is unknown
+      break;
   }
 });
 ```

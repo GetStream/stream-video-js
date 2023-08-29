@@ -12,7 +12,7 @@ This method can be found in `call.bindVideoElement`. It takes three arguments:
 
 - the video element to bind to
 - the participant's `sessionId`
-- the kind of video track to bind to (either `video` or `screen` for screen sharing)
+- the kind of video track to bind to (either `videoTrack` or `screenShareTrack` for screen sharing)
 
 This method needs to be called only once, usually after the element is mounted in the DOM.
 
@@ -28,7 +28,7 @@ if (!videoElement) {
   const unbind = call.bindVideoElement(
     videoElement,
     participant.sessionId,
-    'video',
+    'videoTrack',
   );
 }
 ```
@@ -49,7 +49,7 @@ if (!screenElement) {
   const unbind = call.bindVideoElement(
     screenElement,
     participant.sessionId,
-    'screen', // note the 'screen' argument
+    'screenShareTrack', // note the 'screenShareTrack' argument
   );
 }
 ```
