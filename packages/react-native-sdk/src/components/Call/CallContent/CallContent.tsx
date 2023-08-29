@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
@@ -77,24 +77,34 @@ export const CallContent = ({
   ParticipantView,
   ParticipantsInfoBadge,
   VideoRenderer,
-  layout,
+  layout = 'grid',
 }: CallContentProps) => {
+  const [
+    showRemoteParticipantInFloatingView,
+    setShowRemoteParticipantInFloatingView,
+  ] = useState<boolean>(false);
   const {
     theme: { callContent },
   } = useTheme();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
-  const hasScreenShare = useHasOngoingScreenShare();
-  const { useRemoteParticipants, useLocalParticipant } = useCallStateHooks();
+  const {
+    useHasOngoingScreenShare,
+    useRemoteParticipants,
+    useLocalParticipant,
+  } = useCallStateHooks();
 
   const _remoteParticipants = useRemoteParticipants();
-  const localParticipant = useLocalParticipant();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const localParticipant = useLocalParticipant();
+
+  const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
   const showFloatingView =
     !showSpotlightLayout &&
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
+  const isRemoteParticipantInFloatingView =
+    showRemoteParticipantInFloatingView && remoteParticipants.length === 1;
 
   /**
    * This hook is used to handle IncallManager specs of the application.
@@ -104,6 +114,13 @@ export const CallContent = ({
   const call = useCall();
   const activeCallRef = useRef(call);
   activeCallRef.current = call;
+
+  const handleFloatingViewParticipantSwitch = () => {
+    if (remoteParticipants.length !== 1) {
+      return;
+    }
+    setShowRemoteParticipantInFloatingView((prevState) => !prevState);
+  };
 
   useEffect(() => {
     return () => {
@@ -123,6 +140,7 @@ export const CallContent = ({
 
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
+    showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
   };
@@ -146,7 +164,12 @@ export const CallContent = ({
           )}
           {showFloatingView && FloatingParticipantView && (
             <FloatingParticipantView
-              participant={localParticipant}
+              participant={
+                isRemoteParticipantInFloatingView
+                  ? remoteParticipants[0]
+                  : localParticipant
+              }
+              onPressHandler={handleFloatingViewParticipantSwitch}
               {...participantViewProps}
             />
           )}

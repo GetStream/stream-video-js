@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
@@ -36,6 +42,11 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
      * Custom style to be merged with the floating participant view.
      */
     style?: StyleProp<ViewStyle>;
+    /**
+     * Handler used to handle actions on click of the participant view in FloatingParticipantView.
+     * Eg: Can be used to handle participant switch on click.
+     */
+    onPressHandler?: () => void;
   };
 
 const CustomLocalParticipantViewVideoFallback = () => {
@@ -67,6 +78,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
  */
 export const FloatingParticipantView = ({
   alignment = 'top-right',
+  onPressHandler,
   participant,
   style,
   ParticipantView = DefaultParticipantView,
@@ -131,25 +143,27 @@ export const FloatingParticipantView = ({
           containerWidth={containerDimensions.width}
           initialAlignment={floatingAlignmentMap[alignment]}
         >
-          {ParticipantView && (
-            <ParticipantView
-              participant={participant}
-              videoMode={'video'}
-              style={[
-                styles.participantViewContainer,
-                style,
-                {
-                  backgroundColor: colors.static_grey,
-                  shadowColor: colors.static_black,
-                },
-                localParticipantsView.participantViewContainer,
-              ]}
-              // video z order must be one above the one used in grid view
-              // (which uses the default: 0)
-              videoZOrder={1}
-              {...participantViewProps}
-            />
-          )}
+          <Pressable onPress={onPressHandler}>
+            {ParticipantView && (
+              <ParticipantView
+                participant={participant}
+                videoMode={'video'}
+                style={[
+                  styles.participantViewContainer,
+                  style,
+                  {
+                    backgroundColor: colors.static_grey,
+                    shadowColor: colors.static_black,
+                  },
+                  localParticipantsView.participantViewContainer,
+                ]}
+                // video z order must be one above the one used in grid view
+                // (which uses the default: 0)
+                videoZOrder={1}
+                {...participantViewProps}
+              />
+            )}
+          </Pressable>
         </AnimatedFloatingView>
       )}
     </View>
