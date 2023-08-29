@@ -13,7 +13,7 @@ export const PaginatedGrid = () => {
   } = useConfigurationContext();
 
   return (
-    <div className="paginated-grid">
+    <div className="paginated-grid" data-testId="grid">
       <PaginatedGridLayout
         ParticipantViewUI={
           <DefaultParticipantViewUI

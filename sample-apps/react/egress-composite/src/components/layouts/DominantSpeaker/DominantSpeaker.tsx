@@ -24,7 +24,10 @@ export const DominantSpeaker = () => {
   if (!activeCall) return <h2>No active call</h2>;
   return (
     <>
-      <div className="dominant-speaker__container">
+      <div
+        className="dominant-speaker__container"
+        data-testId="single_participant"
+      >
         {speakerInSpotlight && (
           <ParticipantView
             participant={speakerInSpotlight}
