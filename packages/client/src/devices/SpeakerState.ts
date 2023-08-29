@@ -1,11 +1,16 @@
 import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
+import { checkIfAudioOutputChangeSupported } from './devices';
 
 export class SpeakerState {
   protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
   protected volumeSubject = new BehaviorSubject<undefined | number>(undefined);
+  /**
+   * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
+   */
+  readonly isDeviceSelectionSupported = checkIfAudioOutputChangeSupported();
 
   /**
    * An Observable that emits the currently selected device
