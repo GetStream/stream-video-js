@@ -1,5 +1,7 @@
 import { vi } from 'vitest';
 import { CallingState } from '../../store';
+import { BehaviorSubject } from 'rxjs';
+import { OwnCapability } from '../../gen/coordinator';
 
 export const mockVideoDevices = [
   {
@@ -66,6 +68,11 @@ export const mockCall = () => {
   return {
     state: {
       callingState: CallingState.IDLE,
+      callingState$: new BehaviorSubject(CallingState.JOINED),
+      ownCapabilities$: new BehaviorSubject([
+        OwnCapability.SEND_AUDIO,
+        OwnCapability.SEND_VIDEO,
+      ]),
     },
     publishVideoStream: vi.fn(),
     publishAudioStream: vi.fn(),

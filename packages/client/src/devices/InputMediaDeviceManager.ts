@@ -207,6 +207,8 @@ export abstract class InputMediaDeviceManager<
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
-    this.state.setMediaStream(stream);
+    if (this.state.mediaStream !== stream) {
+      this.state.setMediaStream(stream);
+    }
   }
 }

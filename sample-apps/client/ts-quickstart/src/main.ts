@@ -78,29 +78,3 @@ call.state.participants$.subscribe((participants) => {
       }
     });
 });
-
-call.microphone.state.speakingWhileMuted$.subscribe((isSpeaking) => {
-  if (isSpeaking) {
-    console.log(`You're muted, unmute yourself to speak`);
-  } else {
-    console.log(`There you go`);
-  }
-});
-
-let cleanup: Function | undefined;
-call.microphone.state.mediaStream$.subscribe(async (mediaStream) => {
-  console.log(mediaStream);
-  const progressBar = document.getElementById('volume') as HTMLProgressElement;
-  if (mediaStream) {
-    cleanup = createSoundDetector(
-      mediaStream,
-      (event) => {
-        progressBar.value = event.audioLevel;
-      },
-      { detectionFrequencyInMs: 100 },
-    );
-  } else {
-    await cleanup?.();
-    progressBar.value = 0;
-  }
-});
