@@ -105,16 +105,25 @@ Add the following in your `AppDelegate.m` or `AppDelegate.mm` file:
 In `AndroidManifest.xml` add the following permissions before the `application` section.
 
 ```xml
-<uses-feature android:name="android.hardware.audio.output" />
-<uses-feature android:name="android.hardware.microphone" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  // highlight-start
+  <uses-feature android:name="android.hardware.audio.output" />
+  <uses-feature android:name="android.hardware.microphone" />
 
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-<uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  // highlight-end
+  <uses-permission android:name="android.permission.INTERNET" />
+  ...
+  <application
+    ...
+  />
+  </application>
+</manifest>
 ```
-
 If you plan to also support Bluetooth devices then also add the following.
 
 ```xml
@@ -134,10 +143,10 @@ Add the following keys and values to `Info.plist` file, under `dict` tag.
   ...
   <key>CFBundleName</key>
   <string>$(PRODUCT_NAME)</string>
-  // added-block-start
+  // highlight-start
   <key>NSMicrophoneUsageDescription</key>
   <string>$(PRODUCT_NAME) would like to use your microphone</string>
-  // added-block-end
+  // highlight-end
   ...
 </dict>
 </plist>
@@ -156,9 +165,14 @@ For simplicity, in this tutorial, we do not cover about managing native runtime 
 In `android/app/build.gradle` add the following inside the `android` section:
 
 ```java
-compileOptions {
-	sourceCompatibility JavaVersion.VERSION_1_8
-	targetCompatibility JavaVersion.VERSION_11
+android {
+  ...
+  // highlight-start
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_11
+  }
+  // highlight-end
 }
 ```
 
@@ -177,7 +191,11 @@ You can refer to the React Native documentation for guidance on [running the app
 However, if you still prefer to use an emulator, execute the following command:
 
 ```bash
+# run iOS app
 yarn ios
+
+# run Android app
+yarn android
 ```
 
 ## Step 3 - Understand the basics
@@ -489,7 +507,7 @@ export default function App() {
 
 You wouldn't see any change in the UI at this point, since we haven't joined the call yet.
 
-## Step 3 - Create & Join a call​
+## Step 6 - Create & Join a call​
 
 In this step we will create and join a call. Call will be stored in a state variable `call` and it needs to be
 provided to `StreamCall` component. As explained earlier, `StreamCall` component is provided by the SDK and it provides all the necessary hooks for configuring UI around audio room.
@@ -613,7 +631,7 @@ To enhance the interactivity of this tutorial moving forward, kindly follow thes
 Currently, you won't have the ability to speak, as we haven't set up the user interface for the audio room.
 However, you will be able to view the current user listed among the participants on the web application.
 
-## Step 6 - Configure UI for Audio Room
+## Step 7 - Configure UI for Audio Room
 
 Up until now, we've effectively established and entered the call.
 Moving forward, our focus will be on setting up the audio room's user interface.
@@ -1159,7 +1177,7 @@ If you refresh the app, you should be able to toggle live mode and mute/unmute t
 
 ![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-controls.png)
 
-## Step 7 - Requesting permission to speak
+## Step 8 - Requesting permission to speak
 
 In real audio room applications, a participant may need to request permission to speak from the host or speakers.
 And host or speakers can grant or deny the request using `call.grantPermissions` or `call.revokePermissions` methods.
@@ -1458,7 +1476,7 @@ Now, for the purpose of testing:
 
 ![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-permissions.png)
 
-## Step 8 - Leave the call
+## Step 9 - Leave the call
 
 User can leave the call by calling `call.leave()` method.
 Lets add this functionality to "Leave Audio Room" button.
