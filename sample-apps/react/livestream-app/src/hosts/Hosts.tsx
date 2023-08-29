@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useInitVideoClient } from '../hooks/useInitVideoClient';
 
 export const Hosts = () => {
-  const client = useInitVideoClient({ role: 'host' });
+  const client = useInitVideoClient({});
 
   if (!client) {
     return null;

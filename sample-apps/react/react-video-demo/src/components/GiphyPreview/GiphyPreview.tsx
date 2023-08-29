@@ -8,7 +8,6 @@ import {
   useActionHandler,
 } from 'stream-chat-react';
 
-// import { GiphyCommandIcon, VideoViewersIcon } from '../../assets';
 import { StreamChatType } from '../../types/Chat';
 
 const CustomAttachmentActions: React.FC<
@@ -52,7 +51,6 @@ const CustomCard: React.FC<CardProps> = (props) => {
     return (
       <div className="giphy-preview-card">
         <div className="giphy-preview-card-header">
-          {/* <GiphyCommandIcon /> */}
           <span>Giphy</span>
         </div>
         {image && (
@@ -87,7 +85,6 @@ export const GiphyPreview: React.FC<
         />
       </div>
       <div className="giphy-footer">
-        {/* <VideoViewersIcon /> */}
         <span>Only visible to you</span>
       </div>
     </div>

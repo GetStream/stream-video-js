@@ -4,8 +4,8 @@ title: ParticipantView
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import ParticipantCameraOn from '../../assets/04-ui-components/participant-camera-on.png';
-import ParticipantCameraOff from '../../assets/04-ui-components/participant-camera-off.png';
+import ParticipantCameraOn from '../../assets/04-ui-components/participants/participant-view/participant-camera-on.png';
+import ParticipantCameraOff from '../../assets/04-ui-components/participants/participant-view/participant-camera-off.png';
 
 import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
 import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
@@ -50,10 +50,11 @@ In order to use the `ParticipantView` as a standalone component, you should use 
 ```tsx
 import {
   ParticipantView,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 const App = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
 
   // Here to show the demo, we pass only first participant. You can pass any of the participant.
