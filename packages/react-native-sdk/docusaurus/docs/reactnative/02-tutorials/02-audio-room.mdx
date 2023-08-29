@@ -34,15 +34,19 @@ cd AudioRoomExample
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
 ```bash title=Terminal
-yarn add @stream-io/video-react-native-sdk
+yarn add @stream-io/video-react-native-sdk @stream-io/react-native-webrtc
 ```
 
 The SDK requires installing some peer dependencies. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add @stream-io/react-native-webrtc react-native-device-info \
-   react-native-incall-manager react-native-svg \
-   @react-native-community/netinfo @notifee/react-native
+yarn add react-native-device-info@10.6.0
+yarn add react-native-incall-manager@4.1.0
+yarn add react-native-svg
+yarn add @react-native-community/netinfo@9.3.9
+yarn add @notifee/react-native@7.7.1
+
+# Install pods for iOS
 npx pod-install
 ```
 
@@ -151,6 +155,18 @@ In `android/gradle.properties` add the following:
 
 ```groovy
 android.enableDexingArtifactTransform.desugaring=false
+```
+
+#### Run the app
+
+To ensure the best possible experience, we highly recommend running the app on a physical device.
+This is due to the limitations in audio and video device support on emulators.
+You can refer to the React Native documentation for guidance on [running the app on a physical device](https://reactnative.dev/docs/running-on-device).
+
+However, if you still prefer to use an emulator, execute the following command:
+
+```bash
+yarn ios
 ```
 
 ## Step 3 - Understand the basics
