@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.395](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.394...@stream-io/video-react-native-sdk-0.0.1-alpha.395) (2023-08-29)
+
+
+
+## [0.0.1-alpha.394](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.393...@stream-io/video-react-native-sdk-0.0.1-alpha.394) (2023-08-29)
+
+
+
+## [0.0.1-alpha.393](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.392...@stream-io/video-react-native-sdk-0.0.1-alpha.393) (2023-08-29)
+
+
+
+## [0.0.1-alpha.392](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.391...@stream-io/video-react-native-sdk-0.0.1-alpha.392) (2023-08-28)
+
+
+### Bug Fixes
+
+* **react-native:** Call Top View participants count in the badge when showing Incoming/Outgoing call views ([#992](https://github.com/GetStream/stream-video-js/issues/992)) ([b7a3615](https://github.com/GetStream/stream-video-js/commit/b7a361534cd37df2418f3b12ea13da3a2e391710))
+
+
+
+## [0.0.1-alpha.391](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.390...@stream-io/video-react-native-sdk-0.0.1-alpha.391) (2023-08-28)
+
+
+
+## [0.0.1-alpha.390](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.389...@stream-io/video-react-native-sdk-0.0.1-alpha.390) (2023-08-28)
+
+
+### Features
+
+* **react-native:** pass participant as prop in FloatingParticipantView ([#1001](https://github.com/GetStream/stream-video-js/issues/1001)) ([682bd4d](https://github.com/GetStream/stream-video-js/commit/682bd4dec3c54187d730f58b85a91159ed77d27c))
+
+
+
 ## [0.0.1-alpha.389](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.388...@stream-io/video-react-native-sdk-0.0.1-alpha.389) (2023-08-25)
 
 

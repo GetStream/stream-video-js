@@ -4,6 +4,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
 } from 'react';
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
@@ -24,13 +25,19 @@ const togglePanelCollapse = (prev: PANEL_VISIBILITY) =>
     ? PANEL_VISIBILITY.expanded
     : PANEL_VISIBILITY.collapsed;
 
-type PanelName = 'chat' | 'participant-list' | 'device-settings' | 'reaction';
+type PanelName =
+  | 'chat'
+  | 'participant-list'
+  | 'device-settings'
+  | 'reaction'
+  | 'qrcode';
 
 type Props = {
   toggleCollapse: (panel: PanelName) => void;
   toggleHide: (panel: PanelName) => void;
   chatPanelVisibility: PANEL_VISIBILITY;
   participantsPanelVisibility: PANEL_VISIBILITY;
+  qrCodeVisibility: PANEL_VISIBILITY;
   isSettingsVisible: boolean;
   isReactionVisible: boolean;
 };
@@ -40,6 +47,7 @@ const PanelContext = createContext<Props>({
   toggleHide: () => null,
   chatPanelVisibility: PANEL_VISIBILITY.hidden,
   participantsPanelVisibility: PANEL_VISIBILITY.hidden,
+  qrCodeVisibility: PANEL_VISIBILITY.expanded,
   isSettingsVisible: false,
   isReactionVisible: false,
 });
@@ -50,6 +58,10 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
   );
   const [participantsPanelVisibility, setParticipantsPanelVisibility] =
     useState<PANEL_VISIBILITY>(PANEL_VISIBILITY.hidden);
+
+  const [qrCodeVisibility, setQrCodeVisibility] = useState<PANEL_VISIBILITY>(
+    PANEL_VISIBILITY.expanded,
+  );
 
   const [isSettingsVisible, setSettingsVisible] = useState<boolean>(false);
 
@@ -84,6 +96,17 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
     [breakpoint],
   );
 
+  useEffect(() => {
+    if (
+      chatVisibility !== PANEL_VISIBILITY.expanded &&
+      participantsPanelVisibility !== PANEL_VISIBILITY.expanded
+    ) {
+      setQrCodeVisibility(PANEL_VISIBILITY.collapsed);
+    } else {
+      setQrCodeVisibility(PANEL_VISIBILITY.expanded);
+    }
+  }, [chatVisibility, participantsPanelVisibility]);
+
   return (
     <PanelContext.Provider
       value={{
@@ -91,6 +114,7 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
         toggleHide,
         chatPanelVisibility: chatVisibility,
         participantsPanelVisibility: participantsPanelVisibility,
+        qrCodeVisibility,
         isSettingsVisible,
         isReactionVisible,
       }}

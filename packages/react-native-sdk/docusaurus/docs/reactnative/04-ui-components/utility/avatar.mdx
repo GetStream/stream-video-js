@@ -13,16 +13,12 @@ Of course, it can also be used in any other circumstances that you like, for exa
 
 The way you can use the `Avatar` element in a react component is like this:
 
-```tsx
+```tsx {5}
 import { Avatar, useLocalParticipant } from '@stream-io/video-react-native-sdk';
 
 export function AvatarExample() {
   const localParticipant = useLocalParticipant();
-  return (
-    // highlight-start
-    <Avatar size={80} participant={localParticipant} />
-    // highlight-end
-  );
+  return <Avatar size={80} participant={localParticipant} />;
 }
 ```
 
@@ -43,3 +39,9 @@ The `StreamVideoParticipant` object.
 | `number` \| `undefined` | 100           |
 
 The size of the avatar. The width and height is set to this number.
+
+### `style`
+
+| Type                                                       |
+| ---------------------------------------------------------- |
+| `{container:ViewStyle; image:ImageStyle; text: TextStyle}` |
