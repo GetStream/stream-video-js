@@ -5,7 +5,6 @@ export const KichinSink: Props = {
   user: {
     id: '123213',
     name: 'Kichin Sink',
-    role: 'role',
     teams: ['team'],
     image: '',
   },

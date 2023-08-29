@@ -1120,6 +1120,12 @@ export class Call {
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
+          if (change.dimension?.height) {
+            change.dimension.height = Math.ceil(change.dimension.height);
+          }
+          if (change.dimension?.width) {
+            change.dimension.width = Math.ceil(change.dimension.width);
+          }
           const prop: keyof StreamVideoParticipant | undefined =
             kind === 'video'
               ? 'videoDimension'
