@@ -3965,16 +3965,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:7.7.1":
-  version: 7.7.1
-  resolution: "@notifee/react-native@npm:7.7.1"
-  peerDependencies:
-    react-native: "*"
-  checksum: 0dd6b5f3d90be80bdb03549e29e9d6b2cacfca599d8982594d4d3f945e54d609c36d5416aed0627e453fdd38c1c2884a55a6a5914b8aee679392c2a60e788aff
-  languageName: node
-  linkType: hard
-
-"@notifee/react-native@npm:^7.7.1":
+"@notifee/react-native@npm:7.8.0, @notifee/react-native@npm:^7.8.0":
   version: 7.8.0
   resolution: "@notifee/react-native@npm:7.8.0"
   peerDependencies:
@@ -6892,7 +6883,7 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
-    "@notifee/react-native": ^7.7.1
+    "@notifee/react-native": ^7.8.0
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.2.0
@@ -6953,7 +6944,7 @@ __metadata:
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
     "@babel/preset-typescript": ^7.21.5
-    "@notifee/react-native": 7.7.1
+    "@notifee/react-native": 7.8.0
     "@react-native-community/eslint-config": ^3.2.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-firebase/app": 17.5.0
@@ -6988,7 +6979,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^4.9.5
   peerDependencies:
-    "@notifee/react-native": ">=7.7.0"
+    "@notifee/react-native": ">=7.8.0"
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
