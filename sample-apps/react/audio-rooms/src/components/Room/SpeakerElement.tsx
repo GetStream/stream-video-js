@@ -32,7 +32,7 @@ export const SpeakerElement = ({
   const displayName = speaker.name || speaker.userId;
   return (
     <div className="speaker-container">
-      <Audio muted={!isAudioEnabled} audioStream={speaker.audioStream}></Audio>
+      <Audio muted={!isAudioEnabled} participant={speaker} />
       <div className="speaker-image-container">
         <Avatar
           className={`speaker-image ${

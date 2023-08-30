@@ -58,8 +58,10 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoMode={
-              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            trackType={
+              hasScreenShare(participantInSpotlight)
+                ? 'screenShareTrack'
+                : 'videoTrack'
             }
             ParticipantViewUI={DefaultParticipantViewUI}
           />
@@ -131,8 +133,8 @@ const getCustomSortingPreset = (
   // This ensures stable sorting when all participants are visible.
   const ifInvisibleBy = conditional(
     (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
-      a.viewportVisibilityState === VisibilityState.INVISIBLE ||
-      b.viewportVisibilityState === VisibilityState.INVISIBLE,
+      a.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE ||
+      b.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE,
   );
 
   // the custom sorting preset

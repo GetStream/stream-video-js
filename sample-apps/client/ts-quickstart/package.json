@@ -4,16 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --https",
+    "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-client": "workspace:^",
+    "js-base64": "^3.7.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.9"
   }
 }

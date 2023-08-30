@@ -13,7 +13,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
  */
 export type ParticipantLabelProps = Pick<
   ParticipantViewProps,
-  'videoMode' | 'participant'
+  'trackType' | 'participant'
 >;
 
 /**
@@ -21,7 +21,7 @@ export type ParticipantLabelProps = Pick<
  */
 export const ParticipantLabel = ({
   participant,
-  videoMode,
+  trackType,
 }: ParticipantLabelProps) => {
   const {
     theme: {
@@ -52,7 +52,7 @@ export const ParticipantLabel = ({
     call?.unpin(sessionId);
   };
 
-  if (videoMode === 'screen') {
+  if (trackType === 'screenShareTrack') {
     return (
       <View
         style={[

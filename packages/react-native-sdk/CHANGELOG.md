@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.403](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.402...@stream-io/video-react-native-sdk-0.0.1-alpha.403) (2023-08-30)
+
+
+### Features
+
+* **Call:** Dynascale support for Plain-JS SDK ([#914](https://github.com/GetStream/stream-video-js/issues/914)) ([d295fd3](https://github.com/GetStream/stream-video-js/commit/d295fd341bbe325310fc6479f24ef647b013429b))
+
+
+
+## [0.0.1-alpha.402](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.401...@stream-io/video-react-native-sdk-0.0.1-alpha.402) (2023-08-29)
+
+
+
 ## [0.0.1-alpha.401](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.400...@stream-io/video-react-native-sdk-0.0.1-alpha.401) (2023-08-29)
 
 
