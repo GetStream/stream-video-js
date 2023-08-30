@@ -55,8 +55,7 @@
     "release:18n": "yarn workspace @stream-io/i18n npm publish --access=public",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
     "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public",
-    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public",
-    "buddy": "stream-video-buddy"
+    "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
@@ -75,7 +74,6 @@
     "ngx-deploy-npm": "^5.2.0",
     "nx": "16.0.1",
     "prettier": "^2.8.4",
-    "stream-video-buddy": "https://github.com/GetStream/stream-video-buddy#1.6.10",
     "typescript": "^4.9.5",
     "vercel": "^32.1.0",
     "vite": "^4.4.9"
