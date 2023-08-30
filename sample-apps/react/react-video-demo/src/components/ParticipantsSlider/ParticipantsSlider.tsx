@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
 import { SfuModels } from '@stream-io/video-client';
 
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from '../Icons';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from '../Icons';
 import Participant from '../Participant';
 
 import { useBreakpoint } from '../../hooks/useBreakpoints';
@@ -70,9 +70,7 @@ export const ParticipantsSlider: FC<Props> = ({
 
   useEffect(() => {
     if (!scrollWrapper || !call) return;
-
-    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
-
+    const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
   }, [scrollWrapper, call]);
 

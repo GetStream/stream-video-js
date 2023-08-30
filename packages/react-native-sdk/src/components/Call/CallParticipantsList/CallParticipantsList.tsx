@@ -109,7 +109,10 @@ export const CallParticipantsList = ({
       if (!oldVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.VISIBLE,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         };
       }
     });
@@ -117,7 +120,10 @@ export const CallParticipantsList = ({
       if (!newVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.INVISIBLE,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         };
       }
     });
@@ -178,7 +184,7 @@ export const CallParticipantsList = ({
             <ParticipantView
               participant={participant}
               style={itemContainerStyle}
-              videoMode="video"
+              trackType="videoTrack"
               isVisible={isVisible}
               {...participantProps}
             />
@@ -203,7 +209,7 @@ export const CallParticipantsList = ({
               <ParticipantView
                 participant={participant}
                 style={styles.flexed}
-                videoMode="video"
+                trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 {...participantProps}
               />
