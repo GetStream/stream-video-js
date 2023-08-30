@@ -5,28 +5,29 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: false,
+  fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
-  snapshotDir: './tests/snapshots',
+  snapshotPathTemplate: './tests/__screenshots__/{testFilePath}/{arg}{ext}',
   use: {
-    headless: false,
+    headless: !!process.env.CI,
     trace: 'on-first-retry',
     viewport: { width: 1920, height: 1080 },
+    baseURL: 'http://localhost:5173',
   },
   webServer: [
+    {
+      timeout: 10000,
+      command: 'yarn buddy server --port 4567',
+      reuseExistingServer: false,
+      port: 4567,
+    },
     {
       timeout: 10000,
       command: 'yarn dev',
       reuseExistingServer: false,
       port: 5173,
-    },
-    {
-      timeout: 30000,
-      command: 'yarn buddy auth && yarn buddy server --port 4567',
-      reuseExistingServer: false,
-      port: 4567,
     },
   ],
 });
