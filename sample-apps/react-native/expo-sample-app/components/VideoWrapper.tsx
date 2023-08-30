@@ -13,7 +13,6 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     undefined,
   );
   const apiKey = STREAM_API_KEY;
-  console.log(user);
 
   useEffect(() => {
     const _videoClient = new StreamVideoClient({
