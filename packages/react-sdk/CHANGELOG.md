@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.10...@stream-io/video-react-sdk-0.3.11) (2023-08-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.11`
+
+### Features
+
+* **Call:** Dynascale support for Plain-JS SDK ([#914](https://github.com/GetStream/stream-video-js/issues/914)) ([d295fd3](https://github.com/GetStream/stream-video-js/commit/d295fd341bbe325310fc6479f24ef647b013429b))
+
 ### [0.3.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.9...@stream-io/video-react-sdk-0.3.10) (2023-08-29)
 
 ### Dependency Updates
