@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.10](https://github.com/GetStream/stream-video-js/compare/client0.3.9...client0.3.10) (2023-08-30)
+
+
+### Features
+
+* **Call:** Dynascale support for Plain-JS SDK ([#914](https://github.com/GetStream/stream-video-js/issues/914)) ([d295fd3](https://github.com/GetStream/stream-video-js/commit/d295fd341bbe325310fc6479f24ef647b013429b))
+
 ### [0.3.9](https://github.com/GetStream/stream-video-js/compare/client0.3.8...client0.3.9) (2023-08-29)
 
 
