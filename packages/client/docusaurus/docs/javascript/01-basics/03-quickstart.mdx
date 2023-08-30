@@ -168,7 +168,22 @@ export const renderParticipant = (
   renderAudio(call, participant, parentContainer);
   renderVideo(call, participant, parentContainer);
 };
+```
 
+The most important parts are:
+
+- `call.trackElementVisibility`: this will enable the client to detect if a particpant's `video` element isn't visible on the screen, in which case it will stop requesting the video, saving bandwidth
+- `call.bindVideoElement` will bind the given participants video stream to the given `video` element, and takes care of stream changes and resizes
+- `call.bindAudioElement` will bind the given participants audio stream to the given `audio` element, and takes care of stream changes
+
+For more information check out these guides:
+
+- [Participant visibility tracking](../../guides/visibility-tracking)
+- [Playing Video and Audio](../../guides/playing-video-and-audio)
+
+When a participant leaves the call, we need to unbind their `video` and `audio` elements.
+
+```typescript
 // If you're using a web framework, unbinding is usually handled with a component lifecycle event
 export const cleanupParticipant = (sessionId: string) => {
   const unbindVideo = videoBindingsCache.get(`video-${sessionId}`);
@@ -191,16 +206,7 @@ export const cleanupParticipant = (sessionId: string) => {
 };
 ```
 
-The most important parts are:
-
-- `call.trackElementVisibility`: this will enable the client to detect if a particpant's `video` element isn't visible on the screen, in which case it will stop requesting the video, saving bandwidth
-- `call.bindVideoElement` will bind the given participants video stream to the given `video` element, and takes care of stream changes and resizes
-- `call.bindAudioElement` will bind the given participants audio stream to the given `audio` element, and takes care of stream changes
-
-For more information check out these guides:
-
-- [Participant visibility tracking](../../guides/visibility-tracking)
-- [Playing Video and Audio](../../guides/playing-video-and-audio)
+If you're using a web framework, you can usually use a component lifecycle event to trigger the unbinding.
 
 More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
 
