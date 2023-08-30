@@ -171,19 +171,22 @@ Copy the following code to your `index.html` file:
 The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates.
 
 ```ts title=main.ts
-import { renderVideo } from './participant';
+import { renderParticipant, cleanupParticipant } from './participant';
 
 // Render local participant's video
 const parentContainer = document.getElementById('participant')!;
-call.state.localParticipant$.subscribe((participant) => {
-  if (!participant) {
-    return;
+call.state.localParticipant$.subscribe((localParticipant) => {
+  if (localParticipant) {
+    renderParticipant(call, localParticipant, parentContainer);
+  } else {
+    // Remove video elements
+    parentContainer
+      .querySelectorAll<HTMLMediaElement>('video')
+      .forEach((el) => {
+        const sessionId = el.dataset.sessionId!;
+        cleanupParticipant(sessionId);
+      });
   }
-  const participantElement = renderVideo(participant);
-
-  // Update UI
-  parentContainer.innerHTML = '';
-  parentContainer.appendChild(participantElement!);
 });
 
 // Render the number of users who joined
@@ -214,31 +217,11 @@ call.state.backstage$.subscribe((backstage) => {
 });
 ```
 
-This is how the `renderVideo` method looks like:
+For the `renderParticipant` and `cleanupParticipant` methods create a new file, and name it `participant.ts`.
 
-```typescript title=participant.ts
-import { StreamVideoParticipant } from '@stream-io/video-client';
+The guide won't give a detailed overview about how to render a participant, you can find that [here](../../tutorials/video-calling/#render-video).
 
-export const renderVideo = (participant: StreamVideoParticipant) => {
-  let videoEl = document.getElementById(
-    `video-${participant.sessionId}`,
-  ) as HTMLVideoElement | null;
-
-  if (!videoEl) {
-    videoEl = document.createElement('video');
-    videoEl.id = `video-${participant.sessionId}`;
-    videoEl.width = 330;
-    videoEl.height = 150;
-    videoEl.autoplay = true;
-    videoEl.playsInline = true;
-  }
-  if (videoEl.srcObject !== participant.videoStream) {
-    videoEl.srcObject = participant.videoStream || null;
-  }
-
-  return videoEl;
-};
-```
+You can copy the content of [this file](https://codesandbox.io/s/javascript-livestream-host-3hs4vt?file=/src/participant.ts) to the `participant.ts` file.
 
 Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world.
 This makes it possible to reach a large audience in realtime.
