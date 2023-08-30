@@ -240,5 +240,8 @@ Here is how you can access the selected device:
 
 ```typescript
 call.speaker.state.volume; // current volume
-call.speaker.state.volume$.subscribe(console.log); // Reactive value for volume, you can subscribe to changes
+// Reactive value for volume, you can subscribe to changes
+call.speaker.state.volume$.subscribe((volume) => {
+  console.log(volume);
+});
 ```
