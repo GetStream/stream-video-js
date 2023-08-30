@@ -14,11 +14,15 @@ export class SpeakerState {
 
   /**
    * An Observable that emits the currently selected device
+   *
+   * Note: this feature is not supported in React Native
    */
   selectedDevice$: Observable<string | undefined>;
 
   /**
    * An Observable that emits the currently selected volume
+   *
+   * Note: this feature is not supported in React Native
    */
   volume$: Observable<number | undefined>;
 
@@ -33,6 +37,8 @@ export class SpeakerState {
 
   /**
    * The currently selected device
+   *
+   * Note: this feature is not supported in React Native
    */
   get selectedDevice() {
     return this.getCurrentValue(this.selectedDevice$);
@@ -40,6 +46,8 @@ export class SpeakerState {
 
   /**
    * The currently selected volume
+   *
+   * Note: this feature is not supported in React Native
    */
   get volume() {
     return this.getCurrentValue(this.volume$);

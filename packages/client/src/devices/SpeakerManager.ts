@@ -35,8 +35,13 @@ export class SpeakerManager {
   /**
    * Set the volume of the audio elements
    * @param volume a number between 0 and 1, `undefined` means to use the default volume level
+   *
+   * Note: this method is not supported in React Native
    */
   setVolume(volume: number | undefined) {
+    if (isReactNative()) {
+      throw new Error('This feature is not supported in React Native');
+    }
     if (volume && (volume < 0 || volume > 1)) {
       throw new Error('Volume must be between 0 and 1');
     }
