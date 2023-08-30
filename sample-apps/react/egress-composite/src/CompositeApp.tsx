@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import {
   Call,
   CallingState,
@@ -7,41 +7,50 @@ import {
   StreamTheme,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import Layouts, { DEFAULT_LAYOUT_ID, LayoutId } from './layouts';
-import { useAppConfig } from './hooks/useAppConfig';
-import { EgressReadyNotificationProvider } from './hooks/useNotifyEgress';
+
+import { useConfigurationContext } from './ConfigurationContext';
+import { EgressReadyNotificationProvider, useExternalCSS } from './hooks';
+import { UIDispatcher, LogoAndTitleOverlay } from './components';
+
 import './CompositeApp.scss';
 
 export const CompositeApp = () => {
-  const config = useAppConfig();
+  const {
+    base_url: baseURL,
+    api_key: apiKey,
+    user_id: userId,
+    call_type: callType,
+    call_id: callId,
+    token,
+  } = useConfigurationContext();
+
   const options: StreamClientOptions = {};
-  if (config.baseURL) {
-    options.baseURL = config.baseURL;
+  if (baseURL) {
+    options.baseURL = baseURL;
   }
   const [client] = useState<StreamVideoClient>(
-    () => new StreamVideoClient(config.apiKey, options),
+    () => new StreamVideoClient(apiKey, options),
   );
 
   useEffect(() => {
     client.connectUser(
       {
-        id: config.userId,
+        id: userId,
       },
-      config.token,
+      token,
     );
 
     return () => {
       client.disconnectUser();
     };
-  }, [client, config.userId, config.token]);
+  }, [client, token, userId]);
 
   const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
     if (!client) return;
     let joinInterrupted = false;
-    const call = client.call(config.callType, config.callId);
+    const call = client.call(callType, callId);
     const currentCall = call.join().then(() => {
       if (!joinInterrupted) {
         setActiveCall(call);
@@ -57,7 +66,7 @@ export const CompositeApp = () => {
         setActiveCall(undefined);
       });
     };
-  }, [client, config.callId, config.callType]);
+  }, [client, callType, callId]);
 
   if (!client) {
     return <h2>Connecting...</h2>;
@@ -65,29 +74,24 @@ export const CompositeApp = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamTheme>
+      <StreamThemeWrapper>
         <EgressReadyNotificationProvider>
           {activeCall && (
             <StreamCallProvider call={activeCall}>
-              <UiDispatcher layout={config.layout} />
+              <UIDispatcher />
+              <LogoAndTitleOverlay />
             </StreamCallProvider>
           )}
         </EgressReadyNotificationProvider>
-      </StreamTheme>
+        {/* <StyleComponent /> */}
+      </StreamThemeWrapper>
     </StreamVideo>
   );
 };
 
-const UiDispatcher = (props: { layout: LayoutId }) => {
-  const { layout } = props;
-  const { ParticipantsView, ScreenShareView } =
-    Layouts[layout || DEFAULT_LAYOUT_ID];
+const StreamThemeWrapper = ({ children }: PropsWithChildren) => {
+  // TODO: background style
+  useExternalCSS();
 
-  const { useHasOngoingScreenShare } = useCallStateHooks();
-  const hasScreenShare = useHasOngoingScreenShare();
-  if (hasScreenShare) {
-    return <ScreenShareView />;
-  }
-
-  return <ParticipantsView />;
+  return <StreamTheme>{children}</StreamTheme>;
 };

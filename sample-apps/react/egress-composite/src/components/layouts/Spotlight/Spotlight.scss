@@ -1,0 +1,12 @@
+.spotlight {
+  display: flex;
+  flex-wrap: wrap;
+  height: 100vh;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+
+  .str-video__participant-view {
+    transition: width 0.2s ease-in-out;
+  }
+}

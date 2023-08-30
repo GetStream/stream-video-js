@@ -10,12 +10,10 @@ const tokenProviderUrl = import.meta.env.VITE_TOKEN_PROVIDER_URL as string;
 
 type VideoClientProviderProps = {
   isAnon?: boolean;
-  role?: string;
 };
 
 export const useInitVideoClient = ({
   isAnon,
-  role,
 }: PropsWithChildren<VideoClientProviderProps>) => {
   const { callId } = useParams<{ callId: string }>();
   const { api_key, token, type } = getURLCredentials();
@@ -48,7 +46,7 @@ export const useInitVideoClient = ({
       apiKey,
       ...((isAnon || !token) && { tokenProvider }),
       ...(!isAnon && { token }),
-      user: isAnon ? { type: 'anonymous' } : role ? { ...user, role } : user,
+      user: isAnon ? { type: 'anonymous' } : user,
     });
     setClient(_client);
 

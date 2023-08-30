@@ -28,7 +28,7 @@ describe('Participant', () => {
     render(
       <ParticipantView
         participant={testParticipant}
-        videoMode={'video'}
+        trackType="videoTrack"
         isVisible={false}
         ParticipantLabel={ParticipantLabel}
         ParticipantReaction={ParticipantReaction}
@@ -62,7 +62,7 @@ describe('Participant', () => {
     render(
       <ParticipantView
         participant={testParticipant}
-        videoMode={'screen'}
+        trackType="screenShareTrack"
         ParticipantLabel={ParticipantLabel}
         ParticipantReaction={ParticipantReaction}
         ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}
@@ -91,7 +91,7 @@ describe('Participant', () => {
     render(
       <ParticipantView
         participant={testParticipant}
-        videoMode={'video'}
+        trackType="videoTrack"
         ParticipantLabel={ParticipantLabel}
         ParticipantReaction={ParticipantReaction}
         ParticipantNetworkQualityIndicator={ParticipantNetworkQualityIndicator}

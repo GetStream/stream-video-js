@@ -57,8 +57,7 @@ export const SpeakerLayout = ({
   useEffect(() => {
     if (!scrollWrapper || !call) return;
 
-    const cleanup = call.viewportTracker.setViewport(scrollWrapper);
-
+    const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
   }, [scrollWrapper, call]);
 
@@ -97,7 +96,9 @@ export const SpeakerLayout = ({
             <ParticipantView
               participant={participantInSpotlight}
               muteAudio={isSpeakerScreenSharing}
-              videoMode={isSpeakerScreenSharing ? 'screen' : 'video'}
+              trackType={
+                isSpeakerScreenSharing ? 'screenShareTrack' : 'videoTrack'
+              }
               ParticipantViewUI={ParticipantViewUISpotlight}
               VideoPlaceholder={VideoPlaceholder}
             />

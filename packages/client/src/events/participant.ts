@@ -23,7 +23,10 @@ export const watchParticipantJoined = (state: CallState) => {
       Object.assign<StreamVideoParticipant, Partial<StreamVideoParticipant>>(
         participant,
         {
-          viewportVisibilityState: VisibilityState.UNKNOWN,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.UNKNOWN,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         },
       ),
     );

@@ -17,7 +17,7 @@ import {
 import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import { ChatRound, PaperclipIcon } from '../Icons';
-import { SendButton } from '../ChatInput';
+import ChatSendButton from '../ChatSendButton';
 
 import type { ConnectionError } from '../../hooks/useChatClient';
 
@@ -77,7 +77,7 @@ export const ActiveChat = ({ channelId, channelType }: ActiveChatProps) => {
   return (
     <Channel
       EmptyStateIndicator={NoMessages}
-      SendButton={SendButton}
+      SendButton={ChatSendButton}
       FileUploadIcon={PaperclipIcon}
       doMarkReadRequest={doMarkReadRequest}
     >
@@ -99,7 +99,6 @@ export const Chat = ({ chatConnectionError, ...props }: ActiveChatProps) => {
       <div className={styles['chat-stand-in']}>
         <h4>Failed to load chat</h4>
         <p>{chatConnectionError.message}</p>
-        {/*<p>{JSON.parse(chatConnectionError.message).message}</p>*/}
       </div>
     );
   }

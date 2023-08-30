@@ -4,8 +4,8 @@ title: ParticipantView
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import ParticipantCameraOn from '../../assets/04-ui-components/participant-camera-on.png';
-import ParticipantCameraOff from '../../assets/04-ui-components/participant-camera-off.png';
+import ParticipantCameraOn from '../../assets/04-ui-components/participants/participant-view/participant-camera-on.png';
+import ParticipantCameraOff from '../../assets/04-ui-components/participants/participant-view/participant-camera-off.png';
 
 import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
 import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
@@ -50,10 +50,11 @@ In order to use the `ParticipantView` as a standalone component, you should use 
 ```tsx
 import {
   ParticipantView,
-  useParticipants,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
 const App = () => {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
 
   // Here to show the demo, we pass only first participant. You can pass any of the participant.
@@ -71,13 +72,13 @@ The participant to be rendered in the `ParticipantView`.
 | --------------------------------------------------------------------------------------------------------------- |
 | [`StreamVideoParticipant`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/types.ts) |
 
-### `videoMode`
+### `trackType`
 
 The type of the participant stream to be rendered. Eg: screen sharing or participant's video stream.
 
-| Type                |
-| ------------------- |
-| `video` \| `screen` |
+| Type                               | Default Value |
+| ---------------------------------- | ------------- |
+| `videoTrack` \| `screenShareTrack` | `videoTrack`  |
 
 ### `style`
 
@@ -119,8 +120,8 @@ When set to false, the video stream will not be shown even if it is available.
 
 Our [UI cookbook](../../../ui-cookbook/overview) tells all the important information about the component customizations.
 
-- [Video fallback](../../../ui-cookbook/participant-video-fallback)
-- [Connection Quality Indicator](../../../ui-cookbook/connection-quality-indicator)
+- [Video fallback](../../../ui-cookbook/video-fallback)
+- [Network Quality Indicator](../../../ui-cookbook/network-quality-indicator)
 - [Custom Label](../../../ui-cookbook/participant-label)
 - [Video Renderer](../../../ui-cookbook/video-renderer)
-- [Reaction](../../../ui-cookbook/participant-reaction)
+- [Reactions](../../../ui-cookbook/reaction)
