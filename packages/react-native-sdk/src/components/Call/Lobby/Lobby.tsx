@@ -17,6 +17,7 @@ import {
   JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 
 /**
  * Props for the Lobby Component.
@@ -55,6 +56,8 @@ export const Lobby = ({
   const { t } = useI18n();
   const localVideoStream = call?.camera.state.mediaStream;
   const participantsCount = session?.participants.length;
+
+  useCallMediaStreamCleanup();
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,

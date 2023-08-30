@@ -17,6 +17,7 @@ import {
   CallTopView as DefaultCallTopView,
   CallTopViewProps,
 } from '../CallTopView';
+import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 
 /**
  * Props for the OutgoingCall Component.
@@ -90,6 +91,8 @@ const Background = () => {
   const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
   const localVideoStream = call?.camera.state.mediaStream;
+
+  useCallMediaStreamCleanup();
 
   if (status === 'disabled' || !localVideoStream) {
     return (
