@@ -19,14 +19,25 @@
   "files": [
     "dist",
     "src",
-    "ios",
     "android",
+    "ios",
+    "cpp",
     "index.ts",
     "stream-video-react-native.podspec",
     "package.json",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
   ],
   "dependencies": {
     "@stream-io/i18n": "workspace:^",

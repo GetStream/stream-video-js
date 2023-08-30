@@ -2,10 +2,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "target": "esnext",
-    "module": "commonjs",
     "types": ["react-native", "jest"],
-    "lib": ["es2019"],
     "declaration": true,
+    "lib": ["esnext"],
+    "module": "esnext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -15,8 +15,14 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
-    "jsx": "react-native"
+    "jsx": "react"
   },
-  "include": ["./src", "index.ts", "__tests__", "./jest-setup.ts", "version.ts"],
+  "include": [
+    "./src",
+    "index.ts",
+    "__tests__",
+    "./jest-setup.ts",
+    "version.ts"
+  ],
   "exclude": ["./dist", "node_modules"]
 }
