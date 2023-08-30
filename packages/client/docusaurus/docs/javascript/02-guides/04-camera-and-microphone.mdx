@@ -205,7 +205,10 @@ call.speaker.state.isDeviceSelectionSupported;
 // The error handler is called if the user denies permission to use audio
 call.speaker
   .listDevices()
-  .subscribe({ next: console.log, error: console.error });
+  .subscribe({ 
+    next: (devices) => console.log(devices), 
+    error: (err) => console.error(err),
+  });
 
 // Select device
 call.speaker.select('device Id');
