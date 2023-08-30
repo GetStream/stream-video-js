@@ -3,7 +3,7 @@ const { makeMetroConfig } = require('@rnx-kit/metro-config');
 const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
 const { getDefaultConfig } = require('expo/metro-config');
 
-const reactNativeSdkPak = require('../../../packages/react-native-sdk/package.json');
+const reactNativeSdkPak = require('@stream-io/video-react-native-sdk/package.json');
 const reactNativeSdkModules = Object.keys({
   ...reactNativeSdkPak.peerDependencies,
 });
