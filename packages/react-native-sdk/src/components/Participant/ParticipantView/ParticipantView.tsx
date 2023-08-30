@@ -1,6 +1,9 @@
 import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  StreamVideoParticipant,
+  VideoTrackType,
+} from '@stream-io/video-client';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
   ParticipantNetworkQualityIndicatorProps,
@@ -23,7 +26,7 @@ import {
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
 
-export type ParticipantVideoType = 'video' | 'screen';
+export type ParticipantVideoType = VideoTrackType;
 
 export type ParticipantViewComponentProps = {
   /**
@@ -66,9 +69,9 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
    */
   videoZOrder?: number;
   /**
-   * The video kind that will be displayed.
+   * The video track that is to be displayed.
    */
-  videoMode?: ParticipantVideoType;
+  trackType?: ParticipantVideoType;
   /**
    * Custom style to be merged with the participant view.
    */
@@ -88,7 +91,7 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
  */
 export const ParticipantView = ({
   participant,
-  videoMode = 'video',
+  trackType = 'videoTrack',
   isVisible = true,
   style,
   ParticipantLabel = DefaultParticipantLabel,
@@ -102,7 +105,7 @@ export const ParticipantView = ({
     theme: { colors, participantView },
   } = useTheme();
   const { isSpeaking, userId } = participant;
-  const isScreenSharing = videoMode === 'screen';
+  const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
   const speakerStyle = applySpeakerStyle && [
     styles.highligtedContainer,
@@ -126,14 +129,14 @@ export const ParticipantView = ({
         <VideoRenderer
           isVisible={isVisible}
           participant={participant}
-          videoMode={videoMode}
+          trackType={trackType}
           ParticipantVideoFallback={ParticipantVideoFallback}
           videoZOrder={videoZOrder}
         />
       )}
       <View style={[styles.footerContainer, participantView.footerContainer]}>
         {ParticipantLabel && (
-          <ParticipantLabel participant={participant} videoMode={videoMode} />
+          <ParticipantLabel participant={participant} trackType={trackType} />
         )}
         {ParticipantNetworkQualityIndicator && (
           <ParticipantNetworkQualityIndicator participant={participant} />

@@ -44,6 +44,7 @@ yarn add @stream-io/react-native-webrtc react-native-device-info \
     @react-native-community/netinfo @notifee/react-native
 npx pod-install
 ```
+
 #### Add Stream Video SDK's setup method
 
 ##### Android
@@ -51,6 +52,7 @@ npx pod-install
 Add the following in your `MainApplication.java` file:
 
 <!-- vale off -->
+
 ```java
 // highlight-next-line
 import com.streamvideo.reactnative.StreamVideoReactNative;
@@ -66,6 +68,7 @@ public class MainApplication extends Application implements ReactApplication {
   }
 }
 ```
+
 <!-- vale on -->
 
 ##### iOS
@@ -193,7 +196,6 @@ export default function App() {
   );
 }
 
-
 const LivestreamUI = () => (
   <Text style={{ fontSize: 30, color: 'black' }}>TODO: render video</Text>
 );
@@ -264,7 +266,12 @@ In this step, we're going to build a UI for showing your local video with a butt
 In `App.tsx` replace the `LivestreamUI` component with the following code:
 
 ```tsx
-import { useCall, useCallStateHooks, useIncallManager, VideoRenderer } from '@stream-io/video-react-native-sdk';
+import {
+  useCall,
+  useCallStateHooks,
+  useIncallManager,
+  VideoRenderer,
+} from '@stream-io/video-react-native-sdk';
 import { Button, Text, StyleSheet } from 'react-native';
 
 const LivestreamUI = () => {
@@ -285,7 +292,10 @@ const LivestreamUI = () => {
       <Text style={styles.text}>Live: {totalParticipants}</Text>
       <View style={styles.flexed}>
         {localParticipant && (
-          <VideoRenderer participant={localParticipant} videoMode="video" />
+          <VideoRenderer
+            participant={localParticipant}
+            trackType="videoTrack"
+          />
         )}
       </View>
       <View style={styles.bottomBar}>
@@ -339,14 +349,15 @@ Let's take a moment to review the code above.
 You can see we use a few hooks to get the call state. The ones used in this example are:
 
 ```ts
-  const { useParticipantCount, useLocalParticipant, useIsCallLive } = useCallStateHooks();
+const { useParticipantCount, useLocalParticipant, useIsCallLive } =
+  useCallStateHooks();
 ```
 
 In this example, we use:
 
-* `useParticipantCount`: the number of participants watching the livestream
-* `useLocalParticipant`: the local participant object, to get the video stream.
-* `useIsCallLive`: a boolean that returns if the call is in backstage mode or not
+- `useParticipantCount`: the number of participants watching the livestream
+- `useLocalParticipant`: the local participant object, to get the video stream.
+- `useIsCallLive`: a boolean that returns if the call is in backstage mode or not
 
 There are many possibilities and the [call and participant state](../../core/call-and-participant-state/) docs explain this in more detail.
 
