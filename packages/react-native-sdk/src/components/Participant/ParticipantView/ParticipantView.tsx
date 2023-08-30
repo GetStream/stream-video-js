@@ -69,7 +69,7 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
    */
   videoZOrder?: number;
   /**
-   * The video kind that will be displayed.
+   * The video track that is to be displayed.
    */
   trackType?: ParticipantVideoType;
   /**
