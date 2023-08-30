@@ -75,16 +75,16 @@ export const renderAudioOutputSelector = (call: Call) => {
 export const renderVolumeControl = (call: Call) => {
   const element = document.createElement('input') as HTMLInputElement;
   element.type = 'range';
-  element.min = 0;
-  element.max = 1;
-  element.step = 0.1;
+  element.min = '0';
+  element.max = '1';
+  element.step = '0.1';
 
   element.addEventListener('change', (event) => {
     call.speaker.setVolume((event.target as any).value);
   });
 
   call.speaker.state.volume$.subscribe((volume) => {
-    element.value = volume || 0;
+    element.value = '' + (volume || 0);
   });
 
   return element;
