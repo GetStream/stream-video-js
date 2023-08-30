@@ -21,9 +21,9 @@ export const getPreferredCodecs = (
     const codec = c.mimeType.toLowerCase();
     logger?.('debug', `Found supported codec: ${codec}`);
     const shouldRemoveCodec =
-      codecToRemove && codec === `${kind}/${codecToRemove}`;
+      codecToRemove && codec === `${kind}/${codecToRemove.toLowerCase()}`;
     if (shouldRemoveCodec) return;
-    const matchesCodec = codec === `${kind}/${preferredCodec}`;
+    const matchesCodec = codec === `${kind}/${preferredCodec.toLowerCase()}`;
     if (!matchesCodec) {
       unmatched.push(c);
       return;
