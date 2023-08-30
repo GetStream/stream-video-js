@@ -2,11 +2,15 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
+// Added for @stream-io/react-native-webrtc
+#import "StreamVideoReactNative.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  // Added for @stream-io/react-native-webrtc
+  [StreamVideoReactNative setup];
   self.moduleName = @"main";
 
   // You can add your custom initial props in the dictionary below.

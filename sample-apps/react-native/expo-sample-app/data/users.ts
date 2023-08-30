@@ -8,6 +8,8 @@ const khushalToken = USER_TOKEN_KHUSHAL;
 const santhoshToken = USER_TOKEN_SANTHOSH;
 const vishalToken = USER_TOKEN_VISHAL;
 
+console.log(khushalToken, santhoshToken, vishalToken);
+
 export const users = [
   {
     id: 'khushal',

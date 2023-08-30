@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "exposampleapp.app"
-               BlueprintName = "exposampleapp"
-               ReferencedContainer = "container:exposampleapp.xcodeproj">
+               BuildableName = "expovideosample.app"
+               BlueprintName = "expovideosample"
+               ReferencedContainer = "container:expovideosample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "exposampleappTests.xctest"
-               BlueprintName = "exposampleappTests"
-               ReferencedContainer = "container:exposampleapp.xcodeproj">
+               BuildableName = "expovideosampleTests.xctest"
+               BlueprintName = "expovideosampleTests"
+               ReferencedContainer = "container:expovideosample.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "exposampleapp.app"
-            BlueprintName = "exposampleapp"
-            ReferencedContainer = "container:exposampleapp.xcodeproj">
+            BuildableName = "expovideosample.app"
+            BlueprintName = "expovideosample"
+            ReferencedContainer = "container:expovideosample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "exposampleapp.app"
-            BlueprintName = "exposampleapp"
-            ReferencedContainer = "container:exposampleapp.xcodeproj">
+            BuildableName = "expovideosample.app"
+            BlueprintName = "expovideosample"
+            ReferencedContainer = "container:expovideosample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

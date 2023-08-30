@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "expo-sample-app",
-    "slug": "expo-sample-app",
-    "scheme": "expo-sample-app",
+    "name": "expo-video-sample",
+    "slug": "expo-video-sample",
+    "scheme": "expo-video-sample",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
-      "bundleIdentifier": "com.anonymous.expo-sample-app"
+      "bundleIdentifier": "com.anonymous.expo-video-sample"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +35,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.anonymous.exposampleapp"
     },

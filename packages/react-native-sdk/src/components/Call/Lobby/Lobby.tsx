@@ -100,6 +100,7 @@ export const Lobby = ({
               lobby.videoContainer,
             ]}
           >
+            <View style={styles.topView} />
             {isVideoAvailable ? (
               <RTCView
                 mirror={true}
@@ -223,6 +224,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 8,
   },
+  topView: {},
   infoContainer: {
     padding: 12,
     borderRadius: 10,

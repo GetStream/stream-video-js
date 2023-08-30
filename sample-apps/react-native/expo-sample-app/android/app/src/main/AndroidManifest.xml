@@ -7,6 +7,7 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -26,7 +27,7 @@
     <meta-data android:name="expo.modules.updates.EXPO_SDK_VERSION" android:value="48.0.0"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
     <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
-    <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://exp.host/@anonymous/expo-sample-app"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://exp.host/@anonymous/expo-video-sample"/>
     <service android:name="io.wazo.callkeep.RNCallKeepBackgroundMessagingService" android:exported="true"/>
     <service android:name="io.wazo.callkeep.VoiceConnectionService" android:exported="true" android:label="Wazo" android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE" android:foregroundServiceType="phoneCall">
       <intent-filter>
@@ -42,7 +43,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="expo-sample-app"/>
+        <data android:scheme="expo-video-sample"/>
         <data android:scheme="com.anonymous.exposampleapp"/>
       </intent-filter>
     </activity>

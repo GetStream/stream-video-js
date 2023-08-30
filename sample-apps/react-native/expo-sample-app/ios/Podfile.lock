@@ -11,8 +11,6 @@ PODS:
     - ExpoModulesCore
   - Expo (48.0.20):
     - ExpoModulesCore
-  - ExpoDevice (5.2.1):
-    - ExpoModulesCore
   - ExpoKeepAwake (12.0.1):
     - ExpoModulesCore
   - ExpoModulesCore (1.2.7):
@@ -379,8 +377,12 @@ PODS:
     - React-jsi (= 0.71.8)
     - React-logger (= 0.71.8)
     - React-perflogger (= 0.71.8)
+  - ReactNativeIncallManager (4.1.0):
+    - React-Core
   - RNCallKeep (4.3.12):
     - React
+  - RNDeviceInfo (10.8.0):
+    - React-Core
   - RNGestureHandler (2.9.0):
     - React-Core
   - RNNotifee (7.8.0):
@@ -423,7 +425,7 @@ PODS:
   - stream-react-native-webrtc (104.0.1):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.0.1-alpha.383):
+  - stream-video-react-native (0.0.1-alpha.403):
     - React-Core
     - stream-react-native-webrtc
   - WebRTC-SDK (104.5112.17)
@@ -437,7 +439,6 @@ DEPENDENCIES:
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
   - Expo (from `../node_modules/expo`)
-  - ExpoDevice (from `../node_modules/expo-device/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -476,7 +477,9 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - ReactNativeIncallManager (from `../node_modules/react-native-incall-manager`)
   - RNCallKeep (from `../node_modules/react-native-callkeep`)
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -507,8 +510,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-font/ios"
   Expo:
     :path: "../node_modules/expo"
-  ExpoDevice:
-    :path: "../node_modules/expo-device/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
@@ -581,8 +582,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  ReactNativeIncallManager:
+    :path: "../node_modules/react-native-incall-manager"
   RNCallKeep:
     :path: "../node_modules/react-native-callkeep"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNNotifee:
@@ -608,7 +613,6 @@ SPEC CHECKSUMS:
   EXFileSystem: 0b4a2c08c2dc92146849772145d61c1773144283
   EXFont: 6ea3800df746be7233208d80fe379b8ed74f4272
   Expo: b7d2843b0a0027d0ce76121a63085764355a16ed
-  ExpoDevice: e0bebf68f978b3d353377ce42e73c20c0a070215
   ExpoKeepAwake: 69f5f627670d62318410392d03e0b5db0f85759a
   ExpoModulesCore: 653958063a301098b541ae4dfed1ac0b98db607b
   EXSplashScreen: 0e0a9ba0cf7553094e93213099bd7b42e6e237e9
@@ -647,17 +651,19 @@ SPEC CHECKSUMS:
   React-RCTVibration: 43ffd976a25f6057a7cf95ea3648ba4e00287f89
   React-runtimeexecutor: 7c51ae9d4b3e9608a2366e39ccaa606aa551b9ed
   ReactCommon: 85c98ab0a509e70bf5ee5d9715cf68dbf495b84c
+  ReactNativeIncallManager: 2385505fa5dfdbbc78925e3b8d23b30ce0cde40e
   RNCallKeep: aa9b1f9286f8f60d7b7d41ee5de47de564356aac
+  RNDeviceInfo: 5795b418ed3451ebcaf39384e6cf51f60cb931c9
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
   RNReanimated: cc5e3aa479cb9170bcccf8204291a6950a3be128
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   RNSVG: 07dbd870b0dcdecc99b3a202fa37c8ca163caec2
   stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: ae8266ce792b3d5aae916d54f6ecf3999df6d25f
+  stream-video-react-native: f1c24a2b0826de7d37256964c444d83a48ac3882
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: 065f0b74dba4832d6e328238de46eb72c5de9556
 
-PODFILE CHECKSUM: 52cac1f129d439ea9da9c5d4e35f3cd318969441
+PODFILE CHECKSUM: ffaa77401c727a1b9a8187e485fac834c052c7d2
 
 COCOAPODS: 1.12.1
