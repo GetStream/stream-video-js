@@ -5,11 +5,20 @@ import { ParticipantViewProps } from './ParticipantView';
 import {
   CallingState,
   SfuModels,
+  VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
+
+const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
+  VideoTrackType,
+  VisibilityState
+> = {
+  videoTrack: VisibilityState.UNKNOWN,
+  screenShareTrack: VisibilityState.UNKNOWN,
+} as const;
 
 /**
  * Props for the VideoRenderer component.
@@ -17,7 +26,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 export type VideoRendererProps = Pick<
   ParticipantViewProps,
   | 'ParticipantVideoFallback'
-  | 'videoMode'
+  | 'trackType'
   | 'participant'
   | 'isVisible'
   | 'videoZOrder'
@@ -29,7 +38,7 @@ export type VideoRendererProps = Pick<
  * It internally used `RTCView` to render video stream.
  */
 export const VideoRenderer = ({
-  videoMode = 'video',
+  trackType = 'videoTrack',
   participant,
   isVisible = true,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
@@ -53,7 +62,7 @@ export const VideoRenderer = ({
     screenShareStream,
   } = participant;
 
-  const isScreenSharing = videoMode === 'screen';
+  const isScreenSharing = trackType === 'screenShareTrack';
   const isPublishingVideoTrack = publishedTracks.includes(
     isScreenSharing
       ? SfuModels.TrackType.SCREEN_SHARE
@@ -73,17 +82,23 @@ export const VideoRenderer = ({
       return;
     }
     if (!isVisible) {
-      if (viewportVisibilityState !== VisibilityState.VISIBLE) {
+      if (viewportVisibilityState?.videoTrack !== VisibilityState.VISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
-          viewportVisibilityState: VisibilityState.VISIBLE,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            videoTrack: VisibilityState.VISIBLE,
+          },
         }));
       }
     } else {
-      if (viewportVisibilityState !== VisibilityState.INVISIBLE) {
+      if (viewportVisibilityState?.videoTrack !== VisibilityState.INVISIBLE) {
         call.state.updateParticipant(sessionId, (p) => ({
           ...p,
-          viewportVisibilityState: VisibilityState.INVISIBLE,
+          viewportVisibilityState: {
+            ...(p.viewportVisibilityState ?? DEFAULT_VIEWPORT_VISIBILITY_STATE),
+            videoTrack: VisibilityState.INVISIBLE,
+          },
         }));
       }
       if (subscribedVideoLayoutRef.current) {
@@ -120,7 +135,7 @@ export const VideoRenderer = ({
     // We unsubscribe their video by setting the dimension to undefined
     const dimension = isVisible ? pendingVideoLayoutRef.current : undefined;
 
-    call.updateSubscriptionsPartial(videoMode, {
+    call.updateSubscriptionsPartial(trackType, {
       [sessionId]: { dimension },
     });
 
@@ -131,7 +146,7 @@ export const VideoRenderer = ({
   }, [
     call,
     isPublishingVideoTrack,
-    videoMode,
+    trackType,
     isVisible,
     sessionId,
     hasJoinedCall,
@@ -142,7 +157,7 @@ export const VideoRenderer = ({
       subscribedVideoLayoutRef.current = undefined;
       pendingVideoLayoutRef.current = undefined;
     };
-  }, [videoMode, sessionId]);
+  }, [trackType, sessionId]);
 
   const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
     event,
@@ -167,7 +182,7 @@ export const VideoRenderer = ({
     ) {
       return;
     }
-    call.updateSubscriptionsPartial(videoMode, {
+    call.updateSubscriptionsPartial(trackType, {
       [sessionId]: {
         dimension,
       },

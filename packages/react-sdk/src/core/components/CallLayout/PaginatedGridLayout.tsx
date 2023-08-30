@@ -80,12 +80,10 @@ export const PaginatedGridLayout = ({
   const [page, setPage] = useState(0);
 
   const call = useCall();
-  const { useParticipants, useRemoteParticipants, useLocalParticipant } =
-    useCallStateHooks();
+  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
-  const localParticipant = useLocalParticipant();
 
   // only used to render video elements
   const participantGroups = useMemo(
@@ -113,12 +111,7 @@ export const PaginatedGridLayout = ({
   return (
     <>
       {remoteParticipants.map((participant) => (
-        <Audio
-          muted={false}
-          sinkId={localParticipant?.audioOutputDeviceId}
-          key={participant.sessionId}
-          audioStream={participant.audioStream}
-        />
+        <Audio key={participant.sessionId} participant={participant} />
       ))}
       <div className="str-video__paginated-grid-layout__wrapper">
         <div className="str-video__paginated-grid-layout">

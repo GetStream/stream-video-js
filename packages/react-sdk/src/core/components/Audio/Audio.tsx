@@ -1,40 +1,35 @@
-import {
-  AudioHTMLAttributes,
-  DetailedHTMLProps,
-  useEffect,
-  useRef,
-} from 'react';
+import { ComponentPropsWithoutRef, useEffect, useState } from 'react';
 import { StreamVideoParticipant } from '@stream-io/video-client';
+import { useCall } from '@stream-io/video-react-bindings';
 
-export type AudioProps = DetailedHTMLProps<
-  AudioHTMLAttributes<HTMLAudioElement>,
-  HTMLAudioElement
-> &
-  Pick<StreamVideoParticipant, 'audioStream'> & {
-    sinkId?: string;
-  };
+export type AudioProps = ComponentPropsWithoutRef<'audio'> & {
+  participant: StreamVideoParticipant;
+};
 
-// TODO: rename to BaseAudio
-export const Audio = ({ audioStream, sinkId, ...rest }: AudioProps) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
+export const Audio = ({ participant, ...rest }: AudioProps) => {
+  const call = useCall();
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
+    null,
+  );
+  const { userId, sessionId } = participant;
+
   useEffect(() => {
-    const $el = audioRef.current;
-    if (!($el && audioStream)) return;
+    if (!call || !audioElement) return;
 
-    $el.srcObject = audioStream;
+    const cleanup = call.bindAudioElement(audioElement, sessionId);
+
     return () => {
-      $el.srcObject = null;
+      cleanup?.();
     };
-  }, [audioStream]);
+  }, [call, sessionId, audioElement]);
 
-  useEffect(() => {
-    const $el = audioRef.current;
-    if (!$el || !sinkId) return;
-
-    if (($el as any).setSinkId) {
-      ($el as any).setSinkId(sinkId);
-    }
-  }, [sinkId]);
-
-  return <audio autoPlay ref={audioRef} {...rest} />;
+  return (
+    <audio
+      autoPlay
+      {...rest}
+      ref={setAudioElement}
+      data-user-id={userId}
+      data-session-id={sessionId}
+    />
+  );
 };

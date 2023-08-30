@@ -14,11 +14,20 @@ export type Patch<T> = T | ((currentValue: T) => T);
  */
 export const getCurrentValue = <T>(observable$: Observable<T>) => {
   let value!: T;
+  let err: Error | undefined = undefined;
   observable$
     .pipe(take(1))
-    .subscribe((v) => (value = v))
+    .subscribe({
+      next: (v) => {
+        value = v;
+      },
+      error: (e) => {
+        err = e;
+      },
+    })
     .unsubscribe();
 
+  if (err) throw err;
   return value;
 };
 

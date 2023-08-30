@@ -84,8 +84,10 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoMode={
-              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            trackType={
+              hasScreenShare(participantInSpotlight)
+                ? 'screenShareTrack'
+                : 'videoTrack'
             }
           />
         )}
@@ -204,8 +206,10 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoMode={
-              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            trackType={
+              hasScreenShare(participantInSpotlight)
+                ? 'screenShareTrack'
+                : 'videoTrack'
             }
           />
         )}
@@ -271,8 +275,10 @@ export const SpeakerView = () => {
         {call && participantInSpotlight && (
           <ParticipantView
             participant={participantInSpotlight}
-            videoMode={
-              hasScreenShare(participantInSpotlight) ? 'screen' : 'video'
+            trackType={
+              hasScreenShare(participantInSpotlight)
+                ? 'screenShareTrack'
+                : 'videoTrack'
             }
           />
         )}
