@@ -53,7 +53,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
       colors,
-      localParticipantsView,
+      floatingParticipantsView,
       variants: { iconSizes },
     },
   } = useTheme();
@@ -63,7 +63,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       style={[
         styles.videoFallback,
         { backgroundColor: colors.disabled },
-        localParticipantsView.videoFallback,
+        floatingParticipantsView.videoFallback,
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
@@ -87,7 +87,7 @@ export const FloatingParticipantView = ({
   VideoRenderer,
 }: FloatingParticipantViewProps) => {
   const {
-    theme: { colors, localParticipantsView },
+    theme: { colors, floatingParticipantsView },
   } = useTheme();
 
   const floatingAlignmentMap: Record<
@@ -120,7 +120,7 @@ export const FloatingParticipantView = ({
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={[styles.container, localParticipantsView.container]}
+      style={[styles.container, floatingParticipantsView.container]}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -155,7 +155,7 @@ export const FloatingParticipantView = ({
                     backgroundColor: colors.static_grey,
                     shadowColor: colors.static_black,
                   },
-                  localParticipantsView.participantViewContainer,
+                  floatingParticipantsView.participantViewContainer,
                 ]}
                 // video z order must be one above the one used in grid view
                 // (which uses the default: 0)
