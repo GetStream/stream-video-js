@@ -1,0 +1,68 @@
+name: Playwright Tests
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - 'sample-apps/react/egress-composite/**'
+      - 'packages/client/**'
+      - 'packages/react-sdk/**'
+      - 'packages/styling/**'
+      - 'packages/react-bindings/**'
+env:
+  VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
+  VITE_STREAM_USER_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
+  STREAM_SDK_TEST_APP: ${{ secrets.STREAM_SDK_TEST_APP }}
+  STREAM_SDK_TEST_ACCOUNT_EMAIL: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_EMAIL }}
+  STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
+  STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build packages
+        env:
+          NODE_ENV: production
+        run: yarn build:react:deps
+
+      - name: 💾 Cache Playwright browsers
+        uses: actions/cache@v3
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}${{ runner.arch }}-playwright-browsers
+
+      - name: Install Playwright browsers if not cached
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
+      - name: Install Playwright system dependencies (always)
+        run: npx playwright install-deps
+
+      - name: Run Playwright tests
+        working-directory: sample-apps/react/egress-composite
+        run: yarn buddy auth && yarn test:e2e
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
