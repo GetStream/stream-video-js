@@ -11,7 +11,6 @@ export * from './src/components';
 export * from './src/types';
 export * from './src/translations';
 export {
-  useBrowserMediaPermissions,
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
   useToggleAudioMuteState,

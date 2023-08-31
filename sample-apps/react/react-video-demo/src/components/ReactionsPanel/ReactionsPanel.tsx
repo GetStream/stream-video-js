@@ -10,22 +10,39 @@ export const defaultEmojiReactions: Record<
   string,
   { emoji: string; label: string; custom: object; type: string }
 > = {
-  ':like:': {
-    emoji: '👍',
-    label: 'Like',
-    custom: {},
-    type: 'reaction',
-  },
-
   ':raise-hand:': {
     emoji: '✋',
     label: 'Raise hand',
     custom: {},
     type: 'raised-hand',
   },
+  ':like:': {
+    emoji: '👍',
+    label: 'Like',
+    custom: {},
+    type: 'reaction',
+  },
+  ':dislike:': {
+    emoji: '👎',
+    label: 'Dislike',
+    custom: {},
+    type: 'reaction',
+  },
   ':fireworks:': {
     emoji: '🎉',
     label: 'Fireworks',
+    custom: {},
+    type: 'reaction',
+  },
+  ':hart:': {
+    emoji: '❤️',
+    label: 'Hart',
+    custom: {},
+    type: 'reaction',
+  },
+  ':smile:': {
+    emoji: '😀',
+    label: 'Smile',
     custom: {},
     type: 'reaction',
   },

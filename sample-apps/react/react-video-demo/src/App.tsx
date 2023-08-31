@@ -13,7 +13,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useBrowserMediaPermissions,
+  useHasBrowserPermissions,
 } from '@stream-io/video-react-sdk';
 
 import LobbyView from './components/Views/LobbyView';
@@ -53,6 +53,9 @@ const Init = () => {
   const [storedDeviceSettings, setStoredDeviceSettings] =
     useState<LocalDeviceSettings>();
 
+  const [hasBrowserMediaPermissions, setHasBrowserMediaPermissions] =
+    useState<boolean>(false);
+
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
 
@@ -60,8 +63,18 @@ const Init = () => {
 
   const { edges, fastestEdge } = useEdges(client);
 
-  const { hasBrowserMediaPermissions, isAwaitingPermission } =
-    useBrowserMediaPermissions();
+  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
+    'camera' as PermissionName,
+  );
+  const hasBrowserPermissionMicrophoneInput = useHasBrowserPermissions(
+    'microphone' as PermissionName,
+  );
+
+  useEffect(() => {
+    if (hasBrowserPermissionVideoInput && hasBrowserPermissionMicrophoneInput) {
+      setHasBrowserMediaPermissions(true);
+    }
+  }, [hasBrowserPermissionVideoInput, hasBrowserPermissionMicrophoneInput]);
 
   useEffect(() => {
     const _client = new StreamVideoClient({
@@ -195,9 +208,7 @@ const Init = () => {
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
-                browserPermissionsEnabled={
-                  hasBrowserMediaPermissions && !isAwaitingPermission
-                }
+                browserPermissionsEnabled={hasBrowserMediaPermissions}
               />
             )}
           </ModalProvider>
