@@ -6,8 +6,13 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import {
+  SdkType,
+  TrackType,
+  VideoDimension,
+} from '../gen/video/sfu/models/models';
+import {
+  combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
   map,
@@ -15,6 +20,7 @@ import {
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
+import { getSdkInfo } from '../client-details';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -326,12 +332,23 @@ export class DynascaleManager {
         });
       });
 
-    const sinkIdSubscription = this.call.state.localParticipant$.subscribe(
-      (p) => {
-        if (p && p.audioOutputDeviceId && 'setSinkId' in audioElement) {
-          // @ts-expect-error setSinkId is not yet in the lib
-          audioElement.setSinkId(p.audioOutputDeviceId);
-        }
+    const sinkIdSubscription = combineLatest([
+      this.call.state.localParticipant$,
+      this.call.speaker.state.selectedDevice$,
+    ]).subscribe(([p, selectedDevice]) => {
+      const deviceId =
+        getSdkInfo()?.type === SdkType.REACT
+          ? p?.audioOutputDeviceId
+          : selectedDevice;
+      if ('setSinkId' in audioElement) {
+        // @ts-expect-error setSinkId is not yet in the lib
+        audioElement.setSinkId(deviceId);
+      }
+    });
+
+    const volumeSubscription = this.call.speaker.state.volume$.subscribe(
+      (volume) => {
+        audioElement.volume = volume;
       },
     );
 
@@ -339,6 +356,7 @@ export class DynascaleManager {
 
     return () => {
       sinkIdSubscription.unsubscribe();
+      volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
     };
   };

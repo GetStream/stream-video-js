@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.408](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.407...@stream-io/video-react-native-sdk-0.0.1-alpha.408) (2023-08-31)
+
+
+
+## [0.0.1-alpha.407](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.406...@stream-io/video-react-native-sdk-0.0.1-alpha.407) (2023-08-31)
+
+
+
+## [0.0.1-alpha.406](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.405...@stream-io/video-react-native-sdk-0.0.1-alpha.406) (2023-08-31)
+
+
+
+## [0.0.1-alpha.405](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.404...@stream-io/video-react-native-sdk-0.0.1-alpha.405) (2023-08-31)
+
+
+
+## [0.0.1-alpha.404](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.403...@stream-io/video-react-native-sdk-0.0.1-alpha.404) (2023-08-31)
+
+
+### Bug Fixes
+
+* **react-native:** blank stream on join ([#1022](https://github.com/GetStream/stream-video-js/issues/1022)) ([d5a48f6](https://github.com/GetStream/stream-video-js/commit/d5a48f6e75bf4e1b5c0745b7f0b001fd0ac4b183))
+* **react-native:** cleanup video streams on lobby view ([762b9bf](https://github.com/GetStream/stream-video-js/commit/762b9bfd390a7c90fc3eba381766317ea298745f))
+
+
+
 ## [0.0.1-alpha.403](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.402...@stream-io/video-react-native-sdk-0.0.1-alpha.403) (2023-08-30)
 
 
