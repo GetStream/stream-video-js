@@ -5,7 +5,7 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "dryRun": false,
+        "dryRun": true,
         "preset": {
           "name": "angular",
           "preMajor": true,
