@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.412](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.411...@stream-io/video-react-native-sdk-0.0.1-alpha.412) (2023-08-31)
+
+
+### Features
+
+* **react-native:** handle participant switch in floating participant view for 1:1 calls ([#1006](https://github.com/GetStream/stream-video-js/issues/1006)) ([503b694](https://github.com/GetStream/stream-video-js/commit/503b6945c65028f92d704f1b2fc322525d989863))
+
+
+
 ## [0.0.1-alpha.411](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.410...@stream-io/video-react-native-sdk-0.0.1-alpha.411) (2023-08-31)
 
 
