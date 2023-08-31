@@ -5,9 +5,9 @@
     "version": {
       "executor": "@jscutlery/semver:version",
       "options": {
-        "dryRun": false,
+        "dryRun": true,
         "preset": {
-          "name": "angular",
+          "name": "conventionalcommits",
           "preMajor": true,
           "types": [
             {"type": "feat", "section": "Features"},
@@ -20,12 +20,10 @@
             {"type": "test", "hidden": true}
           ]
         },
-        "preid": "alpha",
-        "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "docs"],
-        "postTargets": ["@stream-io/video-react-native-sdk:update-version", "@stream-io/video-react-native-sdk:github", "@stream-io/video-react-native-sdk:publish"]
+        "postTargets": ["@stream-io/video-react-native-sdk:update-version", "@stream-io/video-react-native-sdk:github"]
       }
     },
     "update-version": {
