@@ -40,8 +40,11 @@ export const getCurrentValue = <T>(observable$: Observable<T>) => {
  * @param update the update to apply to the subject.
  * @return the updated value.
  */
-export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
-  const next =
+export const setCurrentValue = <T>(
+  subject: Subject<T>,
+  update: Patch<T>,
+): T => {
+  const next: T =
     // TypeScript needs more context to infer the type of update
     typeof update === 'function' && update instanceof Function
       ? update(getCurrentValue(subject))

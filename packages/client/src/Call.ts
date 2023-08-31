@@ -232,6 +232,8 @@ export class Call {
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
+    this.camera = new CameraManager(this);
+    this.microphone = new MicrophoneManager(this);
     this.logger = getLogger(['Call']);
 
     const callTypeConfig = CallTypes.get(type);
@@ -266,43 +268,42 @@ export class Call {
         (subscriptions) => this.sfuClient?.updateSubscriptions(subscriptions),
       ),
     );
-
-    this.camera = new CameraManager(this);
-    this.microphone = new MicrophoneManager(this);
-
-    this.state.localParticipant$.subscribe(async (p) => {
-      // Mute via device manager
-      // If integrator doesn't use device manager, we mute using stopPublish
-      if (
-        !p?.publishedTracks.includes(TrackType.VIDEO) &&
-        this.publisher?.isPublishing(TrackType.VIDEO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's video track is muted remotely`,
-        );
-        await this.camera.disable();
-        if (this.publisher.isPublishing(TrackType.VIDEO)) {
-          this.stopPublish(TrackType.VIDEO);
-        }
-      }
-      if (
-        !p?.publishedTracks.includes(TrackType.AUDIO) &&
-        this.publisher?.isPublishing(TrackType.AUDIO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's audio track is muted remotely`,
-        );
-        await this.microphone.disable();
-        if (this.publisher.isPublishing(TrackType.AUDIO)) {
-          this.stopPublish(TrackType.AUDIO);
-        }
-      }
-    });
   }
 
   private registerEffects() {
+    this.leaveCallHooks.add(
+      createSubscription(this.state.localParticipant$, async (p) => {
+        // Mute via device manager
+        // If integrator doesn't use device manager, we mute using stopPublish
+        if (
+          !p?.publishedTracks.includes(TrackType.VIDEO) &&
+          this.publisher?.isPublishing(TrackType.VIDEO)
+        ) {
+          this.logger(
+            'info',
+            `Local participant's video track is muted remotely`,
+          );
+          await this.camera.disable();
+          if (this.publisher.isPublishing(TrackType.VIDEO)) {
+            await this.stopPublish(TrackType.VIDEO);
+          }
+        }
+        if (
+          !p?.publishedTracks.includes(TrackType.AUDIO) &&
+          this.publisher?.isPublishing(TrackType.AUDIO)
+        ) {
+          this.logger(
+            'info',
+            `Local participant's audio track is muted remotely`,
+          );
+          await this.microphone.disable();
+          if (this.publisher.isPublishing(TrackType.AUDIO)) {
+            await this.stopPublish(TrackType.AUDIO);
+          }
+        }
+      }),
+    );
+
     this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
@@ -477,9 +478,9 @@ export class Call {
    */
   leave = async ({ reject = false }: CallLeaveOptions = {}) => {
     const callingState = this.state.callingState;
-    if (callingState === CallingState.LEFT) {
-      throw new Error('Cannot leave call that has already been left.');
-    }
+    // if (callingState === CallingState.LEFT) {
+    //   throw new Error('Cannot leave call that has already been left.');
+    // }
 
     if (callingState === CallingState.JOINING) {
       await this.assertCallJoined();
@@ -504,18 +505,21 @@ export class Call {
     this.subscriber?.close();
     this.subscriber = undefined;
 
+    await this.microphone.disable();
+    await this.camera.disable();
+
     this.publisher?.close();
     this.publisher = undefined;
 
     this.sfuClient?.close();
     this.sfuClient = undefined;
 
-    this.dispatcher.offAll();
+    // this.dispatcher.offAll();
 
     // Call all leave call hooks, e.g. to clean up global event handlers
-    this.leaveCallHooks.forEach((hook) => hook());
+    // this.leaveCallHooks.forEach((hook) => hook());
 
-    this.clientStore.unregisterCall(this);
+    // this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
   };
 
@@ -567,7 +571,6 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
     }
 
     return response;
@@ -594,7 +597,6 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
     }
 
     return response;
@@ -666,11 +668,11 @@ export class Call {
       throw new Error(`Illegal State: Already joined.`);
     }
 
-    if (callingState === CallingState.LEFT) {
-      throw new Error(
-        'Illegal State: Cannot join already left call. Create a new Call instance to join a call.',
-      );
-    }
+    // if (callingState === CallingState.LEFT) {
+    //   throw new Error(
+    //     'Illegal State: Cannot join already left call. Create a new Call instance to join a call.',
+    //   );
+    // }
 
     const isMigrating = callingState === CallingState.MIGRATING;
     this.state.setCallingState(CallingState.JOINING);
@@ -699,7 +701,6 @@ export class Call {
 
       if (this.streamClient._hasConnectionID()) {
         this.watching = true;
-        this.clientStore.registerCall(this);
       }
     } catch (error) {
       // restore the previous call state if the join-flow fails
@@ -1011,7 +1012,11 @@ export class Call {
           await this.initCamera();
           await this.initMic();
         } catch (error) {
-          this.logger('warn', 'Camera and/or mic init failed during join call');
+          this.logger(
+            'warn',
+            'Camera and/or mic init failed during join call',
+            error,
+          );
         }
       }
 
@@ -1893,10 +1898,10 @@ export class Call {
       this.microphone.state.mediaStream &&
       !this.publisher?.isPublishing(TrackType.AUDIO)
     ) {
-      this.publishAudioStream(this.microphone.state.mediaStream);
+      await this.publishAudioStream(this.microphone.state.mediaStream);
     }
 
-    // Start mic if backend config speicifies, and there is no local setting
+    // Start mic if backend config specifies, and there is no local setting
     if (
       this.microphone.state.status === undefined &&
       this.state.settings?.audio.mic_default_on

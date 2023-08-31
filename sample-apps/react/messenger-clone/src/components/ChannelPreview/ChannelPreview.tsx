@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import { MouseEvent, useMemo } from 'react';
 import clsx from 'clsx';
 import {
   Avatar as DefaultAvatar,
@@ -21,7 +21,6 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
     unread,
     watchers,
   } = props;
-  const channelPreviewButton = useRef<HTMLButtonElement | null>(null);
   const calls = useCalls();
   const callToChannel = useMemo(() => {
     return calls.find((call) => call.state.custom.channelCid === channel.cid);
@@ -31,19 +30,16 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
     displayTitle ||
     channel.state.messages[channel.state.messages.length - 1]?.user?.id;
 
-  const onSelectChannel = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onSelectChannel = (e: MouseEvent<HTMLElement>) => {
     if (customOnSelectChannel) {
       customOnSelectChannel(e);
     } else if (setActiveChannel) {
       setActiveChannel(channel, watchers);
     }
-    if (channelPreviewButton?.current) {
-      channelPreviewButton.current.blur();
-    }
   };
 
   return (
-    <button
+    <div
       aria-label={`Select Channel: ${displayTitle || ''}`}
       aria-selected={active}
       className={clsx(
@@ -54,8 +50,6 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
       )}
       data-testid="channel-preview-button"
       onClick={onSelectChannel}
-      ref={channelPreviewButton}
-      role="option"
     >
       <div className="str-chat__channel-preview-messenger--left">
         <Avatar image={displayImage} name={avatarName} size={40} />
@@ -83,7 +77,7 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
           {latestMessage}
         </div>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -91,6 +85,4 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
  * Used as preview component for channel item in [ChannelList](#channellist) component.
  * Its best suited for messenger type chat.
  */
-export const ChannelPreview = React.memo(
-  UnMemoizedChannelPreview,
-) as typeof UnMemoizedChannelPreview;
+export const ChannelPreview = UnMemoizedChannelPreview;

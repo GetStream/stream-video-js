@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   Call,
-  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -43,8 +42,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
-  const [client, setClient] = useState<StreamVideoClient>();
 
+  const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
     const _client = new StreamVideoClient({
       apiKey,
@@ -64,8 +63,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
     };
-  }, []);
-  const [call, setCall] = useState<Call>();
+  }, [apiKey, tokenProvider, user]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -73,17 +71,17 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
   });
 
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const _call = client?.call(callType, callId);
+    if (!client) return;
+    const _call = client.call(callType, callId);
     setCall(_call);
 
     return () => {
-      if (_call?.state.callingState !== CallingState.LEFT) {
-        _call?.leave();
-      }
       setCall(undefined);
+      _call.leave();
     };
-  }, [client]);
+  }, [callId, callType, client]);
 
   useEffect(() => {
     call?.getOrCreate().catch((err) => {

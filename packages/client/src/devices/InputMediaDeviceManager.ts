@@ -50,9 +50,8 @@ export abstract class InputMediaDeviceManager<
     try {
       await this.enablePromise;
       this.state.setStatus('enabled');
-    } catch (error) {
+    } finally {
       this.enablePromise = undefined;
-      throw error;
     }
   }
 
@@ -72,10 +71,8 @@ export abstract class InputMediaDeviceManager<
     try {
       await this.disablePromise;
       this.state.setStatus('disabled');
+    } finally {
       this.disablePromise = undefined;
-    } catch (error) {
-      this.disablePromise = undefined;
-      throw error;
     }
   }
 
@@ -87,7 +84,7 @@ export abstract class InputMediaDeviceManager<
       this.state.prevStatus === 'enabled' &&
       this.state.status === 'disabled'
     ) {
-      this.enable();
+      await this.enable();
     }
   }
 

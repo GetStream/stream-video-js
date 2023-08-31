@@ -201,7 +201,7 @@ export class StreamVideoClient {
         const { call, members } = event;
         if (user.id === call.created_by.id) {
           this.logger(
-            'warn',
+            'debug',
             'Received `call.created` sent by the current user',
           );
           return;
@@ -236,9 +236,12 @@ export class StreamVideoClient {
         // if `call.created` was received before `call.ring`.
         // In that case, we cleanup the already tracked call.
         const prevCall = this.writeableStateStore.findCall(call.type, call.id);
-        await prevCall?.leave();
+        if (prevCall) {
+          await prevCall.leave();
+          this.writeableStateStore.unregisterCall(prevCall);
+        }
         // we create a new call
-        const theCall = new Call({
+        const incomingCall = new Call({
           streamClient: this.streamClient,
           type: call.type,
           id: call.id,
@@ -246,10 +249,10 @@ export class StreamVideoClient {
           clientStore: this.writeableStateStore,
           ringing: true,
         });
-        theCall.state.updateFromCallResponse(call);
+        incomingCall.state.updateFromCallResponse(call);
         // we fetch the latest metadata for the call from the server
-        await theCall.get();
-        this.writeableStateStore.registerCall(theCall);
+        await incomingCall.get();
+        this.writeableStateStore.registerCall(incomingCall);
       }),
     );
 
@@ -311,12 +314,17 @@ export class StreamVideoClient {
    * @param id the id of the call, if not provided a unique random value is used
    */
   call = (type: string, id: string) => {
-    return new Call({
-      streamClient: this.streamClient,
-      id: id,
-      type: type,
-      clientStore: this.writeableStateStore,
-    });
+    return (
+      this.writeableStateStore.findCall(type, id) ??
+      this.writeableStateStore.registerCall(
+        new Call({
+          type: type,
+          id: id,
+          streamClient: this.streamClient,
+          clientStore: this.writeableStateStore,
+        }),
+      )
+    );
   };
 
   /**

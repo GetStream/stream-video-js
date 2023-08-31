@@ -45,10 +45,40 @@ const renderFlipButton = (call: Call) => {
   return flipButton;
 };
 
+const renderCallLeaveButton = (call: Call) => {
+  const leaveButton = document.createElement('button');
+
+  leaveButton.addEventListener('click', async () => {
+    try {
+      await call.leave();
+    } catch (err) {
+      console.error(`Leave failed`, err);
+    }
+  });
+
+  leaveButton.innerText = 'Leave call';
+
+  return leaveButton;
+};
+
+const renderCallJoinButton = (call: Call) => {
+  const joinButton = document.createElement('button');
+
+  joinButton.addEventListener('click', async () => {
+    await call.join();
+  });
+
+  joinButton.innerText = 'Join call';
+
+  return joinButton;
+};
+
 export const renderControls = (call: Call) => {
   return {
     audioButton: renderAudioButton(call),
     videoButton: renderVideoButton(call),
     flipButton: renderFlipButton(call),
+    leaveButton: renderCallLeaveButton(call),
+    joinButton: renderCallJoinButton(call),
   };
 };

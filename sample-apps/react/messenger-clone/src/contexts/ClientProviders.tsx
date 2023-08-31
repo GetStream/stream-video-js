@@ -24,6 +24,9 @@ export const ClientProviders = ({
       user,
       token,
       tokenProvider,
+      options: {
+        logLevel: 'debug',
+      },
     });
     setVideoClient(client);
 

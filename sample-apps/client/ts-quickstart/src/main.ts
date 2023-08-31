@@ -36,12 +36,17 @@ const client = new StreamVideoClient({
   options: { logLevel: import.meta.env.VITE_STREAM_LOG_LEVEL },
 });
 const call = client.call('default', callId);
+// @ts-expect-error exposed for debug purposes
+window.call = call;
+
 call.join({ create: true }).then(async () => {
   // render mic and camera controls
   const controls = renderControls(call);
   const container = document.getElementById('call-controls')!;
   container.appendChild(controls.audioButton);
   container.appendChild(controls.videoButton);
+  container.appendChild(controls.joinButton);
+  container.appendChild(controls.leaveButton);
 
   container.appendChild(renderAudioDeviceSelector(call));
 
