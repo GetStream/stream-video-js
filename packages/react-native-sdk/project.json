@@ -20,8 +20,6 @@
             {"type": "test", "hidden": true}
           ]
         },
-        "preid": "alpha",
-        "releaseAs": "prerelease",
         "trackDeps": true,
         "push": true,
         "skipCommitTypes": ["chore", "ci", "docs"],
