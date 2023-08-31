@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.12](https://github.com/GetStream/stream-video-js/compare/client0.3.11...client0.3.12) (2023-08-31)
+
+
+### Bug Fixes
+
+* do not do any codec preferences when sending dummy sdp ([#1028](https://github.com/GetStream/stream-video-js/issues/1028)) ([3910619](https://github.com/GetStream/stream-video-js/commit/391061902ab71571e2910a0ebdfeb02e8bfd390a))
+
 ### [0.3.11](https://github.com/GetStream/stream-video-js/compare/client0.3.10...client0.3.11) (2023-08-30)
 
 
