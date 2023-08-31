@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 
 /**
  * This hook is meant to be used in Lobby view or equivalent.
+ * It will cleanup the media stream on unmount if call is not meant to be joined.
  */
 export const useCallMediaStreamCleanup = () => {
   const call = useCall();
@@ -14,16 +15,17 @@ export const useCallMediaStreamCleanup = () => {
 
   useEffect(() => {
     return () => {
+      const mediaStream = callRef.current?.camera.state.mediaStream as
+        | MediaStream
+        | undefined;
       if (
+        mediaStream &&
         !(
           callRef.current?.state.callingState === CallingState.JOINED ||
           callRef.current?.state.callingState === CallingState.JOINING
         )
       ) {
         // we cleanup media stream only if call is not joined or joining
-        const mediaStream = callRef.current?.camera.state.mediaStream as
-          | MediaStream
-          | undefined;
         disposeOfMediaStream(mediaStream);
       }
     };
