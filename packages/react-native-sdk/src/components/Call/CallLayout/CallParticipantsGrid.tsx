@@ -43,9 +43,11 @@ export const CallParticipantsGrid = ({
   const { useRemoteParticipants, useParticipants, useLocalParticipant } =
     useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
-  const allParticipants = useParticipants();
-  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
+  const _allParticipants = useParticipants();
+  // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
+  const allParticipants = useDebouncedValue(_allParticipants, 300);
 
   const showFloatingView =
     remoteParticipants.length > 0 && remoteParticipants.length < 3;
