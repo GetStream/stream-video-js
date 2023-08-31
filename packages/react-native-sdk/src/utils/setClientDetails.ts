@@ -4,9 +4,9 @@ import {
   setOSInfo,
   SfuModels,
 } from '@stream-io/video-client';
-import { getDeviceInfoLib } from './device-info/libs';
 import { Platform } from 'react-native';
 import { version } from '../../version';
+import RNDeviceInfo from 'react-native-device-info';
 
 const [major, minor, patch] = version.split('.');
 
@@ -18,7 +18,7 @@ export const setClientDetails = () => {
     patch,
   });
 
-  const deviceInfo = getDeviceInfoLib();
+  const deviceInfo = RNDeviceInfo;
 
   setOSInfo({
     name: Platform.OS,
