@@ -129,7 +129,6 @@ try {
       if (!rectangle) {
         return;
       }
-      console.log({ rectangle, snapAlignments, initialAlignment });
       const alignment = snapAlignments[initialAlignment];
       startRef.current = alignment;
 
