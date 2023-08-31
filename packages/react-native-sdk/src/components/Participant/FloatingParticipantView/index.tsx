@@ -9,6 +9,7 @@ import {
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
+import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
@@ -16,7 +17,6 @@ import {
   ParticipantViewComponentProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
-import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
@@ -138,7 +138,7 @@ export const FloatingParticipantView = ({
       }}
     >
       {containerDimensions && (
-        <AnimatedFloatingView
+        <FloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
           initialAlignment={floatingAlignmentMap[alignment]}
@@ -164,7 +164,7 @@ export const FloatingParticipantView = ({
               />
             )}
           </Pressable>
-        </AnimatedFloatingView>
+        </FloatingView>
       )}
     </View>
   );
