@@ -46,47 +46,13 @@ export const getPreferredCodecs = (
   return result;
 };
 
-export const getGenericSdp = async (
-  direction: RTCRtpTransceiverDirection,
-  isRedEnabled: boolean,
-  preferredVideoCodec: string | undefined,
-) => {
+export const getGenericSdp = async (direction: RTCRtpTransceiverDirection) => {
   const tempPc = new RTCPeerConnection();
   tempPc.addTransceiver('video', { direction });
-
-  // if ('setCodecPreferences' in videoTransceiver) {
-  //   const videoCodecPreferences = getPreferredCodecs(
-  //     'audio',
-  //     preferredVideoCodec ?? 'vp8',
-  //   );
-  //   videoTransceiver.setCodecPreferences([...(videoCodecPreferences ?? [])]);
-  // }
-
   tempPc.addTransceiver('audio', { direction });
-  const preferredAudioCodec = isRedEnabled ? 'red' : 'opus';
-  const audioCodecToRemove = !isRedEnabled ? 'red' : undefined;
-
-  // if ('setCodecPreferences' in audioTransceiver) {
-  //   const audioCodecPreferences = getPreferredCodecs(
-  //     'audio',
-  //     preferredAudioCodec,
-  //     // audioCodecToRemove,
-  //   );
-  //   audioTransceiver.setCodecPreferences([...(audioCodecPreferences || [])]);
-  // }
 
   const offer = await tempPc.createOffer();
   let sdp = offer.sdp ?? '';
-
-  if (isReactNative()) {
-    if (preferredVideoCodec) {
-      sdp = setPreferredCodec(sdp, 'video', preferredVideoCodec);
-    }
-    sdp = setPreferredCodec(sdp, 'audio', preferredAudioCodec);
-    if (audioCodecToRemove) {
-      sdp = removeCodec(sdp, 'audio', audioCodecToRemove);
-    }
-  }
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop();

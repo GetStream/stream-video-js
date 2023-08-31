@@ -867,13 +867,7 @@ export class Call {
         // prepare a generic SDP and send it to the SFU.
         // this is a throw-away SDP that the SFU will use to determine
         // the capabilities of the client (codec support, etc.)
-        .then(() =>
-          getGenericSdp(
-            'recvonly',
-            isRedEnabled,
-            this.streamClient.options.preferredVideoCodec,
-          ),
-        )
+        .then(() => getGenericSdp('recvonly'))
         .then((sdp) => {
           const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
           const migration: Migration | undefined = isMigrating
