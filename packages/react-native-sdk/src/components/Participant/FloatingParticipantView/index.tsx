@@ -147,7 +147,7 @@ export const FloatingParticipantView = ({
             {ParticipantView && (
               <ParticipantView
                 participant={participant}
-                videoMode={'video'}
+                trackType="videoTrack"
                 style={[
                   styles.participantViewContainer,
                   style,

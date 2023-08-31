@@ -5,9 +5,9 @@ import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 export type UR = Record<string, unknown>;
 
 export type User =
-  | (UserRequest & { type?: 'authenticated' })
-  | (UserRequest & { type: 'guest' })
-  | (Omit<UserRequest, 'id'> & {
+  | (Omit<UserRequest, 'role'> & { type?: 'authenticated' })
+  | (Omit<UserRequest, 'role'> & { type: 'guest' })
+  | (Omit<UserRequest, 'id' | 'role'> & {
       id?: '!anon';
       type: 'anonymous';
     });

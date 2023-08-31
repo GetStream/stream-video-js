@@ -10,8 +10,8 @@ import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListProps,
   CallParticipantsListComponentProps,
+  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
@@ -96,7 +96,9 @@ export const CallParticipantsSpotlight = ({
                   callParticipantsSpotlight.spotlightContainer,
                 ]
           }
-          videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          trackType={
+            isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
+          }
           {...participantViewProps}
         />
       )}

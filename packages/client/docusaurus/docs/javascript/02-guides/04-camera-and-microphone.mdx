@@ -94,16 +94,7 @@ this.camera.selectDirection(defaultDirection);
 
 #### In call
 
-This is how you can render video of a participant:
-
-```typescript
-const videoEl = document.createElement('video');
-videoEl.autoplay = true;
-
-if (videoEl.srcObject !== participant.videoStream) {
-  videoEl.srcObject = participant.videoStream || null;
-}
-```
+Follow our [Playing Video and Audio guide](../../guides/playing-video-and-audio/).
 
 #### Lobby preview
 
@@ -114,10 +105,15 @@ const call = client.call('default', '123');
 
 await call.camera.enable();
 const videoEl = document.createElement('video');
+videoEl.playsInline = true;
+videoEl.muted = true;
 videoEl.autoplay = true;
 
 if (videoEl.srcObject !== call.camera.state.mediaStream) {
   videoEl.srcObject = call.camera.state.mediaStream || null;
+  if (videoEl.srcObject) {
+    videoEl.play();
+  }
 }
 ```
 
@@ -176,16 +172,7 @@ call.microphone.state.selectedDevice$.subscribe(console.log); // Reactive value 
 
 #### In call
 
-This is how you can play audio of a participant:
-
-```typescript
-const audioEl = document.createElement('audio');
-audioEl.autoplay = true;
-
-if (audioEl.srcObject !== participant.audioStream) {
-  audioEl.srcObject = participant.audioStream || null;
-}
-```
+Follow our [Playing Video and Audio guide](../../guides/playing-video-and-audio/).
 
 #### Lobby preview
 

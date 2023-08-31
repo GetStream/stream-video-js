@@ -34,7 +34,10 @@ describe('Participant events', () => {
         {
           userId: 'user-id',
           sessionId: 'session-id',
-          viewportVisibilityState: VisibilityState.UNKNOWN,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.UNKNOWN,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         },
       ]);
 

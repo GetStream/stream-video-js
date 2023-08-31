@@ -2,6 +2,70 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.404](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.403...@stream-io/video-react-native-sdk-0.0.1-alpha.404) (2023-08-31)
+
+
+### Bug Fixes
+
+* **react-native:** blank stream on join ([#1022](https://github.com/GetStream/stream-video-js/issues/1022)) ([d5a48f6](https://github.com/GetStream/stream-video-js/commit/d5a48f6e75bf4e1b5c0745b7f0b001fd0ac4b183))
+* **react-native:** cleanup video streams on lobby view ([762b9bf](https://github.com/GetStream/stream-video-js/commit/762b9bfd390a7c90fc3eba381766317ea298745f))
+
+
+
+## [0.0.1-alpha.403](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.402...@stream-io/video-react-native-sdk-0.0.1-alpha.403) (2023-08-30)
+
+
+### Features
+
+* **Call:** Dynascale support for Plain-JS SDK ([#914](https://github.com/GetStream/stream-video-js/issues/914)) ([d295fd3](https://github.com/GetStream/stream-video-js/commit/d295fd341bbe325310fc6479f24ef647b013429b))
+
+
+
+## [0.0.1-alpha.402](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.401...@stream-io/video-react-native-sdk-0.0.1-alpha.402) (2023-08-29)
+
+
+
+## [0.0.1-alpha.401](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.400...@stream-io/video-react-native-sdk-0.0.1-alpha.401) (2023-08-29)
+
+
+
+## [0.0.1-alpha.400](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.399...@stream-io/video-react-native-sdk-0.0.1-alpha.400) (2023-08-29)
+
+
+
+## [0.0.1-alpha.399](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.398...@stream-io/video-react-native-sdk-0.0.1-alpha.399) (2023-08-29)
+
+
+
+## [0.0.1-alpha.398](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.397...@stream-io/video-react-native-sdk-0.0.1-alpha.398) (2023-08-29)
+
+
+
+## [0.0.1-alpha.397](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.396...@stream-io/video-react-native-sdk-0.0.1-alpha.397) (2023-08-29)
+
+
+### Bug Fixes
+
+* drop permission requests component ([#1005](https://github.com/GetStream/stream-video-js/issues/1005)) ([0f65717](https://github.com/GetStream/stream-video-js/commit/0f65717353dc013a0cc5c50429df871ddd99b465))
+
+
+
+## [0.0.1-alpha.396](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.395...@stream-io/video-react-native-sdk-0.0.1-alpha.396) (2023-08-29)
+
+
+
+## [0.0.1-alpha.395](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.394...@stream-io/video-react-native-sdk-0.0.1-alpha.395) (2023-08-29)
+
+
+
+## [0.0.1-alpha.394](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.393...@stream-io/video-react-native-sdk-0.0.1-alpha.394) (2023-08-29)
+
+
+
+## [0.0.1-alpha.393](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.392...@stream-io/video-react-native-sdk-0.0.1-alpha.393) (2023-08-29)
+
+
+
 ## [0.0.1-alpha.392](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.391...@stream-io/video-react-native-sdk-0.0.1-alpha.392) (2023-08-28)
 
 

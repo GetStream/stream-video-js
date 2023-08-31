@@ -1,15 +1,13 @@
 import {
   ComponentPropsWithoutRef,
   ComponentType,
-  useCallback,
   useEffect,
-  useRef,
   useState,
 } from 'react';
 import {
-  DebounceType,
   SfuModels,
   StreamVideoParticipant,
+  VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import clsx from 'clsx';
@@ -17,11 +15,16 @@ import {
   DefaultVideoPlaceholder,
   VideoPlaceholderProps,
 } from './DefaultVideoPlaceholder';
-import { BaseVideo } from './BaseVideo';
 import { useCall } from '@stream-io/video-react-bindings';
 
 export type VideoProps = ComponentPropsWithoutRef<'video'> & {
-  kind: 'video' | 'screen' | 'none';
+  /**
+   * The track type to display.
+   */
+  trackType: VideoTrackType | 'none';
+  /**
+   * The participant represented by this video element.
+   */
   participant: StreamVideoParticipant;
   /**
    * Override the default UI that's visible when a participant turned off their video.
@@ -34,7 +37,7 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
 };
 
 export const Video = ({
-  kind,
+  trackType,
   participant,
   className,
   VideoPlaceholder = DefaultVideoPlaceholder,
@@ -52,183 +55,63 @@ export const Video = ({
   } = participant;
 
   const call = useCall();
-
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
-
-  // const [videoTrackMuted, setVideoTrackMuted] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const viewportVisibilityRef = useRef<VisibilityState | undefined>(
-    viewportVisibilityState,
-  );
+  const [isWideMode, setIsWideMode] = useState(true);
 
   const stream =
-    kind === 'none'
+    trackType === 'none'
       ? undefined
-      : kind === 'video'
+      : trackType === 'videoTrack'
       ? videoStream
       : screenShareStream;
 
-  // TODO: handle track muting
-  // useEffect(() => {
-  //   if (!stream) return;
-
-  //   const [track] = stream.getVideoTracks();
-  //   setVideoTrackMuted(track.muted);
-
-  //   const handleMute = () => {
-  //     setVideoTrackMuted(true);
-  //   };
-  //   const handleUnmute = () => {
-  //     setVideoTrackMuted(false);
-  //   };
-
-  //   track.addEventListener('mute', handleMute);
-  //   track.addEventListener('unmute', handleUnmute);
-
-  //   return () => {
-  //     track.removeEventListener('mute', handleMute);
-  //     track.removeEventListener('unmute', handleUnmute);
-  //   };
-  // }, [stream]);
-
   const isPublishingTrack =
-    kind === 'none'
+    trackType === 'none'
       ? false
       : publishedTracks.includes(
-          kind === 'video'
+          trackType === 'videoTrack'
             ? SfuModels.TrackType.VIDEO
             : SfuModels.TrackType.SCREEN_SHARE,
         );
 
-  const displayPlaceholder =
-    !isPublishingTrack ||
-    (viewportVisibilityState === VisibilityState.INVISIBLE &&
-      !screenShareStream) ||
-    !videoPlaying;
+  const isInvisible =
+    trackType === 'none' ||
+    viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
 
-  const lastDimensionRef = useRef<string | undefined>();
-  const updateSubscription = useCallback(
-    (
-      dimension?: SfuModels.VideoDimension,
-      type: DebounceType = DebounceType.SLOW,
-    ) => {
-      if (!call || kind === 'none') return;
+  const displayPlaceholder = !isPublishingTrack || isInvisible || !videoPlaying;
 
-      call.updateSubscriptionsPartial(
-        kind,
-        {
-          [sessionId]: {
-            dimension,
-          },
-        },
-        type,
-      );
-    },
-    [call, kind, sessionId],
-  );
-
-  // handle visibility subscription updates
   useEffect(() => {
-    viewportVisibilityRef.current = viewportVisibilityState;
+    if (!call || !videoElement || trackType === 'none') return;
 
-    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
-
-    const isInvisibleVVS =
-      viewportVisibilityState === VisibilityState.INVISIBLE;
-
-    updateSubscription(
-      isInvisibleVVS
-        ? undefined
-        : {
-            height: videoElement.clientHeight,
-            width: videoElement.clientWidth,
-          },
-      DebounceType.MEDIUM,
-    );
-  }, [
-    updateSubscription,
-    viewportVisibilityState,
-    videoElement,
-    isPublishingTrack,
-    isLocalParticipant,
-  ]);
-
-  // handle resize subscription updates
-  useEffect(() => {
-    if (!videoElement || !isPublishingTrack || isLocalParticipant) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      const currentDimensions = `${videoElement.clientWidth},${videoElement.clientHeight}`;
-
-      // skip initial trigger of the observer
-      if (!lastDimensionRef.current) {
-        return (lastDimensionRef.current = currentDimensions);
-      }
-
-      if (
-        lastDimensionRef.current === currentDimensions ||
-        viewportVisibilityRef.current === VisibilityState.INVISIBLE
-      )
-        return;
-
-      updateSubscription(
-        {
-          height: videoElement.clientHeight,
-          width: videoElement.clientWidth,
-        },
-        DebounceType.SLOW,
-      );
-      lastDimensionRef.current = currentDimensions;
-    });
-    resizeObserver.observe(videoElement);
+    const cleanup = call.bindVideoElement(videoElement, sessionId, trackType);
 
     return () => {
-      resizeObserver.disconnect();
+      cleanup?.();
     };
-  }, [
-    updateSubscription,
-    videoElement,
-    viewportVisibilityState,
-    isPublishingTrack,
-    isLocalParticipant,
-  ]);
+  }, [call, trackType, sessionId, videoElement]);
 
-  // handle generic subscription updates
-  useEffect(() => {
-    if (!isPublishingTrack || !videoElement || isLocalParticipant) return;
-
-    updateSubscription(
-      {
-        height: videoElement.clientHeight,
-        width: videoElement.clientWidth,
-      },
-      DebounceType.FAST,
-    );
-
-    return () => {
-      updateSubscription(undefined, DebounceType.FAST);
-    };
-  }, [updateSubscription, videoElement, isPublishingTrack, isLocalParticipant]);
-
-  const [isWideMode, setIsWideMode] = useState(true);
   useEffect(() => {
     if (!stream || !videoElement) return;
 
-    setVideoPlaying(!videoElement.paused);
+    const handlePlayPause = () => {
+      setVideoPlaying(!videoElement.paused);
 
-    const calculateVideoRatio = () => {
-      setVideoPlaying(true);
       const [track] = stream.getVideoTracks();
       if (!track) return;
 
+      // TODO: find out why track dimensions aren't coming in
       const { width = 0, height = 0 } = track.getSettings();
-      setIsWideMode(width > height);
+      setIsWideMode(width >= height);
     };
-    videoElement.addEventListener('play', calculateVideoRatio);
+
+    videoElement.addEventListener('play', handlePlayPause);
+    videoElement.addEventListener('pause', handlePlayPause);
     return () => {
-      videoElement.removeEventListener('play', calculateVideoRatio);
+      videoElement.removeEventListener('play', handlePlayPause);
+      videoElement.removeEventListener('pause', handlePlayPause);
     };
   }, [stream, videoElement]);
 
@@ -236,13 +119,13 @@ export const Video = ({
 
   return (
     <>
-      <BaseVideo
+      <video
         {...rest}
-        stream={stream}
         className={clsx(className, 'str-video__video', {
           'str-video__video--tall': !isWideMode,
-          'str-video__video--mirror': isLocalParticipant && kind === 'video',
-          'str-video__video--screen-share': kind === 'screen',
+          'str-video__video--mirror':
+            isLocalParticipant && trackType === 'videoTrack',
+          'str-video__video--screen-share': trackType === 'screenShareTrack',
         })}
         data-user-id={userId}
         data-session-id={sessionId}

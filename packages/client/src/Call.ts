@@ -76,6 +76,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  VideoTrackType,
   VisibilityState,
 } from './types';
 import {
@@ -96,7 +97,7 @@ import {
   createStatsReporter,
   StatsReporter,
 } from './stats/state-store-stats-reporter';
-import { ViewportTracker } from './helpers/ViewportTracker';
+import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
@@ -115,19 +116,12 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraManager } from './devices/CameraManager';
-import { MicrophoneManager } from './devices/MicrophoneManager';
-import { CameraDirection } from './devices/CameraManagerState';
+import { CameraDirection, CameraManager, MicrophoneManager } from './devices';
 
 /**
  * An object representation of a `Call`.
  */
 export class Call {
-  /**
-   * ViewportTracker instance
-   */
-  readonly viewportTracker = new ViewportTracker();
-
   /**
    * The type of the call.
    */
@@ -163,6 +157,11 @@ export class Call {
    * Device manager for the microhpone
    */
   readonly microphone: MicrophoneManager;
+
+  /**
+   * The DynascaleManager instance.
+   */
+  readonly dynascaleManager = new DynascaleManager(this);
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -202,7 +201,7 @@ export class Call {
    * A typical use case is to clean up some global event handlers.
    * @private
    */
-  private readonly leaveCallHooks: Function[] = [];
+  private readonly leaveCallHooks: Set<Function> = new Set();
 
   private readonly streamClientBasePath: string;
   private streamClientEventHandlers = new Map<Function, CallEventHandler>();
@@ -253,12 +252,12 @@ export class Call {
       this.state.updateFromEvent(event);
     });
 
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       registerEventHandlers(this, this.state, this.dispatcher),
     );
     this.registerEffects();
 
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       createSubscription(
         this.trackSubscriptionsSubject.pipe(
           debounce((v) => timer(v.type)),
@@ -273,13 +272,15 @@ export class Call {
   }
 
   private registerEffects() {
-    this.leaveCallHooks.push(
+    this.leaveCallHooks.add(
       // handles updating the permissions context when the settings change.
       createSubscription(this.state.settings$, (settings) => {
         if (!settings) return;
         this.permissionsContext.setCallSettings(settings);
       }),
+    );
 
+    this.leaveCallHooks.add(
       // handle the case when the user permissions are modified.
       createSubscription(this.state.ownCapabilities$, (ownCapabilities) => {
         // update the permission context.
@@ -306,7 +307,9 @@ export class Call {
           }
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // handles the case when the user is blocked by the call owner.
       createSubscription(this.state.blockedUserIds$, async (blockedUserIds) => {
         if (!blockedUserIds) return;
@@ -316,7 +319,9 @@ export class Call {
           await this.leave();
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // watch for auto drop cancellation
       createSubscription(this.state.callingState$, (callingState) => {
         if (!this.ringing) return;
@@ -329,7 +334,9 @@ export class Call {
           this.dropTimeout = undefined;
         }
       }),
+    );
 
+    this.leaveCallHooks.add(
       // "ringing" mode effects and event handlers
       createSubscription(this.ringingSubject, (isRinging) => {
         if (!isRinging) return;
@@ -337,7 +344,7 @@ export class Call {
         if (this.state.callingState === CallingState.IDLE) {
           this.state.setCallingState(CallingState.RINGING);
         }
-        this.leaveCallHooks.push(registerRingingCallEventHandlers(this));
+        this.leaveCallHooks.add(registerRingingCallEventHandlers(this));
       }),
     );
   }
@@ -815,7 +822,7 @@ export class Call {
       },
     );
 
-    this.leaveCallHooks.push(() => {
+    this.leaveCallHooks.add(() => {
       unsubscribeOnlineEvent();
       unsubscribeOfflineEvent();
     });
@@ -904,7 +911,10 @@ export class Call {
         return currentParticipants.map((p) => {
           const participant: StreamVideoParticipant = Object.assign(p, {
             isLocalParticipant: p.sessionId === sfuClient.sessionId,
-            viewportVisibilityState: VisibilityState.UNKNOWN,
+            viewportVisibilityState: {
+              videoTrack: VisibilityState.UNKNOWN,
+              screenShareTrack: VisibilityState.UNKNOWN,
+            },
           });
           // We need to preserve the local state of the participant
           // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
@@ -1108,22 +1118,42 @@ export class Call {
    * You have to create a subscription for each participant for all the different kinds of tracks you want to receive.
    * You can only subscribe for tracks after the participant started publishing the given kind of track.
    *
-   * @param kind the kind of subscription to update.
+   * @param trackType the kind of subscription to update.
    * @param changes the list of subscription changes to do.
    * @param type the debounce type to use for the update.
    */
   updateSubscriptionsPartial = (
-    kind: 'video' | 'screen',
+    trackType: VideoTrackType | 'video' | 'screen',
     changes: SubscriptionChanges,
     type: DebounceType = DebounceType.SLOW,
   ) => {
+    if (trackType === 'video') {
+      this.logger(
+        'warn',
+        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'videoTrack'`,
+      );
+      trackType = 'videoTrack';
+    } else if (trackType === 'screen') {
+      this.logger(
+        'warn',
+        `updateSubscriptionsPartial: ${trackType} is deprecated. Please switch to 'screenShareTrack'`,
+      );
+      trackType = 'screenShareTrack';
+    }
+
     const participants = this.state.updateParticipants(
       Object.entries(changes).reduce<StreamVideoParticipantPatches>(
         (acc, [sessionId, change]) => {
+          if (change.dimension?.height) {
+            change.dimension.height = Math.ceil(change.dimension.height);
+          }
+          if (change.dimension?.width) {
+            change.dimension.width = Math.ceil(change.dimension.width);
+          }
           const prop: keyof StreamVideoParticipant | undefined =
-            kind === 'video'
+            trackType === 'videoTrack'
               ? 'videoDimension'
-              : kind === 'screen'
+              : trackType === 'screenShareTrack'
               ? 'screenShareDimension'
               : undefined;
           if (prop) {
@@ -1147,9 +1177,9 @@ export class Call {
     type: DebounceType = DebounceType.SLOW,
   ) => {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    participants.forEach((p) => {
+    for (const p of participants) {
       // we don't want to subscribe to our own tracks
-      if (p.isLocalParticipant) return;
+      if (p.isLocalParticipant) continue;
 
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
@@ -1174,7 +1204,7 @@ export class Call {
           dimension: p.screenShareDimension,
         });
       }
-    });
+    }
     // schedule update
     this.trackSubscriptionsSubject.next({ type, data: subscriptions });
   };
@@ -1680,7 +1710,7 @@ export class Call {
       )
       .subscribe();
 
-    this.leaveCallHooks.push(() => {
+    this.leaveCallHooks.add(() => {
       !subscription.closed && subscription.unsubscribe();
     });
   };
@@ -1800,4 +1830,90 @@ export class Call {
       await this.microphone.enable();
     }
   }
+
+  /**
+   * Will begin tracking the given element for visibility changes within the
+   * configured viewport element (`call.setViewport`).
+   *
+   * @param element the element to track.
+   * @param sessionId the session id.
+   * @param trackType the video mode.
+   */
+  trackElementVisibility = <T extends HTMLElement>(
+    element: T,
+    sessionId: string,
+    trackType: VideoTrackType,
+  ) => {
+    return this.dynascaleManager.trackElementVisibility(
+      element,
+      sessionId,
+      trackType,
+    );
+  };
+
+  /**
+   * Sets the viewport element to track bound video elements for visibility.
+   *
+   * @param element the viewport element.
+   */
+  setViewport = <T extends HTMLElement>(element: T) => {
+    return this.dynascaleManager.setViewport(element);
+  };
+
+  /**
+   * Binds a DOM <video> element to the given session id.
+   * This method will make sure that the video element will play
+   * the correct video stream for the given session id.
+   *
+   * Under the hood, it would also keep track of the video element dimensions
+   * and update the subscription accordingly in order to optimize the bandwidth.
+   *
+   * If a "viewport" is configured, the video element will be automatically
+   * tracked for visibility and the subscription will be updated accordingly.
+   *
+   * @param videoElement the video element to bind to.
+   * @param sessionId the session id.
+   * @param trackType the kind of video.
+   */
+  bindVideoElement = (
+    videoElement: HTMLVideoElement,
+    sessionId: string,
+    trackType: VideoTrackType,
+  ) => {
+    const unbind = this.dynascaleManager.bindVideoElement(
+      videoElement,
+      sessionId,
+      trackType,
+    );
+
+    if (!unbind) return;
+    this.leaveCallHooks.add(unbind);
+    return () => {
+      this.leaveCallHooks.delete(unbind);
+      unbind();
+    };
+  };
+
+  /**
+   * Binds a DOM <audio> element to the given session id.
+   *
+   * This method will make sure that the audio element will
+   * play the correct audio stream for the given session id.
+   *
+   * @param audioElement the audio element to bind to.
+   * @param sessionId the session id.
+   */
+  bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
+    const unbind = this.dynascaleManager.bindAudioElement(
+      audioElement,
+      sessionId,
+    );
+
+    if (!unbind) return;
+    this.leaveCallHooks.add(unbind);
+    return () => {
+      this.leaveCallHooks.delete(unbind);
+      unbind();
+    };
+  };
 }
