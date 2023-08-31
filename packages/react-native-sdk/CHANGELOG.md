@@ -2,6 +2,63 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.413](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.412...@stream-io/video-react-native-sdk-0.0.1-alpha.413) (2023-08-31)
+
+
+
+## [0.0.1-alpha.412](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.411...@stream-io/video-react-native-sdk-0.0.1-alpha.412) (2023-08-31)
+
+
+### Features
+
+* **react-native:** handle participant switch in floating participant view for 1:1 calls ([#1006](https://github.com/GetStream/stream-video-js/issues/1006)) ([503b694](https://github.com/GetStream/stream-video-js/commit/503b6945c65028f92d704f1b2fc322525d989863))
+
+
+
+## [0.0.1-alpha.411](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.410...@stream-io/video-react-native-sdk-0.0.1-alpha.411) (2023-08-31)
+
+
+
+## [0.0.1-alpha.410](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.409...@stream-io/video-react-native-sdk-0.0.1-alpha.410) (2023-08-31)
+
+
+
+## [0.0.1-alpha.409](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.408...@stream-io/video-react-native-sdk-0.0.1-alpha.409) (2023-08-31)
+
+
+### Bug Fixes
+
+* **react-native:** scrolling was broken with top view and floating view in same container ([#1029](https://github.com/GetStream/stream-video-js/issues/1029)) ([638ed7e](https://github.com/GetStream/stream-video-js/commit/638ed7e51a55b5b89ab6711383974f7b2ff86cbe))
+* **react-native:** unnecessary participant rerenders when using grid ([5d96170](https://github.com/GetStream/stream-video-js/commit/5d9617003ca5cb030ae8fe06111e0182e5141b9c))
+
+
+
+## [0.0.1-alpha.408](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.407...@stream-io/video-react-native-sdk-0.0.1-alpha.408) (2023-08-31)
+
+
+
+## [0.0.1-alpha.407](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.406...@stream-io/video-react-native-sdk-0.0.1-alpha.407) (2023-08-31)
+
+
+
+## [0.0.1-alpha.406](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.405...@stream-io/video-react-native-sdk-0.0.1-alpha.406) (2023-08-31)
+
+
+
+## [0.0.1-alpha.405](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.404...@stream-io/video-react-native-sdk-0.0.1-alpha.405) (2023-08-31)
+
+
+
+## [0.0.1-alpha.404](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.403...@stream-io/video-react-native-sdk-0.0.1-alpha.404) (2023-08-31)
+
+
+### Bug Fixes
+
+* **react-native:** blank stream on join ([#1022](https://github.com/GetStream/stream-video-js/issues/1022)) ([d5a48f6](https://github.com/GetStream/stream-video-js/commit/d5a48f6e75bf4e1b5c0745b7f0b001fd0ac4b183))
+* **react-native:** cleanup video streams on lobby view ([762b9bf](https://github.com/GetStream/stream-video-js/commit/762b9bfd390a7c90fc3eba381766317ea298745f))
+
+
+
 ## [0.0.1-alpha.403](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.402...@stream-io/video-react-native-sdk-0.0.1-alpha.403) (2023-08-30)
 
 

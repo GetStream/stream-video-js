@@ -440,66 +440,56 @@ To make this tutorial easier to follow we have generated a user token for you. P
 ## Step 5 - Setup Video Client
 
 Within this configuration, we will establish a `StreamVideoClient` instance and facilitate the user's connection to the Stream Video service.
-This process will be encapsulated within a distinct hook to ensure the app's lifecycle is effectively managed.
+This process will be encapsulated within a `useEffect` hook to ensure the app's lifecycle is effectively managed.
 This specific action should ideally be incorporated into the user's sign-in flow.
 
-Create a file named `useCreateVideoClient.ts` within the `src` folder and copy the following content into it:
+Client instance needs to be provided to `StreamVideo` component and it will provide the client instance to all the child components using React Context.
+It needs to go at the top of the component tree.
 
-```tsx title="src/useCreateVideoClient.ts"
-import {useEffect, useState} from 'react';
+```tsx title="App.tsx"
+...
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, StyleSheet} from 'react-native';
+import {HomeScreen} from './src/HomeScreen';
+import {AudioRoomScreen} from './src/AudioRoomScreen';
+// highlight-start
+import {apiKey, token, userId} from './config';
 import {
+  StreamVideo,
   StreamVideoClient,
-  User as UserType,
 } from '@stream-io/video-react-native-sdk';
-import {apiKey} from '../config';
+// highlight-end
 
-export const useCreateVideoClient = (user: UserType, token: string) => {
-  const [client, setClient] = useState<StreamVideoClient | null>(null);
+export default function App() {
+  ...
+  // highlight-start
   useEffect(() => {
-    setClient(new StreamVideoClient({apiKey, user, token}));
+    setClient(
+      new StreamVideoClient({
+        apiKey,
+        user: {
+          id: userId,
+          name: 'John Malkovich',
+          image: `https://getstream.io/random_png/?id=${userId}&name=John+Malkovich`,
+        },
+        token,
+      }),
+    );
 
     return () => {
       // Disconnect from websocket when component unmounts
       client?.disconnectUser();
     };
   }, []);
-
-  return client;
-};
-
-```
-
-Once this is done, we can use the hook to create the video client and provide it to the `StreamVideo` component.
-`StreamVideo` component is provided by the SDK and it will provide the client instance to all the child components using React Context.
-It needs to go at the top of the component tree.
-
-```tsx title="App.tsx" {3-5,9-16,18-20,23,27}
-...
-import {AudioRoomScreen} from './src/AudioRoomScreen';
-import {useCreateVideoClient} from './src/useCreateVideoClient';
-import {token, userId} from './config';
-import {StreamVideo} from '@stream-io/video-react-native-sdk';
-
-export default function App() {
-  ...
-  const client = useCreateVideoClient(
-    {
-      id: userId,
-      name: 'John Malkovich',
-      image: `https://getstream.io/random_png/?id=${userId}&name=John+Malkovich`,
-    },
-    token,
-  );
-
-  if (!client) {
-    return null;
-  }
+  // highlight-end
 
   return (
+    // highlight-next-line
     <StreamVideo client={client}>
       <SafeAreaView style={styles.container}>
         ...
       </SafeAreaView>
+    // highlight-next-line
     </StreamVideo>
   );
 }
