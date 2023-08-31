@@ -3,4 +3,97 @@ title: Chat Integration
 description: How to integrate chat & video
 ---
 
-This tutorial is coming soon
+There are multiple use-cases where you might want to use audio/video calls combined with chat messaging. You might want to offer chat capabilities during a video meeting, or you might need to build a chat messaging tool where users can call each other. Either way, Stream's video and [chat](https://getstream.io/chat/docs/) APIs are here to help.
+
+The following guide gives a conceptual overview about how you can integrate Stream's video and chat API together.
+
+## Install dependencies
+
+Stream provides separate packages for chat and video integration, so you'll have install two packages.
+
+- For video, follow this [installation guide](../../basics/installation).
+- For chat, you can choose [any of the chat SDK](https://getstream.io/chat/sdk/) that fits your needs.
+
+## Create clients
+
+Just like you installed two packages, you need to create two clients, one for video, and for chat.
+
+- For video, follow the [Client & Authentication](../../guides/client-auth) guide.
+- For chat, you will find more information about this in the documentation of the selected SDK.
+
+You can create the two clients using the same API key, user ID and token/token provider.
+
+## Connect calls and channels
+
+It's up to you how you want to connect calls and channels together, but we'll cover some common use-cases below.
+
+### Create a new channel for each call
+
+If you're building an audio/video call and want to offer participants the chance to chat, you can create a separate channel for each call. The simplest way to connect the channel to the call, is to use the call id as the channel id.
+
+Example code:
+
+```typescript
+const call = videoClient.call('default', 'all-hands-meeting');
+const channel = chatClient.channel('messaging', 'all-hands-meeting');
+await call.create();
+await channel.create();
+```
+
+- You can read more about [call types](../../guides/configuring-call-types/) to find the best one for your needs.
+- You can read more about [channel types](https://getstream.io/chat/docs/javascript/channel_features/?language=javascript) to find the best one for your needs.
+
+If you're reusing the call id (for example for recurring calls), you can create a new channel for each call session:
+
+```typescript
+const call = videoClient.call('default', 'all-hands-meeting');
+await call.join();
+const channel = chatClient.channel('messaging', call.session.id);
+await channel.create();
+```
+
+#### Call members
+
+You need to manually sync the call members with the channel members. You have two options for this:
+
+- If you're using calls where anyone with the link can join, you need to make sure that anyone can read the channel of the given call. You can do that by using the [chat API's permission system](https://getstream.io/chat/docs/javascript/chat_permission_policies/?language=javascript).
+- If your calls are limited to members, you can create the channel with the given members:
+
+```typescript
+const channel = chatClient.channel('messaging', 'all-hands-meeting', {
+  members: [
+    /* user ids of call members */
+  ],
+});
+```
+
+Whenever a member is added to the call, or removed from it, you need to [update the channel as well](https://getstream.io/chat/docs/javascript/channel_members/?language=javascript):
+
+```typescript
+await channel.addMembers(['thierry', 'josh']);
+await channel.removeMembers(['tommaso']);
+```
+
+### Connect a call to a channel
+
+If you're building a messaging tool where users can call each other, you can connect a call to a channel.
+
+Example code:
+
+```typescript
+videoClient?.call('default', 'call-id').create({
+  ring: true,
+  data: {
+    custom: {
+      channelCid: channel.cid,
+    },
+    members: Object.values(channel.state.members).map<MemberRequest>(
+      (member) => ({
+        user_id: member.user_id!,
+      }),
+    ),
+  },
+});
+```
+
+If you want to list the calls for a given channel, you can use filtering on `custom` data, for more information see the [Querying Calls guide](../../guides/querying-calls/#filters).

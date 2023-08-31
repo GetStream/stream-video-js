@@ -1,7 +1,7 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import React, { PropsWithChildren } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useAndroidKeepCallAliveEffect, usePermissionRequest } from '../hooks';
+import { useAndroidKeepCallAliveEffect } from '../hooks';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
 import {
   MediaDevicesInitialState,
@@ -34,22 +34,12 @@ export const StreamCall = ({
   return (
     <StreamCallProvider call={call}>
       <MediaStreamManagement {...mediaDeviceInitialState}>
-        <PermissionRequest />
         <AndroidKeepCallAlive />
         <IosInformCallkeepCallEnd />
         {children}
       </MediaStreamManagement>
     </StreamCallProvider>
   );
-};
-
-/**
- * This is a renderless component that is used to handler the permission requests using the usePermissionRequest hook.
- * usePermissionRequest needs to be called as a child of StreamCallProvider.
- */
-const PermissionRequest = () => {
-  usePermissionRequest();
-  return null;
 };
 
 /**

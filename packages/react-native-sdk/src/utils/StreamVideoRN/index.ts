@@ -57,9 +57,7 @@ export class StreamVideoRN {
    */
   static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
     if (this.config.push) {
-      console.log(
-        'setPushConfig: Ignoring this config as push config was already set',
-      );
+      // Ignoring this config as push config was already set
       return;
     }
     this.config.push = pushConfig;

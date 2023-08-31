@@ -1,0 +1,370 @@
+---
+title: Livestream Tutorial
+description: How to build a livestream experience using Stream's JavaScript client
+---
+
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
+In this tutorial we'll quickly build a low-latency in-app livestreaming experience.
+The livestream is broadcasted using Stream's edge network of servers around the world.
+
+We'll cover the following topics:
+
+- Ultra-low latency streaming
+- Multiple streams & co-hosts
+- RTMP input and WebRTC output
+- Exporting to HLS
+- Reactions, custom events and chat
+- Recording & Transcriptions
+
+Let's get started, if you have any questions or feedback be sure to let us know via the feedback button.
+
+### Step 1 - Create a new web app and install the Video client
+
+This tutorial will use a TypeScript application, but you can also use JavaScript.
+
+We recommend using Vite because it's fast and easy to use.
+
+```bash title="Terminal"
+yarn create vite livestream-app --template vanilla-ts
+cd livestream-app
+yarn add @stream-io/video-client
+```
+
+### Step 2 - Broadcast a livestream from your device
+
+The following code shows how to publish from your device's camera.
+Let's open `main.ts` and replace its contents with the following code:
+
+```ts title=main.ts
+import { StreamVideoClient, User } from '@stream-io/video-client';
+
+const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
+const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
+const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
+const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
+
+// set up the user object
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+});
+
+const call = client.call('livestream', callId);
+
+call.join({ create: true }).then(() => {
+  call.camera.enable();
+  call.microphone.enable();
+});
+```
+
+If you run the app now, you'll see that the client fails to connect.
+In order to fix that, we need to provide valid credentials. They shall be set in the following varialbes:
+
+```ts
+const apiKey = 'REPLACE_WITH_API_KEY';
+const token = 'REPLACE_WITH_TOKEN';
+const userId = 'REPLACE_WITH_USER_ID';
+const callId = 'REPLACE_WITH_CALL_ID';
+```
+
+Replace them now with the appropriate values from the table below:
+
+<TokenSnippet sampleApp="livestream" displayStyle="credentials" />
+
+Before we get around to rendering the video let's review the code above.
+
+#### User setup
+
+First we create a user object.
+You typically sync these users via a server side integration from your own backend.
+Alternatively, you can also use guest or anonymous users.
+
+```ts
+import type { User } from '@stream-io/video-client';
+
+const user: User = {
+  id: userId,
+  name: 'Oliver',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
+};
+```
+
+#### Client setup
+
+Next, we initialize the client by passing the API Key, user and user token.
+
+```ts
+import { StreamVideoClient } from '@stream-io/video-client';
+
+const client = new StreamVideoClient({ apiKey, user, token });
+```
+
+#### Create and join call
+
+The most important step to review is how we create the call.
+Stream uses the same call object for livestreaming, audio rooms and video calling.
+Have a look at the code snippet below:
+
+```ts
+const call = client.call('livestream', callId);
+call.join({ create: true }).then(() => {
+  call.camera.enable();
+  call.microphone.enable();
+});
+```
+
+To create the first call object, specify the call type as `livestream` and provide a unique `callId`.
+
+The **livestream** call type comes with default settings that are usually suitable for livestreams,
+but you can customize features, permissions, and settings in the dashboard.
+Additionally, the dashboard allows you to create new call types as required.
+For more information, check the [Call Types](../../guides/configuring-call-types/) docs.
+
+Finally, using `call.join({ create: true })` will not only create the call object on our servers but also initiate the real-time transport for audio and video.
+This allows for seamless and immediate engagement in the livestream.
+
+`call.camera.enable()` and `call.microphone.enable()` will start publishing the user's audio and video.
+
+:::note
+You can also add members to a call and assign them different roles.
+
+Also, in production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
+Read more in our [Joining and Creating Calls](../../guides/joining-and-creating-calls/) guide.
+:::
+
+### Step 3 - Rendering the video
+
+In this step we're going to build a UI for showing
+
+- your local Video
+- buttons for entering and leaving backstage mode
+- the number of people joined the stream
+
+Copy the following code to your `index.html` file:
+
+```html title=index.html
+<html>
+  <head>
+    <title>Livestream tutorial</title>
+    <meta charset="UTF-8" />
+  </head>
+
+  <body>
+    <div>Live: <span id="participant-count"></span></div>
+    <div id="participant"></div>
+    <button id="start">Go live</button>
+    <button id="stop">Stop live</button>
+
+    <script type="module" src="src/main.ts"></script>
+  </body>
+</html>
+```
+
+The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates.
+
+```ts title=main.ts
+import { renderParticipant, cleanupParticipant } from './participant';
+
+// Render local participant's video
+const parentContainer = document.getElementById('participant')!;
+call.state.localParticipant$.subscribe((localParticipant) => {
+  if (localParticipant) {
+    renderParticipant(call, localParticipant, parentContainer);
+  } else {
+    // Remove video elements
+    parentContainer
+      .querySelectorAll<HTMLMediaElement>('video')
+      .forEach((el) => {
+        const sessionId = el.dataset.sessionId!;
+        cleanupParticipant(sessionId);
+      });
+  }
+});
+
+// Render the number of users who joined
+const countElement = document.getElementById('participant-count')!;
+call.state.participantCount$.subscribe((count) => {
+  countElement.innerText = (count || 0).toString();
+});
+
+// Enter and leave backstage buttons
+const goLiveButton = document.getElementById('start') as HTMLButtonElement;
+goLiveButton.addEventListener('click', () => {
+  call.goLive();
+});
+
+const endLiveButton = document.getElementById('stop') as HTMLButtonElement;
+endLiveButton.addEventListener('click', () => {
+  call.stopLive();
+});
+
+call.state.backstage$.subscribe((backstage) => {
+  if (backstage) {
+    goLiveButton.disabled = false;
+    endLiveButton.disabled = true;
+  } else {
+    goLiveButton.disabled = true;
+    endLiveButton.disabled = false;
+  }
+});
+```
+
+For the `renderParticipant` and `cleanupParticipant` methods create a new file, and name it `participant.ts`.
+
+The guide won't give a detailed overview about how to render a participant, you can find that [here](../../tutorials/video-calling/#render-video).
+
+You can copy the content of [this file](https://codesandbox.io/s/javascript-livestream-host-3hs4vt?file=/src/participant.ts) to the `participant.ts` file.
+
+Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world.
+This makes it possible to reach a large audience in realtime.
+
+Now let's press **Go live** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
+
+<TokenSnippet sampleApp="livestream" displayStyle="join" />
+
+Let's take a moment to review the code above.
+
+You can see we use a few different state variables to create the UI:
+
+```ts
+call.state.localParticipant$; // the local participant, who will stream their video
+call.state.participantCount$; // the number of users who joined the livestream
+call.state.backstage$; // `true` if the call is in backstage mode (only hosts can join in that stage)
+```
+
+The [Call & Participant state](../../guides/call-and-participant-state/) lists all available variables you can use for accessing call and participant state.
+
+#### Backstage mode
+
+In the example above you might have noticed the `call.goLive()` method and the `backstage$` value.
+The backstage functionality is enabled by default on the livestream call type.
+It makes it easy to build a flow where you and your co-hosts can setup your camera and equipment before going live.
+Only after you call `call.goLive()` will regular users be allowed to join the livestream.
+
+This is convenient for many livestreaming and audio-room use cases. If you want calls to start immediately when you join them that's also possible.
+Simply go the Stream dashboard, click the livestream call type and disable the backstage mode.
+
+The `call.goLive` method can also automatically start HLS livestreaming, recording or transcribing.
+In order to do that, you need to pass the corresponding optional parameter:
+
+```ts
+await call.goLive({
+  start_hls: true,
+  start_recording: true,
+  start_transcription: true,
+});
+```
+
+### Step 4 - (Optional) Publishing RTMP using OBS
+
+The example above showed how to publish your device camera to the livestream.
+Almost all livestream software and hardware supports RTMPS.
+[OBS](https://obsproject.com/) is one of the most popular livestreaming software packages and we'll use it to explain how to import RTMPS.
+So let's see how to publish using RTMPs. Feel free to skip this step if you don't need to use RTMPs.
+
+#### Log the URL & Stream Key
+
+```ts
+call.state.ingress$.subscribe((ingress) => {
+  if (ingress?.rtmp.address) {
+    const rtmpURL = ingress?.rtmp.address;
+    const streamKey = `${apiKey}/${token}`;
+
+    console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
+  }
+});
+```
+
+#### Open OBS and go to settings -> stream
+
+- Select "custom" service
+- Server: equal to the `rtmpURL` from the log
+- Stream key: equal to the `streamKey` from the log
+
+Press start streaming in OBS. The RTMP stream will now show up in your call just like a regular video participant.
+
+Now that we've learned to publish using WebRTC or RTMP let's talk about watching the livestream.
+
+### Step 5 - Viewing a livestream (WebRTC)
+
+Watching a livestream is even easier than broadcasting.
+
+Compared to the current code in in `main.ts` you:
+
+- You need to wait for `call.state.backstage$` to be `false` to be able to join the call as a viewer
+- Don't render the local video, but instead render the remote videos - `call.state.remoteParticipants$` instead of `call.state.localParticipant$`
+
+### Step 6 - (Optional) Viewing a livestream with HLS
+
+Another way to watch a livestream is using HLS. HLS tends to have a 10 to 20 seconds delay, while the above WebRTC approach is realtime.
+The benefit that HLS offers is better buffering under poor network conditions.
+So HLS can be a good option when:
+
+- A 10-20 second delay is acceptable
+- Your users want to watch the stream in poor network conditions
+
+One option to start HLS is to set the `start_hls` parameter to `true` in the `call.goLive()` method, as described above.
+If you want to explicitly start it, when you are live, you can use the following method:
+
+```ts
+await call.startHLS();
+// or alternatively:
+// await call.goLive({ start_hls: true });
+
+call.state.egress$.subscribe((egress) => {
+  if (egress?.hls?.playlist_url) {
+    console.log('HLS playlist url:', egress?.hls?.playlist_url);
+  }
+});
+```
+
+You can view the HLS video feed using any HLS capable video player.
+
+### See it all in action
+
+You can use the following CodeSandbox playgrounds to test streaming:
+
+- [Host application](https://codesandbox.io/s/javascript-livestream-host-3hs4vt)
+- [Viewer application](https://codesandbox.io/s/javascript-livestream-viewer-lwzgmw)
+
+### Step 7 - Advanced Features
+
+This tutorial covered broadcasting and watching a livestream.
+It also went into more details about HLS & RTMP-in.
+
+There are several advanced features that can improve the livestreaming experience:
+
+- ** [Co-hosts](../../guides/joining-and-creating-calls/) ** You can add members to your livestream with elevated permissions. So you can have co-hosts, moderators etc.
+- ** [Custom events](../../guides/reactions-and-custom-events/) ** You can use custom events on the call to share any additional data. Think about showing the score for a game, or any other realtime use case.
+- ** [Reactions](../../guides/reactions-and-custom-events/) ** Users can react to the livestream, and [you can add chat](../../advanced/chat-with-video/). This makes for a more engaging experience.
+- ** [Recording](../../advanced/recording/) ** The call recording functionality allows you to record the call with various options and layouts
+
+### Recap
+
+It was fun to see just how quickly you can build in-app low latency livestreaming.
+Please do let us know if you ran into any issues.
+Our team is also happy to review your UI designs and offer recommendations on how to achieve it with Stream.
+
+To recap what we've learned:
+
+- WebRTC is optimal for latency, HLS is slower but buffers better for users with poor connections
+- You setup a call: `const call = client.call("livestream", callId)`
+- The call type `"livestream"` controls which features are enabled and how permissions are setup
+- The livestream by default enables "backstage" mode. This allows you and your co-hosts to setup your mic and camera before allowing people in
+- When you join a call, realtime communication is setup for audio & video: `await call.join()`
+- Reactive state variables are exposed via `call.state` which make it easy to build your UI
+
+We've used [Stream's Livestream API](https://getstream.io/video/livestreaming/),
+which means calls run on a global edge network of video servers.
+By being closer to your users the latency and reliability of calls are better.
+The JavaScript client enables you to build in-app [video calling, audio rooms and livestreaming](https://getstream.io/video/) in days.
+
+We hope you've enjoyed this tutorial and please do feel free to reach out if you have any suggestions or questions.

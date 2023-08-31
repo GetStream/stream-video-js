@@ -60,9 +60,8 @@ We will create a component that renders the Button which on press opens up a Mod
 import React, { useState } from 'react';
 import { Pressable, Text, Modal, StyleSheet, View } from 'react-native';
 import GridIconSvg from '../assets/GridIconSvg';
-import { CallContentProps } from '@stream-io/video-react-native-sdk';
 
-type Layout = CallContentProps['mode'];
+type Layout = 'grid' | 'spotlight';
 
 // Component for Individual Layout Item
 const LayoutSelectionItem = ({

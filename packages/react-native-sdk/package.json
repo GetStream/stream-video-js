@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.0.1-alpha.389",
+  "version": "0.0.1-alpha.413",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -38,7 +38,7 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
-    "@notifee/react-native": ">=7.7.0",
+    "@notifee/react-native": ">=7.8.0",
     "@react-native-community/netinfo": ">=9.0.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
-    "@notifee/react-native": "7.7.1",
+    "@notifee/react-native": "7.8.0",
     "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-community/netinfo": "9.3.9",
     "@react-native-firebase/app": "17.5.0",

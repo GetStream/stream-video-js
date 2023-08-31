@@ -25,7 +25,7 @@ export enum VisibilityState {
 }
 
 export enum DebounceType {
-  IMMEDIATE = 0,
+  IMMEDIATE = 20,
   FAST = 100,
   MEDIUM = 600,
   SLOW = 1200,
@@ -79,11 +79,9 @@ export interface StreamVideoParticipant extends Participant {
   reaction?: StreamReaction;
 
   /**
-   * The visibility state of the participant's video element
-   * within the pre-configured viewport.
-   * @default VisibilityState.UNKNOWN
+   * The visibility state of the participant's tracks within a defined viewport.
    */
-  viewportVisibilityState?: VisibilityState;
+  viewportVisibilityState?: Record<VideoTrackType, VisibilityState>;
 }
 
 export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
@@ -105,9 +103,13 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * The device ID of the currently selected audio output device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    *
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
+   *
+   * @deprecated use call.speaker.state.selectedDevice
    */
   audioOutputDeviceId?: string;
 }
+
+export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
 
 /**
  * Represents a participant's pin state.

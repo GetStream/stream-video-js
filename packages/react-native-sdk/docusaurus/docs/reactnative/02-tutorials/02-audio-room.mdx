@@ -3,22 +3,24 @@ title: Audio Room Tutorial
 description: How to build an audio room using Stream's React Native Video SDK
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+import homeScreenImg from '../assets/02-tutorials/02-audio-room/home-screen.png'
+import audioRoomEmptyImg from '../assets/02-tutorials/02-audio-room/active-room-empty.png'
 
-This tutorial will teach you how to build an audio room experience like Twitter Spaces or Clubhouse.
-The end result will look like the image below and will support the following features:
+This tutorial aims to guide you through the process of creating an audio room experience reminiscent of platforms such as Twitter Spaces or Clubhouse. The outcome, as depicted in the image below, will encompass the following functionalities:
 
-- Backstage mode. You can start the call with your co-hosts and chat a bit before going live
-- Calls run on Stream's global edge network for optimal latency and scalability
-- There is no cap to how many listeners you can have in a room
-- Listeners can raise their hand, and be invited to speak by the host
-- Audio tracks are sent multiple times for optimal reliability
+- Backstage Mode: Initiate the call with your co-hosts, allowing for pre-live discussions.
+- Global Edge Network: Calls operate on Stream's worldwide edge network, ensuring low latency and scalability.
+- No Listener Limit: Rooms can accommodate an unlimited number of listeners.
+- Raised Hand Feature: Listeners can indicate their desire to speak by raising their hand and subsequently being invited by the host.
+- Enhanced Audio Reliability: Audio tracks are transmitted multiple times to enhance overall reliability.
 
 ![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-preview.png)
 
-Time to get started building an audio room for your app.
-
-### Step 1 - Setup a new React Native app
+## Step 1 - Setup a new React Native app
 
 Create a new React Native app using the official template,
 
@@ -27,26 +29,31 @@ npx react-native@latest init AudioRoomExample
 cd AudioRoomExample
 ```
 
-### Step 2 - Install the SDK and declare permissions
+## Step 2 - Install the SDK and declare permissions
 
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
 
 ```bash title=Terminal
-yarn add @stream-io/video-react-native-sdk
+yarn add @stream-io/video-react-native-sdk @stream-io/react-native-webrtc
 ```
 
 The SDK requires installing some peer dependencies. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add @stream-io/react-native-webrtc react-native-device-info \
-   react-native-incall-manager react-native-svg \
-   @react-native-community/netinfo @notifee/react-native
+yarn add react-native-device-info@10.6.0
+yarn add react-native-incall-manager@4.1.0
+yarn add react-native-svg
+yarn add @react-native-community/netinfo@9.3.9
+yarn add @notifee/react-native@7.7.1
+
+# Install pods for iOS
 npx pod-install
 ```
 
 #### Add Stream Video SDK's setup method
 
-##### Android
+<Tabs>
+<TabItem value="android" label="Android" default>
 
 Add the following in your `MainApplication.java` file:
 
@@ -66,9 +73,9 @@ public class MainApplication extends Application implements ReactApplication {
   }
 }
 ```
-<!-- vale on -->
 
-##### iOS
+</TabItem>
+<TabItem value="ios" label="iOS">
 
 Add the following in your `AppDelegate.m` or `AppDelegate.mm` file:
 
@@ -87,29 +94,36 @@ Add the following in your `AppDelegate.m` or `AppDelegate.mm` file:
 }
 ```
 
+</TabItem>
+</Tabs>
+
 #### Declare permissions
 
-##### iOS
+<Tabs>
+<TabItem value="android" label="Android" default>
 
-Add the following keys and values to `Info.plist` file:
-
-- `Privacy - Microphone Usage Description` - "`AudioRoomExample` requires microphone access to capture and transmit audio"
-
-##### Android
-
-In `AndroidManifest.xml` add the following permissions before the `<application>` section.
+In `AndroidManifest.xml` add the following permissions before the `application` section.
 
 ```xml
-<uses-feature android:name="android.hardware.audio.output" />
-<uses-feature android:name="android.hardware.microphone" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  // highlight-start
+  <uses-feature android:name="android.hardware.audio.output" />
+  <uses-feature android:name="android.hardware.microphone" />
 
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-<uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.CAMERA" />
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+  // highlight-end
+  <uses-permission android:name="android.permission.INTERNET" />
+  ...
+  <application
+    ...
+  />
+  </application>
+</manifest>
 ```
-
 If you plan to also support Bluetooth devices then also add the following.
 
 ```xml
@@ -117,6 +131,30 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
+
+</TabItem>
+<TabItem value="ios" label="iOS">
+
+Add the following keys and values to `Info.plist` file, under `dict` tag.
+
+```plist title="Info.plist"
+<plist version="1.0">
+<dict>
+  ...
+  <key>CFBundleName</key>
+  <string>$(PRODUCT_NAME)</string>
+  // highlight-start
+  <key>NSMicrophoneUsageDescription</key>
+  <string>$(PRODUCT_NAME) would like to use your microphone</string>
+  // highlight-end
+  ...
+</dict>
+</plist>
+
+```
+
+</TabItem>
+</Tabs>
 
 :::note
 For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
@@ -127,9 +165,14 @@ For simplicity, in this tutorial, we do not cover about managing native runtime 
 In `android/app/build.gradle` add the following inside the `android` section:
 
 ```java
-compileOptions {
-	sourceCompatibility JavaVersion.VERSION_1_8
-	targetCompatibility JavaVersion.VERSION_11
+android {
+  ...
+  // highlight-start
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_11
+  }
+  // highlight-end
 }
 ```
 
@@ -138,226 +181,638 @@ In `android/gradle.properties` add the following:
 ```groovy
 android.enableDexingArtifactTransform.desugaring=false
 ```
-### Step 3 - Create & Join a call​
 
-Open up `src/App.tsx` and replace it with this code:
+#### Run the app
 
-```tsx title="src/App.tsx"
-import {
-  StreamVideoClient,
-  StreamVideoRN,
-  Call,
-  CallingState,
-  StreamVideo,
-  StreamCall,
-  User,
-} from '@stream-io/video-react-native-sdk';
-import React from 'react';
-import { SafeAreaView, Text } from 'react-native';
+To ensure the best possible experience, we highly recommend running the app on a physical device.
+This is due to the limitations in audio and video device support on emulators.
+You can refer to the React Native documentation for guidance on [running the app on a physical device](https://reactnative.dev/docs/running-on-device).
 
-// for simplicity, we assume that permission was granted through the native settings app
-StreamVideoRN.setPermissions({
-  isCameraPermissionGranted: false,
-  isMicPermissionGranted: true,
-});
+However, if you still prefer to use an emulator, execute the following command:
 
-const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
-const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
-const userId = 'REPLACE_WITH_USER_ID'; // the user_id can be found in the "Credentials" section
-const callId = 'REPLACE_WITH_CALL_ID'; // the call_id can be found in the "Credentials" section
+```bash
+# run iOS app
+yarn ios
 
-// initialize the user object
-const user: User = {
-  id: userId,
-  name: 'Santhosh',
-  image: `https://getstream.io/random_png/?id=${userId}&name=Santhosh`,
-};
-
-const client = new StreamVideoClient({ apiKey, user, token });
-const call = client.call('audio_room', callId);
-call.join({
-  create: true,
-  data: {
-    members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
-    custom: {
-      title: 'React Native test',
-      description: 'We are doing a test of react native audio rooms',
-    },
-  }
-});
-
-export default function App() {
-  return (
-    <StreamVideo client={client} language="en">
-      <StreamCall call={call}>
-        <SafeAreaView>
-          <Text style={{ fontSize: 30, color: 'black' }}>
-            Ready to render Audio room
-          </Text>
-        </SafeAreaView>
-      </StreamCall>
-    </StreamVideo>
-  );
-}
+# run Android app
+yarn android
 ```
 
-Let's review the code above and go over the details.
+## Step 3 - Understand the basics
 
-#### User setup
+Before we dive deep into writing code, there are two concepts you should be familiar with - `StreamVideoClient` and `Call`.
 
-First, we create a user object. You typically sync your users via a server-side integration from your own backend.
-Alternatively, you can also use guest or anonymous users.
+### Client
 
-```ts
-import type { User } from '@stream-io/video-react-native-sdk';
+`StreamVideoClient` is the low level JavaScript client used by the SDK to communicate with the Stream Video service.
+In the case of React Native Video SDK, you will need to provide this client instance to the top level `StreamVideo` component.
+This component will then provide the client instance to all the child components using React Context.
 
-const user: User = {
-  id: userId,
-  name: 'Santhosh',
-  image: `https://getstream.io/random_png/?id=${userId}&name=Santhosh`,
-};
-```
+Using client, you can create a call, receive calls, get list of calls etc. This should be ideally done at sign in stage of the application.
 
-#### Client setup
-
-Next, we initialize the client by passing the API Key, user and user token.
-
-```ts
-import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
-
+```tsx
 const client = new StreamVideoClient({ apiKey, user, token });
 ```
-#### Create and join call​
 
-After the user and client are created, we create a call like this:
-
-```ts
-const call = client.call('audio_room', callId);
-call.join({
-  create: true,
-  data: {
-    members: [{ user_id: 'john_smith' }, { user_id: 'jane_doe' }],
-    custom: {
-      title: 'React Native test',
-      description: 'We are doing a test of react native audio rooms',
-    },
+In this example
+- `apiKey` is the API key of your Stream Video application available on [dashboard](https://dashboard.getstream.io/organization/5380/apps)
+- `user` is the user object
+  ```json
+  {
+    "id": "john_smith",
+    "name": "John Smith",
+    "image": "https://getstream.io/random_png/?id=john_smith&name=John+Smith"
   }
-});
+  ```
+- and `token` is the user token generated by your server-side API. For development purpose, you can use the token generated by the [Token Generator](https://getstream.io/chat/docs/react/token_generator/).
+You can read more information about client authentication on the [Client & Authentication](../../core/client-auth) guide.
+
+:::info
+Alternatively you can also choose to separate client creation and user connection:
+
+```tsx
+const client = new StreamVideoClient({ apiKey });
+await client.connectUser(user, token);
 ```
-
-- This joins and creates a call with the type: `audio_room` and the specified `callId`
-- The users with id `john_smith` and `jane_doe` are added as members to the call
-- And we set the `title` and `description` custom field on the call object
-
-:::note
-In production grade apps, you'd typically store the `call` instance in a state variable and take care of correctly disposing it.
-Read more in our [Joining and Creating Calls](../../core/joining-and-creating-calls/) guide.
 :::
 
-#### Credentials
+### Call
 
-To actually run this sample we need a valid user token. The user token is typically generated by your server-side API.
-When a user logs in to your app you return the user token that gives them access to the call.
-To make this tutorial easier to follow we'll generate a user token for you:
+In the context of Stream video/audio service, a `call` refers to an instance of the [`Call` class](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/Call.ts#L125) and is utilized for performing call-specific actions, such as joining a call, muting participants, leaving a call, and more.
+You will need to supply this `call` instance to the `StreamCall` component.
 
-Please update **REPLACE_WITH_API_KEY**, **REPLACE_WITH_TOKEN**, **REPLACE_WITH_USER_ID** and **REPLACE_WITH_CALL_ID** with the actual values shown below:
+The following example illustrates how to create a call instance of the `audio_room` type.
+Detailed information about various call types can be found in the [Call Types](../../core/configuring-call-types) guide.
 
-<TokenSnippet sampleApp="audio-rooms" displayStyle="credentials" />
-
-With valid credentials in place, we can join the audio room call. When you run the app you'll see the following:
-
-![Preview of the initial run](../assets/02-tutorials/02-audio-room/active-room-empty.png)
-
-### Step 4 - Adding Audio Room and Description
-
-Now that we've successfully connected to the audio room. Let's setup a basic UI and description. Add a `AudioRoom` component to the main app component:
-
-```ts title="src/App.tsx"
-// ... omitted imports
-import AudioRoom from './AudioRoom';
-
-export default function App() {
-  // ... omitted code
-  return (
-    <StreamVideo client={client}>
-      <StreamCall call={call}>
-        // highlight-next-line
-        <AudioRoom />
-      </StreamCall>
-    </StreamVideo>
-  );
-}
+```tsx
+const call = client.call('audio_room', callId);
 ```
 
-You would have noticed that we haven't created the `AudioRoom` component. Let us do that now:
+Subsequently, the `call.join` method can be utilized to enter the call identified by the given `callId`.
 
-```tsx title=src/AudioRoom.tsx
-import React, { useEffect } from 'react';
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
-import DescriptionPanel from './DescriptionPanel';
+A call of type audio_room can exist in either of two states: backstage and live.
 
-export default function AudioRoom() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <DescriptionPanel />
-      <ParticipantsPanel />
-      <ControlsPanel />
-      <PermissionRequestsPanel />
-    </SafeAreaView>
-  );
+- During the backstage mode, only the host and designated speakers have permission to join the call.
+- In the live mode, anyone can join the call.
 
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 4,
+From the dashboard you can disable backstage mode or fine tune the permissions for backstage mode.
+
+For designating roles to call participants, you can specify the role through the data.members parameter of the call.join method.
+
+```tsx
+// User joins the call
+call.join({
+  create: true, // create the call if it doesn't exist
+  data: {
+    members: [
+      { user_id: 'john_smith' },
+      { user_id: 'jane_doe', role: 'speaker' }
+    ],
+    custom: { // custom data set on call
+      title: 'React Native test',
+      description: 'Conducting a test of React Native audio rooms',
     },
-  });
+  }
+});
 
-  // except for DescriptionPanel component we will put every other panels in TODO for now
-  const ParticipantsPanel = () => (
-    <Text style={{ fontSize: 20, color: 'black' }}>ParticipantsPanel TODO</Text>
-  );
-
-  const ControlsPanel = () => (
-    <Text style={{ fontSize: 20, color: 'black' }}>ControlsPanel TODO</Text>
-  );
-  const PermissionRequestsPanel = () => (
-    <Text style={{ fontSize: 20, color: 'black' }}>PermissionRequestsPanel TODO</Text>
-  );
-}
+// Host makes the call live
+call.goLive();
 ```
 
-Let us add the component to show the call descriptions:
+## Step 4 - Setup Starter UI
 
-```tsx title=src/DescriptionPanel.tsx
-import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+Lets begin by creating a basic UI for our audio room. Normally you would use a navigation library like [React Navigation](https://reactnavigation.org/) to navigate between screens.
+But for this tutorial we'll keep it simple and mock the navigation using a state variable - `activeScreen`.
+
+Within your tutorial app, create a folder named `src` and create the following files within it:
+
+- `src/HomeScreen.tsx`
+- `src/AudioRoomScreen.tsx`
+- `src/AudioRoom.tsx`
+
+Now copy the following content into the respective files (as mentioned in header):
+
+<Tabs>
+<TabItem value="audio-room" label="src/AudioRoom.tsx" default>
+
+```tsx title="src/AudioRoom.tsx"
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import {Button, StyleSheet, Text, View} from 'react-native';
 
-export const DescriptionPanel = () => {
-  const { useCallCustomData, useParticipants } = useCallStateHooks();
-  const custom = useCallCustomData();
-  const participants = useParticipants();
+type Props = {goToHomeScreen: () => void};
 
+export const AudioRoom = ({goToHomeScreen}: Props) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{custom?.title ?? '<Title>'}</Text>
-      <Text style={styles.subtitle}>
-        {custom?.description ?? '<Description>'}
-      </Text>
-      <Text style={styles.participantsCount}>
-        {`${participants.length} Participants`}
-      </Text>
+      <Text style={styles.text}>Here we will add Audio Room UI</Text>
+      <Button title="Leave Audio Room" onPress={goToHomeScreen} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 4,
-    paddingHorizontal: 32,
-    alignItems: 'center',
+    flex: 1,
+    padding: 4,
+    justifyContent: 'center',
   },
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+});
+
+```
+
+</TabItem>
+<TabItem value="audio-room-screen" label="src/AudioRoomScreen.tsx">
+
+```tsx title="src/AudioRoomScreen.tsx"
+import React from 'react';
+
+import {AudioRoom} from './AudioRoom';
+
+type Props = {
+  goToHomeScreen: () => void;
+};
+
+export const AudioRoomScreen = ({goToHomeScreen}: Props) => {
+  return <AudioRoom goToHomeScreen={goToHomeScreen} />;
+};
+```
+
+</TabItem>
+<TabItem value="home-screen" label="src/HomeScreen.tsx">
+
+```tsx title="src/HomeScreen.tsx"
+import React from 'react';
+import {View, Text, Button, StyleSheet} from 'react-native';
+
+type Props = {
+  goToAudioRoomScreen: () => void;
+};
+
+export const HomeScreen = ({goToAudioRoomScreen}: Props) => {
+  return (
+    <View>
+      <Text style={styles.text}>Welcome to Audio Room Tutorial</Text>
+      <Button title="Join Audio Room 🎧" onPress={goToAudioRoomScreen} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+});
+```
+
+</TabItem>
+<TabItem value="app-root" label="App.tsx">
+
+```tsx title="App.tsx"
+import React, {useState} from 'react';
+import {SafeAreaView, StyleSheet} from 'react-native';
+import {HomeScreen} from './src/HomeScreen';
+import {AudioRoomScreen} from './src/AudioRoomScreen';
+
+export default function App() {
+  const [activeScreen, setActiveScreen] = useState('home');
+  const goToAudioRoomScreen = () => setActiveScreen('audio-room');
+  const goToHomeScreen = () => setActiveScreen('home');
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {activeScreen === 'audio-room' ? (
+        <AudioRoomScreen goToHomeScreen={goToHomeScreen} />
+      ) : (
+        <HomeScreen goToAudioRoomScreen={goToAudioRoomScreen} />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    textAlign: 'center',
+  },
+});
+
+```
+
+</TabItem>
+</Tabs>
+
+
+Hit save and you should see on your emulator or device the following UI.
+
+<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+  <img src={homeScreenImg} alt="Preview of the Home Screen" width="350" />
+  <img src={audioRoomEmptyImg} alt="Preview of empty audio room" width="350" />
+</div>
+
+Also lets store the credentials somewhere in a separate file. Create a file `config.js` in root directory of application next to `App.tsx`.
+
+:::note
+In actual application you will want to store apiKey in a secure storage or in environment file.
+:::
+
+```tsx title="config.ts"
+export const apiKey = 'API_KEY';
+export const userId = 'USER_ID';
+export const userToken = 'USER_TOKEN';
+export const callId = 'CALL_ID';
+```
+
+To make this tutorial easier to follow we have generated a user token for you. Please update the credentials in `config.js` with the actual values shown below:
+
+<TokenSnippet sampleApp="audio-rooms" displayStyle="credentials" />
+
+## Step 5 - Setup Video Client
+
+Within this configuration, we will establish a `StreamVideoClient` instance and facilitate the user's connection to the Stream Video service.
+This process will be encapsulated within a `useEffect` hook to ensure the app's lifecycle is effectively managed.
+This specific action should ideally be incorporated into the user's sign-in flow.
+
+Client instance needs to be provided to `StreamVideo` component and it will provide the client instance to all the child components using React Context.
+It needs to go at the top of the component tree.
+
+```tsx title="App.tsx"
+...
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, StyleSheet} from 'react-native';
+import {HomeScreen} from './src/HomeScreen';
+import {AudioRoomScreen} from './src/AudioRoomScreen';
+// highlight-start
+import {apiKey, token, userId} from './config';
+import {
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+// highlight-end
+
+export default function App() {
+  ...
+  // highlight-start
+  useEffect(() => {
+    setClient(
+      new StreamVideoClient({
+        apiKey,
+        user: {
+          id: userId,
+          name: 'John Malkovich',
+          image: `https://getstream.io/random_png/?id=${userId}&name=John+Malkovich`,
+        },
+        token,
+      }),
+    );
+
+    return () => {
+      // Disconnect from websocket when component unmounts
+      client?.disconnectUser();
+    };
+  }, []);
+  // highlight-end
+
+  return (
+    // highlight-next-line
+    <StreamVideo client={client}>
+      <SafeAreaView style={styles.container}>
+        ...
+      </SafeAreaView>
+    // highlight-next-line
+    </StreamVideo>
+  );
+}
+```
+
+You wouldn't see any change in the UI at this point, since we haven't joined the call yet.
+
+## Step 6 - Create & Join a call​
+
+In this step we will create and join a call. Call will be stored in a state variable `call` and it needs to be
+provided to `StreamCall` component. As explained earlier, `StreamCall` component is provided by the SDK and it provides all the necessary hooks for configuring UI around audio room.
+We will explore these hooks later in the tutorial.
+
+Open up `src/AudioRoomScreen.tsx` and replace it with this code:
+
+```tsx title="src/AudioRoomScreen.tsx"
+...
+// highlight-start
+import {Call, StreamCall} from '@stream-io/video-react-native-sdk';
+import {View, Text} from 'react-native';
+// highlight-end
+
+// highlight-start
+type Props = {
+  goToHomeScreen: () => void;
+};
+// highlight-end
+
+export const AudioRoomScreen = ({goToHomeScreen}: Props) => {
+  // highlight-next-line
+  const [call, setCall] = React.useState<Call | null>(null);
+
+  // highlight-start
+  if (!call) {
+    return (
+      <View>
+        <Text>Joining call...</Text>
+      </View>
+    );
+  }
+  // highlight-end
+
+  return (
+    // highlight-next-line
+    <StreamCall call={call}>
+      <AudioRoom goToHomeScreen={goToHomeScreen} />
+    // highlight-next-line
+    </StreamCall>
+  );
+};
+```
+
+Now we can join the call with id specified in `config.ts` file. Call id is a case-sensetive unique identifier for a call, which you will need to generate on your server-side API.
+Also as explained earlier in [Understand the Basics](#step-3---understand-the-basics) section, call can be created or accessed using `client.call(...)` method.
+Thus we need access to `client` inside `AudioRoomScreen` component. We will use the `useStreamVideoContext` hook to get access to the client instance.
+
+We will put the joining logic inside useEffect hook, so we automatically join the call when user goes to `AudioRoomScreen`.
+
+```tsx title="src/AudioRoomScreen.tsx"
+// highlight-next-line
+import React, {useEffect} from 'react';
+import {AudioRoom} from './AudioRoom';
+// highlight-next-line
+import {callId} from '../config';
+import {
+  Call,
+  StreamCall,
+  // highlight-next-line
+  useStreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+
+export const AudioRoomScreen = (
+  ...
+) => {
+  const [call, setCall] = React.useState<Call | null>(null);
+  // highlight-next-line
+  const client = useStreamVideoClient();
+
+  // highlight-start
+  useEffect(() => {
+    const joinCall = async () => {
+      if (!client) {
+        return null;
+      }
+
+      const _call = client.call('audio_room', callId);
+      // With `call.join()` means that you are part of the audio room now.
+      // The call itself may not be live yet, but you are part of it.
+      // The call will be live when you (or the moderator) calls `call.goLive()`
+      await _call.join({
+        create: true,
+        data: {
+          members: [{user_id: 'john_smith'}, {user_id: 'jane_doe'}],
+          custom: {
+            title: 'React Native test',
+            description: 'We are doing a test of react native audio rooms',
+          },
+        },
+      });
+
+      // After this step the call is live and you can start sending and receiving audio.
+      await _call.goLive();
+      setCall(_call);
+    };
+
+    joinCall();
+  }, [client]);
+  // highlight-end
+
+  ...
+};
+
+```
+
+Please note the difference between `call.join` and `call.goLive` methods. With `call.join()` a user has joined the call and is part of the audio room now.
+This is called a backstage mode, where only the host and speakers are allowed to interact. User needs to have permission to join the backstage mode, which we will explore later in the tutorial.
+For regular user or audience of the audio room, the call will be live when host calls `call.goLive()`.
+This makes it easy to try out your room and talk to your co-hosts before going live. You can enable or disable the usage of backstage mode in the dashboard.
+
+For now we will call `call.goLive()` immediately after joining the call, so that we can test the audio room.
+
+To enhance the interactivity of this tutorial moving forward, kindly follow these steps:
+
+- Give the app a refresh, then tap the "Join Audio Room" button within your mobile tutorial app.
+- Access the web version of the audio room on your browser by clicking the "Join Call" link provided below, and subsequently, hit the "Join" button.
+
+<TokenSnippet sampleApp="audio-rooms" displayStyle="join" />
+
+Currently, you won't have the ability to speak, as we haven't set up the user interface for the audio room.
+However, you will be able to view the current user listed among the participants on the web application.
+
+## Step 7 - Configure UI for Audio Room
+
+Up until now, we've effectively established and entered the call.
+Moving forward, our focus will be on setting up the audio room's user interface.
+This involves presenting a participant list, indicating their speaking status, offering controls to enable or disable both live mode and audio transmission, and more.
+
+As previously mentioned, all essential call information can be accessed through the SDK's provided hooks, facilitated by the `StreamCall` component.
+You can conveniently access a range of hooks related to the call's state by utilizing the `useCallStateHooks` hook as demonstrated below.
+By utilizing these hooks, you can confidently depend on the most up-to-date state information.
+
+```tsx
+const { useCallCustomData, useParticipants } = useCallStateHooks();
+
+// Custom data is the `data.custom` property you set in `client.call()` method
+const custom = useCallCustomData();
+const participants = useParticipants();
+// .. and many more
+```
+
+For a comprehensive list of all the available hooks, kindly consult the [Call and Participant State](../../core/call-and-participant-state) guide.
+
+Now, we'll establish a basic structure for the UI by crafting the subsequent components within the `AudioRoom` component:
+
+- `AudioRoomDescription`: This component will display the call's title and participant count.
+- `AudioRoomParticipants`: Here, you'll showcase the list of participants along with their speaking status.
+- `AudioRoomControlsPanel`: This component will house controls to activate or deactivate both live mode and audio transmission.
+
+So please go ahead and create the following files:
+
+<Tabs>
+<TabItem value="audio-room-description" label="AudioRoomDescription" default>
+
+```tsx title="src/AudioRoomDescription.tsx"
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+
+export const AudioRoomDescription = () => {
+  return (
+    <View style={styles.container}>
+      <Text>Audio Room Description: TO BE IMPLEMENTED</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 4,
+  },
+});
+```
+
+</TabItem>
+
+<TabItem value="audio-room-participants" label="AudioRoomParticipants">
+
+```tsx title="src/AudioRoomParticipants.tsx"
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+
+export const AudioRoomParticipants = () => {
+  return (
+    <View style={styles.container}>
+      <Text>Audio Room Participants: TO BE IMPLEMENTED</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 4,
+  },
+});
+```
+</TabItem>
+
+<TabItem value="audio-room-controls-panel" label="AudioRoomControlsPanel">
+
+```tsx title="src/AudioRoomControlsPanel.tsx"
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+
+export const AudioRoomControlsPanel = () => {
+  return (
+    <View style={styles.container}>
+      <Text>Audio Room Controls Panel: TO BE IMPLEMENTED</Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 4,
+  },
+});
+
+```
+
+</TabItem>
+</Tabs>
+
+And lets add these components to `AudioRoom`:
+
+```tsx title="src/AudioRoom.tsx"
+...
+// highlight-start
+import {AudioRoomControlsPanel} from './AudioRoomControlsPanel';
+import {AudioRoomDescription} from './AudioRoomDescription';
+import {AudioRoomParticipants} from './AudioRoomParticipants';
+// highlight-end
+...
+
+return (
+  <View style={styles.container}>
+    // removed-line
+    <Text style={styles.text}>Here we will add Audio Room UI</Text> // <-- remove this
+    // added-block-start
+    <AudioRoomDescription />
+    <AudioRoomParticipants />
+    <AudioRoomControlsPanel />
+    // added-block-end
+    <Button title="Leave Audio Room" onPress={goToHomeScreen} />
+  </View>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    ...
+  },
+  // removed-block-start
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  // removed-block-end
+});
+```
+
+If you refresh the app, you should see following UI:
+
+![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-skeleton.png)
+
+### Audio Room Description
+
+We will use the `useCallCustomData` to access custom data which we set as `data.custom` property in `client.call(..)` method which [creating the call](#step-3---create--join-a-call).
+And participant count can be accessed using `useParticipants` hook.
+
+```tsx title="src/AudioRoomDescription.tsx"
+import React from 'react';
+import {StyleSheet, Text, View} from 'react-native';
+// highlight-next-line
+import {useCallStateHooks} from '@stream-io/video-react-native-sdk';
+
+export const AudioRoomDescription = () => {
+  // highlight-start
+  const {useCallCustomData, useParticipants, useIsCallLive} =
+    useCallStateHooks();
+  const custom = useCallCustomData();
+  const participants = useParticipants();
+  const isLive = useIsCallLive();
+  // highlight-end
+
+  return (
+    <View style={styles.container}>
+      // removed-line
+      <Text>Audio Room Description: TO BE IMPLEMENTED</Text>
+      // added-block-start
+      <Text style={styles.title}>
+        {custom?.title ?? '<Title>'} {isLive ? '(Live)' : '(Not Live)'}
+      </Text>
+      <Text style={styles.subtitle}>
+        {custom?.description ?? '<Description>'}
+      </Text>
+      <Text style={styles.participantsCount}>
+        {`${participants.length} Participants`}
+      </Text>
+      // added-block-end
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 4,
+    // highlight-start
+    alignContent: 'center',
+    alignItems: 'center',
+    // highlight-end
+  },
+  // highlight-start
   title: {
     fontSize: 16,
     color: 'black',
@@ -372,71 +827,96 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 12,
   },
+  // highlight-end
 });
 ```
 
-In this component, we showed the title, description and the number of participants by using the metadata inside the call object.
+Upon refreshing the application, you will notice the title and participant count displayed in the UI.
+You can also experiment by joining and leaving the audio room using the web app,
+observing how the participant count dynamically changes on the mobile interface.
 
-That's it for the basics. Now when you run your app, you'll see the following UI:
+<TokenSnippet sampleApp="audio-rooms" displayStyle="join" />
 
-![Preview of the audio room description](../assets/02-tutorials/02-audio-room/active-room-description.png)
+![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-description.png)
 
-### Step 5 - Adding a list of participants with their speaking status
+### Audio Room Participants
 
-Let's add the `ParticipantsPanel` component:
+We will use the `useParticipants` hook to access list of participants and their speaking status.
 
-```tsx title=ParticipantsPanel.tsx
-import React, { useCallback } from 'react';
+```tsx title="src/AudioRoomParticipants.tsx"
+// highlight-start
+import React, {useCallback} from 'react';
 import {
   StreamVideoParticipant,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
+// highlight-end
 import {
-  FlatList,
-  FlatListProps,
-  StyleSheet,
   Text,
   View,
+  StyleSheet,
+  // highlight-start
+  FlatList,
+  FlatListProps,
   Image,
+  // highlight-end
 } from 'react-native';
 
+// highlight-next-line
 type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
 
-export function ParticipantsPanel() {
-  const { useParticipants } = useCallStateHooks();
+export const AudioRoomParticipants = () => {
+  // highlight-start
+  const {useParticipants} = useCallStateHooks();
   const participants = useParticipants();
+  // highlight-end
+
+  // highlight-start
   const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
-    useCallback(({ item: participantItem }) => {
-      const { isSpeaking } = participantItem;
+    useCallback(({item: participantItem}) => {
       return (
-        <View
-          key={participantItem.sessionId}
-          style={[styles.avatar, isSpeaking ? styles.speakingAvatar : null]}
-        >
-          <Image style={styles.image} source={{ uri: participantItem.image }} />
-          <Text style={styles.text}>{participantItem.name}</Text>
+        <View key={participantItem.sessionId} style={styles.avatar}>
+          <Image
+            style={styles.image}
+            source={{
+              uri:
+                participantItem.image ||
+                `https://getstream.io/random_png/?name=${participantItem.name}`,
+            }}
+          />
+          <Text style={styles.name}>{participantItem.name}</Text>
         </View>
       );
     }, []);
+  // highlight-end
 
   return (
-    <FlatList
-      bounces={false}
-      style={styles.speakerListContainer}
-      numColumns={3}
-      data={participants}
-      renderItem={renderItem}
-    />
+    <View style={styles.container}>
+      // removed-line
+      <Text>Audio Room Participants: TO BE IMPLEMENTED</Text>
+      // added-block-start
+      <FlatList
+        bounces={false}
+        numColumns={3}
+        data={participants}
+        renderItem={renderItem}
+      />
+      // added-block-end
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  text: {
-    color: 'black',
-  },
-  speakerListContainer: {
+  container: {
     flex: 1,
     padding: 4,
+  },
+  // highlight-start
+  name: {
+    marginTop: 4,
+    color: 'black',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   avatar: {
     flex: 1,
@@ -449,257 +929,285 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
   },
-  speakingAvatar: {
+  // highlight-end
+});
+
+```
+
+:::info
+In practical applications, depending on business requirements you may want to dynamically sort the participants list based on certain criteria for example dominant speaker first or alfabetical etc.
+You can pass comparator function to `useParticipants` hook to sort the participants list.
+
+```tsx
+import { speaking, useParticipants } from '@stream-io/video-react-native-sdk';
+
+const participants = useParticipants({ sortBy: speaking });
+```
+Please take a look at [Participants Sorting](../../core/sorting-api) guide for the details and various sorting options.
+:::
+
+Typically, audio room applications incorporate an indicator to denote whether a participant is currently speaking.
+We can achieve this effect by utilizing the `isSpeaking` boolean property associated with each `participant`.
+This property can be used to dynamically apply a border around the user avatar.
+
+```tsx title="src/AudioRoomParticipants.tsx" {7-12,24-27}
+...
+const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
+  useCallback(({item: participantItem}) => {
+    return (
+      <View key={participantItem.sessionId} style={styles.avatar}>
+        <Image
+          style={[
+            styles.image,
+            participantItem.isSpeaking
+              ? styles.activeSpeakerIndicator
+              : undefined,
+          ]}
+          ...
+        />
+        <Text style={styles.text}>{participantItem.name}</Text>
+      </View>
+    );
+  }, []);
+
+...
+
+const styles = StyleSheet.create({
+  ...
+  activeSpeakerIndicator: {
+    borderWidth: 4,
     borderColor: 'green',
   },
 });
+
 ```
 
-In this component, we showed a list of participants in three columns. We also show a green border over them if they are speaking.
+If you refresh the app, you should see the participant list as following
 
-After importing and using this component in `AudioRoom`, when you run your app, you'll see the following UI:
+![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-participants-list.png)
 
-![Preview of the audio room participants list](../assets/02-tutorials/02-audio-room/active-room-participants-list.png)
+### Audio Room Controls Panel
 
-### Step 6 - Adding controls to toggle the live mode on/off and audio on/off
-#### Backstage & Live mode control
+Let's expand the ControlPanel and add a button that controls the backstage of the room.
+In [Create and Join Call](#step-3---create--join-a-call) step, we made the call live right after creating/joining it.
+We will move that logic to a toggle button where host or speakers can toggle live mode of the call.
 
-Let's add buttons to control the backstage of the room.
+Please create a file named `ToggleLiveButton.tsx` in `src` directory and add the following code.
+Also make the following changes to `src/AudioRoomControlsPanel.tsx` and `src/AudioRoomScreen.tsx` file.
 
-```tsx title=src/LiveButtons.tsx
-import {
-  OwnCapability,
-  Restricted,
-  useCall,
-  useCallStateHooks,
-} from '@stream-io/video-react-native-sdk';
+<Tabs>
+<TabItem value="toggle-live-buttons" label="ToggleLiveButton" default>
+
+```tsx title="src/ToggleLiveButton.tsx"
+import {useCall, useCallStateHooks} from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { Button } from 'react-native';
+import {Button} from 'react-native';
 
-export default function LiveButtons() {
+export const ToggleLiveButton = () => {
   // this utility hook returns the call object from the <StreamCall /> context
   const call = useCall();
   // will emit a new value whenever the call goes live or stops being live.
   // we can use it to update the button text or adjust any other UI elements
-  const { useIsCallLive } = useCallStateHooks();
+  const {useIsCallLive} = useCallStateHooks();
   const isLive = useIsCallLive();
-
   return (
-    <>
-      {isLive && (
-        <Restricted
-          hasPermissionsOnly
-          requiredGrants={[OwnCapability.END_CALL]}
-        >
-          <Button
-            title={'Stop Live and Leave'}
-            onPress={async () => {
-              try {
-                await call.stopLive();
-                await call.leave();
-              } catch (error) {
-                console.log('Error Stop Live:', error);
-              }
-            }}
-          />
-        </Restricted>
-      )}
-      {!isLive && (
-        <Restricted
-          hasPermissionsOnly
-          requiredGrants={[OwnCapability.JOIN_BACKSTAGE]}
-        >
-          <Button
-            title={'Start Live'}
-            onPress={async () => {
-              try {
-                await call.goLive();
-              } catch (error) {
-                console.log('Error Start Live:', error);
-              }
-            }}
-          />
-        </Restricted>
-      )}
-      <Button
-        title={'Leave quietly'}
-        onPress={async () => {
-          try {
-            await call.leave();
-          } catch (error) {
-            console.log('Error leaving call:', error);
-          }
-        }}
-      />
-    </>
+    <Button
+      title={`${isLive ? 'Stop' : 'Go'} Live`}
+      onPress={() => {
+        if (isLive) {
+          call?.stopLive();
+        } else {
+          call?.goLive();
+        }
+      }}
+    />
   );
-}
+};
 ```
 
-In this component we do the following:
+</TabItem>
+<TabItem value="audio-room-controls-panel" label="AudioRoomControlsPanel">
 
-- If the user has the permission to end call or go live we show the buttons to go live or stop being live accordingly.
-- The user is also shown a button to leave quietly without stopping the call being live.
+```tsx title="src/AudioRoomControlsPanel.tsx"
+...
+// highlight-next-line
+import {ToggleLiveButton} from './ToggleLiveButton';
 
-#### Muting, Un-muting the audio track and requesting permission to send audio
-
-Requesting permission to send audio is easy. Let's first have a quick look at how the SDK call object exposes this:
-
-```ts
-import { OwnCapability } from '@stream-io/video-react-sdk';
-
-await call.requestPermissions({
-  permissions: [OwnCapability.SEND_AUDIO],
-});
-```
-
-Let's add a button to mute or un-mute the local audio track and ask permission to send audio if necessary:
-
-```tsx title=src/ToggleAudioButton.tsx
-import {
-  OwnCapability,
-  SfuModels,
-  useCall,
-  useConnectedUser,
-  useHasPermissions,
-  useIncallManager,
-  useCallStateHooks,
-  useMediaStreamManagement,
-} from '@stream-io/video-react-native-sdk';
-import React, { useEffect, useState } from 'react';
-import { Button } from 'react-native';
-
-export default function ToggleAudioButton() {
-  // start incall manager in audio only mode
-  useIncallManager({ media: 'audio', auto: true });
-
-  const { publishAudioStream, stopPublishingAudio } =
-    useMediaStreamManagement();
-  const { useLocalParticipant } = useCallStateHooks();
-  const call = useCall();
-  const connectedUser = useConnectedUser();
-
-  const localParticipant = useLocalParticipant();
-  const isMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
-  const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
-    OwnCapability.SEND_AUDIO,
-  );
-  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
-
-  let title = 'Mute';
-  if (!hasPermission) {
-    title = 'Ask permission to send audio';
-  } else if (isMuted) {
-    title = 'Unmute';
-  }
-
-  useEffect(() => {
-    if (!(call && connectedUser)) {
-      return;
-    }
-    return call.on('call.permissions_updated', (event) => {
-      if (event.type !== 'call.permissions_updated') {
-        return;
-      }
-      if (connectedUser.id !== event.user.id) {
-        return;
-      }
-      setIsAwaitingAudioApproval(false);
-      // automatically publish/unpublish audio stream based on the new permissions
-      if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
-        publishAudioStream();
-      } else {
-        stopPublishingAudio();
-      }
-    });
-  }, [call, connectedUser, publishAudioStream, stopPublishingAudio]);
-
-  if (
-    isAwaitingAudioApproval ||
-    (!canRequestSpeakingPermissions && !hasPermission)
-  ) {
-    return null;
-  }
-
-  const onPress = () => {
-    if (!hasPermission) {
-      setIsAwaitingAudioApproval(true);
-      call
-        ?.requestPermissions({
-          permissions: [OwnCapability.SEND_AUDIO],
-        })
-        .catch((err) => {
-          setIsAwaitingAudioApproval(false);
-          console.log('RequestPermissions failed', err);
-        });
-    } else if (isMuted) {
-      publishAudioStream().catch((err) => {
-        console.error('Error publishing audio stream', err);
-      });
-    } else {
-      stopPublishingAudio();
-    }
-  };
-  return <Button title={title} onPress={onPress} />;
-}
-```
-
-In this component, if the user taps on the button, we ask the permission to send audio to the admin if it is not present. If the permission was present, we allow the user to mute or un-mute their audio.
-
-#### The enclosing panel component
-
-Finally, we use both the buttons in the `ControlsPanel` component:
-
-```tsx title=src/ControlsPanel.tsx
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import LiveButtons from './LiveButtons';
-import ToggleAudioButton from './ToggleAudioButton';
-
-export default function ControlsPanel() {
+export const AudioRoomControlsPanel = () => {
   return (
     <View style={styles.container}>
-      <ToggleAudioButton />
-      <LiveButtons />
+      // removed-line
+      <Text>Audio Room Controls Panel: TO BE IMPLEMENTED</Text>
+      // added-line
+      <ToggleLiveButton />
     </View>
   );
-}
+};
+...
+```
+
+</TabItem>
+<TabItem value="audio-room-screen" label="AudioRoomScreen">
+
+```tsx title="src/AudioRoomScreen.tsx"
+useEffect(() => {
+  const joinCall = async () => {
+    ...
+
+    // After this step the call is live and you can start sending and receiving audio.
+    // removed-line
+    await _call.goLive(); // <-- remove this
+    setCall(_call);
+  };
+
+  joinCall();
+}, [client]);
+
+```
+
+</TabItem>
+
+</Tabs>
+
+Next we will add a button to mute or unmute the microphone button.
+Handling audio and video devices in a your application means working with MediaStream, MediaDeviceInfo and other WebRTC API objects.
+To make this simpler, we hide all the complexity inside the SDK and export utility functions and states.
+You can toggle the state of microphone using `call.microphone.toggle()` function and you can access the state of microphone using `useMicrophoneState` hook.
+Please check [Camera and Microphone](../../core/camera-and-microphone) guide for more details.
+
+Please create a file named `ToggleMicButton.tsx` in `src` directory as following and add it to `AudioRoomControlsPanel` component.
+
+<Tabs>
+<TabItem value="toggle-mic-button" label="ToggleMicButton" default>
+
+```tsx title="src/ToggleMicButton.tsx"
+import {useCall, useCallStateHooks} from '@stream-io/video-react-native-sdk';
+import React from 'react';
+import {Button} from 'react-native';
+
+export const ToggleMicButton = () => {
+  const call = useCall();
+  const {useMicrophoneState} = useCallStateHooks();
+  const {status} = useMicrophoneState();
+
+  const onPress = () => {
+    call?.microphone.toggle();
+  }
+
+  return (
+    <Button
+      title={`${status === 'enabled' ? 'Mute' : 'Unmute'}`}
+      onPress={onPress}
+    />
+  );
+};
+```
+
+</TabItem>
+<TabItem value="audio-room-controls-panel" label="AudioRoomControlsPanel">
+
+```tsx title="src/AudioRoomControlsPanel.tsx"
+...
+import {ToggleLiveButton} from './ToggleLiveButton';
+// highlight-next-line
+import {ToggleMicButton} from './ToggleMicButton';
+
+export const AudioRoomControlsPanel = () => {
+  return (
+    <View style={styles.container}>
+      <ToggleLiveButton />
+      // highlight-next-line
+      <ToggleMicButton />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
-    alignSelf: 'center',
+    padding: 4,
+    // highlight-start
+    flexDirection: 'row',
+    justifyContent: 'center',
+    // highlight-end
   },
 });
+
 ```
 
-After importing and using this component in `AudioRoom`, when you run your app, you'll see the following UI:
+</TabItem>
 
-![Preview of the audio room controls](../assets/02-tutorials/02-audio-room/active-room-controls.png)
+</Tabs>
 
-To make this a little more interactive. And then, join the audio room from your browser.
+:::info
+By default, the audio source is set to the device's speaker.
+However, if you wish for the app to seamlessly switch between the earphone and speaker,
+you can make use of the `useIncallManager` hook provided by the SDK. This hook internally utilizes
+[react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager#usage) library for this purpose.
 
-<TokenSnippet sampleApp="audio-rooms" displayStyle="join" />
+```tsx title="src/ToggleMicButton.tsx"
 
-At first you won't be allowed to join the room since it's not live yet. By default the `audio_room` call type has backstage mode enabled. This makes it easy to try out your room and talk to your co-hosts before going live. You can enable or disable the usage of backstage mode in the dashboard.
+import {
+  ...
+  // highlight-next-line
+  useIncallManager,
+} from '@stream-io/video-react-native-sdk';
 
-Let's go live and join the call:
+export const ToggleMicButton = () => {
+  // start incall manager
+  // Please read more about `media` and `auto` options in the documentation of react-native-incall-manager
+  // https://github.com/react-native-webrtc/react-native-incall-manager#usage
+  // highlight-next-line
+  useIncallManager({media: 'video', auto: true});
+  ...
+}
+```
+:::
 
-1. Press the start live button on your app
-2. On web join the room
-3. You'll see the participant count increase to 2
+If you refresh the app, you should be able to toggle live mode and mute/unmute the microphone.
 
+![Preview of the audio room UI](../assets/02-tutorials/02-audio-room/active-room-controls.png)
 
-### Step 7 - A list of permission requests​ for the admin
+## Step 8 - Requesting permission to speak
 
-Handling permission requests​ is easy. Let's first have a quick look at how the SDK call object exposes this:
+In real audio room applications, a participant may need to request permission to speak from the host or speakers.
+And host or speakers can grant or deny the request using `call.grantPermissions` or `call.revokePermissions` methods.
+They can subscribe to an event `call.permission_requested` to get notified when a participant requests permission to speak.
 
-```ts
-import type { PermissionRequestEvent } from '@stream-io/video-react-sdk';
+Let's first have a quick look at how the SDK call object exposes this:
 
-call.on(
+<Tabs>
+<TabItem value="request-permissions" label="Request Permission" default>
+
+```tsx
+import { OwnCapability, PermissionRequestEvent } from '@stream-io/video-react-native-sdk';
+
+// On user side who is requesting permission to speak
+await call.requestPermissions({
+  permissions: [OwnCapability.SEND_AUDIO],
+});
+
+// Once the host grants or rejects permission, user will be notified using `call.permissions_updated` event
+const unsubscribe = call.on('call.permissions_updated', (event) => {
+  if (connectedUser.id !== event.user.id) {
+    return;
+  }
+  // automatically publish/unpublish audio stream based on the new permissions
+  if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
+    // enable microphone
+  } else {
+    // disable microphone
+  }
+});
+
+```
+
+</TabItem>
+<TabItem value="grant-or-reject-permissions" label="Grant or Reject Permission">
+
+```tsx
+import type { PermissionRequestEvent } from '@stream-io/video-react-native-sdk';
+
+const unsubscribe = call.on(
   'call.permission_requested',
   async (request: PermissionRequestEvent) => {
     // get the permission request data
@@ -712,19 +1220,130 @@ call.on(
     await call.grantPermissions(user.id, permissions);
   },
 );
+
+// don't forget to unsubscribe during unmount
+unsubscribe();
 ```
 
-Let us add a component to that shows the incoming permission requests as well as the buttons to grant / reject it.
+</TabItem>
+</Tabs>
 
-```tsx title=src/PermissionRequestsPanel.tsx
+Now, let's begin by first developing the logic to initiate a permission request for speaking when the user taps on the microphone button.
+
+
+```tsx title="src/ToggleMicButton.tsx"
+import {
+  useCall,
+  useCallStateHooks,
+  // highlight-start
+  useHasPermissions,
+  OwnCapability,
+  // highlight-end
+} from '@stream-io/video-react-native-sdk';
+// highlight-next-line
+import React, {useState} from 'react';
+import {Button} from 'react-native';
+
+export const ToggleMicButton = () => {
+  const call = useCall();
+  const {useMicrophoneState} = useCallStateHooks();
+  const {status} = useMicrophoneState();
+  // highlight-start
+  const hasPermission = useHasPermissions(OwnCapability.SEND_AUDIO);
+  const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
+    OwnCapability.SEND_AUDIO,
+  );
+  // State to track if the user has requested speaking permissions.
+  // If they have, we'll disable the toggle microphone button.
+  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
+  // highlight-end
+
+  const onPress = async () => {
+    // highlight-start
+    if (!hasPermission) {
+      setIsAwaitingAudioApproval(true);
+      return call?.requestPermissions({
+        permissions: [OwnCapability.SEND_AUDIO],
+      });
+    }
+    // highlight-end
+
+    call?.microphone.toggle();
+  };
+
+  return (
+    <Button
+      title={`${status === 'enabled' ? 'Mute' : 'Unmute'}`}
+      onPress={onPress}
+      // highlight-start
+      disabled={
+        !hasPermission ||
+        !canRequestSpeakingPermissions ||
+        isAwaitingAudioApproval
+      }
+      // highlight-end
+    />
+  );
+};
+```
+
+Let's proceed to add an event listener for the event `call.permissions_updated`.
+This will keep the current user informed about any changes in permissions, whether they are granted or rejected by hosts or speakers.
+It's worth noting that the current user in the app will already possess permission to speak, as the default permission configuration allows the call creator to transmit audio.
+
+```tsx title="src/ToggleMicButton.tsx" {3,9,13-34}
+import {
+  ...
+  useConnectedUser,
+} from '@stream-io/video-react-native-sdk';
+
+export const ToggleMicButton = () => {
+  ...
+  
+  const connectedUser = useConnectedUser();
+  // State to track if the user has requested speaking permissions. If they have, we'll disable the toggle microphone button.
+  const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
+
+  useEffect(() => {
+    if (!(call && connectedUser)) {
+      return;
+    }
+    const unsubscribe = call.on('call.permissions_updated', event => {
+      if (event.type !== 'call.permissions_updated') {
+        return;
+      }
+      if (connectedUser.id !== event.user.id) {
+        return;
+      }
+      setIsAwaitingAudioApproval(false);
+      // automatically publish/unpublish audio stream based on the new permissions
+      if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
+        call.microphone.enable();
+      } else {
+        call.microphone.disable();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [call, connectedUser]);
+
+  ...
+}
+```
+
+To handle the things host side, let's add another component that shows the last incoming request as well as the buttons to grant / reject it
+
+Please create a file `PermissionsRequestsPanel.tsx` inside `src` directory and make the following changes. The code is pretty much self explanatory.
+
+```tsx title="src/PermissionsRequestsPanel.tsx"
 import {
   OwnCapability,
   PermissionRequestEvent,
   useCall,
   useHasPermissions,
 } from '@stream-io/video-react-native-sdk';
-import React, { useEffect, useState } from 'react';
-import { Text, Button, ScrollView, StyleSheet, View } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Text, Button, ScrollView, StyleSheet, View} from 'react-native';
 
 export const PermissionRequestsPanel = () => {
   const call = useCall();
@@ -739,14 +1358,14 @@ export const PermissionRequestsPanel = () => {
     request: PermissionRequestEvent,
     approve: boolean,
   ) => {
-    const { user, permissions } = request;
+    const {user, permissions} = request;
     try {
       if (approve) {
         await call?.grantPermissions(user.id, permissions);
       } else {
         await call?.revokePermissions(user.id, permissions);
       }
-      setSpeakingRequests((reqs) => reqs.filter((req) => req !== request));
+      setSpeakingRequests(reqs => reqs.filter(req => req !== request));
     } catch (err) {
       console.error('Error granting or revoking permissions', err);
     }
@@ -756,11 +1375,11 @@ export const PermissionRequestsPanel = () => {
     if (!(call && canUpdatePermissions)) {
       return;
     }
-    return call.on('call.permission_request', (event) => {
+    return call.on('call.permission_request', event => {
       if (event.type !== 'call.permission_request') {
         return;
       }
-      setSpeakingRequests((prevSpeakingRequests) => [
+      setSpeakingRequests(prevSpeakingRequests => [
         ...prevSpeakingRequests,
         event,
       ]);
@@ -773,7 +1392,7 @@ export const PermissionRequestsPanel = () => {
 
   return (
     <ScrollView style={styles.scrollContainer}>
-      {speakingRequests.map((request) => (
+      {speakingRequests.map(request => (
         <View style={styles.itemContainer} key={request.user.id}>
           <Text style={styles.text} numberOfLines={2} ellipsizeMode="tail">
             {`${request.user.name} requested to ${request.permissions.join(
@@ -810,14 +1429,73 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 });
+
 ```
 
-In the above component, we show a list of permission requests along with button to approve or deny if the user has the permission to update permissions of other users in the call.
+And now we will add this component to `AudioRoom` component.
 
-Now, from web ask for permission to send audio. After importing and using this component in `AudioRoom`, when you run your app, you'll see the following UI:
+```tsx title="src/AudioRoom.tsx"
+...
+import {AudioRoomParticipants} from './AudioRoomParticipants';
+// highlight-next-line
+import {PermissionRequestsPanel} from './PermissionsRequestsPanel';
+
+export const AudioRoom = ({goToHomeScreen}: Props) => {
+  return (
+    <View style={styles.container}>
+      <AudioRoomDescription />
+      <AudioRoomParticipants />
+      // highlight-next-line
+      <PermissionRequestsPanel />
+      <AudioRoomControlsPanel />
+      <Button title="Leave Audio Room" onPress={goToHomeScreen} />
+    </View>
+  );
+};
+...
+```
+
+Now, for the purpose of testing:
+
+- Navigate to the web app.
+- Join the audio room.
+- Click on the raised hand (✋) button located in the top-right corner to request permission to speak.
+- You should observe the request being displayed in the mobile app as illustrated below:
+
+<TokenSnippet sampleApp="audio-rooms" displayStyle="join" />
 
 ![Preview of the final result](../assets/02-tutorials/02-audio-room/active-room-permissions.png)
 
+## Step 9 - Leave the call
+
+User can leave the call by calling `call.leave()` method.
+Lets add this functionality to "Leave Audio Room" button.
+
+```tsx title="src/AudioRoom.tsx" {3,7-12,19}
+...
+import {AudioRoomParticipants} from './AudioRoomParticipants';
+import {useCall} from '@stream-io/video-react-native-sdk';
+
+...
+export const AudioRoom = ({goToHomeScreen}: Props) => {
+  const call = useCall();
+  const leaveCall = async () => {
+    // This will leave the call and stop sending and receiving audio.
+    await call?.leave();
+    goToHomeScreen();
+  };
+
+  return (
+    <View style={styles.container}>
+      <AudioRoomDescription />
+      <AudioRoomParticipants />
+      <AudioRoomControlsPanel />
+      <Button title="Leave Audio Room" onPress={leaveCall} />
+    </View>
+  );
+};
+
+```
 ## Other built-in features
 
 There are a few more exciting features that you can use to build audio rooms

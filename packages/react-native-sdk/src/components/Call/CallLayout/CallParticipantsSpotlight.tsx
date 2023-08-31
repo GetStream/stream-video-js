@@ -10,8 +10,8 @@ import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListProps,
   CallParticipantsListComponentProps,
+  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
@@ -49,15 +49,14 @@ export const CallParticipantsSpotlight = ({
   const {
     theme: { colors, callParticipantsSpotlight },
   } = useTheme();
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
+  const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
-  const _remoteParticipants = useRemoteParticipants();
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
-  const isUserAloneInCall = _remoteParticipants?.length === 0;
+  const isUserAloneInCall = _allParticipants?.length === 1;
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -97,7 +96,9 @@ export const CallParticipantsSpotlight = ({
                   callParticipantsSpotlight.spotlightContainer,
                 ]
           }
-          videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          trackType={
+            isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
+          }
           {...participantViewProps}
         />
       )}

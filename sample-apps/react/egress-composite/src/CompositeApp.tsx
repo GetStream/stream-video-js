@@ -10,10 +10,10 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from './ConfigurationContext';
-import { EgressReadyNotificationProvider } from './hooks/useNotifyEgress';
+import { EgressReadyNotificationProvider, useExternalCSS } from './hooks';
+import { UIDispatcher, LogoAndTitleOverlay } from './components';
 
 import './CompositeApp.scss';
-import { UIDispatcher, LogoAndTitleOverlay } from './components';
 
 export const CompositeApp = () => {
   const {
@@ -91,6 +91,7 @@ export const CompositeApp = () => {
 
 const StreamThemeWrapper = ({ children }: PropsWithChildren) => {
   // TODO: background style
+  useExternalCSS();
 
   return <StreamTheme>{children}</StreamTheme>;
 };
