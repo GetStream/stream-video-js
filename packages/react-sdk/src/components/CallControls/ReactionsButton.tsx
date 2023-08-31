@@ -24,7 +24,7 @@ export const defaultReactions: StreamReaction[] = [
   },
   {
     type: 'reaction',
-    emoji_code: ':hart:',
+    emoji_code: ':heart:',
   },
   {
     type: 'reaction',
