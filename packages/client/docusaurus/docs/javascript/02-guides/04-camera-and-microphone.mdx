@@ -190,16 +190,56 @@ This is how you can show a visual representation about the sound level coming fr
 
 ## Speaker management
 
-### Browser support
-
-Selecting audio output device for the call [isn't supported by all browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId), this is how you can check the availability:
-
-```typescript
-// This feature is coming soon 🏗️
-```
-
 ### List and select devices
 
+#### Browser support
+
+Selecting audio output device [isn't supported by all browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId), this is how you can check the availability:
+
 ```typescript
-// This feature is coming soon 🏗️
+call.speaker.state.isDeviceSelectionSupported;
+```
+
+```typescript
+// List devices
+// The error handler is called if the user denies permission to use audio
+call.speaker.listDevices().subscribe({
+  next: (devices) => console.log(devices),
+  error: (err) => console.error(err),
+});
+
+// Select device
+call.speaker.select('device Id');
+```
+
+Device id can also be an empty string, that means to use the system's default audio output.
+
+Here is how you can access the selected device:
+
+```typescript
+call.speaker.state.selectedDevice; // currently selected audio output
+// Reactive value for selected device, you can subscribe to changes
+call.speaker.state.selectedDevice$.subscribe((selectedDevice) => {
+  console.log(selectedDevice);
+});
+```
+
+### Set volume
+
+Volume has to be a number between 0 and 1. 0 means mute the audio output.
+
+```typescript
+call.speaker.setVolume(0.5);
+```
+
+The default system value is 1.
+
+Here is how you can access the selected device:
+
+```typescript
+call.speaker.state.volume; // current volume
+// Reactive value for volume, you can subscribe to changes
+call.speaker.state.volume$.subscribe((volume) => {
+  console.log(volume);
+});
 ```

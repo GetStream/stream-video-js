@@ -136,7 +136,12 @@ export const CallContent = ({
   return (
     <View style={[styles.container, callContent.container]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
-        <View style={[styles.view, callContent.topContainer]}>
+        <View
+          style={[styles.view, callContent.topContainer]}
+          // "box-none" disallows the container view to be not take up touches
+          // and allows only the top and floating view (its child views) to take up the touches
+          pointerEvents="box-none"
+        >
           {CallTopView && (
             <CallTopView
               onBackPressed={onBackPressed}
