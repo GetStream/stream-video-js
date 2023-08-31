@@ -1,5 +1,4 @@
 # Official React Native SDK for [Stream Video](https://getstream.io/video/docs/)
-## 🚧 WARNING This package is not yet stable, it is for internal use only. For more information check out our video product page. 🚧
 
 <img src="../../.readme-assets/Github-Graphic-React.jpg" alt="Stream Video for React Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
 
