@@ -1,5 +1,3 @@
-import { isReactNative } from '../helpers/platforms';
-import { removeCodec, setPreferredCodec } from '../helpers/sdp-munging';
 import { getLogger } from '../logger';
 
 export const getPreferredCodecs = (
