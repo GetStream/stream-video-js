@@ -3,10 +3,8 @@ import { RxUtils } from '../store';
 import { checkIfAudioOutputChangeSupported } from './devices';
 
 export class SpeakerState {
-  protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
-    undefined,
-  );
-  protected volumeSubject = new BehaviorSubject<undefined | number>(undefined);
+  protected selectedDeviceSubject = new BehaviorSubject<string>('');
+  protected volumeSubject = new BehaviorSubject<number>(1);
   /**
    * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
    */
@@ -17,14 +15,14 @@ export class SpeakerState {
    *
    * Note: this feature is not supported in React Native
    */
-  selectedDevice$: Observable<string | undefined>;
+  selectedDevice$: Observable<string>;
 
   /**
    * An Observable that emits the currently selected volume
    *
    * Note: this feature is not supported in React Native
    */
-  volume$: Observable<number | undefined>;
+  volume$: Observable<number>;
 
   constructor() {
     this.selectedDevice$ = this.selectedDeviceSubject
@@ -65,7 +63,7 @@ export class SpeakerState {
    * @internal
    * @param deviceId
    */
-  setDevice(deviceId: string | undefined) {
+  setDevice(deviceId: string) {
     this.setCurrentValue(this.selectedDeviceSubject, deviceId);
   }
 
@@ -73,7 +71,7 @@ export class SpeakerState {
    * @internal
    * @param volume
    */
-  setVolume(volume: number | undefined) {
+  setVolume(volume: number) {
     this.setCurrentValue(this.volumeSubject, volume);
   }
 

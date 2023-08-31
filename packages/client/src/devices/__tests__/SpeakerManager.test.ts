@@ -32,7 +32,7 @@ describe('SpeakerManager.test', () => {
   });
 
   it('select', async () => {
-    expect(manager.state.selectedDevice).toBe(undefined);
+    expect(manager.state.selectedDevice).toBe('');
 
     manager.select('new-device');
 
@@ -40,11 +40,11 @@ describe('SpeakerManager.test', () => {
   });
 
   it('set volume', async () => {
-    expect(manager.state.volume).toBe(undefined);
+    expect(manager.state.volume).toBe(1);
 
     expect(() => manager.setVolume(2)).toThrowError();
 
-    expect(manager.state.volume).toBe(undefined);
+    expect(manager.state.volume).toBe(1);
 
     manager.setVolume(0);
 

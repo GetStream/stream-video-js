@@ -19,13 +19,13 @@ export class SpeakerManager {
   }
 
   /**
-   * Select device, `undefined` means to use the system's default audio output
+   * Select device
    *
    * Note: this method is not supported in React Native
    *
-   * @param deviceId
+   * @param deviceId empty string means the system default
    */
-  select(deviceId: string | undefined) {
+  select(deviceId: string) {
     if (isReactNative()) {
       throw new Error('This feature is not supported in React Native');
     }
@@ -34,11 +34,11 @@ export class SpeakerManager {
 
   /**
    * Set the volume of the audio elements
-   * @param volume a number between 0 and 1, `undefined` means to use the default volume level
+   * @param volume a number between 0 and 1
    *
    * Note: this method is not supported in React Native
    */
-  setVolume(volume: number | undefined) {
+  setVolume(volume: number) {
     if (isReactNative()) {
       throw new Error('This feature is not supported in React Native');
     }

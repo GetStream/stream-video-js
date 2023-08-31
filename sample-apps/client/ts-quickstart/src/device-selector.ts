@@ -84,7 +84,7 @@ export const renderVolumeControl = (call: Call) => {
   });
 
   call.speaker.state.volume$.subscribe((volume) => {
-    element.value = '' + (volume || 0);
+    element.value = '' + volume;
   });
 
   return element;

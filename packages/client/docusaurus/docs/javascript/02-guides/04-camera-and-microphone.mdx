@@ -203,18 +203,16 @@ call.speaker.state.isDeviceSelectionSupported;
 ```typescript
 // List devices
 // The error handler is called if the user denies permission to use audio
-call.speaker
-  .listDevices()
-  .subscribe({ 
-    next: (devices) => console.log(devices), 
-    error: (err) => console.error(err),
-  });
+call.speaker.listDevices().subscribe({
+  next: (devices) => console.log(devices),
+  error: (err) => console.error(err),
+});
 
 // Select device
 call.speaker.select('device Id');
 ```
 
-Device id can also be `undefined`, that means to use the system's default audio output.
+Device id can also be an empty string, that means to use the system's default audio output.
 
 Here is how you can access the selected device:
 
@@ -234,7 +232,7 @@ Volume has to be a number between 0 and 1. 0 means mute the audio output.
 call.speaker.setVolume(0.5);
 ```
 
-Volume can also be `undefined`, it means to use the system's default audio output levels.
+The default system value is 1.
 
 Here is how you can access the selected device:
 
