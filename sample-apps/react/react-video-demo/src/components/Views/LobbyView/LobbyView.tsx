@@ -6,8 +6,6 @@ import { User } from '@stream-io/video-react-sdk';
 import LobbyPanel from '../../LobbyPanel';
 import Header from '../../Header';
 
-import { MediaPermissionsError, requestMediaPermissions } from 'mic-check';
-
 import LobbyLayout from '../../Layout/LobbyLayout';
 
 import styles from './LobbyView.module.css';
@@ -30,6 +28,7 @@ export type Props = {
     latency: number;
   };
   isjoiningCall: boolean;
+  browserPermissionsEnabled: boolean;
 };
 
 export type Lobby = {
@@ -45,16 +44,9 @@ export const LobbyView: FC<Props & Lobby> = ({
   fastestEdge,
   isjoiningCall,
   user,
+  browserPermissionsEnabled,
 }) => {
   const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
-
-  const [permissionsEnabled, setPermissionsEnabled] = useState<boolean>(true);
-
-  useEffect(() => {
-    requestMediaPermissions().catch((err: MediaPermissionsError) => {
-      setPermissionsEnabled(false);
-    });
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,7 +82,7 @@ export const LobbyView: FC<Props & Lobby> = ({
           user={user}
           fastestEdge={fastestEdge}
           isJoiningCall={Boolean(callId)}
-          permissionsEnabled={permissionsEnabled}
+          browserPermissionsEnabled={browserPermissionsEnabled}
         />
       )}
     </LobbyLayout>

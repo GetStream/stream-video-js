@@ -10063,13 +10063,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bowser@npm:^2.11.0":
-  version: 2.11.0
-  resolution: "bowser@npm:2.11.0"
-  checksum: 29c3f01f22e703fa6644fc3b684307442df4240b6e10f6cfe1b61c6ca5721073189ca97cdeedb376081148c8518e33b1d818a57f781d70b0b70e1f31fb48814f
-  languageName: node
-  linkType: hard
-
 "boxen@npm:^5.1.2":
   version: 5.1.2
   resolution: "boxen@npm:5.1.2"
@@ -19640,15 +19633,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mic-check@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "mic-check@npm:1.1.0"
-  dependencies:
-    bowser: ^2.11.0
-  checksum: fb12213929b576ad7e7b64e24134a47644928f48d37d1d757689e0f2d4243aa92fdb2ab39f3ad47dbc533d2a8dc7bf9f0f6ce600fa22c981106cdf1bc0856ec5
-  languageName: node
-  linkType: hard
-
 "microevent.ts@npm:~0.1.1":
   version: 0.1.1
   resolution: "microevent.ts@npm:0.1.1"
@@ -23472,7 +23456,6 @@ __metadata:
     gleap: ^10.0.5
     hotkeys: ^1.0.0
     mapbox-gl: ^2.12.0
-    mic-check: ^1.1.0
     mobile-device-detect: ^0.4.3
     nanoid: ^4.0.2
     postcss: ^8.4.21
