@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import {
   isCameraPermissionGranted$,
   isMicPermissionGranted$,
@@ -61,6 +61,7 @@ export const MediaStreamManagement = ({
   children,
 }: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
+  const { t } = useI18n();
 
   // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
@@ -94,36 +95,35 @@ export const MediaStreamManagement = ({
         call?.camera.disable();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAudioEnabled, initialVideoEnabled]);
+  }, [call, initialAudioEnabled, initialVideoEnabled]);
 
   const toggleInitialAudioMuteState = useCallback(() => {
     if (
       !isMicPermissionGranted$.getValue() &&
       call?.microphone.state.status === 'disabled'
     ) {
-      Alert.alert('Microphone permission not granted, can not enable audio');
+      Alert.alert(t('Microphone Permission Required To Enable Audio'));
       return false;
     }
 
     call?.microphone.state.status === 'disabled'
       ? call?.microphone.enable()
       : call?.microphone.disable();
-  }, [call]);
+  }, [call, t]);
 
   const toggleInitialVideoMuteState = useCallback(() => {
     if (
       !isCameraPermissionGranted$.getValue() &&
       call?.camera.state.status === 'disabled'
     ) {
-      Alert.alert('Camera permission not granted, can not enable video');
+      Alert.alert(t('Camera Permission Required To Enable Video'));
       return false;
     }
 
     call?.camera.state.status === 'disabled'
       ? call?.camera.enable()
       : call?.camera.disable();
-  }, [call]);
+  }, [call, t]);
 
   const contextValue = useMemo(() => {
     return {
