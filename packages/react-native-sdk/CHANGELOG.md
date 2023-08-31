@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.0.1-alpha.414](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.413...@stream-io/video-react-native-sdk-0.0.1-alpha.414) (2023-08-31)
+
+
+### Bug Fixes
+
+* bring back reanimated and gesture handler ([#1019](https://github.com/GetStream/stream-video-js/issues/1019)) ([f90d140](https://github.com/GetStream/stream-video-js/commit/f90d140d8bf4bc1c5bc5b31bff80e8c7b557dfc4))
+
+
+### Features
+
+* **react-native:** add permission alert messages to translations ([#956](https://github.com/GetStream/stream-video-js/issues/956)) ([44ff70c](https://github.com/GetStream/stream-video-js/commit/44ff70cefdcd1b977334f4c21a0c59a599db9322))
+
+
+
 ## [0.0.1-alpha.413](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.412...@stream-io/video-react-native-sdk-0.0.1-alpha.413) (2023-08-31)
 
 
