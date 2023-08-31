@@ -18,6 +18,10 @@ export type CallParticipantsGridProps = CallParticipantsListComponentProps & {
    * Component to customize the CallParticipantsList.
    */
   CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+  /**
+   * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
+   */
+  showLocalParticipant?: boolean;
 };
 
 /**
@@ -31,12 +35,15 @@ export const CallParticipantsGrid = ({
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
+  showLocalParticipant = false,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
-  const { useRemoteParticipants, useParticipants } = useCallStateHooks();
+  const { useRemoteParticipants, useParticipants, useLocalParticipant } =
+    useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
+  const localParticipant = useLocalParticipant();
   const _allParticipants = useParticipants();
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
@@ -45,7 +52,11 @@ export const CallParticipantsGrid = ({
   const showFloatingView =
     remoteParticipants.length > 0 && remoteParticipants.length < 3;
 
-  const participants = showFloatingView ? remoteParticipants : allParticipants;
+  const participants = showFloatingView
+    ? showLocalParticipant && localParticipant
+      ? [localParticipant]
+      : remoteParticipants
+    : allParticipants;
 
   const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,

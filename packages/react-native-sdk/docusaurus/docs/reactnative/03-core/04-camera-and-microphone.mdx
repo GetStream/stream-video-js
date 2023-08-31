@@ -68,13 +68,13 @@ const { status } = useCameraState(); // status returns enabled, disabled or unde
 
 ### Show Video Preview
 
-We can get the video stream from the camera using the utility hook `useLocalVideoStream` and show it using the `RTCView` component from `react-native-webrtc` library:
+We can get the video stream from the camera using the media stream from the `call.camera` object and show it using the `RTCView` component from `@stream-io/react-native-webrtc` library:
 
 ```tsx
-import { RTCView } from 'react-native-webrtc';
-import { useLocalVideoStream } from '@stream-io/video-react-native-sdk';
+import { RTCView } from '@stream-io/react-native-webrtc';
+const call = useCall();
 
-const localVideoStream = useLocalVideoStream();
+const localVideoStream = call?.camera.state.mediaStream;
 
 return <RTCView streamURL={localVideoStream?.toURL()} />;
 ```
