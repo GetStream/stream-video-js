@@ -51,8 +51,8 @@ export const CallParticipantsGrid = ({
     remoteParticipants.length > 0 && remoteParticipants.length < 3;
 
   const participants = showFloatingView
-    ? showLocalParticipant
-      ? [localParticipant!!]
+    ? showLocalParticipant && localParticipant
+      ? [localParticipant]
       : remoteParticipants
     : allParticipants;
 
