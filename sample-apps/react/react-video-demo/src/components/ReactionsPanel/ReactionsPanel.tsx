@@ -34,9 +34,9 @@ export const defaultEmojiReactions: Record<
     custom: {},
     type: 'reaction',
   },
-  ':hart:': {
+  ':heart:': {
     emoji: '❤️',
-    label: 'Hart',
+    label: 'Heart',
     custom: {},
     type: 'reaction',
   },
