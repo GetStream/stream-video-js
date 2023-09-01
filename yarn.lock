@@ -7379,7 +7379,6 @@ __metadata:
     metro-resolver: 0.76.0
     react: 18.2.0
     react-native: 0.71.8
-    react-native-callkeep: ^4.3.12
     react-native-device-info: ^10.8.0
     react-native-gesture-handler: ~2.9.0
     react-native-incall-manager: ^4.1.0
@@ -25094,15 +25093,6 @@ __metadata:
   peerDependencies:
     react-native: ">=0.40.0"
   checksum: 0fca2c868b29e7264ded0f51c04c7db88234ac2388bdb0fff3de0b788d758e89f0351dc73937e21975b7c43f3d1d6925f88182b7a8ed9cd0e7b82e13f7a1e8b3
-  languageName: node
-  linkType: hard
-
-"react-native-callkeep@npm:^4.3.12":
-  version: 4.3.12
-  resolution: "react-native-callkeep@npm:4.3.12"
-  peerDependencies:
-    react-native: ">=0.40.0"
-  checksum: 3e24f4b2fe6d33c5166fc32d678777e5c661f3ca21eafbc6c32432fc8fd3f150392c4db96de3a083ab1672ca395fbcd155f085338322d99e2fb6b9f48aadc447
   languageName: node
   linkType: hard
 

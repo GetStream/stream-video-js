@@ -379,9 +379,7 @@ PODS:
     - React-perflogger (= 0.71.8)
   - ReactNativeIncallManager (4.1.0):
     - React-Core
-  - RNCallKeep (4.3.12):
-    - React
-  - RNDeviceInfo (10.8.0):
+  - RNDeviceInfo (10.9.0):
     - React-Core
   - RNGestureHandler (2.9.0):
     - React-Core
@@ -478,7 +476,6 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeIncallManager (from `../node_modules/react-native-incall-manager`)
-  - RNCallKeep (from `../node_modules/react-native-callkeep`)
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
@@ -584,8 +581,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeIncallManager:
     :path: "../node_modules/react-native-incall-manager"
-  RNCallKeep:
-    :path: "../node_modules/react-native-callkeep"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNGestureHandler:
@@ -652,8 +647,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 7c51ae9d4b3e9608a2366e39ccaa606aa551b9ed
   ReactCommon: 85c98ab0a509e70bf5ee5d9715cf68dbf495b84c
   ReactNativeIncallManager: 2385505fa5dfdbbc78925e3b8d23b30ce0cde40e
-  RNCallKeep: aa9b1f9286f8f60d7b7d41ee5de47de564356aac
-  RNDeviceInfo: 5795b418ed3451ebcaf39384e6cf51f60cb931c9
+  RNDeviceInfo: 02ea8b23e2280fa18e00a06d7e62804d74028579
   RNGestureHandler: 071d7a9ad81e8b83fe7663b303d132406a7d8f39
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
   RNReanimated: cc5e3aa479cb9170bcccf8204291a6950a3be128
