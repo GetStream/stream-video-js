@@ -120,7 +120,6 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [ ] Deeplink support for video call demo (Dogfooding already implemented)
 - [ ] Speaking while muted
 - [ ] Landscape support
-- [ ] Call Analytics
 
 ### 0.3 milestone
 - [ ] Test with a large call with many participants
@@ -133,3 +132,4 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [ ] Screen sharing from mobile
 - [ ] Analytics integration
 - [ ] Picture of the video stream at highest resolution
+- [ ] Call Analytics
