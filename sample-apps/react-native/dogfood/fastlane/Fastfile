@@ -38,10 +38,6 @@ lane :stop_metro do
   sh("lsof -t -i:#{metro_port} | xargs kill -s INT || true")
 end
 
-lane :create_sentry_properties do
-  Dir.chdir('..') { sh('scripts/create-sentry-properties.sh') }
-end
-
 lane :load_package do
   load_json(json_path: 'package.json')
 end
@@ -86,8 +82,6 @@ lane :build_ios do
 
   bump_ios_version_number if is_ci
 
-  create_sentry_properties
-
   match_appstore
 
   settings_to_override = {
@@ -113,8 +107,6 @@ lane :build_ios do
 end
 
 lane :test_ios do |options|
-  create_sentry_properties
-
   start_video_buddy
 
   udid = prepare_simulator(device: 'iPhone 14 Pro')
@@ -160,13 +152,6 @@ lane :deploy_ios do
     skip_waiting_for_build_processing: false
   )
 
-  sentry_upload_dsym(
-    auth_token: ENV.fetch('SENTRY_RN_AUTH_TOKEN'),
-    org_slug: 'stream',
-    project_slug: 'video-dogfooding-react-native',
-    dsym_path: "#{build_dir}/StreamReactNativeVideoSDKSample.app.dSYM.zip",
-    info_plist: 'ios/StreamReactNativeVideoSDKSample/Info.plist'
-  )
 rescue StandardError => e
   UI.user_error!(e) unless e.message.include?('Another build is in review')
 
@@ -193,8 +178,6 @@ end
 
 lane :build_android do
   bump_android_version_number if is_ci
-
-  create_sentry_properties
 
   gradle(project_dir: 'android', tasks: %w[clean assembleRelease])
 

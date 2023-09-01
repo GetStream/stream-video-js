@@ -10,7 +10,6 @@ import {
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
-import { customSentryLogger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -53,7 +52,7 @@ export const GuestMeetingScreen = (props: Props) => {
       apiKey,
       user: userToConnect,
       tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-      options: { logger: customSentryLogger, logLevel: 'warn' },
+      options: { logLevel: 'warn' },
     });
     setVideoClient(_videoClient);
 
