@@ -61,7 +61,7 @@ Projects are broken up into directories containing the source code for each proj
 The React Native SDK is a part of the Stream Video JS monorepo. 
 The monorepo consists of multiple folders, the most important of which are `packages` and `sample-apps`.
 - The `packages` folder contains the packages each of which is a separate npm package. The React Native SDK is one of the packages alongside:
-  - Our shared JS Call Engine (`client`).
+  - [Our shared JS Call Engine](https://github.com/GetStream/stream-video-js/tree/main/packages/client) (`client`).
   - [React Bindings](../react-bindings) (`react-bindings`).
   - [React SDK](../react-sdk#official-react-sdk-for-stream-video) (`react-sdk`).
   
@@ -72,10 +72,8 @@ React Native's most relevant sample app is the `dogfooding` app which is a compl
 
 
 ## **Requirements** 🛠
-Before running this project please ensure you have set up your development environment for React Native. 
+Before running this project please ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup). 
 The Stream Video React Native SDK supports apps created with the React Native CLI.
-Apps created with Expo are currently not officially supported.
-
 
 ## **Contributing** 🤝
 - How can I submit a sample app?
