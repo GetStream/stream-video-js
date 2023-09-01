@@ -18,6 +18,18 @@ export const defaultReactions: StreamReaction[] = [
     type: 'reaction',
     emoji_code: ':fireworks:',
   },
+  {
+    type: 'reaction',
+    emoji_code: ':dislike:',
+  },
+  {
+    type: 'reaction',
+    emoji_code: ':heart:',
+  },
+  {
+    type: 'reaction',
+    emoji_code: ':smile:',
+  },
 ];
 
 export interface ReactionsButtonProps {

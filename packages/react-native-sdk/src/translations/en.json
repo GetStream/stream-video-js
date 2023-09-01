@@ -10,5 +10,7 @@
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
-  "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}."
+  "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}.",
+  "Microphone Permission Required To Enable Audio": "Microphone permission not granted, can not enable audio",
+  "Camera Permission Required To Enable Video": "Camera permission not granted, can not enable video"
 }

@@ -12,6 +12,9 @@ export const defaultEmojiReactionMap: Record<string, string> = {
   ':like:': '👍',
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
+  ':dislike:': '👎',
+  ':heart:': '❤️',
+  ':smile:': '😀',
 };
 
 export const Reaction = ({

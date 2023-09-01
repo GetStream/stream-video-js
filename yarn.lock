@@ -4583,16 +4583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:7.7.1":
-  version: 7.7.1
-  resolution: "@notifee/react-native@npm:7.7.1"
-  peerDependencies:
-    react-native: "*"
-  checksum: 0dd6b5f3d90be80bdb03549e29e9d6b2cacfca599d8982594d4d3f945e54d609c36d5416aed0627e453fdd38c1c2884a55a6a5914b8aee679392c2a60e788aff
-  languageName: node
-  linkType: hard
-
-"@notifee/react-native@npm:^7.7.1, @notifee/react-native@npm:^7.8.0":
+"@notifee/react-native@npm:7.8.0, @notifee/react-native@npm:^7.8.0":
   version: 7.8.0
   resolution: "@notifee/react-native@npm:7.8.0"
   peerDependencies:
@@ -7684,7 +7675,7 @@ __metadata:
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
-    "@notifee/react-native": ^7.7.1
+    "@notifee/react-native": ^7.8.0
     "@react-native-camera-roll/camera-roll": ^5.6.0
     "@react-native-clipboard/clipboard": ^1.11.1
     "@react-native-community/eslint-config": ^3.2.0
@@ -7745,7 +7736,7 @@ __metadata:
   resolution: "@stream-io/video-react-native-sdk@workspace:packages/react-native-sdk"
   dependencies:
     "@babel/preset-typescript": ^7.21.5
-    "@notifee/react-native": 7.7.1
+    "@notifee/react-native": 7.8.0
     "@react-native-community/eslint-config": ^3.2.0
     "@react-native-community/netinfo": 9.3.9
     "@react-native-firebase/app": 17.5.0
@@ -7769,7 +7760,9 @@ __metadata:
     react-native: 0.71.8
     react-native-callkeep: 4.3.11
     react-native-device-info: ^10.6.0
+    react-native-gesture-handler: 2.8.0
     react-native-incall-manager: ^4.0.0
+    react-native-reanimated: 2.7.0
     react-native-svg: ^13.6.0
     react-native-url-polyfill: 2.0.0
     react-native-voip-push-notification: 3.3.1
@@ -7780,7 +7773,7 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^4.9.5
   peerDependencies:
-    "@notifee/react-native": ">=7.7.0"
+    "@notifee/react-native": ">=7.8.0"
     "@react-native-community/netinfo": ">=9.0.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
@@ -7800,6 +7793,10 @@ __metadata:
     "@react-native-firebase/messaging":
       optional: true
     react-native-callkeep:
+      optional: true
+    react-native-gesture-handler:
+      optional: true
+    react-native-reanimated:
       optional: true
     react-native-voip-push-notification:
       optional: true
@@ -8153,6 +8150,13 @@ __metadata:
   version: 5.1.2
   resolution: "@types/html-minifier-terser@npm:5.1.2"
   checksum: 4bca779c44d2aebe4cc4036c5db370abe7466249038e9c5996cb3c192debeff1c75b7a2ab78e5fd2a014ad24ebf0f357f9a174a4298540dc1e1317d43aa69cfa
+  languageName: node
+  linkType: hard
+
+"@types/invariant@npm:^2.2.35":
+  version: 2.2.35
+  resolution: "@types/invariant@npm:2.2.35"
+  checksum: af1b624057c89789ed0917838fea3d42bb0c101cc22b829a24d8777c678be3bc79d6ae05992a13bdf607b94731262467a2e62a809602ea1f7eea5e8c2242660d
   languageName: node
   linkType: hard
 
@@ -9050,6 +9054,15 @@ __metadata:
   version: 0.2.13
   resolution: "@virtuoso.dev/urx@npm:0.2.13"
   checksum: 682a99cf40ccc429241268dd37495cd1ed4695ae58b5a1169c75df1630d5dc3fd8eb3aaa655f71c37f39ba9c23c0aaf4401b76d8a986986d1a38a422d596a6ba
+  languageName: node
+  linkType: hard
+
+"@vitejs/plugin-basic-ssl@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@vitejs/plugin-basic-ssl@npm:1.0.1"
+  peerDependencies:
+    vite: ^3.0.0 || ^4.0.0
+  checksum: 9060dd9b02b51f48f9e655d920214879157db5b8bea9681465ab199e1be4f207cc968393410f93935a0443f8c2b302cef2a3ac0a69087af68fb33a8795e1e203
   languageName: node
   linkType: hard
 
@@ -10999,13 +11012,6 @@ __metadata:
   version: 1.0.0
   resolution: "boolbase@npm:1.0.0"
   checksum: 3e25c80ef626c3a3487c73dbfc70ac322ec830666c9ad915d11b701142fab25ec1e63eff2c450c74347acfd2de854ccde865cd79ef4db1683f7c7b046ea43bb0
-  languageName: node
-  linkType: hard
-
-"bowser@npm:^2.11.0":
-  version: 2.11.0
-  resolution: "bowser@npm:2.11.0"
-  checksum: 29c3f01f22e703fa6644fc3b684307442df4240b6e10f6cfe1b61c6ca5721073189ca97cdeedb376081148c8518e33b1d818a57f781d70b0b70e1f31fb48814f
   languageName: node
   linkType: hard
 
@@ -21600,74 +21606,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro@npm:0.76.0":
-  version: 0.76.0
-  resolution: "metro@npm:0.76.0"
-  dependencies:
-    "@babel/code-frame": ^7.0.0
-    "@babel/core": ^7.20.0
-    "@babel/generator": ^7.20.0
-    "@babel/parser": ^7.20.0
-    "@babel/template": ^7.0.0
-    "@babel/traverse": ^7.20.0
-    "@babel/types": ^7.20.0
-    accepts: ^1.3.7
-    async: ^3.2.2
-    chalk: ^4.0.0
-    ci-info: ^2.0.0
-    connect: ^3.6.5
-    debug: ^2.2.0
-    denodeify: ^1.2.1
-    error-stack-parser: ^2.0.6
-    graceful-fs: ^4.2.4
-    hermes-parser: 0.8.0
-    image-size: ^0.6.0
-    invariant: ^2.2.4
-    jest-worker: ^27.2.0
-    lodash.throttle: ^4.1.1
-    metro-babel-transformer: 0.76.0
-    metro-cache: 0.76.0
-    metro-cache-key: 0.76.0
-    metro-config: 0.76.0
-    metro-core: 0.76.0
-    metro-file-map: 0.76.0
-    metro-hermes-compiler: 0.76.0
-    metro-inspector-proxy: 0.76.0
-    metro-minify-terser: 0.76.0
-    metro-minify-uglify: 0.76.0
-    metro-react-native-babel-preset: 0.76.0
-    metro-resolver: 0.76.0
-    metro-runtime: 0.76.0
-    metro-source-map: 0.76.0
-    metro-symbolicate: 0.76.0
-    metro-transform-plugins: 0.76.0
-    metro-transform-worker: 0.76.0
-    mime-types: ^2.1.27
-    node-fetch: ^2.2.0
-    nullthrows: ^1.1.1
-    rimraf: ^3.0.2
-    serialize-error: ^2.1.0
-    source-map: ^0.5.6
-    strip-ansi: ^6.0.0
-    temp: 0.8.3
-    throat: ^5.0.0
-    ws: ^7.5.1
-    yargs: ^17.5.1
-  bin:
-    metro: src/cli.js
-  checksum: bdd37789174fcec5c7cd8b70da96d74acc379dc68f6b22abbfdbbc26f6438b34c8f80fe058a2215ab4859c074e069ef3aca8e2a5452a9c8a2de1c0309ad99539
-  languageName: node
-  linkType: hard
-
-"mic-check@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "mic-check@npm:1.1.0"
-  dependencies:
-    bowser: ^2.11.0
-  checksum: fb12213929b576ad7e7b64e24134a47644928f48d37d1d757689e0f2d4243aa92fdb2ab39f3ad47dbc533d2a8dc7bf9f0f6ce600fa22c981106cdf1bc0856ec5
-  languageName: node
-  linkType: hard
-
 "microevent.ts@npm:~0.1.1":
   version: 0.1.1
   resolution: "microevent.ts@npm:0.1.1"
@@ -25226,6 +25164,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-gesture-handler@npm:2.8.0":
+  version: 2.8.0
+  resolution: "react-native-gesture-handler@npm:2.8.0"
+  dependencies:
+    "@egjs/hammerjs": ^2.0.17
+    hoist-non-react-statics: ^3.3.0
+    invariant: ^2.2.4
+    lodash: ^4.17.21
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 3dc4ab5cf160e471b07cd644e24f6384bdc4fc777f259fb12dfb42a5c9a15f84f60043ce3a1cd737f8dc563892a52566c8ab33bed0b1635f2898ac8ba75c8668
+  languageName: node
+  linkType: hard
+
 "react-native-gesture-handler@npm:^2.12.0":
   version: 2.12.0
   resolution: "react-native-gesture-handler@npm:2.12.0"
@@ -25363,6 +25317,25 @@ __metadata:
     react-native-windows:
       optional: true
   checksum: acbd8605adabfc48e19fbc468a3a143fb85bd34d3ed0fe6a4b52f16304591b8a4b3c561a507c11643fcc8ce1b4dc09e31f149387d1ea461098a2e40c43989f7c
+  languageName: node
+  linkType: hard
+
+"react-native-reanimated@npm:2.7.0":
+  version: 2.7.0
+  resolution: "react-native-reanimated@npm:2.7.0"
+  dependencies:
+    "@babel/plugin-transform-object-assign": ^7.16.7
+    "@babel/preset-typescript": ^7.16.7
+    "@types/invariant": ^2.2.35
+    invariant: ^2.2.4
+    lodash.isequal: ^4.5.0
+    setimmediate: ^1.0.5
+    string-hash-64: ^1.0.3
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+    react: "*"
+    react-native: "*"
+  checksum: f1b9c34b84ba78016f165c91456e101e716d45d9236fee5c1eff331ef27c44c309b427956c2a92a088e3d729b7e0e2e40255c586ee4e793081b61006030bced2
   languageName: node
   linkType: hard
 
@@ -25769,7 +25742,6 @@ __metadata:
     gleap: ^10.0.5
     hotkeys: ^1.0.0
     mapbox-gl: ^2.12.0
-    mic-check: ^1.1.0
     mobile-device-detect: ^0.4.3
     nanoid: ^4.0.2
     postcss: ^8.4.21
@@ -29069,6 +29041,7 @@ __metadata:
   resolution: "ts-quickstart@workspace:sample-apps/client/ts-quickstart"
   dependencies:
     "@stream-io/video-client": "workspace:^"
+    "@vitejs/plugin-basic-ssl": ^1.0.1
     js-base64: ^3.7.5
     typescript: ^5.0.2
     vite: ^4.4.9

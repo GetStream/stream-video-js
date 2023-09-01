@@ -7,7 +7,6 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { useLocalVideoStream } from '../../../hooks';
 import { Avatar } from '../../utility/Avatar';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 import { LOBBY_VIDEO_VIEW_HEIGHT } from '../../../constants';
@@ -18,6 +17,7 @@ import {
   JoinCallButtonProps,
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 
 /**
  * Props for the Lobby Component.
@@ -51,12 +51,13 @@ export const Lobby = ({
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSession } = useCallStateHooks();
   const { status: cameraStatus } = useCameraState();
-  const localVideoStream = useLocalVideoStream();
-  const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
   const call = useCall();
   const session = useCallSession();
   const { t } = useI18n();
+  const localVideoStream = call?.camera.state.mediaStream;
   const participantsCount = session?.participants.length;
+
+  useCallMediaStreamCleanup();
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -101,7 +102,7 @@ export const Lobby = ({
             ]}
           >
             <View style={styles.topView} />
-            {isVideoAvailable ? (
+            {cameraStatus === 'enabled' ? (
               <RTCView
                 mirror={true}
                 streamURL={localVideoStream?.toURL()}

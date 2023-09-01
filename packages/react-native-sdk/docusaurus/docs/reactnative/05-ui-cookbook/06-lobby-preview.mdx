@@ -65,9 +65,9 @@ These hooks make sure, that the information about call metadata or call members 
 
 ### Video Input Preview
 
-We can show the local video preview in the Lobby view, before joining the call to check if everything is fine with your video. To do that you can take the use of `useLocalVideoStream` and `useConnectedUser` hooks to get the local participant's video stream and user info.
+We can show the local video preview in the Lobby view, before joining the call to check if everything is fine with your video. We can get the video stream from the camera using the media stream from the `call.camera` object and show it using the `RTCView` component from `@stream-io/react-native-webrtc` library. And by using the `useConnectedUser` hook we can get the user info.
 
-To show the Video preview, we can use the [`RTCView`](https://github.com/react-native-webrtc/react-native-webrtc/blob/master/src/RTCView.ts) component from [`react-native-webrtc`](https://github.com/react-native-webrtc/react-native-webrtc).
+To show the Video preview, we can use the [`RTCView`](https://github.com/GetStream/react-native-webrtc/blob/master/src/RTCView.ts) component from [`@stream-io/react-native-webrtc`](https://github.com/GetStream/react-native-webrtc).
 
 <ImageShowcase
   items={[
@@ -91,19 +91,19 @@ import {
   Avatar,
   StreamVideoParticipant,
   useConnectedUser,
-  useLocalVideoStream,
+  useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import { RTCView } from 'react-native-webrtc';
+import { RTCView } from '@stream-io/react-native-webrtc';
 
 export const LocalVideoRenderer = () => {
-  const localVideoStream = useLocalVideoStream();
+  const call = useCall();
+  const localVideoStream = call?.camera.state.mediaStream;
   const connectedUser = useConnectedUser();
   const { useCameraState } = useCallStateHooks();
-  const { status: cameraStatus } = useMicrophoneState();
-  const isVideoAvailable = !!localVideoStream && cameraStatus === 'enabled';
+  const { status: cameraStatus } = useCameraState();
 
   const connectedUserAsParticipant = {
     userId: connectedUser?.id,
@@ -114,7 +114,7 @@ export const LocalVideoRenderer = () => {
   return (
     <View style={styles.videoView}>
       <View style={styles.topView} />
-      {isVideoAvailable ? (
+      {cameraStatus === 'enabled ? (
         <RTCView
           streamURL={localVideoStream?.toURL()}
           objectFit="cover"
