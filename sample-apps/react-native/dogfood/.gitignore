@@ -63,7 +63,3 @@ yarn-error.log
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
-
-# sentry
-/ios/sentry.properties
-/android/sentry.properties
