@@ -5,18 +5,16 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { useAppContext } from '../context/AppContext';
-import { STREAM_API_KEY } from 'react-native-dotenv';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const { user } = useAppContext();
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
-  const apiKey = STREAM_API_KEY;
 
   useEffect(() => {
     const _videoClient = new StreamVideoClient({
-      apiKey,
+      apiKey: 'hd8szvscpxvd',
       user,
       tokenProvider: user?.custom?.token,
       options: { logLevel: 'warn' },
@@ -27,7 +25,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       _videoClient.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [user, apiKey]);
+  }, [user]);
 
   if (!videoClient) {
     return null;

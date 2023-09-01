@@ -7427,7 +7427,6 @@ __metadata:
     react-native: 0.71.8
     react-native-callkeep: ^4.3.12
     react-native-device-info: ^10.8.0
-    react-native-dotenv: ^3.4.9
     react-native-gesture-handler: ~2.9.0
     react-native-incall-manager: ^4.1.0
     react-native-reanimated: ~2.14.4
@@ -25193,17 +25192,6 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.20.6
   checksum: 8443cec44862d3e110f236b1120d8a1f829cb4545a85c8462e6c01935aa216f50b05eb659661db29939d4d293ce7de6212bf877963e3b37f6c900629f6546d67
-  languageName: node
-  linkType: hard
-
-"react-native-dotenv@npm:^3.4.9":
-  version: 3.4.9
-  resolution: "react-native-dotenv@npm:3.4.9"
-  dependencies:
-    dotenv: ^16.3.1
-  peerDependencies:
-    "@babel/runtime": ^7.20.6
-  checksum: 9727c6a08e1b3e53b31d620ac1e9daedd899b61c0fd5413fb4593a209c0bf73e245506fc02bdb0d3caa4abf4f4145fa8499afff8e48e22bcf317cd90dbe18b87
   languageName: node
   linkType: hard
 
