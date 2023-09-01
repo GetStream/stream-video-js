@@ -23,7 +23,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["android.permission.POST_NOTIFICATIONS"],
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
       "package": "io.getstream.expovideosample"
     },
     "web": {
