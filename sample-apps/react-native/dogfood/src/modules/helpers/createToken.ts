@@ -1,4 +1,4 @@
-import { STREAM_API_KEY } from 'react-native-dotenv';
+import { STREAM_API_KEY } from '../../../config';
 
 type ParamsType = {
   user_id: string;
