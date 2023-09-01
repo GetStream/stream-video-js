@@ -26,7 +26,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>expo-video-sample</string>
-          <string>com.anonymous.expo-video-sample</string>
+          <string>io.getstream.expovideosample</string>
         </array>
       </dict>
     </array>

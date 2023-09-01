@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bitcode": false,
-      "bundleIdentifier": "com.anonymous.expo-video-sample"
+      "bundleIdentifier": "io.getstream.expovideosample"
     },
     "android": {
       "adaptiveIcon": {
@@ -38,7 +38,7 @@
         "android.permission.WAKE_LOCK",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "package": "com.anonymous.exposampleapp"
+      "package": "io.getstream.expovideosample"
     },
     "web": {
       "favicon": "./assets/favicon.png"

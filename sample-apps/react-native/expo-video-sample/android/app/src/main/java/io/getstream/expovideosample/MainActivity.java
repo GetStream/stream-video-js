@@ -1,4 +1,4 @@
-package com.anonymous.exposampleapp;
+package io.getstream.expovideosample;
 
 import android.os.Build;
 import android.os.Bundle;

@@ -113,9 +113,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.exposampleapp'
+    namespace 'io.getstream.expovideosample'
     defaultConfig {
-        applicationId 'com.anonymous.exposampleapp'
+        applicationId 'io.getstream.expovideosample'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
