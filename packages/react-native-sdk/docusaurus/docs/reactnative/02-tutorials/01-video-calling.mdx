@@ -271,7 +271,7 @@ But for this tutorial we'll keep it simple and mock the navigation using a state
 Within your tutorial app, create a folder named `src` and create the following files within it:
 
 - `src/HomeScreen.tsx`
-- `src/VideoCallScreen.tsx` (takes `callId` as a prop)
+- `src/CallScreen.tsx` (takes `callId` as a prop)
 
 Now copy the following content into the respective files (as mentioned in header):
 
@@ -282,7 +282,7 @@ Now copy the following content into the respective files (as mentioned in header
 import React, {useState} from 'react';
 import {SafeAreaView, StyleSheet} from 'react-native';
 import {HomeScreen} from './src/HomeScreen';
-import {VideoCallScreen} from './src/VideoCallScreen';
+import {CallScreen} from './src/CallScreen';
 
 const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
 const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
@@ -291,15 +291,15 @@ const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Crede
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState('home');
-  const goToVideoCallScreen = () => setActiveScreen('video-call');
+  const goToCallScreen = () => setActiveScreen('call-screen');
   const goToHomeScreen = () => setActiveScreen('home');
 
   return (
     <SafeAreaView style={styles.container}>
-      {activeScreen === 'video-call' ? (
-        <VideoCallScreen goToHomeScreen={goToHomeScreen} callId={callId} />
+      {activeScreen === 'call-screen' ? (
+        <CallScreen goToHomeScreen={goToHomeScreen} callId={callId} />
       ) : (
-        <HomeScreen goToVideoCallScreen={goToVideoCallScreen} />
+        <HomeScreen goToCallScreen={goToCallScreen} />
       )}
     </SafeAreaView>
   );
@@ -315,15 +315,15 @@ const styles = StyleSheet.create({
 ```
 
 </TabItem>
-<TabItem value="video-call-screen" label="src/VideoCallScreen.tsx">
+<TabItem value="call-screen" label="src/CallScreen.tsx">
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 import React from 'react';
 import {Button, StyleSheet, Text, View} from 'react-native';
 
 type Props = {goToHomeScreen: () => void; callId: string};
 
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Here we will add Video Calling UI</Text>
@@ -354,14 +354,14 @@ import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
 type Props = {
-  goToVideoCallScreen: () => void;
+  goToCallScreen: () => void;
 };
 
-export const HomeScreen = ({ goToVideoCallScreen }: Props) => {
+export const HomeScreen = ({ goToCallScreen }: Props) => {
   return (
     <View>
       <Text style={styles.text}>Welcome to Video Calling Tutorial</Text>
-      <Button title="Join Video Call 🎧" onPress={goToVideoCallScreen} />
+      <Button title="Join Video Call 🎧" onPress={goToCallScreen} />
     </View>
   );
 };
@@ -450,15 +450,15 @@ In this step we will create and join a call. Call will be stored in a state vari
 provided to `StreamCall` component. As explained earlier, `StreamCall` component is provided by the SDK and it provides all the necessary hooks for configuring UI around audio room.
 We will explore these hooks later in the tutorial.
 
-Open up `src/VideoCallScreen.tsx` and replace it with this code:
+Open up `src/CallScreen.tsx` and replace it with this code:
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 ...
 // highlight-start
 import {Call, StreamCall} from '@stream-io/video-react-native-sdk';
 // highlight-end
 ...
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   // highlight-start
   const [call, setCall] = React.useState<Call | null>(null);
 
@@ -481,11 +481,11 @@ export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
 ```
 
 Also as explained earlier in [Understand the Basics](#step-3---understand-the-basics) section, call can be created or accessed using `client.call(...)` method.
-Thus we need access to `client` inside `VideoCallScreen` component. We will use the `useStreamVideoContext` hook to get access to the client instance.
+Thus we need access to `client` inside `CallScreen` component. We will use the `useStreamVideoContext` hook to get access to the client instance.
 
-We will put the joining logic inside useEffect hook, so we automatically join the call when user goes to `VideoCallScreen`.
+We will put the joining logic inside useEffect hook, so we automatically join the call when user goes to `CallScreen`.
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 // highlight-next-line
 import React, {useEffect} from 'react';
 import {
@@ -494,7 +494,7 @@ import {
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   const [call, setCall] = React.useState<Call | null>(null);
   // highlight-next-line
   const client = useStreamVideoClient();
@@ -536,9 +536,9 @@ The `CallContent` adds the following things to the UI automatically:
 - Buttons to toggle audio/video and to flip the camera.
 - Button to hang up the call.
 
-Update the `VideoCallScreen` component as below:
+Update the `CallScreen` component as below:
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 ...
 import {
   ...
@@ -547,7 +547,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 
 ...
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   ...
   return (
     <StreamCall call={call}>
@@ -583,7 +583,7 @@ You can customize the UI by:
 You can provide custom component as prop to `CallContent` to customize the UI.
 Example below shows how you can
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 ...
 import {
   ...
@@ -612,7 +612,7 @@ const CustomCallControls = (props: CallControlProps) => {
 };
 // highlight-end
 ...
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   ...
   return (
     <StreamCall call={call}>
@@ -661,7 +661,7 @@ In the following example we will customize the top bar of the CallContent to dis
 - current participants in the call
 - name of the dominant speaker
 
-```tsx title="src/VideoCallScreen.tsx"
+```tsx title="src/CallScreen.tsx"
 import {
   ...
   useStreamVideoClient,
@@ -694,7 +694,7 @@ const CustomTopView = () => {
 };
 // highlight-end
 
-export const VideoCallScreen = ({goToHomeScreen, callId}: Props) => {
+export const CallScreen = ({goToHomeScreen, callId}: Props) => {
   ...
   return (
     <StreamCall call={call}>
