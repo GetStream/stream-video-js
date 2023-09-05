@@ -277,6 +277,37 @@ export class Call {
 
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
+
+    this.state.localParticipant$.subscribe(async (p) => {
+      // Mute via device manager
+      // If integrator doesn't use device manager, we mute using stopPublish
+      if (
+        !p?.publishedTracks.includes(TrackType.VIDEO) &&
+        this.publisher?.isPublishing(TrackType.VIDEO)
+      ) {
+        this.logger(
+          'info',
+          `Local participant's video track is muted remotely`,
+        );
+        await this.camera.disable();
+        if (this.publisher.isPublishing(TrackType.VIDEO)) {
+          this.stopPublish(TrackType.VIDEO);
+        }
+      }
+      if (
+        !p?.publishedTracks.includes(TrackType.AUDIO) &&
+        this.publisher?.isPublishing(TrackType.AUDIO)
+      ) {
+        this.logger(
+          'info',
+          `Local participant's audio track is muted remotely`,
+        );
+        await this.microphone.disable();
+        if (this.publisher.isPublishing(TrackType.AUDIO)) {
+          this.stopPublish(TrackType.AUDIO);
+        }
+      }
+    });
     this.speaker = new SpeakerManager();
   }
 
@@ -309,10 +340,50 @@ export class Call {
           const hasPermission = this.permissionsContext.hasPermission(
             permission as OwnCapability,
           );
-          if (!hasPermission && this.publisher.isPublishing(trackType)) {
-            this.stopPublish(trackType).catch((err) => {
-              this.logger('error', `Error stopping publish ${trackType}`, err);
-            });
+          if (
+            !hasPermission &&
+            (this.publisher.isPublishing(trackType) ||
+              this.publisher.isLive(trackType))
+          ) {
+            // Stop tracks, then notify device manager
+            this.stopPublish(trackType)
+              .catch((err) => {
+                this.logger(
+                  'error',
+                  `Error stopping publish ${trackType}`,
+                  err,
+                );
+              })
+              .then(() => {
+                if (
+                  trackType === TrackType.VIDEO &&
+                  this.camera.state.status === 'enabled'
+                ) {
+                  this.camera
+                    .disable()
+                    .catch((err) =>
+                      this.logger(
+                        'error',
+                        `Error disabling camera after pemission revoked`,
+                        err,
+                      ),
+                    );
+                }
+                if (
+                  trackType === TrackType.AUDIO &&
+                  this.microphone.state.status === 'enabled'
+                ) {
+                  this.microphone
+                    .disable()
+                    .catch((err) =>
+                      this.logger(
+                        'error',
+                        `Error disabling microphone after pemission revoked`,
+                        err,
+                      ),
+                    );
+                }
+              });
           }
         }
       }),
@@ -1112,7 +1183,10 @@ export class Call {
    * @param stopTrack if `true` the track will be stopped, else it will be just disabled
    */
   stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
-    this.logger('info', `stopPublish ${TrackType[trackType]}`);
+    this.logger(
+      'info',
+      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
+    );
     await this.publisher?.unpublishStream(trackType, stopTrack);
   };
 

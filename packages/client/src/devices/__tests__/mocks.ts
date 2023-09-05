@@ -93,6 +93,10 @@ export const mockVideoStream = () => {
       height: 720,
     }),
     enabled: true,
+    readyState: 'live',
+    stop: () => {
+      track.readyState = 'eneded';
+    },
   };
   return {
     getVideoTracks: () => [track],
