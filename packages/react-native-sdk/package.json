@@ -12,8 +12,10 @@
     "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
-    "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json",
-    "test": "jest --coverage",
+    "build:plugin": "rimraf plugin/build && tsc --build plugin",
+    "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json && yarn build:plugin",
+    "test:plugin": "jest plugin",
+    "test": "jest --coverage && yarn test:plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
   "files": [
@@ -86,6 +88,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
+    "@expo/config-plugins": "^7.2.5",
     "@notifee/react-native": "7.8.0",
     "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-community/netinfo": "9.3.9",
