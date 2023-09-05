@@ -79,7 +79,11 @@ export const MediaStreamManagement = ({
       typeof initialAudioEnabled !== 'undefined' &&
       isMicPermissionGranted$.getValue()
     ) {
-      if (initialAudioEnabled && call?.microphone.state.status === 'disabled') {
+      if (
+        initialAudioEnabled &&
+        (call?.microphone.state.status === undefined ||
+          call?.microphone.state.status === 'disabled')
+      ) {
         call?.microphone.enable();
       } else {
         call?.microphone.disable();
@@ -89,7 +93,11 @@ export const MediaStreamManagement = ({
       typeof initialVideoEnabled !== 'undefined' &&
       isCameraPermissionGranted$.getValue()
     ) {
-      if (initialVideoEnabled && call?.camera.state.status === 'disabled') {
+      if (
+        initialVideoEnabled &&
+        (call?.camera.state.status === undefined ||
+          call?.camera.state.status === 'disabled')
+      ) {
         call?.camera.enable();
       } else {
         call?.camera.disable();
