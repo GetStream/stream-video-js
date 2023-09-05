@@ -44,7 +44,7 @@ export type RingingCallContentProps = {
   JoiningCallIndicator?: React.ComponentType | null;
 };
 
-export const RingingCallPanel = ({
+const RingingCallPanel = ({
   IncomingCall = DefaultIncomingCall,
   OutgoingCall = DefaultOutgoingCall,
   CallContent = DefaultCallContent,
@@ -74,13 +74,13 @@ export const RingingCallPanel = ({
 /**
  * Component to show the Incoming, Outgoing and CalContent component depending upon the Call states when the call is in ringing mode.
  */
-export const RingingCallContent = () => {
+export const RingingCallContent = (props: RingingCallContentProps) => {
   const {
     theme: { ringingCallContent },
   } = useTheme();
   return (
     <View style={[styles.container, ringingCallContent.container]}>
-      <RingingCallPanel />
+      <RingingCallPanel {...props} />
     </View>
   );
 };
