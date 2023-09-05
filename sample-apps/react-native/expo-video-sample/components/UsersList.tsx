@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import {
   Image,
+  PermissionsAndroid,
   Platform,
   Pressable,
   StyleSheet,
@@ -17,9 +18,22 @@ export const UsersList = () => {
   const { loginHandler } = useAppContext();
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      notifee.requestPermission();
-    }
+    const run = async () => {
+      if (Platform.OS === 'android') {
+        await notifee.requestPermission();
+        if (Platform.Version <= 30) {
+          await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH,
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADMIN,
+          ]);
+        } else {
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          );
+        }
+      }
+    };
+    run();
   }, []);
 
   const moveToCallLobby = useCallback(
