@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.3...@stream-io/video-react-native-sdk-0.0.4) (2023-09-05)
+
+
+### Bug Fixes
+
+* **react-native:** missing translations in lobby component ([3dbed69](https://github.com/GetStream/stream-video-js/commit/3dbed692dcbb4b6a948cc1eb41540ab1e7825912))
+
 ### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.2...@stream-io/video-react-native-sdk-0.0.3) (2023-09-05)
 
 ### Dependency Updates
