@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.4...@stream-io/video-react-native-sdk-0.0.5) (2023-09-05)
+
+
+### Bug Fixes
+
+* override default handler with onPressHandler prop for ToggleCameraButton ([#1053](https://github.com/GetStream/stream-video-js/issues/1053)) ([2eecce6](https://github.com/GetStream/stream-video-js/commit/2eecce6d8e66ba58bede69776815efa929680716))
+
 ### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.3...@stream-io/video-react-native-sdk-0.0.4) (2023-09-05)
 
 
