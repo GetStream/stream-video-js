@@ -31,7 +31,12 @@ const callId =
   import.meta.env.VITE_STREAM_CALL_ID ||
   (new Date().getTime() + Math.round(Math.random() * 100)).toString();
 
-const client = new StreamVideoClient({ apiKey, token, user });
+const client = new StreamVideoClient({
+  apiKey,
+  token,
+  user,
+  options: { logLevel: import.meta.env.VITE_STREAM_LOG_LEVEL },
+});
 const call = client.call('default', callId);
 call.join({ create: true }).then(async () => {
   // render mic and camera controls

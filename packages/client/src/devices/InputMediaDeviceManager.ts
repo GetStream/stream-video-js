@@ -2,8 +2,10 @@ import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
-import { disposeOfMediaStream } from './devices';
 import { isReactNative } from '../helpers/platforms';
+import { Logger } from '../coordinator/connection/types';
+import { getLogger } from '../logger';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState,
@@ -16,7 +18,15 @@ export abstract class InputMediaDeviceManager<
    * @internal
    */
   disablePromise?: Promise<void>;
-  constructor(protected readonly call: Call, public readonly state: T) {}
+  logger: Logger;
+
+  constructor(
+    protected readonly call: Call,
+    public readonly state: T,
+    protected readonly trackType: TrackType,
+  ) {
+    this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+  }
 
   /**
    * Lists the available audio/video devices
@@ -129,32 +139,68 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
 
-  protected abstract muteTracks(): void;
-
-  protected abstract unmuteTracks(): void;
+  protected abstract getTrack(): undefined | MediaStreamTrack;
 
   private async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
       return;
     }
+    this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(stopTracks);
-    } else if (this.state.mediaStream) {
-      stopTracks
-        ? disposeOfMediaStream(this.state.mediaStream)
-        : this.muteTracks();
     }
-    if (stopTracks) {
+    this.muteLocalStream(stopTracks);
+    if (this.getTrack()?.readyState === 'ended') {
+      // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
+      if (typeof this.state.mediaStream.release === 'function') {
+        // @ts-expect-error
+        this.state.mediaStream.release();
+      }
       this.state.setMediaStream(undefined);
     }
   }
 
+  private muteTrack() {
+    const track = this.getTrack();
+    if (!track || !track.enabled) {
+      return;
+    }
+    track.enabled = false;
+  }
+
+  private unmuteTrack() {
+    const track = this.getTrack();
+    if (!track || track.enabled) {
+      return;
+    }
+    track.enabled = true;
+  }
+
+  private stopTrack() {
+    const track = this.getTrack();
+    if (!track || track.readyState === 'ended') {
+      return;
+    }
+    track.stop();
+  }
+
+  private muteLocalStream(stopTracks: boolean) {
+    if (!this.state.mediaStream) {
+      return;
+    }
+    stopTracks ? this.stopTrack() : this.muteTrack();
+  }
+
   private async unmuteStream() {
+    this.logger('debug', 'Starting stream');
     let stream: MediaStream;
-    if (this.state.mediaStream) {
+    if (this.state.mediaStream && this.getTrack()?.readyState === 'live') {
       stream = this.state.mediaStream;
-      this.unmuteTracks();
+      this.unmuteTrack();
     } else {
+      if (this.state.mediaStream) {
+        this.stopTrack();
+      }
       const constraints = { deviceId: this.state.selectedDevice };
       stream = await this.getStream(constraints);
     }

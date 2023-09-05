@@ -53,6 +53,7 @@ describe('DynascaleManager', () => {
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
+        publishedTracks: [],
       });
 
       const element = document.createElement('div');
@@ -113,6 +114,7 @@ describe('DynascaleManager', () => {
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
         sessionId: 'session-id',
+        publishedTracks: [],
       });
 
       // @ts-ignore
@@ -120,6 +122,7 @@ describe('DynascaleManager', () => {
         userId: 'user-id-local',
         sessionId: 'session-id-local',
         isLocalParticipant: true,
+        publishedTracks: [],
       });
 
       const cleanup = dynascaleManager.bindAudioElement(
