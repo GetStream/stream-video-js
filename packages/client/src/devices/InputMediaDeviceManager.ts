@@ -154,7 +154,7 @@ export abstract class InputMediaDeviceManager<
       // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
       if (typeof this.state.mediaStream.release === 'function') {
         // @ts-expect-error
-        stream.release();
+        this.state.mediaStream.release();
       }
       this.state.setMediaStream(undefined);
     }
