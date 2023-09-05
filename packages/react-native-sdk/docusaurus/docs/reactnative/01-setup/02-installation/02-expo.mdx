@@ -33,19 +33,74 @@ So what did we install precisely?
 
 Add the config plugin for `react-native-webrtc` to your `app.json` file:
 
-```js
+```js title=app.json
 {
   "expo": {
     ...
     "plugins": [
       [
+        // highlight-start
         "@config-plugins/react-native-webrtc",
         {
+          // optionally you can add your own explanations for permissions on iOS
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
+        // highlight-end
       ]
     ]
   }
 }
 ```
+
+## Add permissions for Android
+
+In Android, to get Bluetooth audio support and to [keep call alive in the background](../../../core/keeping-call-alive), the respective permissions must be declared. To do this, add the following in your `app.json` file:
+
+```js title=app.json
+{
+  "expo": {
+    ...
+    "android": {
+      ...
+      // highlight-start
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH_ADMIN"
+      ],
+      // highlight-end
+    },
+  }
+}
+```
+
+:::note
+The `POST_NOTIFICATIONS`, `BLUETOOTH_CONNECT`, `BLUETOOTH` and `BLUETOOTH_ADMIN` permissions need to be requested and granted by the user as well. [PermissionsAndroid](https://reactnative.dev/docs/permissionsandroid) module can be used to request permissions in Android. For example, below is a way to request Bluetooth permissions in Android according to the OS version:
+
+```js
+import { useEffect } from 'react';
+import { PermissionsAndroid, Platform } from 'react-native';
+
+useEffect(() => {
+  const run = async () => {
+    if (Platform.OS === 'android' && Platform.Version <= 30) {
+      // highlight-start
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADMIN,
+      ]);
+    } else {
+      await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      );
+      // highlight-end
+    }
+  };
+  run();
+}, []);
+```
+:::
