@@ -34,7 +34,11 @@ export const ToggleCameraFaceButton = ({
     theme: { colors, toggleCameraFaceButton },
   } = useTheme();
   const onPress = async () => {
-    onPressHandler?.();
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
+
     await call?.camera.flip();
   };
 
