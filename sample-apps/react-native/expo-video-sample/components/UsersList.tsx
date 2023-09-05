@@ -1,5 +1,13 @@
-import React, { useCallback } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import {
+  Image,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import notifee from '@notifee/react-native';
 import { users } from '../data/users';
 import { useAppContext } from '../context/AppContext';
 import { UserType } from '../types';
@@ -7,6 +15,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const UsersList = () => {
   const { loginHandler } = useAppContext();
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      notifee.requestPermission();
+    }
+  }, []);
 
   const moveToCallLobby = useCallback(
     (user: UserType) => {
