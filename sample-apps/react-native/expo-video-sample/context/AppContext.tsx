@@ -1,4 +1,9 @@
-import React, { PropsWithChildren, useState } from 'react';
+import React, {
+  PropsWithChildren,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { User } from '@stream-io/video-react-native-sdk';
 
 type AppContextType = {
@@ -12,24 +17,25 @@ export const AppContext = React.createContext({} as AppContextType);
 export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
   const [user, setUser] = useState<User | undefined>(undefined);
 
-  const loginHandler = (userData: User) => {
+  const loginHandler = useCallback((userData: User) => {
     setUser(userData);
-  };
+  }, []);
 
-  const logoutHandler = () => {
+  const logoutHandler = useCallback(() => {
     setUser(undefined);
-  };
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      loginHandler,
+      logoutHandler,
+    }),
+    [loginHandler, logoutHandler, user],
+  );
 
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        loginHandler,
-        logoutHandler,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 };
 
