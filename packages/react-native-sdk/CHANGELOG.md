@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1...@stream-io/video-react-native-sdk-0.0.2) (2023-09-05)
+
+
+### Bug Fixes
+
+* handle media device initial state when media status is undefined ([#1051](https://github.com/GetStream/stream-video-js/issues/1051)) ([4c9ff8d](https://github.com/GetStream/stream-video-js/commit/4c9ff8dda64eb5939ab1bae42734003da9aa768b))
+
 ### [0.0.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.1-alpha.415...@stream-io/video-react-native-sdk-0.0.1) (2023-08-31)
 
 ### Dependency Updates
