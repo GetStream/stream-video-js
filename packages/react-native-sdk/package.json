@@ -12,9 +12,9 @@
     "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
-    "build:plugin": "rimraf plugin/build && tsc --build plugin",
+    "build:expo-plugin": "rimraf plugin/build && tsc --build expo-config-plugin",
     "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json && yarn build:plugin",
-    "test:plugin": "jest plugin",
+    "test:expo-plugin": "jest expo-config-plugin",
     "test": "jest --coverage && yarn test:plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },
