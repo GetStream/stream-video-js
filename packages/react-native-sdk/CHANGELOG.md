@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.5...@stream-io/video-react-native-sdk-0.0.6) (2023-09-05)
+
+
+### Bug Fixes
+
+* added missing props for RingingCallContent ([#1057](https://github.com/GetStream/stream-video-js/issues/1057)) ([60bb247](https://github.com/GetStream/stream-video-js/commit/60bb2474f837346a87e06610fe26758caf12c890))
+
 ### [0.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.4...@stream-io/video-react-native-sdk-0.0.5) (2023-09-05)
 
 
