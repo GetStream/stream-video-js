@@ -1,8 +1,15 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
+import FloatingView from './FloatingView';
 import { CallParticipantsListProps } from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
@@ -10,7 +17,6 @@ import {
   ParticipantViewComponentProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
-import AnimatedFloatingView from './FloatingView/AnimatedFloatingView';
 import { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
@@ -36,13 +42,18 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
      * Custom style to be merged with the floating participant view.
      */
     style?: StyleProp<ViewStyle>;
+    /**
+     * Handler used to handle actions on click of the participant view in FloatingParticipantView.
+     * Eg: Can be used to handle participant switch on click.
+     */
+    onPressHandler?: () => void;
   };
 
 const CustomLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
       colors,
-      localParticipantsView,
+      floatingParticipantsView,
       variants: { iconSizes },
     },
   } = useTheme();
@@ -52,7 +63,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
       style={[
         styles.videoFallback,
         { backgroundColor: colors.disabled },
-        localParticipantsView.videoFallback,
+        floatingParticipantsView.videoFallback,
       ]}
     >
       <View style={{ height: iconSizes.md, width: iconSizes.md }}>
@@ -67,6 +78,7 @@ const CustomLocalParticipantViewVideoFallback = () => {
  */
 export const FloatingParticipantView = ({
   alignment = 'top-right',
+  onPressHandler,
   participant,
   style,
   ParticipantView = DefaultParticipantView,
@@ -75,7 +87,7 @@ export const FloatingParticipantView = ({
   VideoRenderer,
 }: FloatingParticipantViewProps) => {
   const {
-    theme: { colors, localParticipantsView },
+    theme: { colors, floatingParticipantsView },
   } = useTheme();
 
   const floatingAlignmentMap: Record<
@@ -108,7 +120,7 @@ export const FloatingParticipantView = ({
   return (
     <View
       testID={ComponentTestIds.LOCAL_PARTICIPANT}
-      style={[styles.container, localParticipantsView.container]}
+      style={[styles.container, floatingParticipantsView.container]}
       // "box-none" disallows the container view to be not take up touches
       // and allows only the floating view (its child view) to take up the touches
       pointerEvents="box-none"
@@ -126,31 +138,33 @@ export const FloatingParticipantView = ({
       }}
     >
       {containerDimensions && (
-        <AnimatedFloatingView
+        <FloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
           initialAlignment={floatingAlignmentMap[alignment]}
         >
-          {ParticipantView && (
-            <ParticipantView
-              participant={participant}
-              trackType="videoTrack"
-              style={[
-                styles.participantViewContainer,
-                style,
-                {
-                  backgroundColor: colors.static_grey,
-                  shadowColor: colors.static_black,
-                },
-                localParticipantsView.participantViewContainer,
-              ]}
-              // video z order must be one above the one used in grid view
-              // (which uses the default: 0)
-              videoZOrder={1}
-              {...participantViewProps}
-            />
-          )}
-        </AnimatedFloatingView>
+          <Pressable onPress={onPressHandler}>
+            {ParticipantView && (
+              <ParticipantView
+                participant={participant}
+                trackType="videoTrack"
+                style={[
+                  styles.participantViewContainer,
+                  style,
+                  {
+                    backgroundColor: colors.static_grey,
+                    shadowColor: colors.static_black,
+                  },
+                  floatingParticipantsView.participantViewContainer,
+                ]}
+                // video z order must be one above the one used in grid view
+                // (which uses the default: 0)
+                videoZOrder={1}
+                {...participantViewProps}
+              />
+            )}
+          </Pressable>
+        </FloatingView>
       )}
     </View>
   );

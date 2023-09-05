@@ -206,7 +206,7 @@ yarn ios
 yarn android
 ```
 
-### Step 3 - Broadcast a livestream from your device
+## Step 3 - Broadcast a livestream from your device
 
 The following code shows how to publish from your device's camera.
 Let's open `App.tsx` and replace its contents with the following code:
@@ -319,7 +319,7 @@ Also, in production-grade apps, you'd typically store the `call` instance in a s
 Read more in our [Joining and Creating Calls](../../core/joining-and-creating-calls/) guide.
 :::
 
-### Step 4 - Rendering the video
+## Step 4 - Rendering the video
 
 In this step, we're going to build a UI for showing your local video with a button to start the livestream.
 
@@ -424,7 +424,7 @@ There are many possibilities and the [call and participant state](../../core/cal
 #### Creating a UI to watch a livestream​
 
 The layout is built using standard React Native components.
-The `RTCView` component is provided by `react-native-webrtc` library. You can use it for rendering the local and remote video.
+The `RTCView` component is provided by `@stream-io/react-native-webrtc` library. You can use it for rendering the local and remote video.
 The `useIncallManager` hook is used to automatically route audio to speaker devices as relevant for watching videos.
 
 #### Backstage mode
@@ -447,7 +447,7 @@ await call.goLive({
 });
 ```
 
-### Step 4 - (Optional) Publishing RTMP using OBS
+## Step 5 - (Optional) Publishing RTMP using OBS
 
 The example above showed how to publish your device camera to the livestream.
 Almost all livestream software and hardware supports RTMPS.
@@ -480,7 +480,7 @@ Press start streaming in OBS. The RTMP stream will now show up in your call just
 
 Now that we've learned to publish using WebRTC or RTMP let's talk about watching the livestream.
 
-### Step 5 - Viewing a livestream (WebRTC)
+## Step 6 - Viewing a livestream (WebRTC)
 
 Watching a livestream is even easier than broadcasting.
 
@@ -489,7 +489,7 @@ Compared to the current code in `App.tsx` you:
 - Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
 - Typically include some small UI elements like viewer count, a button to mute etc.
 
-### Step 6 - (Optional) Viewing a livestream with HLS
+## Step 7 - (Optional) Viewing a livestream with HLS
 
 Another way to watch a livestream is using HLS. HLS tends to have a 10 to 20 seconds delay, while the above WebRTC approach is real-time.
 The benefit that HLS offers is better buffering under poor network conditions.
@@ -519,7 +519,7 @@ console.log('HLS playlist url:', playlistUrl);
 
 You can view the HLS video feed using any HLS capable video player. The most popular one on React Native is the one provided by [`react-native-video`](https://github.com/react-native-video/react-native-video) library.
 
-### Step 7 - Advanced Features
+## Step 8 - Advanced Features
 
 This tutorial covered broadcasting and watching a livestream.
 It also went into more details about HLS & RTMP-in.
@@ -532,7 +532,7 @@ There are several advanced features that can improve the livestreaming experienc
 - ** [Recording](../../advanced/recording/) ** The call recording functionality allows you to record the call with various options and layouts.
 - ** [Notifications](../../advanced/push-notifications/overview/) ** You can notify users via push notifications when the livestream starts.
 
-### Recap
+## Recap
 
 It was fun to see just how quickly you can build in-app low-latency livestreaming.
 Please do let us know if you run into any issues.

@@ -1,0 +1,272 @@
+---
+title: Video Calling Tutorial
+description: How to Build a JavaScript Video Calling App
+---
+
+import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
+
+This tutorial gives you a quick overview of how Stream's video JavaScript client works.
+
+The code snippets use TypeScript, but you can use the library with JavaScript as well.
+
+## Client setup & Calls
+
+Create an instance of `StreamVideoClient` that will establish WebSocket connection by connecting a user. Next you create a call object and join the call. We'll specify `create: true` to create the call if it doesn't exist.
+
+```typescript
+import { StreamVideoClient, User } from '@stream-io/video-client';
+
+const apiKey = 'your-api-key';
+const token = 'authentication-token';
+const user: User = { id: 'user-id' };
+
+const client = new StreamVideoClient({ apiKey, token, user });
+
+const call = client.call('default', 'call-id');
+
+call.join({ create: true });
+```
+
+`default` is a call type. There are 4 built-in [call types](../../guides/configuring-call-types/) and you can also create your own. The call type controls the permissions and which features are enabled.
+
+The second argument is the call id. Call ids can be reused, meaning that it's possible to join a call with the same id multiple times (for example, for recurring meetings).
+
+For an easy setup, you can copy the following credentials to use for the tutorial. It also helps with joining multiple participants:
+
+<TokenSnippet sampleApp="meeting" />
+
+## Publish audio and video
+
+Once we join a call, we can start publishing audio and video:
+
+```typescript
+call.join({ create: true }).then(async () => {
+  call.camera.enable();
+  call.microphone.enable();
+});
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## Render video
+
+The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates. To render the audio and video of participants, you can watch for changes on `call.state.participants$`, here is the full example:
+
+```typescript
+import { renderParticipant, cleanupParticipant } from './participant';
+
+const parentContainer = document.getElementById('participants')!;
+
+// This will enable visibility tracking in the client
+call.setViewport(parentContainer);
+
+// Whenever the participants change, we update the UI
+call.state.participants$.subscribe((participants) => {
+  // render / update existing participants
+  participants.forEach((participant) => {
+    renderParticipant(call, participant, parentContainer);
+  });
+
+  // If you're using a web framework, this part is handled by the framework
+  // Remove stale elements for stale participants
+  parentContainer
+    .querySelectorAll<HTMLMediaElement>('video, audio')
+    .forEach((el) => {
+      const sessionId = el.dataset.sessionId!;
+      const participant = participants.find((p) => p.sessionId === sessionId);
+      if (!participant) {
+        cleanupParticipant(sessionId);
+        el.remove();
+      }
+    });
+});
+```
+
+Now let's see what happens in the `renderParticipant` method, because that's what does the heavy lifting:
+
+```typescript
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
+
+// The quickstart uses fixed video dimensions for simplification
+const videoDimension = {
+  width: 333,
+  height: 250,
+};
+
+const videoBindingsCache = new Map<string, Function | undefined>();
+const videoTrackingCache = new Map<string, Function | undefined>();
+const audioBindingsCache = new Map<string, Function | undefined>();
+
+const renderVideo = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
+  const id = `video-${participant.sessionId}`;
+  let videoEl = document.getElementById(id) as HTMLVideoElement | null;
+  if (!videoEl) {
+    videoEl = document.createElement('video');
+    videoEl.style.setProperty('object-fit', 'contain');
+    videoEl.id = `video-${participant.sessionId}`;
+    videoEl.width = videoDimension.width;
+    videoEl.height = videoDimension.height;
+    videoEl.dataset.sessionId = participant.sessionId;
+
+    parentContainer.appendChild(videoEl);
+
+    const untrack = call.trackElementVisibility(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
+
+    // keep reference to untrack function to call it later
+    videoTrackingCache.set(id, untrack);
+
+    // registers subscription updates and stream changes
+    const unbind = call.bindVideoElement(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
+
+    // keep reference to unbind function to call it later
+    videoBindingsCache.set(id, unbind);
+  }
+};
+
+const renderAudio = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
+  // We don't render audio for local participant
+  if (participant.isLocalParticipant) return;
+
+  const id = `audio-${participant.sessionId}`;
+  let audioEl = document.getElementById(id) as HTMLAudioElement | null;
+  if (!audioEl) {
+    audioEl = document.createElement('audio');
+    audioEl.id = id;
+    audioEl.dataset.sessionId = participant.sessionId;
+
+    parentContainer.appendChild(audioEl);
+
+    // registers subscription updates and stream changes for audio
+    const unbind = call.bindAudioElement(audioEl, participant.sessionId);
+
+    // keep reference to unbind function to call it later
+    audioBindingsCache.set(id, unbind);
+  }
+};
+
+export const renderParticipant = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
+  renderAudio(call, participant, parentContainer);
+  renderVideo(call, participant, parentContainer);
+};
+```
+
+The most important parts are:
+
+- `call.trackElementVisibility`: this will enable the client to detect if a particpant's `video` element isn't visible on the screen, in which case it will stop requesting the video, saving bandwidth
+- `call.bindVideoElement` will bind the given participants video stream to the given `video` element, and takes care of stream changes and resizes
+- `call.bindAudioElement` will bind the given participants audio stream to the given `audio` element, and takes care of stream changes
+
+For more information check out these guides:
+
+- [Participant visibility tracking](../../guides/visibility-tracking)
+- [Playing Video and Audio](../../guides/playing-video-and-audio)
+
+When a participant leaves the call, we need to unbind their `video` and `audio` elements.
+
+```typescript
+// If you're using a web framework, unbinding is usually handled with a component lifecycle event
+export const cleanupParticipant = (sessionId: string) => {
+  const unbindVideo = videoBindingsCache.get(`video-${sessionId}`);
+  if (unbindVideo) {
+    unbindVideo();
+    videoBindingsCache.delete(`video-${sessionId}`);
+  }
+
+  const untrackVideo = videoTrackingCache.get(`video-${sessionId}`);
+  if (untrackVideo) {
+    untrackVideo();
+    videoTrackingCache.delete(`video-${sessionId}`);
+  }
+
+  const unbindAudio = audioBindingsCache.get(`audio-${sessionId}`);
+  if (unbindAudio) {
+    unbindAudio();
+    audioBindingsCache.delete(`audio-${sessionId}`);
+  }
+};
+```
+
+If you're using a web framework, you can usually use a component lifecycle event to trigger the unbinding.
+
+More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
+
+## Camera & Microphone
+
+Most video apps will show buttons to mute/unmute the audio or video.
+
+```tsx
+const controls = renderControls(call);
+const container = document.getElementById('call-controls')!;
+container.appendChild(controls.audioButton);
+container.appendChild(controls.videoButton);
+```
+
+This is how the `renderControls` method looks like:
+
+```typescript
+import { Call } from '@stream-io/video-client';
+
+const renderAudioButton = (call: Call) => {
+  const audioButton = document.createElement('button');
+
+  audioButton.addEventListener('click', async () => {
+    await call.microphone.toggle();
+  });
+
+  call.microphone.state.status$.subscribe((status) => {
+    audioButton.innerText =
+      status === 'enabled' ? 'Turn off mic' : 'Turn on mic';
+  });
+
+  return audioButton;
+};
+
+const renderVideoButton = (call: Call) => {
+  const videoButton = document.createElement('button');
+
+  videoButton.addEventListener('click', async () => {
+    await call.camera.toggle();
+  });
+
+  call.camera.state.status$.subscribe((status) => {
+    videoButton.innerText =
+      status === 'enabled' ? 'Turn off camera' : 'Turn on camera';
+  });
+
+  return videoButton;
+};
+
+export const renderControls = (call: Call) => {
+  return {
+    audioButton: renderAudioButton(call),
+    videoButton: renderVideoButton(call),
+  };
+};
+```
+
+More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
+
+## See it in action
+
+We have prepared a [CodeSandbox example](https://codesandbox.io/s/javascript-quickstart-99th3v)
+that demonstrates the above steps in action.

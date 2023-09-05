@@ -593,21 +593,15 @@ PODS:
   - RNScreens (3.20.0):
     - React-Core
     - React-RCTImage
-  - RNSentry (5.6.0):
-    - React-Core
-    - Sentry/HybridSDK (= 8.7.3)
   - RNSVG (13.9.0):
     - React-Core
   - RNVoipPushNotification (3.3.1):
     - React-Core
-  - Sentry/HybridSDK (8.7.3):
-    - SentryPrivate (= 8.7.3)
-  - SentryPrivate (8.7.3)
   - SocketRocket (0.6.0)
   - stream-react-native-webrtc (104.0.1):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.0.1-alpha.376):
+  - stream-video-react-native (0.0.1):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -702,7 +696,6 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVoipPushNotification (from `../node_modules/react-native-voip-push-notification`)
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
@@ -740,8 +733,6 @@ SPEC REPOS:
     - nanopb
     - OpenSSL-Universal
     - PromisesObjC
-    - Sentry
-    - SentryPrivate
     - SocketRocket
     - TOCropViewController
     - WebRTC-SDK
@@ -856,8 +847,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  RNSentry:
-    :path: "../node_modules/@sentry/react-native"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNVoipPushNotification:
@@ -953,14 +942,11 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 9976fbaaeb8a188c36026154c844bf374b3b7eeb
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
-  RNSentry: 9f0447b3ce13806f544903748de423259ead8552
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 1617f5a07be24066830213ae9252cb790b53886f
-  Sentry: c7a86f43510a7d5678d4de28d78c28ab351d295b
-  SentryPrivate: 2eaabf598a46d4b9b8822aef766df2a84caf2e6f
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: f9f3964fb15ca8673fd5b5dbdbbea483a283c807
+  stream-video-react-native: 7bc1439dd1be7a0ef8e17227d8f6881b7f0319c9
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: f7decafdc5e8c125e6fa0da38a687e35238420fa

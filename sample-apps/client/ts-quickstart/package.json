@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0 --https",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -13,6 +13,7 @@
     "js-base64": "^3.7.5"
   },
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "typescript": "^5.0.2",
     "vite": "^4.4.9"
   }

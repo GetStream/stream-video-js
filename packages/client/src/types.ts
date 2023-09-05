@@ -103,6 +103,8 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
    * The device ID of the currently selected audio output device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
    *
    * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
+   *
+   * @deprecated use call.speaker.state.selectedDevice
    */
   audioOutputDeviceId?: string;
 }
