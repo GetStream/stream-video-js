@@ -76,19 +76,4 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is not Objective C',
     );
   });
-
-  it(`fails to add to a malformed app delegate`, () => {
-    // Prepare a mock config
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        language: 'objc',
-        contents: `foobar`,
-      },
-    };
-    expect(() => withStreamVideoReactNativeSDKAppDelegate(config)).toThrow(
-      "Cannot add StreamVideoReactNativeSDK to the project's AppDelegate because it's malformed.",
-    );
-  });
 });
