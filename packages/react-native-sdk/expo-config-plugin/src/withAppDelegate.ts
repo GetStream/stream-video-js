@@ -4,19 +4,6 @@ import {
   insertContentsInsideObjcFunctionBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
-export const addStreamVideoReactNativeSDKAppDelegateSetup = (
-  contents: string,
-): string => {
-  const setupMethod = '[StreamVideoReactNative setup];';
-
-  return insertContentsInsideObjcFunctionBlock(
-    contents,
-    'application:didFinishLaunchingWithOptions:',
-    setupMethod,
-    { position: 'head' },
-  );
-};
-
 const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
   configuration,
 ) => {
@@ -25,8 +12,12 @@ const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
       config.modResults.contents = addObjcImports(config.modResults.contents, [
         '"StreamVideoReactNative.h"',
       ]);
-      config.modResults.contents = addStreamVideoReactNativeSDKAppDelegateSetup(
+      const setupMethod = '[StreamVideoReactNative setup];';
+      config.modResults.contents = insertContentsInsideObjcFunctionBlock(
         config.modResults.contents,
+        'application:didFinishLaunchingWithOptions:',
+        setupMethod,
+        { position: 'head' },
       );
     } else {
       throw new Error(
