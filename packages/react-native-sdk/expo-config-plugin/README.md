@@ -16,13 +16,13 @@ Next you can run the code using `yarn run android` and `yarn run ios`.
 
 The plugin adds the following native changes to the code.
 
-### [Add Stream Video SDK's setup method](https://getstream.io/video/docs/reactnative/setup/installation/react-native/#add-stream-video-sdks-setup-method)
+### Android
 
-#### Android
+#### `MainApplication.java`
 
-Adds the following in your `MainApplication.java` file:
+Adds the import and setup for StreamVideoReactNative in your `MainApplication.java` file:
 
-<!-- vale off -->
+Read more about it [here](https://getstream.io/video/docs/reactnative/setup/installation/react-native/#add-stream-video-sdks-setup-method).
 
 ```java
 // Adds this
@@ -40,11 +40,23 @@ public class MainApplication extends Application implements ReactApplication {
 }
 ```
 
-<!-- vale on -->
+#### `AndroidManifest.xml`
 
-#### iOS
+Add service named `app.notifee.core.ForegroundService`.
 
-Adds the following in your `AppDelegate.mm` file:
+```xml
+<service android:name="app.notifee.core.ForegroundService" android:stopWithTask="true" android:foregroundServiceType="microphone"/>
+```
+
+The `@stream-io/video-react-native-sdk` also adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to the `AndroidManifest.xml`.
+
+### iOS
+
+#### `AppDelegate.mm`
+
+Adds the import and setup for StreamVideoReactNative in your `AppDelegate.mm` file:
+
+Read more about it [here](https://getstream.io/video/docs/reactnative/setup/installation/react-native/#add-stream-video-sdks-setup-method).
 
 ```c
 // Adds this
@@ -61,6 +73,13 @@ Adds the following in your `AppDelegate.mm` file:
 }
 ```
 
-### Android Permissions
+### `Info.plist`
 
-The `@stream-io/video-react-native-sdk` adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to the `AndroidManifest.xml`.
+Adds `audio` to the `UIBackgroundModes` in Info.plist as:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>audio</string>
+</array>
+```
