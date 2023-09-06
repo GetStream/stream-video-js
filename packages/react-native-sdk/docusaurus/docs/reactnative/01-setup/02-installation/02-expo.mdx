@@ -15,7 +15,7 @@ Add the SDK and its required dependencies to your project:
 
 ```bash title=Terminal
 npx expo install @stream-io/video-react-native-sdk @stream-io/react-native-webrtc \
-   @config-plugins/react-native-webrtc react-native-device-info \
+   @config-plugins/react-native-webrtc \
    react-native-incall-manager react-native-svg \
    @react-native-community/netinfo @notifee/react-native
 ```
@@ -24,56 +24,32 @@ So what did we install precisely?
 
 - `@stream-io/video-react-native-sdk` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
 - `@stream-io/react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
-- `react-native-device-info` is responsible for retrieving device info and sending it to the Stream Video servers.
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
 - `@notifee/react-native` - is used to keep calls alive in the background on Android.
+
 ## Add config plugin
 
-Add the config plugin for `react-native-webrtc` to your `app.json` file:
+Add the config plugin for `@stream-io/video-react-native-sdk` and `react-native-webrtc` to your `app.json` file:
 
-```js title=app.json
+The `@stream-io/video-react-native-sdk` handles the [Add Stream Video SDK's setup method](../react-native/#add-stream-video-sdks-setup-method) automatically and adds the appropriate android permissions such as `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MICROPHONE`, `BLUETOOTH`, `BLUETOOTH_ADMIN` and `BLUETOOTH_CONNECT` to their respective files.
+
+```js title=app.json {5-13}
 {
   "expo": {
     ...
     "plugins": [
+      "@stream-io/video-react-native-sdk",
       [
-        // highlight-start
         "@config-plugins/react-native-webrtc",
         {
           // optionally you can add your own explanations for permissions on iOS
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
-        // highlight-end
       ]
     ]
-  }
-}
-```
-
-## Add permissions for Android
-
-In Android, to get Bluetooth audio support and to [keep call alive in the background](../../../core/keeping-call-alive), the respective permissions must be declared. To do this, add the following in your `app.json` file:
-
-```js title=app.json
-{
-  "expo": {
-    ...
-    "android": {
-      ...
-      // highlight-start
-      "permissions": [
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.BLUETOOTH",
-        "android.permission.BLUETOOTH_CONNECT",
-        "android.permission.BLUETOOTH_ADMIN"
-      ],
-      // highlight-end
-    },
   }
 }
 ```
@@ -103,4 +79,5 @@ useEffect(() => {
   run();
 }, []);
 ```
+
 :::

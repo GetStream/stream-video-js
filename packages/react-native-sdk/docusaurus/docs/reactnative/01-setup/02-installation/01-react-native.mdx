@@ -9,10 +9,6 @@ Installation and usage of our React Native SDK is simple and involves the follow
 First things first, make sure you have set up the development environment for React Native.
 You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
-### Expo
-
-Stream's Video SDK is available on Expo through development builds. See the instructions found [here](../expo).
-
 ### Add Stream's Video SDK and its peer dependencies
 
 In order to install the Stream Video React Native SDK, run the following command in your terminal of choice:
@@ -49,6 +45,7 @@ Once the peer dependencies are installed, a native setup method needs to be adde
 Add the following in your `MainApplication.java` file:
 
 <!-- vale off -->
+
 ```java
 // highlight-next-line
 import com.streamvideo.reactnative.StreamVideoReactNative;
@@ -64,6 +61,7 @@ public class MainApplication extends Application implements ReactApplication {
   }
 }
 ```
+
 <!-- vale on -->
 
 #### iOS
@@ -157,9 +155,9 @@ If you plan to also support Bluetooth devices then also add the following.
 <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 ```
 
-
 :::note
 The SDK needs to know to the state of camera and microphone permissions to get video and audio streams. We can inform the states to the SDK through the following:
+
 ```ts
 import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
 
@@ -168,7 +166,8 @@ StreamVideoRN.setPermissions({
   isMicPermissionGranted: true,
 });
 ```
- We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
+
+We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
 :::
 
 ### Optional peer dependencies
@@ -185,4 +184,3 @@ To enable this feature you need to install the following dependencies:
 - `@react-native-voip-push-notification` to receive notifications on iOS.
 
 More about how to enable this feature can be found [in our push notification guide](../../advanced/push-notifications/setup).
-
