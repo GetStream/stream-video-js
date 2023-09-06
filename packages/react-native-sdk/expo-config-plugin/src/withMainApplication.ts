@@ -4,8 +4,10 @@ import {
   appendContentsInsideDeclarationBlock,
 } from '@expo/config-plugins/build/android/codeMod';
 
-const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin = (config) => {
-  return withMainApplication(config, (config) => {
+const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin = (
+  configuration,
+) => {
+  return withMainApplication(configuration, (config) => {
     if (['java', 'kt'].includes(config.modResults.language)) {
       try {
         config.modResults.contents = addImports(

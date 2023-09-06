@@ -23,8 +23,10 @@ export const addStreamVideoReactNativeSDKAppDelegateSetup = (
   });
 };
 
-const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (config) => {
-  return withAppDelegate(config, (config) => {
+const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
+  configuration,
+) => {
+  return withAppDelegate(configuration, (config) => {
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
         config.modResults.contents = addObjcImports(
