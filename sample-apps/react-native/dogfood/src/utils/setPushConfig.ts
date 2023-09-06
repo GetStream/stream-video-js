@@ -3,10 +3,10 @@ import {
   StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
 import { AndroidImportance } from '@notifee/react-native';
-import { STREAM_API_KEY } from 'react-native-dotenv';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
+import { STREAM_API_KEY } from '../../config';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({

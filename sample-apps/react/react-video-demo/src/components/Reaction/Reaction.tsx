@@ -16,6 +16,9 @@ export const defaultEmojiReactions: Record<string, string> = {
   ':like:': '👍',
   ':raise-hand:': '✋',
   ':fireworks:': '🎉',
+  ':dislike:': '👎',
+  ':heart:': '❤️',
+  ':smile:': '😀',
 };
 
 export const Reaction: FC<Props> = ({

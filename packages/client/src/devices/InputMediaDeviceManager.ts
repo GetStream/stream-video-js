@@ -191,6 +191,37 @@ export abstract class InputMediaDeviceManager<
     stopTracks ? this.stopTrack() : this.muteTrack();
   }
 
+  private muteTrack() {
+    const track = this.getTrack();
+    if (!track || !track.enabled) {
+      return;
+    }
+    track.enabled = false;
+  }
+
+  private unmuteTrack() {
+    const track = this.getTrack();
+    if (!track || track.enabled) {
+      return;
+    }
+    track.enabled = true;
+  }
+
+  private stopTrack() {
+    const track = this.getTrack();
+    if (!track || track.readyState === 'ended') {
+      return;
+    }
+    track.stop();
+  }
+
+  private muteLocalStream(stopTracks: boolean) {
+    if (!this.state.mediaStream) {
+      return;
+    }
+    stopTracks ? this.stopTrack() : this.muteTrack();
+  }
+
   protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;

@@ -10,7 +10,7 @@ import {
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
-import { customSentryLogger } from '../../utils/logger';
+import { STREAM_API_KEY } from '../../../config';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -21,7 +21,6 @@ export const GuestMeetingScreen = (props: Props) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
-  const apiKey = process.env.STREAM_API_KEY as string;
   const {
     params: { guestUserId, callId, mode },
   } = props.route;
@@ -50,10 +49,10 @@ export const GuestMeetingScreen = (props: Props) => {
 
   useEffect(() => {
     const _videoClient = new StreamVideoClient({
-      apiKey,
+      apiKey: STREAM_API_KEY,
       user: userToConnect,
       tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-      options: { logger: customSentryLogger, logLevel: 'warn' },
+      options: { logLevel: 'warn' },
     });
     setVideoClient(_videoClient);
 
@@ -61,7 +60,7 @@ export const GuestMeetingScreen = (props: Props) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [tokenProvider, userToConnect, apiKey, mode]);
+  }, [tokenProvider, userToConnect, mode]);
 
   const call = useMemo<Call | undefined>(() => {
     if (!videoClient) {

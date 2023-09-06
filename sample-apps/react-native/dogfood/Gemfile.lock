@@ -160,7 +160,6 @@ GEM
     fastlane-plugin-increment_version_code (0.4.3)
     fastlane-plugin-increment_version_name (0.0.10)
     fastlane-plugin-load_json (0.0.1)
-    fastlane-plugin-sentry (1.15.0)
       os (~> 1.1, >= 1.1.4)
     fastlane-plugin-stream_actions (0.3.16)
       xctest_list (= 1.2.1)
@@ -317,7 +316,6 @@ DEPENDENCIES
   fastlane-plugin-increment_version_code
   fastlane-plugin-increment_version_name
   fastlane-plugin-load_json
-  fastlane-plugin-sentry
   fastlane-plugin-stream_actions (= 0.3.16)
   rubocop (= 1.38)
   rubocop-performance

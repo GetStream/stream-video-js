@@ -116,7 +116,10 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraDirection, CameraManager, MicrophoneManager } from './devices';
+import { CameraManager } from './devices/CameraManager';
+import { MicrophoneManager } from './devices/MicrophoneManager';
+import { CameraDirection } from './devices/CameraManagerState';
+import { SpeakerManager } from './devices/SpeakerManager';
 
 /**
  * An object representation of a `Call`.
@@ -162,6 +165,11 @@ export class Call {
    * The DynascaleManager instance.
    */
   readonly dynascaleManager = new DynascaleManager(this);
+
+  /*
+   * Device manager for the speaker
+   */
+  readonly speaker: SpeakerManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -269,6 +277,7 @@ export class Call {
 
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
+    this.speaker = new SpeakerManager();
 
     this.state.localParticipant$.subscribe(async (p) => {
       // Mute via device manager
@@ -938,13 +947,7 @@ export class Call {
         // prepare a generic SDP and send it to the SFU.
         // this is a throw-away SDP that the SFU will use to determine
         // the capabilities of the client (codec support, etc.)
-        .then(() =>
-          getGenericSdp(
-            'recvonly',
-            isRedEnabled,
-            this.streamClient.options.preferredVideoCodec,
-          ),
-        )
+        .then(() => getGenericSdp('recvonly'))
         .then((sdp) => {
           const subscriptions = getCurrentValue(this.trackSubscriptionsSubject);
           const migration: Migration | undefined = isMigrating
@@ -1310,6 +1313,8 @@ export class Call {
    *
    *
    * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
+   *
+   * @deprecated use `call.speaker` instead
    */
   setAudioOutputDevice = (deviceId?: string) => {
     if (!this.sfuClient) return;

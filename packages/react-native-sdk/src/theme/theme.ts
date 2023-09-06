@@ -81,7 +81,7 @@ export type Theme = {
     container: ViewStyle;
     label: TextStyle;
   };
-  localParticipantsView: {
+  floatingParticipantsView: {
     container: ViewStyle;
     participantViewContainer: ViewStyle;
     videoFallback: ViewStyle;
@@ -328,7 +328,7 @@ export const defaultTheme: Theme = {
     userNameLabel: {},
     audioMutedIconContainer: {},
   },
-  localParticipantsView: {
+  floatingParticipantsView: {
     container: {},
     participantViewContainer: {},
     videoFallback: {},

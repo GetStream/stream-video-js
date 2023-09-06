@@ -5,7 +5,9 @@ import { cleanupParticipant, renderParticipant } from './participant';
 import { renderControls } from './controls';
 import {
   renderAudioDeviceSelector,
+  renderAudioOutputSelector,
   renderVideoDeviceSelector,
+  renderVolumeControl,
 } from './device-selector';
 import { isMobile } from './mobile';
 
@@ -51,6 +53,13 @@ call.join({ create: true }).then(async () => {
   } else {
     container.appendChild(renderVideoDeviceSelector(call));
   }
+
+  const audioOutputSelector = renderAudioOutputSelector(call);
+  if (audioOutputSelector) {
+    container.appendChild(audioOutputSelector);
+  }
+
+  container.appendChild(renderVolumeControl(call));
 });
 
 window.addEventListener('beforeunload', () => {
