@@ -14,7 +14,7 @@
     "start": "yarn copy-version && tsc --project tsconfig.json --watch",
     "build:expo-plugin": "rimraf plugin/build && tsc --build expo-config-plugin",
     "build": "yarn clean && yarn copy-version && tsc --project tsconfig.json && yarn build:expo-plugin",
-    "test:expo-plugin": "jest expo-config-plugin",
+    "test:expo-plugin": "jest expo-config-plugin --coverage",
     "test": "jest --coverage && yarn test:expo-plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
   },

@@ -1,41 +1,79 @@
+import { withAppDelegate } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
-import {
-  addStreamVideoReactNativeSDKAppDelegateImport,
-  addStreamVideoReactNativeSDKAppDelegateSetup,
-} from '../src/withAppDelegate';
+import withStreamVideoReactNativeSDKAppDelegate from '../src/withAppDelegate';
+import { ExpoConfig } from '@expo/config-types';
+
+// Define a custom type that extends ExpoConfig
+interface CustomExpoConfig extends ExpoConfig {
+  modResults: {
+    language: string;
+    contents: string;
+  };
+}
+
+jest.mock('@expo/config-plugins', () => {
+  const originalModule = jest.requireActual('@expo/config-plugins');
+  return {
+    ...originalModule,
+    withAppDelegate: jest.fn(),
+  };
+});
 
 const ExpoModulesAppDelegate = getFixture('AppDelegate.mm');
 
-describe(addStreamVideoReactNativeSDKAppDelegateImport, () => {
-  it('adds import to Expo Modules AppDelegate', () => {
-    const results = addStreamVideoReactNativeSDKAppDelegateImport(
-      ExpoModulesAppDelegate,
+describe('withStreamVideoReactNativeSDKAppDelegate', () => {
+  beforeEach(() => {
+    // Mock the behavior of withAppDelegate
+    (withAppDelegate as jest.Mock).mockImplementationOnce(
+      (config, callback) => {
+        const updatedConfig: CustomExpoConfig = callback(
+          config as CustomExpoConfig,
+        );
+        return updatedConfig;
+      },
     );
-    expect(results.contents).toMatch(/#import "StreamVideoReactNative.h"/);
-    expect(results.didMerge).toBe(true);
-    expect(results.didClear).toBe(false);
   });
+  it('should modify config for Objective-C AppDelegate', () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'objc',
+        contents: ExpoModulesAppDelegate,
+      },
+    };
 
-  it(`fails to add to a malformed app delegate`, () => {
-    expect(() =>
-      addStreamVideoReactNativeSDKAppDelegateImport(`foobar`),
-    ).toThrow(/foobar/);
-  });
-});
+    const updatedConfig = withStreamVideoReactNativeSDKAppDelegate(
+      config,
+    ) as CustomExpoConfig;
 
-describe(addStreamVideoReactNativeSDKAppDelegateSetup, () => {
-  it('adds setup to Expo Modules AppDelegate', () => {
-    const results = addStreamVideoReactNativeSDKAppDelegateSetup(
-      ExpoModulesAppDelegate,
+    // Assert that withAppDelegate was called with the correct arguments
+    expect(withAppDelegate).toHaveBeenCalledWith(config, expect.any(Function));
+
+    expect(updatedConfig.modResults.contents).toMatch(
+      /#import "StreamVideoReactNative.h"/,
     );
-    expect(results.contents).toMatch(/\[StreamVideoReactNative setup\];/);
-    expect(results.didMerge).toBe(true);
-    expect(results.didClear).toBe(false);
+
+    // Assert that the updated config contains the expected changes
+    expect(updatedConfig.modResults.contents).toContain(
+      '[StreamVideoReactNative setup]',
+    );
   });
 
-  it(`fails to add to a malformed app delegate`, () => {
-    expect(() =>
-      addStreamVideoReactNativeSDKAppDelegateImport(`foobar`),
-    ).toThrow(/foobar/);
+  it('should throw error for different language AppDelegate', () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'java',
+        contents: ExpoModulesAppDelegate,
+      },
+    };
+
+    expect(() => withStreamVideoReactNativeSDKAppDelegate(config)).toThrow(
+      'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is not Objective C',
+    );
   });
 });
