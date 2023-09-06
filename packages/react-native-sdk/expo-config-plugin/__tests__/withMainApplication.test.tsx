@@ -1,6 +1,6 @@
-import { withAppDelegate } from '@expo/config-plugins';
+import { withMainApplication } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
-import withStreamVideoReactNativeSDKAppDelegate from '../src/withAppDelegate';
+import withStreamVideoReactNativeSDKMainApplication from '../src/withMainApplication';
 import { ExpoConfig } from '@expo/config-types';
 
 // Define a custom type that extends ExpoConfig
@@ -15,16 +15,16 @@ jest.mock('@expo/config-plugins', () => {
   const originalModule = jest.requireActual('@expo/config-plugins');
   return {
     ...originalModule,
-    withAppDelegate: jest.fn(),
+    withMainApplication: jest.fn(),
   };
 });
 
-const ExpoModulesAppDelegate = getFixture('AppDelegate.mm');
+const ExpoModulesMainApplication = getFixture('MainApplication.java');
 
-describe('withStreamVideoReactNativeSDKAppDelegate', () => {
+describe('withStreamVideoReactNativeSDKMainApplication', () => {
   beforeEach(() => {
     // Mock the behavior of withAppDelegate
-    (withAppDelegate as jest.Mock).mockImplementationOnce(
+    (withMainApplication as jest.Mock).mockImplementationOnce(
       (config, callback) => {
         const updatedConfig: CustomExpoConfig = callback(
           config as CustomExpoConfig,
@@ -33,62 +33,66 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     );
   });
-  it('should modify config for Objective-C AppDelegate', () => {
-    // Prepare a mock config
-    const config: CustomExpoConfig = {
-      name: 'test-app',
-      slug: 'test-app',
-      modResults: {
-        language: 'objc',
-        contents: ExpoModulesAppDelegate,
-      },
-    };
 
-    const updatedConfig = withStreamVideoReactNativeSDKAppDelegate(
-      config,
-    ) as CustomExpoConfig;
-
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withAppDelegate).toHaveBeenCalledWith(config, expect.any(Function));
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import "StreamVideoReactNative.h"/,
-    );
-
-    // Assert that the updated config contains the expected changes
-    expect(updatedConfig.modResults.contents).toContain(
-      '[StreamVideoReactNative setup]',
-    );
-  });
-
-  it('should throw error for different language AppDelegate', () => {
+  it('should modify config for Java MainApplication', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
         language: 'java',
-        contents: ExpoModulesAppDelegate,
+        contents: ExpoModulesMainApplication,
       },
     };
 
-    expect(() => withStreamVideoReactNativeSDKAppDelegate(config)).toThrow(
-      'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is not Objective C',
+    const updatedConfig = withStreamVideoReactNativeSDKMainApplication(
+      config,
+    ) as CustomExpoConfig;
+
+    // Assert that withAppDelegate was called with the correct arguments
+    expect(withMainApplication).toHaveBeenCalledWith(
+      config,
+      expect.any(Function),
+    );
+
+    expect(updatedConfig.modResults.contents).toMatch(
+      'com.streamvideo.reactnative.StreamVideoReactNative',
+    );
+
+    // Assert that the updated config contains the expected changes
+    expect(updatedConfig.modResults.contents).toContain(
+      'StreamVideoReactNative.setup();',
     );
   });
 
-  it(`fails to add to a malformed app delegate`, () => {
+  it('should throw error for different language MainApplication', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
         language: 'objc',
+        contents: ExpoModulesMainApplication,
+      },
+    };
+
+    expect(() => withStreamVideoReactNativeSDKMainApplication(config)).toThrow(
+      'Cannot setup StreamVideoReactNativeSDK because the MainApplication is not in Java/Kotlin',
+    );
+  });
+
+  it(`fails to add to a malformed MainApplication`, () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'java',
         contents: `foobar`,
       },
     };
-    expect(() => withStreamVideoReactNativeSDKAppDelegate(config)).toThrow(
-      "Cannot add StreamVideoReactNativeSDK to the project's AppDelegate because it's malformed.",
+    expect(() => withStreamVideoReactNativeSDKMainApplication(config)).toThrow(
+      "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed.",
     );
   });
 });

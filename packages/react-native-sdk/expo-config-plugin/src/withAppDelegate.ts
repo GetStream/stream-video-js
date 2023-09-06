@@ -3,24 +3,9 @@ import {
   MergeResults,
   mergeContents,
 } from '@expo/config-plugins/build/utils/generateCode';
+import { addObjcImports } from '@expo/config-plugins/build/ios/codeMod';
 
 const commentFormat = '//';
-
-export const addStreamVideoReactNativeSDKAppDelegateImport = (
-  src: string,
-): MergeResults => {
-  const newSrc = '#import "StreamVideoReactNative.h"';
-  const StreamVideoReactNativeSDKAppDelegateImportRegex =
-    /#import "AppDelegate.h"/;
-  return mergeContents({
-    tag: 'video-react-native-sdk-app-delegate-import',
-    src,
-    newSrc,
-    anchor: StreamVideoReactNativeSDKAppDelegateImportRegex,
-    offset: 1,
-    comment: commentFormat,
-  });
-};
 
 export const addStreamVideoReactNativeSDKAppDelegateSetup = (
   src: string,
@@ -42,10 +27,10 @@ const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (config) => {
   return withAppDelegate(config, (config) => {
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
       try {
-        config.modResults.contents =
-          addStreamVideoReactNativeSDKAppDelegateImport(
-            config.modResults.contents,
-          ).contents;
+        config.modResults.contents = addObjcImports(
+          config.modResults.contents,
+          ['"StreamVideoReactNative.h"'],
+        );
         config.modResults.contents =
           addStreamVideoReactNativeSDKAppDelegateSetup(
             config.modResults.contents,

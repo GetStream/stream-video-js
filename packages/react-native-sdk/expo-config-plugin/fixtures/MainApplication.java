@@ -1,5 +1,4 @@
 package io.getstream.expovideosample;
-import com.streamvideo.reactnative.StreamVideoReactNative;
 
 import android.app.Application;
 import android.content.res.Configuration;
@@ -67,7 +66,6 @@ public class MainApplication extends Application implements ReactApplication {
     }
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
-  StreamVideoReactNative.setup();
 }
 
   @Override

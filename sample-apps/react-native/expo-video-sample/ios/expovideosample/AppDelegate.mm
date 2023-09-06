@@ -1,7 +1,5 @@
 #import "AppDelegate.h"
-// @generated begin video-react-native-sdk-app-delegate-import - expo prebuild (DO NOT MODIFY) sync-02f2447ac3ad7e976045c452f81168c758d0c2b7
 #import "StreamVideoReactNative.h"
-// @generated end video-react-native-sdk-app-delegate-import
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
