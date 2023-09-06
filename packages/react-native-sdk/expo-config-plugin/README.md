@@ -5,7 +5,7 @@ After installing the `@stream-io/video-react-native-sdk` you can simply add the 
 ```json
 {
   "expo": {
-    "plugins": ["@config-plugins/react-native-webrtc"]
+    "plugins": ["@stream-io/video-react-native-sdk"]
   }
 }
 ```
