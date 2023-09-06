@@ -4,10 +4,12 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin = (
   configuration,
 ) => {
   return withInfoPlist(configuration, (config) => {
-    if (config.modResults.UIBackgroundModes) {
-      delete config.modResults.UIBackgroundModes;
+    if (!Array.isArray(config.modResults.UIBackgroundModes)) {
+      config.modResults.UIBackgroundModes = [];
     }
-    config.modResults.UIBackgroundModes = ['audio'];
+    if (!config.modResults.UIBackgroundModes.includes('audio')) {
+      config.modResults.UIBackgroundModes.push('audio');
+    }
     return config;
   });
 };

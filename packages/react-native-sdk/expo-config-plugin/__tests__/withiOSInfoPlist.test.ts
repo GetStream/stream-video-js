@@ -28,7 +28,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     });
   });
 
-  it('should add UIBackgroundModes to config', async () => {
+  it('should add audio to UIBackgroundModes of info.plist', async () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
@@ -43,25 +43,22 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
   });
 
-  it('should remove existing UIBackgroundModes', async () => {
+  it('should not add audio to UIBackgroundModes of info.plist if audio already exists', async () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        UIBackgroundModes: ['voip'],
+        UIBackgroundModes: ['audio'],
       },
     };
-
-    expect(config.modResults.UIBackgroundModes).toEqual(['voip']);
-
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
     ) as CustomExpoConfig;
 
-    expect(modifiedConfig.modResults.UIBackgroundModes).toEqual(['audio']);
+    expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
   });
 
-  it('should not remove existing UIBackgroundModes if UIBackgroundModes is undefined', async () => {
+  it('should change UIBackgroundModes to [] and add audio if UIBackgroundModes is undefined', async () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
