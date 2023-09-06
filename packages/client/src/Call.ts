@@ -116,10 +116,12 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraManager } from './devices/CameraManager';
-import { MicrophoneManager } from './devices/MicrophoneManager';
-import { CameraDirection } from './devices/CameraManagerState';
-import { SpeakerManager } from './devices/SpeakerManager';
+import {
+  CameraDirection,
+  CameraManager,
+  MicrophoneManager,
+  SpeakerManager,
+} from './devices';
 
 /**
  * An object representation of a `Call`.
@@ -157,19 +159,19 @@ export class Call {
   readonly camera: CameraManager;
 
   /**
-   * Device manager for the microhpone
+   * Device manager for the microphone.
    */
   readonly microphone: MicrophoneManager;
+
+  /**
+   * Device manager for the speaker
+   */
+  readonly speaker: SpeakerManager;
 
   /**
    * The DynascaleManager instance.
    */
   readonly dynascaleManager = new DynascaleManager(this);
-
-  /*
-   * Device manager for the speaker
-   */
-  readonly speaker: SpeakerManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
