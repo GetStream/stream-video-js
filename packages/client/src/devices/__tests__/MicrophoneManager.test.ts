@@ -2,15 +2,15 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect, Mock } from 'vitest';
-import { mockCall, mockAudioDevices, mockAudioStream } from './mocks';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { mockAudioDevices, mockAudioStream, mockCall } from './mocks';
 import { getAudioStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { MicrophoneManager } from '../MicrophoneManager';
-import { BehaviorSubject, of } from 'rxjs';
+import { of } from 'rxjs';
 import {
-  SoundStateChangeHandler,
   createSoundDetector,
+  SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
 import { OwnCapability } from '../../gen/coordinator';
 
@@ -76,8 +76,7 @@ describe('MicrophoneManager', () => {
   });
 
   it('publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
 
     await manager.enable();
 
@@ -87,8 +86,7 @@ describe('MicrophoneManager', () => {
   });
 
   it('stop publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
     await manager.enable();
 
     await manager.disable();
@@ -112,10 +110,10 @@ describe('MicrophoneManager', () => {
   it(`should start sound detection if mic is disabled`, async () => {
     await manager.enable();
     // @ts-expect-error
-    vi.spyOn(manager, 'startSpeakingWhilemutedDetection');
+    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
     await manager.disable();
 
-    expect(manager['startSpeakingWhilemutedDetection']).toHaveBeenCalled();
+    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
   });
 
   it(`should stop sound detection if mic is enabled`, async () => {
@@ -133,7 +131,7 @@ describe('MicrophoneManager', () => {
     mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
       handler = h;
     });
-    await manager['startSpeakingWhilemutedDetection']();
+    await manager['startSpeakingWhileMutedDetection']();
 
     expect(manager.state.speakingWhileMuted).toBe(false);
 
@@ -152,9 +150,7 @@ describe('MicrophoneManager', () => {
 
     // @ts-expect-error
     vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
-    (
-      manager['call'].state.ownCapabilities$ as BehaviorSubject<OwnCapability[]>
-    ).next([]);
+    manager['call'].state.setOwnCapabilities([]);
 
     expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
   });
@@ -163,17 +159,13 @@ describe('MicrophoneManager', () => {
     await manager.enable();
     await manager.disable();
 
-    (
-      manager['call'].state.ownCapabilities$ as BehaviorSubject<OwnCapability[]>
-    ).next([]);
+    manager['call'].state.setOwnCapabilities([]);
 
     // @ts-expect-error
-    vi.spyOn(manager, 'startSpeakingWhilemutedDetection');
-    (
-      manager['call'].state.ownCapabilities$ as BehaviorSubject<OwnCapability[]>
-    ).next([OwnCapability.SEND_AUDIO]);
+    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
 
-    expect(manager['startSpeakingWhilemutedDetection']).toHaveBeenCalled();
+    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
   });
 
   afterEach(() => {

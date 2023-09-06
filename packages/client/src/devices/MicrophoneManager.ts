@@ -1,4 +1,4 @@
-import { Observable, combineLatest } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { Call } from '../Call';
 import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
@@ -29,7 +29,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       }
       if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
         if (status === 'disabled') {
-          await this.startSpeakingWhilemutedDetection(deviceId);
+          await this.startSpeakingWhileMutedDetection(deviceId);
         } else {
           await this.stopSpeakingWhileMutedDetection();
         }
@@ -58,7 +58,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return this.state.mediaStream?.getAudioTracks()[0];
   }
 
-  private async startSpeakingWhilemutedDetection(deviceId?: string) {
+  private async startSpeakingWhileMutedDetection(deviceId?: string) {
     if (isReactNative()) {
       return;
     }
