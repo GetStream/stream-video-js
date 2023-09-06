@@ -25,6 +25,7 @@ Adds the following in your `MainApplication.java` file:
 <!-- vale off -->
 
 ```java
+// Adds this
 import com.streamvideo.reactnative.StreamVideoReactNative;
 
 public class MainApplication extends Application implements ReactApplication {
@@ -32,6 +33,7 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+    // Adds this
     StreamVideoReactNative.setup();
     // the rest..
   }
@@ -45,12 +47,14 @@ public class MainApplication extends Application implements ReactApplication {
 Adds the following in your `AppDelegate.mm` file:
 
 ```c
+// Adds this
 #import "StreamVideoReactNative.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  // Adds this
   [StreamVideoReactNative setup];
 
   // the rest..
