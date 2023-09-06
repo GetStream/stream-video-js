@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.6...@stream-io/video-react-native-sdk-0.0.7) (2023-09-06)
+
+
+### Bug Fixes
+
+* downgraded rn url polyfill dep to be compatible with jest ([#1059](https://github.com/GetStream/stream-video-js/issues/1059)) ([6f17239](https://github.com/GetStream/stream-video-js/commit/6f1723943e106a8584e46976350f1898b1b3bf50))
+
 ### [0.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.5...@stream-io/video-react-native-sdk-0.0.6) (2023-09-05)
 
 
