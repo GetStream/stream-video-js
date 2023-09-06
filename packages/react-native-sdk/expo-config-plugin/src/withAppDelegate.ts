@@ -1,26 +1,20 @@
 import { ConfigPlugin, withAppDelegate } from '@expo/config-plugins';
 import {
-  MergeResults,
-  mergeContents,
-} from '@expo/config-plugins/build/utils/generateCode';
-import { addObjcImports } from '@expo/config-plugins/build/ios/codeMod';
-
-const commentFormat = '//';
+  addObjcImports,
+  insertContentsInsideObjcFunctionBlock,
+} from '@expo/config-plugins/build/ios/codeMod';
 
 export const addStreamVideoReactNativeSDKAppDelegateSetup = (
-  src: string,
-): MergeResults => {
-  const newSrc = '[StreamVideoReactNative setup];';
-  const StreamVideoReactNativeSDKAppDelegateSetup =
-    /^(?:- \(BOOL\)application:\(UIApplication \*\)application didFinishLaunchingWithOptions:\(NSDictionary \*\)launchOptions|\{)$/gm;
-  return mergeContents({
-    tag: 'video-react-native-sdk-app-delegate-setup',
-    src,
-    newSrc,
-    anchor: StreamVideoReactNativeSDKAppDelegateSetup,
-    offset: 2,
-    comment: commentFormat,
-  });
+  contents: string,
+): string => {
+  const setupMethod = '[StreamVideoReactNative setup];';
+
+  return insertContentsInsideObjcFunctionBlock(
+    contents,
+    'application:didFinishLaunchingWithOptions:',
+    setupMethod,
+    { position: 'head' },
+  );
 };
 
 const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
@@ -28,23 +22,12 @@ const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
 ) => {
   return withAppDelegate(configuration, (config) => {
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
-      try {
-        config.modResults.contents = addObjcImports(
-          config.modResults.contents,
-          ['"StreamVideoReactNative.h"'],
-        );
-        config.modResults.contents =
-          addStreamVideoReactNativeSDKAppDelegateSetup(
-            config.modResults.contents,
-          ).contents;
-      } catch (error: any) {
-        if (error.code === 'ERR_NO_MATCH') {
-          throw new Error(
-            "Cannot add StreamVideoReactNativeSDK to the project's AppDelegate because it's malformed.",
-          );
-        }
-        throw Error;
-      }
+      config.modResults.contents = addObjcImports(config.modResults.contents, [
+        '"StreamVideoReactNative.h"',
+      ]);
+      config.modResults.contents = addStreamVideoReactNativeSDKAppDelegateSetup(
+        config.modResults.contents,
+      );
     } else {
       throw new Error(
         'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is not Objective C',
