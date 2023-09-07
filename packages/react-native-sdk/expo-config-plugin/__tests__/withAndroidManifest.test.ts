@@ -8,6 +8,21 @@ interface CustomExpoConfig extends ExpoConfig {
   modResults: AndroidConfig.Manifest.AndroidManifest;
 }
 
+// the real withAndroidManifest doesnt return the updated config
+// so we mock it to return the updated config using the callback we pass in the actual implementation
+jest.mock('@expo/config-plugins', () => {
+  const originalModule = jest.requireActual('@expo/config-plugins');
+  return {
+    ...originalModule,
+    withAndroidManifest: jest.fn((config, callback) => {
+      const updatedConfig: CustomExpoConfig = callback(
+        config as CustomExpoConfig,
+      );
+      return updatedConfig;
+    }),
+  };
+});
+
 const readAndroidManifestAsync =
   AndroidConfig.Manifest.readAndroidManifestAsync;
 
