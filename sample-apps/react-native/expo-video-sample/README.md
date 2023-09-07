@@ -31,12 +31,4 @@ cd sample-apps/react-native/expo-video-sample
 
 4. Run the app
 
-Currently the app supports development builds for expo, hence we use the following commands to run the app:
-
-```bash
-# For iOS
-npx expo run:ios
-
-# For Android
-npx expo run:android
-```
+You can run the app either with [EAS Build](https://docs.expo.dev/build/introduction/) or [locally on your computer](https://docs.expo.dev/develop/development-builds/development-workflows/#build-locally-with-android-studio-and-xcode).
