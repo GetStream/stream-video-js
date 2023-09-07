@@ -33,11 +33,12 @@ So what did we install precisely?
 
 Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/expo-config-plugin/README.md) and [`react-native-webrtc`](https://www.npmjs.com/package/@config-plugins/react-native-webrtc) to your `app.json` file:
 
-```js title=app.json {5-13}
+```js title=app.json
 {
   "expo": {
     ...
     "plugins": [
+      // highlight-start
       "@stream-io/video-react-native-sdk",
       [
         "@config-plugins/react-native-webrtc",
@@ -47,6 +48,7 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
         }
       ]
+      // highlight-end
     ]
   }
 }
