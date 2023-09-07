@@ -1,4 +1,3 @@
-import { withInfoPlist } from '@expo/config-plugins';
 import withStreamVideoReactNativeSDKiOSInfoPList from '../src/withiOSInfoPlist';
 import { ExpoConfig } from '@expo/config-types';
 
@@ -9,25 +8,22 @@ interface CustomExpoConfig extends ExpoConfig {
   };
 }
 
+// the real withInfoPlist doesnt return the updated config
+// so we mock it to return the updated config using the callback we pass in the actual implementation
 jest.mock('@expo/config-plugins', () => {
   const originalModule = jest.requireActual('@expo/config-plugins');
   return {
     ...originalModule,
-    withInfoPlist: jest.fn(),
-  };
-});
-
-describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
-  beforeEach(() => {
-    // Mock the behavior of withAppDelegate
-    (withInfoPlist as jest.Mock).mockImplementationOnce((config, callback) => {
+    withInfoPlist: jest.fn((config, callback) => {
       const updatedConfig: CustomExpoConfig = callback(
         config as CustomExpoConfig,
       );
       return updatedConfig;
-    });
-  });
+    }),
+  };
+});
 
+describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
   it('should add audio to UIBackgroundModes of info.plist', async () => {
     const config: CustomExpoConfig = {
       name: 'test-app',

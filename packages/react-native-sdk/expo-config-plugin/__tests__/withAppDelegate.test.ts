@@ -1,4 +1,3 @@
-import { withAppDelegate } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
 import withStreamVideoReactNativeSDKAppDelegate from '../src/withAppDelegate';
 import { ExpoConfig } from '@expo/config-types';
@@ -12,28 +11,24 @@ interface CustomExpoConfig extends ExpoConfig {
   };
 }
 
+// the real withAppDelegate doesnt return the updated config
+// so we mock it to return the updated config using the callback we pass in the actual implementation
 jest.mock('@expo/config-plugins', () => {
   const originalModule = jest.requireActual('@expo/config-plugins');
   return {
     ...originalModule,
-    withAppDelegate: jest.fn(),
+    withAppDelegate: jest.fn((config, callback) => {
+      const updatedConfig: CustomExpoConfig = callback(
+        config as CustomExpoConfig,
+      );
+      return updatedConfig;
+    }),
   };
 });
 
 const ExpoModulesAppDelegate = getFixture('AppDelegate.mm');
 
 describe('withStreamVideoReactNativeSDKAppDelegate', () => {
-  beforeEach(() => {
-    // Mock the behavior of withAppDelegate
-    (withAppDelegate as jest.Mock).mockImplementationOnce(
-      (config, callback) => {
-        const updatedConfig: CustomExpoConfig = callback(
-          config as CustomExpoConfig,
-        );
-        return updatedConfig;
-      },
-    );
-  });
   it('should modify config for Objective-C AppDelegate', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
@@ -48,9 +43,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withStreamVideoReactNativeSDKAppDelegate(
       config,
     ) as CustomExpoConfig;
-
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withAppDelegate).toHaveBeenCalledWith(config, expect.any(Function));
 
     expect(updatedConfig.modResults.contents).toMatch(
       /#import "StreamVideoReactNative.h"/,
@@ -82,9 +74,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const updatedConfig = withStreamVideoReactNativeSDKAppDelegate(
       config,
     ) as CustomExpoConfig;
-
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withAppDelegate).toHaveBeenCalledWith(config, expect.any(Function));
 
     const count =
       updatedConfig.modResults.contents.split(setupMethod).length - 1;

@@ -32,6 +32,7 @@ const getMainApplicationOrThrow =
 const sampleManifestPath = getFixturePath('AndroidManifest.xml');
 
 describe('withStreamVideoReactNativeSDKManifest', () => {
+  let modifiedConfig: CustomExpoConfig | undefined;
   it('should modify Android Manifest', async () => {
     const manifest = await readAndroidManifestAsync(sampleManifestPath);
     // Prepare a mock config
@@ -53,5 +54,39 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
           service.$['android:name'] === 'app.notifee.core.ForegroundService',
       ),
     ).toBe(true);
+
+    modifiedConfig = updatedConfig;
+  });
+
+  it('should not create duplicates', () => {
+    expect(modifiedConfig?.modResults).toBeDefined();
+
+    const updatedConfig = withStreamVideoReactNativeSDKManifest(
+      modifiedConfig!,
+    ) as CustomExpoConfig;
+
+    const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
+
+    expect(
+      mainApp.service?.filter(
+        (service) =>
+          service.$['android:name'] === 'app.notifee.core.ForegroundService',
+      ).length,
+    ).toBe(1);
+
+    modifiedConfig = updatedConfig;
+  });
+
+  it('should throw error for malformed manifest', () => {
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        // @ts-expect-error: we are testing malformed manifest
+        bla: 'blabla',
+      },
+    };
+    expect(() => withStreamVideoReactNativeSDKManifest(config)).toThrow();
   });
 });

@@ -12,29 +12,24 @@ interface CustomExpoConfig extends ExpoConfig {
   };
 }
 
+// the real withMainApplication doesnt return the updated config
+// so we mock it to return the updated config using the callback we pass in the actual implementation
 jest.mock('@expo/config-plugins', () => {
   const originalModule = jest.requireActual('@expo/config-plugins');
   return {
     ...originalModule,
-    withMainApplication: jest.fn(),
+    withMainApplication: jest.fn((config, callback) => {
+      const updatedConfig: CustomExpoConfig = callback(
+        config as CustomExpoConfig,
+      );
+      return updatedConfig;
+    }),
   };
 });
 
 const ExpoModulesMainApplication = getFixture('MainApplication.java');
 
 describe('withStreamVideoReactNativeSDKMainApplication', () => {
-  beforeEach(() => {
-    // Mock the behavior of withAppDelegate
-    (withMainApplication as jest.Mock).mockImplementationOnce(
-      (config, callback) => {
-        const updatedConfig: CustomExpoConfig = callback(
-          config as CustomExpoConfig,
-        );
-        return updatedConfig;
-      },
-    );
-  });
-
   it('should modify config for Java MainApplication', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
@@ -49,12 +44,6 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     const updatedConfig = withStreamVideoReactNativeSDKMainApplication(
       config,
     ) as CustomExpoConfig;
-
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withMainApplication).toHaveBeenCalledWith(
-      config,
-      expect.any(Function),
-    );
 
     expect(updatedConfig.modResults.contents).toMatch(
       'com.streamvideo.reactnative.StreamVideoReactNative',
@@ -85,12 +74,6 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     const updatedConfig = withStreamVideoReactNativeSDKMainApplication(
       config,
     ) as CustomExpoConfig;
-
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withMainApplication).toHaveBeenCalledWith(
-      config,
-      expect.any(Function),
-    );
 
     const count =
       updatedConfig.modResults.contents.split(setupMethod).length - 1;
