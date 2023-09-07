@@ -12,14 +12,10 @@ Before joining a call, it is necessary to set up the video client. Here's a basi
 import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
 
 const user: User = {
-  id: 'sara';
+  id: 'sara',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
+const client = new StreamVideoClient({ apiKey, token, user });
 ```
 
 - The API Key can be found in your dashboard.
@@ -52,10 +48,7 @@ const user: User = {
   type: 'guest',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  user,
-});
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 And here's an example for an anonymous user
@@ -67,10 +60,7 @@ const user: User = {
   type: 'anonymous',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  user,
-});
+const client = new StreamVideoClient({ apiKey, user });
 ```
 
 ## Client options
@@ -83,14 +73,16 @@ To authenticate users you can either provide a string `token` or a `tokenProvide
 
 You can configure the log level and the logger method used by the SDK.
 
-The default log level is `warn`, other options are: `debug`, `info`, and `error`.
+The default log level is `warn`, other options are: `trace`, `debug`, `info`, and `error`.
 
-The default logger method will log to the browser `console`.
+The default logger method will log to the browser's `console`.
 
 ```ts
 import { StreamVideoClient, Logger } from '@stream-io/video-react-sdk';
 
-const myLogger: Logger;
+const myLogger: Logger = (logLevel, message, ...args) => {
+  // Do something with the log message
+};
 
 const client = new StreamVideoClient({
   apiKey,
@@ -118,18 +110,17 @@ logLevelMapping.set('error', 'error');
 export const customSentryLogger: Logger = (
   logLevel: LogLevel,
   message: string,
-  extraData?: any,
-  tags?: string[],
+  ...args: unknown[]
 ) => {
   if (logLevel === 'warn' || logLevel === 'error') {
     Sentry.captureEvent({
       level: logLevelMapping.get(logLevel),
-      extra: extraData,
+      extra: args,
     });
   }
 
   // Call the SDK's default log method
-  logToConsole(logLevel, message, extraData, tags);
+  logToConsole(logLevel, message, { data: 'some data' });
 };
 ```
 
