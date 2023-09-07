@@ -6,7 +6,6 @@ import {
 } from '@stream-io/video-client';
 import { Platform } from 'react-native';
 import { version } from '../../version';
-import RNDeviceInfo from 'react-native-device-info';
 
 const [major, minor, patch] = version.split('.');
 
@@ -18,19 +17,43 @@ export const setClientDetails = () => {
     patch,
   });
 
-  const deviceInfo = RNDeviceInfo;
+  let osName: string = Platform.OS;
+  if (Platform.OS === 'ios') {
+    // example: "iOS" | "iPadOS"
+    osName = Platform.constants.systemName;
+  }
+
+  let osVersion = '';
+  if (Platform.OS === 'android') {
+    // example: "33" - its more OS API level than consumer version
+    osVersion = Platform.constants.Version.toString();
+  } else if (Platform.OS === 'ios') {
+    // example: "16.2"
+    osVersion = Platform.constants.osVersion;
+  }
 
   setOSInfo({
-    name: Platform.OS,
-    version: deviceInfo.getSystemVersion(),
-    architecture: deviceInfo.supportedAbisSync().join(','),
+    name: osName,
+    version: osVersion,
+    architecture: '',
   });
 
+  let deviceName = '';
+  if (Platform.OS === 'android') {
+    // Example: "Google Pixel 7"
+    const prefix =
+      Platform.constants.Manufacturer.toLowerCase() ===
+      Platform.constants.Brand.toLowerCase()
+        ? Platform.constants.Manufacturer
+        : `${Platform.constants.Manufacturer} ${Platform.constants.Brand}`;
+    deviceName = `${prefix} ${Platform.constants.Model}`;
+  } else if (Platform.OS === 'ios') {
+    // note: osName check is necessary because Platform.isPad is not reliable
+    deviceName = Platform.isPad || osName === 'iPadOS' ? 'iPad' : 'iPhone';
+  }
+
   setDeviceInfo({
-    // Apple iPhone SE Handset, Google sdk_gphone64_x86_64 Handset
-    name: `${deviceInfo.getManufacturerSync()} ${
-      deviceInfo.getModel() ?? deviceInfo.getDeviceId()
-    } ${deviceInfo.getDeviceType()}`,
+    name: deviceName,
     version: '',
   });
 };

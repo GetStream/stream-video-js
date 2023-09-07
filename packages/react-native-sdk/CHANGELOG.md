@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.6...@stream-io/video-react-native-sdk-0.0.7) (2023-09-06)
+
+
+### Bug Fixes
+
+* downgraded rn url polyfill dep to be compatible with jest ([#1059](https://github.com/GetStream/stream-video-js/issues/1059)) ([6f17239](https://github.com/GetStream/stream-video-js/commit/6f1723943e106a8584e46976350f1898b1b3bf50))
+
+### [0.0.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.5...@stream-io/video-react-native-sdk-0.0.6) (2023-09-05)
+
+
+### Bug Fixes
+
+* added missing props for RingingCallContent ([#1057](https://github.com/GetStream/stream-video-js/issues/1057)) ([60bb247](https://github.com/GetStream/stream-video-js/commit/60bb2474f837346a87e06610fe26758caf12c890))
+
+### [0.0.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.4...@stream-io/video-react-native-sdk-0.0.5) (2023-09-05)
+
+
+### Bug Fixes
+
+* override default handler with onPressHandler prop for ToggleCameraButton ([#1053](https://github.com/GetStream/stream-video-js/issues/1053)) ([2eecce6](https://github.com/GetStream/stream-video-js/commit/2eecce6d8e66ba58bede69776815efa929680716))
+
+### [0.0.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.3...@stream-io/video-react-native-sdk-0.0.4) (2023-09-05)
+
+
+### Bug Fixes
+
+* **react-native:** missing translations in lobby component ([3dbed69](https://github.com/GetStream/stream-video-js/commit/3dbed692dcbb4b6a948cc1eb41540ab1e7825912))
+
 ### [0.0.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.2...@stream-io/video-react-native-sdk-0.0.3) (2023-09-05)
 
 ### Dependency Updates

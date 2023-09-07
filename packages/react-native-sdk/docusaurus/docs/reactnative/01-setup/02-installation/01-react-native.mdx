@@ -20,7 +20,7 @@ yarn add @stream-io/video-react-native-sdk
 Stream Video React Native SDK requires installing some peer dependencies to provide you with a great calling experience. You can run the following command to install them:
 
 ```bash title=Terminal
-yarn add @stream-io/react-native-webrtc react-native-device-info \
+yarn add @stream-io/react-native-webrtc \
    react-native-incall-manager react-native-svg \
    @react-native-community/netinfo @notifee/react-native
 npx pod-install
@@ -30,7 +30,6 @@ So what did we install precisely?
 
 - `@stream-io/video-react-native-sdk` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
 - `@stream-io/react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
-- `react-native-device-info` is responsible for retrieving device info and sending it to the Stream Video servers.
 - `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
 - `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
 - `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
