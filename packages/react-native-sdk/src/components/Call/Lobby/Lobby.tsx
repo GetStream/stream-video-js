@@ -50,7 +50,7 @@ export const Lobby = ({
   } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCameraState, useCallSession } = useCallStateHooks();
-  const { direction, status: cameraStatus } = useCameraState();
+  const { status: cameraStatus } = useCameraState();
   const call = useCall();
   const session = useCallSession();
   const { t } = useI18n();
@@ -101,9 +101,10 @@ export const Lobby = ({
               lobby.videoContainer,
             ]}
           >
+            <View style={styles.topView} />
             {cameraStatus === 'enabled' ? (
               <RTCView
-                mirror={direction === 'front'}
+                mirror={true}
                 streamURL={localVideoStream?.toURL()}
                 objectFit="cover"
                 style={StyleSheet.absoluteFillObject}
@@ -224,6 +225,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     padding: 8,
   },
+  topView: {},
   infoContainer: {
     padding: 12,
     borderRadius: 10,

@@ -6,6 +6,7 @@
   "Join": "Join",
   "You": "You",
   "Reconnecting...": "Reconnecting...",
+  "You are first to Join the call.": "You are first to Join the call.",
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",

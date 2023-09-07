@@ -1,0 +1,86 @@
+---
+title: Expo
+description: Install the SDK in Expo Development Builds
+---
+
+Our SDK is not available on Expo Go due to native code being required, but you can use the [expo-dev-client](https://docs.expo.dev/development/create-development-builds/) library to run your Expo app with a development build.
+
+## Development Build
+
+If you haven't already, prepare your project for [expo development builds](https://docs.expo.dev/develop/development-builds/installation/).
+
+## SDK Installation
+
+Add the SDK and its required dependencies to your project:
+
+```bash title=Terminal
+npx expo install @stream-io/video-react-native-sdk
+npx expo install @stream-io/react-native-webrtc
+npx expo install @config-plugins/react-native-webrtc
+npx expo install react-native-incall-manager
+npx expo install react-native-svg
+npx expo install @react-native-community/netinfo
+npx expo install @notifee/react-native
+```
+
+So what did we install precisely?
+
+- `@stream-io/video-react-native-sdk` (SVRN) is Stream's Video SDK which contains UI components, hooks and util functions that will enable audio/video calls.
+- `@stream-io/react-native-webrtc` is a WebRTC module for React Native, SVRN depends on this dependency, it's components and utilities to render audio/video tracks and interact with the phone's media devices.
+- `react-native-incall-manager` handles media-routes/sensors/events during an audio/video call.
+- `react-native-svg` provides SVG support to React Native, SVRN's components and it's icons are reliant on this dependency.
+- `@react-native-community/netinfo` - is used to detect the device's connectivity state, type and quality.
+- `@notifee/react-native` - is used to keep calls alive in the background on Android.
+
+## Add config plugin
+
+Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/expo-config-plugin/README.md) and [`react-native-webrtc`](https://www.npmjs.com/package/@config-plugins/react-native-webrtc) to your `app.json` file:
+
+```js title=app.json
+{
+  "expo": {
+    ...
+    "plugins": [
+      // highlight-start
+      "@stream-io/video-react-native-sdk",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          // optionally you can add your own explanations for permissions on iOS
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+        }
+      ]
+      // highlight-end
+    ]
+  }
+}
+```
+
+:::note
+The `POST_NOTIFICATIONS`, `BLUETOOTH_CONNECT`, `BLUETOOTH` and `BLUETOOTH_ADMIN` permissions need to be requested and granted by the user as well. [PermissionsAndroid](https://reactnative.dev/docs/permissionsandroid) module can be used to request permissions in Android. For example, below is a way to request Bluetooth permissions in Android according to the OS version:
+
+```js
+import { useEffect } from 'react';
+import { PermissionsAndroid, Platform } from 'react-native';
+
+useEffect(() => {
+  const run = async () => {
+    if (Platform.OS === 'android' && Platform.Version <= 30) {
+      // highlight-start
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADMIN,
+      ]);
+    } else {
+      await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      );
+      // highlight-end
+    }
+  };
+  run();
+}, []);
+```
+
+:::
