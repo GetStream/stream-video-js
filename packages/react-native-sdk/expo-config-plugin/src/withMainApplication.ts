@@ -15,11 +15,14 @@ const withStreamVideoReactNativeSDKMainApplication: ConfigPlugin = (
           ['com.streamvideo.reactnative.StreamVideoReactNative'],
           config.modResults.language === 'java',
         );
-        config.modResults.contents = appendContentsInsideDeclarationBlock(
-          config.modResults.contents,
-          'onCreate',
-          'StreamVideoReactNative.setup();\n',
-        );
+        const statementToInsert = 'StreamVideoReactNative.setup();\n';
+        if (!config.modResults.contents.includes(statementToInsert)) {
+          config.modResults.contents = appendContentsInsideDeclarationBlock(
+            config.modResults.contents,
+            'onCreate',
+            statementToInsert,
+          );
+        }
       } catch (error: any) {
         throw new Error(
           "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed.",

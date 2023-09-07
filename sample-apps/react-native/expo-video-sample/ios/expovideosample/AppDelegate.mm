@@ -8,9 +8,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-// @generated begin video-react-native-sdk-app-delegate-setup - expo prebuild (DO NOT MODIFY) sync-5e704b7a430cdc52b3f6fa44acc6b7dbe50b634c
-[StreamVideoReactNative setup];
-// @generated end video-react-native-sdk-app-delegate-setup
+  [StreamVideoReactNative setup];
   self.moduleName = @"main";
 
   // You can add your custom initial props in the dictionary below.

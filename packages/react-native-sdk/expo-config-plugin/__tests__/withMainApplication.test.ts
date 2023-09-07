@@ -1,7 +1,7 @@
-import { withMainApplication } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
 import withStreamVideoReactNativeSDKMainApplication from '../src/withMainApplication';
 import { ExpoConfig } from '@expo/config-types';
+import { appendContentsInsideDeclarationBlock } from '@expo/config-plugins/build/android/codeMod';
 
 // Define a custom type that extends ExpoConfig
 interface CustomExpoConfig extends ExpoConfig {
@@ -11,29 +11,24 @@ interface CustomExpoConfig extends ExpoConfig {
   };
 }
 
+// the real withMainApplication doesnt return the updated config
+// so we mock it to return the updated config using the callback we pass in the actual implementation
 jest.mock('@expo/config-plugins', () => {
   const originalModule = jest.requireActual('@expo/config-plugins');
   return {
     ...originalModule,
-    withMainApplication: jest.fn(),
+    withMainApplication: jest.fn((config, callback) => {
+      const updatedConfig: CustomExpoConfig = callback(
+        config as CustomExpoConfig,
+      );
+      return updatedConfig;
+    }),
   };
 });
 
 const ExpoModulesMainApplication = getFixture('MainApplication.java');
 
 describe('withStreamVideoReactNativeSDKMainApplication', () => {
-  beforeEach(() => {
-    // Mock the behavior of withAppDelegate
-    (withMainApplication as jest.Mock).mockImplementationOnce(
-      (config, callback) => {
-        const updatedConfig: CustomExpoConfig = callback(
-          config as CustomExpoConfig,
-        );
-        return updatedConfig;
-      },
-    );
-  });
-
   it('should modify config for Java MainApplication', () => {
     // Prepare a mock config
     const config: CustomExpoConfig = {
@@ -49,12 +44,6 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
       config,
     ) as CustomExpoConfig;
 
-    // Assert that withAppDelegate was called with the correct arguments
-    expect(withMainApplication).toHaveBeenCalledWith(
-      config,
-      expect.any(Function),
-    );
-
     expect(updatedConfig.modResults.contents).toMatch(
       'com.streamvideo.reactnative.StreamVideoReactNative',
     );
@@ -63,6 +52,33 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     expect(updatedConfig.modResults.contents).toContain(
       'StreamVideoReactNative.setup();',
     );
+  });
+
+  it('should not modify config for Java MainApplication when the content is already present', () => {
+    const setupMethod = 'StreamVideoReactNative.setup();\n';
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'java',
+        contents: appendContentsInsideDeclarationBlock(
+          ExpoModulesMainApplication,
+          'onCreate',
+          setupMethod,
+        ),
+      },
+    };
+
+    const updatedConfig = withStreamVideoReactNativeSDKMainApplication(
+      config,
+    ) as CustomExpoConfig;
+
+    const count =
+      updatedConfig.modResults.contents.split(setupMethod).length - 1;
+
+    // Assert that the updated config contains the expected changes
+    expect(count).toBe(1);
   });
 
   it('should throw error for different language MainApplication', () => {
