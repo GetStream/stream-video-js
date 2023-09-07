@@ -13,12 +13,14 @@ const withStreamVideoReactNativeSDKAppDelegate: ConfigPlugin = (
         '"StreamVideoReactNative.h"',
       ]);
       const setupMethod = '[StreamVideoReactNative setup];';
-      config.modResults.contents = insertContentsInsideObjcFunctionBlock(
-        config.modResults.contents,
-        'application:didFinishLaunchingWithOptions:',
-        setupMethod,
-        { position: 'head' },
-      );
+      if (!config.modResults.contents.includes(setupMethod)) {
+        config.modResults.contents = insertContentsInsideObjcFunctionBlock(
+          config.modResults.contents,
+          'application:didFinishLaunchingWithOptions:',
+          setupMethod,
+          { position: 'head' },
+        );
+      }
     } else {
       throw new Error(
         'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is not Objective C',

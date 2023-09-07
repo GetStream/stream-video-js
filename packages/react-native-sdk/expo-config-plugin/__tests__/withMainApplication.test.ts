@@ -2,6 +2,7 @@ import { withMainApplication } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
 import withStreamVideoReactNativeSDKMainApplication from '../src/withMainApplication';
 import { ExpoConfig } from '@expo/config-types';
+import { appendContentsInsideDeclarationBlock } from '@expo/config-plugins/build/android/codeMod';
 
 // Define a custom type that extends ExpoConfig
 interface CustomExpoConfig extends ExpoConfig {
@@ -63,6 +64,39 @@ describe('withStreamVideoReactNativeSDKMainApplication', () => {
     expect(updatedConfig.modResults.contents).toContain(
       'StreamVideoReactNative.setup();',
     );
+  });
+
+  it('should not modify config for Java MainApplication when the content is already present', () => {
+    const setupMethod = 'StreamVideoReactNative.setup();\n';
+    // Prepare a mock config
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        language: 'java',
+        contents: appendContentsInsideDeclarationBlock(
+          ExpoModulesMainApplication,
+          'onCreate',
+          setupMethod,
+        ),
+      },
+    };
+
+    const updatedConfig = withStreamVideoReactNativeSDKMainApplication(
+      config,
+    ) as CustomExpoConfig;
+
+    // Assert that withAppDelegate was called with the correct arguments
+    expect(withMainApplication).toHaveBeenCalledWith(
+      config,
+      expect.any(Function),
+    );
+
+    const count =
+      updatedConfig.modResults.contents.split(setupMethod).length - 1;
+
+    // Assert that the updated config contains the expected changes
+    expect(count).toBe(1);
   });
 
   it('should throw error for different language MainApplication', () => {
