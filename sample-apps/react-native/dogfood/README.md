@@ -3,21 +3,26 @@
 ## Steps to run the app
 
 1. Clone the `stream-video-js` repository
+
 ```bash
 git clone https://github.com/GetStream/stream-video-js.git
 
 # Step in the directory
 cd stream-video-js
 ```
+
 2. Install and build dependencies
+
 ```bash
 # Install the dependencies
-yarn;
+yarn
 
 # build the packages
-yarn build: all
+yarn build:all
 ```
-5. Install pods and setup permissions
+
+3. Install pods and setup permissions
+
 ```bash
 cd sample-apps/react-native/dogfood
 
@@ -27,7 +32,8 @@ npx react-native setup-ios-permissions
 # Install pods
 npx pod-install
 ```
-8. Run the app
+
+4. Run the app
    - On simulator: Run `yarn ios` and/or `yarn android` to run the app
    - On device: Run `npm install -g ios-deploy` then `yarn ios --device`
 
