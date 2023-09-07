@@ -54,7 +54,7 @@ StreamVideoRN.updateConfig({
 
 ## iOS Setup
 
-The way to keep audio alive in the background is to enable the Voice over IP background mode. When you enable this capability, your app's audio playback will continue to play when users lock their iOS device or switch to another app. In Xcode: Open the `Info.plist` file and add `Voice over IP` in `UIBackgroundModes`. By editing this file with a text editor, you should see:
+The way to keep audio alive in the background is to enable the `audio` background mode. When you enable this capability, your app's audio playback will continue to play when users lock their iOS device or switch to another app. In Xcode: Open the `Info.plist` file and add `audio` in `UIBackgroundModes`. By editing this file with a text editor, you should see:
 
 ```xml
 <key>UIBackgroundModes</key>
