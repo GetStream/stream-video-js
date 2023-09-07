@@ -15,7 +15,7 @@ cd stream-video-js
 
 ```bash
 # Install the dependencies
-yarn;
+yarn
 
 # build the packages
 yarn build:all
