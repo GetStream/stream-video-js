@@ -23,7 +23,7 @@ yarn
 yarn build:all
 ```
 
-3. Install pods and setup permissions
+3. Move to the app directory
 
 ```bash
 cd sample-apps/react-native/expo-video-sample
