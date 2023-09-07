@@ -83,11 +83,11 @@ If you're building a lobby screen, this is how you can apply the backend setting
 await call.get();
 // fallback in case no backend setting
 let defaultDirection: CameraDirection = 'front';
-const backendSetting = this.state.settings?.video.camera_facing;
+const backendSetting = call.state.settings?.video.camera_facing;
 if (backendSetting) {
   defaultDirection = backendSetting === 'front' ? 'front' : 'back';
 }
-this.camera.selectDirection(defaultDirection);
+call.camera.selectDirection(defaultDirection);
 ```
 
 ### Render video
@@ -122,13 +122,11 @@ if (videoEl.srcObject !== call.camera.state.mediaStream) {
 ### Start-stop microphone
 
 ```typescript
-const toggleMicrophone = () => {
-  call.microphone.toggle();
+call.microphone.toggle();
 
-  // or
-  call.microphone.enable();
-  call.microphone.disable();
-};
+// or
+call.microphone.enable();
+call.microphone.disable();
 ```
 
 This is how you can access the microphone status:
@@ -145,7 +143,11 @@ If you're building a lobby screen, this is how you can apply the backend setting
 ```typescript
 await call.get();
 const defaultMicStatus = call.state.settings?.audio.mic_default_on;
-defaultMicStatus ? call.microphone.enable() : call.microphone.disable();
+if (defaultMicStatus) {
+  call.microphone.enable();
+} else {
+  call.microphone.disable();
+}
 ```
 
 ### List and select devices

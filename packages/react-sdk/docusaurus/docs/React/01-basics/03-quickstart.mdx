@@ -27,7 +27,7 @@ const user: User = { id: userId };
 
 const client = new StreamVideoClient({ apiKey, user, token });
 const call = client.call('default', 'my-first-call');
-myCall.join({ create: true });
+call.join({ create: true });
 
 export const App = () => {
   return (
