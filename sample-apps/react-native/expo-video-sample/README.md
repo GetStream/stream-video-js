@@ -1,6 +1,6 @@
 # React Native Expo Video Sample app
 
-The Expo Video Sample app is a minimal app to use the Stream Video React Native Video SDK.
+The Expo Video Sample app is a minimal app that uses the Stream Video React Native Video SDK.
 
 ## Steps to run the app
 
