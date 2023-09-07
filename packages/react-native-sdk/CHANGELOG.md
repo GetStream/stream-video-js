@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.7...@stream-io/video-react-native-sdk-0.0.8) (2023-09-07)
+
+
+### Features
+
+* **react-native:** add expo video sample app ([#974](https://github.com/GetStream/stream-video-js/issues/974)) ([3c61756](https://github.com/GetStream/stream-video-js/commit/3c617566bea8160c765682c256d84d72e4243082))
+
 ### [0.0.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.6...@stream-io/video-react-native-sdk-0.0.7) (2023-09-06)
 
 
