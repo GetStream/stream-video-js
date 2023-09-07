@@ -1,3 +1,5 @@
+import { LogLevel } from '@stream-io/video-react-sdk';
+
 type URLCredentials = {
   id?: string;
   type?: string;
@@ -6,6 +8,7 @@ type URLCredentials = {
   token?: string;
   api_key?: string;
   qr?: string;
+  log_level?: LogLevel;
 };
 
 export const getURLCredentials = (): URLCredentials => {
