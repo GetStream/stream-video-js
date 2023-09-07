@@ -1,4 +1,3 @@
-import { withMainApplication } from '@expo/config-plugins';
 import { getFixture } from '../fixtures/index';
 import withStreamVideoReactNativeSDKMainApplication from '../src/withMainApplication';
 import { ExpoConfig } from '@expo/config-types';
