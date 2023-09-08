@@ -32,8 +32,8 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 let client: StreamVideoClient;
 
 await client.queryCalls({
-    ...
-    watch: true
+  // ...
+  watch: true,
 });
 ```
 
@@ -44,8 +44,7 @@ import { StreamVideoClient } from '@stream-io/video-react-sdk';
 
 let client: StreamVideoClient;
 
-const call = client.call('default', 'test-call');
-await call.join();
+await client.call('default', 'test-call').join();
 ```
 
 3. Watch a call:
@@ -143,15 +142,14 @@ unsubscribe();
 
 ## Listening to call events
 
-You can use the `on` method of the `Call` instance to subscribe to WebSocket events belonging to a specific call.
+You can use the `on` method of the `call` instance to subscribe to WebSocket events belonging to a specific call.
 
-The `on` method takes the type of the event you want to subscribe to.
+The `call.on` method takes the type of the event you want to subscribe to.
+The event handler will receive an object with type [`StreamCallEvent`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) that has a `type` attribute that tells the type of the event.
+The available event types are described by the [`CallEventTypes`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) type.
+The `call.on` method returns a method that can be called to unsubscribe from WebSocket events.
 
-The event handler will receive an object with type [`StreamCallEvent`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) that has a `type` attribute that tells the type of the event. The available event types are described by the [`CallEventTypes`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/coordinator/connection/types.ts) type.
-
-The `on` method returns a method that can be called to unsubscribe from WebSocket events.
-
-Subscribing to `call.reaction_new` event.
+**Example:** Subscribing to `call.reaction_new` event:
 
 ```typescript
 import { Call, StreamVideoEvent } from '@stream-io/video-react-sdk';
@@ -167,4 +165,36 @@ const unsubscribe = call.on('call.reaction_new', (event: StreamVideoEvent) => {
 
 // Unsubscribe
 unsubscribe();
+```
+
+## Custom events
+
+You can send custom events between the call participants using the `sendCustomEvent` method of the `call` instance.
+Note that the payload for these events is limited to 5KB in size.
+
+```typescript
+import {
+  Call,
+  CustomVideoEvent,
+  StreamVideoEvent,
+} from '@stream-io/video-react-sdk';
+
+let call: Call;
+
+// sending a custom event
+await call.sendCustomEvent({
+  type: 'my-event-type',
+  payload: {
+    foo: 'bar',
+  },
+});
+
+// receiving a custom event
+call.on('custom', (event: StreamVideoEvent) => {
+  const customEvent = event as CustomVideoEvent;
+  const payload = customEvent.custom;
+  if (payload.type === 'my-event-type') {
+    console.log(payload.foo);
+  }
+});
 ```

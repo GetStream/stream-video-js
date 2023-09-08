@@ -6,7 +6,6 @@ description: How to Build a Web Video Calling App
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
 This tutorial gives you a quick overview of how Stream's video JavaScript client works.
-
 The code snippets use TypeScript, but you can use the library with JavaScript as well.
 
 ## Client setup & Calls
@@ -20,14 +19,8 @@ const apiKey = 'your-api-key';
 const token = 'authentication-token';
 const user: User = { id: 'user-id' };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
-
+const client = new StreamVideoClient({ apiKey, token, user });
 const call = client.call('default', 'call-id');
-
 call.join({ create: true });
 ```
 
@@ -44,35 +37,56 @@ For an easy setup, you can copy the following credentials to use for the tutoria
 Once we join a call, we can start publishing audio and video:
 
 ```typescript
-call.join({ create: true }).then(async () => {
-  call.camera.enable();
-  call.microphone.enable();
-});
+await call.join({ create: true });
+
+await call.camera.enable();
+await call.microphone.enable();
 ```
+
+Or, if you wish to join a call with both, audio and video muted:
+
+```typescript
+await call.microphone.disable();
+await call.camera.disable();
+
+await call.join({ create: true });
+```
+
+Please note that if the integrator omits enabling or disabling the camera and microphone,
+our SDK will respect the [Call Type Settings](../../guides/configuring-call-types/) as defined in the dashboard.
 
 More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
 
 ## Render video
 
-The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates. Let's see how we can render the video and audio of all participants:
+The JavaScript client provides [reactive state management](https://rxjs.dev/), which makes it easy to trigger UI updates. To render the audio and video of participants, you can watch for changes on `call.state.participants$`, here is the full example:
 
 ```typescript
-import { renderParticipant } from './participant';
+import { renderParticipant, cleanupParticipant } from './participant';
 
 const parentContainer = document.getElementById('participants')!;
 
-call.state.participants$.subscribe((participants) => {
-  const participantElements = participants.map((participant) =>
-    renderParticipant(call, participant),
-  );
+// This will enable visibility tracking in the client
+call.setViewport(parentContainer);
 
-  // Update UI
-  parentContainer.innerHTML = '';
-  participantElements
-    .flatMap((e) => [e.audioEl, e.videoEl])
-    .filter((el) => !!el)
+// Whenever the participants change, we update the UI
+call.state.participants$.subscribe((participants) => {
+  // render / update existing participants
+  participants.forEach((participant) => {
+    renderParticipant(call, participant, parentContainer);
+  });
+
+  // If you're using a web framework, this part is handled by the framework
+  // Remove stale elements for stale participants
+  parentContainer
+    .querySelectorAll<HTMLMediaElement>('video, audio')
     .forEach((el) => {
-      parentContainer.appendChild(el!);
+      const sessionId = el.dataset.sessionId!;
+      const participant = participants.find((p) => p.sessionId === sessionId);
+      if (!participant) {
+        cleanupParticipant(sessionId);
+        el.remove();
+      }
     });
 });
 ```
@@ -80,11 +94,7 @@ call.state.participants$.subscribe((participants) => {
 Now let's see what happens in the `renderParticipant` method, because that's what does the heavy lifting:
 
 ```typescript
-import {
-  StreamVideoParticipant,
-  Call,
-  SfuModels,
-} from '@stream-io/video-client';
+import { Call, StreamVideoParticipant } from '@stream-io/video-client';
 
 // The quickstart uses fixed video dimensions for simplification
 const videoDimension = {
@@ -92,74 +102,120 @@ const videoDimension = {
   height: 250,
 };
 
-const renderVideo = (call: Call, participant: StreamVideoParticipant) => {
-  let videoEl = document.getElementById(
-    `video-${participant.sessionId}`,
-  ) as HTMLVideoElement | null;
+const videoBindingsCache = new Map<string, Function | undefined>();
+const videoTrackingCache = new Map<string, Function | undefined>();
+const audioBindingsCache = new Map<string, Function | undefined>();
 
+const renderVideo = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
+  const id = `video-${participant.sessionId}`;
+  let videoEl = document.getElementById(id) as HTMLVideoElement | null;
   if (!videoEl) {
     videoEl = document.createElement('video');
+    videoEl.style.setProperty('object-fit', 'contain');
     videoEl.id = `video-${participant.sessionId}`;
     videoEl.width = videoDimension.width;
     videoEl.height = videoDimension.height;
-    videoEl.autoplay = true;
-  }
-  if (videoEl.srcObject !== participant.videoStream) {
-    videoEl.srcObject = participant.videoStream || null;
-  }
-  if (
-    !participant.isLocalParticipant &&
-    participant.publishedTracks.includes(SfuModels.TrackType.VIDEO) &&
-    !participant.videoDimension
-  ) {
-    // We need to subscribe to video tracks
-    // We provide the rendered video dimension to save bandwidth
-    call.updateSubscriptionsPartial('video', {
-      [participant.sessionId]: {
-        dimension: {
-          width: videoDimension.width,
-          height: videoDimension.height,
-        },
-      },
-    });
-  }
+    videoEl.dataset.sessionId = participant.sessionId;
 
-  return videoEl;
+    parentContainer.appendChild(videoEl);
+
+    const untrack = call.trackElementVisibility(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
+
+    // keep reference to untrack function to call it later
+    videoTrackingCache.set(id, untrack);
+
+    // registers subscription updates and stream changes
+    const unbind = call.bindVideoElement(
+      videoEl,
+      participant.sessionId,
+      'videoTrack',
+    );
+
+    // keep reference to unbind function to call it later
+    videoBindingsCache.set(id, unbind);
+  }
 };
 
-const renderAudio = (participant: StreamVideoParticipant) => {
+const renderAudio = (
+  call: Call,
+  participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
+) => {
   // We don't render audio for local participant
   if (participant.isLocalParticipant) return;
 
-  let audioEl = document.getElementById(
-    `audio-${participant.sessionId}`,
-  ) as HTMLAudioElement | null;
-
+  const id = `audio-${participant.sessionId}`;
+  let audioEl = document.getElementById(id) as HTMLAudioElement | null;
   if (!audioEl) {
     audioEl = document.createElement('audio');
-    audioEl.id = `audio-${participant.sessionId}`;
-    audioEl.autoplay = true;
-  }
+    audioEl.id = id;
+    audioEl.dataset.sessionId = participant.sessionId;
 
-  if (audioEl.srcObject !== participant.audioStream) {
-    audioEl.srcObject = participant.audioStream || null;
-  }
+    parentContainer.appendChild(audioEl);
 
-  return audioEl;
+    // registers subscription updates and stream changes for audio
+    const unbind = call.bindAudioElement(audioEl, participant.sessionId);
+
+    // keep reference to unbind function to call it later
+    audioBindingsCache.set(id, unbind);
+  }
 };
 
 export const renderParticipant = (
   call: Call,
   participant: StreamVideoParticipant,
+  parentContainer: HTMLElement,
 ) => {
-  return {
-    audioEl: renderAudio(participant),
-    videoEl: renderVideo(call, participant),
-  };
+  renderAudio(call, participant, parentContainer);
+  renderVideo(call, participant, parentContainer);
 };
 ```
 
-The participant object contains all essential information to render videos, such as audio/video tracks, user information, audio/video enabled, etc.
+The most important parts are:
+
+- `call.trackElementVisibility`: this will enable the client to detect if a particpant's `video` element isn't visible on the screen, in which case it will stop requesting the video, saving bandwidth
+- `call.bindVideoElement` will bind the given participants video stream to the given `video` element, and takes care of stream changes and resizes
+- `call.bindAudioElement` will bind the given participants audio stream to the given `audio` element, and takes care of stream changes
+
+For more information check out these guides:
+
+- [Participant visibility tracking](../../guides/visibility-tracking)
+- [Playing Video and Audio](../../guides/playing-video-and-audio)
+
+When a participant leaves the call, we need to unbind their `video` and `audio` elements.
+
+```typescript
+// If you're using a web framework, unbinding is usually handled with a component lifecycle event
+export const cleanupParticipant = (sessionId: string) => {
+  const unbindVideo = videoBindingsCache.get(`video-${sessionId}`);
+  if (unbindVideo) {
+    unbindVideo();
+    videoBindingsCache.delete(`video-${sessionId}`);
+  }
+
+  const untrackVideo = videoTrackingCache.get(`video-${sessionId}`);
+  if (untrackVideo) {
+    untrackVideo();
+    videoTrackingCache.delete(`video-${sessionId}`);
+  }
+
+  const unbindAudio = audioBindingsCache.get(`audio-${sessionId}`);
+  if (unbindAudio) {
+    unbindAudio();
+    audioBindingsCache.delete(`audio-${sessionId}`);
+  }
+};
+```
+
+If you're using a web framework, you can usually use a component lifecycle event to trigger the unbinding.
 
 More information about state management can be found in the [Call & Participant State guide](../../guides/call-and-participant-state).
 

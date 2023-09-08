@@ -9,10 +9,10 @@ import {
 
 import {
   Call,
-  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useHasBrowserPermissions,
 } from '@stream-io/video-react-sdk';
 
 import LobbyView from './components/Views/LobbyView';
@@ -45,12 +45,15 @@ const config: Config = {
 };
 
 const Init = () => {
-  const { id: incomingCallId, type } = getURLCredentials();
+  const { id: incomingCallId, type, log_level = 'warn' } = getURLCredentials();
   const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
   const [storedDeviceSettings, setStoredDeviceSettings] =
     useState<LocalDeviceSettings>();
+
+  const [hasBrowserMediaPermissions, setHasBrowserMediaPermissions] =
+    useState<boolean>(false);
 
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
@@ -59,19 +62,41 @@ const Init = () => {
 
   const { edges, fastestEdge } = useEdges(client);
 
+  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
+    'camera' as PermissionName,
+  );
+  const hasBrowserPermissionMicrophoneInput = useHasBrowserPermissions(
+    'microphone' as PermissionName,
+  );
+
+  useEffect(() => {
+    if (hasBrowserPermissionVideoInput && hasBrowserPermissionMicrophoneInput) {
+      setHasBrowserMediaPermissions(true);
+    }
+  }, [hasBrowserPermissionVideoInput, hasBrowserPermissionMicrophoneInput]);
+
   useEffect(() => {
     const _client = new StreamVideoClient({
       apiKey,
       user,
       token,
       tokenProvider,
+      options: {
+        logLevel: log_level || 'warn',
+      },
     });
     setClient(_client);
 
+    // @ts-ignore - for debugging
+    window.client = _client;
+
     return () => {
-      _client?.disconnectUser();
+      _client.disconnectUser();
+      setClient(undefined);
+      // @ts-ignore - for debugging
+      window.client = undefined;
     };
-  }, []);
+  }, [apiKey, log_level, token, tokenProvider, user]);
 
   const { chatClient, connectionError: chatConnectionError } =
     useCreateStreamChatClient({
@@ -91,27 +116,43 @@ const Init = () => {
     window.location.search = `?id=${id}`;
     return id;
   });
-  const [activeCall, setActiveCall] = useState<Call>();
 
+  const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
-    const call = client?.call(callType, callId);
+    if (!client) return;
+    const call = client.call(callType, callId);
     setActiveCall(call);
 
+    // @ts-ignore - for debugging
+    window.call = call;
+
     return () => {
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
+      call.leave();
       setActiveCall(undefined);
+      // @ts-ignore - for debugging
+      window.call = undefined;
     };
-  }, [client]);
+  }, [callId, callType, client]);
+
+  useEffect(() => {
+    const appleItunesAppMeta = document
+      .getElementsByTagName('meta')
+      .namedItem('apple-itunes-app');
+    if (appleItunesAppMeta) {
+      appleItunesAppMeta.setAttribute(
+        'content',
+        `app-id=1644313060, app-argument=${window.location.href}`,
+      );
+    }
+  }, []);
 
   useEffect(() => {
     setSteps(tour);
   }, []);
 
   useEffect(() => {
-    const getSettings = async () => {
-      const settings = await getStoredDeviceSettings();
+    const getSettings = () => {
+      const settings = getStoredDeviceSettings();
       setStoredDeviceSettings(settings);
     };
 
@@ -179,6 +220,7 @@ const Init = () => {
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
+                browserPermissionsEnabled={hasBrowserMediaPermissions}
               />
             )}
           </ModalProvider>

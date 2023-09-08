@@ -396,5 +396,9 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
     retryAttempt < MAX_RETRIES
   );
 
+  if (rpcCallResult.response.error) {
+    throw rpcCallResult.response.error;
+  }
+
   return rpcCallResult;
 };

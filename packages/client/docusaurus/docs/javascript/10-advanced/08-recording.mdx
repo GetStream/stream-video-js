@@ -14,7 +14,13 @@ The `Call` objects exposes the call recording API. To start recording, we simply
 To determine, whether a call recording is in progress, we use `call.state.recording$` Observable. This may serve us well, when we want to provide visual clues about the recording state. We have to be aware, that it can take few moments until a call recording starts. We recommend to keep own state signalling that the call recording is starting, but has not begun yet.
 
 ```typescript
-TODO: example;
+import { Call } from '@stream-io/video-client';
+
+let call: Call;
+await call.startRecording();
+
+// to stop the recording
+await call.stopRecording();
 ```
 
 ### Permissions
@@ -22,7 +28,21 @@ TODO: example;
 To start and stop recording, the user has to have corresponding permissions.
 
 ```typescript
-TODO: example;
+import { Call, OwnCapability } from '@stream-io/video-client';
+let call: Call;
+
+if (call.permissionsContext.hasPermission(OwnCapability.START_RECORD_CALL)) {
+  await call.startRecording();
+} else {
+  // handle lack of permissions
+}
+
+// to stop the recording
+if (call.permissionsContext.hasPermission(OwnCapability.STOP_RECORD_CALL)) {
+  await call.stopRecording();
+} else {
+  // handle lack of permissions
+}
 ```
 
 To learn more about permissions, take a look at our [permissions guide](../../guides/permissions-and-moderation).

@@ -27,7 +27,8 @@ jobs:
       - name: Push React Native SDK documentation
         uses: GetStream/push-stream-chat-docusaurus-action@main
         with:
-          target-branch: 'staging'
+          target-branch: ${{ github.ref == 'refs/heads/main' && 'main' || 'staging' }}
+          cli-target-branch: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
           destination-repository-name: 'stream-video-docusaurus'
           source-directory: 'packages/react-native-sdk/docusaurus'
         env:

@@ -10,7 +10,7 @@ import CallControlsMediaButtonOff from '../assets/05-ui-cookbook/02-replacing-ca
 The Stream Video React Native SDK allows building your own Call controls view/layout. Call Controls View generally comprises several buttons that control the call. Each button controls its area of responsibility. Our task, as integrators, is to create a component that puts these buttons together as we wish. In this example, we intend to show how to do just that.
 
 :::note
-The React Native SDK exports a pre-built component [CallControls](../../ui-components/call/call-controls) that we encourage to use if at all there is no customization needs.
+The React Native SDK exports a lot of [Built-in Call Controls](../../ui-components/call/call-controls/#built-in-call-controls) components that we encourage to use if you don't want to entirely override the functionality.
 :::
 
 ## Building Custom Controls Buttons
@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
 
 ```tsx
 import { View, StyleSheet } from 'react-native';
+import { CallContent } from '@stream-io/video-react-native-sdk';
 
 export const CustomCallControls = () => {
   return (
@@ -337,7 +338,18 @@ export const CustomCallControls = () => {
   );
 };
 
+export const App = () => {
+  return (
+    <View style={styles.container}>
+      <CallContent CallControls={CustomCallControls} />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',

@@ -171,11 +171,12 @@ For this purpose, we have extended the built-in `useParticipants` hook with a `s
 
 ```ts
 import {
-  useParticipants,
   combineComparators,
   name,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 
+const { useParticipants } = useCallStateHooks();
 // this will override the call's default sorting criteria
 // and will return a list of participants sorted by name
 const participants = useParticipants({ sortBy: name });
@@ -197,6 +198,7 @@ In case you need to use a stateful comparator, please make sure to memoize it us
 const myStatelessComparator = combineComparators(/* ... */);
 
 export const MyComponent = () => {
+  const { useParticipants } = useCallStateHooks();
   // component scope
   const participants1 = useParticipants({ sortBy: myStatelessComparator });
 
@@ -221,8 +223,8 @@ These presets are pre-configured sorting criteria linked to specific call types,
 The following presets are available:
 
 - `defaultSortPreset`: The default sorting preset applicable to general call scenarios.
-- `speakerLayoutSortPreset`: A preset specifically designed for the [`'default'` call type](../02-guides/05-call-types.mdx#default), optimizing participant sorting for speaker layout view.
-- `livestreamOrAudioRoomSortPreset`: A preset tailored for the [`'livestream'`](../../guides/configuring-call-types#livestream) and [`'audio_room'`](../../guides/configuring-call-types#audio-room) call types, ensuring optimal participant sorting in livestream or audio room scenarios.
+- `speakerLayoutSortPreset`: A preset specifically designed for the [`'default'` call type](../configuring-call-types/#default), optimizing participant sorting for speaker layout view.
+- `livestreamOrAudioRoomSortPreset`: A preset tailored for the [`'livestream'`](../configuring-call-types#livestream) and [`'audio_room'`](../configuring-call-types#audio-room) call types, ensuring optimal participant sorting in livestream or audio room scenarios.
 
 These presets are directly applied to the call's sorting mechanism.
 For custom call types, unless specified otherwise, our SDK would use the `defaultSortPreset` preset.

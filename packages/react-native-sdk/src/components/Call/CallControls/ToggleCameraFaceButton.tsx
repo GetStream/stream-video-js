@@ -6,9 +6,8 @@ import {
 } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
-import { muteStatusColor } from '../../../utils';
 import { CameraSwitch } from '../../../icons';
-import { theme } from '../../../theme';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the Toggle Camera face button.
@@ -31,8 +30,15 @@ export const ToggleCameraFaceButton = ({
   const { useCameraState } = useCallStateHooks();
   const { status, direction } = useCameraState();
 
+  const {
+    theme: { colors, toggleCameraFaceButton },
+  } = useTheme();
   const onPress = async () => {
-    onPressHandler?.();
+    if (onPressHandler) {
+      onPressHandler();
+      return;
+    }
+
     await call?.camera.flip();
   };
 
@@ -40,14 +46,13 @@ export const ToggleCameraFaceButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={muteStatusColor(direction === 'back')}
+        color={direction === 'back' ? colors.overlay_dark : colors.static_white}
         disabled={status === 'disabled'}
+        style={toggleCameraFaceButton}
       >
         <CameraSwitch
           color={
-            direction === 'front'
-              ? theme.light.static_black
-              : theme.light.static_white
+            direction === 'front' ? colors.static_black : colors.static_white
           }
         />
       </CallControlsButton>

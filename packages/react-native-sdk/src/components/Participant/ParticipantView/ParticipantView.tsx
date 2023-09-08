@@ -1,7 +1,9 @@
 import React, { ComponentType } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { StreamVideoParticipant } from '@stream-io/video-client';
-import { theme } from '../../../theme';
+import {
+  StreamVideoParticipant,
+  VideoTrackType,
+} from '@stream-io/video-client';
 import {
   ParticipantNetworkQualityIndicator as DefaultParticipantNetworkQualityIndicator,
   ParticipantNetworkQualityIndicatorProps,
@@ -22,8 +24,9 @@ import {
   VideoRenderer as DefaultVideoRenderer,
   VideoRendererProps,
 } from './VideoRenderer';
+import { useTheme } from '../../../contexts/ThemeContext';
 
-export type ParticipantVideoType = 'video' | 'screen';
+export type ParticipantVideoType = VideoTrackType;
 
 export type ParticipantViewComponentProps = {
   /**
@@ -66,9 +69,9 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
    */
   videoZOrder?: number;
   /**
-   * The video kind that will be displayed.
+   * The video track that is to be displayed.
    */
-  videoMode: ParticipantVideoType;
+  trackType?: ParticipantVideoType;
   /**
    * Custom style to be merged with the participant view.
    */
@@ -88,7 +91,7 @@ export type ParticipantViewProps = ParticipantViewComponentProps & {
  */
 export const ParticipantView = ({
   participant,
-  videoMode,
+  trackType = 'videoTrack',
   isVisible = true,
   style,
   ParticipantLabel = DefaultParticipantLabel,
@@ -98,10 +101,19 @@ export const ParticipantView = ({
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   videoZOrder = 0,
 }: ParticipantViewProps) => {
+  const {
+    theme: { colors, participantView },
+  } = useTheme();
   const { isSpeaking, userId } = participant;
-  const isScreenSharing = videoMode === 'screen';
+  const isScreenSharing = trackType === 'screenShareTrack';
   const applySpeakerStyle = isSpeaking && !isScreenSharing;
-  const speakerStyle = applySpeakerStyle && styles.isSpeaking;
+  const speakerStyle = applySpeakerStyle && [
+    styles.highligtedContainer,
+    {
+      borderColor: colors.primary,
+    },
+    participantView.highligtedContainer,
+  ];
 
   return (
     <View
@@ -117,14 +129,14 @@ export const ParticipantView = ({
         <VideoRenderer
           isVisible={isVisible}
           participant={participant}
-          videoMode={videoMode}
+          trackType={trackType}
           ParticipantVideoFallback={ParticipantVideoFallback}
           videoZOrder={videoZOrder}
         />
       )}
-      <View style={styles.bottomView}>
+      <View style={[styles.footerContainer, participantView.footerContainer]}>
         {ParticipantLabel && (
-          <ParticipantLabel participant={participant} videoMode={videoMode} />
+          <ParticipantLabel participant={participant} trackType={trackType} />
         )}
         {ParticipantNetworkQualityIndicator && (
           <ParticipantNetworkQualityIndicator participant={participant} />
@@ -137,17 +149,16 @@ export const ParticipantView = ({
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'space-between',
-    padding: theme.padding.xs,
+    padding: 4,
     overflow: 'hidden',
     margin: 2,
   },
-  bottomView: {
+  footerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  isSpeaking: {
-    borderColor: theme.light.primary,
+  highligtedContainer: {
     borderWidth: 2,
   },
 });

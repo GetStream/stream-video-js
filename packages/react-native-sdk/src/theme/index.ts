@@ -1,25 +1,9 @@
-import { colors } from './colors';
-import { fonts } from './fonts';
-import { padding } from './padding';
-import { margin } from './margin';
+import { colors, darkThemeColors } from './colors';
 import { Theme } from './types';
-import { icon } from './icon';
-import { button } from './button';
-import { avatar } from './avatar';
-import { spacing } from './spacing';
-import { rounded } from './rounded';
 
-const { light, dark } = colors;
-
-export const theme: Theme = {
-  light,
-  dark,
-  fonts,
-  padding,
-  margin,
-  icon,
-  button,
-  avatar,
-  spacing,
-  rounded,
+export const colorPallet: Theme = {
+  light: colors,
+  dark: darkThemeColors,
 };
+
+export * from './theme';

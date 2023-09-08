@@ -3,13 +3,32 @@ id: outgoing-call
 title: OutgoingCall
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import CameraEnabled from '../../assets/04-ui-components/call/outgoing-call/outgoing-call-camera-enabled.png';
+import CameraDisabled from '../../assets/04-ui-components/call/outgoing-call/outgoing-call-camera-disabled.png';
+
+import CallTopView from '../../common-content/ui-components/call/call-content/call-top-view.mdx';
+
 OutgoingCall represents the outgoing call state and the UI when a user calls someone else. The view is displayed until someone accepts the call.
 
 It represents the details of the user who is being called. It also allows controlling the pre-join audio/video mute status of the call etc.
 
 It is customizable using our UI cookbook guide on [Custom Incoming/Outgoing Call components](../../05-ui-cookbook/05-incoming-and-outcoming-call.mdx).
 
-![Preview of the OutgoingCall component.](../../assets/04-ui-components/outgoing-call.png)
+<ImageShowcase
+  items={[
+    {
+      image: CameraEnabled,
+      caption: 'Outgoing Call Camera Enabled',
+      alt: 'Outgoing Call Camera Enabled',
+    },
+    {
+      image: CameraDisabled,
+      caption: 'Outgoing Call Camera Disabled',
+      alt: 'Outgoing Call View Camera Disabled',
+    },
+  ]}
+/>
 
 ## General Usage
 
@@ -47,25 +66,22 @@ const Call = () => {
 
 ## Props
 
-### `hangUpCallButton`
+### `onHangupCallHandler`
 
-| Type                                    |
-| --------------------------------------- |
-| [HangUpCallButton](#hangupcallbutton-1) |
+| Type                        |
+| --------------------------- |
+| `() => void` \| `undefined` |
 
-Prop for the hang-up call button that contains all the necessary props to make it functional.
+Handler to be executed when the outgoing call is cancelled or hanged up.
 
-## Button Prop
+### `CallTopView`
 
-### `HangUpCallButton`
+<CallTopView />
 
-The hang-up call button, which hangs up/cancels the call when pressed.
+### `OutgoingCallControls`
 
-The callee will stop getting the incoming call when its pressed.
+Prop to customize the Outgoing call controls in the `OutgoingCall` component.
 
-#### Props
-
-| Name             | Description                                              | Type                                                       |
-| ---------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
-| `onPressHandler` | Callback to be called when the hang-up button is pressed | `() => void` \| `undefined`                                |
-| `style`          | Styles to be applied on the container of the button      | [ViewStyle](https://reactnative.dev/docs/view-style-props) |
+| Type                          | Default Value                                                                                                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`OutgoingCallControls`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/OutgoingCallControls.tsx) |

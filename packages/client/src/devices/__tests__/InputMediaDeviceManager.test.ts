@@ -7,14 +7,7 @@ import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
-import { disposeOfMediaStream } from '../devices';
-
-vi.mock('../devices.ts', () => {
-  console.log('MOCKING devices');
-  return {
-    disposeOfMediaStream: vi.fn(),
-  };
-});
+import { TrackType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -32,11 +25,10 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public muteTracks = vi.fn();
-  public unmuteTracks = vi.fn();
+  public getTrack = () => this.state.mediaStream!.getVideoTracks()[0];
 
   constructor(call: Call) {
-    super(call, new TestInputMediaDeviceManagerState());
+    super(call, new TestInputMediaDeviceManagerState(), TrackType.VIDEO);
   }
 }
 
@@ -135,11 +127,12 @@ describe('InputMediaDeviceManager.test', () => {
   it('select device when status is enabled', async () => {
     await manager.enable();
     const prevStream = manager.state.mediaStream;
+    vi.spyOn(prevStream!.getVideoTracks()[0], 'stop');
 
     const deviceId = mockVideoDevices[1].deviceId;
     await manager.select(deviceId);
 
-    expect(disposeOfMediaStream).toHaveBeenCalledWith(prevStream);
+    expect(prevStream!.getVideoTracks()[0].stop).toHaveBeenCalledWith();
   });
 
   it('select device when status is enabled and in call', async () => {
@@ -193,6 +186,23 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.resume();
 
     expect(manager.enable).not.toHaveBeenCalled();
+  });
+
+  it(`shouldn't resume if it were disabled while in pause`, async () => {
+    vi.spyOn(manager, 'enable');
+
+    await manager.enable();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+
+    // first call is pause
+    await manager.disable();
+    // second call is for example mute from call admin
+    await manager.disable();
+
+    await manager.resume();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
   });
 
   afterEach(() => {

@@ -1,23 +1,26 @@
-import { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import { ColorValue, TextStyle } from 'react-native';
 
+// TODO: check if this is used somewhere and remove if not
 export type ColorScheme = {
-  primary: string;
-  error: string;
-  info: string;
-  static_black: string;
-  static_white: string;
-  static_overlay: string;
-  static_grey: string;
-  disabled: string;
-  text_low_emphasis: string;
-  text_high_emphasis: string;
-  controls_bg: string;
-  borders: string;
-  overlay: string;
-  overlay_dark: string;
-  bars: string;
-  content_bg: string;
-  dark_gray: string;
+  primary: ColorValue;
+  error: ColorValue;
+  info: ColorValue;
+  static_black: ColorValue;
+  static_white: ColorValue;
+  static_overlay: ColorValue;
+  static_grey: ColorValue;
+  disabled: ColorValue;
+  text_low_emphasis: ColorValue;
+  text_high_emphasis: ColorValue;
+  controls_bg: ColorValue;
+  borders: ColorValue;
+  overlay: ColorValue;
+  overlay_dark: ColorValue;
+  bars: ColorValue;
+  content_bg: ColorValue;
+  dark_gray: ColorValue;
+  // allow any other color
+  [key: string]: ColorValue;
 };
 
 export type ColorType = Record<'light' | 'dark', ColorScheme>;
@@ -37,29 +40,4 @@ export type FontStyle = {
 
 export type FontsScheme = Record<FontTypes, FontStyle>;
 
-type SizingTypes = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
-export type PaddingScheme = Record<SizingTypes, number>;
-
-export type MarginScheme = Record<SizingTypes, number>;
-
-export type IconScheme = Record<SizingTypes, StyleProp<ViewStyle>>;
-
-export type ButtonScheme = Record<SizingTypes, StyleProp<ViewStyle>>;
-
-export type AvatarScheme = Record<SizingTypes, number>;
-
-export type SpacingScheme = Record<SizingTypes, number>;
-
-export type RoundedScheme = Record<SizingTypes, number>;
-
-export type Theme = ColorType & {
-  fonts: FontsScheme;
-  padding: PaddingScheme;
-  margin: MarginScheme;
-  icon: IconScheme;
-  button: ButtonScheme;
-  avatar: AvatarScheme;
-  spacing: SpacingScheme;
-  rounded: RoundedScheme;
-};
+export type Theme = ColorType;

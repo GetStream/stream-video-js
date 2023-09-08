@@ -29,7 +29,6 @@
     "gleap": "^10.0.5",
     "hotkeys": "^1.0.0",
     "mapbox-gl": "^2.12.0",
-    "mic-check": "^1.1.0",
     "mobile-device-detect": "^0.4.3",
     "nanoid": "^4.0.2",
     "postcss": "^8.4.21",
@@ -51,7 +50,7 @@
     "tailwindcss-plugins": "^0.3.0",
     "unique-names-generator": "^4.7.1",
     "uuid": "^9.0.0",
-    "vite": "^4.3.9"
+    "vite": "^4.4.9"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",

@@ -24,7 +24,7 @@ export type Props = {
     latency: number;
   };
   isJoiningCall?: boolean;
-  permissionsEnabled?: boolean;
+  browserPermissionsEnabled?: boolean;
 };
 
 export const EnableBrowserSettings: FC<any> = () => {
@@ -61,11 +61,11 @@ export const LobbyPanel: FC<Props> = ({
   className,
   fastestEdge,
   isJoiningCall,
-  permissionsEnabled,
+  browserPermissionsEnabled,
 }) => {
   const [permissionsErrorComponent, setPermissionsErrorComponent] =
     useState<any>(() =>
-      permissionsEnabled ? (
+      browserPermissionsEnabled ? (
         <DisabledVideoPreview name={user.name} />
       ) : (
         <EnableBrowserSettings />
@@ -73,10 +73,10 @@ export const LobbyPanel: FC<Props> = ({
     );
 
   useEffect(() => {
-    if (!permissionsEnabled) {
+    if (!browserPermissionsEnabled) {
       setPermissionsErrorComponent(<EnableBrowserSettings />);
     }
-  }, [permissionsEnabled]);
+  }, [browserPermissionsEnabled]);
 
   const { initialAudioEnabled } = useMediaDevices();
 

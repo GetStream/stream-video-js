@@ -3,10 +3,10 @@ import { Chat, OverlayProvider, Streami18n } from 'stream-chat-react-native';
 import { useChatClient } from '../hooks/useChatClient';
 import { AuthenticationProgress } from './AuthenticatingProgress';
 import { StreamChatGenerics } from '../../types';
-import { STREAM_API_KEY } from 'react-native-dotenv';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import { useStreamChatTheme } from '../hooks/useTheme';
+import { STREAM_API_KEY } from '../../config';
 
 const streami18n = new Streami18n({
   language: 'en',

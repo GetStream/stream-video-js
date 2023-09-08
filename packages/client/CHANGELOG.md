@@ -2,6 +2,76 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.14](https://github.com/GetStream/stream-video-js/compare/client0.3.13...client0.3.14) (2023-09-05)
+
+
+### Features
+
+* new device api remote mutes ([#988](https://github.com/GetStream/stream-video-js/issues/988)) ([5bbcefb](https://github.com/GetStream/stream-video-js/commit/5bbcefbf0d8be59025fef8111253a8a0baaf6001))
+
+### [0.3.13](https://github.com/GetStream/stream-video-js/compare/client0.3.12...client0.3.13) (2023-08-31)
+
+
+### Features
+
+* speaker management ([#1013](https://github.com/GetStream/stream-video-js/issues/1013)) ([05af437](https://github.com/GetStream/stream-video-js/commit/05af437181175758c3295fbd70ae6d81d6c65595))
+
+### [0.3.12](https://github.com/GetStream/stream-video-js/compare/client0.3.11...client0.3.12) (2023-08-31)
+
+
+### Bug Fixes
+
+* do not do any codec preferences when sending dummy sdp ([#1028](https://github.com/GetStream/stream-video-js/issues/1028)) ([3910619](https://github.com/GetStream/stream-video-js/commit/391061902ab71571e2910a0ebdfeb02e8bfd390a))
+
+### [0.3.11](https://github.com/GetStream/stream-video-js/compare/client0.3.10...client0.3.11) (2023-08-30)
+
+
+### Bug Fixes
+
+* **react-native:** blank stream on join ([#1022](https://github.com/GetStream/stream-video-js/issues/1022)) ([d5a48f6](https://github.com/GetStream/stream-video-js/commit/d5a48f6e75bf4e1b5c0745b7f0b001fd0ac4b183))
+
+### [0.3.10](https://github.com/GetStream/stream-video-js/compare/client0.3.9...client0.3.10) (2023-08-30)
+
+
+### Features
+
+* **Call:** Dynascale support for Plain-JS SDK ([#914](https://github.com/GetStream/stream-video-js/issues/914)) ([d295fd3](https://github.com/GetStream/stream-video-js/commit/d295fd341bbe325310fc6479f24ef647b013429b))
+
+### [0.3.9](https://github.com/GetStream/stream-video-js/compare/client0.3.8...client0.3.9) (2023-08-29)
+
+
+### Bug Fixes
+
+* round non-int video dimension values ([#1007](https://github.com/GetStream/stream-video-js/issues/1007)) ([baec0b5](https://github.com/GetStream/stream-video-js/commit/baec0b5d4d2242e71c413e93b73897589e31429c))
+
+### [0.3.8](https://github.com/GetStream/stream-video-js/compare/client0.3.7...client0.3.8) (2023-08-29)
+
+
+### Bug Fixes
+
+* type definition of user object for ws auth ([#1003](https://github.com/GetStream/stream-video-js/issues/1003)) ([e0ed3d1](https://github.com/GetStream/stream-video-js/commit/e0ed3d17214e9a300d84c85a0e168ad4a7d16239))
+
+### [0.3.7](https://github.com/GetStream/stream-video-js/compare/client0.3.6...client0.3.7) (2023-08-24)
+
+
+### Features
+
+* apply target resolution to video feed, sync camera/mic init ([#977](https://github.com/GetStream/stream-video-js/issues/977)) ([8ee6488](https://github.com/GetStream/stream-video-js/commit/8ee64882ebd4911445242beef5fd3148372283e3))
+
+### [0.3.6](https://github.com/GetStream/stream-video-js/compare/client0.3.5...client0.3.6) (2023-08-23)
+
+
+### Bug Fixes
+
+* device api small fixes ([#970](https://github.com/GetStream/stream-video-js/issues/970)) ([15b09fd](https://github.com/GetStream/stream-video-js/commit/15b09fd5e1d25046f8e2cbaa951f551631a91779))
+
+### [0.3.5](https://github.com/GetStream/stream-video-js/compare/client0.3.4...client0.3.5) (2023-08-22)
+
+
+### Bug Fixes
+
+* Change the backtage default value to true ([#969](https://github.com/GetStream/stream-video-js/issues/969)) ([5aff8b4](https://github.com/GetStream/stream-video-js/commit/5aff8b4695373de660d625a4945e300d1ff90610))
+
 ### [0.3.4](https://github.com/GetStream/stream-video-js/compare/client0.3.3...client0.3.4) (2023-08-21)
 
 

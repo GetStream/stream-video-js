@@ -10,6 +10,7 @@ One of the crucial functionalities of a video or audio calling application is to
 In Android, we use a [foreground service](https://developer.android.com/guide/components/foreground-services) to keep the call alive. The SDK will manage the foreground service. But in order to be able to use the foreground service, some declarations need to be added in the `AndroidManifest.xml`:
 
 ```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <!-- We declare the permissions to for using foreground service -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
@@ -53,11 +54,11 @@ StreamVideoRN.updateConfig({
 
 ## iOS Setup
 
-The way to keep audio alive in the background is to enable the Voice over IP background mode. When you enable this capability, your app's audio playback will continue to play when users lock their iOS device or switch to another app. In Xcode: Open the `Info.plist` file and add `Voice over IP` in `UIBackgroundModes`. By editing this file with a text editor, you should see:
+The way to keep audio alive in the background is to enable the `audio` background mode. When you enable this capability, your app's audio playback will continue to play when users lock their iOS device or switch to another app. In Xcode: Open the `Info.plist` file and add `audio` in `UIBackgroundModes`. By editing this file with a text editor, you should see:
 
 ```xml
 <key>UIBackgroundModes</key>
 <array>
-  <string>voip</string>
+  <string>audio</string>
 </array>
 ```

@@ -9,8 +9,8 @@ import {
 import { StreamVideoConfig } from '../../../../utils/StreamVideoRN/types';
 import { useCall } from '@stream-io/video-react-bindings';
 import { SendReactionRequest } from '@stream-io/video-client';
-import { theme } from '../../../../theme';
 import { ComponentTestIds } from '../../../../constants/TestIds';
+import { useTheme } from '../../../../contexts/ThemeContext';
 
 interface Props {
   reactions: StreamVideoConfig['supportedReactions'];
@@ -26,6 +26,9 @@ export const ReactionsPicker = ({
   reactionsButtonLayoutRectangle,
   onRequestedClose,
 }: Props) => {
+  const {
+    theme: { colors, reactionsPicker },
+  } = useTheme();
   const call = useCall();
   const size = reactionsButtonLayoutRectangle?.width ?? 0;
   const reactionItemSize = size * 0.8;
@@ -96,7 +99,14 @@ export const ReactionsPicker = ({
     <>
       <Pressable
         testID={ComponentTestIds.REACTIONS_PICKER}
-        style={[styles.reactionsPopup, reactionsPopupStyle]}
+        style={[
+          styles.reactionsPopup,
+          reactionsPopupStyle,
+          {
+            backgroundColor: colors.static_grey,
+          },
+          reactionsPicker.reactionsPopup,
+        ]}
         onPress={() => {
           onClose();
         }}
@@ -105,7 +115,15 @@ export const ReactionsPicker = ({
         {reactions.map((reaction) => (
           <Pressable
             key={reaction.emoji_code}
-            style={[styles.reactionItem, reactionItemStyle]}
+            style={[
+              styles.reactionItem,
+              reactionItemStyle,
+              {
+                // temporary background color until we have theming
+                backgroundColor: colors.overlay,
+              },
+              reactionsPicker.reactionItem,
+            ]}
             onPress={() => {
               onClose({
                 type: reaction.type,
@@ -127,6 +145,7 @@ export const ReactionsPicker = ({
                     },
                   ],
                 },
+                reactionsPicker.reactionText,
               ]}
             >
               {reaction.icon}
@@ -135,7 +154,16 @@ export const ReactionsPicker = ({
         ))}
       </Pressable>
       {/* a square view with 50% opacity that semi hides the reactions button */}
-      <Pressable style={reactionsButtonDimmerStyle} onPress={() => onClose()} />
+      <Pressable
+        style={[
+          reactionsButtonDimmerStyle,
+          {
+            backgroundColor: colors.static_grey,
+          },
+          reactionsPicker.reactionsButtonDimmer,
+        ]}
+        onPress={() => onClose()}
+      />
     </>
   );
 };
@@ -144,20 +172,16 @@ const styles = StyleSheet.create({
   reactionsPopup: {
     position: 'absolute',
     alignItems: 'center',
-    backgroundColor: theme.light.static_grey,
     paddingTop: TOP_PADDING,
   },
   reactionsButtonDimmer: {
     position: 'absolute',
-    backgroundColor: theme.light.static_grey,
     opacity: 0.5,
   },
   reactionItem: {
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: REACTION_MARGIN_BOTTOM,
-    // temporary background color until we have theming
-    backgroundColor: theme.light.overlay,
   },
   reactionText: {
     fontSize: 18.5,

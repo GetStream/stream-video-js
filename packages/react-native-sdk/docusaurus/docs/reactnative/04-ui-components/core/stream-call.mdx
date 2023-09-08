@@ -7,7 +7,7 @@ The `<StreamCall />` component is a declarative component wrapper around `Call` 
 
 ## General usage
 
-```tsx
+```tsx {9,11}
 import {
   StreamCall,
 } from '@stream-io/video-react-native-sdk';
@@ -16,7 +16,6 @@ export const App = () => {
   const call = /* ... */;
 
   return (
-    // highlight-next-line
     <StreamCall call={call}>
       <MyUI />
     </StreamCall>
@@ -28,8 +27,16 @@ export const App = () => {
 
 ### `call`
 
+Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
+
 | Type   |
-|--------|
+| ------ |
 | `Call` |
 
-Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
+### `mediaDeviceInitialState`
+
+Provides the initial status of the media devices(audio and video) to the `MediaStreamManagement`.
+
+| Type                                                                                      |
+| ----------------------------------------------------------------------------------------- |
+| `{initialAudioEnabled: boolean`\|`undefined, initialVideoEnabled: boolean`\|`undefined }` |

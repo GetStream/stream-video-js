@@ -3,6 +3,8 @@ import App from './App';
 
 import * as Sentry from '@sentry/react';
 
+import Gleap from 'gleap';
+
 import './index.css';
 import TagManager from 'react-gtm-module';
 
@@ -32,6 +34,10 @@ if (
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
   });
+}
+
+if (import.meta.env.MODE === 'staging') {
+  Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 }
 
 ReactDOM.createRoot(

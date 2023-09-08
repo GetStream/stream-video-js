@@ -13,7 +13,6 @@ import {
   StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -110,7 +109,10 @@ export const CallParticipantsList = ({
       if (!oldVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.VISIBLE,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         };
       }
     });
@@ -118,7 +120,10 @@ export const CallParticipantsList = ({
       if (!newVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
         participantPatches[key] = {
-          viewportVisibilityState: VisibilityState.INVISIBLE,
+          viewportVisibilityState: {
+            videoTrack: VisibilityState.VISIBLE,
+            screenShareTrack: VisibilityState.UNKNOWN,
+          },
         };
       }
     });
@@ -179,7 +184,7 @@ export const CallParticipantsList = ({
             <ParticipantView
               participant={participant}
               style={itemContainerStyle}
-              videoMode="video"
+              trackType="videoTrack"
               isVisible={isVisible}
               {...participantProps}
             />
@@ -204,7 +209,7 @@ export const CallParticipantsList = ({
               <ParticipantView
                 participant={participant}
                 style={styles.flexed}
-                videoMode="video"
+                trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 {...participantProps}
               />
@@ -239,8 +244,8 @@ const styles = StyleSheet.create({
   },
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
-    marginHorizontal: theme.margin.sm,
-    borderRadius: theme.rounded.sm,
+    marginHorizontal: 8,
+    borderRadius: 10,
   },
 });
 
@@ -280,8 +285,8 @@ function calculateParticipantViewSize({
 
   let itemWidth = containerWidth / numberOfColumns;
   if (horizontal) {
-    // in horizontal mode we apply margin to the participant view and that should be subtracted from the width
-    itemWidth = itemWidth - theme.margin.sm * 2;
+    // in horizontal mode we apply margin of 8 to the participant view and that should be subtracted from the width
+    itemWidth = itemWidth - 8 * 2;
   }
 
   return { itemHeight, itemWidth };

@@ -6,18 +6,18 @@ import {
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
-import { theme } from '../../../theme';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListProps,
   CallParticipantsListComponentProps,
+  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../../Participant';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -46,15 +46,17 @@ export const CallParticipantsSpotlight = ({
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
 }: CallParticipantsSpotlightProps) => {
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
+  const {
+    theme: { colors, callParticipantsSpotlight },
+  } = useTheme();
+  const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
-  const _remoteParticipants = useRemoteParticipants();
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
-  const isUserAloneInCall = _remoteParticipants?.length === 0;
+  const isUserAloneInCall = _allParticipants?.length === 1;
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -72,18 +74,41 @@ export const CallParticipantsSpotlight = ({
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.dark_gray,
+        },
+        callParticipantsSpotlight.container,
+      ]}
     >
       {participantInSpotlight && ParticipantView && (
         <ParticipantView
           participant={participantInSpotlight}
-          style={isUserAloneInCall ? styles.fullScreen : styles.participantView}
-          videoMode={isScreenShareOnSpotlight ? 'screen' : 'video'}
+          style={
+            isUserAloneInCall
+              ? [
+                  styles.fullScreenSpotlightContainer,
+                  callParticipantsSpotlight.fullScreenSpotlightContainer,
+                ]
+              : [
+                  styles.spotlightContainer,
+                  callParticipantsSpotlight.spotlightContainer,
+                ]
+          }
+          trackType={
+            isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
+          }
           {...participantViewProps}
         />
       )}
       {!isUserAloneInCall && (
-        <View style={styles.participantVideoContainer}>
+        <View
+          style={[
+            styles.callParticipantsListContainer,
+            callParticipantsSpotlight.callParticipantsListContainer,
+          ]}
+        >
           {CallParticipantsList && (
             <CallParticipantsList
               participants={
@@ -102,20 +127,19 @@ export const CallParticipantsSpotlight = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: theme.padding.sm,
-    backgroundColor: theme.light.dark_gray,
+    paddingVertical: 8,
   },
-  fullScreen: {
+  fullScreenSpotlightContainer: {
     flex: 1,
   },
-  participantView: {
+  spotlightContainer: {
     flex: 2,
     overflow: 'hidden',
-    borderRadius: theme.rounded.sm,
-    marginHorizontal: theme.padding.sm,
-    marginBottom: theme.padding.sm,
+    borderRadius: 10,
+    marginHorizontal: 8,
+    marginBottom: 8,
   },
-  participantVideoContainer: {
+  callParticipantsListContainer: {
     flex: 1,
   },
 });
