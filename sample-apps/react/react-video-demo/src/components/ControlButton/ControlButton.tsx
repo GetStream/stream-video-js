@@ -1,4 +1,4 @@
-import { FC, useCallback, useState, ReactNode, useRef, useEffect } from 'react';
+import { FC, ReactNode, useCallback, useRef, useState } from 'react';
 import classnames from 'classnames';
 
 import Button from '../Button';
@@ -38,7 +38,7 @@ export const ControlButton: FC<Props> = ({
 
   const handleClick = useCallback(() => {
     onClick?.();
-  }, [active, panel, onClick]);
+  }, [onClick]);
 
   const closePanel = useCallback(() => {
     if (active) {

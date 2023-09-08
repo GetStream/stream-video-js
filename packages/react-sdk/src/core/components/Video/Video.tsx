@@ -96,22 +96,23 @@ export const Video = ({
   useEffect(() => {
     if (!stream || !videoElement) return;
 
+    const [track] = stream.getVideoTracks();
+    if (!track) return;
+
     const handlePlayPause = () => {
       setVideoPlaying(!videoElement.paused);
 
-      const [track] = stream.getVideoTracks();
-      if (!track) return;
-
-      // TODO: find out why track dimensions aren't coming in
       const { width = 0, height = 0 } = track.getSettings();
       setIsWideMode(width >= height);
     };
 
     videoElement.addEventListener('play', handlePlayPause);
     videoElement.addEventListener('pause', handlePlayPause);
+    track.addEventListener('unmute', handlePlayPause);
     return () => {
       videoElement.removeEventListener('play', handlePlayPause);
       videoElement.removeEventListener('pause', handlePlayPause);
+      track.removeEventListener('unmute', handlePlayPause);
     };
   }, [stream, videoElement]);
 
