@@ -23,8 +23,7 @@ export type Props = {
 };
 
 export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
-  const [isAudioOutputVisible, setAudioOutputVisible] =
-    useState<boolean>(false);
+  const [isAudioOutputVisible, setAudioOutputVisible] = useState(false);
   const {
     selectedAudioInputDeviceId,
     selectedVideoDeviceId,
@@ -58,7 +57,9 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
   }, [call]);
 
   const enableVideo = useCallback(() => {
-    publishVideoStream();
+    publishVideoStream().catch((err) => {
+      console.log(`Error while publishing video`, err);
+    });
   }, [publishVideoStream]);
 
   const disableAudio = useCallback(() => {
@@ -66,7 +67,9 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
   }, [call]);
 
   const enableAudio = useCallback(() => {
-    publishAudioStream();
+    publishAudioStream().catch((err) => {
+      console.log(`Error while publishing audio`, err);
+    });
   }, [publishAudioStream]);
 
   const video = useCallback(() => {
@@ -75,7 +78,13 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     } else {
       isVideoMuted ? enableVideo() : disableVideo();
     }
-  }, [toggleInitialVideoMuteState, localParticipant, isVideoMuted, preview]);
+  }, [
+    preview,
+    toggleInitialVideoMuteState,
+    isVideoMuted,
+    enableVideo,
+    disableVideo,
+  ]);
 
   const audio = useCallback(() => {
     if (preview) {
@@ -83,7 +92,13 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     } else {
       isAudioMuted ? enableAudio() : disableAudio();
     }
-  }, [toggleInitialAudioMuteState, localParticipant, isAudioMuted, preview]);
+  }, [
+    preview,
+    toggleInitialAudioMuteState,
+    isAudioMuted,
+    enableAudio,
+    disableAudio,
+  ]);
 
   const toggleAudioOutputPanel = useCallback(() => {
     setAudioOutputVisible(!isAudioOutputVisible);

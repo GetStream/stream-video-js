@@ -110,6 +110,7 @@ export const Participant: FC<Props> = ({
     connectionQuality,
     sessionId,
     reaction,
+    isLocalParticipant,
   } = participant;
 
   const { addNotification } = useNotificationContext();
@@ -149,6 +150,7 @@ export const Participant: FC<Props> = ({
     className,
   );
 
+  const nameSuffix = isLocalParticipant ? ' (You)' : '';
   return (
     <ParticipantView
       participant={participant}
@@ -158,7 +160,7 @@ export const Participant: FC<Props> = ({
         <Overlay
           connectionQualityAsString={connectionQualityAsString}
           connectionQuality={connectionQuality}
-          name={participant.name || participant.userId}
+          name={(participant.name || participant.userId) + nameSuffix}
           hasAudio={hasAudio}
           reaction={reaction}
           call={call}
