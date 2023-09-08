@@ -85,7 +85,7 @@ The Stream Video React Native SDK supports apps created with the React Native CL
 ## Roadmap
 Stream's video roadmap and changelog are available [here](https://github.com/GetStream/protocol/discussions/127). 
 
-### 0.1 milestone
+### 0.1, 0.2 and 0.3 milestone
 - [x] Push notification- Android
 - [x] Chat integration guide
 - [x] Simulcasting- Android
@@ -113,21 +113,22 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
     - [x] Video Layout (refactor)
     - [x] ParticipantView customizations
 
-### 0.2 milestone
+### 0.4 Milestones
+
 - [ ] Regular Push Notification
-- [ ] Deeplink support for video call demo (Dogfooding already implemented)
 - [ ] Speaking while muted
-- [ ] Landscape support
+- [ ] Landscape Support
+- [ ] PiP
+- [ ] Livestream components
+- [ ] Speaker management (needs docs)
 
-### 0.3 milestone
-- [ ] Test with a large call with many participants
-- [ ] Test coverage
-- [ ] CPU usage improvements
-- [ ] Picture-in-Picture
+### 0.5 Milestones
 
-### 0.4 milestone
 - [ ] Audio & Video filters
-- [ ] Screen sharing from mobile
-- [ ] Analytics integration
-- [ ] Picture of the video stream at highest resolution
-- [ ] Call Analytics
+- [ ] Screensharing
+- [ ] CPU usage improvement
+- [ ] Analytics Integration
+- [ ] Demo app on playstore and app store
+- [ ] Long press to focus
+- [ ] Dynascale 2.0
+- [ ] Test coverage
