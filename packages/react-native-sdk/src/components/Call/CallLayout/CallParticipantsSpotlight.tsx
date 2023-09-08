@@ -11,24 +11,20 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   CallParticipantsListComponentProps,
-  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallContentProps } from '../CallContent';
 
 /**
  * Props for the CallParticipantsSpotlight component.
  */
-export type CallParticipantsSpotlightProps =
-  CallParticipantsListComponentProps & {
-    /**
-     * Component to customize the CallParticipantsList.
-     */
-    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
-  };
+export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
+  Pick<CallContentProps, 'reactions' | 'CallParticipantsList'> &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'>;
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -45,6 +41,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
+  reactions,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -99,6 +96,7 @@ export const CallParticipantsSpotlight = ({
           trackType={
             isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
           }
+          reactions={reactions}
           {...participantViewProps}
         />
       )}
@@ -115,6 +113,7 @@ export const CallParticipantsSpotlight = ({
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
               horizontal
+              reactions={reactions}
               {...callParticipantsListProps}
             />
           )}

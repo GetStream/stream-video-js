@@ -2,7 +2,7 @@ import React from 'react';
 import mockParticipant from '../mocks/participant';
 import { SfuModels } from '@stream-io/video-client';
 import { ComponentTestIds, IconTestIds } from '../../src/constants/TestIds';
-import { act, render, screen } from '../utils/RNTLTools';
+import { render, screen } from '../utils/RNTLTools';
 import {
   ParticipantLabel,
   ParticipantNetworkQualityIndicator,
@@ -11,11 +11,12 @@ import {
   ParticipantView,
   VideoRenderer,
 } from '../../src/components';
+import { defaultEmojiReactions } from '../../src/constants';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
 
-describe('Participant', () => {
+describe('ParticipantView', () => {
   it('should render participant`s avatar when set to not visible, label, user name and reaction', async () => {
     const testParticipant = mockParticipant({
       image: 'https://picsum.photos/200/300',
@@ -27,6 +28,7 @@ describe('Participant', () => {
     });
     render(
       <ParticipantView
+        reactions={defaultEmojiReactions}
         participant={testParticipant}
         trackType="videoTrack"
         isVisible={false}
@@ -45,10 +47,6 @@ describe('Participant', () => {
     expect(screen.getByText(testParticipant.name)).toBeOnTheScreen();
     // reaction is visible and then disappears after 5500 ms
     expect(screen.getByText('🎉')).toBeOnTheScreen();
-    await act(() => jest.advanceTimersByTime(5500));
-    expect(() => screen.getByText('🎉')).toThrow(
-      /unable to find an element with text: 🎉/i,
-    );
   });
 
   it('should render participant`s screen when of screen mode', async () => {

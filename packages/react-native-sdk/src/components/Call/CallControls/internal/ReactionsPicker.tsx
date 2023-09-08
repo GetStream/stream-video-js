@@ -6,26 +6,26 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { StreamVideoConfig } from '../../../../utils/StreamVideoRN/types';
 import { useCall } from '@stream-io/video-react-bindings';
 import { SendReactionRequest } from '@stream-io/video-client';
 import { ComponentTestIds } from '../../../../constants/TestIds';
 import { useTheme } from '../../../../contexts/ThemeContext';
+import { ReactionsButtonProps } from '../ReactionsButton';
+import { defaultEmojiReactions } from '../../../../constants';
 
-interface Props {
-  reactions: StreamVideoConfig['supportedReactions'];
+type ReactionPickerProps = Pick<ReactionsButtonProps, 'reactions'> & {
   reactionsButtonLayoutRectangle?: LayoutRectangle;
   onRequestedClose: () => void;
-}
+};
 
 const TOP_PADDING = 4;
 const REACTION_MARGIN_BOTTOM = 4;
 
 export const ReactionsPicker = ({
-  reactions,
+  reactions = defaultEmojiReactions,
   reactionsButtonLayoutRectangle,
   onRequestedClose,
-}: Props) => {
+}: ReactionPickerProps) => {
   const {
     theme: { colors, reactionsPicker },
   } = useTheme();

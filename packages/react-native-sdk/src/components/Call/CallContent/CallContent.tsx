@@ -13,9 +13,10 @@ import {
 import {
   CallControlProps,
   CallControls as DefaultCallControls,
+  HangUpCallButtonProps,
 } from '../CallControls';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, StreamReaction } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -25,41 +26,52 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
+import {
+  CallParticipantsListComponentProps,
+  CallParticipantsListProps,
+} from '../CallParticipantsList';
 
-export type CallParticipantsComponentProps = Pick<
-  CallParticipantsGridProps,
-  | 'CallParticipantsList'
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
-  /**
-   * Component to customize the CallTopView component.
-   */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
-  /**
-   * Component to customize the CallControls component.
-   */
-  CallControls?: React.ComponentType<CallControlProps> | null;
-  /**
-   * Component to customize the FloatingParticipantView.
-   */
-  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+export type StreamReactionType = StreamReaction & {
+  icon: string;
 };
 
-export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
+type CallContentComponentProps = ParticipantViewComponentProps &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+    /**
+     * Component to customize the CallTopView component.
+     */
+    CallTopView?: React.ComponentType<CallTopViewProps> | null;
+    /**
+     * Component to customize the CallControls component.
+     */
+    CallControls?: React.ComponentType<CallControlProps> | null;
+    /**
+     * Component to customize the FloatingParticipantView.
+     */
+    FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Component to customize the CallParticipantsList.
+     */
+    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+  };
+
+export type CallContentProps = Pick<
+  HangUpCallButtonProps,
+  'onHangupCallHandler'
+> &
   Pick<
     CallTopViewProps,
     'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
   > &
-  CallParticipantsComponentProps & {
+  CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
      */
     layout?: 'grid' | 'spotlight';
+    /**
+     * Reactions that are to be supported in the call
+     */
+    reactions?: StreamReactionType[];
   };
 
 export const CallContent = ({
@@ -78,6 +90,7 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
+  reactions,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -143,12 +156,14 @@ export const CallContent = ({
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
+    reactions,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
     ...participantViewProps,
     ParticipantView,
     CallParticipantsList,
+    reactions,
   };
 
   return (
@@ -175,6 +190,7 @@ export const CallContent = ({
                   : localParticipant
               }
               onPressHandler={handleFloatingViewParticipantSwitch}
+              reactions={reactions}
               {...participantViewProps}
             />
           )}

@@ -5,14 +5,18 @@ import { OwnCapability } from '@stream-io/video-client';
 import { ButtonTestIds } from '../../../constants/TestIds';
 import { Reaction } from '../../../icons';
 import { ReactionsPicker } from './internal/ReactionsPicker';
-import { StreamVideoRN } from '../../../utils';
 import { LayoutChangeEvent, LayoutRectangle } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { StreamReactionType } from '../CallContent';
 
 /**
  * Props for the Reaction button
  */
-export type ReactionButtonProps = {
+export type ReactionsButtonProps = {
+  /**
+   * Supported Reactions to be sent while in the call.
+   */
+  reactions?: StreamReactionType[];
   /**
    * Handler to be called when the reaction button is pressed.
    */
@@ -23,7 +27,10 @@ export type ReactionButtonProps = {
  * Button to display the list of Reactions supported in the call.
  * On press, it opens a view that can be used to send Reaction.
  */
-export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
+export const ReactionsButton = ({
+  reactions,
+  onPressHandler,
+}: ReactionsButtonProps) => {
   const [showReactionsPicker, setShowReactionsPicker] =
     useState<boolean>(false);
   const [reactionsButtonLayoutRectangle, setReactionsButtonLayoutRectangle] =
@@ -48,7 +55,7 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
     });
   };
 
-  const reactionButtonHandler = () => {
+  const reactionsButtonHandler = () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -61,7 +68,7 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
       <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
         <CallControlsButton
           testID={ButtonTestIds.REACTION}
-          onPress={reactionButtonHandler}
+          onPress={reactionsButtonHandler}
           onLayout={onReactionsButtonLayout}
         >
           <Reaction color={colors.static_black} />
@@ -69,7 +76,7 @@ export const ReactionButton = ({ onPressHandler }: ReactionButtonProps) => {
       </Restricted>
       {showReactionsPicker && (
         <ReactionsPicker
-          reactions={StreamVideoRN.getConfig().supportedReactions}
+          reactions={reactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
           onRequestedClose={() => {
             setShowReactionsPicker(false);

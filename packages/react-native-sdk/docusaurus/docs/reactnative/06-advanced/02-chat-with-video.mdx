@@ -329,7 +329,6 @@ import {
   CallContent,
   ChatButton,
   HangUpCallButton,
-  ReactionButton,
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
@@ -346,7 +345,6 @@ export const CallControlsComponent = ({
 }: CallControlsComponentProps) => {
   return (
     <View style={styles.callControlsWrapper}>
-      <ReactionButton />
       <ChatButton onPressHandler={onChatOpenHandler} />
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />

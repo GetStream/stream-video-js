@@ -10,7 +10,10 @@ import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import FloatingView from './FloatingView';
-import { CallParticipantsListProps } from '../../Call';
+import {
+  CallContentProps,
+  CallParticipantsListComponentProps,
+} from '../../Call';
 import { FloatingViewAlignment } from './FloatingView/common';
 import {
   ParticipantView as DefaultParticipantView,
@@ -29,7 +32,8 @@ export type FloatingParticipantViewAlignment =
  * Props to be passed for the LocalVideoView component.
  */
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
-  Pick<CallParticipantsListProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> &
+  Pick<CallContentProps, 'reactions'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
@@ -85,6 +89,7 @@ export const FloatingParticipantView = ({
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   VideoRenderer,
+  reactions,
 }: FloatingParticipantViewProps) => {
   const {
     theme: { colors, floatingParticipantsView },
@@ -160,6 +165,7 @@ export const FloatingParticipantView = ({
                 // video z order must be one above the one used in grid view
                 // (which uses the default: 0)
                 videoZOrder={1}
+                reactions={reactions}
                 {...participantViewProps}
               />
             )}

@@ -4,25 +4,24 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
-  CallParticipantsListProps,
   CallParticipantsListComponentProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallContentProps } from '../CallContent';
+import { ParticipantViewComponentProps } from '../../Participant';
 
 /**
  * Props for the CallParticipantsGrid component.
  */
-export type CallParticipantsGridProps = CallParticipantsListComponentProps & {
-  /**
-   * Component to customize the CallParticipantsList.
-   */
-  CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
-  /**
-   * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
-   */
-  showLocalParticipant?: boolean;
-};
+export type CallParticipantsGridProps = ParticipantViewComponentProps &
+  Pick<CallContentProps, 'reactions' | 'CallParticipantsList'> &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+    /**
+     * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
+     */
+    showLocalParticipant?: boolean;
+  };
 
 /**
  * Component used to display the list of participants in a grid mode.
@@ -36,6 +35,7 @@ export const CallParticipantsGrid = ({
   ParticipantView,
   VideoRenderer,
   showLocalParticipant = false,
+  reactions,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -79,6 +79,7 @@ export const CallParticipantsGrid = ({
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
+          reactions={reactions}
           {...participantViewProps}
         />
       )}
