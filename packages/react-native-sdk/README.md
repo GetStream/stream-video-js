@@ -114,7 +114,8 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
     - [x] ParticipantView customizations
 
 ### 0.4 Milestones
-
+- [x] Expo Support
+- [ ] Leaner Chat Integration Guide
 - [ ] Regular Push Notification
 - [ ] Speaking while muted
 - [ ] Landscape Support
