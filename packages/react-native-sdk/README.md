@@ -7,6 +7,7 @@
 [![SDK Sample App CI](https://github.com/GetStream/stream-video-js/workflows/React%20Native%20Dogfood%20Release/badge.svg)](https://github.com/GetStream/stream-video-js/actions/workflows/react-native-workflow.yml)
 
 ## **Quick Links**
+
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
 - [React Native Video Tutorial](https://getstream.io/video/docs/reactnative/tutorials/video-calling/)
 - [Sample application](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/dogfood)
@@ -30,6 +31,7 @@ Stream is free for most side and hobby projects. To qualify, your project/compan
 ## 💡Supported Features💡
 
 Here are some of the features we support:
+
 - Developer experience: Great SDKs, docs, tutorials and support so you can build quickly
 - Edge network: Servers around the world ensure optimal latency and reliability
 - Chat: Stored chat, reactions, threads, typing indicators, URL previews etc
@@ -54,38 +56,44 @@ Here are some of the features we support:
 - Broadcasting to HLS
 
 ## **Repo Overview** 😎
-This repo contains projects and samples developed by the team and Stream community. 
+
+This repo contains projects and samples developed by the team and Stream community.
 Projects are broken up into directories containing the source code for each project.
 
 ## **Projects/Packages 🚀**
-The React Native SDK is a part of the Stream Video JS monorepo. 
+
+The React Native SDK is a part of the Stream Video JS monorepo.
 The monorepo consists of multiple folders, the most important of which are `packages` and `sample-apps`.
+
 - The `packages` folder contains the packages each of which is a separate npm package. The React Native SDK is one of the packages alongside:
   - [Our shared JS Call Engine](https://github.com/GetStream/stream-video-js/tree/main/packages/client) (`client`).
   - [React Bindings](../react-bindings) (`react-bindings`).
   - [React SDK](../react-sdk#official-react-sdk-for-stream-video) (`react-sdk`).
-  
-- The `sample-apps` folder contains the sample apps that are built using the packages from the `packages` folder. 
-React Native's most relevant sample app is the `dogfooding` app which is a complete app that implements most of the features of the SDK.
+- The `sample-apps` folder contains the sample apps that are built using the packages from the `packages` folder.
+  React Native's most relevant sample app is the `dogfooding` app which is a complete app that implements most of the features of the SDK.
 
 - The `react-native-sdk/docusaurus` folder contains the documentation and guides.
 
-
 ## **Requirements** 🛠
-Before running this project please ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup). 
+
+Before running this project please ensure you have set up your [development environment for React Native](https://reactnative.dev/docs/environment-setup).
 The Stream Video React Native SDK supports apps created with the React Native CLI.
 
 ## **Contributing** 🤝
+
 - How can I submit a sample app?
-    - Apps submissions are always welcomed 🥳 Open a pr with a proper description and we'll review it as soon as possible
+  - Apps submissions are always welcomed 🥳 Open a pr with a proper description and we'll review it as soon as possible
 - Spot a bug 🕷 ?
-    - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
+  - We welcome code changes that improve the apps or fix a problem. Please make sure to follow all best practices and add tests if applicable before submitting a Pull Request on Github.
 
 ---
+
 ## Roadmap
-Stream's video roadmap and changelog are available [here](https://github.com/GetStream/protocol/discussions/127). 
+
+Stream's video roadmap and changelog are available [here](https://github.com/GetStream/protocol/discussions/127).
 
 ### 0.1, 0.2 and 0.3 milestone
+
 - [x] Push notification- Android
 - [x] Chat integration guide
 - [x] Simulcasting- Android
@@ -114,6 +122,7 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
     - [x] ParticipantView customizations
 
 ### 0.4 Milestones
+
 - [x] Expo Support
 - [ ] Leaner Chat Integration Guide
 - [ ] Regular Push Notification
@@ -126,10 +135,10 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 ### 0.5 Milestones
 
 - [ ] Audio & Video filters
-- [ ] Screensharing
+- [ ] Screen sharing
 - [ ] CPU usage improvement
 - [ ] Analytics Integration
-- [ ] Demo app on playstore and app store
+- [ ] Demo app on play store and app store
 - [ ] Long press to focus
 - [ ] Dynascale 2.0
 - [ ] Test coverage
