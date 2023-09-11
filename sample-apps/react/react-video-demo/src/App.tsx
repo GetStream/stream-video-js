@@ -82,7 +82,7 @@ const Init = () => {
       token,
       tokenProvider,
       options: {
-        logLevel: log_level || 'warn',
+        logLevel: log_level || 'info',
       },
     });
     setClient(_client);
