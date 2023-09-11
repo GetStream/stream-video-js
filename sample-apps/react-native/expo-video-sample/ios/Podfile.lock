@@ -423,7 +423,7 @@ PODS:
   - stream-react-native-webrtc (104.0.1):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.0.3):
+  - stream-video-react-native (0.0.8):
     - React-Core
     - stream-react-native-webrtc
   - WebRTC-SDK (104.5112.17)
@@ -654,10 +654,10 @@ SPEC CHECKSUMS:
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
   RNSVG: 07dbd870b0dcdecc99b3a202fa37c8ca163caec2
   stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: 271a0d6eaebb9ba856d6b7a0091b24a546db0114
+  stream-video-react-native: 5a91dea91676da394fd0fb7feddb614b1cf85481
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: 065f0b74dba4832d6e328238de46eb72c5de9556
 
 PODFILE CHECKSUM: ffaa77401c727a1b9a8187e485fac834c052c7d2
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.11.3

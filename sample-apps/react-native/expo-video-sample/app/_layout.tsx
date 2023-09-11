@@ -4,7 +4,7 @@ import { UsersList } from '../components/UsersList';
 import { VideoWrapper } from '../components/VideoWrapper';
 import { AppProvider, useAppContext } from '../context/AppContext';
 
-const Meeting = () => {
+const Home = () => {
   const { user } = useAppContext();
   if (!user) {
     return <UsersList />;
@@ -19,7 +19,7 @@ const Meeting = () => {
 export default function Layout() {
   return (
     <AppProvider>
-      <Meeting />
+      <Home />
     </AppProvider>
   );
 }
