@@ -39,6 +39,9 @@ export const ToggleVideoPreviewButton = ({
     }
     toggleInitialVideoMuteState();
   };
+
+  console.log({ status });
+
   return (
     <CallControlsButton
       onPress={onPress}
@@ -53,10 +56,10 @@ export const ToggleVideoPreviewButton = ({
         svgContainer: toggleVideoPreviewButton.svgContainer,
       }}
     >
-      {status === 'disabled' ? (
-        <VideoSlash color={colors.static_white} />
-      ) : (
+      {status === 'enabled' ? (
         <Video color={colors.static_black} />
+      ) : (
+        <VideoSlash color={colors.static_white} />
       )}
     </CallControlsButton>
   );

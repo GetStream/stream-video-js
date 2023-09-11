@@ -56,10 +56,10 @@ export const ToggleAudioPreviewButton = ({
         svgContainer: toggleAudioPreviewButton.svgContainer,
       }}
     >
-      {status === 'disabled' ? (
-        <MicOff color={colors.static_white} />
-      ) : (
+      {status === 'enabled' ? (
         <Mic color={colors.static_black} />
+      ) : (
+        <MicOff color={colors.static_white} />
       )}
     </CallControlsButton>
   );
