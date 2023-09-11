@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.9...@stream-io/video-react-native-sdk-0.0.10) (2023-09-11)
+
+
+### Bug Fixes
+
+* **react-native:** add missing expo plugin in npm pack ([bfeb79d](https://github.com/GetStream/stream-video-js/commit/bfeb79d2a540f627e8fcefbe1524cf634307ce84))
+
 ### [0.0.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.8...@stream-io/video-react-native-sdk-0.0.9) (2023-09-11)
 
 ### Dependency Updates
