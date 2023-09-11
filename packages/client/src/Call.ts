@@ -278,39 +278,40 @@ export class Call {
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
 
-    this.state.localParticipant$.subscribe(async (p) => {
-      if (!this.publisher) return;
-      // Mute via device manager
-      // If integrator doesn't use device manager, we mute using stopPublish
-      if (
-        this.publisher.hasEverPublished(TrackType.VIDEO) &&
-        this.publisher.isPublishing(TrackType.VIDEO) &&
-        !p?.publishedTracks.includes(TrackType.VIDEO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's video track is muted remotely`,
-        );
-        await this.camera.disable();
-        if (this.publisher.isPublishing(TrackType.VIDEO)) {
-          await this.stopPublish(TrackType.VIDEO);
-        }
-      }
-      if (
-        this.publisher.hasEverPublished(TrackType.AUDIO) &&
-        this.publisher.isPublishing(TrackType.AUDIO) &&
-        !p?.publishedTracks.includes(TrackType.AUDIO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's audio track is muted remotely`,
-        );
-        await this.microphone.disable();
-        if (this.publisher.isPublishing(TrackType.AUDIO)) {
-          await this.stopPublish(TrackType.AUDIO);
-        }
-      }
-    });
+    // FIXME OL: disable soft-mutes as they are not working properly
+    // this.state.localParticipant$.subscribe(async (p) => {
+    //   if (!this.publisher) return;
+    //   // Mute via device manager
+    //   // If integrator doesn't use device manager, we mute using stopPublish
+    //   if (
+    //     this.publisher.hasEverPublished(TrackType.VIDEO) &&
+    //     this.publisher.isPublishing(TrackType.VIDEO) &&
+    //     !p?.publishedTracks.includes(TrackType.VIDEO)
+    //   ) {
+    //     this.logger(
+    //       'info',
+    //       `Local participant's video track is muted remotely`,
+    //     );
+    //     await this.camera.disable();
+    //     if (this.publisher.isPublishing(TrackType.VIDEO)) {
+    //       await this.stopPublish(TrackType.VIDEO);
+    //     }
+    //   }
+    //   if (
+    //     this.publisher.hasEverPublished(TrackType.AUDIO) &&
+    //     this.publisher.isPublishing(TrackType.AUDIO) &&
+    //     !p?.publishedTracks.includes(TrackType.AUDIO)
+    //   ) {
+    //     this.logger(
+    //       'info',
+    //       `Local participant's audio track is muted remotely`,
+    //     );
+    //     await this.microphone.disable();
+    //     if (this.publisher.isPublishing(TrackType.AUDIO)) {
+    //       await this.stopPublish(TrackType.AUDIO);
+    //     }
+    //   }
+    // });
     this.speaker = new SpeakerManager();
   }
 
