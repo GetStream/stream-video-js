@@ -40,8 +40,6 @@ export const ToggleVideoPreviewButton = ({
     toggleInitialVideoMuteState();
   };
 
-  console.log({ status });
-
   return (
     <CallControlsButton
       onPress={onPress}
