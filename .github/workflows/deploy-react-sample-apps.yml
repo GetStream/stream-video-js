@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/deploy-sample-apps.yml'
+      - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
       - '!packages/**' # avoid duplicated deployment if react-sdk also changed
   pull_request:
@@ -14,7 +14,7 @@ on:
       - synchronize
       - reopened
     paths:
-      - '.github/workflows/deploy-sample-apps.yml'
+      - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
       - 'packages/**'
       - '!packages/react-native-sdk/**'
