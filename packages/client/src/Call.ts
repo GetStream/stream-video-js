@@ -279,11 +279,13 @@ export class Call {
     this.microphone = new MicrophoneManager(this);
 
     this.state.localParticipant$.subscribe(async (p) => {
+      if (!this.publisher) return;
       // Mute via device manager
       // If integrator doesn't use device manager, we mute using stopPublish
       if (
-        !p?.publishedTracks.includes(TrackType.VIDEO) &&
-        this.publisher?.isPublishing(TrackType.VIDEO)
+        this.publisher.hasEverPublished(TrackType.VIDEO) &&
+        this.publisher.isPublishing(TrackType.VIDEO) &&
+        !p?.publishedTracks.includes(TrackType.VIDEO)
       ) {
         this.logger(
           'info',
@@ -291,12 +293,13 @@ export class Call {
         );
         await this.camera.disable();
         if (this.publisher.isPublishing(TrackType.VIDEO)) {
-          this.stopPublish(TrackType.VIDEO);
+          await this.stopPublish(TrackType.VIDEO);
         }
       }
       if (
-        !p?.publishedTracks.includes(TrackType.AUDIO) &&
-        this.publisher?.isPublishing(TrackType.AUDIO)
+        this.publisher.hasEverPublished(TrackType.AUDIO) &&
+        this.publisher.isPublishing(TrackType.AUDIO) &&
+        !p?.publishedTracks.includes(TrackType.AUDIO)
       ) {
         this.logger(
           'info',
@@ -304,7 +307,7 @@ export class Call {
         );
         await this.microphone.disable();
         if (this.publisher.isPublishing(TrackType.AUDIO)) {
-          this.stopPublish(TrackType.AUDIO);
+          await this.stopPublish(TrackType.AUDIO);
         }
       }
     });
