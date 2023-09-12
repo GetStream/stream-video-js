@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.11...@stream-io/video-react-native-sdk-0.0.12) (2023-09-12)
+
+
+### Bug Fixes
+
+* **react-native:** remove  method to inform SDK about native permissions ([#1072](https://github.com/GetStream/stream-video-js/issues/1072)) ([53b4abd](https://github.com/GetStream/stream-video-js/commit/53b4abd80c17fc21d7f3a93dd103946ef0b3f080))
+
 ### [0.0.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.10...@stream-io/video-react-native-sdk-0.0.11) (2023-09-12)
 
 
