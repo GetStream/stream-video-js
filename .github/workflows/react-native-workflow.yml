@@ -1,7 +1,7 @@
 name: React Native Dogfood Release
 env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  GOOGLE_APPLICATION_CREDENTIALS: '~/rn-samples-google-services.json'
+  GOOGLE_APPLICATION_CREDENTIALS: '/home/runner/rn-samples-google-services.json'
   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
   MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
   APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
