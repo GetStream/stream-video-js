@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { RxUtils } from '../store';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
@@ -85,7 +85,7 @@ export abstract class InputMediaDeviceManagerState {
 
   /**
    * @internal
-   * @param stream
+   * @param stream the stream to set.
    */
   setMediaStream(stream: MediaStream | undefined) {
     this.setCurrentValue(this.mediaStreamSubject, stream);
@@ -96,7 +96,7 @@ export abstract class InputMediaDeviceManagerState {
 
   /**
    * @internal
-   * @param stream
+   * @param deviceId the device id to set.
    */
   setDevice(deviceId: string | undefined) {
     this.setCurrentValue(this.selectedDeviceSubject, deviceId);
