@@ -1,5 +1,9 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
+import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+
+const DEFAULT_USER_ID = 'egress';
+const DEFAULT_CALL_TYPE = 'default';
 
 export type ConfigurationValue = {
   base_url?: string;
@@ -14,6 +18,10 @@ export type ConfigurationValue = {
 
   layout?: 'grid' | 'single_participant' | 'spotlight' | 'mobile';
   screenshare_layout?: 'single_participant' | 'spotlight';
+
+  test_environment?: {
+    participants?: Partial<StreamVideoParticipant>[];
+  };
 
   options: {
     'video.background_color'?: string;
@@ -72,3 +80,27 @@ export const extractPayloadFromToken = (token: string) => {
 };
 
 export const useConfigurationContext = () => useContext(ConfigurationContext);
+
+export const applyConfigurationDefaults = (
+  configuration: ConfigurationValue,
+) => {
+  const {
+    // apply defaults
+    api_key = import.meta.env.VITE_STREAM_API_KEY as string,
+    token = import.meta.env.VITE_STREAM_USER_TOKEN as string,
+    user_id = (extractPayloadFromToken(token as string)['user_id'] ??
+      DEFAULT_USER_ID) as string,
+    call_type = DEFAULT_CALL_TYPE,
+    options = {},
+    ...rest
+  } = configuration;
+
+  return {
+    api_key,
+    token,
+    user_id,
+    call_type,
+    options,
+    ...rest,
+  };
+};
