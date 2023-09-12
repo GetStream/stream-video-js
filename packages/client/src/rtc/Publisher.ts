@@ -29,14 +29,13 @@ import { getOSInfo } from '../client-details';
 
 const logger: Logger = getLogger(['Publisher']);
 
-export type PublisherOpts = {
+export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
-  preferredVideoCodec?: string;
   iceRestartDelay?: number;
 };
 
@@ -97,7 +96,6 @@ export class Publisher {
 
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
-  private readonly preferredVideoCodec?: string;
 
   private readonly unsubscribeOnIceRestart: () => void;
 
@@ -118,7 +116,6 @@ export class Publisher {
    * @param dispatcher the dispatcher to use.
    * @param isDtxEnabled whether DTX is enabled.
    * @param isRedEnabled whether RED is enabled.
-   * @param preferredVideoCodec the preferred video codec.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
    */
   constructor({
@@ -128,15 +125,13 @@ export class Publisher {
     state,
     isDtxEnabled,
     isRedEnabled,
-    preferredVideoCodec,
     iceRestartDelay = 2500,
-  }: PublisherOpts) {
+  }: PublisherConstructorOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
-    this.preferredVideoCodec = preferredVideoCodec;
     this.iceRestartDelay = iceRestartDelay;
 
     this.unsubscribeOnIceRestart = dispatcher.on(
