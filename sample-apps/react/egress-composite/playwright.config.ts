@@ -11,6 +11,12 @@ export default defineConfig({
   reporter: 'list',
   // custom path to omit architecture/system from file name (darwin-amd64/darwin-arm64/linux-amd64...)
   snapshotPathTemplate: './tests/__screenshots__/{testFilePath}/{arg}{ext}',
+  expect: {
+    toHaveScreenshot: {
+      // to account for CI headless
+      maxDiffPixelRatio: 0.05,
+    },
+  },
   use: {
     headless: !!process.env.CI,
     trace: 'on-first-retry',
