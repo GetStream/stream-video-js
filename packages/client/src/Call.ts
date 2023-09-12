@@ -932,7 +932,6 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
-        preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
       });
     }
 
