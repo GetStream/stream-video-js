@@ -1,11 +1,14 @@
 import { test as base, expect } from '@playwright/test';
 import { customAlphabet } from 'nanoid';
 import axios from 'axios';
+import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { ConfigurationValue } from '../src/ConfigurationContext';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnop', 10);
 
 // TODO: move to some shared folder
-const test = base.extend<{ callId: string }>({
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const buddyTest = base.extend<{ callId: string }>({
   callId: async ({ page }, use) => {
     const callId = nanoid();
 
@@ -31,11 +34,55 @@ const test = base.extend<{ callId: string }>({
   },
 });
 
+const test = base.extend<{ callId: string }>({
+  callId: async ({ page }, use) => {
+    const callId = nanoid();
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    // run tests
+    await use(callId);
+  },
+});
+
+const participants: Partial<StreamVideoParticipant>[] = [
+  {
+    userId: 'john',
+    sessionId: '1',
+    publishedTracks: [],
+    isSpeaking: false,
+  },
+  {
+    userId: 'jane',
+    name: 'Jane Strong',
+    sessionId: '2',
+    publishedTracks: [],
+    isSpeaking: false,
+  },
+  {
+    userId: 'mark',
+    sessionId: '3',
+    publishedTracks: [],
+    isSpeaking: false,
+  },
+  {
+    userId: 'martin',
+    sessionId: '4',
+    publishedTracks: [],
+    isSpeaking: false,
+  },
+  {
+    userId: 'anne',
+    sessionId: '5',
+    publishedTracks: [],
+    isSpeaking: false,
+  },
+];
+
 test.describe('Layouts', () => {
   [
-    { name: 'grid', participantCountPerWindow: 4 },
+    { name: 'grid', participantCountPerWindow: 5 },
     { name: 'single_participant', participantCountPerWindow: 1 },
-    // egress is not filtered for this one
     { name: 'spotlight', participantCountPerWindow: 5 },
   ].forEach((layout) => {
     test(`${layout.name}`, async ({ page, callId }) => {
@@ -44,6 +91,9 @@ test.describe('Layouts', () => {
         window.setupLayout({
           call_id: "${callId}",
           layout: "${layout.name}",
+          test_environment: ${JSON.stringify({
+            participants,
+          } satisfies ConfigurationValue['test_environment'])}
         });
       `,
       });
