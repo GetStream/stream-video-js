@@ -1,7 +1,7 @@
 name: 'RN Bootstrap'
 description: 'Bootstrap React Native dependencies'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - run: echo "IMAGE=${ImageOS}-${ImageVersion}" >> $GITHUB_ENV
       shell: bash
