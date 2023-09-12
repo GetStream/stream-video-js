@@ -9,8 +9,8 @@ const config: Config = {
   testPathIgnorePatterns: [
     '<rootDir>/__tests__/mocks/',
     '<rootDir>/__tests__/utils/',
-    '<rootDir>/dist/',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/dist/'],
   transformIgnorePatterns: [
     // added as per the README in https://github.com/invertase/notifee/tree/main/packages/react-native
     'node_modules/(?!(jest-)?react-native|@react-native|@notifee)',

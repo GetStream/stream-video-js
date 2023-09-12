@@ -25,6 +25,7 @@ export const MediaDevices = (): React.ReactElement | null => {
 
     const subscription = subscribeToDevicesWhenPermissionGranted(
       isMicPermissionGranted$,
+      // @ts-expect-error Due to DOM typing incompatible with RN
       getAudioDevices,
       setAudioDevices,
     );
@@ -49,6 +50,7 @@ export const MediaDevices = (): React.ReactElement | null => {
     };
     const subscription = subscribeToDevicesWhenPermissionGranted(
       isCameraPermissionGranted$,
+      // @ts-expect-error Due to DOM typing incompatible with RN
       getVideoDevices,
       setVideoDevices,
     );
