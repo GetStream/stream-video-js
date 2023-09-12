@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.17...@stream-io/video-react-sdk-0.3.18) (2023-09-11)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.16`
+### [0.3.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.16...@stream-io/video-react-sdk-0.3.17) (2023-09-08)
+
+
+### Bug Fixes
+
+* hook dependency issues, re-compute video aspect ratio after track unmute ([#1067](https://github.com/GetStream/stream-video-js/issues/1067)) ([392c36a](https://github.com/GetStream/stream-video-js/commit/392c36af9dbabd22f72d4cc4b11aab7b1d642b1f))
+
 ### [0.3.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.15...@stream-io/video-react-sdk-0.3.16) (2023-09-05)
 
 ### Dependency Updates

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/deploy-sample-apps.yml'
+      - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
       - '!packages/**' # avoid duplicated deployment if react-sdk also changed
   pull_request:
@@ -14,7 +14,7 @@ on:
       - synchronize
       - reopened
     paths:
-      - '.github/workflows/deploy-sample-apps.yml'
+      - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
       - 'packages/**'
       - '!packages/react-native-sdk/**'
@@ -63,12 +63,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: dorny/paths-filter@v2.11.1
-        id: changes
-        with:
-          filters: |
-            sample-apps:
-              - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
+#      - uses: dorny/paths-filter@v2.11.1
+#        id: changes
+#        with:
+#          filters: |
+#            sample-apps:
+#              - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -98,7 +98,7 @@ jobs:
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull/Build/Deploy (Production)
-        if: ${{ github.ref_name == 'main' && steps.changes.outputs.sample-apps == 'true' }}
+        if: ${{ github.ref_name == 'main' }}
         run: >
           yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
