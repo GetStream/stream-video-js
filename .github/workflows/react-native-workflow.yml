@@ -152,6 +152,12 @@ jobs:
       - name: Test RN SDK
         run: yarn test:react-native:sdk
 
+      - name: Create Google Services JSON File
+        env:
+          DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
+        run: echo $DATA > ~/.credentials/google-services.json
+        shell: bash
+
       - name: Build
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane build_android
@@ -244,6 +250,12 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: apk
+
+      - name: Create Google Services JSON File
+        env:
+          DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
+        run: echo $DATA > ~/.credentials/google-services.json
+        shell: bash
 
       - name: Deploy
         working-directory: sample-apps/react-native/dogfood

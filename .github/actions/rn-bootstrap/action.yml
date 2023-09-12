@@ -106,10 +106,3 @@ runs:
     - name: Install FFmpeg
       if: ${{ env.INSTALL_FFMPEG == 'true' }}
       uses: FedericoCarboni/setup-ffmpeg@v2
-
-    # the path of the file is stored as GOOGLE_APPLICATION_CREDENTIALS env in react-native-workflow.yml
-    - name: Create Google Services JSON File
-      env:
-        DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
-      run: echo $DATA > ~/.credentials/google-services.json
-      shell: bash
