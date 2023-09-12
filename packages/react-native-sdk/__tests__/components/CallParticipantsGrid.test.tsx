@@ -77,19 +77,19 @@ describe('CallParticipantsGrid', () => {
       }),
       mockParticipant({
         publishedTracks: [SfuModels.TrackType.AUDIO],
-        videoStream: null,
+        videoStream: undefined,
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
       }),
       mockParticipant({
         publishedTracks: [SfuModels.TrackType.VIDEO],
-        audioStream: null,
+        audioStream: undefined,
         sessionId: P_IDS.REMOTE_2,
         userId: P_IDS.REMOTE_2,
       }),
       mockParticipant({
         publishedTracks: [SfuModels.TrackType.VIDEO],
-        audioStream: null,
+        audioStream: undefined,
         sessionId: P_IDS.REMOTE_3,
         userId: P_IDS.REMOTE_3,
       }),

@@ -7,7 +7,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { RTCView } from '@stream-io/react-native-webrtc';
+import { MediaStream, RTCView } from '@stream-io/react-native-webrtc';
 import { useTheme } from '../../../contexts/ThemeContext';
 import {
   OutgoingCallControls as DefaultOutgoingCallControls,
@@ -90,7 +90,9 @@ const Background = () => {
   const call = useCall();
   const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
-  const localVideoStream = call?.camera.state.mediaStream;
+  const localVideoStream = call?.camera.state.mediaStream as unknown as
+    | MediaStream
+    | undefined;
 
   useCallMediaStreamCleanup();
 
@@ -114,7 +116,7 @@ const Background = () => {
       ]}
     >
       <RTCView
-        streamURL={localVideoStream?.toURL()}
+        streamURL={localVideoStream.toURL()}
         zOrder={Z_INDEX.IN_BACK}
         style={StyleSheet.absoluteFill}
         mirror
