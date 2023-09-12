@@ -11,6 +11,7 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from './ParticipantVideoFallback';
 import { useTheme } from '../../../contexts/ThemeContext';
+import type { MediaStream } from '@stream-io/react-native-webrtc';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -70,7 +71,9 @@ export const VideoRenderer = ({
   );
   const hasJoinedCall = callingState === CallingState.JOINED;
   const canShowVideo = !!videoStream && isVisible && isPublishingVideoTrack;
-  const videoStreamToRender = isScreenSharing ? screenShareStream : videoStream;
+  const videoStreamToRender = (isScreenSharing
+    ? screenShareStream
+    : videoStream) as unknown as MediaStream | undefined;
   const mirror = isLocalParticipant && direction === 'front';
 
   /**
@@ -196,10 +199,10 @@ export const VideoRenderer = ({
       onLayout={onLayout}
       style={[styles.container, videoRenderer.container]}
     >
-      {canShowVideo ? (
+      {canShowVideo && videoStreamToRender ? (
         <RTCView
           style={[styles.videoStream, videoRenderer.videoStream]}
-          streamURL={videoStreamToRender?.toURL()}
+          streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
           objectFit={isScreenSharing ? 'contain' : 'cover'}
           zOrder={videoZOrder}

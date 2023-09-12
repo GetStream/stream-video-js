@@ -1,4 +1,4 @@
-import { setClientDetails } from './src/utils/setClientDetails';
+import { setClientDetails } from './utils/setClientDetails';
 /** Initialize text encoder/decoder polyfill */
 import 'text-encoding-polyfill';
 /** Initialize URL polyfill */
@@ -22,12 +22,12 @@ Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
 export * from '@stream-io/i18n';
 export * from '@stream-io/video-client';
 export * from '@stream-io/video-react-bindings';
-export * from './src/components';
-export * from './src/contexts';
-export * from './src/hooks';
-export * from './src/theme';
-export * from './src/utils';
-export * from './src/translations';
+export * from './components';
+export * from './contexts';
+export * from './hooks';
+export * from './theme';
+export * from './utils';
+export * from './translations';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
@@ -36,6 +36,6 @@ export {
   StreamCall,
   MediaStreamManagement,
   useMediaStreamManagement,
-} from './src/providers';
+} from './providers';
 
 setClientDetails();
