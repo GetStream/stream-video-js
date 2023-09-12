@@ -17,7 +17,7 @@ export const LogoAndTitleOverlay = () => {
     >
       {/* {text?.length && (
           <div
-            data-test-id="title"
+            data-testid="title"
             style={{ ...DEFAULT_TITLE_STYLE, ...titleStyle }}
           >
             {text}
@@ -25,7 +25,7 @@ export const LogoAndTitleOverlay = () => {
         )} */}
       {image_url && (
         <img
-          data-test-id="logo"
+          data-testid="logo"
           src={image_url}
           // style={{ ...DEFAULT_LOGO_STYLE, ...logoStyle }}
           alt="logo"
