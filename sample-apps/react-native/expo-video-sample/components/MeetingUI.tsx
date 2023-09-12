@@ -3,7 +3,6 @@ import {
   CallContent,
   CallingState,
   Lobby,
-  StreamVideoRN,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import { useRouter } from 'expo-router';
@@ -15,11 +14,6 @@ export const MeetingUI = () => {
   const router = useRouter();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-
-  StreamVideoRN.setPermissions({
-    isCameraPermissionGranted: true,
-    isMicPermissionGranted: true,
-  });
 
   const onHangupCallHandler = () => {
     router.back();
