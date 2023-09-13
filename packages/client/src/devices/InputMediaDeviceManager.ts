@@ -87,7 +87,7 @@ export abstract class InputMediaDeviceManager<
       this.state.prevStatus === 'enabled' &&
       this.state.status === 'disabled'
     ) {
-      this.enable();
+      await this.enable();
     }
   }
 

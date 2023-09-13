@@ -5,8 +5,6 @@ import { getAudioOutputDevices } from './devices';
 export class SpeakerManager {
   public readonly state = new SpeakerState();
 
-  constructor() {}
-
   /**
    * Lists the available audio output devices
    *
