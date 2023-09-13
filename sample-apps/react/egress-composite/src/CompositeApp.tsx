@@ -8,29 +8,23 @@ import {
 import {
   EgressReadyNotificationProvider,
   useExternalCSS,
-  useInitializeClient,
+  useInitializeClientAndCall,
 } from './hooks';
 import { UIDispatcher, LogoAndTitleOverlay } from './components';
 
 import './CompositeApp.scss';
 
 export const CompositeApp = () => {
-  const { client, call: activeCall } = useInitializeClient();
-
-  if (!client) {
-    return <h2>Connecting...</h2>;
-  }
+  const { client, call } = useInitializeClientAndCall();
 
   return (
     <StreamVideo client={client}>
       <StreamThemeWrapper>
         <EgressReadyNotificationProvider>
-          {activeCall && (
-            <StreamCallProvider call={activeCall}>
-              <UIDispatcher />
-              <LogoAndTitleOverlay />
-            </StreamCallProvider>
-          )}
+          <StreamCallProvider call={call}>
+            <UIDispatcher />
+            <LogoAndTitleOverlay />
+          </StreamCallProvider>
         </EgressReadyNotificationProvider>
         {/* <StyleComponent /> */}
       </StreamThemeWrapper>
