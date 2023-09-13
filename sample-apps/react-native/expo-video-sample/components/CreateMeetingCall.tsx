@@ -58,10 +58,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerText: {
     color: 'black',
+    flex: 1,
     fontSize: 20,
-    marginVertical: 8,
+    marginRight: 8,
   },
 });
