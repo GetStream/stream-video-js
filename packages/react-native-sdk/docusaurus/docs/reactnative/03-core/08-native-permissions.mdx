@@ -46,7 +46,7 @@ In this step, we create a function called `requestAndUpdatePermissions`. This fu
 ```ts title=src/utils/requestAndUpdatePermissions.ts
 import { Platform } from 'react-native';
 import { PERMISSIONS, requestMultiple } from 'react-native-permissions';
-import { androidProcessPermissions, iosProcessPermissions } from 'src/utils/updatePermissions';
+
 
 export const requestAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
