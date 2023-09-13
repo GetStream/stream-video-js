@@ -13,7 +13,10 @@ import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
 
-export type CallControlsComponentProps = Pick<CallContentProps, 'reactions'> & {
+export type CallControlsComponentProps = Pick<
+  CallContentProps,
+  'supportedReactions'
+> & {
   onChatOpenHandler?: () => void;
   onHangupCallHandler?: () => void;
   unreadCountIndicator?: number;
