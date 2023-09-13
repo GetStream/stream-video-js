@@ -135,10 +135,10 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 ### 0.5 Milestones
 
 - [ ] Audio & Video filters
-- [ ] Screen sharing
+- [ ] Screen-share media track support
 - [ ] CPU usage improvement
 - [ ] Analytics Integration
-- [ ] Demo app on play store and app store
+- [ ] Demo app on play-store and app-store
 - [ ] Long press to focus
 - [ ] Dynascale 2.0
 - [ ] Test coverage

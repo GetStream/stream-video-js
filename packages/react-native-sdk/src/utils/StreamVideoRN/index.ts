@@ -1,10 +1,6 @@
 import { AndroidImportance } from '@notifee/react-native';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
-import {
-  isCameraPermissionGranted$,
-  isMicPermissionGranted$,
-} from './permissions';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
@@ -62,23 +58,6 @@ export class StreamVideoRN {
     this.config.push = pushConfig;
     // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
     setupFirebaseHandlerAndroid(pushConfig);
-  }
-
-  /**
-   * Set native permissions config for StreamVideoRN.
-   * Note: This function should be called after the user has declined/granted camera and mic permissions.
-   * @example
-   * See sample-apps/react-native/dogfood/src/hooks/useSyncPermissions.ts
-   */
-  static setPermissions({
-    isCameraPermissionGranted,
-    isMicPermissionGranted,
-  }: {
-    isCameraPermissionGranted: boolean;
-    isMicPermissionGranted: boolean;
-  }) {
-    isCameraPermissionGranted$.next(isCameraPermissionGranted);
-    isMicPermissionGranted$.next(isMicPermissionGranted);
   }
 
   static getConfig() {

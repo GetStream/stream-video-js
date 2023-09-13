@@ -54,6 +54,7 @@ describe('ParticipantView', () => {
       image: undefined,
       publishedTracks: [SfuModels.TrackType.SCREEN_SHARE],
       screenShareStream: {
+        // @ts-expect-error due to dom event type not being compatible with RN
         toURL: () => 'test-url',
       },
     });

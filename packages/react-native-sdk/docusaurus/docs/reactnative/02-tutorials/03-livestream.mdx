@@ -163,10 +163,6 @@ Add the following keys and values to `Info.plist` file, under `dict` tag.
 </TabItem>
 </Tabs>
 
-:::note
-For simplicity, in this tutorial, we do not cover about managing native runtime permissions. Before starting the next step, ensure that microphone permissions are given for this app by granting them in the native settings app. We have discussed a detailed solution to manage native runtime permissions in the [Manage Native Permissions](../../core/native-permissions) guide.
-:::
-
 #### Android Specific installation
 
 In `android/app/build.gradle` add the following inside the `android` section:
@@ -216,16 +212,9 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  StreamVideoRN,
   User,
 } from '@stream-io/video-react-native-sdk';
 import { SafeAreaView, Text } from 'react-native';
-
-// for simplicity, we assume that permission was granted through the native settings app
-StreamVideoRN.setPermissions({
-  isCameraPermissionGranted: true,
-  isMicPermissionGranted: true,
-});
 
 const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
 const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section

@@ -29,14 +29,13 @@ import { getOSInfo } from '../client-details';
 
 const logger: Logger = getLogger(['Publisher']);
 
-export type PublisherOpts = {
+export type PublisherConstructorOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   dispatcher: Dispatcher;
   connectionConfig?: RTCConfiguration;
   isDtxEnabled: boolean;
   isRedEnabled: boolean;
-  preferredVideoCodec?: string;
   iceRestartDelay?: number;
 };
 
@@ -86,9 +85,17 @@ export class Publisher {
     [TrackType.UNSPECIFIED]: undefined,
   };
 
+  /**
+   * A map keeping track of track types that were published to the SFU.
+   * This map shouldn't be cleared when unpublishing a track, as it is used
+   * to determine whether a track was published before.
+   *
+   * @private
+   */
+  private readonly trackTypePublishHistory = new Map<TrackType, boolean>();
+
   private readonly isDtxEnabled: boolean;
   private readonly isRedEnabled: boolean;
-  private readonly preferredVideoCodec?: string;
 
   private readonly unsubscribeOnIceRestart: () => void;
 
@@ -109,7 +116,6 @@ export class Publisher {
    * @param dispatcher the dispatcher to use.
    * @param isDtxEnabled whether DTX is enabled.
    * @param isRedEnabled whether RED is enabled.
-   * @param preferredVideoCodec the preferred video codec.
    * @param iceRestartDelay the delay in milliseconds to wait before restarting ICE once connection goes to `disconnected` state.
    */
   constructor({
@@ -119,15 +125,13 @@ export class Publisher {
     state,
     isDtxEnabled,
     isRedEnabled,
-    preferredVideoCodec,
     iceRestartDelay = 2500,
-  }: PublisherOpts) {
+  }: PublisherConstructorOpts) {
     this.pc = this.createPeerConnection(connectionConfig);
     this.sfuClient = sfuClient;
     this.state = state;
     this.isDtxEnabled = isDtxEnabled;
     this.isRedEnabled = isRedEnabled;
-    this.preferredVideoCodec = preferredVideoCodec;
     this.iceRestartDelay = iceRestartDelay;
 
     this.unsubscribeOnIceRestart = dispatcher.on(
@@ -269,6 +273,7 @@ export class Publisher {
       logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
+      this.trackTypePublishHistory.set(trackType, true);
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
         logger(
@@ -350,6 +355,17 @@ export class Publisher {
       );
     }
     return false;
+  };
+
+  /**
+   * Returns true if the given track type was ever published to the SFU.
+   * Contrary to `isPublishing`, this method returns true if a certain
+   * track type was published before, even if it is currently unpublished.
+   *
+   * @param trackType the track type to check.
+   */
+  hasEverPublished = (trackType: TrackType): boolean => {
+    return this.trackTypePublishHistory.get(trackType) ?? false;
   };
 
   /**

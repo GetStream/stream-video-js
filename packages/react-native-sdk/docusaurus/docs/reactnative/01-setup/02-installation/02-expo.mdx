@@ -58,7 +58,7 @@ Add the config plugin for [`@stream-io/video-react-native-sdk`](https://github.c
 ```
 
 :::note
-The `POST_NOTIFICATIONS`, `BLUETOOTH_CONNECT`, `BLUETOOTH` and `BLUETOOTH_ADMIN` permissions need to be requested and granted by the user as well. [PermissionsAndroid](https://reactnative.dev/docs/permissionsandroid) module can be used to request permissions in Android. For example, below is a way to request Bluetooth permissions in Android according to the OS version:
+The `POST_NOTIFICATIONS` and `BLUETOOTH_CONNECT` permissions need to be requested and granted by the user as well. [PermissionsAndroid](https://reactnative.dev/docs/permissionsandroid) module can be used to request permissions in Android. For example, below is a way to request permissions in Android:
 
 ```js
 import { useEffect } from 'react';
@@ -66,16 +66,12 @@ import { PermissionsAndroid, Platform } from 'react-native';
 
 useEffect(() => {
   const run = async () => {
-    if (Platform.OS === 'android' && Platform.Version <= 30) {
+    if (Platform.OS === 'android') {
       // highlight-start
       await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH,
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADMIN,
+        'android.permission.POST_NOTIFICATIONS',
+        'android.permission.BLUETOOTH_CONNECT',
       ]);
-    } else {
-      await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      );
       // highlight-end
     }
   };

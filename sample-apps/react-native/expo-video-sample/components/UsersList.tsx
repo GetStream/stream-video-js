@@ -21,12 +21,7 @@ export const UsersList = () => {
     const run = async () => {
       if (Platform.OS === 'android') {
         await notifee.requestPermission();
-        if (Platform.Version <= 30) {
-          await PermissionsAndroid.requestMultiple([
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH,
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_ADMIN,
-          ]);
-        } else {
+        if (Platform.Version > 30) {
           await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
           );

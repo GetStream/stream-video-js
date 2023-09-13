@@ -18,6 +18,7 @@ import {
 } from './JoinCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
+import type { MediaStream } from '@stream-io/react-native-webrtc';
 
 /**
  * Props for the Lobby Component.
@@ -54,7 +55,9 @@ export const Lobby = ({
   const call = useCall();
   const session = useCallSession();
   const { t } = useI18n();
-  const localVideoStream = call?.camera.state.mediaStream;
+  const localVideoStream = call?.camera.state.mediaStream as unknown as
+    | MediaStream
+    | undefined;
   const participantsCount = session?.participants.length;
 
   useCallMediaStreamCleanup();
@@ -102,10 +105,10 @@ export const Lobby = ({
             ]}
           >
             <View style={styles.topView} />
-            {cameraStatus === 'enabled' ? (
+            {cameraStatus === 'enabled' && localVideoStream ? (
               <RTCView
                 mirror={true}
-                streamURL={localVideoStream?.toURL()}
+                streamURL={localVideoStream.toURL()}
                 objectFit="cover"
                 style={StyleSheet.absoluteFillObject}
               />

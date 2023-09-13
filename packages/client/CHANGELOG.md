@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.15](https://github.com/GetStream/stream-video-js/compare/client0.3.14...client0.3.15) (2023-09-11)
+
+
+### Bug Fixes
+
+* consider prior track publishing state before applying soft mutes ([#1070](https://github.com/GetStream/stream-video-js/issues/1070)) ([f542409](https://github.com/GetStream/stream-video-js/commit/f542409c641417bbbe6f0997d77e34684b881bfb)), closes [#988](https://github.com/GetStream/stream-video-js/issues/988)
+
 ### [0.3.14](https://github.com/GetStream/stream-video-js/compare/client0.3.13...client0.3.14) (2023-09-05)
 
 
