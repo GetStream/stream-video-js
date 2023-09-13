@@ -1,0 +1,190 @@
+{
+  "project_info": {
+    "project_number": "296557120037",
+    "project_id": "react-native-samples-8f4f4",
+    "storage_bucket": "react-native-samples-8f4f4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:7e1a3d37d1ea4575f60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.expovideosample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:a96d3423171fce2af60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.imessageclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:13ccb281a7750765f60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.slackclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:c200ee23e884e68ef60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.whatsappclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:b5d44592a3a4b44af60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.rnvideosample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
