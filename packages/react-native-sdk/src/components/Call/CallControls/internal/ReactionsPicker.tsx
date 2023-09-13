@@ -13,7 +13,7 @@ import { useTheme } from '../../../../contexts/ThemeContext';
 import { ReactionsButtonProps } from '../ReactionsButton';
 import { defaultEmojiReactions } from '../../../../constants';
 
-type ReactionPickerProps = Pick<ReactionsButtonProps, 'reactions'> & {
+type ReactionPickerProps = Pick<ReactionsButtonProps, 'supportedReactions'> & {
   reactionsButtonLayoutRectangle?: LayoutRectangle;
   onRequestedClose: () => void;
 };
@@ -22,7 +22,7 @@ const TOP_PADDING = 4;
 const REACTION_MARGIN_BOTTOM = 4;
 
 export const ReactionsPicker = ({
-  reactions = defaultEmojiReactions,
+  supportedReactions = defaultEmojiReactions,
   reactionsButtonLayoutRectangle,
   onRequestedClose,
 }: ReactionPickerProps) => {
@@ -37,9 +37,9 @@ export const ReactionsPicker = ({
     // the top padding
     TOP_PADDING +
     // take margins into account
-    REACTION_MARGIN_BOTTOM * reactions.length +
+    REACTION_MARGIN_BOTTOM * supportedReactions.length +
     // the size of the reaction icon items (same size as reactions button * amount of reactions)
-    reactionItemSize * reactions.length;
+    reactionItemSize * supportedReactions.length;
 
   const reactionsPopupStyle = {
     // we should show the popup right above the reactions button and not top of it
@@ -112,9 +112,9 @@ export const ReactionsPicker = ({
         }}
       >
         {/* all the reactions */}
-        {reactions.map((reaction) => (
+        {supportedReactions.map((supportedReaction) => (
           <Pressable
-            key={reaction.emoji_code}
+            key={supportedReaction.emoji_code}
             style={[
               styles.reactionItem,
               reactionItemStyle,
@@ -126,9 +126,9 @@ export const ReactionsPicker = ({
             ]}
             onPress={() => {
               onClose({
-                type: reaction.type,
-                custom: reaction.custom,
-                emoji_code: reaction.emoji_code,
+                type: supportedReaction.type,
+                custom: supportedReaction.custom,
+                emoji_code: supportedReaction.emoji_code,
               });
             }}
           >
@@ -148,7 +148,7 @@ export const ReactionsPicker = ({
                 reactionsPicker.reactionText,
               ]}
             >
-              {reaction.icon}
+              {supportedReaction.icon}
             </Animated.Text>
           </Pressable>
         ))}

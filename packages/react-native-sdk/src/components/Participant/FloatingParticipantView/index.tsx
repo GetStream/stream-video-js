@@ -33,7 +33,7 @@ export type FloatingParticipantViewAlignment =
  */
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> &
-  Pick<CallContentProps, 'reactions'> & {
+  Pick<CallContentProps, 'supportedReactions'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
@@ -89,7 +89,7 @@ export const FloatingParticipantView = ({
   ParticipantNetworkQualityIndicator,
   ParticipantReaction,
   VideoRenderer,
-  reactions,
+  supportedReactions,
 }: FloatingParticipantViewProps) => {
   const {
     theme: { colors, floatingParticipantsView },
@@ -165,7 +165,7 @@ export const FloatingParticipantView = ({
                 // video z order must be one above the one used in grid view
                 // (which uses the default: 0)
                 videoZOrder={1}
-                reactions={reactions}
+                supportedReactions={supportedReactions}
                 {...participantViewProps}
               />
             )}

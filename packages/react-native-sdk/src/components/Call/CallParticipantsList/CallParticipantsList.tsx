@@ -44,7 +44,7 @@ export type CallParticipantsListComponentProps =
  * Props of the CallParticipantsList component
  */
 export type CallParticipantsListProps = CallParticipantsListComponentProps &
-  Pick<CallContentProps, 'reactions'> & {
+  Pick<CallContentProps, 'supportedReactions'> & {
     /**
      * The list of participants to display in the list
      */
@@ -76,7 +76,7 @@ export const CallParticipantsList = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   VideoRenderer,
-  reactions,
+  supportedReactions,
 }: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
@@ -189,7 +189,7 @@ export const CallParticipantsList = ({
               style={itemContainerStyle}
               trackType="videoTrack"
               isVisible={isVisible}
-              reactions={reactions}
+              supportedReactions={supportedReactions}
               {...participantProps}
             />
           )}
@@ -215,7 +215,7 @@ export const CallParticipantsList = ({
                 style={styles.flexed}
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
-                reactions={reactions}
+                supportedReactions={supportedReactions}
                 {...participantProps}
               />
             )

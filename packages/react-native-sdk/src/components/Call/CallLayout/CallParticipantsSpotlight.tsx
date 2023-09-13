@@ -23,7 +23,7 @@ import { CallContentProps } from '../CallContent';
  * Props for the CallParticipantsSpotlight component.
  */
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'reactions' | 'CallParticipantsList'> &
+  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'>;
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
@@ -41,7 +41,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
-  reactions,
+  supportedReactions,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -96,7 +96,7 @@ export const CallParticipantsSpotlight = ({
           trackType={
             isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
           }
-          reactions={reactions}
+          supportedReactions={supportedReactions}
           {...participantViewProps}
         />
       )}
@@ -113,7 +113,7 @@ export const CallParticipantsSpotlight = ({
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
               horizontal
-              reactions={reactions}
+              supportedReactions={supportedReactions}
               {...callParticipantsListProps}
             />
           )}

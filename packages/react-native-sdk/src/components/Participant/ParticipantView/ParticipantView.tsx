@@ -54,7 +54,7 @@ export type ParticipantViewComponentProps = {
  * Props to be passed for the Participant component.
  */
 export type ParticipantViewProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'reactions'> & {
+  Pick<CallContentProps, 'supportedReactions'> & {
     /**
      * The participant that will be displayed.
      */
@@ -100,7 +100,7 @@ export const ParticipantView = ({
   ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   videoZOrder = 0,
-  reactions,
+  supportedReactions,
 }: ParticipantViewProps) => {
   const {
     theme: { colors, participantView },
@@ -126,7 +126,10 @@ export const ParticipantView = ({
       }
     >
       {ParticipantReaction && (
-        <ParticipantReaction participant={participant} reactions={reactions} />
+        <ParticipantReaction
+          participant={participant}
+          supportedReactions={supportedReactions}
+        />
       )}
       {VideoRenderer && (
         <VideoRenderer

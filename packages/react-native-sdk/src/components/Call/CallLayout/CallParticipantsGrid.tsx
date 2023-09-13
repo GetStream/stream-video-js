@@ -15,7 +15,7 @@ import { ParticipantViewComponentProps } from '../../Participant';
  * Props for the CallParticipantsGrid component.
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
-  Pick<CallContentProps, 'reactions' | 'CallParticipantsList'> &
+  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
@@ -35,7 +35,7 @@ export const CallParticipantsGrid = ({
   ParticipantView,
   VideoRenderer,
   showLocalParticipant = false,
-  reactions,
+  supportedReactions,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -79,7 +79,7 @@ export const CallParticipantsGrid = ({
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
-          reactions={reactions}
+          supportedReactions={supportedReactions}
           {...participantViewProps}
         />
       )}

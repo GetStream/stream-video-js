@@ -13,7 +13,7 @@ export type ParticipantReactionProps = Pick<
   ParticipantViewProps,
   'participant'
 > &
-  Pick<CallContentProps, 'reactions'> & {
+  Pick<CallContentProps, 'supportedReactions'> & {
     /**
      * The duration after which the reaction should disappear.
      *
@@ -27,7 +27,7 @@ export type ParticipantReactionProps = Pick<
  */
 export const ParticipantReaction = ({
   participant,
-  reactions = defaultEmojiReactions,
+  supportedReactions = defaultEmojiReactions,
   hideAfterTimeoutInMs = 5500,
 }: ParticipantReactionProps) => {
   const { reaction, sessionId } = participant;
@@ -54,7 +54,7 @@ export const ParticipantReaction = ({
 
   const currentReaction =
     reaction &&
-    reactions.find(
+    supportedReactions.find(
       (supportedReaction) =>
         supportedReaction.emoji_code === reaction.emoji_code,
     );

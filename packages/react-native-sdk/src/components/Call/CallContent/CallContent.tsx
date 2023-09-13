@@ -71,7 +71,7 @@ export type CallContentProps = Pick<
     /**
      * Reactions that are to be supported in the call
      */
-    reactions?: StreamReactionType[];
+    supportedReactions?: StreamReactionType[];
   };
 
 export const CallContent = ({
@@ -90,7 +90,7 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
-  reactions,
+  supportedReactions,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -156,14 +156,14 @@ export const CallContent = ({
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
-    reactions,
+    supportedReactions,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
     ...participantViewProps,
     ParticipantView,
     CallParticipantsList,
-    reactions,
+    supportedReactions,
   };
 
   return (
@@ -190,7 +190,7 @@ export const CallContent = ({
                   : localParticipant
               }
               onPressHandler={handleFloatingViewParticipantSwitch}
-              reactions={reactions}
+              supportedReactions={supportedReactions}
               {...participantViewProps}
             />
           )}

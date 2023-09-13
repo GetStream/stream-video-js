@@ -16,7 +16,7 @@ export type ReactionsButtonProps = {
   /**
    * Supported Reactions to be sent while in the call.
    */
-  reactions?: StreamReactionType[];
+  supportedReactions?: StreamReactionType[];
   /**
    * Handler to be called when the reaction button is pressed.
    */
@@ -28,7 +28,7 @@ export type ReactionsButtonProps = {
  * On press, it opens a view that can be used to send Reaction.
  */
 export const ReactionsButton = ({
-  reactions,
+  supportedReactions,
   onPressHandler,
 }: ReactionsButtonProps) => {
   const [showReactionsPicker, setShowReactionsPicker] =
@@ -76,7 +76,7 @@ export const ReactionsButton = ({
       </Restricted>
       {showReactionsPicker && (
         <ReactionsPicker
-          reactions={reactions}
+          supportedReactions={supportedReactions}
           reactionsButtonLayoutRectangle={reactionsButtonLayoutRectangle}
           onRequestedClose={() => {
             setShowReactionsPicker(false);
