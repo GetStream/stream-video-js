@@ -39,6 +39,7 @@ describe('CallParticipantsSpotlight', () => {
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
         screenShareStream: {
+          // @ts-expect-error due to dom event type not being compatible with RN
           toURL: () => 'screen-share-url',
         },
       }),
@@ -77,6 +78,7 @@ describe('CallParticipantsSpotlight', () => {
         sessionId: P_IDS.REMOTE_1,
         userId: P_IDS.REMOTE_1,
         screenShareStream: {
+          // @ts-expect-error due to dom event type not being compatible with RN
           toURL: () => 'screen-share-url',
         },
       }),

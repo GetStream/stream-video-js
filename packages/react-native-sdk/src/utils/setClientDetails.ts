@@ -5,7 +5,7 @@ import {
   SfuModels,
 } from '@stream-io/video-client';
 import { Platform } from 'react-native';
-import { version } from '../../version';
+import { version } from '../version';
 
 const [major, minor, patch] = version.split('.');
 

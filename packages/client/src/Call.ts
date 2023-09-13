@@ -164,7 +164,7 @@ export class Call {
   readonly microphone: MicrophoneManager;
 
   /**
-   * Device manager for the speaker
+   * Device manager for the speaker.
    */
   readonly speaker: SpeakerManager;
 
@@ -172,6 +172,9 @@ export class Call {
    * The DynascaleManager instance.
    */
   readonly dynascaleManager = new DynascaleManager(this);
+
+  subscriber?: Subscriber;
+  publisher?: Publisher;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -190,8 +193,6 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
-  private subscriber?: Subscriber;
-  private publisher?: Publisher;
   private trackSubscriptionsSubject = new BehaviorSubject<{
     type: DebounceType;
     data: TrackSubscriptionDetails[];
@@ -280,37 +281,6 @@ export class Call {
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager();
-
-    this.state.localParticipant$.subscribe(async (p) => {
-      // Mute via device manager
-      // If integrator doesn't use device manager, we mute using stopPublish
-      if (
-        !p?.publishedTracks.includes(TrackType.VIDEO) &&
-        this.publisher?.isPublishing(TrackType.VIDEO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's video track is muted remotely`,
-        );
-        await this.camera.disable();
-        if (this.publisher.isPublishing(TrackType.VIDEO)) {
-          this.stopPublish(TrackType.VIDEO);
-        }
-      }
-      if (
-        !p?.publishedTracks.includes(TrackType.AUDIO) &&
-        this.publisher?.isPublishing(TrackType.AUDIO)
-      ) {
-        this.logger(
-          'info',
-          `Local participant's audio track is muted remotely`,
-        );
-        await this.microphone.disable();
-        if (this.publisher.isPublishing(TrackType.AUDIO)) {
-          this.stopPublish(TrackType.AUDIO);
-        }
-      }
-    });
   }
 
   private registerEffects() {
@@ -394,7 +364,7 @@ export class Call {
     this.leaveCallHooks.add(
       // handles the case when the user is blocked by the call owner.
       createSubscription(this.state.blockedUserIds$, async (blockedUserIds) => {
-        if (!blockedUserIds) return;
+        if (!blockedUserIds || blockedUserIds.length === 0) return;
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
@@ -930,7 +900,6 @@ export class Call {
         connectionConfig,
         isDtxEnabled,
         isRedEnabled,
-        preferredVideoCodec: this.streamClient.options.preferredVideoCodec,
       });
     }
 
@@ -1900,10 +1869,10 @@ export class Call {
       this.microphone.state.mediaStream &&
       !this.publisher?.isPublishing(TrackType.AUDIO)
     ) {
-      this.publishAudioStream(this.microphone.state.mediaStream);
+      await this.publishAudioStream(this.microphone.state.mediaStream);
     }
 
-    // Start mic if backend config speicifies, and there is no local setting
+    // Start mic if backend config specifies, and there is no local setting
     if (
       this.microphone.state.status === undefined &&
       this.state.settings?.audio.mic_default_on

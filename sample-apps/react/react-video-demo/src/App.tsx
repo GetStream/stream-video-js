@@ -9,7 +9,6 @@ import {
 
 import {
   Call,
-  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -46,7 +45,7 @@ const config: Config = {
 };
 
 const Init = () => {
-  const { id: incomingCallId, type } = getURLCredentials();
+  const { id: incomingCallId, type, log_level = 'warn' } = getURLCredentials();
   const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
@@ -82,13 +81,22 @@ const Init = () => {
       user,
       token,
       tokenProvider,
+      options: {
+        logLevel: log_level || 'info',
+      },
     });
     setClient(_client);
 
+    // @ts-ignore - for debugging
+    window.client = _client;
+
     return () => {
-      _client?.disconnectUser();
+      _client.disconnectUser();
+      setClient(undefined);
+      // @ts-ignore - for debugging
+      window.client = undefined;
     };
-  }, []);
+  }, [apiKey, log_level, token, tokenProvider, user]);
 
   const { chatClient, connectionError: chatConnectionError } =
     useCreateStreamChatClient({
@@ -108,19 +116,23 @@ const Init = () => {
     window.location.search = `?id=${id}`;
     return id;
   });
-  const [activeCall, setActiveCall] = useState<Call>();
 
+  const [activeCall, setActiveCall] = useState<Call>();
   useEffect(() => {
-    const call = client?.call(callType, callId);
+    if (!client) return;
+    const call = client.call(callType, callId);
     setActiveCall(call);
 
+    // @ts-ignore - for debugging
+    window.call = call;
+
     return () => {
-      if (call?.state?.callingState !== CallingState.LEFT) {
-        call?.leave();
-      }
+      call.leave();
       setActiveCall(undefined);
+      // @ts-ignore - for debugging
+      window.call = undefined;
     };
-  }, [client]);
+  }, [callId, callType, client]);
 
   useEffect(() => {
     const appleItunesAppMeta = document
@@ -139,8 +151,8 @@ const Init = () => {
   }, []);
 
   useEffect(() => {
-    const getSettings = async () => {
-      const settings = await getStoredDeviceSettings();
+    const getSettings = () => {
+      const settings = getStoredDeviceSettings();
       setStoredDeviceSettings(settings);
     };
 

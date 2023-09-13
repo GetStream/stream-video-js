@@ -2,6 +2,7 @@ import { Call } from '../Call';
 import { Dispatcher } from '../rtc';
 import { CallState } from '../store';
 import {
+  handleRemoteSoftMute,
   watchAudioLevelChanged,
   watchCallAccepted,
   watchCallEnded,
@@ -61,6 +62,8 @@ export const registerEventHandlers = (
 
     call.on('callGrantsUpdated', watchCallGrantsUpdated(state)),
     call.on('pinsUpdated', watchPinsUpdated(state)),
+
+    handleRemoteSoftMute(call),
   ];
 
   if (call.ringing) {

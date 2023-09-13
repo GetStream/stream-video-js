@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   Call,
-  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -43,8 +42,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     ).then((res) => res.json());
     return token as string;
   }, [apiKey, user.id]);
-  const [client, setClient] = useState<StreamVideoClient>();
 
+  const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
     const _client = new StreamVideoClient({
       apiKey,
@@ -58,14 +57,18 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     });
     setClient(_client);
 
+    // @ts-ignore - for debugging
+    window.client = _client;
+
     return () => {
       _client
         .disconnectUser()
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
+      // @ts-ignore - for debugging
+      window.client = undefined;
     };
-  }, []);
-  const [call, setCall] = useState<Call>();
+  }, [apiKey, tokenProvider, user]);
 
   const chatClient = useCreateStreamChatClient({
     apiKey,
@@ -73,17 +76,22 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
   });
 
+  const [call, setCall] = useState<Call>();
   useEffect(() => {
-    const _call = client?.call(callType, callId);
+    if (!client) return;
+    const _call = client.call(callType, callId);
     setCall(_call);
 
+    // @ts-ignore - for debugging
+    window.call = _call;
+
     return () => {
-      if (_call?.state.callingState !== CallingState.LEFT) {
-        _call?.leave();
-      }
+      _call.leave();
       setCall(undefined);
+      // @ts-ignore - for debugging
+      window.call = undefined;
     };
-  }, [client]);
+  }, [callId, callType, client]);
 
   useEffect(() => {
     call?.getOrCreate().catch((err) => {
@@ -95,9 +103,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const settings = getDeviceSettings();
 
-  if (!client || !call) {
-    return null;
-  }
+  if (!client || !call) return null;
 
   return (
     <>

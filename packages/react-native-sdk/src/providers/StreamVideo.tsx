@@ -6,7 +6,6 @@ import {
 import React, { PropsWithChildren, useEffect } from 'react';
 import { StreamVideoStoreProvider } from '../contexts/StreamVideoContext';
 import NetInfo from '@react-native-community/netinfo';
-import { MediaDevices } from './MediaDevices';
 import { usePushRegisterEffect } from '../hooks';
 import { translations } from '../translations';
 import { DeepPartial, ThemeProvider } from '../contexts/ThemeContext';
@@ -66,7 +65,6 @@ export const StreamVideo = (
     >
       <ThemeProvider style={style}>
         <StreamVideoStoreProvider>
-          <MediaDevices />
           <PushRegister />
           {children}
         </StreamVideoStoreProvider>

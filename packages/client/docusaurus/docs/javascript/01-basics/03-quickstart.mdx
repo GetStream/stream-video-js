@@ -6,7 +6,6 @@ description: How to Build a Web Video Calling App
 import { TokenSnippet } from '../../../shared/_tokenSnippet.jsx';
 
 This tutorial gives you a quick overview of how Stream's video JavaScript client works.
-
 The code snippets use TypeScript, but you can use the library with JavaScript as well.
 
 ## Client setup & Calls
@@ -21,9 +20,7 @@ const token = 'authentication-token';
 const user: User = { id: 'user-id' };
 
 const client = new StreamVideoClient({ apiKey, token, user });
-
 const call = client.call('default', 'call-id');
-
 call.join({ create: true });
 ```
 
@@ -40,11 +37,23 @@ For an easy setup, you can copy the following credentials to use for the tutoria
 Once we join a call, we can start publishing audio and video:
 
 ```typescript
-call.join({ create: true }).then(async () => {
-  call.camera.enable();
-  call.microphone.enable();
-});
+await call.join({ create: true });
+
+await call.camera.enable();
+await call.microphone.enable();
 ```
+
+Or, if you wish to join a call with both, audio and video muted:
+
+```typescript
+await call.microphone.disable();
+await call.camera.disable();
+
+await call.join({ create: true });
+```
+
+Please note that if the integrator omits enabling or disabling the camera and microphone,
+our SDK will respect the [Call Type Settings](../../guides/configuring-call-types/) as defined in the dashboard.
 
 More information about this topic can be found in the [Camera & Microphone guide](../../guides/camera-and-microphone).
 

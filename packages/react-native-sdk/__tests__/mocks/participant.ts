@@ -17,10 +17,12 @@ const mockParticipant = (
   publishedTracks: [SfuModels.TrackType.VIDEO],
   videoStream: {
     toURL: () => 'video-test-url',
+    // @ts-expect-error due to dom event type not being compatible with RN
     getVideoTracks: jest.fn(() => [trackMock]),
   },
   audioStream: {
     toURL: () => 'audio-test-url',
+    // @ts-expect-error due to dom event type not being compatible with RN
     getAudioTracks: jest.fn(() => [trackMock]),
   },
   roles: [],
