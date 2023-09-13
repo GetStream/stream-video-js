@@ -117,7 +117,7 @@ jobs:
 
   deploy_ios:
     name: Deploy iOS
-    needs: test_ios
+    needs: build_ios
     timeout-minutes: 60
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: macos-latest
@@ -238,7 +238,7 @@ jobs:
 
   deploy_android:
     name: Deploy Android
-    needs: test_android
+    needs: build_android
     timeout-minutes: 60
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
