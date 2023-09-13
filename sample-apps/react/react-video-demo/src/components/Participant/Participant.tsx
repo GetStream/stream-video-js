@@ -32,7 +32,7 @@ const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
     <div className={styles.placeholder} ref={ref}>
       <div className={styles.fallAvatarContainer}>
         <div className={styles.fallbackInitial}>
-          {participant.name?.split('')[0]}
+          {(participant.name || participant.userId).split('')[0]}
         </div>
       </div>
     </div>

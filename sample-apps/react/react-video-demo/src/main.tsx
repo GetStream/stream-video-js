@@ -8,7 +8,7 @@ import Gleap from 'gleap';
 import './index.css';
 import TagManager from 'react-gtm-module';
 
-if (import.meta.env.MODE === 'production' && import.meta.env.VITE_GTM_ID) {
+if (import.meta.env.VITE_GTM_ID) {
   const tagManagerArgs = {
     gtmId: import.meta.env.VITE_GTM_ID,
     dataLayer: {

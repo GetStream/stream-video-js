@@ -57,11 +57,11 @@ jobs:
 
       - name: Build React Demo staging
         if: ${{ github.ref_name != 'main' }}
-        run: yarn build:react:video-demo --mode staging
+        run: yarn build:react:video-demo
 
       - name: Build React Demo production
         if: ${{ github.ref_name == 'main' }}
-        run: yarn build:react:video-demo --mode production
+        run: yarn build:react:video-demo
 
       - name: Setup AWS credentials
         uses: aws-actions/configure-aws-credentials@v2

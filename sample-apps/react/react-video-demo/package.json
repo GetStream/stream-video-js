@@ -7,7 +7,7 @@
     "dev": "vite --host --port 3000 --mode staging",
     "start": "vite --host --port 3000 --mode staging",
     "build": "tsc && vite build --mode staging",
-    "build:website": "tsc && vite build --base=/video/demos/",
+    "build:website": "tsc && vite build --mode production --base=/video/demos/",
     "preview": "vite preview",
     "storybook": "concurrently \"yarn:watch:*\"",
     "build-storybook": "concurrently \"yarn:build:*\"",
