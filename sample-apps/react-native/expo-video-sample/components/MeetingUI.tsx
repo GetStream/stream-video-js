@@ -13,6 +13,10 @@ export const MeetingUI = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
+  const onHangupCallHandler = () => {
+    router.back();
+  };
+
   if (callingState === CallingState.IDLE) {
     return <Lobby />;
   } else if (callingState === CallingState.JOINING) {

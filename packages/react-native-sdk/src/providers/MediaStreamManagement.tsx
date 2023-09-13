@@ -5,13 +5,9 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useState,
 } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import {
-  isCameraPermissionGranted$,
-  isMicPermissionGranted$,
-} from '../utils/StreamVideoRN/permissions';
-import { Alert } from 'react-native';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';
 
 export type MediaDevicesInitialState = {
@@ -56,12 +52,12 @@ const MediaStreamContext =
  * @category Device Management
  */
 export const MediaStreamManagement = ({
-  initialAudioEnabled,
-  initialVideoEnabled,
+  initialAudioEnabled: propInitialAudioEnabled,
+  initialVideoEnabled: propInitialVideoEnabled,
   children,
 }: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
-  const { t } = useI18n();
+  const { useCallSettings } = useCallStateHooks();
 
   // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
@@ -74,64 +70,96 @@ export const MediaStreamManagement = ({
     },
   );
 
+  const [{ initialAudioEnabled, initialVideoEnabled }, setInitialDeviceState] =
+    useState({
+      initialAudioEnabled: !!propInitialAudioEnabled,
+      initialVideoEnabled: !!propInitialVideoEnabled,
+    });
+
+  const settings = useCallSettings();
+
+  // if prop is set, use that value.. the prop should override the backend settings
+  useEffect(() => {
+    setInitialDeviceState((prev) => {
+      let initAudio = prev.initialAudioEnabled;
+      if (typeof propInitialAudioEnabled !== 'undefined') {
+        initAudio = propInitialAudioEnabled;
+      }
+      let initVideo = prev.initialVideoEnabled;
+      if (typeof propInitialVideoEnabled !== 'undefined') {
+        initVideo = propInitialVideoEnabled;
+      }
+      return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
+    });
+  }, [propInitialAudioEnabled, propInitialVideoEnabled]);
+
+  // use backend settings to set initial audio/video enabled state
+  // ONLY if the prop was undefined -- meaning user did not provide any value
+  useEffect(() => {
+    if (!settings) {
+      return;
+    }
+    const { audio, video } = settings;
+    setInitialDeviceState((prev) => {
+      let initAudio = prev.initialAudioEnabled;
+      if (
+        typeof propInitialAudioEnabled === 'undefined' &&
+        audio.mic_default_on
+      ) {
+        initAudio = true;
+      }
+      let initVideo = prev.initialVideoEnabled;
+      if (
+        typeof propInitialVideoEnabled === 'undefined' &&
+        video.camera_default_on
+      ) {
+        initVideo = true;
+      }
+      return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
+    });
+  }, [propInitialAudioEnabled, propInitialVideoEnabled, settings]);
+
+  // The main logic
+  // Enable or Disable the audio/video stream based on the initial state
   useEffect(() => {
     if (
-      typeof initialAudioEnabled !== 'undefined' &&
-      isMicPermissionGranted$.getValue()
+      initialAudioEnabled &&
+      (call?.microphone.state.status === undefined ||
+        call?.microphone.state.status === 'disabled')
     ) {
-      if (
-        initialAudioEnabled &&
-        (call?.microphone.state.status === undefined ||
-          call?.microphone.state.status === 'disabled')
-      ) {
-        call?.microphone.enable();
-      } else {
-        call?.microphone.disable();
-      }
+      call?.microphone.enable();
+    } else if (
+      !initialAudioEnabled &&
+      call?.microphone.state.status === 'enabled'
+    ) {
+      call?.microphone.disable();
     }
+
     if (
-      typeof initialVideoEnabled !== 'undefined' &&
-      isCameraPermissionGranted$.getValue()
+      initialVideoEnabled &&
+      (call?.camera.state.status === undefined ||
+        call?.camera.state.status === 'disabled')
     ) {
-      if (
-        initialVideoEnabled &&
-        (call?.camera.state.status === undefined ||
-          call?.camera.state.status === 'disabled')
-      ) {
-        call?.camera.enable();
-      } else {
-        call?.camera.disable();
-      }
+      call?.camera.enable();
+    } else if (
+      !initialVideoEnabled &&
+      call?.camera.state.status === 'enabled'
+    ) {
+      call?.camera.disable();
     }
   }, [call, initialAudioEnabled, initialVideoEnabled]);
 
   const toggleInitialAudioMuteState = useCallback(() => {
-    if (
-      !isMicPermissionGranted$.getValue() &&
-      call?.microphone.state.status === 'disabled'
-    ) {
-      Alert.alert(t('Microphone Permission Required To Enable Audio'));
-      return false;
-    }
-
-    call?.microphone.state.status === 'disabled'
-      ? call?.microphone.enable()
-      : call?.microphone.disable();
-  }, [call, t]);
+    call?.microphone.state.status === 'enabled'
+      ? call?.microphone.disable()
+      : call?.microphone.enable();
+  }, [call]);
 
   const toggleInitialVideoMuteState = useCallback(() => {
-    if (
-      !isCameraPermissionGranted$.getValue() &&
-      call?.camera.state.status === 'disabled'
-    ) {
-      Alert.alert(t('Camera Permission Required To Enable Video'));
-      return false;
-    }
-
-    call?.camera.state.status === 'disabled'
-      ? call?.camera.enable()
-      : call?.camera.disable();
-  }, [call, t]);
+    call?.camera.state.status === 'enabled'
+      ? call?.camera.disable()
+      : call?.camera.enable();
+  }, [call]);
 
   const contextValue = useMemo(() => {
     return {
@@ -139,6 +167,7 @@ export const MediaStreamManagement = ({
       toggleInitialVideoMuteState,
     };
   }, [toggleInitialAudioMuteState, toggleInitialVideoMuteState]);
+
   return (
     <MediaStreamContext.Provider value={contextValue}>
       {children}

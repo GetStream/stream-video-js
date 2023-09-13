@@ -1,10 +1,11 @@
 {
-    "extends": "../tsconfig.json",
-    "compilerOptions": {
-      "module":"CommonJS",
-      "outDir": "build",
-      "rootDir": "src",
-      "declaration": true
-    },
-    "include": ["./src"]
-  }
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": false,
+    "declaration": true
+  },
+  "include": ["./src"],
+  "exclude": ["**/__mocks__/*", "**/__tests__/*"]
+}

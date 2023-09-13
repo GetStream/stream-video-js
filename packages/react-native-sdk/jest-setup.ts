@@ -34,8 +34,8 @@ jest.mock('react-native-reanimated', () => {
 });
 
 // When mocking we implement only the needed navigator APIs, hence the suppression rule
-// @ts-ignore
 global.navigator = {
+  // @ts-expect-error due to dom typing incompatible with RN
   mediaDevices: {
     getUserMedia: jest.fn().mockResolvedValue(mockedMedia),
     enumerateDevices: jest.fn().mockResolvedValue(mockedDevices),

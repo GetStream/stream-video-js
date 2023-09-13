@@ -26,6 +26,7 @@ export const useCallMediaStreamCleanup = () => {
         )
       ) {
         // we cleanup media stream only if call is not joined or joining
+        // @ts-expect-error Due to DOM typing incompatible with RN
         disposeOfMediaStream(mediaStream);
       }
     };
