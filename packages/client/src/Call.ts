@@ -116,10 +116,12 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraManager } from './devices/CameraManager';
-import { MicrophoneManager } from './devices/MicrophoneManager';
-import { CameraDirection } from './devices/CameraManagerState';
-import { SpeakerManager } from './devices/SpeakerManager';
+import {
+  CameraDirection,
+  CameraManager,
+  MicrophoneManager,
+  SpeakerManager,
+} from './devices';
 
 /**
  * An object representation of a `Call`.

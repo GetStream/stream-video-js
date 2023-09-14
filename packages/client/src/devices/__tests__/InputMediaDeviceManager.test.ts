@@ -2,7 +2,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
@@ -67,8 +67,7 @@ describe('InputMediaDeviceManager.test', () => {
   });
 
   it('enable device - after joined to call', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
 
     await manager.enable();
 
@@ -93,8 +92,7 @@ describe('InputMediaDeviceManager.test', () => {
   });
 
   it('disable device - after joined to call', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
     await manager.enable();
 
     await manager.disable();
@@ -136,8 +134,7 @@ describe('InputMediaDeviceManager.test', () => {
   });
 
   it('select device when status is enabled and in call', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
     await manager.enable();
 
     const deviceId = mockVideoDevices[1].deviceId;

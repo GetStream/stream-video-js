@@ -141,7 +141,7 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getTrack(): undefined | MediaStreamTrack;
 
-  private async muteStream(stopTracks: boolean = true) {
+  protected async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
       return;
     }
@@ -154,7 +154,7 @@ export abstract class InputMediaDeviceManager<
       // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
       if (typeof this.state.mediaStream.release === 'function') {
         // @ts-expect-error
-        this.state.mediaStream.release();
+        stream.release();
       }
       this.state.setMediaStream(undefined);
     }
@@ -191,7 +191,7 @@ export abstract class InputMediaDeviceManager<
     stopTracks ? this.stopTrack() : this.muteTrack();
   }
 
-  private async unmuteStream() {
+  protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (this.state.mediaStream && this.getTrack()?.readyState === 'live') {
@@ -207,6 +207,8 @@ export abstract class InputMediaDeviceManager<
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
-    this.state.setMediaStream(stream);
+    if (this.state.mediaStream !== stream) {
+      this.state.setMediaStream(stream);
+    }
   }
 }

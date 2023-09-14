@@ -5,3 +5,5 @@ export * from './CameraManager';
 export * from './CameraManagerState';
 export * from './MicrophoneManager';
 export * from './MicrophoneManagerState';
+export * from './SpeakerManager';
+export * from './SpeakerState';
