@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Alert } from 'react-native';
+import { StyleSheet, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,9 +11,24 @@ import {
   useCalls,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingUI } from '../components/MeetingUI';
+import * as Notifications from 'expo-notifications';
 
 export default function JoinCallScreen() {
   const calls = useCalls();
+
+  useEffect(() => {
+    const run = async () => {
+      if (Platform.OS === 'android') {
+        await Notifications.requestPermissionsAsync();
+        if (Platform.Version > 30) {
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          );
+        }
+      }
+    };
+    run();
+  }, []);
 
   useEffect(() => {
     if (calls.length > 1) {

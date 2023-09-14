@@ -6,6 +6,7 @@ import {
   Alert,
   Pressable,
   Image,
+  View,
 } from 'react-native';
 import { randomId } from '../utils/randomId';
 import { users } from '../data/users';
@@ -88,11 +89,13 @@ export default function CreateRingingCall() {
             </Pressable>
           );
         })}
-      <Button
-        title={'Start a New Ringing Call'}
-        disabled={ringingUsers.length === 0}
-        onPress={startCallHandler}
-      />
+      <View style={styles.button}>
+        <Button
+          title={'Start a New Ringing Call'}
+          disabled={ringingUsers.length === 0}
+          onPress={startCallHandler}
+        />
+      </View>
     </>
   );
 }
@@ -125,5 +128,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     fontWeight: '500',
+  },
+  button: {
+    marginVertical: 8,
   },
 });

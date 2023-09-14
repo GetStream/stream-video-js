@@ -1,208 +1,184 @@
 {
   "project_info": {
-    "project_number": "347024607410",
-    "project_id": "stream-video-9b586",
-    "storage_bucket": "stream-video-9b586.appspot.com"
+    "project_number": "296557120037",
+    "project_id": "react-native-samples-8f4f4",
+    "storage_bucket": "react-native-samples-8f4f4.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:347024607410:android:df319f46f747d6e28c21ab",
+        "mobilesdk_app_id": "1:296557120037:android:7e1a3d37d1ea4575f60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.expovideosample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:a96d3423171fce2af60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.imessageclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:13ccb281a7750765f60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.slackclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:c200ee23e884e68ef60dcc",
+        "android_client_info": {
+          "package_name": "io.getstream.reactnative.whatsappclone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296557120037:android:b5d44592a3a4b44af60dcc",
         "android_client_info": {
           "package_name": "io.getstream.rnvideosample"
         }
       },
       "oauth_client": [
         {
-          "client_id": "347024607410-edfh4po3fuu37d1ft7vbakkkkd7er62i.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.rnvideosample",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
-          }
-        },
-        {
-          "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
+          "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyD4FMyTdDv97hJia6YiV1NMgTdJhbnEwQE"
+          "current_key": "AIzaSyBFQzxzFCS9YUBzewXOFz4mwmdOflOwruI"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
+              "client_id": "296557120037-v76voo1nla88tm9b7ic63279h6ppjk95.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
+              "client_id": "296557120037-581oq3r0tcrcb7volhcuo7n41ldra8qe.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "io.getstream.rnvideosample",
-                "app_store_id": "6443437501"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:347024607410:android:48f2a146c871fa308c21ab",
-        "android_client_info": {
-          "package_name": "io.getstream.video.android"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD4FMyTdDv97hJia6YiV1NMgTdJhbnEwQE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.getstream.rnvideosample",
-                "app_store_id": "6443437501"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:347024607410:android:af4ba3e6161705318c21ab",
-        "android_client_info": {
-          "package_name": "io.getstream.video.android.dogfooding"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "347024607410-1mvrtdruipge7vf7tvm3tt2ef23d75a6.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding",
-            "certificate_hash": "fe9176d4a93cd07404632ffb44fc18488bce879c"
-          }
-        },
-        {
-          "client_id": "347024607410-50k1bcpk5chud1g1ooek43kpq85buvtc.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding",
-            "certificate_hash": "21b0959c583df5e95fb65a8cd50a672dfe66812b"
-          }
-        },
-        {
-          "client_id": "347024607410-elv7783tde1kf323h7cdu6ks4ec6gcbm.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding",
-            "certificate_hash": "0cebe7750cde7c0cb6817a31aee92e35e13d59c4"
-          }
-        },
-        {
-          "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD4FMyTdDv97hJia6YiV1NMgTdJhbnEwQE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.getstream.rnvideosample",
-                "app_store_id": "6443437501"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:347024607410:android:7a79e79c9902e02c8c21ab",
-        "android_client_info": {
-          "package_name": "io.getstream.video.android.dogfooding.debug"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "347024607410-3j7502bmnqo753sgkcjiuo88m1gj0s6j.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding.debug",
-            "certificate_hash": "21b0959c583df5e95fb65a8cd50a672dfe66812b"
-          }
-        },
-        {
-          "client_id": "347024607410-c4f79jvma8jgo82b3na1kdv7c3a7n0qu.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding.debug",
-            "certificate_hash": "fe9176d4a93cd07404632ffb44fc18488bce879c"
-          }
-        },
-        {
-          "client_id": "347024607410-jvtqudi4h0lravau0r15g8eocoe843f6.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "io.getstream.video.android.dogfooding.debug",
-            "certificate_hash": "0cebe7750cde7c0cb6817a31aee92e35e13d59c4"
-          }
-        },
-        {
-          "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD4FMyTdDv97hJia6YiV1NMgTdJhbnEwQE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "347024607410-ett7cjt6ah9aj6s6k20p5fissj80d9la.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "347024607410-a466jkdqm1mma55s90on17aovv5gp4ss.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "io.getstream.rnvideosample",
-                "app_store_id": "6443437501"
+                "bundle_id": "io.getstream.reactnative.whatsappclone"
               }
             }
           ]

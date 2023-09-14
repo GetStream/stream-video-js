@@ -3,13 +3,18 @@ import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { Platform } from 'react-native';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
-import { getFirebaseMessagingLib } from './libs';
+import {
+  getFirebaseMessagingLib,
+  getExpoNotificationsLib,
+  getExpoTaskManagerLib,
+} from './libs';
 import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
+import type { PushNotificationTrigger } from 'expo-notifications';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -21,11 +26,47 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
   if (Platform.OS !== 'android') {
     return;
   }
-  const messaging = getFirebaseMessagingLib();
-  messaging().setBackgroundMessageHandler(
-    async (msg) => await firebaseMessagingOnMessageHandler(msg, pushConfig),
-  );
-  // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
+  if (pushConfig.isExpo) {
+    const Notifications = getExpoNotificationsLib();
+    const TaskManager = getExpoTaskManagerLib();
+    const BACKGROUND_NOTIFICATION_TASK =
+      'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
+
+    TaskManager.defineTask<PushNotificationTrigger>(
+      BACKGROUND_NOTIFICATION_TASK,
+      ({ data, error }) => {
+        console.log({ data, error });
+        if (error) {
+          return;
+        }
+        firebaseMessagingOnMessageHandler(
+          data?.remoteMessage?.data,
+          pushConfig,
+        );
+      },
+    );
+    // background handler
+    Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+    // foreground handler
+    Notifications.setNotificationHandler({
+      handleNotification: async (notification) => {
+        const data = notification.request.content.data;
+        await firebaseMessagingOnMessageHandler(data, pushConfig);
+        return {
+          shouldShowAlert: false,
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        };
+      },
+    });
+  } else {
+    const messaging = getFirebaseMessagingLib();
+    messaging().setBackgroundMessageHandler(
+      async (msg) =>
+        await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+    );
+    // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
+  }
   notifee.onBackgroundEvent(async (event) => {
     // NOTE: When app was opened from a quit state, we will never hit this when on accept event as app will open and the click event will go to foreground
     await onNotifeeEvent(event, pushConfig);
@@ -40,23 +81,42 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
 export async function initAndroidPushToken(
   client: StreamVideoClient,
   pushConfig: PushConfig,
+  setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
   if (Platform.OS !== 'android') {
     return;
   }
-  const messaging = getFirebaseMessagingLib();
-  const token = await messaging().getToken();
-  const push_provider_name = pushConfig.android.pushProviderName;
-  await client.addDevice(token, 'firebase', push_provider_name);
+  const setDeviceToken = async (token: string) => {
+    const push_provider_name = pushConfig.android.pushProviderName;
+    await client.addDevice(token, 'firebase', push_provider_name);
+  };
+  if (pushConfig.isExpo) {
+    const expoNotificationsLib = getExpoNotificationsLib();
+    const subscription = expoNotificationsLib.addPushTokenListener(
+      (devicePushToken) => {
+        setDeviceToken(devicePushToken.data);
+      },
+    );
+    setUnsubscribeListener(() => subscription.remove());
+    const devicePushToken =
+      await expoNotificationsLib.getDevicePushTokenAsync();
+    const token = devicePushToken.data;
+    await setDeviceToken(token);
+  } else {
+    const messaging = getFirebaseMessagingLib();
+    const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
+      setDeviceToken(refreshedToken),
+    );
+    setUnsubscribeListener(unsubscribe);
+    const token = await messaging().getToken();
+    await setDeviceToken(token);
+  }
 }
 
 const firebaseMessagingOnMessageHandler = async (
-  message: FirebaseMessagingTypes.RemoteMessage,
+  data: FirebaseMessagingTypes.RemoteMessage['data'],
   pushConfig: PushConfig,
 ) => {
-  if (Platform.OS !== 'android') {
-    return;
-  }
   /* Example data from firebase
     "message": {
         "data": {
@@ -72,7 +132,6 @@ const firebaseMessagingOnMessageHandler = async (
         // other stuff
     }
   */
-  const data = message.data;
   if (!data || data.sender !== 'stream.video') {
     return;
   }

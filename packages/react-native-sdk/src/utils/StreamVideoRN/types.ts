@@ -18,6 +18,7 @@ export type StreamVideoConfig = {
    * @default undefined
    */
   push?: {
+    isExpo?: boolean;
     ios: {
       /**
        * The name for the alias of push provider used for iOS

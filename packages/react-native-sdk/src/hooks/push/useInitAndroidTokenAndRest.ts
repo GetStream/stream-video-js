@@ -18,6 +18,12 @@ export const useInitAndroidTokenAndRest = () => {
     if (!client || !connectedUserId || !pushConfig) {
       return;
     }
-    initAndroidPushToken(client, pushConfig);
+    let unsubscribe = () => {};
+    initAndroidPushToken(client, pushConfig, (unsubscribeListener) => {
+      unsubscribe = unsubscribeListener;
+    });
+    return () => {
+      unsubscribe();
+    };
   }, [client, connectedUserId]);
 };

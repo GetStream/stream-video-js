@@ -2748,7 +2748,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/config-plugins@npm:^7.2.5":
+"@expo/config-plugins@npm:^7.2.5, @expo/config-plugins@npm:~7.4.0":
   version: 7.4.0
   resolution: "@expo/config-plugins@npm:7.4.0"
   dependencies:
@@ -2850,6 +2850,25 @@ __metadata:
     slugify: ^1.3.4
     sucrase: ^3.20.0
   checksum: 4f607d41701fd07b9e003198be740bc9430126fdc06eddbf75c2c7cbcd63d371943044d4feecead49868f79159da49af0b0c60fcd0918ee597b6a2e70195d9e6
+  languageName: node
+  linkType: hard
+
+"@expo/config@npm:~8.3.0":
+  version: 8.3.0
+  resolution: "@expo/config@npm:8.3.0"
+  dependencies:
+    "@babel/code-frame": ~7.10.4
+    "@expo/config-plugins": ~7.4.0
+    "@expo/config-types": ^50.0.0-alpha.1
+    "@expo/json-file": ^8.2.37
+    getenv: ^1.0.0
+    glob: 7.1.6
+    require-from-string: ^2.0.2
+    resolve-from: ^5.0.0
+    semver: 7.5.3
+    slugify: ^1.3.4
+    sucrase: ^3.20.0
+  checksum: 23fe846d5831a3073944bfbbcf2f17a2ad0362a99ae6a32a2f9a3640d5cd2612f32399e0dbb16308f20144468c397dd26c540218065a176b7875701b58d6af29
   languageName: node
   linkType: hard
 
@@ -4659,6 +4678,17 @@ __metadata:
     "@types/react":
       optional: true
   checksum: edf5edf435ff594bea7e198bf16d46caf81b6fb559493acad4fa8c308218896136acb16f9b7238c788fd13e94a904f2fd0b6d834e530e4cae94522cdb8f77ce9
+  languageName: node
+  linkType: hard
+
+"@react-native-async-storage/async-storage@npm:1.17.11":
+  version: 1.17.11
+  resolution: "@react-native-async-storage/async-storage@npm:1.17.11"
+  dependencies:
+    merge-options: ^3.0.4
+  peerDependencies:
+    react-native: ^0.0.0-0 || 0.60 - 0.71 || 1000.0.0
+  checksum: 691f2b74498160d0b532f673402d8affeecb28b005b1c6d6fa2e7c87f89ab3068177e8e2d2686738306e7592a39c6d7148aa4c426b7e8e149c43a336ad446648
   languageName: node
   linkType: hard
 
@@ -6905,6 +6935,7 @@ __metadata:
     "@config-plugins/react-native-callkeep": ^6.0.0
     "@config-plugins/react-native-webrtc": ^7.0.0
     "@notifee/react-native": ^7.8.0
+    "@react-native-async-storage/async-storage": 1.17.11
     "@react-native-community/netinfo": 9.3.7
     "@rnx-kit/babel-preset-metro-react-native": ^1.1.3
     "@rnx-kit/metro-config": ^1.3.3
@@ -6920,6 +6951,7 @@ __metadata:
     expo-router: ^1.0.0
     expo-splash-screen: ~0.18.2
     expo-status-bar: ~1.4.4
+    expo-task-manager: ~11.1.1
     metro: 0.76.0
     metro-resolver: 0.76.0
     react: 18.2.0
@@ -6927,7 +6959,7 @@ __metadata:
     react-native-device-info: ^10.8.0
     react-native-gesture-handler: ~2.9.0
     react-native-incall-manager: ^4.1.0
-    react-native-reanimated: ~2.14.4
+    react-native-reanimated: 2.14.4
     react-native-safe-area-context: 4.5.0
     react-native-screens: ~3.20.0
     react-native-svg: 13.4.0
@@ -7250,6 +7282,8 @@ __metadata:
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18
     "@types/rimraf": ^3.0.2
+    expo-notifications: 0.23.0
+    expo-task-manager: 11.5.0
     intl-pluralrules: 2.0.1
     jest: ^29.5.0
     lodash.merge: ^4.6.2
@@ -7274,6 +7308,8 @@ __metadata:
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
     "@stream-io/react-native-webrtc": ">=104.0.1"
+    expo-notifications: "*"
+    expo-task-manager: "*"
     react: ">=17.0.0"
     react-native: ">=0.67.0"
     react-native-callkeep: ">=4.3.11"
@@ -7286,6 +7322,10 @@ __metadata:
     "@react-native-firebase/app":
       optional: true
     "@react-native-firebase/messaging":
+      optional: true
+    expo-notifications:
+      optional: true
+    expo-task-manager:
       optional: true
     react-native-callkeep:
       optional: true
@@ -14756,6 +14796,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-application@npm:~5.4.0":
+  version: 5.4.0
+  resolution: "expo-application@npm:5.4.0"
+  peerDependencies:
+    expo: "*"
+  checksum: fbdac212aacc34b653d379404a66dc4db7b4e086818aba44184cd6417b6cf5c44a0e1ea74d739792972a02dab052ad145bfb9583ddcfc432c5f87c55b9a2e198
+  languageName: node
+  linkType: hard
+
 "expo-asset@npm:~8.9.1":
   version: 8.9.2
   resolution: "expo-asset@npm:8.9.2"
@@ -14804,6 +14853,18 @@ __metadata:
   peerDependencies:
     expo: "*"
   checksum: 647fda433b302780eae453a6dc58ea6da4aed42753729b04fd3ecaca277cc1979a67cfeaea2c6a60b82ca5d79f139b08b94576986264a1f13b0ef1bfc2911d01
+  languageName: node
+  linkType: hard
+
+"expo-constants@npm:~15.0.0":
+  version: 15.0.0
+  resolution: "expo-constants@npm:15.0.0"
+  dependencies:
+    "@expo/config": ~8.3.0
+    uuid: ^3.3.2
+  peerDependencies:
+    expo: "*"
+  checksum: 74456c8e394e6451a4d4042dd96aee86348af11630b14e4741a2e54766aa610c6b77578d7ba01f35d51dc5fbc7b6f4b188fb98ed46fd74a0963189277a524364
   languageName: node
   linkType: hard
 
@@ -14887,6 +14948,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-notifications@npm:0.23.0":
+  version: 0.23.0
+  resolution: "expo-notifications@npm:0.23.0"
+  dependencies:
+    "@expo/image-utils": ^0.3.18
+    "@ide/backoff": ^1.0.0
+    abort-controller: ^3.0.0
+    assert: ^2.0.0
+    badgin: ^1.1.5
+    expo-application: ~5.4.0
+    expo-constants: ~15.0.0
+    fs-extra: ^9.1.0
+    uuid: ^3.4.0
+  peerDependencies:
+    expo: "*"
+  checksum: 5e1452d6c35f90b7fdfa330108d2a32e4924f3bd2ea9b45be754b962995c7cb3f23a1299a75e631f515dc5781f3ea24e99f235439c733b6feb73399e4c4caa41
+  languageName: node
+  linkType: hard
+
 "expo-notifications@npm:~0.18.1":
   version: 0.18.1
   resolution: "expo-notifications@npm:0.18.1"
@@ -14967,6 +15047,28 @@ __metadata:
   version: 1.4.4
   resolution: "expo-status-bar@npm:1.4.4"
   checksum: 8d36b821ff2804aed3158f339cc396f0525f365763913881b9b11e6e85e83f21ddbc3a2ede660ae8ce6d6df1a6cda825ad996c3c45f195cbc89091da7605f7e0
+  languageName: node
+  linkType: hard
+
+"expo-task-manager@npm:11.5.0":
+  version: 11.5.0
+  resolution: "expo-task-manager@npm:11.5.0"
+  dependencies:
+    unimodules-app-loader: ~4.3.0
+  peerDependencies:
+    expo: "*"
+  checksum: a2c27db2f651a70d3ede5b974aa705e980a90272513e110bc93e050a4a9001135eb0650a5cc543f1c350d4eb200f729b5f9421f6f0a9049e0284209a1620099f
+  languageName: node
+  linkType: hard
+
+"expo-task-manager@npm:~11.1.1":
+  version: 11.1.1
+  resolution: "expo-task-manager@npm:11.1.1"
+  dependencies:
+    unimodules-app-loader: ~4.1.0
+  peerDependencies:
+    expo: "*"
+  checksum: e52a4b9ca838ebef205d4b49416a576219baf0e046d516ae9664ad783dba7480083bf9de7790fe2cf3db3227ebef5431ddd4aaf1f78f46d0a0cb94ae63e3582d
   languageName: node
   linkType: hard
 
@@ -17868,7 +17970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-plain-obj@npm:^2.0.0":
+"is-plain-obj@npm:^2.0.0, is-plain-obj@npm:^2.1.0":
   version: 2.1.0
   resolution: "is-plain-obj@npm:2.1.0"
   checksum: cec9100678b0a9fe0248a81743041ed990c2d4c99f893d935545cfbc42876cbe86d207f3b895700c690ad2fa520e568c44afc1605044b535a7820c1d40e38daa
@@ -20369,6 +20471,15 @@ __metadata:
   version: 1.0.1
   resolution: "merge-descriptors@npm:1.0.1"
   checksum: 5abc259d2ae25bb06d19ce2b94a21632583c74e2a9109ee1ba7fd147aa7362b380d971e0251069f8b3eb7d48c21ac839e21fa177b335e82c76ec172e30c31a26
+  languageName: node
+  linkType: hard
+
+"merge-options@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "merge-options@npm:3.0.4"
+  dependencies:
+    is-plain-obj: ^2.1.0
+  checksum: d86ddb3dd6e85d558dbf25dc944f3527b6bacb944db3fdda6e84a3f59c4e4b85231095f58b835758b9a57708342dee0f8de0dffa352974a48221487fe9f4584f
   languageName: node
   linkType: hard
 
@@ -24869,6 +24980,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-reanimated@npm:2.14.4":
+  version: 2.14.4
+  resolution: "react-native-reanimated@npm:2.14.4"
+  dependencies:
+    "@babel/plugin-transform-object-assign": ^7.16.7
+    "@babel/preset-typescript": ^7.16.7
+    convert-source-map: ^1.7.0
+    invariant: ^2.2.4
+    lodash.isequal: ^4.5.0
+    setimmediate: ^1.0.5
+    string-hash-64: ^1.0.3
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+    react: "*"
+    react-native: "*"
+  checksum: ec24225a145a8636065b464660256bed99ba5f50c7f6c74899838f5563e59a342ea217c285a06be8bdd5549e2faaf1ebdac6986011a767ba814a4cf469ed9bdb
+  languageName: node
+  linkType: hard
+
 "react-native-reanimated@npm:2.7.0":
   version: 2.7.0
   resolution: "react-native-reanimated@npm:2.7.0"
@@ -24906,25 +25036,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 58096b28caef8af261c446eccb91a5a74caa303ba3520b1a2767c5b922b3d19b9a58612ab9b517a959c1b562b2e76e4cf4a8ffb21136960ed63375f6a4c37d1e
-  languageName: node
-  linkType: hard
-
-"react-native-reanimated@npm:~2.14.4":
-  version: 2.14.4
-  resolution: "react-native-reanimated@npm:2.14.4"
-  dependencies:
-    "@babel/plugin-transform-object-assign": ^7.16.7
-    "@babel/preset-typescript": ^7.16.7
-    convert-source-map: ^1.7.0
-    invariant: ^2.2.4
-    lodash.isequal: ^4.5.0
-    setimmediate: ^1.0.5
-    string-hash-64: ^1.0.3
-  peerDependencies:
-    "@babel/core": ^7.0.0-0
-    react: "*"
-    react-native: "*"
-  checksum: ec24225a145a8636065b464660256bed99ba5f50c7f6c74899838f5563e59a342ea217c285a06be8bdd5549e2faaf1ebdac6986011a767ba814a4cf469ed9bdb
   languageName: node
   linkType: hard
 
@@ -28913,6 +29024,20 @@ __metadata:
     trough: ^1.0.0
     vfile: ^4.0.0
   checksum: 7c24461be7de4145939739ce50d18227c5fbdf9b3bc5a29dabb1ce26dd3e8bd4a1c385865f6f825f3b49230953ee8b591f23beab3bb3643e3e9dc37aa8a089d5
+  languageName: node
+  linkType: hard
+
+"unimodules-app-loader@npm:~4.1.0":
+  version: 4.1.2
+  resolution: "unimodules-app-loader@npm:4.1.2"
+  checksum: 53f6b587b2cb5158a5808463378954b35ce07b00ccb182fe70b48f069728d2aba4dd4e4d3bc2334b25af70893293300c06ead9489dcbfe4c9fee0311b32ca95d
+  languageName: node
+  linkType: hard
+
+"unimodules-app-loader@npm:~4.3.0":
+  version: 4.3.0
+  resolution: "unimodules-app-loader@npm:4.3.0"
+  checksum: 8c9eb0d15b18ba7284c81a75b39dffbef4866952467f3509f2cca74024609ec87222900017a88f8458a056cc9ff0ff2bc1c51d7ad3badc441b51820734ab98bd
   languageName: node
   linkType: hard
 
