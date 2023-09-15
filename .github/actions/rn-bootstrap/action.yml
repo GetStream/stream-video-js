@@ -102,6 +102,12 @@ runs:
       run: npm install -g "https://github.com/GetStream/stream-video-buddy#1.6.9"
       shell: bash
 
+    # Required to emulate the participants during E2E testing
+    - name: Install Chromium
+      if: ${{ env.INSTALL_VIDEO_BUDDY == 'true' }}
+      run: npx playwright install
+      shell: bash
+
     # Required to capture Android video during E2E testing
     - name: Install FFmpeg
       if: ${{ env.INSTALL_FFMPEG == 'true' }}
