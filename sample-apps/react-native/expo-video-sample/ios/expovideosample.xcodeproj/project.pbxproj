@@ -15,6 +15,8 @@
 		96905EF65AED1B983A6B3ABC /* libPods-expovideosample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-expovideosample.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		9C3127A841D64EFAA20D423F /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FFD9A7CF7A7427FA7621F9A /* CallKit.framework */; };
+		D0056A8216044558B5FC1EE7 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 918A30AEE1CC4C3891D15176 /* Intents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +35,9 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-expovideosample/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		442C749AAAAE4F05981B76B6 /* expovideosample-Bridging-Header.h */ = {isa = PBXFileReference; name = "expovideosample-Bridging-Header.h"; path = "expovideosample/expovideosample-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
+		2FFD9A7CF7A7427FA7621F9A /* CallKit.framework */ = {isa = PBXFileReference; name = "CallKit.framework"; path = "System/Library/Frameworks/CallKit.framework"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = wrapper.framework; explicitFileType = undefined; includeInIndex = 0; };
+		918A30AEE1CC4C3891D15176 /* Intents.framework */ = {isa = PBXFileReference; name = "Intents.framework"; path = "System/Library/Frameworks/Intents.framework"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = wrapper.framework; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +46,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				96905EF65AED1B983A6B3ABC /* libPods-expovideosample.a in Frameworks */,
+				9C3127A841D64EFAA20D423F /* CallKit.framework in Frameworks */,
+				D0056A8216044558B5FC1EE7 /* Intents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +66,7 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				0E2C1688AC9C441FA347BA4D /* noop-file.swift */,
+				442C749AAAAE4F05981B76B6 /* expovideosample-Bridging-Header.h */,
 			);
 			name = expovideosample;
 			sourceTree = "<group>";
@@ -68,6 +76,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				58EEBF8E8E6FB1BC6CAF49B5 /* libPods-expovideosample.a */,
+				2FFD9A7CF7A7427FA7621F9A /* CallKit.framework */,
+				918A30AEE1CC4C3891D15176 /* Intents.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -200,6 +210,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
+				825C9A2A7785441498AB9605 /* expovideosample-Bridging-Header.h in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,11 +353,16 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.expovideosample;
-				PRODUCT_NAME = expovideosample;
+				PRODUCT_NAME = "expovideosample";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				SWIFT_OBJC_BRIDGING_HEADER = expovideosample/expovideosample-Bridging-Header.h;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep",
+				);
 			};
 			name = Debug;
 		};
@@ -370,10 +386,15 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = io.getstream.expovideosample;
-				PRODUCT_NAME = expovideosample;
+				PRODUCT_NAME = "expovideosample";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				SWIFT_OBJC_BRIDGING_HEADER = expovideosample/expovideosample-Bridging-Header.h;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep",
+				);
 			};
 			name = Release;
 		};
