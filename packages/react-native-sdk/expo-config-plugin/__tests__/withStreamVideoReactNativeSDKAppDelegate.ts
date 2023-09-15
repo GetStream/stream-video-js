@@ -1,5 +1,5 @@
 import { getFixture } from '../fixtures/index';
-import withStreamVideoReactNativeSDKAppDelegate from '../src/withAppDelegate';
+import withStreamVideoReactNativeSDKAppDelegate from '../src/withStreamVideoReactNativeSDKAppDelegate';
 import { ExpoConfig } from '@expo/config-types';
 import { insertContentsInsideObjcFunctionBlock } from '@expo/config-plugins/build/ios/codeMod';
 

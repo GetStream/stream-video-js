@@ -66,8 +66,10 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 {
   [StreamVideoReactNative setup];
   [FIRApp configure];
+  NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
+  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
   [RNCallKeep setup:@{
-    @"appName": @"Stream React Native Video SDK Sample App",
+    @"appName": localizedAppName != nil ? localizedAppName : appName,
     @"supportsVideo": @YES,
     @"includesCallsInRecents": @NO,
   }];

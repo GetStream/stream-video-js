@@ -78,7 +78,6 @@ In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. B
 ```xml
 <key>UIBackgroundModes</key>
 <array>
-  <string>remote-notification</string>
   <string>voip</string>
 </array>
 ```
@@ -115,10 +114,11 @@ We need to configure the Firebase library, set up the callkeep library and regis
   // highlight-next-line
   [FIRApp configure];
 
-  // add your app name here
   // highlight-start
+  NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
+  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
   [RNCallKeep setup:@{
-    @"appName": @"My awesome app",
+    @"appName": localizedAppName != nil ? localizedAppName : appName,
     @"supportsVideo": @YES,
     // pass @YES here if you want the call to be shown in calls history in the built-in dialer app
     @"includesCallsInRecents": @NO,

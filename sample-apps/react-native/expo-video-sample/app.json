@@ -30,7 +30,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "@stream-io/video-react-native-sdk",
+      [
+        "@stream-io/video-react-native-sdk",
+        {
+          "ringingPushNotifications": {
+            "disableVideo": false,
+            "includesCallsInRecents": false
+          }
+        }
+      ],
       "@config-plugins/react-native-callkeep",
       [
         "@config-plugins/react-native-webrtc",
