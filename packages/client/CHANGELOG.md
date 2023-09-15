@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.18](https://github.com/GetStream/stream-video-js/compare/client0.3.17...client0.3.18) (2023-09-15)
+
+
+### Bug Fixes
+
+* **DynascaleManager:** update subscription upon cleanup ([#1089](https://github.com/GetStream/stream-video-js/issues/1089)) ([bad8ac1](https://github.com/GetStream/stream-video-js/commit/bad8ac1651594b237b96987521000008753a80a5))
+
 ### [0.3.17](https://github.com/GetStream/stream-video-js/compare/client0.3.16...client0.3.17) (2023-09-14)
 
 
