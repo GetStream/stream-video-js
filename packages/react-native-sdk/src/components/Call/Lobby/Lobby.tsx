@@ -145,7 +145,7 @@ export const Lobby = ({
                   '{{ numberOfParticipants }} participant(s) are in the call.',
                   { numberOfParticipants: participantsCount },
                 )
-              : t('You are first to Join the call.'))}
+              : t('You are first to join the call.'))}
         </Text>
         {JoinCallButton && (
           <JoinCallButton onJoinCallHandler={onJoinCallHandler} />
