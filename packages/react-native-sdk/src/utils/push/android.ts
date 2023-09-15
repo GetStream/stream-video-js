@@ -14,7 +14,6 @@ import {
   pushTappedIncomingCallCId$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
-import type { PushNotificationTrigger } from 'expo-notifications';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -32,25 +31,21 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     const BACKGROUND_NOTIFICATION_TASK =
       'STREAM-VIDEO-SDK-INTERNAL-BACKGROUND-NOTIFICATION-TASK';
 
-    TaskManager.defineTask<PushNotificationTrigger>(
-      BACKGROUND_NOTIFICATION_TASK,
-      ({ data, error }) => {
-        console.log({ data, error });
-        if (error) {
-          return;
-        }
-        firebaseMessagingOnMessageHandler(
-          data?.remoteMessage?.data,
-          pushConfig,
-        );
-      },
-    );
+    TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, ({ data, error }) => {
+      if (error) {
+        return;
+      }
+      // @ts-ignore
+      const dataToProcess = data.notification?.data;
+      firebaseMessagingOnMessageHandler(dataToProcess, pushConfig);
+    });
     // background handler
     Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
     // foreground handler
     Notifications.setNotificationHandler({
       handleNotification: async (notification) => {
-        const data = notification.request.content.data;
+        // @ts-ignore
+        const data = notification?.request?.trigger?.remoteMessage?.data;
         await firebaseMessagingOnMessageHandler(data, pushConfig);
         return {
           shouldShowAlert: false,
