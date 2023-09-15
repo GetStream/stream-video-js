@@ -16,6 +16,7 @@ import {
   distinctUntilChanged,
   distinctUntilKeyChanged,
   map,
+  shareReplay,
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
@@ -167,6 +168,7 @@ export class DynascaleManager {
       ),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
+      shareReplay(1),
     );
 
     // keep copy for resize observer handler
@@ -284,6 +286,7 @@ export class DynascaleManager {
     videoElement.muted = true;
 
     return () => {
+      requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
       viewportVisibilityStateSubscription?.unsubscribe();
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();

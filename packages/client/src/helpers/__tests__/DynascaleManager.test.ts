@@ -226,6 +226,12 @@ describe('DynascaleManager', () => {
       );
 
       cleanup?.();
+
+      expect(updateSubscription).toHaveBeenCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.IMMEDIATE,
+      );
     });
 
     it('video: should play video when track becomes available', () => {
@@ -271,6 +277,12 @@ describe('DynascaleManager', () => {
       expect(videoElement.srcObject).toBe(mediaStream);
 
       cleanup?.();
+
+      expect(updateSubscription).toHaveBeenCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.IMMEDIATE,
+      );
     });
 
     it('video: should update subscription when element becomes visible', () => {
@@ -353,6 +365,12 @@ describe('DynascaleManager', () => {
       );
 
       cleanup?.();
+
+      expect(updateSubscription).toHaveBeenCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.IMMEDIATE,
+      );
     });
 
     it('video: should update subscription when element resizes', () => {
@@ -417,6 +435,12 @@ describe('DynascaleManager', () => {
       );
 
       cleanup?.();
+
+      expect(updateSubscription).toHaveBeenCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.IMMEDIATE,
+      );
     });
   });
 });
