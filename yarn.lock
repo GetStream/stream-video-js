@@ -7162,7 +7162,6 @@ __metadata:
     metro-resolver: 0.76.0
     react: 18.2.0
     react-native: 0.72.4
-    react-native-device-info: ^10.8.0
     react-native-gesture-handler: ~2.12.0
     react-native-incall-manager: ^4.1.0
     react-native-reanimated: ~3.3.0
@@ -7488,6 +7487,7 @@ __metadata:
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-test-renderer": ^18
     "@types/rimraf": ^3.0.2
+    expo-modules-core: 1.5.11
     expo-notifications: 0.23.0
     expo-task-manager: 11.5.0
     intl-pluralrules: 2.0.1
@@ -25672,15 +25672,6 @@ __metadata:
     jscodeshift: ^0.13.1
     nullthrows: ^1.1.1
   checksum: d3a40b557d4b3a0d51664070eb8388b0dde247a0518025ff5a815d3573c98ff16f616df8236e827ee16625f685169931db5c966dd144d860ad5aed437b65b28c
-  languageName: node
-  linkType: hard
-
-"react-native-device-info@npm:^10.8.0":
-  version: 10.9.0
-  resolution: "react-native-device-info@npm:10.9.0"
-  peerDependencies:
-    react-native: "*"
-  checksum: 529404d80da56b88deaea0294e7a372159d027e1eb55a91ecd46d1281d04a36197f8ba8bfe56dbd786c89dd2e64b4f7cb0784513f003724289ac3af7f8b7a9d8
   languageName: node
   linkType: hard
 

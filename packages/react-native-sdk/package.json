@@ -115,6 +115,7 @@
     "@types/react-native-incall-manager": "^3.2.1",
     "@types/react-test-renderer": "^18",
     "@types/rimraf": "^3.0.2",
+    "expo-modules-core": "1.5.11",
     "expo-notifications": "0.23.0",
     "expo-task-manager": "11.5.0",
     "jest": "^29.5.0",
