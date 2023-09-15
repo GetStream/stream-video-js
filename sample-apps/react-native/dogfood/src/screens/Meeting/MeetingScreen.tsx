@@ -41,13 +41,7 @@ export const MeetingScreen = (props: Props) => {
   }
 
   return (
-    <StreamCall
-      call={call}
-      mediaDeviceInitialState={{
-        initialAudioEnabled: false,
-        initialVideoEnabled: false,
-      }}
-    >
+    <StreamCall call={call}>
       <MeetingUI callId={callId} {...props} />
     </StreamCall>
   );

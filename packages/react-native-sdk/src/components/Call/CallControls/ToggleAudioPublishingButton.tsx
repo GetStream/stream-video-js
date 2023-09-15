@@ -46,15 +46,13 @@ export const ToggleAudioPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <CallControlsButton
         onPress={onPress}
-        color={
-          status === 'disabled' ? colors.overlay_dark : colors.static_white
-        }
+        color={status === 'enabled' ? colors.static_white : colors.overlay_dark}
         style={toggleAudioPublishingButton}
       >
-        {status === 'disabled' ? (
-          <MicOff color={colors.static_white} />
-        ) : (
+        {status === 'enabled' ? (
           <Mic color={colors.static_black} />
+        ) : (
+          <MicOff color={colors.static_white} />
         )}
       </CallControlsButton>
     </Restricted>
