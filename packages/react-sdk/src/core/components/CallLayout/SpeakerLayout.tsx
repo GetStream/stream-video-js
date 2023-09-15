@@ -23,6 +23,7 @@ import {
   useVerticalScrollPosition,
 } from '../../../hooks';
 import clsx from 'clsx';
+import { useCalculateHardLimit } from '../../hooks';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
@@ -32,6 +33,11 @@ export type SpeakerLayoutProps = {
    * Providing `null` will hide the bar.
    */
   participantsBarPosition?: 'top' | 'bottom' | 'left' | 'right' | null;
+  /**
+   * Hard limits the number of the participants rendered in the participants bar.
+   * Providing string `dynamic` will calculate hard limit based on screen width/height.
+   */
+  participantsBarLimit?: 'dynamic' | number;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'>;
 
 const DefaultParticipantViewUIBar = () => (
@@ -45,21 +51,37 @@ export const SpeakerLayout = ({
   ParticipantViewUISpotlight = DefaultParticipantViewUISpotlight,
   VideoPlaceholder,
   participantsBarPosition = 'bottom',
+  participantsBarLimit,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
-  const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
-    null,
+  const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
+    useState<HTMLDivElement | null>(null);
+  const [participantsBarElement, setParticipantsBarElement] =
+    useState<HTMLDivElement | null>(null);
+  const [buttonsWrapperElement, setButtonsWrapperElement] =
+    useState<HTMLDivElement | null>(null);
+
+  const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
+  const hardLimit = useCalculateHardLimit(
+    buttonsWrapperElement,
+    participantsBarElement,
+    participantsBarLimit,
   );
+
+  const isVertical =
+    participantsBarPosition === 'left' || participantsBarPosition === 'right';
+  const isHorizontal =
+    participantsBarPosition === 'top' || participantsBarPosition === 'bottom';
   const isOneOnOneCall = otherParticipants.length === 1;
 
   useEffect(() => {
-    if (!scrollWrapper || !call) return;
+    if (!participantsBarWrapperElement || !call) return;
 
-    const cleanup = call.setViewport(scrollWrapper);
+    const cleanup = call.setViewport(participantsBarWrapperElement);
     return () => cleanup();
-  }, [scrollWrapper, call]);
+  }, [participantsBarWrapperElement, call]);
 
   useEffect(() => {
     if (!call) return;
@@ -79,9 +101,23 @@ export const SpeakerLayout = ({
     };
   }, [call, isOneOnOneCall]);
 
+  let participantsWithAppliedLimit = otherParticipants;
+
+  if (typeof participantsBarLimit !== 'undefined') {
+    const hardLimitToApply = isVertical
+      ? hardLimit.vertical
+      : hardLimit.horizontal;
+
+    participantsWithAppliedLimit = otherParticipants.slice(
+      0,
+      // subtract 1 if speaker is sharing screen as
+      // that one is rendered independently from otherParticipants array
+      hardLimitToApply - (isSpeakerScreenSharing ? 1 : 0),
+    );
+  }
+
   if (!call) return null;
 
-  const isSpeakerScreenSharing = hasScreenShare(participantInSpotlight);
   return (
     <div className="str-video__speaker-layout__wrapper">
       <div
@@ -104,13 +140,19 @@ export const SpeakerLayout = ({
             />
           )}
         </div>
-        {otherParticipants.length > 0 && participantsBarPosition && (
-          <div className="str-video__speaker-layout__participants-bar-buttons-wrapper">
+        {participantsWithAppliedLimit.length > 0 && participantsBarPosition && (
+          <div
+            ref={setButtonsWrapperElement}
+            className="str-video__speaker-layout__participants-bar-buttons-wrapper"
+          >
             <div
               className="str-video__speaker-layout__participants-bar-wrapper"
-              ref={setScrollWrapper}
+              ref={setParticipantsBarWrapperElement}
             >
-              <div className="str-video__speaker-layout__participants-bar">
+              <div
+                ref={setParticipantsBarElement}
+                className="str-video__speaker-layout__participants-bar"
+              >
                 {isSpeakerScreenSharing && (
                   <div
                     className="str-video__speaker-layout__participant-tile"
@@ -123,7 +165,7 @@ export const SpeakerLayout = ({
                     />
                   </div>
                 )}
-                {otherParticipants.map((participant) => (
+                {participantsWithAppliedLimit.map((participant) => (
                   <div
                     className="str-video__speaker-layout__participant-tile"
                     key={participant.sessionId}
@@ -137,13 +179,15 @@ export const SpeakerLayout = ({
                 ))}
               </div>
             </div>
-            {(participantsBarPosition === 'left' ||
-              participantsBarPosition === 'right') && (
-              <VerticalScrollButtons scrollWrapper={scrollWrapper} />
+            {isVertical && (
+              <VerticalScrollButtons
+                scrollWrapper={participantsBarWrapperElement}
+              />
             )}
-            {(participantsBarPosition === 'top' ||
-              participantsBarPosition === 'bottom') && (
-              <HorizontalScrollButtons scrollWrapper={scrollWrapper} />
+            {isHorizontal && (
+              <HorizontalScrollButtons
+                scrollWrapper={participantsBarWrapperElement}
+              />
             )}
           </div>
         )}
