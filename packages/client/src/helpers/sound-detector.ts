@@ -82,7 +82,13 @@ export const createSoundDetector = (
         ? 100
         : Math.round((averagedDataValue / audioLevelThreshold) * 100);
 
-    onSoundDetectedStateChanged({ isSoundDetected, audioLevel: percentage });
+    // When the track is disabled, it takes time for the buffer to empty
+    // This check will ensure that we don't send anything if the track is disabled
+    if (audioStream.getAudioTracks()[0]?.enabled) {
+      onSoundDetectedStateChanged({ isSoundDetected, audioLevel: percentage });
+    } else {
+      onSoundDetectedStateChanged({ isSoundDetected: false, audioLevel: 0 });
+    }
   }, detectionFrequencyInMs);
 
   return async function stop() {
