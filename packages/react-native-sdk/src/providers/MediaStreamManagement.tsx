@@ -99,6 +99,7 @@ export const MediaStreamManagement = ({
     if (!settings) {
       return;
     }
+
     const { audio, video } = settings;
     setInitialDeviceState((prev) => {
       let initAudio = prev.initialAudioEnabled;

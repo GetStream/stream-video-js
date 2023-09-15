@@ -44,14 +44,12 @@ export const ToggleVideoPublishingButton = ({
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <CallControlsButton
         onPress={onPress}
-        color={
-          status === 'disabled' ? colors.overlay_dark : colors.static_white
-        }
+        color={status === 'enabled' ? colors.static_white : colors.overlay_dark}
       >
-        {status === 'disabled' ? (
-          <VideoSlash color={colors.static_white} />
-        ) : (
+        {status === 'enabled' ? (
           <Video color={colors.static_black} />
+        ) : (
+          <VideoSlash color={colors.static_white} />
         )}
       </CallControlsButton>
     </Restricted>
