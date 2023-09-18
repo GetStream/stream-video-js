@@ -104,35 +104,8 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     setAudioOutputVisible(!isAudioOutputVisible);
   }, [isAudioOutputVisible]);
 
-  const rootClassName = classnames(styles.root, className);
-
   return (
-    <div className={rootClassName}>
-      {isAudioOutputChangeSupported ? (
-        <PanelButton
-          className={styles.speakerButton}
-          prefix={<Speaker />}
-          portalId="audio-output-settings"
-          label="Audio"
-          showPanel={isAudioOutputVisible}
-          onClick={() => toggleAudioOutputPanel()}
-          panel={
-            <Portal
-              className={styles.audioSettings}
-              selector="audio-output-settings"
-            >
-              <ControlMenuPanel
-                className={styles.panel}
-                selectedDeviceId={selectedAudioOutputDeviceId}
-                selectDevice={switchDevice}
-                devices={audioOutputDevices}
-                title="Select an Audio Output"
-              />
-            </Portal>
-          }
-        />
-      ) : null}
-
+    <div className={classnames(styles.root, className)}>
       <ControlButton
         className={styles.audioButton}
         onClick={audio}
@@ -170,6 +143,31 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
           </Portal>
         }
       />
+
+      {isAudioOutputChangeSupported ? (
+        <PanelButton
+          className={styles.speakerButton}
+          prefix={<Speaker />}
+          portalId="audio-output-settings"
+          label="Audio"
+          showPanel={isAudioOutputVisible}
+          onClick={() => toggleAudioOutputPanel()}
+          panel={
+            <Portal
+              className={styles.audioSettings}
+              selector="audio-output-settings"
+            >
+              <ControlMenuPanel
+                className={styles.panel}
+                selectedDeviceId={selectedAudioOutputDeviceId}
+                selectDevice={switchDevice}
+                devices={audioOutputDevices}
+                title="Select an Audio Output"
+              />
+            </Portal>
+          }
+        />
+      ) : null}
     </div>
   );
 };
