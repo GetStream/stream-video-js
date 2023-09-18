@@ -25,31 +25,40 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
       return config;
     }
     if (['objc', 'objcpp'].includes(config.modResults.language)) {
-      // all the imports that are needed
-      config.modResults.contents = addObjcImports(config.modResults.contents, [
-        '"RNCallKeep.h"',
-        '<PushKit/PushKit.h>',
-        '"RNVoipPushNotificationManager.h"',
-      ]);
+      try {
+        // all the imports that are needed
+        config.modResults.contents = addObjcImports(
+          config.modResults.contents,
+          [
+            '"RNCallKeep.h"',
+            '<PushKit/PushKit.h>',
+            '"RNVoipPushNotificationManager.h"',
+          ],
+        );
 
-      config.modResults.contents = addDidFinishLaunchingWithOptions(
-        config.modResults.contents,
-        props.ringingPushNotifications,
-      );
+        config.modResults.contents = addDidFinishLaunchingWithOptions(
+          config.modResults.contents,
+          props.ringingPushNotifications,
+        );
 
-      config.modResults.contents = addDidUpdatePushCredentials(
-        config.modResults.contents,
-      );
+        config.modResults.contents = addDidUpdatePushCredentials(
+          config.modResults.contents,
+        );
 
-      config.modResults.contents = addDidReceiveIncomingPushCallback(
-        config.modResults.contents,
-      );
+        config.modResults.contents = addDidReceiveIncomingPushCallback(
+          config.modResults.contents,
+        );
+        return config;
+      } catch (error: any) {
+        throw new Error(
+          'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed',
+        );
+      }
     } else {
       throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the AppDelegate is malformed',
+        'Cannot setup StreamVideoReactNativeSDK because the language is not supported',
       );
     }
-    return config;
   });
 };
 
@@ -122,7 +131,7 @@ function addDidReceiveIncomingPushCallback(contents: string) {
   const onIncomingPush = `
   // send event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
+
   // process the payload
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];

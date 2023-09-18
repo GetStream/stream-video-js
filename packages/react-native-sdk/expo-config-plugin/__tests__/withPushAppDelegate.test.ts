@@ -115,11 +115,12 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
   it('should throw error for malformed manifest', () => {
     // Prepare a mock config
-    const config: CustomExpoConfig = {
+    let config: CustomExpoConfig = {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
         language: 'objc',
+        // malformed contents
         contents: 'blabla',
       },
     };
@@ -127,6 +128,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       ringingPushNotifications: {
         disableVideo: true,
         includesCallsInRecents: false,
+      },
+    };
+    expect(() => withPushAppDelegate(config, props)).toThrow();
+
+    config = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        // unsupported languaage contents
+        language: 'swift',
+        contents: ExpoModulesAppDelegate,
       },
     };
     expect(() => withPushAppDelegate(config, props)).toThrow();
