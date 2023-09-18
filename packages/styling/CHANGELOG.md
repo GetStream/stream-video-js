@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.5...@stream-io/video-styling-0.1.6) (2023-09-18)
+
+
+### Bug Fixes
+
+* hide the video element when a placeholder is visible ([#1094](https://github.com/GetStream/stream-video-js/issues/1094)) ([9efd84c](https://github.com/GetStream/stream-video-js/commit/9efd84cb77b98c372917e6bfa36161763969dddd))
+
 ### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.4...@stream-io/video-styling-0.1.5) (2023-08-15)
 
 
