@@ -56,18 +56,20 @@ Here are some of the features we support:
 ### 0.4 milestone
 - [X] Enhanced device management API
 - [X] Composite layout for streaming and recording
+- [ ] Livestream Player
 - [ ] Screenshare Audio
-- [ ] Hardware-accelerated video encoding on supported platforms
-- [ ] Typescript generics enhancements
+- [ ] Screensharing resolution and FPS control
 - [ ] Fast-reconnects
+- [ ] New Device Management API
 - [X] SFU retries
+- [ ] Query call session endpoint
 
 ### 0.5 milestone
 - [ ] Enhanced UI components and theming
 - [ ] Enhanced SDK build system
-- [ ] Video and audio filters
+- [ ] Typescript generics enhancements
+- [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] Performance and bundle-size optimizations
-- [ ] Dynascale: turn off incoming video when the browser is in the background
 - [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
 - [ ] Call analytics / stats
 - [ ] Logging 2.0
@@ -78,6 +80,8 @@ Here are some of the features we support:
 - [ ] Waiting rooms
 - [ ] Transcriptions
 - [ ] Closed captions
+- [ ] Video and audio filters
+- [ ] Dynascale: turn off incoming video when the browser is in the background
 
 
 ## Contributing
