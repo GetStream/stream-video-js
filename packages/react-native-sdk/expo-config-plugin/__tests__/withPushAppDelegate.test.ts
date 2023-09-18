@@ -79,7 +79,9 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /#import <PushKit\/PushKit.h>/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/#import "RNCallKeep.h"/);
+    expect(updatedConfig.modResults.contents).toMatch(
+      /#import "RNVoipPushNotificationManager.h"/,
+    );
     expect(updatedConfig.modResults.contents).toMatch(/@"supportsVideo": @NO/);
     expect(updatedConfig.modResults.contents).toMatch(
       /@"includesCallsInRecents": @YES/,
@@ -113,7 +115,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     ).toBeTruthy();
   });
 
-  it('should throw error for malformed manifest', () => {
+  it('should throw error for malformed manifest and unsupported language', () => {
     // Prepare a mock config
     let config: CustomExpoConfig = {
       name: 'test-app',
@@ -136,7 +138,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       name: 'test-app',
       slug: 'test-app',
       modResults: {
-        // unsupported languaage contents
+        // unsupported language contents
         language: 'swift',
         contents: ExpoModulesAppDelegate,
       },
