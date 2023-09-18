@@ -105,7 +105,7 @@ runs:
     # Required to emulate the participants during E2E testing
     - name: Install Chromium
       if: ${{ env.INSTALL_VIDEO_BUDDY == 'true' }}
-      run: npx playwright install
+      run: cd && npx playwright install
       shell: bash
 
     # Required to capture Android video during E2E testing
