@@ -62,20 +62,18 @@ export const Video = ({
   const [isWideMode, setIsWideMode] = useState(true);
 
   const stream =
-    trackType === 'none'
-      ? undefined
-      : trackType === 'videoTrack'
+    trackType === 'videoTrack'
       ? videoStream
-      : screenShareStream;
+      : trackType === 'screenShareTrack'
+      ? screenShareStream
+      : undefined;
 
   const isPublishingTrack =
-    trackType === 'none'
-      ? false
-      : publishedTracks.includes(
-          trackType === 'videoTrack'
-            ? SfuModels.TrackType.VIDEO
-            : SfuModels.TrackType.SCREEN_SHARE,
-        );
+    trackType === 'videoTrack'
+      ? publishedTracks.includes(SfuModels.TrackType.VIDEO)
+      : trackType === 'screenShareTrack'
+      ? publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE)
+      : false;
 
   const isInvisible =
     trackType === 'none' ||
@@ -118,14 +116,15 @@ export const Video = ({
 
   if (!call) return null;
 
+  const mirrorVideo = isLocalParticipant && trackType === 'videoTrack';
   return (
     <>
       <video
         {...rest}
         className={clsx(className, 'str-video__video', {
+          'str-video__video--no-video': displayPlaceholder,
           'str-video__video--tall': !isWideMode,
-          'str-video__video--mirror':
-            isLocalParticipant && trackType === 'videoTrack',
+          'str-video__video--mirror': mirrorVideo,
           'str-video__video--screen-share': trackType === 'screenShareTrack',
         })}
         data-user-id={userId}
