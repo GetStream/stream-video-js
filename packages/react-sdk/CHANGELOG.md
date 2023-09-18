@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.22...@stream-io/video-react-sdk-0.3.23) (2023-09-18)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.6`
+
+### Bug Fixes
+
+* hide the video element when a placeholder is visible ([#1094](https://github.com/GetStream/stream-video-js/issues/1094)) ([9efd84c](https://github.com/GetStream/stream-video-js/commit/9efd84cb77b98c372917e6bfa36161763969dddd))
+
 ### [0.3.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.21...@stream-io/video-react-sdk-0.3.22) (2023-09-15)
 
 ### Dependency Updates
