@@ -176,7 +176,7 @@ export class DynascaleManager {
       ),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
-      shareReplay(1),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     /**
@@ -333,6 +333,7 @@ export class DynascaleManager {
       ),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     const updateMediaStreamSubscription = participant$
