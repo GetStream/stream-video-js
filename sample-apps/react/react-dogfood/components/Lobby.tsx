@@ -98,9 +98,9 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                   marginTop: '0.75rem',
                 }}
               >
-                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
                 <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
                 <ToggleVideoPreviewButton />
+                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
               </div>
             )}
           </Box>
