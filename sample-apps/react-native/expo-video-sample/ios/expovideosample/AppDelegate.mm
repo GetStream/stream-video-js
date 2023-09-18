@@ -77,4 +77,32 @@
   return [super application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
 }
 
+- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
+  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
+// send event to JS
+  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
+  
+  // process the payload
+  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+  NSString *uuid = [[NSUUID UUID] UUIDString];
+  NSString *createdCallerName = stream[@"created_by_display_name"];
+
+  // display the incoming call notification
+  [RNCallKeep reportNewIncomingCall: uuid
+                             handle: createdCallerName
+                         handleType: @"generic"
+                           hasVideo: YES
+                localizedCallerName: createdCallerName
+                    supportsHolding: YES
+                       supportsDTMF: YES
+                   supportsGrouping: YES
+                 supportsUngrouping: YES
+                        fromPushKit: YES
+                            payload: stream
+              withCompletionHandler: completion];
+}
+
 @end
