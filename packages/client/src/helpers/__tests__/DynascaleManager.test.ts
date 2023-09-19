@@ -195,7 +195,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -212,7 +212,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -222,7 +222,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       cleanup?.();
@@ -230,7 +230,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -271,7 +271,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
       expect(play).toHaveBeenCalled();
       expect(videoElement.srcObject).toBe(mediaStream);
@@ -281,7 +281,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -308,7 +308,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -369,7 +369,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -417,7 +417,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       // @ts-ignore simulate resize
@@ -439,7 +439,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -471,7 +471,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       cleanup?.();
@@ -479,7 +479,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
   });
