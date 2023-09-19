@@ -11,7 +11,7 @@ import { STREAM_API_KEY } from '../../config';
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     ios: {
-      pushProviderName: 'rn-expo-apn-video',
+      pushProviderName: 'rn-apn-video',
     },
     android: {
       pushProviderName: 'rn-fcm-video',

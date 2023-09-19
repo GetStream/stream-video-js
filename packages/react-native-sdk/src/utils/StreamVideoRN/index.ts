@@ -2,6 +2,7 @@ import { AndroidImportance } from '@notifee/react-native';
 import { defaultEmojiReactions } from '../../constants';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
+import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   supportedReactions: defaultEmojiReactions,
@@ -63,5 +64,11 @@ export class StreamVideoRN {
 
   static getConfig() {
     return this.config;
+  }
+
+  static onLogout() {
+    if (pushLogoutCallbacks.current) {
+      pushLogoutCallbacks.current.forEach((callback) => callback());
+    }
   }
 }

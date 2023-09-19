@@ -14,6 +14,7 @@ import {
   pushTappedIncomingCallCId$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
+import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -82,6 +83,12 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
+    // set the logout callback
+    setPushLogoutCallback(() => {
+      client.removeDevice(token).catch((err) => {
+        console.warn('Failed to remove voip token from stream', err);
+      });
+    });
     const push_provider_name = pushConfig.android.pushProviderName;
     await client.addDevice(token, 'firebase', push_provider_name);
   };

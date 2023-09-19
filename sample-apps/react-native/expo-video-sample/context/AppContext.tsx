@@ -4,7 +4,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { User } from '@stream-io/video-react-native-sdk';
+import { StreamVideoRN, User } from '@stream-io/video-react-native-sdk';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AppContextType = {
   user: User | undefined;
@@ -22,7 +23,10 @@ export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
   }, []);
 
   const logoutHandler = useCallback(() => {
-    setUser(undefined);
+    AsyncStorage.removeItem('my-user').then(() => {
+      StreamVideoRN.onLogout();
+      setUser(undefined);
+    });
   }, []);
 
   const contextValue = useMemo(
