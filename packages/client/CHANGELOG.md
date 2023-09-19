@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.20](https://github.com/GetStream/stream-video-js/compare/client0.3.19...client0.3.20) (2023-09-19)
+
+
+### Features
+
+* Update with new API spec ([#1098](https://github.com/GetStream/stream-video-js/issues/1098)) ([ced372c](https://github.com/GetStream/stream-video-js/commit/ced372ca068086375024d59a977014efcadefef2))
+
 ### [0.3.19](https://github.com/GetStream/stream-video-js/compare/client0.3.18...client0.3.19) (2023-09-15)
 
 
