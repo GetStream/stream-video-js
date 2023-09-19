@@ -138,6 +138,7 @@ export const Video = ({
           }}
         />
       )}
+      {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
       {(hasNoVideoOrInvisible || isVideoPaused) && (
         <VideoPlaceholder
           style={{ position: 'absolute' }}
