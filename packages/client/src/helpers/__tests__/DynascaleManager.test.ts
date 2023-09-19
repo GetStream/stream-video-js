@@ -476,7 +476,7 @@ describe('DynascaleManager', () => {
 
       cleanup?.();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
+      expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.IMMEDIATE,
