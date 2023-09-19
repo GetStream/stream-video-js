@@ -74,12 +74,12 @@ function addDidFinishLaunchingWithOptions(
     ? '@YES'
     : '@NO';
   const setupCallKeep = `NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
-NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
-[RNCallKeep setup:@{
-@"appName": localizedAppName != nil ? localizedAppName : appName,
-@"supportsVideo": ${supportsVideoString},
-@"includesCallsInRecents": ${includesCallsInRecents},
-}];`;
+  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
+  [RNCallKeep setup:@{
+    @"appName": localizedAppName != nil ? localizedAppName : appName,
+    @"supportsVideo": ${supportsVideoString},
+    @"includesCallsInRecents": ${includesCallsInRecents},
+  }];`;
   if (!contents.includes('[RNCallKeep setup:@')) {
     contents = insertContentsInsideObjcFunctionBlock(
       contents,
