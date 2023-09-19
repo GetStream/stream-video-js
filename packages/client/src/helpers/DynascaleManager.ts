@@ -152,6 +152,14 @@ export class DynascaleManager {
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
     ) => {
+      if (dimension && (dimension.width === 0 || dimension.height === 0)) {
+        // ignore 0x0 dimensions. this can happen when the video element
+        // is not visible (e.g., has display: none).
+        // we treat this as "unsubscription" as we don't want to keep
+        // consuming bandwidth for a video that is not visible on the screen.
+        this.logger('debug', `Ignoring 0x0 dimension`, boundParticipant);
+        dimension = undefined;
+      }
       this.call.updateSubscriptionsPartial(
         trackType,
         { [sessionId]: { dimension } },
