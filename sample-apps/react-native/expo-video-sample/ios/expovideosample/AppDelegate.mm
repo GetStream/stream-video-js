@@ -13,12 +13,12 @@
 {
   [RNVoipPushNotificationManager voipRegistration];
   NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
-NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
-[RNCallKeep setup:@{
-@"appName": localizedAppName != nil ? localizedAppName : appName,
-@"supportsVideo": @YES,
-@"includesCallsInRecents": @NO,
-}];
+  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
+  [RNCallKeep setup:@{
+    @"appName": localizedAppName != nil ? localizedAppName : appName,
+    @"supportsVideo": @YES,
+    @"includesCallsInRecents": @NO,
+  }];
   [StreamVideoReactNative setup];
   self.moduleName = @"main";
 
