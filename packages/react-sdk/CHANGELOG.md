@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.24...@stream-io/video-react-sdk-0.3.25) (2023-09-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.22`
+* `@stream-io/video-styling` updated to version `0.1.7`
+
+### Bug Fixes
+
+* unmount video element when there is no video track or participant is invisible ([#1096](https://github.com/GetStream/stream-video-js/issues/1096)) ([bd01835](https://github.com/GetStream/stream-video-js/commit/bd01835f4e93c981ca2e5a7e4e09142ea4e326cf)), closes [#1094](https://github.com/GetStream/stream-video-js/issues/1094)
+
 ### [0.3.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.23...@stream-io/video-react-sdk-0.3.24) (2023-09-19)
 
 ### Dependency Updates
