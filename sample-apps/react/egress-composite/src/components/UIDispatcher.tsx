@@ -16,7 +16,6 @@ export const UIDispatcher = () => {
   const hasScreenShare = useHasOngoingScreenShare();
 
   const DefaultView = layoutMap[layout]?.[0] ?? Spotlight;
-
   const ScreenShareView = layoutMap[screenshare_layout]?.[1] ?? Spotlight;
 
   return hasScreenShare ? <ScreenShareView /> : <DefaultView />;
