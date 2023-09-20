@@ -4,7 +4,7 @@
 
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
-import { Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -195,7 +195,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -212,7 +212,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -222,7 +222,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       cleanup?.();
@@ -230,7 +230,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -271,7 +271,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
       expect(play).toHaveBeenCalled();
       expect(videoElement.srcObject).toBe(mediaStream);
@@ -281,7 +281,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -308,7 +308,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       call.state.updateParticipant('session-id', {
@@ -369,7 +369,7 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
     });
 
@@ -417,7 +417,7 @@ describe('DynascaleManager', () => {
             },
           },
         },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
       );
 
       // @ts-ignore simulate resize
@@ -439,7 +439,47 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
-        DebounceType.IMMEDIATE,
+        DebounceType.FAST,
+      );
+    });
+
+    it('video: should unsubscribe when element dimensions are zero', () => {
+      // @ts-ignore
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+        viewportVisibilityState: {
+          videoTrack: VisibilityState.VISIBLE,
+          screenShareTrack: VisibilityState.UNKNOWN,
+        },
+      });
+
+      let updateSubscription = vi.spyOn(call, 'updateSubscriptionsPartial');
+
+      // @ts-ignore simulate resize
+      videoElement.clientHeight = 0;
+      // @ts-ignore simulate resize
+      videoElement.clientWidth = 0;
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      expect(updateSubscription).toHaveBeenCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.FAST,
+      );
+
+      cleanup?.();
+
+      expect(updateSubscription).toHaveBeenLastCalledWith(
+        'videoTrack',
+        { 'session-id': { dimension: undefined } },
+        DebounceType.FAST,
       );
     });
   });

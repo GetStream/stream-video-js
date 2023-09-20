@@ -120,9 +120,9 @@ describe('call API', () => {
       response = await call.update({
         settings_override: {
           recording: {
-            mode: RecordSettingsRequestModeEnum.AVAILABLE,
             audio_only: false,
             quality: RecordSettingsRequestQualityEnum._1080P,
+            mode: RecordSettingsRequestModeEnum.AUTO_ON,
           },
         },
       });

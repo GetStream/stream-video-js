@@ -152,6 +152,14 @@ export class DynascaleManager {
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
     ) => {
+      if (dimension && (dimension.width === 0 || dimension.height === 0)) {
+        // ignore 0x0 dimensions. this can happen when the video element
+        // is not visible (e.g., has display: none).
+        // we treat this as "unsubscription" as we don't want to keep
+        // consuming bandwidth for a video that is not visible on the screen.
+        this.logger('debug', `Ignoring 0x0 dimension`, boundParticipant);
+        dimension = undefined;
+      }
       this.call.updateSubscriptionsPartial(
         trackType,
         { [sessionId]: { dimension } },
@@ -171,6 +179,12 @@ export class DynascaleManager {
       shareReplay(1),
     );
 
+    /**
+     * Since the video elements are now being removed from the DOM (React SDK) upon
+     * visibility change, this subscription is not in use an stays here only for the
+     * plain JS integrations where integrators might choose not to remove the video
+     * elements from the DOM.
+     */
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
     const viewportVisibilityStateSubscription =
@@ -231,6 +245,8 @@ export class DynascaleManager {
         });
     resizeObserver?.observe(videoElement);
 
+    // element renders and gets bound - track subscription gets
+    // triggered first other ones get skipped on initial subscriptions
     const publishedTracksSubscription = boundParticipant.isLocalParticipant
       ? null
       : participant$
@@ -248,13 +264,13 @@ export class DynascaleManager {
           .subscribe((isPublishing) => {
             if (isPublishing) {
               // the participant just started to publish a track
-              requestTrackWithDimensions(DebounceType.IMMEDIATE, {
+              requestTrackWithDimensions(DebounceType.FAST, {
                 width: videoElement.clientWidth,
                 height: videoElement.clientHeight,
               });
             } else {
               // the participant just stopped publishing a track
-              requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
+              requestTrackWithDimensions(DebounceType.FAST, undefined);
             }
           });
 
@@ -286,7 +302,7 @@ export class DynascaleManager {
     videoElement.muted = true;
 
     return () => {
-      requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
+      requestTrackWithDimensions(DebounceType.FAST, undefined);
       viewportVisibilityStateSubscription?.unsubscribe();
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();

@@ -2,6 +2,7 @@ import {
   ComponentPropsWithoutRef,
   ComponentType,
   useEffect,
+  useLayoutEffect,
   useState,
 } from 'react';
 import {
@@ -58,7 +59,8 @@ export const Video = ({
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
     null,
   );
-  const [videoPlaying, setVideoPlaying] = useState(false);
+  // start with true, will flip once the video starts playing
+  const [isVideoPaused, setIsVideoPaused] = useState(true);
   const [isWideMode, setIsWideMode] = useState(true);
 
   const stream =
@@ -68,20 +70,7 @@ export const Video = ({
       ? screenShareStream
       : undefined;
 
-  const isPublishingTrack =
-    trackType === 'videoTrack'
-      ? publishedTracks.includes(SfuModels.TrackType.VIDEO)
-      : trackType === 'screenShareTrack'
-      ? publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE)
-      : false;
-
-  const isInvisible =
-    trackType === 'none' ||
-    viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
-
-  const displayPlaceholder = !isPublishingTrack || isInvisible || !videoPlaying;
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!call || !videoElement || trackType === 'none') return;
 
     const cleanup = call.bindVideoElement(videoElement, sessionId, trackType);
@@ -98,7 +87,7 @@ export const Video = ({
     if (!track) return;
 
     const handlePlayPause = () => {
-      setVideoPlaying(!videoElement.paused);
+      setIsVideoPaused(videoElement.paused);
 
       const { width = 0, height = 0 } = track.getSettings();
       setIsWideMode(width >= height);
@@ -116,25 +105,41 @@ export const Video = ({
 
   if (!call) return null;
 
+  const isPublishingTrack =
+    trackType === 'videoTrack'
+      ? publishedTracks.includes(SfuModels.TrackType.VIDEO)
+      : trackType === 'screenShareTrack'
+      ? publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE)
+      : false;
+
+  const isInvisible =
+    trackType === 'none' ||
+    viewportVisibilityState?.[trackType] === VisibilityState.INVISIBLE;
+
+  const hasNoVideoOrInvisible = !isPublishingTrack || isInvisible;
   const mirrorVideo = isLocalParticipant && trackType === 'videoTrack';
+  const isScreenShareTrack = trackType === 'screenShareTrack';
   return (
     <>
-      <video
-        {...rest}
-        className={clsx(className, 'str-video__video', {
-          'str-video__video--no-video': displayPlaceholder,
-          'str-video__video--tall': !isWideMode,
-          'str-video__video--mirror': mirrorVideo,
-          'str-video__video--screen-share': trackType === 'screenShareTrack',
-        })}
-        data-user-id={userId}
-        data-session-id={sessionId}
-        ref={(element) => {
-          setVideoElement(element);
-          refs?.setVideoElement?.(element);
-        }}
-      />
-      {displayPlaceholder && (
+      {!hasNoVideoOrInvisible && (
+        <video
+          {...rest}
+          className={clsx(className, 'str-video__video', {
+            'str-video__video--not-playing': isVideoPaused,
+            'str-video__video--tall': !isWideMode,
+            'str-video__video--mirror': mirrorVideo,
+            'str-video__video--screen-share': isScreenShareTrack,
+          })}
+          data-user-id={userId}
+          data-session-id={sessionId}
+          ref={(element) => {
+            setVideoElement(element);
+            refs?.setVideoElement?.(element);
+          }}
+        />
+      )}
+      {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
+      {(hasNoVideoOrInvisible || isVideoPaused) && (
         <VideoPlaceholder
           style={{ position: 'absolute' }}
           participant={participant}
