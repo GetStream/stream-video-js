@@ -147,6 +147,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
 
     return (
       <div
+        data-testid="participant-view"
         ref={(element) => {
           applyElementToRef(ref, element);
           setTrackedElement(element);

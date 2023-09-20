@@ -382,6 +382,8 @@ export class CallState {
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
+      'call.recording_failed': undefined,
+      'call.recording_ready': undefined,
       custom: undefined,
 
       // events that update call state:

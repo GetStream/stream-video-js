@@ -12,7 +12,7 @@ export const Spotlight = () => {
   } = useConfigurationContext();
 
   return (
-    <div className="spotlight">
+    <div className="spotlight" data-testid="spotlight">
       <SpeakerLayout
         participantsBarPosition={barPosition}
         ParticipantViewUIBar={

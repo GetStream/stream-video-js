@@ -814,7 +814,7 @@ export interface CallReactionEvent {
   type: string;
 }
 /**
- *
+ * CallRecording represents a recording of a call.
  * @export
  * @interface CallRecording
  */
@@ -843,6 +843,62 @@ export interface CallRecording {
    * @memberof CallRecording
    */
   url: string;
+}
+/**
+ * This event is sent when call recording has failed
+ * @export
+ * @interface CallRecordingFailedEvent
+ */
+export interface CallRecordingFailedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.recording_failed" in this case
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call recording is ready
+ * @export
+ * @interface CallRecordingReadyEvent
+ */
+export interface CallRecordingReadyEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {CallRecording}
+   * @memberof CallRecordingReadyEvent
+   */
+  call_recording: CallRecording;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.recording_ready" in this case
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when call recording has started
@@ -1487,12 +1543,6 @@ export interface CallSettingsResponse {
  * @interface CallStateResponseFields
  */
 export interface CallStateResponseFields {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof CallStateResponseFields
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -2229,12 +2279,6 @@ export interface GeofenceSettingsRequest {
 export interface GetCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof GetCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof GetCallResponse
    */
@@ -2369,12 +2413,6 @@ export interface GetOrCreateCallRequest {
  * @interface GetOrCreateCallResponse
  */
 export interface GetOrCreateCallResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof GetOrCreateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -2611,12 +2649,6 @@ export interface JoinCallRequest {
  * @interface JoinCallResponse
  */
 export interface JoinCallResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof JoinCallResponse
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -4003,12 +4035,6 @@ export interface UpdateCallRequest {
 export interface UpdateCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof UpdateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof UpdateCallResponse
    */
@@ -4314,6 +4340,8 @@ export type VideoEvent =
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
   | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_failed' } & CallRecordingFailedEvent)
+  | ({ type: 'call.recording_ready' } & CallRecordingReadyEvent)
   | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
   | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
   | ({ type: 'call.rejected' } & CallRejectedEvent)
