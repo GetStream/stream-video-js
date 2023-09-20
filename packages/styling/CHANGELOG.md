@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.6...@stream-io/video-styling-0.1.7) (2023-09-20)
+
+
+### Bug Fixes
+
+* unmount video element when there is no video track or participant is invisible ([#1096](https://github.com/GetStream/stream-video-js/issues/1096)) ([bd01835](https://github.com/GetStream/stream-video-js/commit/bd01835f4e93c981ca2e5a7e4e09142ea4e326cf)), closes [#1094](https://github.com/GetStream/stream-video-js/issues/1094)
+
 ### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.5...@stream-io/video-styling-0.1.6) (2023-09-18)
 
 
