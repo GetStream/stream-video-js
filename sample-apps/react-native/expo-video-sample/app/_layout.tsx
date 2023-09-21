@@ -11,7 +11,7 @@ const Home = () => {
   }
   return (
     <VideoWrapper>
-      <Stack />
+      <Stack screenOptions={{ headerShown: false }} />
     </VideoWrapper>
   );
 };
