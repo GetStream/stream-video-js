@@ -24,7 +24,7 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     withStreamVideoReactNativeSDKMainApplication,
     withStreamVideoReactNativeSDKAndroidPermissions,
     withStreamVideoReactNativeSDKManifest,
-    withStreamVideoReactNativeSDKiOSInfoPList,
+    () => withStreamVideoReactNativeSDKiOSInfoPList(config, props),
   ]);
 };
 

@@ -1,3 +1,4 @@
+import { ConfigProps } from '../src/common/types';
 import withStreamVideoReactNativeSDKiOSInfoPList from '../src/withiOSInfoPlist';
 import { ExpoConfig } from '@expo/config-types';
 
@@ -32,8 +33,10 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
         UIBackgroundModes: [],
       },
     };
+    const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
+      props,
     ) as CustomExpoConfig;
 
     expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
@@ -47,8 +50,10 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
         UIBackgroundModes: ['audio'],
       },
     };
+    const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
+      props,
     ) as CustomExpoConfig;
 
     expect(modifiedConfig?.modResults?.UIBackgroundModes).toEqual(['audio']);
@@ -62,11 +67,78 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
         UIBackgroundModes: undefined,
       },
     };
-
+    const props: ConfigProps = {};
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
+      props,
     ) as CustomExpoConfig;
 
     expect(modifiedConfig.modResults.UIBackgroundModes).toEqual(['audio']);
+  });
+
+  it('should enable remote notifications for live streaming', async () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        UIBackgroundModes: undefined,
+      },
+    };
+    const props: ConfigProps = {
+      enableLivePushNotifications: true,
+    };
+    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
+      config,
+      props,
+    ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.UIBackgroundModes).toEqual([
+      'audio',
+      'remote-notification',
+    ]);
+  });
+
+  it('should enable remote notifications for call notifications', async () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        UIBackgroundModes: undefined,
+      },
+    };
+    const props: ConfigProps = {
+      enableCallNotifyPushNotifications: true,
+    };
+    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
+      config,
+      props,
+    ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.UIBackgroundModes).toEqual([
+      'audio',
+      'remote-notification',
+    ]);
+  });
+
+  it('should not add remote notifications twice', async () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        UIBackgroundModes: ['audio', 'remote-notification'],
+      },
+    };
+    const props: ConfigProps = {
+      enableCallNotifyPushNotifications: true,
+    };
+    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
+      config,
+      props,
+    ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.UIBackgroundModes).toEqual([
+      'audio',
+      'remote-notification',
+    ]);
   });
 });

@@ -36,7 +36,9 @@
           "ringingPushNotifications": {
             "disableVideo": false,
             "includesCallsInRecents": false
-          }
+          },
+          "enableLivePushNotifications": true,
+          "enableCallNotifyPushNotifications": true
         }
       ],
       "@config-plugins/react-native-callkeep",

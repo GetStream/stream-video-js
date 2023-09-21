@@ -1,7 +1,9 @@
 import { ConfigPlugin, withInfoPlist } from '@expo/config-plugins';
+import { ConfigProps } from './common/types';
 
-const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin = (
+const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
   configuration,
+  props,
 ) => {
   return withInfoPlist(configuration, (config) => {
     if (!Array.isArray(config.modResults.UIBackgroundModes)) {
@@ -9,6 +11,16 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin = (
     }
     if (!config.modResults.UIBackgroundModes.includes('audio')) {
       config.modResults.UIBackgroundModes.push('audio');
+    }
+    if (
+      props.enableLivePushNotifications ||
+      props.enableCallNotifyPushNotifications
+    ) {
+      if (
+        !config.modResults.UIBackgroundModes.includes('remote-notification')
+      ) {
+        config.modResults.UIBackgroundModes.push('remote-notification');
+      }
     }
     return config;
   });

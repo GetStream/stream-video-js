@@ -5,4 +5,6 @@ export type RingingPushNotifications = {
 
 export type ConfigProps = {
   ringingPushNotifications?: RingingPushNotifications;
+  enableLivePushNotifications?: boolean;
+  enableCallNotifyPushNotifications?: boolean;
 };
