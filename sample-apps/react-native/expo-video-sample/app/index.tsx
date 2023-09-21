@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
-import {
-  StyleSheet,
-  Alert,
-  PermissionsAndroid,
-  Platform,
-  View,
-} from 'react-native';
+import { StyleSheet, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CreateMeetingCall from '../components/CreateMeetingCall';
@@ -71,22 +65,18 @@ export default function JoinCallScreen() {
 
 const CreateCallScreen = () => {
   return (
-    <SafeAreaView edges={['top']} style={styles.flexedContainer}>
+    <>
       <NavigationHeader />
-      <SafeAreaView
-        edges={['bottom', 'left', 'right']}
-        style={styles.createCallContainer}
-      >
+      <SafeAreaView style={styles.createCallContainer}>
         <CreateMeetingCall />
         <CreateRingingCall />
       </SafeAreaView>
-    </SafeAreaView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   createCallContainer: {
-    paddingTop: 16,
     margin: 16,
   },
   flexedContainer: {

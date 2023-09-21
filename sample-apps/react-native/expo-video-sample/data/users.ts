@@ -6,7 +6,7 @@ export const users = [
       'https://ca.slack-edge.com/T02RM6X6B-U02DTREQ2KX-5d600c87d3bc-512',
     custom: {
       token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoia2h1c2hhbGtleHBvIn0.ZkyIfsJfGk4xCj2SMQR6FubKja-Z1PhJaiXDR_lp5Po',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoia2h1c2hhbGV4cG8ifQ.2Ow87A66ZuxY7A68q65CIUtYSSU7Diwvx0p4SHtkvc0',
     },
   },
   {
