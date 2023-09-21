@@ -74,9 +74,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
         spacing={2}
         flexGrow={1}
       >
-        <Box>
-          <ParticipantsPreview />
-        </Box>
+        <ParticipantsPreview />
         <Stack spacing={2} alignItems="center">
           <Box padding={2}>
             <Typography variant="h2" textAlign="center">

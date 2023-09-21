@@ -12,7 +12,7 @@ import {
 import { CallStatsReport } from '../stats/types';
 import {
   BlockedUserEvent,
-  CallBroadcastingStartedEvent,
+  CallHLSBroadcastingStartedEvent,
   CallIngressResponse,
   CallMemberAddedEvent,
   CallMemberRemovedEvent,
@@ -27,6 +27,7 @@ import {
   EgressResponse,
   MemberResponse,
   OwnCapability,
+  ThumbnailResponse,
   UnblockedUserEvent,
   UpdatedCallPermissionsEvent,
   UserResponse,
@@ -125,6 +126,9 @@ export class CallState {
   private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
+  private thumbnailsSubject = new BehaviorSubject<
+    ThumbnailResponse | undefined
+  >(undefined);
   private membersSubject = new BehaviorSubject<MemberResponse[]>([]);
   private ownCapabilitiesSubject = new BehaviorSubject<OwnCapability[]>([]);
   private callingStateSubject = new BehaviorSubject<CallingState>(
@@ -298,6 +302,11 @@ export class CallState {
    */
   endedBy$: Observable<UserResponse | undefined>;
 
+  /**
+   * Will provide the thumbnails of this call.
+   */
+  thumbnails$: Observable<ThumbnailResponse | undefined>;
+
   readonly logger: Logger;
 
   /**
@@ -374,6 +383,7 @@ export class CallState {
     this.settings$ = this.settingsSubject.asObservable();
     this.transcribing$ = this.transcribingSubject.asObservable();
     this.endedBy$ = this.endedBySubject.asObservable();
+    this.thumbnails$ = this.thumbnailsSubject.asObservable();
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -389,7 +399,10 @@ export class CallState {
       // events that update call state:
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
       'call.created': (e) => this.updateFromCallResponse(e.call),
-      'call.notification': (e) => this.updateFromCallResponse(e.call),
+      'call.notification': (e) => {
+        this.updateFromCallResponse(e.call);
+        this.setMembers(e.members);
+      },
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
@@ -404,8 +417,8 @@ export class CallState {
         this.setCurrentValue(this.recordingSubject, true),
       'call.recording_stopped': () =>
         this.setCurrentValue(this.recordingSubject, false),
-      'call.broadcasting_started': this.updateFromBroadcastStarted,
-      'call.broadcasting_stopped': this.updateFromBroadcastStopped,
+      'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
+      'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.session_participant_joined':
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
@@ -734,6 +747,13 @@ export class CallState {
   }
 
   /**
+   * Will provide the thumbnails of this call, if enabled in the call settings.
+   */
+  get thumbnails() {
+    return this.getCurrentValue(this.thumbnails$);
+  }
+
+  /**
    * Will try to find the participant with the given sessionId in the current call.
    *
    * @param sessionId the sessionId of the participant to find.
@@ -936,6 +956,7 @@ export class CallState {
     this.setCurrentValue(this.sessionSubject, call.session);
     this.setCurrentValue(this.settingsSubject, call.settings);
     this.setCurrentValue(this.transcribingSubject, call.transcribing);
+    this.setCurrentValue(this.thumbnailsSubject, call.thumbnails);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {
@@ -951,15 +972,15 @@ export class CallState {
     ]);
   };
 
-  private updateFromBroadcastStopped = () => {
+  private updateFromHLSBroadcastStopped = () => {
     this.setCurrentValue(this.egressSubject, (egress) => ({
       ...egress!,
       broadcasting: false,
     }));
   };
 
-  private updateFromBroadcastStarted = (
-    event: CallBroadcastingStartedEvent,
+  private updateFromHLSBroadcastStarted = (
+    event: CallHLSBroadcastingStartedEvent,
   ) => {
     this.setCurrentValue(this.egressSubject, (egress) => ({
       ...egress!,

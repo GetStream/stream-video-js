@@ -1,0 +1,47 @@
+---
+title: Call Preview and Thumbnail
+description: Learn how to show a call preview image (thumbnail) in your app.
+---
+
+Depending on your call type settings, our system can occasionally generate a preview image (thumbnail) for your call.
+You can use this image to show a preview of the call in your app, typically in a lobby, waiting room, etc.
+
+## Get the preview thumbnail
+
+```tsx
+const thumbnails = call.state.thumbnails;
+const imageUrl = thumbnails.image_url;
+console.log(imageUrl);
+
+// or
+const subscription = call.state.thumbnails$.subscribe((thumbnails) => {
+  const imageUrl = thumbnails.image_url;
+  console.log(imageUrl);
+});
+
+// and don't forget to unsubscribe
+subscription.unsubscribe();
+```
+
+## Show the preview thumbnail
+
+Our SDK provides a helper method that takes care of the image loading and error handling for you.
+
+All we need is a reference to an `<img>` element that has the correct dimensions.
+We will take the dimensions in consideration, when loading the image, and our CDN will generate the correct image size for you.
+
+```tsx
+// render image element in your view layer
+<img
+  id="my-call-preview-img"
+  class="my-call-preview-class"
+  alt="Call Preview Thumbnail"
+/>;
+
+// in your code
+const myCallPreviewImg = document.getElementById('my-call-preview-img');
+const cleanup = call.bindCallThumbnailElement(myCallPreviewImg);
+
+// and don't forget to clean up
+cleanup();
+```

@@ -44,7 +44,7 @@
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.6.0",
+    "@openapitools/openapi-generator-cli": "^2.7.0",
     "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/jsonwebtoken": "^9.0.1",
