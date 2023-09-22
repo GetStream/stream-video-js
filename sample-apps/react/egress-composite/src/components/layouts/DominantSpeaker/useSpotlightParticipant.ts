@@ -12,7 +12,7 @@ export const useSpotlightParticipant = () => {
 
   const { useDominantSpeaker, useRemoteParticipants } = useCallStateHooks();
   const {
-    options: { 'layout.single_participant.mode': mode },
+    options: { 'layout.single-participant.mode': mode },
   } = useConfigurationContext();
   const dominantSpeaker = useDominantSpeaker();
   const allParticipants = useRemoteParticipants();

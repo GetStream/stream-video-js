@@ -1,11 +1,11 @@
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../ConfigurationContext';
-import { LayoutType, layoutMap } from './layouts';
+import { Layout, ScreenshareLayout, layoutMap } from './layouts';
 import { Spotlight } from './layouts/Spotlight';
 
-const DEFAULT_LAYOUT: LayoutType = 'spotlight';
-const DEFAULT_SCREENSHARE_LAYOUT: LayoutType = 'spotlight';
+const DEFAULT_LAYOUT: Layout = 'spotlight';
+const DEFAULT_SCREENSHARE_LAYOUT: ScreenshareLayout = 'spotlight';
 
 export const UIDispatcher = () => {
   const {

@@ -27,7 +27,7 @@ export const DominantSpeaker = () => {
     <>
       <div
         className="dominant-speaker__container"
-        data-testid="single_participant"
+        data-testid="single-participant"
       >
         {speakerInSpotlight && (
           <ParticipantView
