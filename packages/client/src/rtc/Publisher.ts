@@ -305,6 +305,7 @@ export class Publisher {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+
     if (
       transceiver &&
       transceiver.sender.track &&
@@ -312,14 +313,18 @@ export class Publisher {
         ? transceiver.sender.track.readyState === 'live'
         : transceiver.sender.track.enabled)
     ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
+      // Since React Native follows the new Device API this is not needed
+      if (!isReactNative()) {
+        stopTrack
+          ? transceiver.sender.track.stop()
+          : (transceiver.sender.track.enabled = false);
+      }
+
       // We don't need to notify SFU if unpublishing in response to remote soft mute
       if (!this.state.localParticipant?.publishedTracks.includes(trackType)) {
         return;
       } else {
-        return this.notifyTrackMuteStateChanged(
+        return await this.notifyTrackMuteStateChanged(
           undefined,
           transceiver.sender.track,
           trackType,

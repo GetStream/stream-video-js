@@ -151,15 +151,11 @@ export const MediaStreamManagement = ({
   }, [call, initialAudioEnabled, initialVideoEnabled]);
 
   const toggleInitialAudioMuteState = useCallback(() => {
-    call?.microphone.state.status === 'enabled'
-      ? call?.microphone.disable()
-      : call?.microphone.enable();
+    call?.microphone.toggle();
   }, [call]);
 
   const toggleInitialVideoMuteState = useCallback(() => {
-    call?.camera.state.status === 'enabled'
-      ? call?.camera.disable()
-      : call?.camera.enable();
+    call?.camera.toggle();
   }, [call]);
 
   const contextValue = useMemo(() => {

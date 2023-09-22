@@ -69,6 +69,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices();
   }
+
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
@@ -82,9 +83,11 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     }
     return getVideoStream(constraints);
   }
+
   protected publishStream(stream: MediaStream): Promise<void> {
     return this.call.publishVideoStream(stream);
   }
+
   protected stopPublishStream(stopTracks: boolean): Promise<void> {
     return this.call.stopPublish(TrackType.VIDEO, stopTracks);
   }
