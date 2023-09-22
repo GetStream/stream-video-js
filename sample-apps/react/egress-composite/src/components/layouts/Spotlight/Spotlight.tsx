@@ -8,13 +8,18 @@ import './Spotlight.scss';
 
 export const Spotlight = () => {
   const {
-    options: { 'layout.spotlight.bar_position': barPosition = 'bottom' },
+    options: {
+      'layout.spotlight.participants_bar_position': position = 'bottom',
+      'layout.spotlight.participants_bar_limit': limit = 'dynamic',
+    },
   } = useConfigurationContext();
 
   return (
     <div className="spotlight" data-testid="spotlight">
       <SpeakerLayout
-        participantsBarPosition={barPosition}
+        participantsBarPosition={position}
+        // @ts-expect-error TODO: remove after PR lands
+        participantsBarLimit={limit}
         ParticipantViewUIBar={
           <DefaultParticipantViewUI
             indicatorsVisible={false}
