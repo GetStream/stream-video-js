@@ -60,7 +60,7 @@ const client = new StreamVideoClient({ apiKey, user, token });
 const call = client.call('livestream', callId);
 call.join({ create: true });
 
-export const App = () => {
+export const MyApp = () => {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
@@ -310,6 +310,9 @@ Compared to the current code in in `App.tsx` you:
 
 - Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
 - Typically include some small UI elements like viewer count, a button to mute etc.
+
+Additionally, you can use our SDK provided `LivestreamLayout` that enables consuming WebRTC-based livestreams.
+Read more about it here: [Watching a livestream (WebRTC)](../../ui-cookbook/watching-a-livestream).
 
 ### Step 6 - (Optional) Viewing a livestream with HLS
 

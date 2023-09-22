@@ -11,7 +11,7 @@ import {
   ParticipantView,
   ParticipantViewProps,
 } from '../ParticipantView';
-import { Audio } from '../Audio';
+import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
 
@@ -110,18 +110,16 @@ export const PaginatedGridLayout = ({
 
   return (
     <>
-      {remoteParticipants.map((participant) => (
-        <Audio key={participant.sessionId} participant={participant} />
-      ))}
       <div className="str-video__paginated-grid-layout__wrapper">
+        <ParticipantsAudio participants={remoteParticipants} />
         <div className="str-video__paginated-grid-layout">
           {pageArrowsVisible && pageCount > 1 && (
             <IconButton
               icon="caret-left"
               disabled={page === 0}
-              onClick={() =>
-                setPage((currentPage) => Math.max(0, currentPage - 1))
-              }
+              onClick={() => {
+                setPage((currentPage) => Math.max(0, currentPage - 1));
+              }}
             />
           )}
           {selectedGroup && (
@@ -135,11 +133,11 @@ export const PaginatedGridLayout = ({
             <IconButton
               disabled={page === pageCount - 1}
               icon="caret-right"
-              onClick={() =>
+              onClick={() => {
                 setPage((currentPage) =>
                   Math.min(pageCount - 1, currentPage + 1),
-                )
-              }
+                );
+              }}
             />
           )}
         </div>
