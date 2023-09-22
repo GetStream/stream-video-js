@@ -26,7 +26,7 @@ export const DominantSpeaker = () => {
   return (
     <>
       <div
-        className="dominant-speaker__container"
+        className="eca__dominant-speaker__container"
         data-testid="single-participant"
       >
         {speakerInSpotlight && (

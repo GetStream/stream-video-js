@@ -6,7 +6,7 @@ export const AudioTracks = (props: {
 }) => {
   const { participants, dominantSpeaker } = props;
   return (
-    <div className="audio-elements">
+    <div className="eca__audio-elements">
       {participants.map((participant) => (
         <Audio
           key={participant.sessionId}

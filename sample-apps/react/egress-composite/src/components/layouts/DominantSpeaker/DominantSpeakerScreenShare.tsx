@@ -26,9 +26,9 @@ export const DominantSpeakerScreenShare = () => {
 
   return (
     <>
-      <div className="dominant-speaker-screen-share__container">
+      <div className="eca__dominant-speaker-screen-share__container">
         <Video
-          className="dominant-speaker-screen-share__player"
+          className="eca__dominant-speaker-screen-share__player"
           participant={screenSharingParticipant}
           trackType="screenShareTrack"
           autoPlay
@@ -39,7 +39,7 @@ export const DominantSpeakerScreenShare = () => {
           Presenter:{' '}
           {screenSharingParticipant.name || screenSharingParticipant.userId}
         </span>
-        <div className="dominant-speaker-screen-share__current-speaker">
+        <div className="eca__dominant-speaker-screen-share__current-speaker">
           <ParticipantView
             participant={screenSharingParticipant}
             ParticipantViewUI={
