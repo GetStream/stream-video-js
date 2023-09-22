@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
 import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+import { Layout, ScreenshareLayout } from './components/layouts';
 
 const DEFAULT_USER_ID = 'egress';
 const DEFAULT_CALL_TYPE = 'default';
@@ -16,8 +17,8 @@ export type ConfigurationValue = {
 
   ext_css?: string;
 
-  layout?: 'grid' | 'single_participant' | 'spotlight' | 'mobile';
-  screenshare_layout?: 'single_participant' | 'spotlight';
+  layout?: Layout;
+  screenshare_layout?: ScreenshareLayout;
 
   test_environment?: {
     participants?: Partial<StreamVideoParticipant>[];
@@ -54,8 +55,8 @@ export type ConfigurationValue = {
     'layout.grid.gap'?: string;
     'layout.grid.page_size'?: number;
     // dominant_speaker-specific (single-participant)
-    'layout.single_participant.mode'?: 'shuffle' | 'default';
-    'layout.single_participant.shuffle_delay'?: number;
+    'layout.single-participant.mode'?: 'shuffle' | 'default';
+    'layout.single-participant.shuffle_delay'?: number;
     // spotlight-specific
     'layout.spotlight.bar_position'?: 'top' | 'right' | 'bottom' | 'left';
     'layout.spotlight.bar_limit'?: number;
