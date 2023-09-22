@@ -6,6 +6,26 @@ import { Layout, ScreenshareLayout } from './components/layouts';
 const DEFAULT_USER_ID = 'egress';
 const DEFAULT_CALL_TYPE = 'default';
 
+type HorizontalPosition = 'center' | 'right' | 'left';
+type VerticalPosition = 'center' | 'top' | 'bottom';
+type ObjectFit = 'contain' | 'cover';
+
+export const positionMap: {
+  vertical: Record<VerticalPosition, string>;
+  horizontal: Record<HorizontalPosition, string>;
+} = {
+  vertical: {
+    center: 'center',
+    top: 'start',
+    bottom: 'end',
+  },
+  horizontal: {
+    center: 'center',
+    right: 'end',
+    left: 'start',
+  },
+};
+
 export type ConfigurationValue = {
   base_url?: string;
 
@@ -25,41 +45,62 @@ export type ConfigurationValue = {
   };
 
   options: {
+    // ✅
     'video.background_color'?: string;
-    'video.scale_mode'?: 'fill' | 'fit';
-    'video.screenshare_scale_mode'?: 'fill' | 'fit';
+    'video.scale_mode'?: ObjectFit;
+    'video.screenshare_scale_mode'?: ObjectFit;
 
+    // ✅
     'logo.image_url'?: string;
-    'logo.horizontal_position'?: 'center' | 'left' | 'right';
-    'logo.vertical_position'?: 'center' | 'left' | 'right';
+    'logo.width'?: string;
+    'logo.height'?: string;
+    'logo.horizontal_position'?: HorizontalPosition;
+    'logo.vertical_position'?: VerticalPosition;
+    'logo.margin_inline'?: string;
+    'logo.margin_block'?: string;
 
-    'participant.label_display'?: boolean;
-    'participant.label_text_color'?: string;
-    'participant.label_background_color'?: string;
-    'participant.label_display_border'?: boolean;
-    'participant.label_border_radius'?: string;
-    'participant.label_border_color'?: string;
-    'participant.label_horizontal_position'?: 'center' | 'left' | 'right';
-    'participant.label_vertical_position'?: 'center' | 'left' | 'right';
+    // ✅
+    'title.text'?: string;
+    'title.font_size'?: string;
+    'title.horizontal_position'?: HorizontalPosition;
+    'title.vertical_position'?: VerticalPosition;
+    'title.margin_block'?: string;
+    'title.margin_inline'?: string;
 
-    // participant_border_color: string;
-    // participant_border_radius: string;
-    // participant_border_width: string;
-    'participant.participant_highlight_border_color'?: string; // talking
+    // ✅
+    'participant.outline_color'?: string;
+    'participant.outline_width'?: string;
+    'participant.border_radius'?: string;
     'participant.placeholder_background_color'?: string;
 
+    // ✅
+    'participant_label.display'?: boolean;
+    'participant_label.text_color'?: string;
+    'participant_label.background_color'?: string;
+    'participant_label.border_width'?: string;
+    'participant_label.border_radius'?: string;
+    'participant_label.border_color'?: string;
+    'participant_label.horizontal_position'?: HorizontalPosition;
+    'participant_label.vertical_position'?: VerticalPosition;
+    'participant_label.margin_inline'?: string;
+    'participant_label.margin_block'?: string;
+
     // used with any layout
-    'layout.size_percentage'?: number;
+    'layout.size_percentage'?: number; // ❌
+    'layout.background_color'?: string; // ✅
 
     // grid-specific
-    'layout.grid.gap'?: string;
-    'layout.grid.page_size'?: number;
+    'layout.grid.gap'?: string; // ❌
+    'layout.grid.page_size'?: number; // ✅
     // dominant_speaker-specific (single-participant)
-    'layout.single-participant.mode'?: 'shuffle' | 'default';
-    'layout.single-participant.shuffle_delay'?: number;
+    'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
+    'layout.single-participant.shuffle_delay'?: number; // ✅
     // spotlight-specific
-    'layout.spotlight.bar_position'?: 'top' | 'right' | 'bottom' | 'left';
-    'layout.spotlight.bar_limit'?: number;
+    'layout.spotlight.participants_bar_position'?: Exclude<
+      VerticalPosition & HorizontalPosition,
+      'center'
+    >; // ✅
+    'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // awaits PR
   };
 };
 
@@ -67,13 +108,15 @@ export const ConfigurationContext = createContext<ConfigurationValue>(
   {} as ConfigurationValue,
 );
 
-export const extractPayloadFromToken = (token: string) => {
+export const extractPayloadFromToken = (
+  token: string,
+): Record<string, string | undefined> => {
   const [, payload] = token.split('.');
 
   if (!payload) throw new Error('Malformed token, missing payload');
 
   try {
-    return (JSON.parse(decode(payload)) ?? {}) as Record<string, unknown>;
+    return JSON.parse(decode(payload)) ?? {};
   } catch (e) {
     console.log('Error parsing token payload', e);
     return {};
@@ -89,8 +132,7 @@ export const applyConfigurationDefaults = (
     // apply defaults
     api_key = import.meta.env.VITE_STREAM_API_KEY as string,
     token = import.meta.env.VITE_STREAM_USER_TOKEN as string,
-    user_id = (extractPayloadFromToken(token as string)['user_id'] ??
-      DEFAULT_USER_ID) as string,
+    user_id = extractPayloadFromToken(token)['user_id'] ?? DEFAULT_USER_ID,
     call_type = DEFAULT_CALL_TYPE,
     options = {},
     ...rest
