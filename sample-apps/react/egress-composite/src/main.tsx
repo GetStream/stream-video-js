@@ -15,12 +15,8 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 Sentry.init({
   dsn: import.meta.env.VITE_EGRESS_SENTRY_DNS,
-  integrations: [
-    new Sentry.BrowserTracing({
-      tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
-    }),
-    new Sentry.Replay(),
-  ],
+  tracePropagationTargets: ['video-layout.getstream.io'],
+  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
   tracesSampleRate: 1.0,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
