@@ -5,6 +5,7 @@ import { PaginatedGrid } from './PaginatedGrid';
 import { Spotlight } from './Spotlight';
 
 export type Layout = 'grid' | 'single-participant' | 'spotlight' | 'mobile';
+// NOTE: should always be a subset of the Layout type
 export type ScreenshareLayout = 'single-participant' | 'spotlight';
 
 export const layoutMap: Record<
