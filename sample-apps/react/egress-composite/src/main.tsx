@@ -1,4 +1,6 @@
 import { createRoot } from 'react-dom/client';
+import * as Sentry from '@sentry/react';
+
 import {
   ConfigurationContext,
   ConfigurationValue,
@@ -10,6 +12,19 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
+
+Sentry.init({
+  dsn: import.meta.env.VITE_EGRESS_SENTRY_DNS,
+  integrations: [
+    new Sentry.BrowserTracing({
+      tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
+    }),
+    new Sentry.Replay(),
+  ],
+  tracesSampleRate: 1.0,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+});
 
 // @ts-expect-error TODO: this is a global function, we need to declare it
 window.setupLayout = (configuration: ConfigurationValue) => {
