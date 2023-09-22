@@ -16,6 +16,7 @@ import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LobbyHeader } from './LobbyHeader';
 import { ParticipantsPreview } from './ParticipantsPreview';
+import { CallSettingsButton } from './CallSettingsButton';
 
 const subtitles = [
   'Because we love seeing each other.',
@@ -73,6 +74,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
         alignItems="center"
         spacing={2}
         flexGrow={1}
+        paddingBottom="45px"
       >
         <ParticipantsPreview />
         <Stack spacing={2} alignItems="center">
@@ -102,14 +104,17 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               </div>
             )}
           </Box>
-          <Button
-            style={{ width: '200px' }}
-            data-testid="join-call-button"
-            variant="contained"
-            onClick={onJoin}
-          >
-            {t('Join')}
-          </Button>
+          <Box display="flex" flexDirection="row" gap="8px">
+            <Button
+              style={{ width: '200px' }}
+              data-testid="join-call-button"
+              variant="contained"
+              onClick={onJoin}
+            >
+              {t('Join')}
+            </Button>
+            <CallSettingsButton />
+          </Box>
           {!router.pathname.includes('/guest') ? (
             <Link href={`/guest?callId=${callId}`}>
               <Button>Join as guest or anonymously</Button>
