@@ -14,7 +14,7 @@ test.describe('Layouts', () => {
     [
       { name: undefined, participantCountPerWindow: 5 }, // default
       { name: 'grid', participantCountPerWindow: 5 },
-      { name: 'single_participant', participantCountPerWindow: 1 },
+      { name: 'single-participant', participantCountPerWindow: 1 },
       { name: 'spotlight', participantCountPerWindow: 5 },
     ] as const
   ).forEach((layout) => {
