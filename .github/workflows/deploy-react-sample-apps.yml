@@ -39,7 +39,7 @@ jobs:
             populate-tokens: true
           - name: egress-composite
             project-id: prj_R6DLpP2Gxc0aRHGEopQWE8tveNDX
-            sentry-auth-token: ${{ secrets.EGRESS_SENTRY_AUTH_TOKEN }}
+            sentry-auth-token-secret-name: EGRESS_SENTRY_AUTH_TOKEN
           - name: livestream-app-react
             folder: livestream-app
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
@@ -47,7 +47,7 @@ jobs:
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
           - name: react-dogfood
             project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
-            sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+            sentry-auth-token-secret-name: SENTRY_AUTH_TOKEN
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -59,19 +59,19 @@ jobs:
       VITE_EGRESS_SENTRY_DNS: ${{ secrets.EGRESS_SENTRY_DNS }}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
-      SENTRY_AUTH_TOKEN: ${{ matrix.application.sentry-auth-token }}
+      SENTRY_AUTH_TOKEN: ${{ secrets[matrix.application.sentry-auth-token-secret-name] }}
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      #      - uses: dorny/paths-filter@v2.11.1
-      #        id: changes
-      #        with:
-      #          filters: |
-      #            sample-apps:
-      #              - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
+      # - uses: dorny/paths-filter@v2.11.1
+      #   id: changes
+      #   with:
+      #     filters: |
+      #       sample-apps:
+      #         - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
 
       - name: Setup Node
         uses: actions/setup-node@v3
