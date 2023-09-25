@@ -14,7 +14,7 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       // to account for CI headless
-      maxDiffPixelRatio: 0.05,
+      maxDiffPixelRatio: 0.02,
     },
   },
   use: {
