@@ -2,7 +2,7 @@ import { PropsWithChildren } from 'react';
 import {
   StreamCallProvider,
   StreamTheme,
-  StreamVideo,
+  StreamVideoProvider,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -24,17 +24,17 @@ export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
 
   return (
-    <StreamVideo client={client}>
-      <StreamThemeWrapper>
-        <EgressReadyNotificationProvider>
-          <StreamCallProvider call={call}>
+    <StreamVideoProvider client={client}>
+      <StreamCallProvider call={call}>
+        <StreamThemeWrapper>
+          <EgressReadyNotificationProvider>
             <UIDispatcher />
             <LogoAndTitleOverlay />
-          </StreamCallProvider>
-        </EgressReadyNotificationProvider>
-        {/* <StyleComponent /> */}
-      </StreamThemeWrapper>
-    </StreamVideo>
+          </EgressReadyNotificationProvider>
+          {/* <StyleComponent /> */}
+        </StreamThemeWrapper>
+      </StreamCallProvider>
+    </StreamVideoProvider>
   );
 };
 

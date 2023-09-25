@@ -3,58 +3,55 @@ import {
   ParticipantView,
   SfuModels,
   useCallStateHooks,
-  Video,
 } from '@stream-io/video-react-sdk';
+
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
-import './DominantSpeakerScreenShare.scss';
 import { AudioTracks } from './AudioTracks';
+
+import './DominantSpeakerScreenShare.scss';
 
 export const DominantSpeakerScreenShare = () => {
   const { useRemoteParticipants } = useCallStateHooks();
   const participants = useRemoteParticipants();
-  const screenSharingParticipant = participants.find((p) =>
+
+  const screensharingParticipant = participants.find((p) =>
     p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE),
-  );
+  )!;
 
   const { setVideoElement, setVideoPlaceholderElement } =
     useEgressReadyWhenAnyParticipantMounts(
-      screenSharingParticipant!,
+      screensharingParticipant!,
       SfuModels.TrackType.SCREEN_SHARE,
     );
 
-  if (!screenSharingParticipant) return <h2>No active screen share</h2>;
-
   return (
-    <>
-      <div className="eca__dominant-speaker-screen-share__container">
-        <Video
-          className="eca__dominant-speaker-screen-share__player"
-          participant={screenSharingParticipant}
-          trackType="screenShareTrack"
-          autoPlay
-          muted
-          refs={{ setVideoElement, setVideoPlaceholderElement }}
-        />
-        <span>
-          Presenter:{' '}
-          {screenSharingParticipant.name || screenSharingParticipant.userId}
-        </span>
-        <div className="eca__dominant-speaker-screen-share__current-speaker">
-          <ParticipantView
-            participant={screenSharingParticipant}
-            ParticipantViewUI={
-              <DefaultParticipantViewUI
-                indicatorsVisible={false}
-                showMenuButton={false}
-              />
-            }
-          />
-        </div>
-      </div>
+    <div className="eca__dominant-speaker-screen-share__container">
       <AudioTracks
         participants={participants}
-        dominantSpeaker={screenSharingParticipant}
+        dominantSpeaker={screensharingParticipant}
       />
-    </>
+      <ParticipantView
+        participant={screensharingParticipant}
+        trackType="screenShareTrack"
+        refs={{ setVideoElement, setVideoPlaceholderElement }}
+        ParticipantViewUI={null}
+      />
+      <span>
+        {`Presenter: ${
+          screensharingParticipant.name || screensharingParticipant.userId
+        }`}
+      </span>
+      <div className="eca__dominant-speaker-screen-share__current-speaker">
+        <ParticipantView
+          participant={screensharingParticipant}
+          ParticipantViewUI={
+            <DefaultParticipantViewUI
+              indicatorsVisible={false}
+              showMenuButton={false}
+            />
+          }
+        />
+      </div>
+    </div>
   );
 };

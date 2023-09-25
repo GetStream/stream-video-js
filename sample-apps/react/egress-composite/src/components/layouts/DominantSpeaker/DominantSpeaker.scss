@@ -1,15 +1,11 @@
 .eca__dominant-speaker__container {
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   .str-video__participant-view {
-    max-width: 100%;
-  }
-
-  .str-video__video {
-    height: 100vh;
-  }
-
-  .str-video__video-placeholder {
-    height: 100vh;
+    max-width: unset;
   }
 }

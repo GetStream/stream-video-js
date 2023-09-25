@@ -13,9 +13,9 @@ export const useGenericLayoutStyles = () => {
 
       // TODO: move to custom hook
       'layout.single-participant.padding_block':
-        singleParticipantPaddingBlock = '70px',
+        singleParticipantPaddingBlock = '0px',
       'layout.single-participant.padding_inline':
-        singleParticipantPaddingInline = '70px',
+        singleParticipantPaddingInline = '0px',
       // 'layout.size_percentage': layoutSizePercentage,
     },
   } = useConfigurationContext();
@@ -25,11 +25,6 @@ export const useGenericLayoutStyles = () => {
       & .eca__dominant-speaker__container {
         padding-inline: ${singleParticipantPaddingInline};
         padding-block: ${singleParticipantPaddingBlock};
-      }
-      // TODO: move broken styling
-      & .eca__dominant-speaker__container .str-video__video,
-      .str-video__video-placeholder {
-        height: 100%;
       }
     `,
     layoutBackgroundColor &&

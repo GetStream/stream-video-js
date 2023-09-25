@@ -8,7 +8,7 @@ export const useVideoStyles = () => {
     options: {
       'video.scale_mode': videoScaleMode,
       'video.background_color': videoBackgroundColor,
-      'video.screenshare_scale_mode': videoScreenshareScaleMode,
+      'video.screenshare_scale_mode': videoScreenshareScaleMode = 'contain',
     },
   } = useConfigurationContext();
 

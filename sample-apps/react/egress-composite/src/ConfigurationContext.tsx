@@ -99,8 +99,8 @@ export type ConfigurationValue = {
     // dominant_speaker-specific (single-participant)
     'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
     'layout.single-participant.shuffle_delay'?: number; // ✅
-    'layout.single-participant.padding_inline'?: string;
-    'layout.single-participant.padding_block'?: string;
+    'layout.single-participant.padding_inline'?: string; // ✅
+    'layout.single-participant.padding_block'?: string; // ✅
     // spotlight-specific
     'layout.spotlight.participants_bar_position'?: Exclude<
       VerticalPosition | HorizontalPosition,

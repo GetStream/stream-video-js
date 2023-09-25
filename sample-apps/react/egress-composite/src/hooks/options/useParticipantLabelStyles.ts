@@ -17,7 +17,7 @@ export const useParticipantLabelStyles = () => {
       'participant_label.border_color':
         participantLabelBorderColor = 'rgba(0,0,0,0)',
       'participant_label.horizontal_position':
-        participantLabelHorizontalPosition = 'right',
+        participantLabelHorizontalPosition = 'left',
       'participant_label.vertical_position':
         participantLabelVerticalPosition = 'bottom',
       'participant_label.margin_inline':
@@ -59,12 +59,11 @@ export const useParticipantLabelStyles = () => {
     `,
     css`
       & .str-video__participant-view {
-        display: grid;
+        justify-content: ${positionMap.horizontal[
+          participantLabelHorizontalPosition
+        ]};
 
         .str-video__participant-details {
-          justify-self: ${positionMap.horizontal[
-            participantLabelHorizontalPosition
-          ]};
           align-self: ${positionMap.vertical[participantLabelVerticalPosition]};
           margin-inline: ${participantLabelMarginInline};
           margin-block: ${participantLabelMarginBlock};
