@@ -1,4 +1,4 @@
-import { uniqueNamesGenerator, Config, starWars } from 'unique-names-generator';
+import { Config, starWars, uniqueNamesGenerator } from 'unique-names-generator';
 import { v1 as uuid } from 'uuid';
 import { getURLCredentials } from './getURLCredentials';
 
@@ -20,8 +20,8 @@ export const generateUser = (): User => {
   const { user_id, user_name, id } = getURLCredentials();
   const characterName: string = uniqueNamesGenerator(config);
 
-  const userId: string = user_id ?? `demo-${uuid()}`;
   const userName: string = user_name ?? `${characterName}`;
+  const userId: string = user_id ?? `demo-${userName}-${uuid()}`;
 
   return {
     id: userId,
