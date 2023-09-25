@@ -45,7 +45,7 @@ const config: Config = {
 };
 
 const Init = () => {
-  const { id: incomingCallId, type, log_level = 'warn' } = getURLCredentials();
+  const { id: incomingCallId, type, log_level } = getURLCredentials();
   const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
@@ -82,7 +82,8 @@ const Init = () => {
       token,
       tokenProvider,
       options: {
-        logLevel: log_level || 'info',
+        logLevel:
+          log_level || import.meta.env.MODE === 'production' ? 'warn' : 'debug',
       },
     });
     setClient(_client);
