@@ -62,6 +62,7 @@ export type ConfigurationValue = {
     // ✅
     'title.text'?: string;
     'title.font_size'?: string;
+    'title.color'?: string;
     'title.horizontal_position'?: HorizontalPosition;
     'title.vertical_position'?: VerticalPosition;
     'title.margin_block'?: string;
@@ -88,6 +89,9 @@ export type ConfigurationValue = {
     // used with any layout
     'layout.size_percentage'?: number; // ❌
     'layout.background_color'?: string; // ✅
+    'layout.background_image'?: string; // ✅
+    'layout.background_size'?: string; // ✅
+    'layout.background_position'?: string; // ✅
 
     // grid-specific
     'layout.grid.gap'?: string; // ❌
@@ -95,9 +99,11 @@ export type ConfigurationValue = {
     // dominant_speaker-specific (single-participant)
     'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
     'layout.single-participant.shuffle_delay'?: number; // ✅
+    'layout.single-participant.padding_inline'?: string;
+    'layout.single-participant.padding_block'?: string;
     // spotlight-specific
     'layout.spotlight.participants_bar_position'?: Exclude<
-      VerticalPosition & HorizontalPosition,
+      VerticalPosition | HorizontalPosition,
       'center'
     >; // ✅
     'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // awaits PR

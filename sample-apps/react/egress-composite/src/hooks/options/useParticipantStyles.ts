@@ -18,7 +18,7 @@ export const useParticipantStyles = () => {
     participantBorderRadius &&
       css`
         & .str-video__participant-view {
-          background-color: ${participantBorderRadius};
+          border-radius: ${participantBorderRadius};
         }
       `,
     css`

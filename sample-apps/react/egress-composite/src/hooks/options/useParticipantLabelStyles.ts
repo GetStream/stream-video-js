@@ -13,7 +13,7 @@ export const useParticipantLabelStyles = () => {
       'participant_label.text_color': participantLabelTextColor,
       'participant_label.background_color': participantLabelBackgroundColor,
       'participant_label.border_width': participantLabelBorderWidth = '0px',
-      'participant_label.border_radius': participantLabelBorderRadius = '0px',
+      'participant_label.border_radius': participantLabelBorderRadius,
       'participant_label.border_color':
         participantLabelBorderColor = 'rgba(0,0,0,0)',
       'participant_label.horizontal_position':
@@ -45,11 +45,16 @@ export const useParticipantLabelStyles = () => {
           background-color: ${participantLabelBackgroundColor};
         }
       `,
+    participantLabelBorderRadius &&
+      css`
+        & .str-video__participant-details {
+          border-radius: ${participantLabelBorderRadius};
+        }
+      `,
     css`
       & .str-video__participant-details {
         border: ${participantLabelBorderWidth} solid
           ${participantLabelBorderColor};
-        border-radius: ${participantLabelBorderRadius};
       }
     `,
     css`

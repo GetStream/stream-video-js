@@ -16,6 +16,7 @@ export const useLogoAndTitleStyles = () => {
       'logo.width': logoWidth = 'initial',
       'logo.height': logoHeight = '40px',
       'title.font_size': titleFontSize = '30px',
+      'title.color': titleColor = 'white',
       'title.horizontal_position': titleHorizontalPosition = 'left',
       'title.vertical_position': titleVerticalPosition = 'top',
       'title.margin_block': titleMarginBlock = '.875rem',
@@ -36,6 +37,7 @@ export const useLogoAndTitleStyles = () => {
     `,
     css`
       & .eca__logo-and-title-overlay__title {
+        color: ${titleColor};
         font-size: ${titleFontSize};
         justify-self: ${positionMap.horizontal[titleHorizontalPosition]};
         align-self: ${positionMap.vertical[titleVerticalPosition]};
