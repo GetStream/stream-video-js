@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.22...@stream-io/video-react-bindings-0.2.23) (2023-09-25)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.2`
+* `@stream-io/video-client` updated to version `0.1.0`
+
+### Bug Fixes
+
+* Add extra delay before attempting to play video in Safari and Firefox ([#1106](https://github.com/GetStream/stream-video-js/issues/1106)) ([5b4a589](https://github.com/GetStream/stream-video-js/commit/5b4a58918240a7b63807726609d6d54b92cfe1d2))
+
 ### [0.2.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.21...@stream-io/video-react-bindings-0.2.22) (2023-09-20)
 
 ### Dependency Updates
