@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.8...@stream-io/video-styling-0.1.9) (2023-09-26)
+
+
+### Features
+
+* show the anonymous user count in the participant list ([#1109](https://github.com/GetStream/stream-video-js/issues/1109)) ([a253cbf](https://github.com/GetStream/stream-video-js/commit/a253cbfa7552a9ab4302ce824a72653a27dd324d))
+
 ### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.7...@stream-io/video-styling-0.1.8) (2023-09-25)
 
 
