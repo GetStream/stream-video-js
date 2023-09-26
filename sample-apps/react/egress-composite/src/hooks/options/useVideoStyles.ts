@@ -1,14 +1,17 @@
 import { css } from '@emotion/css';
 import clsx from 'clsx';
 
-import { useConfigurationContext } from '../../ConfigurationContext';
+import {
+  objectFitMap,
+  useConfigurationContext,
+} from '../../ConfigurationContext';
 
 export const useVideoStyles = () => {
   const {
     options: {
       'video.scale_mode': videoScaleMode,
       'video.background_color': videoBackgroundColor,
-      'video.screenshare_scale_mode': videoScreenshareScaleMode = 'contain',
+      'video.screenshare_scale_mode': videoScreenshareScaleMode = 'fit',
     },
   } = useConfigurationContext();
 
@@ -22,13 +25,13 @@ export const useVideoStyles = () => {
     videoScaleMode &&
       css`
         & .str-video__video {
-          object-fit: ${videoScaleMode};
+          object-fit: ${objectFitMap[videoScaleMode]};
         }
       `,
     videoScreenshareScaleMode &&
       css`
         & .str-video__video.str-video__video--screen-share {
-          object-fit: ${videoScreenshareScaleMode};
+          object-fit: ${objectFitMap[videoScreenshareScaleMode]};
         }
       `,
   ];

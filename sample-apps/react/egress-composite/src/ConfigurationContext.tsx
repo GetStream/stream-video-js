@@ -8,7 +8,7 @@ const DEFAULT_CALL_TYPE = 'default';
 
 type HorizontalPosition = 'center' | 'right' | 'left';
 type VerticalPosition = 'center' | 'top' | 'bottom';
-type ObjectFit = 'contain' | 'cover';
+type ObjectFit = 'fit' | 'fill';
 
 export const positionMap: {
   vertical: Record<VerticalPosition, string>;
@@ -24,6 +24,11 @@ export const positionMap: {
     right: 'end',
     left: 'start',
   },
+};
+
+export const objectFitMap: Record<ObjectFit, string> = {
+  fit: 'contain',
+  fill: 'cover',
 };
 
 export type ConfigurationValue = {
