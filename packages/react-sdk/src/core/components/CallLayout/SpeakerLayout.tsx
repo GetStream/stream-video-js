@@ -23,7 +23,7 @@ import {
   useVerticalScrollPosition,
 } from '../../../hooks';
 import clsx from 'clsx';
-import { useCalculateHardLimit } from '../../hooks';
+import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
