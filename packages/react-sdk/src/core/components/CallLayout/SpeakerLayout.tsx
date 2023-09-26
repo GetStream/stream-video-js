@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 import {
   CallTypes,
   combineComparators,
@@ -11,6 +10,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import clsx from 'clsx';
 
 import {
   DefaultParticipantViewUI,
@@ -22,8 +22,8 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import clsx from 'clsx';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
+import { Audio } from '../Audio';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
@@ -54,8 +54,9 @@ export const SpeakerLayout = ({
   participantsBarLimit,
 }: SpeakerLayoutProps) => {
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
+  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const [participantInSpotlight, ...otherParticipants] = useParticipants();
+  const remoteParticipants = useRemoteParticipants();
   const [participantsBarWrapperElement, setParticipantsBarWrapperElement] =
     useState<HTMLDivElement | null>(null);
   const [participantsBarElement, setParticipantsBarElement] =
@@ -120,6 +121,9 @@ export const SpeakerLayout = ({
 
   return (
     <div className="str-video__speaker-layout__wrapper">
+      {remoteParticipants.map((participant) => (
+        <Audio key={participant.sessionId} participant={participant} />
+      ))}
       <div
         className={clsx(
           'str-video__speaker-layout',
@@ -131,7 +135,7 @@ export const SpeakerLayout = ({
           {participantInSpotlight && (
             <ParticipantView
               participant={participantInSpotlight}
-              muteAudio={isSpeakerScreenSharing}
+              muteAudio={true}
               trackType={
                 isSpeakerScreenSharing ? 'screenShareTrack' : 'videoTrack'
               }
@@ -162,6 +166,7 @@ export const SpeakerLayout = ({
                       participant={participantInSpotlight}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      muteAudio={true}
                     />
                   </div>
                 )}
@@ -174,6 +179,7 @@ export const SpeakerLayout = ({
                       participant={participant}
                       ParticipantViewUI={ParticipantViewUIBar}
                       VideoPlaceholder={VideoPlaceholder}
+                      muteAudio={true}
                     />
                   </div>
                 ))}
