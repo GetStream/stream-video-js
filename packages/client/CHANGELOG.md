@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.24](https://github.com/GetStream/stream-video-js/compare/client0.3.23...client0.3.24) (2023-09-26)
+
+
+### Features
+
+* **client:** share replay of computed observables ([#1095](https://github.com/GetStream/stream-video-js/issues/1095)) ([759d9a2](https://github.com/GetStream/stream-video-js/commit/759d9a2c403aa11a64e5470aa53622022918e24e))
+
 ### [0.3.23](https://github.com/GetStream/stream-video-js/compare/client0.3.22...client0.3.23) (2023-09-26)
 
 
