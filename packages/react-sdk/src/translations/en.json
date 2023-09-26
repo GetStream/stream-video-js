@@ -65,6 +65,10 @@
   "{{ direction }} fullscreen": "{{ direction }} fullscreen",
   "{{ direction }} picture-in-picture": "{{ direction }} picture-in-picture",
 
+  "Participants": "Participants",
+  "Anonymous": ", and ({{ count }}) anonymous",
+  "No participants found": "No participants found",
+
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
   "{{ userName }} is requesting to speak": "{{ userName }} is requesting to speak",

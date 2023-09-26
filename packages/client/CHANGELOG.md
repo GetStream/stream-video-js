@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.24](https://github.com/GetStream/stream-video-js/compare/client0.3.23...client0.3.24) (2023-09-26)
+
+
+### Features
+
+* **client:** share replay of computed observables ([#1095](https://github.com/GetStream/stream-video-js/issues/1095)) ([759d9a2](https://github.com/GetStream/stream-video-js/commit/759d9a2c403aa11a64e5470aa53622022918e24e))
+
+### [0.3.23](https://github.com/GetStream/stream-video-js/compare/client0.3.22...client0.3.23) (2023-09-26)
+
+
+### Bug Fixes
+
+* add type check of deviceId before setting sinkId ([#1108](https://github.com/GetStream/stream-video-js/issues/1108)) ([705515e](https://github.com/GetStream/stream-video-js/commit/705515e5f63a35286fdb45725b9e299afe09c9bb))
+
+### [0.3.22](https://github.com/GetStream/stream-video-js/compare/client0.3.21...client0.3.22) (2023-09-25)
+
+
+### Bug Fixes
+
+* Add extra delay before attempting to play video in Safari and Firefox ([#1106](https://github.com/GetStream/stream-video-js/issues/1106)) ([5b4a589](https://github.com/GetStream/stream-video-js/commit/5b4a58918240a7b63807726609d6d54b92cfe1d2))
+
 ### [0.3.21](https://github.com/GetStream/stream-video-js/compare/client0.3.20...client0.3.21) (2023-09-20)
 
 

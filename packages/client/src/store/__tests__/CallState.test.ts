@@ -66,7 +66,8 @@ describe('CallState', () => {
       });
 
       const ps2 = state.participants;
-      expect(ps2.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
+      // should resolve in initial - non-mutated state as set at the beginning
+      expect(ps2.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
     });
 
     it('should support custom sorting', () => {
