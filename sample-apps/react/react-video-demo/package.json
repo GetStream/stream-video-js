@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "clean": "rimraf dist && rimraf node_modules/.vite",
     "dev": "vite --host --port 3000 --mode staging",
     "start": "vite --host --port 3000 --mode staging",
     "build": "tsc && vite build --mode staging",
@@ -75,6 +76,7 @@
     "@types/uuid": "^8.3.4",
     "@vitejs/plugin-react": "^4.0.0",
     "concurrently": "^7.6.0",
+    "rimraf": "^5.0.1",
     "sass": "^1.62.1",
     "typescript": "^4.9.5"
   },

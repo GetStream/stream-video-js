@@ -36,7 +36,7 @@ if (
   });
 }
 
-if (import.meta.env.MODE === 'staging') {
+if (import.meta.env.MODE === 'staging' && import.meta.env.VITE_GLEAP_KEY) {
   Gleap.initialize(import.meta.env.VITE_GLEAP_KEY);
 }
 
