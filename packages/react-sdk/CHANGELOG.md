@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.27...@stream-io/video-react-sdk-0.3.28) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.25`
+* `@stream-io/video-styling` updated to version `0.1.9`
+
+### Features
+
+* show the anonymous user count in the participant list ([#1109](https://github.com/GetStream/stream-video-js/issues/1109)) ([a253cbf](https://github.com/GetStream/stream-video-js/commit/a253cbfa7552a9ab4302ce824a72653a27dd324d))
+
 ### [0.3.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.26...@stream-io/video-react-sdk-0.3.27) (2023-09-26)
 
 ### Dependency Updates
