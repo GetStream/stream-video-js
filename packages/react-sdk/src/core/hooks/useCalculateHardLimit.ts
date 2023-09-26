@@ -28,10 +28,14 @@ export const useCalculateHardLimit = (
     )
       return;
 
-    let childWidth = 280;
-    let childHeight = 160;
+    let childWidth: number | null = null;
+    let childHeight: number | null = null;
 
     const resizeObserver = new ResizeObserver((entries, observer) => {
+      // this part should ideally run as little times as possible
+      // get child measurements and disconnect
+      // does not consider dynamically sized children
+      // this hook is for SpeakerLayout use only, where children in the bar are fixed size
       if (entries.length > 1) {
         const child = hostElement.firstChild as HTMLElement | null;
 
@@ -41,6 +45,10 @@ export const useCalculateHardLimit = (
           observer.unobserve(hostElement);
         }
       }
+
+      // keep the state at { vertical: 1, horizontal: 1 }
+      // until we get the proper child measurements
+      if (childHeight === null || childWidth === null) return;
 
       const vertical = Math.floor(wrapperElement.clientHeight / childHeight);
       const horizontal = Math.floor(wrapperElement.clientWidth / childWidth);
