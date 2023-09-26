@@ -365,7 +365,8 @@ export class DynascaleManager {
         getSdkInfo()?.type === SdkType.REACT
           ? p?.audioOutputDeviceId
           : selectedDevice;
-      if ('setSinkId' in audioElement) {
+
+      if ('setSinkId' in audioElement && typeof deviceId === 'string') {
         // @ts-expect-error setSinkId is not yet in the lib
         audioElement.setSinkId(deviceId);
       }
