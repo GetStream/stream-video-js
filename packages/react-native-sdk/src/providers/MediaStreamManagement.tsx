@@ -1,12 +1,4 @@
-import React, {
-  createContext,
-  PropsWithChildren,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';
 
@@ -20,26 +12,6 @@ export type MediaDevicesInitialState = {
    */
   initialVideoEnabled?: boolean;
 };
-
-/**
- * API to control device enablement, device selection and media stream access for a call.
- * @category Device Management
- */
-export type MediaStreamManagementContextAPI = {
-  /**
-   * Toggles the initialAudioEnabled boolean flag.
-   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
-   */
-  toggleInitialAudioMuteState: () => void;
-  /**
-   * Toggles the initialAudioEnabled boolean flag.
-   * The latest value set will be used to decide, whether audio stream will be published when joining a call.
-   */
-  toggleInitialVideoMuteState: () => void;
-};
-
-const MediaStreamContext =
-  createContext<MediaStreamManagementContextAPI | null>(null);
 
 /**
  *
@@ -71,14 +43,13 @@ export const MediaStreamManagement = ({
   );
 
   const [{ initialAudioEnabled, initialVideoEnabled }, setInitialDeviceState] =
-    useState({
-      initialAudioEnabled: !!propInitialAudioEnabled,
-      initialVideoEnabled: !!propInitialVideoEnabled,
+    useState<MediaDevicesInitialState>({
+      initialAudioEnabled: undefined,
+      initialVideoEnabled: undefined,
     });
 
   const settings = useCallSettings();
 
-  // if prop is set, use that value.. the prop should override the backend settings
   useEffect(() => {
     setInitialDeviceState((prev) => {
       let initAudio = prev.initialAudioEnabled;
@@ -89,11 +60,15 @@ export const MediaStreamManagement = ({
       if (typeof propInitialVideoEnabled !== 'undefined') {
         initVideo = propInitialVideoEnabled;
       }
-      return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
+
+      return {
+        initialAudioEnabled: initAudio,
+        initialVideoEnabled: initVideo,
+      };
     });
   }, [propInitialAudioEnabled, propInitialVideoEnabled]);
 
-  // use backend settings to set initial audio/video enabled state
+  // Use backend settings to set initial audio/video enabled state
   // ONLY if the prop was undefined -- meaning user did not provide any value
   useEffect(() => {
     if (!settings) {
@@ -103,18 +78,12 @@ export const MediaStreamManagement = ({
     const { audio, video } = settings;
     setInitialDeviceState((prev) => {
       let initAudio = prev.initialAudioEnabled;
-      if (
-        typeof propInitialAudioEnabled === 'undefined' &&
-        audio.mic_default_on
-      ) {
-        initAudio = true;
+      if (typeof propInitialAudioEnabled === 'undefined') {
+        initAudio = audio.mic_default_on;
       }
       let initVideo = prev.initialVideoEnabled;
-      if (
-        typeof propInitialVideoEnabled === 'undefined' &&
-        video.camera_default_on
-      ) {
-        initVideo = true;
+      if (typeof propInitialVideoEnabled === 'undefined') {
+        initVideo = video.camera_default_on;
       }
       return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
     });
@@ -123,69 +92,24 @@ export const MediaStreamManagement = ({
   // The main logic
   // Enable or Disable the audio/video stream based on the initial state
   useEffect(() => {
-    if (
-      initialAudioEnabled &&
-      (call?.microphone.state.status === undefined ||
-        call?.microphone.state.status === 'disabled')
-    ) {
+    if (initialAudioEnabled === undefined) {
+      return;
+    }
+    if (initialVideoEnabled === undefined) {
+      return;
+    }
+    if (initialAudioEnabled) {
       call?.microphone.enable();
-    } else if (
-      !initialAudioEnabled &&
-      call?.microphone.state.status === 'enabled'
-    ) {
+    } else {
       call?.microphone.disable();
     }
 
-    if (
-      initialVideoEnabled &&
-      (call?.camera.state.status === undefined ||
-        call?.camera.state.status === 'disabled')
-    ) {
+    if (initialVideoEnabled) {
       call?.camera.enable();
-    } else if (
-      !initialVideoEnabled &&
-      call?.camera.state.status === 'enabled'
-    ) {
+    } else {
       call?.camera.disable();
     }
   }, [call, initialAudioEnabled, initialVideoEnabled]);
 
-  const toggleInitialAudioMuteState = useCallback(() => {
-    call?.microphone.state.status === 'enabled'
-      ? call?.microphone.disable()
-      : call?.microphone.enable();
-  }, [call]);
-
-  const toggleInitialVideoMuteState = useCallback(() => {
-    call?.camera.state.status === 'enabled'
-      ? call?.camera.disable()
-      : call?.camera.enable();
-  }, [call]);
-
-  const contextValue = useMemo(() => {
-    return {
-      toggleInitialAudioMuteState,
-      toggleInitialVideoMuteState,
-    };
-  }, [toggleInitialAudioMuteState, toggleInitialVideoMuteState]);
-
-  return (
-    <MediaStreamContext.Provider value={contextValue}>
-      {children}
-    </MediaStreamContext.Provider>
-  );
-};
-
-/**
- * Context consumer retrieving MediaStreamManagementContextAPI.
- * @returns
- *
- * @category Device Management
- */
-export const useMediaStreamManagement = () => {
-  const value = useContext(MediaStreamContext);
-  if (!value) {
-    console.warn('Null MediaDevicesContext');
-  }
-  return value as MediaStreamManagementContextAPI;
+  return <>{children}</>;
 };
