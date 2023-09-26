@@ -39,7 +39,7 @@ export const descending = <T>(comparator: Comparator<T>): Comparator<T> => {
  * Creates a new comparator which conditionally applies the given comparator.
  *
  * @example
- * const shouldSortByValue = () => return false; // to turn it off
+ * const shouldSortByValue = (a, b) => a % 2 === 0; // return false to turn it off
  * const byValue = (a, b) => a < b ? - 1 : a > b ? 1 : 0;
  * const comparator = conditional(shouldSortByValue)(byValue);
  *
