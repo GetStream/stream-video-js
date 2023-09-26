@@ -1,15 +1,6 @@
 import { useEffect, useState } from 'react';
-
-import {
-  CallTypes,
-  combineComparators,
-  Comparator,
-  defaultSortPreset,
-  screenSharing,
-  SfuModels,
-  speakerLayoutSortPreset,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import clsx from 'clsx';
+import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import {
@@ -22,7 +13,7 @@ import {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
-import clsx from 'clsx';
+import { useSpeakerLayoutSortPreset } from './hooks';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
@@ -52,7 +43,6 @@ export const SpeakerLayout = ({
   const [scrollWrapper, setScrollWrapper] = useState<HTMLDivElement | null>(
     null,
   );
-  const isOneOnOneCall = otherParticipants.length === 1;
 
   useEffect(() => {
     if (!scrollWrapper || !call) return;
@@ -61,23 +51,8 @@ export const SpeakerLayout = ({
     return () => cleanup();
   }, [scrollWrapper, call]);
 
-  useEffect(() => {
-    if (!call) return;
-    // always show the remote participant in the spotlight
-    if (isOneOnOneCall) {
-      call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
-    } else {
-      call.setSortParticipantsBy(speakerLayoutSortPreset);
-    }
-
-    return () => {
-      // reset the sorting to the default for the call type
-      const callConfig = CallTypes.get(call.type);
-      call.setSortParticipantsBy(
-        callConfig.options.sortParticipantsBy || defaultSortPreset,
-      );
-    };
-  }, [call, isOneOnOneCall]);
+  const isOneOnOneCall = otherParticipants.length === 1;
+  useSpeakerLayoutSortPreset(call, isOneOnOneCall);
 
   if (!call) return null;
 
@@ -222,9 +197,3 @@ const VerticalScrollButtons = <T extends HTMLElement>({
 
 const hasScreenShare = (p?: StreamVideoParticipant) =>
   !!p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
-
-const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (a.isLocalParticipant) return 1;
-  if (b.isLocalParticipant) return -1;
-  return 0;
-};

@@ -14,6 +14,7 @@ import {
 import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
+import { usePaginatedLayoutSortPreset } from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -84,6 +85,8 @@ export const PaginatedGridLayout = ({
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
+
+  usePaginatedLayoutSortPreset(call);
 
   // only used to render video elements
   const participantGroups = useMemo(

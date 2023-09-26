@@ -1,9 +1,14 @@
 import clsx from 'clsx';
 import { useCallback, useEffect, useState } from 'react';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
+import { usePaginatedLayoutSortPreset } from './hooks';
 
 /**
  * The props for the {@link LivestreamLayout} component.
@@ -53,12 +58,15 @@ export type LivestreamLayoutProps = {
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
   const { useParticipants, useRemoteParticipants, useHasOngoingScreenShare } =
     useCallStateHooks();
+  const call = useCall();
   const [currentSpeaker, ...otherParticipants] = useParticipants();
   const remoteParticipants = useRemoteParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const presenter = hasOngoingScreenShare
     ? hasScreenShare(currentSpeaker) && currentSpeaker
     : otherParticipants.find(hasScreenShare);
+
+  usePaginatedLayoutSortPreset(call);
 
   const Overlay = (
     <ParticipantOverlay
