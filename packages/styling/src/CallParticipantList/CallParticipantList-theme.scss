@@ -37,6 +37,12 @@
     );
   }
 
+  .str-video__participant-list-header__title-anonymous {
+    @include utils.component-layer-overrides(
+      'participant-list-header--title-anonymous'
+    );
+  }
+
   .str-video__participant-list-header__close-button {
     @include utils.component-layer-overrides(
       'participant-list-header__close-button'
@@ -60,7 +66,7 @@
   .str-video__participant-list__footer {
     display: flex;
     justify-content: center;
-    padding: 0 0.75rem 0.75rem ;
+    padding: 0 0.75rem 0.75rem;
 
     .str-video__invite-link-button {
       font-size: 13px;
@@ -70,9 +76,9 @@
 
       .str-video__invite-participant-icon {
         @include utils.apply-mask-image(
-            var(--str-video__icon--user-plus),
-            var(--str-video__text-color4),
-            1rem
+          var(--str-video__icon--user-plus),
+          var(--str-video__text-color4),
+          1rem
         );
       }
     }
