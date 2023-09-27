@@ -50,25 +50,6 @@ export const MediaStreamManagement = ({
 
   const settings = useCallSettings();
 
-  // Apply SDK settings to set the initial audio/video enabled state
-  useEffect(() => {
-    setInitialDeviceState((prev) => {
-      let initAudio = prev.initialAudioEnabled;
-      if (typeof propInitialAudioEnabled !== 'undefined') {
-        initAudio = propInitialAudioEnabled;
-      }
-      let initVideo = prev.initialVideoEnabled;
-      if (typeof propInitialVideoEnabled !== 'undefined') {
-        initVideo = propInitialVideoEnabled;
-      }
-
-      return {
-        initialAudioEnabled: initAudio,
-        initialVideoEnabled: initVideo,
-      };
-    });
-  }, [propInitialAudioEnabled, propInitialVideoEnabled]);
-
   // Use backend settings to set initial audio/video enabled state
   // It is applied only if the prop was undefined -- meaning user did not provide any value
   useEffect(() => {
@@ -89,6 +70,25 @@ export const MediaStreamManagement = ({
       return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
     });
   }, [propInitialAudioEnabled, propInitialVideoEnabled, settings]);
+
+  // Apply SDK settings to set the initial audio/video enabled state
+  useEffect(() => {
+    setInitialDeviceState((prev) => {
+      let initAudio = prev.initialAudioEnabled;
+      if (typeof propInitialAudioEnabled !== 'undefined') {
+        initAudio = propInitialAudioEnabled;
+      }
+      let initVideo = prev.initialVideoEnabled;
+      if (typeof propInitialVideoEnabled !== 'undefined') {
+        initVideo = propInitialVideoEnabled;
+      }
+
+      return {
+        initialAudioEnabled: initAudio,
+        initialVideoEnabled: initVideo,
+      };
+    });
+  }, [propInitialAudioEnabled, propInitialVideoEnabled]);
 
   // The main logic
   // Enable or Disable the audio/video stream based on the initial state
