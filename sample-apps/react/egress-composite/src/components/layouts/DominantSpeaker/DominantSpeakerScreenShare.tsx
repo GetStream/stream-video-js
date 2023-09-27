@@ -25,7 +25,10 @@ export const DominantSpeakerScreenShare = () => {
     );
 
   return (
-    <div className="eca__dominant-speaker-screen-share__container">
+    <div
+      className="eca__dominant-speaker-screen-share__container"
+      data-testid="single-participant"
+    >
       <AudioTracks
         participants={participants}
         dominantSpeaker={screensharingParticipant}

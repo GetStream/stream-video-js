@@ -8,7 +8,10 @@ export const LogoAndTitleOverlay = () => {
   } = useConfigurationContext();
 
   return (
-    <div className="eca__logo-and-title-overlay">
+    <div
+      data-testid="logo-and-title-overlay"
+      className="eca__logo-and-title-overlay"
+    >
       {titleText?.length && (
         <span
           className="eca__logo-and-title-overlay__title"
