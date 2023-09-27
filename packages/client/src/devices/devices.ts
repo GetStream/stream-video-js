@@ -35,9 +35,19 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
     // in Firefox, devices can be enumerated after userMedia is requested
     // and permissions granted. Otherwise, device labels are empty
     if (isFirefox()) {
-      navigator.mediaDevices.getUserMedia(constraints).then((media) => {
-        enumerateDevices(media);
-      });
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then((media) => {
+          enumerateDevices(media);
+        })
+        .catch((error) => {
+          getLogger(['getUserMedia'])(
+            'error',
+            'Failed to get user media on firefox',
+            error,
+          );
+          subscriber.error(error);
+        });
     } else {
       enumerateDevices();
     }
