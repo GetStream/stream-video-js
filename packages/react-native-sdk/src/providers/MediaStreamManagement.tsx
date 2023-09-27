@@ -15,7 +15,7 @@ export type MediaDevicesInitialState = {
 
 /**
  *
- * Provides `MediaStreamManagementContextAPI` that allow the integrators to handle:
+ * Provides `MediaStreamManagement` wrapper that allow the integrators to handle:
  * 1. the initial device state enablement (for example in a custom lobby component)
  * 2. media stream publishing
  * @param params
@@ -50,6 +50,7 @@ export const MediaStreamManagement = ({
 
   const settings = useCallSettings();
 
+  // Apply SDK settings to set the initial audio/video enabled state
   useEffect(() => {
     setInitialDeviceState((prev) => {
       let initAudio = prev.initialAudioEnabled;
@@ -69,7 +70,7 @@ export const MediaStreamManagement = ({
   }, [propInitialAudioEnabled, propInitialVideoEnabled]);
 
   // Use backend settings to set initial audio/video enabled state
-  // ONLY if the prop was undefined -- meaning user did not provide any value
+  // It is applied only if the prop was undefined -- meaning user did not provide any value
   useEffect(() => {
     if (!settings) {
       return;
