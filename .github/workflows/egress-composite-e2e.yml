@@ -67,3 +67,11 @@ jobs:
 
       - name: Run Playwright tests
         run: yarn workspace @stream-io/egress-composite test:e2e
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: sample-apps/react/egress-composite/test-results/
+          retention-days: 5
