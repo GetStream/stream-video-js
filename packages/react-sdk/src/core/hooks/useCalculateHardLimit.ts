@@ -12,11 +12,11 @@ export const useCalculateHardLimit = (
   limit?: 'dynamic' | number,
 ) => {
   const [calculatedLimit, setCalculatedLimit] = useState<{
-    vertical: number;
-    horizontal: number;
+    vertical: number | null;
+    horizontal: number | null;
   }>({
-    vertical: typeof limit === 'number' ? limit : 1,
-    horizontal: typeof limit === 'number' ? limit : 1,
+    vertical: typeof limit === 'number' ? limit : null,
+    horizontal: typeof limit === 'number' ? limit : null,
   });
 
   useEffect(() => {
