@@ -63,6 +63,7 @@ Here are some of the features we support:
 - [ ] Fast-reconnects
 - [ ] New Device Management API
 - [x] SFU retries
+- [x] Call Thumbnails
 - [ ] Query call session endpoint
 
 ### 0.5 milestone

@@ -11,6 +11,11 @@ body {
   box-sizing: border-box;
 }
 
+body {
+  background-color: #272a30;
+  color: var(--str-video__text-color1);
+}
+
 .str-video {
   background-color: #272a30;
   color: var(--str-video__text-color1);

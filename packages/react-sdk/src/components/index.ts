@@ -2,6 +2,7 @@ export * from './Avatar';
 export * from './Button';
 export * from './CallControls';
 export * from './CallParticipantsList';
+export * from './CallPreview';
 export * from './CallRecordingList';
 export * from './DeviceSettings';
 export * from './Icon';
