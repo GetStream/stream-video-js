@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.28...@stream-io/video-react-sdk-0.3.29) (2023-09-27)
+
+
+### Features
+
+* **SpeakerLayout:** add participantsBarLimit ([#1090](https://github.com/GetStream/stream-video-js/issues/1090)) ([712f1e7](https://github.com/GetStream/stream-video-js/commit/712f1e7010fdb8859aaa6caba7e7d9e0f4557ccb))
+
 ### [0.3.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.27...@stream-io/video-react-sdk-0.3.28) (2023-09-26)
 
 ### Dependency Updates
