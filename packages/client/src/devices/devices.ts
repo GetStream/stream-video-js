@@ -11,25 +11,39 @@ import {
   shareReplay,
 } from 'rxjs';
 import { getLogger } from '../logger';
+import { isFirefox } from '../helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((media) => {
-        // in Firefox, devices can be enumerated after userMedia is requested
-        // and permissions granted. Otherwise, device labels are empty
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          subscriber.next(devices);
-          // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-          disposeOfMediaStream(media);
-          subscriber.complete();
+    // in Firefox, devices can be enumerated after userMedia is requested
+    // and permissions granted. Otherwise, device labels are empty
+    if (isFirefox()) {
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then((media) => {
+          navigator.mediaDevices.enumerateDevices().then((devices) => {
+            subscriber.next(devices);
+            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
+            disposeOfMediaStream(media);
+            subscriber.complete();
+          });
+        })
+        .catch((error) => {
+          getLogger(['devices'])('error', 'Failed to get devices', error);
+          subscriber.error(error);
         });
-      })
-      .catch((error) => {
-        getLogger(['devices'])('error', 'Failed to get devices', error);
-        subscriber.error(error);
-      });
+    } else {
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          subscriber.next(devices);
+          subscriber.complete();
+        })
+        .catch((error) => {
+          getLogger(['devices'])('error', 'Failed to get devices', error);
+          subscriber.error(error);
+        });
+    }
   });
 };
 
