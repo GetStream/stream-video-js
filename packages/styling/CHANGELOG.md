@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.10...@stream-io/video-styling-0.1.11) (2023-09-27)
+
+
+### Features
+
+* **Call Preview:** Support for call thumbnails ([#1099](https://github.com/GetStream/stream-video-js/issues/1099)) ([9274f76](https://github.com/GetStream/stream-video-js/commit/9274f760ed264ee0ee6ac97c6fe679288e067fd8))
+
 ### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.9...@stream-io/video-styling-0.1.10) (2023-09-27)
 
 
