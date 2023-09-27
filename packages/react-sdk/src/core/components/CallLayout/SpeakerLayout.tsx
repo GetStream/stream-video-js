@@ -15,7 +15,7 @@ import {
 } from '../../../hooks';
 import { useSpeakerLayoutSortPreset } from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
-import { Audio, ParticipantsAudio } from '../Audio';
+import { ParticipantsAudio } from '../Audio';
 
 export type SpeakerLayoutProps = {
   ParticipantViewUISpotlight?: ParticipantViewProps['ParticipantViewUI'];
