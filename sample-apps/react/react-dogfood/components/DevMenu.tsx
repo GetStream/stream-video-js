@@ -4,6 +4,8 @@ import ConstructionIcon from '@mui/icons-material/Construction';
 import IconButton from '@mui/material/IconButton';
 import DownloadingIcon from '@mui/icons-material/Downloading';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import LiveTvIcon from '@mui/icons-material/LiveTv';
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 import Menu from '@mui/material/Menu';
 import Divider from '@mui/material/Divider';
 import MenuList from '@mui/material/MenuList';
@@ -54,6 +56,7 @@ export const DevMenu = () => {
           <LogSubscriberStats />
           <Divider />
           <StartStopBroadcasting />
+          <GoOrStopLive />
         </MenuList>
       </Menu>
     </div>
@@ -90,6 +93,38 @@ const StartStopBroadcasting = () => {
       <ListItemText>
         {isBroadcasting ? 'Stop broadcasting' : 'Start broadcasting'}
       </ListItemText>
+    </MenuItem>
+  );
+};
+
+const GoOrStopLive = () => {
+  const call = useCall();
+  const { useIsCallLive } = useCallStateHooks();
+  const isLive = useIsCallLive();
+  return (
+    <MenuItem
+      onClick={() => {
+        if (!call) return;
+        if (isLive) {
+          call.stopLive().catch((err) => {
+            console.error(`Failed to stop live`, err);
+          });
+        } else {
+          call
+            .goLive()
+            .then((res) => {
+              console.log(`Live started: ${res}`);
+            })
+            .catch((err) => {
+              console.error(`Failed to start live`, err);
+            });
+        }
+      }}
+    >
+      <ListItemIcon>
+        {isLive ? <CancelPresentationIcon /> : <LiveTvIcon />}
+      </ListItemIcon>
+      <ListItemText>{isLive ? 'Stop Live' : 'Go Live'}</ListItemText>
     </MenuItem>
   );
 };
@@ -174,7 +209,7 @@ const RestartPublisher = () => {
     <MenuItem
       onClick={() => {
         if (!call) return;
-        call['publisher']?.restartIce();
+        call.publisher?.restartIce();
       }}
     >
       <ListItemIcon>
@@ -196,7 +231,7 @@ const RestartSubscriber = () => {
     <MenuItem
       onClick={() => {
         if (!call) return;
-        call['subscriber']?.restartIce();
+        call.subscriber?.restartIce();
       }}
     >
       <ListItemIcon>
@@ -213,7 +248,7 @@ const LogPublisherStats = () => {
     <MenuItem
       onClick={() => {
         if (!call) return;
-        call['publisher']?.getStats().then((stats: RTCStatsReport) => {
+        call.publisher?.getStats().then((stats: RTCStatsReport) => {
           const arr: any = [];
           stats.forEach((value) => {
             arr.push(value);
@@ -270,7 +305,7 @@ const LogSubscriberStats = () => {
     <MenuItem
       onClick={() => {
         if (!call) return;
-        call['subscriber']?.getStats().then((stats: RTCStatsReport) => {
+        call.subscriber?.getStats().then((stats: RTCStatsReport) => {
           const arr: any = [];
           stats.forEach((value) => {
             arr.push(value);
