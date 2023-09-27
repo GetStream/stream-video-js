@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { decode } from 'js-base64';
 import { StreamVideoParticipant } from '@stream-io/video-react-sdk';
+
 import { Layout, ScreenshareLayout } from './components/layouts';
 
 const DEFAULT_USER_ID = 'egress';
@@ -97,6 +98,7 @@ export type ConfigurationValue = {
     'layout.background_image'?: string; // ✅
     'layout.background_size'?: string; // ✅
     'layout.background_position'?: string; // ✅
+    'layout.background_repeat'?: string; // ✅
 
     // grid-specific
     'layout.grid.gap'?: string; // ❌

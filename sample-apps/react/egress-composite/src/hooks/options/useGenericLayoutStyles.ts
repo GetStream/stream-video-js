@@ -10,6 +10,7 @@ export const useGenericLayoutStyles = () => {
       'layout.background_image': layoutBackgroundImage,
       'layout.background_size': layoutBackgroundSize,
       'layout.background_position': layoutBackgroundPosition,
+      'layout.background_repeat': layoutBackgroundRepeat,
 
       // TODO: move to custom hook
       'layout.single-participant.padding_block':
@@ -42,6 +43,10 @@ export const useGenericLayoutStyles = () => {
     layoutBackgroundPosition &&
       css`
         background-position: ${layoutBackgroundPosition};
+      `,
+    layoutBackgroundRepeat &&
+      css`
+        background-repeat: ${layoutBackgroundRepeat};
       `,
   ];
 
