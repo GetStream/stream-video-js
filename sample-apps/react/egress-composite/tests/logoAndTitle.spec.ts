@@ -64,6 +64,6 @@ test.describe('Logo and Title', () => {
     await expect(page.getByTestId('logo')).toBeVisible();
     await expect(page.getByTestId('title')).toBeVisible();
 
-    await expect(page).toHaveScreenshot({ maxDiffPixels: 200 });
+    await expect(page).toHaveScreenshot();
   });
 });

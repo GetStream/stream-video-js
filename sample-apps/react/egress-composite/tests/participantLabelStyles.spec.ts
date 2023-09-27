@@ -51,6 +51,6 @@ test.describe('Participant Label Styles', () => {
 
     await expect(page.getByTestId('participant-view')).toHaveCount(5);
 
-    await expect(page).toHaveScreenshot({ maxDiffPixels: 200 });
+    await expect(page).toHaveScreenshot();
   });
 });
