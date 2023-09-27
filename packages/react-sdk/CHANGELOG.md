@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.29...@stream-io/video-react-sdk-0.3.30) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.26`
+* `@stream-io/video-styling` updated to version `0.1.10`
+
+### Features
+
+* **react-sdk:** LivestreamLayout ([#1103](https://github.com/GetStream/stream-video-js/issues/1103)) ([6636699](https://github.com/GetStream/stream-video-js/commit/6636699701dfd5eb5886c50781dd5f16a8470da5))
+
 ### [0.3.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.28...@stream-io/video-react-sdk-0.3.29) (2023-09-27)
 
 
