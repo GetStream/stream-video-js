@@ -18,7 +18,6 @@ export const Spotlight = () => {
     <div className="spotlight" data-testid="spotlight">
       <SpeakerLayout
         participantsBarPosition={position}
-        // @ts-expect-error TODO: remove after PR lands
         participantsBarLimit={limit}
         ParticipantViewUIBar={
           <DefaultParticipantViewUI
