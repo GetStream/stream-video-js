@@ -15,34 +15,31 @@ import { isFirefox } from '../helpers/browsers';
 
 const getDevices = (constraints?: MediaStreamConstraints) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    // in Firefox, devices can be enumerated after userMedia is requested
-    // and permissions granted. Otherwise, device labels are empty
-    if (isFirefox()) {
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((media) => {
-          navigator.mediaDevices.enumerateDevices().then((devices) => {
-            subscriber.next(devices);
-            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-            disposeOfMediaStream(media);
-            subscriber.complete();
-          });
-        })
-        .catch((error) => {
-          getLogger(['devices'])('error', 'Failed to get devices', error);
-          subscriber.error(error);
-        });
-    } else {
+    const enumerateDevices = (media?: MediaStream) => {
       navigator.mediaDevices
         .enumerateDevices()
         .then((devices) => {
           subscriber.next(devices);
+          if (isFirefox() && media) {
+            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
+            disposeOfMediaStream(media);
+          }
           subscriber.complete();
         })
         .catch((error) => {
           getLogger(['devices'])('error', 'Failed to get devices', error);
           subscriber.error(error);
         });
+    };
+
+    // in Firefox, devices can be enumerated after userMedia is requested
+    // and permissions granted. Otherwise, device labels are empty
+    if (isFirefox()) {
+      navigator.mediaDevices.getUserMedia(constraints).then((media) => {
+        enumerateDevices(media);
+      });
+    } else {
+      enumerateDevices();
     }
   });
 };
