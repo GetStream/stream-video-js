@@ -11,9 +11,10 @@ import {
   ParticipantView,
   ParticipantViewProps,
 } from '../ParticipantView';
-import { Audio } from '../Audio';
+import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
+import { usePaginatedLayoutSortPreset } from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -85,6 +86,8 @@ export const PaginatedGridLayout = ({
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
 
+  usePaginatedLayoutSortPreset(call);
+
   // only used to render video elements
   const participantGroups = useMemo(
     () =>
@@ -110,9 +113,7 @@ export const PaginatedGridLayout = ({
 
   return (
     <div className="str-video__paginated-grid-layout__wrapper">
-      {remoteParticipants.map((participant) => (
-        <Audio key={participant.sessionId} participant={participant} />
-      ))}
+      <ParticipantsAudio participants={remoteParticipants} />
       <div className="str-video__paginated-grid-layout">
         {pageArrowsVisible && pageCount > 1 && (
           <IconButton

@@ -54,17 +54,19 @@ Here are some of the features we support:
 ## Roadmap
 
 ### 0.4 milestone
-- [X] Enhanced device management API
-- [X] Composite layout for streaming and recording
-- [ ] Livestream Player
+
+- [x] Enhanced device management API
+- [x] Composite layout for streaming and recording
+- [x] Livestream Player
 - [ ] Screenshare Audio
 - [ ] Screen-sharing resolution and FPS control
 - [ ] Fast-reconnects
 - [ ] New Device Management API
-- [X] SFU retries
+- [x] SFU retries
 - [ ] Query call session endpoint
 
 ### 0.5 milestone
+
 - [ ] Enhanced UI components and theming
 - [ ] Enhanced SDK build system
 - [ ] Typescript generics enhancements
@@ -76,13 +78,13 @@ Here are some of the features we support:
 - [ ] E2E testing platform
 
 ### 0.6 milestone
+
 - [ ] Break-out rooms
 - [ ] Waiting rooms
 - [ ] Transcriptions
 - [ ] Closed captions
 - [ ] Video and audio filters
 - [ ] Dynascale: turn off incoming video when the browser is in the background
-
 
 ## Contributing
 

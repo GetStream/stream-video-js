@@ -3,6 +3,7 @@ import {
   GenericMenu,
   GenericMenuButtonItem,
   IconButton,
+  LivestreamLayout,
   MenuToggle,
   PaginatedGridLayout,
   SpeakerLayout,
@@ -65,6 +66,11 @@ export const LayoutMap = {
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
     title: 'Speaker 1:1',
+    props: {},
+  },
+  LivestreamLayout: {
+    Component: LivestreamLayout,
+    title: 'Livestream',
     props: {},
   },
 };
