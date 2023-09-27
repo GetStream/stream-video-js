@@ -22,6 +22,7 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 import { getSdkInfo } from '../client-details';
+import { isFirefox, isSafari } from './browsers';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -176,7 +177,7 @@ export class DynascaleManager {
       ),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
-      shareReplay(1),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     /**
@@ -274,6 +275,14 @@ export class DynascaleManager {
             }
           });
 
+    videoElement.autoplay = true;
+    videoElement.playsInline = true;
+
+    // explicitly marking the element as muted will allow autoplay to work
+    // without prior user interaction:
+    // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+    videoElement.muted = true;
+
     const streamSubscription = participant$
       .pipe(
         distinctUntilKeyChanged(
@@ -284,22 +293,19 @@ export class DynascaleManager {
         const source =
           trackType === 'videoTrack' ? p.videoStream : p.screenShareStream;
         if (videoElement.srcObject === source) return;
-        setTimeout(() => {
-          videoElement.srcObject = source ?? null;
-          if (videoElement.srcObject) {
+        videoElement.srcObject = source ?? null;
+        if (isSafari() || isFirefox()) {
+          setTimeout(() => {
+            videoElement.srcObject = source ?? null;
             videoElement.play().catch((e) => {
               this.logger('warn', `Failed to play stream`, e);
             });
-          }
-        }, 0);
+            // we add extra delay until we attempt to force-play
+            // the participant's media stream in Firefox and Safari,
+            // as they seem to have some timing issues
+          }, 25);
+        }
       });
-    videoElement.playsInline = true;
-    videoElement.autoplay = true;
-
-    // explicitly marking the element as muted will allow autoplay to work
-    // without prior user interaction:
-    // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
-    videoElement.muted = true;
 
     return () => {
       requestTrackWithDimensions(DebounceType.FAST, undefined);
@@ -333,6 +339,7 @@ export class DynascaleManager {
       ),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     const updateMediaStreamSubscription = participant$
@@ -359,7 +366,8 @@ export class DynascaleManager {
         getSdkInfo()?.type === SdkType.REACT
           ? p?.audioOutputDeviceId
           : selectedDevice;
-      if ('setSinkId' in audioElement) {
+
+      if ('setSinkId' in audioElement && typeof deviceId === 'string') {
         // @ts-expect-error setSinkId is not yet in the lib
         audioElement.setSinkId(deviceId);
       }

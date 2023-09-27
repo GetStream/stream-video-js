@@ -1,5 +1,5 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import {
@@ -329,24 +329,30 @@ export class CallState {
    */
   constructor() {
     this.logger = getLogger(['CallState']);
-    this.participants$ = this.participantsSubject.pipe(
-      map((ps) => ps.sort(this.sortParticipantsBy)),
+    this.participants$ = this.participantsSubject.asObservable().pipe(
+      // TODO: replace with Array.toSorted once available
+      map((ps) => [...ps].sort(this.sortParticipantsBy)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.localParticipant$ = this.participants$.pipe(
       map((participants) => participants.find(isStreamVideoLocalParticipant)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.remoteParticipants$ = this.participants$.pipe(
       map((participants) => participants.filter((p) => !p.isLocalParticipant)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
       map((participants) => participants.filter((p) => !!p.pin)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.dominantSpeaker$ = this.participants$.pipe(
       map((participants) => participants.find((p) => p.isDominantSpeaker)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.hasOngoingScreenShare$ = this.participants$.pipe(
@@ -356,6 +362,7 @@ export class CallState {
         ),
       ),
       distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.startedAt$ = this.startedAtSubject.asObservable();

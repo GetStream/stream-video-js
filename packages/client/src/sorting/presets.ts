@@ -21,6 +21,19 @@ const ifInvisibleBy = conditional(
 );
 
 /**
+ * A comparator that applies the decorated comparator when a participant is
+ * either invisible or its visibility state isn't known.
+ * For visible participants, it ensures stable sorting.
+ */
+const ifInvisibleOrUnknownBy = conditional(
+  (a: StreamVideoParticipant, b: StreamVideoParticipant) =>
+    a.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE ||
+    a.viewportVisibilityState?.videoTrack === VisibilityState.UNKNOWN ||
+    b.viewportVisibilityState?.videoTrack === VisibilityState.INVISIBLE ||
+    b.viewportVisibilityState?.videoTrack === VisibilityState.UNKNOWN,
+);
+
+/**
  * The default sorting preset.
  */
 export const defaultSortPreset = combineComparators(
@@ -46,6 +59,21 @@ export const speakerLayoutSortPreset = combineComparators(
   ifInvisibleBy(publishingVideo),
   ifInvisibleBy(publishingAudio),
   // ifInvisibleBy(name),
+);
+
+/**
+ * The sorting preset for layouts that don't render all participants but
+ * instead, render them in pages.
+ */
+export const paginatedLayoutSortPreset = combineComparators(
+  pinned,
+  screenSharing,
+  dominantSpeaker,
+  ifInvisibleOrUnknownBy(speaking),
+  ifInvisibleOrUnknownBy(reactionType('raised-hand')),
+  ifInvisibleOrUnknownBy(publishingVideo),
+  ifInvisibleOrUnknownBy(publishingAudio),
+  // ifInvisibleOrUnknownBy(name),
 );
 
 /**

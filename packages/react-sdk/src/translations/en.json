@@ -12,6 +12,8 @@
   "Video": "Video",
   "You are muted. Unmute to speak.": "You are muted. Unmute to speak.",
 
+  "Live": "Live",
+
   "You can now speak.": "You can now speak.",
   "Awaiting for an approval to speak.": "Awaiting for an approval to speak.",
   "You can no longer speak.": "You can no longer speak.",
@@ -62,6 +64,10 @@
   "Leave": "Leave",
   "{{ direction }} fullscreen": "{{ direction }} fullscreen",
   "{{ direction }} picture-in-picture": "{{ direction }} picture-in-picture",
+
+  "Participants": "Participants",
+  "Anonymous": ", and ({{ count }}) anonymous",
+  "No participants found": "No participants found",
 
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
