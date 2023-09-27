@@ -109,41 +109,37 @@ export const PaginatedGridLayout = ({
   if (!call) return null;
 
   return (
-    <>
+    <div className="str-video__paginated-grid-layout__wrapper">
       {remoteParticipants.map((participant) => (
         <Audio key={participant.sessionId} participant={participant} />
       ))}
-      <div className="str-video__paginated-grid-layout__wrapper">
-        <div className="str-video__paginated-grid-layout">
-          {pageArrowsVisible && pageCount > 1 && (
-            <IconButton
-              icon="caret-left"
-              disabled={page === 0}
-              onClick={() =>
-                setPage((currentPage) => Math.max(0, currentPage - 1))
-              }
-            />
-          )}
-          {selectedGroup && (
-            <PaginatedGridLayoutGroup
-              group={participantGroups[page]}
-              VideoPlaceholder={VideoPlaceholder}
-              ParticipantViewUI={ParticipantViewUI}
-            />
-          )}
-          {pageArrowsVisible && pageCount > 1 && (
-            <IconButton
-              disabled={page === pageCount - 1}
-              icon="caret-right"
-              onClick={() =>
-                setPage((currentPage) =>
-                  Math.min(pageCount - 1, currentPage + 1),
-                )
-              }
-            />
-          )}
-        </div>
+      <div className="str-video__paginated-grid-layout">
+        {pageArrowsVisible && pageCount > 1 && (
+          <IconButton
+            icon="caret-left"
+            disabled={page === 0}
+            onClick={() =>
+              setPage((currentPage) => Math.max(0, currentPage - 1))
+            }
+          />
+        )}
+        {selectedGroup && (
+          <PaginatedGridLayoutGroup
+            group={participantGroups[page]}
+            VideoPlaceholder={VideoPlaceholder}
+            ParticipantViewUI={ParticipantViewUI}
+          />
+        )}
+        {pageArrowsVisible && pageCount > 1 && (
+          <IconButton
+            disabled={page === pageCount - 1}
+            icon="caret-right"
+            onClick={() =>
+              setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))
+            }
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 };
