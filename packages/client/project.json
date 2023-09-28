@@ -20,7 +20,6 @@
             {"type": "test", "hidden": true}
         ]
         },
-        "tagPrefix": "client",
         "push": true,
         "skipCommitTypes": ["chore", "ci", "refactor", "test", "docs"],
         "postTargets": ["@stream-io/video-client:update-version", "@stream-io/video-client:github", "@stream-io/video-client:npm"]
