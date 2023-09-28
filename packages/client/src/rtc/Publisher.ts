@@ -26,6 +26,7 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { getOSInfo } from '../client-details';
+import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -404,11 +405,11 @@ export class Publisher {
     });
   };
 
-  updateVideoPublishQuality = async (enabledRids: string[]) => {
+  updateVideoPublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
     logger(
       'info',
-      'Update publish quality, requested rids by SFU:',
-      enabledRids,
+      'Update publish quality, requested layers by SFU:',
+      enabledLayers,
     );
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
@@ -427,6 +428,7 @@ export class Publisher {
     }
 
     let changed = false;
+    let enabledRids = enabledLayers.filter(ly => ly.active).map(ly => ly.name);
     params.encodings.forEach((enc) => {
       // flip 'active' flag only when necessary
       const shouldEnable = enabledRids.includes(enc.rid!);
@@ -434,17 +436,23 @@ export class Publisher {
         enc.active = shouldEnable;
         changed = true;
       }
+      if (shouldEnable) {
+        let layer = enabledLayers.find(vls => vls.name === enc.rid);
+        if (layer !== undefined && layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy) {
+          // TODO: Find a default scale down value if SFU specifies some nonsense or doesn't set it
+          enc.scaleResolutionDownBy = Math.max(1.0, layer.scaleResolutionDownBy); // min should be 1.0
+          changed = true;
+        }
+      }
     });
 
-    const activeRids = params.encodings
+    const activeLayers = params.encodings
       .filter((e) => e.active)
-      .map((e) => e.rid)
-      .join(', ');
     if (changed) {
       await videoSender.setParameters(params);
-      logger('info', `Update publish quality, enabled rids: ${activeRids}`);
+      logger('info', `Update publish quality, enabled rids: `, activeLayers);
     } else {
-      logger('info', `Update publish quality, no change: ${activeRids}`);
+      logger('info', `Update publish quality, no change: `, activeLayers);
     }
   };
 
