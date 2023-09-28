@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.25...@stream-io/video-react-native-sdk-0.0.26) (2023-09-28)
+
+
+### Bug Fixes
+
+* **react-native:** initial media stream management according to BE and SDK settings ([#1110](https://github.com/GetStream/stream-video-js/issues/1110)) ([cca7cf6](https://github.com/GetStream/stream-video-js/commit/cca7cf6d977a3a46e17deb73fa4f1b585d2039e8))
+
 ### [0.0.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.24...@stream-io/video-react-native-sdk-0.0.25) (2023-09-28)
 
 ### Dependency Updates
