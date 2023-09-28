@@ -1,6 +1,5 @@
 import React from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useMediaStreamManagement } from '../../../providers';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { CallControlsButton } from './CallControlsButton';
 import { Video, VideoSlash } from '../../../icons';
@@ -29,15 +28,15 @@ export const ToggleVideoPreviewButton = ({
       variants: { buttonSizes },
     },
   } = useTheme();
-  const { toggleInitialVideoMuteState } = useMediaStreamManagement();
+  const call = useCall();
   const { useCameraState } = useCallStateHooks();
   const { status } = useCameraState();
-  const onPress = () => {
+  const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
     }
-    toggleInitialVideoMuteState();
+    await call?.camera.toggle();
   };
 
   return (

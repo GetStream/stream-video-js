@@ -1,8 +1,7 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Mic, MicOff } from '../../../icons';
-import { useMediaStreamManagement } from '../../../providers';
 import { CallControlsButton } from './CallControlsButton';
 
 /**
@@ -29,17 +28,16 @@ export const ToggleAudioPreviewButton = ({
       variants: { buttonSizes },
     },
   } = useTheme();
+  const call = useCall();
   const { useMicrophoneState } = useCallStateHooks();
   const { status } = useMicrophoneState();
 
-  const { toggleInitialAudioMuteState } = useMediaStreamManagement();
-
-  const onPress = () => {
+  const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
     }
-    toggleInitialAudioMuteState();
+    await call?.microphone.toggle();
   };
 
   return (
