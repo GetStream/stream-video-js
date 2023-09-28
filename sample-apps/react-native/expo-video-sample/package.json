@@ -20,7 +20,7 @@
     "expo": "^49.0.11",
     "expo-constants": "~14.4.2",
     "expo-linking": "~5.0.2",
-    "expo-notifications": "~0.20.1",
+    "expo-notifications": "~0.23.0",
     "expo-router": "^2.0.6",
     "expo-splash-screen": "~0.20.5",
     "expo-status-bar": "~1.6.0",

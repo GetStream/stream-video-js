@@ -1,11 +1,20 @@
-import type { StreamVideoConfig } from '../StreamVideoRN/types';
+import { Platform } from 'react-native';
+import type {
+  NonRingingPushEvent,
+  StreamVideoConfig,
+} from '../StreamVideoRN/types';
 import {
   pushAcceptedIncomingCallCId$,
   voipPushNotificationCallCId$,
   voipCallkeepCallOnForegroundMap$,
   voipCallkeepAcceptedCallOnNativeDialerMap$,
+  pushNonRingingCallData$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
+import { getExpoNotificationsLib } from './libs';
+import { StreamVideoClient } from '@stream-io/video-client';
+import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
+import notifee, { EventType } from '@notifee/react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -55,3 +64,95 @@ const shouldProcessCallFromCallkeep = (
   }
   return true;
 };
+
+export const setupRemoteNotificationsHandleriOS = (pushConfig: PushConfig) => {
+  if (Platform.OS !== 'ios') {
+    return;
+  }
+  if (pushConfig.isExpo) {
+    const Notifications = getExpoNotificationsLib();
+
+    notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS) {
+        const streamPayload = detail.notification?.data?.stream as
+          | { call_cid: string; type: string; sender: string }
+          | undefined;
+        if (streamPayload) {
+          if (
+            streamPayload.sender === 'stream.video' &&
+            streamPayload.type !== 'call.ring'
+          ) {
+            const cid = streamPayload.call_cid;
+            const _type = streamPayload.type as NonRingingPushEvent;
+            pushNonRingingCallData$.next({ cid, type: _type });
+            pushConfig.onTapNonRingingCallNotification?.(cid, _type);
+          }
+        }
+      }
+    });
+
+    // foreground handler
+    Notifications.setNotificationHandler({
+      handleNotification: async () => {
+        return {
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        };
+      },
+    });
+  }
+};
+
+/** Send token to stream */
+export async function initIosNonVoipToken(
+  client: StreamVideoClient,
+  pushConfig: PushConfig,
+  setUnsubscribeListener: (unsubscribe: () => void) => void,
+) {
+  if (Platform.OS !== 'ios') {
+    return;
+  }
+  const setDeviceToken = async (token: string) => {
+    setPushLogoutCallback(() => {
+      client.removeDevice(token).catch((err) => {
+        console.warn('Failed to remove voip token from stream', err);
+      });
+    });
+    const push_provider_name = pushConfig.ios.pushProviderName;
+    await client.addDevice(token, 'apn', push_provider_name);
+  };
+  if (pushConfig.isExpo) {
+    const expoNotificationsLib = getExpoNotificationsLib();
+    const subscription = expoNotificationsLib.addPushTokenListener(
+      (devicePushToken) => {
+        setDeviceToken(devicePushToken.data);
+      },
+    );
+    const subscriptionForReceive =
+      expoNotificationsLib.addNotificationReceivedListener((event) => {
+        // listen to foreground notifications
+        if (event.request.trigger.type === 'push') {
+          const streamPayload = event.request.trigger.payload?.stream as
+            | { call_cid: string; type: string; sender: string }
+            | undefined;
+          if (streamPayload) {
+            if (
+              streamPayload.sender === 'stream.video' &&
+              streamPayload.type !== 'call.ring'
+            ) {
+              const cid = streamPayload.call_cid;
+              const type = streamPayload.type as NonRingingPushEvent;
+              pushNonRingingCallData$.next({ cid, type });
+            }
+          }
+        }
+      });
+    setUnsubscribeListener(() => {
+      subscription.remove();
+      subscriptionForReceive.remove();
+    });
+  } else {
+    // TODO: apn lib for ios
+  }
+}

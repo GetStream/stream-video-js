@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import { StreamVideoRN, User } from '@stream-io/video-react-native-sdk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StaticNavigationService } from '../utils/staticNavigationUtils';
 
 type AppContextType = {
   user: User | undefined;
@@ -20,12 +21,14 @@ export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
 
   const loginHandler = useCallback((userData: User) => {
     setUser(userData);
+    StaticNavigationService.authenticationInfo = userData;
   }, []);
 
   const logoutHandler = useCallback(() => {
     AsyncStorage.removeItem('my-user').then(() => {
-      StreamVideoRN.onLogout();
+      StreamVideoRN.onPushLogout();
       setUser(undefined);
+      StaticNavigationService.authenticationInfo = undefined;
     });
   }, []);
 

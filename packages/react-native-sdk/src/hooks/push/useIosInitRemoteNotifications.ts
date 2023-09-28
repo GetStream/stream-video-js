@@ -4,12 +4,12 @@ import {
 } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import { StreamVideoRN } from '../../utils';
-import { initAndroidPushToken } from '../../utils/push/android';
+import { initIosNonVoipToken } from '../../utils/push/ios';
 
 /**
- * This hook is used to initialize the push token for Android.
+ * This hook is used to initialize the push token for iOS.
  */
-export const useInitAndroidTokenAndRest = () => {
+export const useIosInitRemoteNotifications = () => {
   const client = useStreamVideoClient();
   const connectedUserId = useConnectedUser()?.id;
   useEffect(() => {
@@ -19,7 +19,7 @@ export const useInitAndroidTokenAndRest = () => {
       return;
     }
     let unsubscribe = () => {};
-    initAndroidPushToken(client, pushConfig, (unsubscribeListener) => {
+    initIosNonVoipToken(client, pushConfig, (unsubscribeListener) => {
       unsubscribe = unsubscribeListener;
     });
     return () => {

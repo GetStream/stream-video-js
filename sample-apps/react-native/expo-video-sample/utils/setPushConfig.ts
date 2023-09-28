@@ -5,6 +5,10 @@ import {
 import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STREAM_API_KEY } from '../data/constants';
+import {
+  staticNavigateToNonRingingCall,
+  staticNavigateToRingingCall,
+} from './staticNavigationUtils';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -14,6 +18,11 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      callChannel: {
+        id: 'stream_call_notifications',
+        name: 'Call notifications',
+        importance: AndroidImportance.HIGH,
+      },
       incomingCallChannel: {
         id: 'stream_incoming_call',
         name: 'Incoming call notifications',
@@ -22,15 +31,30 @@ export function setPushConfig() {
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to answer the call',
+        getBody: (_createdUserName: string) => 'Tap to open the call',
+      },
+      callNotificationTextGetters: {
+        getTitle(type, createdUserName) {
+          if (type === 'call.live_started') {
+            return `Call went live, it was started by ${createdUserName}`;
+          } else {
+            return `${createdUserName} is notifying you about a call`;
+          }
+        },
+        getBody(_type, createdUserName) {
+          return 'Tap to open the call';
+        },
       },
     },
     createStreamVideoClient,
     navigateAcceptCall: () => {
-      console.log('navigateAcceptCall -- nothing to do');
+      staticNavigateToRingingCall();
     },
     navigateToIncomingCall: () => {
-      console.log('navigateToIncomingCall -- nothing to do');
+      staticNavigateToRingingCall();
+    },
+    onTapNonRingingCallNotification: (_cid, _type) => {
+      staticNavigateToNonRingingCall();
     },
   });
 }

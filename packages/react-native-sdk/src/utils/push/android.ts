@@ -2,7 +2,10 @@ import notifee, { EventType, Event } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { Platform } from 'react-native';
-import type { StreamVideoConfig } from '../StreamVideoRN/types';
+import type {
+  NonRingingPushEvent,
+  StreamVideoConfig,
+} from '../StreamVideoRN/types';
 import {
   getFirebaseMessagingLib,
   getExpoNotificationsLib,
@@ -12,6 +15,7 @@ import {
   pushAcceptedIncomingCallCId$,
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
+  pushNonRingingCallData$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
@@ -46,10 +50,20 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
     Notifications.setNotificationHandler({
       handleNotification: async (notification) => {
         // @ts-ignore
-        const data = notification?.request?.trigger?.remoteMessage?.data;
-        await firebaseMessagingOnMessageHandler(data, pushConfig);
+        const trigger = notification?.request?.trigger;
+        if (trigger.type === 'push') {
+          const data = trigger?.remoteMessage?.data;
+          if (data?.sender === 'stream.video') {
+            await firebaseMessagingOnMessageHandler(data, pushConfig);
+            return {
+              shouldShowAlert: false,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+            };
+          }
+        }
         return {
-          shouldShowAlert: false,
+          shouldShowAlert: true,
           shouldPlaySound: false,
           shouldSetBadge: false,
         };
@@ -61,14 +75,14 @@ export function setupFirebaseHandlerAndroid(pushConfig: PushConfig) {
       async (msg) =>
         await firebaseMessagingOnMessageHandler(msg.data, pushConfig),
     );
-    // messaging().onMessage(firebaseMessagingOnMessageHandler); // this is to listen to foreground messages, which we dont need for now
+    messaging().onMessage((msg) =>
+      firebaseMessagingOnMessageHandler(msg.data, pushConfig),
+    ); // this is to listen to foreground messages, which we dont need for now
   }
   notifee.onBackgroundEvent(async (event) => {
-    // NOTE: When app was opened from a quit state, we will never hit this when on accept event as app will open and the click event will go to foreground
     await onNotifeeEvent(event, pushConfig);
   });
   notifee.onForegroundEvent((event) => {
-    // NOTE: When app was opened from a quit state, we will never hit this when on accept event as app will open and go to foreground immediately
     onNotifeeEvent(event, pushConfig);
   });
 }
@@ -83,7 +97,6 @@ export async function initAndroidPushToken(
     return;
   }
   const setDeviceToken = async (token: string) => {
-    // set the logout callback
     setPushLogoutCallback(() => {
       client.removeDevice(token).catch((err) => {
         console.warn('Failed to remove voip token from stream', err);
@@ -137,39 +150,83 @@ const firebaseMessagingOnMessageHandler = async (
   if (!data || data.sender !== 'stream.video') {
     return;
   }
-  await notifee.createChannel(pushConfig.android.incomingCallChannel);
-  const { getTitle, getBody } =
-    pushConfig.android.incomingCallNotificationTextGetters;
-  const channelId = pushConfig.android.incomingCallChannel.id;
-  const createdUserName = data.created_by_display_name;
-  await notifee.displayNotification({
-    title: getTitle(createdUserName),
-    body: getBody(createdUserName),
-    data,
-    android: {
-      channelId,
-      pressAction: {
-        id: 'default',
-        launchActivity: 'default', // open the app when the notification is pressed
+
+  if (data.type === 'call.ring') {
+    const incomingCallChannel = pushConfig.android.incomingCallChannel;
+    const incomingCallNotificationTextGetters =
+      pushConfig.android.incomingCallNotificationTextGetters;
+    if (!incomingCallChannel || !incomingCallNotificationTextGetters) {
+      console.debug(
+        "Can't show incoming call notification as either or both incomingCallChannel and was not provided",
+      );
+      return;
+    }
+    await notifee.createChannel(incomingCallChannel);
+    const { getTitle, getBody } = incomingCallNotificationTextGetters;
+    const createdUserName = data.created_by_display_name;
+
+    const channelId = incomingCallChannel.id;
+    await notifee.displayNotification({
+      title: getTitle(createdUserName),
+      body: getBody(createdUserName),
+      data,
+      android: {
+        channelId,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default', // open the app when the notification is pressed
+        },
+        actions: [
+          {
+            title: 'Decline',
+            pressAction: {
+              id: DECLINE_CALL_ACTION_ID,
+            },
+          },
+          {
+            title: 'Accept',
+            pressAction: {
+              id: ACCEPT_CALL_ACTION_ID,
+              launchActivity: 'default', // open the app when the notification is pressed
+            },
+          },
+        ],
+        timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
-      actions: [
-        {
-          title: 'Decline',
-          pressAction: {
-            id: DECLINE_CALL_ACTION_ID,
-          },
+    });
+  } else {
+    // the other types are call.live_started and call.notification
+    const callChannel = pushConfig.android.callChannel;
+    const callNotificationTextGetters =
+      pushConfig.android.callNotificationTextGetters;
+    if (!callChannel || !callNotificationTextGetters) {
+      console.debug(
+        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
+      );
+      return;
+    }
+    await notifee.createChannel(callChannel);
+    const channelId = callChannel.id;
+    const { getTitle, getBody } = callNotificationTextGetters;
+    const createdUserName = data.created_by_display_name;
+    // we can safely cast to string because the data is from "stream.video"
+    const type = data.type as NonRingingPushEvent;
+    await notifee.displayNotification({
+      title: getTitle(type, createdUserName),
+      body: getBody(type, createdUserName),
+      data,
+      android: {
+        channelId,
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default', // open the app when the notification is pressed
         },
-        {
-          title: 'Accept',
-          pressAction: {
-            id: ACCEPT_CALL_ACTION_ID,
-            launchActivity: 'default', // open the app when the notification is pressed
-          },
-        },
-      ],
-      timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
-    },
-  });
+        timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
+      },
+    });
+    const cid = data.call_cid;
+    pushNonRingingCallData$.next({ cid, type });
+  }
 };
 
 const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
@@ -189,32 +246,43 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
   // we can safely cast to string because the data is from "stream.video"
   const call_cid = data.call_cid as string;
 
-  // check if we have observers for the call cid (this means the app is in the foreground state)
-  const hasObservers =
-    pushAcceptedIncomingCallCId$.observed &&
-    pushRejectedIncomingCallCId$.observed;
+  if (data.type === 'call.ring') {
+    // check if we have observers for the call cid (this means the app is in the foreground state)
+    const hasObservers =
+      pushAcceptedIncomingCallCId$.observed &&
+      pushRejectedIncomingCallCId$.observed;
 
-  // Check if we need to decline the call
-  const didPressDecline =
-    type === EventType.ACTION_PRESS &&
-    pressAction.id === DECLINE_CALL_ACTION_ID;
-  const didDismiss = type === EventType.DISMISSED;
-  const mustDecline = didPressDecline || didDismiss;
-  // Check if we need to accept the call
-  const mustAccept =
-    type === EventType.ACTION_PRESS && pressAction.id === ACCEPT_CALL_ACTION_ID;
-  if (mustAccept) {
-    pushAcceptedIncomingCallCId$.next(call_cid);
-    // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always
-  } else if (mustDecline) {
-    pushRejectedIncomingCallCId$.next(call_cid);
-    if (hasObservers) {
-      // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
-      return;
+    // Check if we need to decline the call
+    const didPressDecline =
+      type === EventType.ACTION_PRESS &&
+      pressAction.id === DECLINE_CALL_ACTION_ID;
+    const didDismiss = type === EventType.DISMISSED;
+    const mustDecline = didPressDecline || didDismiss;
+    // Check if we need to accept the call
+    const mustAccept =
+      type === EventType.ACTION_PRESS &&
+      pressAction.id === ACCEPT_CALL_ACTION_ID;
+    if (mustAccept) {
+      pushAcceptedIncomingCallCId$.next(call_cid);
+      // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always
+    } else if (mustDecline) {
+      pushRejectedIncomingCallCId$.next(call_cid);
+      if (hasObservers) {
+        // if we had observers we can return here as the observers will handle the call as the app is in the foreground state
+        return;
+      }
+      await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+    } else if (type === EventType.PRESS) {
+      pushTappedIncomingCallCId$.next(call_cid);
+      // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
     }
-    await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
-  } else if (type === EventType.PRESS) {
-    pushTappedIncomingCallCId$.next(call_cid);
-    // pressed state will be handled by the app with rxjs observers as the app will go to foreground always
+  } else {
+    if (type === EventType.PRESS) {
+      pushTappedIncomingCallCId$.next(call_cid);
+      pushConfig.onTapNonRingingCallNotification?.(
+        call_cid,
+        data.type as NonRingingPushEvent,
+      );
+    }
   }
 };
