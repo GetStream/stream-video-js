@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.27](https://github.com/GetStream/stream-video-js/compare/client0.3.26...client0.3.27) (2023-09-28)
+
+
+### Bug Fixes
+
+* use `@types/ws` as a regular dependency ([#1115](https://github.com/GetStream/stream-video-js/issues/1115)) ([bafad33](https://github.com/GetStream/stream-video-js/commit/bafad3317b7b899b4f2a6a3fdf3b051ad4c96c34))
+
 ### [0.3.26](https://github.com/GetStream/stream-video-js/compare/client0.3.25...client0.3.26) (2023-09-27)
 
 
