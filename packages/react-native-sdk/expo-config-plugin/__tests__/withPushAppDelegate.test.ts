@@ -65,8 +65,8 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     const props: ConfigProps = {
       ringingPushNotifications: {
-        disableVideo: true,
-        includesCallsInRecents: true,
+        disableVideoIos: true,
+        includesCallsInRecentsIos: true,
       },
     };
 
@@ -100,8 +100,8 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
   it('should not modify config if already added', () => {
     const props: ConfigProps = {
       ringingPushNotifications: {
-        disableVideo: true,
-        includesCallsInRecents: true,
+        disableVideoIos: true,
+        includesCallsInRecentsIos: true,
       },
     };
 
@@ -128,8 +128,8 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
     const props: ConfigProps = {
       ringingPushNotifications: {
-        disableVideo: true,
-        includesCallsInRecents: false,
+        disableVideoIos: true,
+        includesCallsInRecentsIos: false,
       },
     };
     expect(() => withPushAppDelegate(config, props)).toThrow();

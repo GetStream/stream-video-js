@@ -5,9 +5,7 @@ title: Expo
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This guide discusses how to add push notifications for ringing calls to your project. It will discuss both Android and iOS and go through all the necessary steps.
-
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your Expo app to get push notifications from Stream for the incoming calls that your user will receive. 
+This guide discusses how to add push notifications for calls that are not ringing to your project. We will discuss how to set up your Expo app to get push notifications from Stream for the non-ringing calls that your user will receive. 
 
 | Android preview | iOS preview |
 |---|---|
@@ -17,23 +15,19 @@ The normal user experience in a ringing app, when a user receives a call, is to 
 
 Please follow the below guides for adding appropriate push providers to Stream:
 
-- Android - [Firebase Cloud Messaging](../push-providers/firebase/)
-- iOS - [Apple Push Notification Service (APNs)](../push-providers/apn-voip/)
+- Android - [Firebase Cloud Messaging](../../push-providers/firebase/)
+- iOS - [Apple Push Notification Service (APNs)](../../push-providers/apn-voip/)
 
 ## Install Dependencies
 
 ```bash title=Terminal
 npx expo install expo-notifications
 npx expo install expo-task-manager
-npx expo install react-native-voip-push-notification
-npx expo install react-native-callkeep
 ```
 
 So what did we install precisely?
 
-- `expo-notifications` and `expo-task-manager` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
-- `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
-- `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
+- `expo-notifications` and `expo-task-manager` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android and iOS.
 
 ## Add Firebase credentials
 
@@ -58,9 +52,9 @@ So what did we install precisely?
 The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
 
 :::
-## Add the Config Plugins
+## Add the Config Plugin property
 
-In **app.json**, in the `plugins` field, add the `ringingPushNotifications` property to the `@stream-io/video-react-native-sdk` plugin. Also, add the `@config-plugins/react-native-callkeep` plugin.
+In **app.json**, in the `plugins` field, add true to the `enableNonRingingPushNotifications` property in the `@stream-io/video-react-native-sdk` plugin.
 
 ```js title="app.json"
 {
@@ -68,31 +62,18 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
       [
         "@stream-io/video-react-native-sdk",
         {
-          // highlight-start
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false
-          },
-          // highlight-end
+          // highlight-next-line
+           "enableNonRingingPushNotifications": true
         }
       ],
-      // highlight-next-line
-      "@config-plugins/react-native-callkeep",
       // your other plugins
   ]
 }
 ```
 
-:::note
-
-- The `disableVideoIos` field is used for apps with audio only calls. Pass true to this property to disable video in iOS [CallKit](https://developer.apple.com/documentation/callkit). 
-- The `includesCallsInRecentsIos` field is used to show call history. Pass true to show the history of calls made in the iOS native dialer
-
-:::
-
 ## Setup the push config for the SDK
 
-The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
+The SDK automatically processes the non ringing call push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
 
 ### Add the ability to statically navigate to screens in your app
 
@@ -107,12 +88,12 @@ import { router } from 'expo-router';
 /**
  * This is used to run the navigation logic from root level
  */
-export const staticNavigateToRingingCall = () => {
+export const staticNavigateToActiveCall = () => {
   const intervalId = setInterval(async () => {
     // add any requirements here (like authentication)
     if (GlobalState.hasAuthentication) {
       clearInterval(intervalId);
-      router.push('/ringing');
+      router.push('/activecall');
     }
   }, 300);
 };
@@ -145,30 +126,30 @@ export function setPushConfig() {
       pushProviderName: __DEV__
         ? 'firebase-video-staging'
         : 'firebase-video-production',
-      // configure the notification channel to be used for incoming calls for Android.
-      incomingCallChannel: {
-        id: 'stream_incoming_call',
-        name: 'Incoming call notifications',
-        // This is the advised importance of receiving incoming call notifications.
-        // This will ensure that the notification will appear on-top-of applications.
+      // configure the notification channel to be used for non ringing calls for Android.
+      callChannel: {
+        id: 'stream_call_notifications',
+        name: 'Call notifications',
         importance: AndroidImportance.HIGH,
       },
       // configure the functions to create the texts shown in the notification
-      // for incoming calls in Android.
-      incomingCallNotificationTextGetters: {
-        getTitle: (createdUserName: string) =>
-          `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to answer the call',
+      // for non ringing calls in Android.
+      callNotificationTextGetters: {
+        getTitle(type, createdUserName) {
+          if (type === 'call.live_started') {
+            return `Call went live, it was started by ${createdUserName}`;
+          } else {
+            return `${createdUserName} is notifying you about a call`;
+          }
+        },
+        getBody(_type, createdUserName) {
+          return 'Tap to open the call';
+        },
       },
     },
-    // add the callback to be executed a call is accepted, used for navigation
-    navigateAcceptCall: () => {
-      staticNavigateToRingingCall();
-    },
-    // add the callback to be executed when a notification is tapped,
-    // but the user did not press accept or decline, used for navigation
-    navigateToIncomingCall: () => {
-      staticNavigateToRingingCall();
+    // optional: add the callback to be executed when a non ringing call notification is tapped
+    onTapNonRingingCallNotification: () => {
+      staticNavigateToActiveCall();
     },
     // add the async callback to create a video client
     // for incoming calls in the background on a push notification

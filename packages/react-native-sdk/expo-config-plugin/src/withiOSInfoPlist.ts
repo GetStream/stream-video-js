@@ -12,10 +12,7 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
     if (!config.modResults.UIBackgroundModes.includes('audio')) {
       config.modResults.UIBackgroundModes.push('audio');
     }
-    if (
-      props.enableLivePushNotifications ||
-      props.enableCallNotifyPushNotifications
-    ) {
+    if (props.enableNonRingingPushNotifications) {
       if (
         !config.modResults.UIBackgroundModes.includes('remote-notification')
       ) {

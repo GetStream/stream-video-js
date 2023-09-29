@@ -34,11 +34,10 @@
         "@stream-io/video-react-native-sdk",
         {
           "ringingPushNotifications": {
-            "disableVideo": false,
-            "includesCallsInRecents": false
+            "disableVideoIos": false,
+            "includesCallsInRecentsIos": false
           },
-          "enableLivePushNotifications": true,
-          "enableCallNotifyPushNotifications": true
+          "enableNonRingingPushNotifications": true
         }
       ],
       "@config-plugins/react-native-callkeep",

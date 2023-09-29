@@ -25,16 +25,14 @@ Please follow the below guides for adding appropriate push providers to Stream:
 ```bash title=Terminal
 yarn add @react-native-firebase/app
 yarn add @react-native-firebase/messaging
-yarn add react-native-callkeep
-yarn add react-native-voip-push-notification
+yarn add @react-native-community/push-notification-ios
 npx pod-install
 ```
 
 So what did we install precisely?
 
 - `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
-- `react-native-voip-push-notification` for handling incoming [PushKit](https://developer.apple.com/documentation/pushkit) notifications on iOS.
-- `react-native-callkeep` for reporting incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
+- `@react-native-community/push-notification-ios` for handling [Apple Push Notification service (APNs)](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns) notifications on iOS.
 
 ## Android-specific setup
 

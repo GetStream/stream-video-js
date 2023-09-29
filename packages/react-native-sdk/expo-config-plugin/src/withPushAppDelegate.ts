@@ -67,12 +67,11 @@ function addDidFinishLaunchingWithOptions(
   ringingPushNotifications: RingingPushNotifications,
 ) {
   // call the setup RNCallKeep
-  const supportsVideoString = ringingPushNotifications.disableVideo
+  const supportsVideoString = ringingPushNotifications.disableVideoIos
     ? '@NO'
     : '@YES';
-  const includesCallsInRecents = ringingPushNotifications.includesCallsInRecents
-    ? '@YES'
-    : '@NO';
+  const includesCallsInRecents =
+    ringingPushNotifications.includesCallsInRecentsIos ? '@YES' : '@NO';
   const setupCallKeep = `NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
   NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
   [RNCallKeep setup:@{
