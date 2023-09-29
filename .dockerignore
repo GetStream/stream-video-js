@@ -1,0 +1,15 @@
+**/node_modules/
+**/dist/
+**/.env*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.github/
+.readme-assets/
+sample-apps/react-native/
+packages/react-native-sdk/
+sample-apps/react/egress-composite/tests/
+.styles/

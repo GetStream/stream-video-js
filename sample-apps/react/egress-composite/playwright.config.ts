@@ -14,7 +14,7 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       // to account for CI headless
-      maxDiffPixelRatio: 0.02,
+      // maxDiffPixelRatio: 0.02,
     },
   },
   projects: [
@@ -24,7 +24,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         // TODO: find out why custom data-test-id does not work
         // testIdAttribute: 'data-testid',
-        headless: !!process.env.CI,
+        headless: true, // use --headed when debugging
         trace: 'on-first-retry',
         viewport: { width: 1920, height: 1080 },
         baseURL: 'http://localhost:5173',
