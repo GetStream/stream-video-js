@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -48,6 +49,10 @@ export const CallParticipantsGrid = ({
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
+  const orientation = useOrientation();
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
 
   const showFloatingView =
     remoteParticipants.length > 0 && remoteParticipants.length < 3;
@@ -71,6 +76,7 @@ export const CallParticipantsGrid = ({
     <View
       style={[
         styles.container,
+        landScapeStyles,
         { backgroundColor: colors.dark_gray },
         callParticipantsGrid.container,
       ]}

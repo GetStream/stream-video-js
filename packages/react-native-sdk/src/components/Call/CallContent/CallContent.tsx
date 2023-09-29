@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
   CallTopViewProps,
@@ -25,6 +25,7 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
+import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 export type CallParticipantsComponentProps = Pick<
   CallParticipantsGridProps,
@@ -86,6 +87,7 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
+  const orientation = useOrientation();
   const {
     useHasOngoingScreenShare,
     useRemoteParticipants,
@@ -151,8 +153,12 @@ export const CallContent = ({
     CallParticipantsList,
   };
 
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'portrait' ? 'column' : 'row',
+  };
+
   return (
-    <View style={[styles.container, callContent.container]}>
+    <View style={[styles.container, callContent.container, landScapeStyles]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}

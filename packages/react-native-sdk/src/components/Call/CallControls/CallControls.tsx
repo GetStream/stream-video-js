@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, ViewProps } from 'react-native';
+import { StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
 import { ToggleAudioPublishingButton } from './ToggleAudioPublishingButton';
 import { ToggleVideoPublishingButton } from './ToggleVideoPublishingButton';
 import { ToggleCameraFaceButton } from './ToggleCameraFaceButton';
 import { Z_INDEX } from '../../../constants';
 import { HangUpCallButton } from './HangupCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallControls Component.
@@ -29,13 +30,20 @@ export const CallControls = ({
   const {
     theme: { colors, callControls },
   } = useTheme();
+  const orientation = useOrientation();
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'column-reverse' : 'row',
+    paddingHorizontal: orientation === 'landscape' ? 12 : 0,
+    paddingVertical: orientation === 'portrait' ? 12 : 0,
+  };
   return (
     <View
       style={[
         styles.container,
         { backgroundColor: colors.static_grey },
-        style,
         callControls.container,
+        landScapeStyles,
+        style,
       ]}
     >
       <ToggleVideoPublishingButton />
@@ -48,8 +56,6 @@ export const CallControls = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
-    flexDirection: 'row',
     justifyContent: 'space-evenly',
     zIndex: Z_INDEX.IN_FRONT,
   },

@@ -50,6 +50,7 @@ export const CallTopView = ({
   ParticipantsInfoBadge = DefaultParticipantsInfoBadge,
 }: CallTopViewProps) => {
   const [callTopViewHeight, setCallTopViewHeight] = useState<number>(0);
+  const [callTopViewWidth, setCallTopViewWidth] = useState<number>(0);
   const {
     theme: {
       colors,
@@ -64,16 +65,17 @@ export const CallTopView = ({
   const isCallReconnecting = callingState === CallingState.RECONNECTING;
 
   const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    const { height } = event.nativeEvent.layout;
+    const { height, width } = event.nativeEvent.layout;
     if (setCallTopViewHeight) {
       setCallTopViewHeight(height);
+      setCallTopViewWidth(width);
     }
   };
 
   return (
     <View style={[styleProp, callTopView.container]}>
       {/* Component for the background of the CallTopView. Since it has a Linear Gradient, an SVG is used to render it. */}
-      <TopViewBackground height={callTopViewHeight} width={'100%'} />
+      <TopViewBackground height={callTopViewHeight} width={callTopViewWidth} />
       <View style={[styles.content, callTopView.content]} onLayout={onLayout}>
         <View style={styles.leftElement}>
           {onBackPressed && (

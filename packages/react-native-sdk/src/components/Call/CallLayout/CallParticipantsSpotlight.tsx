@@ -5,7 +5,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -18,6 +18,7 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -57,6 +58,7 @@ export const CallParticipantsSpotlight = ({
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
+  const orientation = useOrientation();
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -70,12 +72,16 @@ export const CallParticipantsSpotlight = ({
     ...participantViewProps,
     ParticipantView,
   };
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
 
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
+        landScapeStyles,
         {
           backgroundColor: colors.dark_gray,
         },
