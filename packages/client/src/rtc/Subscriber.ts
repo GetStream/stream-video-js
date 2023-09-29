@@ -264,6 +264,7 @@ export class Subscriber {
         TRACK_TYPE_AUDIO: 'audioStream',
         TRACK_TYPE_VIDEO: 'videoStream',
         TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
+        TRACK_TYPE_SCREEN_SHARE_AUDIO: 'screenShareAudioStream',
       } as const
     )[trackType];
 
@@ -320,6 +321,11 @@ export class Subscriber {
     );
 
     const answer = await this.pc.createAnswer();
+    // FIXME OL: make this resilient, and apply to ScreenShare Audio tracks
+    answer.sdp = answer.sdp!.replace(
+      'useinbandfec=1',
+      'useinbandfec=1; stereo=1; maxaveragebitrate=510000',
+    );
     await this.pc.setLocalDescription(answer);
 
     await this.sfuClient.sendAnswer({

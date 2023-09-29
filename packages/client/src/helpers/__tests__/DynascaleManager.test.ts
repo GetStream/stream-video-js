@@ -128,6 +128,7 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindAudioElement(
         audioElement,
         'session-id',
+        'audioTrack',
       );
       expect(audioElement.autoplay).toBe(true);
 

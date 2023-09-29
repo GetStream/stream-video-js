@@ -68,6 +68,7 @@ import {
 } from './gen/coordinator';
 import { join, reconcileParticipantLocalState } from './rtc/flows/join';
 import {
+  AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
   DebounceType,
@@ -76,6 +77,7 @@ import {
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
+  TrackMuteType,
   VideoTrackType,
   VisibilityState,
 } from './types';
@@ -768,8 +770,20 @@ export class Call {
         const {
           audioStream,
           videoStream,
-          screenShareStream: screenShare,
+          screenShareStream,
+          screenShareAudioStream,
         } = localParticipant;
+
+        let screenShare: MediaStream | undefined;
+        if (screenShareStream || screenShareAudioStream) {
+          screenShare = new MediaStream();
+          screenShareStream?.getVideoTracks().forEach((track) => {
+            screenShare?.addTrack(track);
+          });
+          screenShareAudioStream?.getAudioTracks().forEach((track) => {
+            screenShare?.addTrack(track);
+          });
+        }
 
         // restore previous publishing state
         if (audioStream) await this.publishAudioStream(audioStream);
@@ -1141,6 +1155,15 @@ export class Call {
       screenShareTrack,
       TrackType.SCREEN_SHARE,
     );
+
+    const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
+    if (screenShareAudioTrack) {
+      await this.publisher.publishStream(
+        screenShareStream,
+        screenShareAudioTrack,
+        TrackType.SCREEN_SHARE_AUDIO,
+      );
+    }
   };
 
   /**
@@ -1250,6 +1273,13 @@ export class Call {
           sessionId: p.sessionId,
           trackType: TrackType.SCREEN_SHARE,
           dimension: p.screenShareDimension,
+        });
+      }
+      if (p.publishedTracks.includes(TrackType.SCREEN_SHARE_AUDIO)) {
+        subscriptions.push({
+          userId: p.userId,
+          sessionId: p.sessionId,
+          trackType: TrackType.SCREEN_SHARE_AUDIO,
         });
       }
     }
@@ -1414,7 +1444,7 @@ export class Call {
    *
    * @param type the type of the mute operation.
    */
-  muteSelf = (type: 'audio' | 'video' | 'screenshare') => {
+  muteSelf = (type: TrackMuteType) => {
     const myUserId = this.currentUserId;
     if (myUserId) {
       return this.muteUser(myUserId, type);
@@ -1426,7 +1456,7 @@ export class Call {
    *
    * @param type the type of the mute operation.
    */
-  muteOthers = (type: 'audio' | 'video' | 'screenshare') => {
+  muteOthers = (type: TrackMuteType) => {
     const trackType = muteTypeToTrackType(type);
     if (!trackType) return;
     const userIdsToMute: string[] = [];
@@ -1445,10 +1475,7 @@ export class Call {
    * @param userId the id of the user to mute.
    * @param type the type of the mute operation.
    */
-  muteUser = (
-    userId: string | string[],
-    type: 'audio' | 'video' | 'screenshare',
-  ) => {
+  muteUser = (userId: string | string[], type: TrackMuteType) => {
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
@@ -1463,7 +1490,7 @@ export class Call {
    *
    * @param type the type of the mute operation.
    */
-  muteAllUsers = (type: 'audio' | 'video' | 'screenshare') => {
+  muteAllUsers = (type: TrackMuteType) => {
     return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
       `${this.streamClientBasePath}/mute_users`,
       {
@@ -1952,11 +1979,17 @@ export class Call {
    *
    * @param audioElement the audio element to bind to.
    * @param sessionId the session id.
+   * @param trackType the kind of audio.
    */
-  bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
+  bindAudioElement = (
+    audioElement: HTMLAudioElement,
+    sessionId: string,
+    trackType: AudioTrackType = 'audioTrack',
+  ) => {
     const unbind = this.dynascaleManager.bindAudioElement(
       audioElement,
       sessionId,
+      trackType,
     );
 
     if (!unbind) return;

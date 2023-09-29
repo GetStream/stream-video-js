@@ -1,5 +1,6 @@
 import { Call } from '../Call';
 import {
+  AudioTrackType,
   DebounceType,
   StreamVideoLocalParticipant,
   StreamVideoParticipant,
@@ -324,9 +325,14 @@ export class DynascaleManager {
    *
    * @param audioElement the audio element to bind to.
    * @param sessionId the session id.
+   * @param trackType the kind of audio.
    * @returns a cleanup function that will unbind the audio element.
    */
-  bindAudioElement = (audioElement: HTMLAudioElement, sessionId: string) => {
+  bindAudioElement = (
+    audioElement: HTMLAudioElement,
+    sessionId: string,
+    trackType: AudioTrackType,
+  ) => {
     const participant = this.call.state.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
 
@@ -345,7 +351,10 @@ export class DynascaleManager {
     const updateMediaStreamSubscription = participant$
       .pipe(distinctUntilKeyChanged('audioStream'))
       .subscribe((p) => {
-        const source = p.audioStream;
+        const source =
+          trackType === 'screenShareAudioTrack'
+            ? p.screenShareAudioStream
+            : p.audioStream;
         if (audioElement.srcObject === source) return;
 
         setTimeout(() => {

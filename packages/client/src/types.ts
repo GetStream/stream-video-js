@@ -51,6 +51,12 @@ export interface StreamVideoParticipant extends Participant {
   screenShareStream?: MediaStream;
 
   /**
+   * The participant's screen audio stream, if they are sharing their audio,
+   * and we are subscribed to it.
+   */
+  screenShareAudioStream?: MediaStream;
+
+  /**
    * The preferred video dimensions for this participant.
    * Set it to `undefined` to unsubscribe from this participant's video.
    */
@@ -110,6 +116,12 @@ export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
 }
 
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
+export type AudioTrackType = 'audioTrack' | 'screenShareAudioTrack';
+export type TrackMuteType =
+  | 'audio'
+  | 'video'
+  | 'screenshare'
+  | 'screenshare_audio';
 
 /**
  * Represents a participant's pin state.

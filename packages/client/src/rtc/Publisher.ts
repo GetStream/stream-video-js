@@ -21,7 +21,7 @@ import {
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
-import { toggleDtx } from '../helpers/sdp-munging';
+import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
@@ -71,7 +71,7 @@ export class Publisher {
     [TrackType.AUDIO]: 'audio',
     [TrackType.VIDEO]: 'video',
     [TrackType.SCREEN_SHARE]: 'video',
-    [TrackType.SCREEN_SHARE_AUDIO]: undefined,
+    [TrackType.SCREEN_SHARE_AUDIO]: 'audio',
     [TrackType.UNSPECIFIED]: undefined,
   };
 
@@ -535,7 +535,24 @@ export class Publisher {
     this.isIceRestarting = options?.iceRestart ?? false;
 
     const offer = await this.pc.createOffer(options);
-    offer.sdp = this.mungeCodecs(offer.sdp);
+    let sdp = this.mungeCodecs(offer.sdp);
+    if (sdp && this.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
+      const transceiver =
+        this.transceiverRegistry[TrackType.SCREEN_SHARE_AUDIO];
+      if (transceiver && transceiver.sender.track) {
+        const mid =
+          transceiver.mid ??
+          this.extractMid(
+            sdp,
+            transceiver.sender.track,
+            TrackType.SCREEN_SHARE_AUDIO,
+          );
+        sdp = enableHighQualityAudio(sdp, mid);
+      }
+    }
+
+    // set the munged SDP back to the offer
+    offer.sdp = sdp;
 
     const trackInfos = this.getCurrentTrackInfos(offer.sdp);
     if (trackInfos.length === 0) {
@@ -584,48 +601,48 @@ export class Publisher {
     return sdp;
   };
 
-  getCurrentTrackInfos = (sdp?: string) => {
-    sdp = sdp || this.pc.localDescription?.sdp;
-    const extractMid = (
-      defaultMid: string | null,
-      track: MediaStreamTrack,
-      trackType: TrackType,
-    ): string => {
-      if (defaultMid) return defaultMid;
-      if (!sdp) {
-        logger('warn', 'No SDP found. Returning empty mid');
-        return '';
-      }
+  private extractMid = (
+    sdp: string | undefined,
+    track: MediaStreamTrack,
+    trackType: TrackType,
+  ): string => {
+    if (!sdp) {
+      logger('warn', 'No SDP found. Returning empty mid');
+      return '';
+    }
 
+    logger(
+      'debug',
+      `No 'mid' found for track. Trying to find it from the Offer SDP`,
+    );
+
+    const parsedSdp = SDP.parse(sdp);
+    const media = parsedSdp.media.find((m) => {
+      return (
+        m.type === track.kind &&
+        // if `msid` is not present, we assume that the track is the first one
+        (m.msid?.includes(track.id) ?? true)
+      );
+    });
+    if (typeof media?.mid === 'undefined') {
       logger(
         'debug',
-        `No 'mid' found for track. Trying to find it from the Offer SDP`,
+        `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
       );
 
-      const parsedSdp = SDP.parse(sdp);
-      const media = parsedSdp.media.find((m) => {
-        return (
-          m.type === track.kind &&
-          // if `msid` is not present, we assume that the track is the first one
-          (m.msid?.includes(track.id) ?? true)
-        );
-      });
-      if (typeof media?.mid === 'undefined') {
-        logger(
-          'debug',
-          `No mid found in SDP for track type ${track.kind} and id ${track.id}. Attempting to find a heuristic mid`,
-        );
-
-        const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
-        if (heuristicMid !== -1) {
-          return String(heuristicMid);
-        }
-
-        logger('debug', 'No heuristic mid found. Returning empty mid');
-        return '';
+      const heuristicMid = this.transceiverInitOrder.indexOf(trackType);
+      if (heuristicMid !== -1) {
+        return String(heuristicMid);
       }
-      return String(media.mid);
-    };
+
+      logger('debug', 'No heuristic mid found. Returning empty mid');
+      return '';
+    }
+    return String(media.mid);
+  };
+
+  getCurrentTrackInfos = (sdp?: string) => {
+    sdp = sdp || this.pc.localDescription?.sdp;
 
     const { settings } = this.state;
     const targetResolution = settings?.video.target_resolution;
@@ -670,16 +687,24 @@ export class Publisher {
           },
         }));
 
+        const isAudioTrack = [
+          TrackType.AUDIO,
+          TrackType.SCREEN_SHARE_AUDIO,
+        ].includes(trackType);
+
+        const trackSettings = track.getSettings();
+        // @ts-expect-error - `channelCount` is not defined on `MediaTrackSettings`
+        const isStereo = isAudioTrack && trackSettings.channelCount === 2;
+
         return {
           trackId: track.id,
           layers: layers,
           trackType,
-          mid: extractMid(transceiver.mid, track, trackType),
+          mid: transceiver.mid ?? this.extractMid(sdp, track, trackType),
 
-          // FIXME OL: adjust these values
-          stereo: false,
-          dtx: TrackType.AUDIO === trackType && this.isDtxEnabled,
-          red: TrackType.AUDIO === trackType && this.isRedEnabled,
+          stereo: isStereo,
+          dtx: isAudioTrack && this.isDtxEnabled,
+          red: isAudioTrack && this.isRedEnabled,
         };
       });
   };
