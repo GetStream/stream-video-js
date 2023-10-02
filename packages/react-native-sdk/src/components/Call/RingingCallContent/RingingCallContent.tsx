@@ -42,6 +42,11 @@ export type RingingCallContentProps = {
    * Prop to customize the JoiningCallIndicator component in the RingingCallContent. It is shown when the call is accepted and is waiting to be joined.
    */
   JoiningCallIndicator?: React.ComponentType | null;
+  /**
+   * Check if device is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
 };
 
 const RingingCallPanel = ({
@@ -50,6 +55,7 @@ const RingingCallPanel = ({
   CallContent = DefaultCallContent,
   JoiningCallIndicator = DefaultJoiningCallIndicator,
   CallTopView,
+  landscape,
 }: RingingCallContentProps) => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
@@ -63,7 +69,11 @@ const RingingCallPanel = ({
         ? OutgoingCall && <OutgoingCall CallTopView={CallTopView} />
         : IncomingCall && <IncomingCall CallTopView={CallTopView} />;
     case CallingState.JOINED:
-      return CallContent && <CallContent CallTopView={CallTopView} />;
+      return (
+        CallContent && (
+          <CallContent CallTopView={CallTopView} landscape={landscape} />
+        )
+      );
     case CallingState.JOINING:
       return JoiningCallIndicator && <JoiningCallIndicator />;
     default:
