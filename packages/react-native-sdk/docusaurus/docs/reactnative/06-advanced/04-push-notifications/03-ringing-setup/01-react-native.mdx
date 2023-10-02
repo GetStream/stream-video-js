@@ -71,13 +71,14 @@ The **google-services.json** file contains unique and non-secret identifiers of 
 ### Request for notification permissions
 
 At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
+<!-- vale off -->
 
 ```js
 import { requestNotifications } from 'react-native-permissions';
 
 await requestNotifications(['alert', 'sound']);
 ```
-
+<!-- vale on -->
 ## iOS-specific setup
 
 ### Disable Firebase installation
