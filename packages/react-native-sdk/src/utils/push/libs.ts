@@ -6,12 +6,15 @@ export type VoipPushNotificationType =
   typeof import('react-native-voip-push-notification').default;
 export type ExpoNotificationsLib = typeof import('expo-notifications');
 export type ExpoTaskManagerLib = typeof import('expo-task-manager');
+export type PushNotificationIosLib =
+  typeof import('@react-native-community/push-notification-ios').default;
 
 let callkeep: RNCallKeepType | undefined;
 let messaging: FirebaseMessagingType | undefined;
 let voipPushNotification: VoipPushNotificationType | undefined;
 let expoNotificationsLib: ExpoNotificationsLib | undefined;
 let expoTaskManagerLib: ExpoTaskManagerLib | undefined;
+let pushNotificationIosLib: PushNotificationIosLib | undefined;
 
 try {
   callkeep = require('react-native-callkeep').default;
@@ -33,6 +36,11 @@ try {
   expoTaskManagerLib = require('expo-task-manager');
 } catch (e) {}
 
+try {
+  pushNotificationIosLib =
+    require('@react-native-community/push-notification-ios').default;
+} catch (e) {}
+
 export function getExpoNotificationsLib() {
   if (!expoNotificationsLib) {
     throw Error(
@@ -49,6 +57,15 @@ export function getExpoTaskManagerLib() {
     );
   }
   return expoTaskManagerLib;
+}
+
+export function getPushNotificationIosLib() {
+  if (!pushNotificationIosLib) {
+    throw Error(
+      '@react-native-community/push-notification-ios library is not installed. Please install it using "yarn add @react-native-community/push-notification-ios" or "npm i @react-native-community/push-notification-ios --save"',
+    );
+  }
+  return pushNotificationIosLib;
 }
 
 export function getCallKeepLib() {
@@ -72,7 +89,7 @@ export function getFirebaseMessagingLib() {
 export function getVoipPushNotificationLib() {
   if (!voipPushNotification) {
     throw Error(
-      "react-native-voip-push-notification library is not installed. Please install it using 'yarn add react-native-voip-push-notification' or 'npm install react-native-voip-push-notification'",
+      "react-native-voip-push-notification library is not installed. Please install it using 'yarn add react-native-voip-push-notification' or 'npm i react-native-voip-push-notification --save'",
     );
   }
   return voipPushNotification;

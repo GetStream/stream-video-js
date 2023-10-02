@@ -11,12 +11,34 @@ import {
   pushNonRingingCallData$,
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
-import { getExpoNotificationsLib } from './libs';
+import { getExpoNotificationsLib, getPushNotificationIosLib } from './libs';
 import { StreamVideoClient } from '@stream-io/video-client';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import notifee, { EventType } from '@notifee/react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
+
+type StreamPayload =
+  | {
+      call_cid: string;
+      type: 'call.ring' | NonRingingPushEvent;
+      sender: string;
+    }
+  | undefined;
+
+function processNonRingingNotificationStreamPayload(
+  streamPayload: StreamPayload,
+) {
+  if (
+    streamPayload?.sender === 'stream.video' &&
+    streamPayload?.type !== 'call.ring'
+  ) {
+    const cid = streamPayload.call_cid;
+    const type = streamPayload.type;
+    pushNonRingingCallData$.next({ cid, type });
+    return { cid, type };
+  }
+}
 
 export const iosCallkeepAcceptCall = (
   call_cid: string | undefined,
@@ -69,29 +91,21 @@ export const setupRemoteNotificationsHandleriOS = (pushConfig: PushConfig) => {
   if (Platform.OS !== 'ios') {
     return;
   }
+  notifee.onForegroundEvent(({ type, detail }) => {
+    if (type === EventType.PRESS) {
+      const streamPayload = detail.notification?.data?.stream as
+        | StreamPayload
+        | undefined;
+      const result = processNonRingingNotificationStreamPayload(streamPayload);
+      if (result) {
+        pushConfig.onTapNonRingingCallNotification?.(result.cid, result.type);
+      }
+    }
+  });
   if (pushConfig.isExpo) {
     const Notifications = getExpoNotificationsLib();
 
-    notifee.onForegroundEvent(({ type, detail }) => {
-      if (type === EventType.PRESS) {
-        const streamPayload = detail.notification?.data?.stream as
-          | { call_cid: string; type: string; sender: string }
-          | undefined;
-        if (streamPayload) {
-          if (
-            streamPayload.sender === 'stream.video' &&
-            streamPayload.type !== 'call.ring'
-          ) {
-            const cid = streamPayload.call_cid;
-            const _type = streamPayload.type as NonRingingPushEvent;
-            pushNonRingingCallData$.next({ cid, type: _type });
-            pushConfig.onTapNonRingingCallNotification?.(cid, _type);
-          }
-        }
-      }
-    });
-
-    // foreground handler
+    // foreground handler (just to show the notifications on foreground)
     Notifications.setNotificationHandler({
       handleNotification: async () => {
         return {
@@ -133,19 +147,9 @@ export async function initIosNonVoipToken(
       expoNotificationsLib.addNotificationReceivedListener((event) => {
         // listen to foreground notifications
         if (event.request.trigger.type === 'push') {
-          const streamPayload = event.request.trigger.payload?.stream as
-            | { call_cid: string; type: string; sender: string }
-            | undefined;
-          if (streamPayload) {
-            if (
-              streamPayload.sender === 'stream.video' &&
-              streamPayload.type !== 'call.ring'
-            ) {
-              const cid = streamPayload.call_cid;
-              const type = streamPayload.type as NonRingingPushEvent;
-              pushNonRingingCallData$.next({ cid, type });
-            }
-          }
+          const streamPayload = event.request.trigger.payload
+            ?.stream as StreamPayload;
+          processNonRingingNotificationStreamPayload(streamPayload);
         }
       });
     setUnsubscribeListener(() => {
@@ -153,6 +157,23 @@ export async function initIosNonVoipToken(
       subscriptionForReceive.remove();
     });
   } else {
-    // TODO: apn lib for ios
+    console.log('register ios notifications');
+    const pushNotificationIosLib = getPushNotificationIosLib();
+    pushNotificationIosLib.addEventListener('register', (token) => {
+      setDeviceToken(token);
+      console.log({ token });
+    });
+    pushNotificationIosLib.addEventListener('notification', (notification) => {
+      const data = notification.getData();
+      console.log('normal ios notification', { data });
+      const streamPayload = data?.stream as StreamPayload;
+      // listen to foreground notifications
+      processNonRingingNotificationStreamPayload(streamPayload);
+    });
+    setUnsubscribeListener(() => {
+      console.log('unsubscribe ios notifications');
+      pushNotificationIosLib.removeEventListener('register');
+      pushNotificationIosLib.removeEventListener('notification');
+    });
   }
 }

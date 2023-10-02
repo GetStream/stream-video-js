@@ -37,7 +37,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           text: 'OK',
           onPress: async () => {
             try {
-              StreamVideoRN.onLogout();
+              StreamVideoRN.onPushLogout();
               await Promise.all([
                 GoogleSignin.signOut(),
                 videoClient?.disconnectUser(),

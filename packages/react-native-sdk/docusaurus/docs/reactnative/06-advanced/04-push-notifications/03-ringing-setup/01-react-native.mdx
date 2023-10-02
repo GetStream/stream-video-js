@@ -70,15 +70,28 @@ The **google-services.json** file contains unique and non-secret identifiers of 
 
 ## iOS-specific setup
 
-### Configure Firebase
+### Disable Firebase installation
 
-Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#3-react-native-cli---ios-setup) to generate credentials for your iOS app and configure Firebase.
+We don't use Firebase cloud messaging for iOS in the SDK. Unless Firebase is used for other purposes in your app, you can safely remove it from being installed by iOS and avoid the auto-linking. To do that create a file named `react-native.config.js` in the root of your project and add the following contents:
 
-:::note
+```js title="react-native.config.js"
+module.exports = {
+  dependencies: {
+    '@react-native-firebase/app': {
+      platforms: {
+        ios: null,
+      },
+    },
+    '@react-native-firebase/messaging': {
+      platforms: {
+        ios: null,
+      },
+    },
+  },
+};
+```
 
-We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-firebase` library will throw an error if iOS credentials are not added.
-
-:::
+Once this is done, `pod install` must be run again to remove the installed pods. 
 
 ### Link required libraries for react native callkeep library
 

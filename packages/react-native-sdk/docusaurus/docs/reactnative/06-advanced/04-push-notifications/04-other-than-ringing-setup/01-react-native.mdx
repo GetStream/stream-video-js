@@ -68,30 +68,28 @@ The **google-services.json** file contains unique and non-secret identifiers of 
 
 ## iOS-specific setup
 
-### Configure Firebase
+### Disable Firebase installation
 
-Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#3-react-native-cli---ios-setup) to generate credentials for your iOS app and configure Firebase.
+We don't use Firebase cloud messaging for iOS in the SDK. Unless Firebase is used for other purposes in your app, you can safely remove it from being installed by iOS and avoid the auto-linking. To do that create a file named `react-native.config.js` in the root of your project and add the following contents:
 
-:::note
+```js title="react-native.config.js"
+module.exports = {
+  dependencies: {
+    '@react-native-firebase/app': {
+      platforms: {
+        ios: null,
+      },
+    },
+    '@react-native-firebase/messaging': {
+      platforms: {
+        ios: null,
+      },
+    },
+  },
+};
+```
 
-We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-firebase` library will throw an error if iOS credentials are not added.
-
-:::
-
-### Link required libraries for react native callkeep library
-
-1. In Xcode: Click on `Build Phases` tab, then open `Link Binary With Libraries`.
-2. Add `CallKit.framework`
-3. Add `Intents.framework` (and mark it Optional).
-
-![Example of how to use link libraries required for callkeep library](../../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png)
-
-### Add header search path for react native callkeep library
-
-1. In Xcode: Click on `Build Settings` tab, then search for `Header Search Paths`.
-2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
-
-![Example of how to add header search paths that are required for callkeep library](../../../assets/06-advanced/04-push-notifications/ios-search-paths.png)
+Once this is done, `pod install` must be run again to remove the installed pods.
 
 ### Add background modes
 
@@ -107,93 +105,6 @@ In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. B
 ### Enable push notifications
 
 To receive push notifications, enable the Push Notifications capability in the Xcode `Project` > `Signing & Capabilities` pane.
-
-### Update AppDelegate
-
-Update `AppDelegate.m` or `AppDelegate.mm` in Xcode with the following parts for iOS support.
-
-#### Add headers
-
-At the top of the file, right after '#import "AppDelegate.h"', add the following headers to import and invoke the methods for the required libraries.
-
-```c
-// highlight-start
-#import <Firebase.h>
-#import "RNCallKeep.h"
-#import <PushKit/PushKit.h>
-#import "RNVoipPushNotificationManager.h"
-// highlight-end
-```
-
-#### Initialize on app launch
-
-We need to configure the Firebase library, set up the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
-
-```c
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  // highlight-next-line
-  [FIRApp configure];
-
-  // highlight-start
-  NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
-  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
-  [RNCallKeep setup:@{
-    @"appName": localizedAppName != nil ? localizedAppName : appName,
-    @"supportsVideo": @YES,
-    // pass @YES here if you want the call to be shown in calls history in the built-in dialer app
-    @"includesCallsInRecents": @NO,
-  }];
-  // highlight-end
-
-  // highlight-next-line
-  [RNVoipPushNotificationManager voipRegistration];
-
-  // the rest
-}
-```
-
-#### Add PushKit methods
-
-Add the following method to process the VoIP token from iOS and send it to the `react-native-voip-push-notification` library.
-
-```c
-// handle updated push credentials
-- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
-  [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
-}
-```
-
-The final method to add is the one that gets invoked when there is a VoIP push notification from Stream. When there is a push notification and if the app is in the background, we want to display an incoming call notification. Add the following method to achieve this,
-
-```c
-// handle incoming pushes
-- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
-  // send event to JS
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-  // process the payload
-  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSString *uuid = [[NSUUID UUID] UUIDString];
-  NSString *createdCallerName = stream[@"created_by_display_name"];
-
-  // display the incoming call notification
-  [RNCallKeep reportNewIncomingCall: uuid
-                             handle: createdCallerName
-                         handleType: @"generic"
-                           hasVideo: YES
-                localizedCallerName: createdCallerName
-                    supportsHolding: YES
-                       supportsDTMF: YES
-                   supportsGrouping: YES
-                 supportsUngrouping: YES
-                        fromPushKit: YES
-                            payload: stream
-              withCompletionHandler: completion];
-}
-```
-
 ## Setup the push config for the SDK
 
 The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,

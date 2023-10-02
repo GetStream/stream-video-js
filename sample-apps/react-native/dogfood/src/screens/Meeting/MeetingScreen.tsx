@@ -7,6 +7,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
+import { KnownUsers } from '../../constants/KnownUsers';
 
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
@@ -27,7 +28,15 @@ export const MeetingScreen = (props: Props) => {
   useEffect(() => {
     const getOrCreateCall = async () => {
       try {
-        await call?.getOrCreate();
+        const members = KnownUsers.map((u) => ({
+          user_id: u.id,
+        }));
+        await call?.getOrCreate({
+          notify: true,
+          data: {
+            members,
+          },
+        });
       } catch (error) {
         console.error('Failed to get or create call', error);
       }

@@ -7,6 +7,7 @@ import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { STREAM_API_KEY } from '../../config';
+import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -32,6 +33,17 @@ export function setPushConfig() {
     },
     navigateToIncomingCall: () => {
       staticNavigate({ name: 'Call', params: undefined });
+    },
+    onTapNonRingingCallNotification: (call_cid) => {
+      const [callType, callId] = call_cid.split(':');
+      if (callType === 'default') {
+        prontoCallId$.next(callId); // reusing the deeplink logic for non ringing calls s
+        staticNavigate({ name: 'Meeting', params: undefined });
+      } else {
+        console.error(
+          `call type: ${callType}, not supported yet in this app!!`,
+        );
+      }
     },
   });
 }
