@@ -1,0 +1,17 @@
+# this compose file exists to generate screenshots
+# for the CI to compare against, replace key and token with your own before running
+# docker compose up, each change to the sources (not including tests) requires image rebuild
+
+services:
+  generate-screenshots:
+    build: ./
+    command: >
+      yarn workspace @stream-io/egress-composite run test:e2e 
+      -u 
+      --timeout 5000
+    volumes:
+      - ./sample-apps/react/egress-composite/tests/:/e2e/sample-apps/react/egress-composite/tests/
+    environment:
+      VITE_STREAM_API_KEY: <key>
+      VITE_STREAM_USER_TOKEN: <token>
+      CI: true

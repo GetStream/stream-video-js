@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -14,17 +14,33 @@ export default defineConfig({
   expect: {
     toHaveScreenshot: {
       // to account for CI headless
-      maxDiffPixelRatio: 0.05,
+      // maxDiffPixelRatio: 0.02,
     },
   },
-  use: {
-    headless: !!process.env.CI,
-    trace: 'on-first-retry',
-    viewport: { width: 1920, height: 1080 },
-    baseURL: 'http://localhost:5173',
-    // TODO: find out why custom data-test-id does not work
-    // testIdAttribute: 'data-testid',
-  },
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // TODO: find out why custom data-test-id does not work
+        // testIdAttribute: 'data-testid',
+        headless: true, // use --headed when debugging
+        trace: 'on-first-retry',
+        viewport: { width: 1920, height: 1080 },
+        baseURL: 'http://localhost:5173',
+        launchOptions: {
+          args: [
+            '--font-render-hinting=none',
+            '--disable-skia-runtime-opts',
+            '--disable-system-font-check',
+            '--disable-font-subpixel-positioning',
+            '--disable-lcd-text',
+            '--disable-remote-fonts',
+          ],
+        },
+      },
+    },
+  ],
   webServer: [
     {
       timeout: 10000,

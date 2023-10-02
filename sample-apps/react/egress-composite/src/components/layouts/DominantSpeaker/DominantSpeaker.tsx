@@ -5,6 +5,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
+
 import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
 import { AudioTracks } from './AudioTracks';
@@ -24,29 +25,27 @@ export const DominantSpeaker = () => {
 
   if (!activeCall) return <h2>No active call</h2>;
   return (
-    <>
-      <div
-        className="dominant-speaker__container"
-        data-testid="single-participant"
-      >
-        {speakerInSpotlight && (
-          <ParticipantView
-            participant={speakerInSpotlight}
-            refs={{ setVideoElement, setVideoPlaceholderElement }}
-            muteAudio
-            ParticipantViewUI={
-              <DefaultParticipantViewUI
-                indicatorsVisible={false}
-                showMenuButton={false}
-              />
-            }
-          />
-        )}
-      </div>
+    <div
+      className="eca__dominant-speaker__container"
+      data-testid="single-participant"
+    >
       <AudioTracks
         participants={participants}
         dominantSpeaker={speakerInSpotlight}
       />
-    </>
+      {speakerInSpotlight && (
+        <ParticipantView
+          participant={speakerInSpotlight}
+          refs={{ setVideoElement, setVideoPlaceholderElement }}
+          muteAudio
+          ParticipantViewUI={
+            <DefaultParticipantViewUI
+              indicatorsVisible={false}
+              showMenuButton={false}
+            />
+          }
+        />
+      )}
+    </div>
   );
 };
