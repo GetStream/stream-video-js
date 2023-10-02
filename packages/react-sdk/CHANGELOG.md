@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.34...@stream-io/video-react-sdk-0.3.35) (2023-10-02)
+
+
+### Bug Fixes
+
+* requestPermission should be no-op when permission is already granted ([#1122](https://github.com/GetStream/stream-video-js/issues/1122)) ([f3d9e34](https://github.com/GetStream/stream-video-js/commit/f3d9e349825a6052850f7a78c3d6af9f517d136e))
+
 ### [0.3.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.33...@stream-io/video-react-sdk-0.3.34) (2023-10-02)
 
 ### Dependency Updates
