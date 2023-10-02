@@ -21,6 +21,7 @@ import {
   ParticipantViewComponentProps,
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
+import { useOrientation } from '../../../utils/hooks';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -79,6 +80,7 @@ export const CallParticipantsList = ({
     width: 0,
     height: 0,
   });
+  const orientation = useOrientation();
 
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
@@ -162,8 +164,11 @@ export const CallParticipantsList = ({
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
+    if (orientation === 'landscape') {
+      return [styles.landScapeStyle, style];
+    }
     return style;
-  }, [itemWidth, itemHeight, horizontal]);
+  }, [itemWidth, itemHeight, horizontal, orientation]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -245,6 +250,9 @@ const styles = StyleSheet.create({
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: 8,
+    borderRadius: 10,
+  },
+  landScapeStyle: {
     borderRadius: 10,
   },
 });

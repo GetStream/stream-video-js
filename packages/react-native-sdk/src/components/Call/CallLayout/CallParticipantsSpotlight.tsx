@@ -72,8 +72,13 @@ export const CallParticipantsSpotlight = ({
     ...participantViewProps,
     ParticipantView,
   };
+
   const landScapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
+  const spotlightContainerLandscapeStyles: ViewStyle = {
+    marginHorizontal: orientation === 'landscape' ? 0 : 8,
   };
 
   return (
@@ -99,6 +104,7 @@ export const CallParticipantsSpotlight = ({
                 ]
               : [
                   styles.spotlightContainer,
+                  spotlightContainerLandscapeStyles,
                   callParticipantsSpotlight.spotlightContainer,
                 ]
           }
@@ -120,7 +126,8 @@ export const CallParticipantsSpotlight = ({
               participants={
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
-              horizontal
+              horizontal={orientation === 'portrait'}
+              numberOfColumns={orientation === 'portrait' ? 2 : 1}
               {...callParticipantsListProps}
             />
           )}
@@ -133,7 +140,6 @@ export const CallParticipantsSpotlight = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 8,
   },
   fullScreenSpotlightContainer: {
     flex: 1,
@@ -143,7 +149,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 10,
     marginHorizontal: 8,
-    marginBottom: 8,
   },
   callParticipantsListContainer: {
     flex: 1,

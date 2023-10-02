@@ -24,10 +24,10 @@ export const useOrientation = () => {
 
     Dimensions.addEventListener('change', updateOrientation);
 
-    // return () => {
-    //   // @ts-ignore
-    //   Dimensions.removeEventListener('change', updateOrientation);
-    // };
+    return () => {
+      // @ts-ignore
+      Dimensions.removeEventListener('change', updateOrientation);
+    };
   }, []);
 
   return orientation;
