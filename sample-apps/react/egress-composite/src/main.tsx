@@ -9,7 +9,7 @@ import { CompositeApp } from './CompositeApp';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
 // Uncomment this line to test your own custom CSS
-// import cssUrl from './example/custom.css?url';
+// import cssUrl from '../public/example/custom.css?url';
 
 // @ts-expect-error TODO: this is a global function, we need to declare it
 window.setupLayout = (configuration: ConfigurationValue) => {
