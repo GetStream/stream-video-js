@@ -113,7 +113,7 @@ export type ConfigurationValue = {
       VerticalPosition | HorizontalPosition,
       'center'
     >; // ✅
-    'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // awaits PR
+    'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // ✅
   };
 };
 
