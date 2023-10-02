@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Dimensions } from 'react-native';
 
-export type Orientation = 'portrait' | 'landscape';
+type Orientation = 'portrait' | 'landscape';
 
-const isPortrait = () => {
+const isPortrait = (): Orientation => {
   const dimensions = Dimensions.get('screen');
-  return dimensions.height >= dimensions.width;
+  return dimensions.height >= dimensions.width ? 'portrait' : 'landscape';
 };
 
 /**
@@ -13,13 +13,11 @@ const isPortrait = () => {
  * @returns 'portrait' : 'landscape'
  */
 export const useOrientation = () => {
-  const [orientation, setOrientation] = useState<Orientation>(
-    isPortrait() ? 'portrait' : 'landscape',
-  );
+  const [orientation, setOrientation] = useState<Orientation>(isPortrait());
 
   useEffect(() => {
     const updateOrientation = () => {
-      setOrientation(isPortrait() ? 'portrait' : 'landscape');
+      setOrientation(isPortrait());
     };
 
     Dimensions.addEventListener('change', updateOrientation);
