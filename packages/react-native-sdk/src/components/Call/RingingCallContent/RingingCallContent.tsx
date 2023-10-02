@@ -43,7 +43,7 @@ export type RingingCallContentProps = {
    */
   JoiningCallIndicator?: React.ComponentType | null;
   /**
-   * Check if phone is in landscape mode.
+   * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;

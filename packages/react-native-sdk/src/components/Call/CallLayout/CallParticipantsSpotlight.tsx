@@ -29,8 +29,8 @@ export type CallParticipantsSpotlightProps =
      */
     CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
     /**
-     * The device orientation
-     * @value "portrait" or `landscape`
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
   };
