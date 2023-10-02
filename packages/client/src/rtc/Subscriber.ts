@@ -321,11 +321,6 @@ export class Subscriber {
     );
 
     const answer = await this.pc.createAnswer();
-    // FIXME OL: make this resilient, and apply to ScreenShare Audio tracks
-    answer.sdp = answer.sdp!.replace(
-      'useinbandfec=1',
-      'useinbandfec=1; stereo=1; maxaveragebitrate=510000',
-    );
     await this.pc.setLocalDescription(answer);
 
     await this.sfuClient.sendAnswer({
@@ -380,6 +375,8 @@ export class Subscriber {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    logger('error', `ICE Candidate error`, errorMessage);
+    const logLevel =
+      this.pc.iceConnectionState === 'connected' ? 'debug' : 'error';
+    logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 }
