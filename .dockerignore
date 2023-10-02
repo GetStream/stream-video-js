@@ -1,6 +1,7 @@
 **/node_modules/
 **/dist/
 **/.env*
+**/.DS_Store
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -9,7 +10,8 @@
 !.yarn/versions
 .github/
 .readme-assets/
-sample-apps/react-native/
+sample-apps/**
+!sample-apps/react/egress-composite/
 packages/react-native-sdk/
 sample-apps/react/egress-composite/tests/
 .styles/
