@@ -32,5 +32,6 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     return null;
   }
 
+  // @ts-ignore
   return <StreamVideo client={videoClient}>{children}</StreamVideo>;
 };
