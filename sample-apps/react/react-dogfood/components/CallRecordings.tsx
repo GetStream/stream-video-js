@@ -32,9 +32,8 @@ export const CallRecordings = () => {
       setLoadingCallRecordings(true),
     );
 
-    // @ts-expect-error
     const unsubscribeRecordingReady = call.on('call.recording_ready', (e) => {
-      // FIXME OL this event isn't yet available in the OpenAPI schema
+      if (e.type !== 'call.recording_ready') return;
       const { call_recording: recording } = e;
       setCallRecordings((prev) => [...prev, recording]);
       setLoadingCallRecordings(false);

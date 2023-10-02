@@ -10,9 +10,7 @@ export const DefaultVideoPlaceholder = forwardRef<
   VideoPlaceholderProps
 >(({ participant, style }, ref) => {
   const [error, setError] = useState(false);
-
-  const name = participant?.name || participant?.userId;
-
+  const name = participant.name || participant.userId;
   return (
     <div className="str-video__video-placeholder" style={style} ref={ref}>
       {(!participant.image || error) &&

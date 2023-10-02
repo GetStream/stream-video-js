@@ -56,6 +56,11 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps & {
    * If true, the list will be displayed in horizontal scrolling mode
    */
   horizontal?: boolean;
+  /**
+   * Check if phone is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -74,6 +79,7 @@ export const CallParticipantsList = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   VideoRenderer,
+  landscape,
 }: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
@@ -162,8 +168,11 @@ export const CallParticipantsList = ({
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
+    if (landscape) {
+      return [styles.landScapeStyle, style];
+    }
     return style;
-  }, [itemWidth, itemHeight, horizontal]);
+  }, [itemWidth, itemHeight, horizontal, landscape]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -245,6 +254,9 @@ const styles = StyleSheet.create({
   participantWrapperHorizontal: {
     // note: if marginHorizontal is changed, be sure to change the width calculation in calculateParticipantViewSize function
     marginHorizontal: 8,
+    borderRadius: 10,
+  },
+  landScapeStyle: {
     borderRadius: 10,
   },
 });

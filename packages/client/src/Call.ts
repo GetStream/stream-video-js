@@ -50,9 +50,9 @@ import {
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
-  StartBroadcastingResponse,
+  StartHLSBroadcastingResponse,
   StartRecordingResponse,
-  StopBroadcastingResponse,
+  StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
   UnblockUserRequest,
@@ -1597,7 +1597,7 @@ export class Call {
    * Starts the broadcasting of the call.
    */
   startHLS = async () => {
-    return this.streamClient.post<StartBroadcastingResponse>(
+    return this.streamClient.post<StartHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
     );
@@ -1607,7 +1607,7 @@ export class Call {
    * Stops the broadcasting of the call.
    */
   stopHLS = async () => {
-    return this.streamClient.post<StopBroadcastingResponse>(
+    return this.streamClient.post<StopHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
@@ -1964,6 +1964,44 @@ export class Call {
     return () => {
       this.leaveCallHooks.delete(unbind);
       unbind();
+    };
+  };
+
+  /**
+   * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
+   *
+   * @param imageElement the image element to bind to.
+   * @param opts options for the binding.
+   */
+  bindCallThumbnailElement = (
+    imageElement: HTMLImageElement,
+    opts: {
+      fallbackImageSource?: string;
+    } = {},
+  ) => {
+    const handleError = () => {
+      imageElement.src =
+        opts.fallbackImageSource ||
+        'https://getstream.io/random_svg/?name=x&id=x';
+    };
+
+    const unsubscribe = createSubscription(
+      this.state.thumbnails$,
+      (thumbnails) => {
+        if (!thumbnails) return;
+        imageElement.addEventListener('error', handleError);
+
+        const thumbnailUrl = new URL(thumbnails.image_url);
+        thumbnailUrl.searchParams.set('w', String(imageElement.clientWidth));
+        thumbnailUrl.searchParams.set('h', String(imageElement.clientHeight));
+
+        imageElement.src = thumbnailUrl.toString();
+      },
+    );
+
+    return () => {
+      unsubscribe();
+      imageElement.removeEventListener('error', handleError);
     };
   };
 }

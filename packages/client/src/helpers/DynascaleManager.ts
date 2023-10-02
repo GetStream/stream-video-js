@@ -22,6 +22,7 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
 import { getSdkInfo } from '../client-details';
+import { isFirefox, isSafari } from './browsers';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -152,6 +153,14 @@ export class DynascaleManager {
       debounceType: DebounceType,
       dimension: VideoDimension | undefined,
     ) => {
+      if (dimension && (dimension.width === 0 || dimension.height === 0)) {
+        // ignore 0x0 dimensions. this can happen when the video element
+        // is not visible (e.g., has display: none).
+        // we treat this as "unsubscription" as we don't want to keep
+        // consuming bandwidth for a video that is not visible on the screen.
+        this.logger('debug', `Ignoring 0x0 dimension`, boundParticipant);
+        dimension = undefined;
+      }
       this.call.updateSubscriptionsPartial(
         trackType,
         { [sessionId]: { dimension } },
@@ -168,9 +177,15 @@ export class DynascaleManager {
       ),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
-      shareReplay(1),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+    /**
+     * Since the video elements are now being removed from the DOM (React SDK) upon
+     * visibility change, this subscription is not in use an stays here only for the
+     * plain JS integrations where integrators might choose not to remove the video
+     * elements from the DOM.
+     */
     // keep copy for resize observer handler
     let viewportVisibilityState: VisibilityState | undefined;
     const viewportVisibilityStateSubscription =
@@ -231,6 +246,8 @@ export class DynascaleManager {
         });
     resizeObserver?.observe(videoElement);
 
+    // element renders and gets bound - track subscription gets
+    // triggered first other ones get skipped on initial subscriptions
     const publishedTracksSubscription = boundParticipant.isLocalParticipant
       ? null
       : participant$
@@ -248,15 +265,23 @@ export class DynascaleManager {
           .subscribe((isPublishing) => {
             if (isPublishing) {
               // the participant just started to publish a track
-              requestTrackWithDimensions(DebounceType.IMMEDIATE, {
+              requestTrackWithDimensions(DebounceType.FAST, {
                 width: videoElement.clientWidth,
                 height: videoElement.clientHeight,
               });
             } else {
               // the participant just stopped publishing a track
-              requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
+              requestTrackWithDimensions(DebounceType.FAST, undefined);
             }
           });
+
+    videoElement.autoplay = true;
+    videoElement.playsInline = true;
+
+    // explicitly marking the element as muted will allow autoplay to work
+    // without prior user interaction:
+    // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+    videoElement.muted = true;
 
     const streamSubscription = participant$
       .pipe(
@@ -268,25 +293,22 @@ export class DynascaleManager {
         const source =
           trackType === 'videoTrack' ? p.videoStream : p.screenShareStream;
         if (videoElement.srcObject === source) return;
-        setTimeout(() => {
-          videoElement.srcObject = source ?? null;
-          if (videoElement.srcObject) {
+        videoElement.srcObject = source ?? null;
+        if (isSafari() || isFirefox()) {
+          setTimeout(() => {
+            videoElement.srcObject = source ?? null;
             videoElement.play().catch((e) => {
               this.logger('warn', `Failed to play stream`, e);
             });
-          }
-        }, 0);
+            // we add extra delay until we attempt to force-play
+            // the participant's media stream in Firefox and Safari,
+            // as they seem to have some timing issues
+          }, 25);
+        }
       });
-    videoElement.playsInline = true;
-    videoElement.autoplay = true;
-
-    // explicitly marking the element as muted will allow autoplay to work
-    // without prior user interaction:
-    // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
-    videoElement.muted = true;
 
     return () => {
-      requestTrackWithDimensions(DebounceType.IMMEDIATE, undefined);
+      requestTrackWithDimensions(DebounceType.FAST, undefined);
       viewportVisibilityStateSubscription?.unsubscribe();
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
@@ -317,6 +339,7 @@ export class DynascaleManager {
       ),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     const updateMediaStreamSubscription = participant$
@@ -343,7 +366,8 @@ export class DynascaleManager {
         getSdkInfo()?.type === SdkType.REACT
           ? p?.audioOutputDeviceId
           : selectedDevice;
-      if ('setSinkId' in audioElement) {
+
+      if ('setSinkId' in audioElement && typeof deviceId === 'string') {
         // @ts-expect-error setSinkId is not yet in the lib
         audioElement.setSinkId(deviceId);
       }

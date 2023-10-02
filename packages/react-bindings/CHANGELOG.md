@@ -2,6 +2,67 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.28...@stream-io/video-react-bindings-0.2.29) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.28`
+### [0.2.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.27...@stream-io/video-react-bindings-0.2.28) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.26...@stream-io/video-react-bindings-0.2.27) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+
+### Features
+
+* **Call Preview:** Support for call thumbnails ([#1099](https://github.com/GetStream/stream-video-js/issues/1099)) ([9274f76](https://github.com/GetStream/stream-video-js/commit/9274f760ed264ee0ee6ac97c6fe679288e067fd8))
+
+### [0.2.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.25...@stream-io/video-react-bindings-0.2.26) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.24...@stream-io/video-react-bindings-0.2.25) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.23...@stream-io/video-react-bindings-0.2.24) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.22...@stream-io/video-react-bindings-0.2.23) (2023-09-25)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.2`
+* `@stream-io/video-client` updated to version `0.1.0`
+
+### Bug Fixes
+
+* Add extra delay before attempting to play video in Safari and Firefox ([#1106](https://github.com/GetStream/stream-video-js/issues/1106)) ([5b4a589](https://github.com/GetStream/stream-video-js/commit/5b4a58918240a7b63807726609d6d54b92cfe1d2))
+
+### [0.2.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.21...@stream-io/video-react-bindings-0.2.22) (2023-09-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.20...@stream-io/video-react-bindings-0.2.21) (2023-09-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+### [0.2.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.19...@stream-io/video-react-bindings-0.2.20) (2023-09-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
 ### [0.2.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.18...@stream-io/video-react-bindings-0.2.19) (2023-09-15)
 
 ### Dependency Updates

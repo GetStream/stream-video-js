@@ -301,25 +301,6 @@ export interface BlockedUserEvent {
 /**
  *
  * @export
- * @interface BroadcastSettings
- */
-export interface BroadcastSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof BroadcastSettings
-   */
-  enabled: boolean;
-  /**
-   *
-   * @type {HLSSettings}
-   * @memberof BroadcastSettings
-   */
-  hls: HLSSettings;
-}
-/**
- *
- * @export
  * @interface BroadcastSettingsRequest
  */
 export interface BroadcastSettingsRequest {
@@ -335,6 +316,25 @@ export interface BroadcastSettingsRequest {
    * @memberof BroadcastSettingsRequest
    */
   hls?: HLSSettingsRequest;
+}
+/**
+ *
+ * @export
+ * @interface BroadcastSettingsResponse
+ */
+export interface BroadcastSettingsResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof BroadcastSettingsResponse
+   */
+  enabled: boolean;
+  /**
+   *
+   * @type {HLSSettingsResponse}
+   * @memberof BroadcastSettingsResponse
+   */
+  hls: HLSSettingsResponse;
 }
 /**
  * This event is sent when a user accepts a notification to join a call.
@@ -372,62 +372,6 @@ export interface CallAcceptedEvent {
    * @memberof CallAcceptedEvent
    */
   user: UserResponse;
-}
-/**
- * This event is sent when call broadcasting has started
- * @export
- * @interface CallBroadcastingStartedEvent
- */
-export interface CallBroadcastingStartedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallBroadcastingStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallBroadcastingStartedEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallBroadcastingStartedEvent
-   */
-  hls_playlist_url: string;
-  /**
-   * The type of event: "call.broadcasting_started" in this case
-   * @type {string}
-   * @memberof CallBroadcastingStartedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call broadcasting has stopped
- * @export
- * @interface CallBroadcastingStoppedEvent
- */
-export interface CallBroadcastingStoppedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallBroadcastingStoppedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallBroadcastingStoppedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.broadcasting_stopped" in this case
-   * @type {string}
-   * @memberof CallBroadcastingStoppedEvent
-   */
-  type: string;
 }
 /**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
@@ -503,6 +447,62 @@ export interface CallEndedEvent {
    * @memberof CallEndedEvent
    */
   user?: UserResponse;
+}
+/**
+ * This event is sent when HLS broadcasting has started
+ * @export
+ * @interface CallHLSBroadcastingStartedEvent
+ */
+export interface CallHLSBroadcastingStartedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingStartedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingStartedEvent
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingStartedEvent
+   */
+  hls_playlist_url: string;
+  /**
+   * The type of event: "call.hls_broadcasting_started" in this case
+   * @type {string}
+   * @memberof CallHLSBroadcastingStartedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when HLS broadcasting has stopped
+ * @export
+ * @interface CallHLSBroadcastingStoppedEvent
+ */
+export interface CallHLSBroadcastingStoppedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingStoppedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingStoppedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.hls_broadcasting_stopped" in this case
+   * @type {string}
+   * @memberof CallHLSBroadcastingStoppedEvent
+   */
+  type: string;
 }
 /**
  *
@@ -814,7 +814,7 @@ export interface CallReactionEvent {
   type: string;
 }
 /**
- *
+ * CallRecording represents a recording of a call.
  * @export
  * @interface CallRecording
  */
@@ -843,6 +843,62 @@ export interface CallRecording {
    * @memberof CallRecording
    */
   url: string;
+}
+/**
+ * This event is sent when call recording has failed
+ * @export
+ * @interface CallRecordingFailedEvent
+ */
+export interface CallRecordingFailedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.recording_failed" in this case
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  type: string;
+}
+/**
+ * This event is sent when call recording is ready
+ * @export
+ * @interface CallRecordingReadyEvent
+ */
+export interface CallRecordingReadyEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {CallRecording}
+   * @memberof CallRecordingReadyEvent
+   */
+  call_recording: CallRecording;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.recording_ready" in this case
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  type: string;
 }
 /**
  * This event is sent when call recording has started
@@ -1082,6 +1138,12 @@ export interface CallResponse {
    * @memberof CallResponse
    */
   team?: string;
+  /**
+   *
+   * @type {ThumbnailResponse}
+   * @memberof CallResponse
+   */
+  thumbnails?: ThumbnailResponse;
   /**
    *
    * @type {boolean}
@@ -1409,6 +1471,12 @@ export interface CallSettingsRequest {
   screensharing?: ScreensharingSettingsRequest;
   /**
    *
+   * @type {ThumbnailsSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  thumbnails?: ThumbnailsSettingsRequest;
+  /**
+   *
    * @type {TranscriptionSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -1440,10 +1508,10 @@ export interface CallSettingsResponse {
   backstage: BackstageSettings;
   /**
    *
-   * @type {BroadcastSettings}
+   * @type {BroadcastSettingsResponse}
    * @memberof CallSettingsResponse
    */
-  broadcasting: BroadcastSettings;
+  broadcasting: BroadcastSettingsResponse;
   /**
    *
    * @type {GeofenceSettings}
@@ -1452,10 +1520,10 @@ export interface CallSettingsResponse {
   geofencing: GeofenceSettings;
   /**
    *
-   * @type {RecordSettings}
+   * @type {RecordSettingsResponse}
    * @memberof CallSettingsResponse
    */
-  recording: RecordSettings;
+  recording: RecordSettingsResponse;
   /**
    *
    * @type {RingSettings}
@@ -1468,6 +1536,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   screensharing: ScreensharingSettings;
+  /**
+   *
+   * @type {ThumbnailsSettings}
+   * @memberof CallSettingsResponse
+   */
+  thumbnails: ThumbnailsSettings;
   /**
    *
    * @type {TranscriptionSettings}
@@ -1487,12 +1561,6 @@ export interface CallSettingsResponse {
  * @interface CallStateResponseFields
  */
 export interface CallStateResponseFields {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof CallStateResponseFields
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -2229,12 +2297,6 @@ export interface GeofenceSettingsRequest {
 export interface GetCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof GetCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof GetCallResponse
    */
@@ -2371,12 +2433,6 @@ export interface GetOrCreateCallRequest {
 export interface GetOrCreateCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof GetOrCreateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof GetOrCreateCallResponse
    */
@@ -2459,31 +2515,6 @@ export interface GoLiveResponse {
 /**
  *
  * @export
- * @interface HLSSettings
- */
-export interface HLSSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof HLSSettings
-   */
-  auto_on: boolean;
-  /**
-   *
-   * @type {boolean}
-   * @memberof HLSSettings
-   */
-  enabled: boolean;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof HLSSettings
-   */
-  quality_tracks: Array<string>;
-}
-/**
- *
- * @export
  * @interface HLSSettingsRequest
  */
 export interface HLSSettingsRequest {
@@ -2501,10 +2532,47 @@ export interface HLSSettingsRequest {
   enabled?: boolean;
   /**
    *
+   * @type {LayoutSettingsRequest}
+   * @memberof HLSSettingsRequest
+   */
+  layout?: LayoutSettingsRequest;
+  /**
+   *
    * @type {Array<string>}
    * @memberof HLSSettingsRequest
    */
   quality_tracks?: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface HLSSettingsResponse
+ */
+export interface HLSSettingsResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettingsResponse
+   */
+  auto_on: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof HLSSettingsResponse
+   */
+  enabled: boolean;
+  /**
+   *
+   * @type {LayoutSettings}
+   * @memberof HLSSettingsResponse
+   */
+  layout: LayoutSettings;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof HLSSettingsResponse
+   */
+  quality_tracks: Array<string>;
 }
 /**
  *
@@ -2613,12 +2681,6 @@ export interface JoinCallRequest {
 export interface JoinCallResponse {
   /**
    *
-   * @type {Array<UserResponse>}
-   * @memberof JoinCallResponse
-   */
-  blocked_users: Array<UserResponse>;
-  /**
-   *
    * @type {CallResponse}
    * @memberof JoinCallResponse
    */
@@ -2660,6 +2722,96 @@ export interface JoinCallResponse {
    */
   own_capabilities: Array<OwnCapability>;
 }
+/**
+ *
+ * @export
+ * @interface LayoutSettings
+ */
+export interface LayoutSettings {
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettings
+   */
+  external_app_url: string;
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettings
+   */
+  external_css_url: string;
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettings
+   */
+  name: LayoutSettingsNameEnum;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof LayoutSettings
+   */
+  options?: { [key: string]: any };
+}
+
+/**
+ * @export
+ */
+export const LayoutSettingsNameEnum = {
+  SPOTLIGHT: 'spotlight',
+  GRID: 'grid',
+  SINGLE_PARTICIPANT: 'single-participant',
+  MOBILE: 'mobile',
+  CUSTOM: 'custom',
+} as const;
+export type LayoutSettingsNameEnum =
+  (typeof LayoutSettingsNameEnum)[keyof typeof LayoutSettingsNameEnum];
+
+/**
+ *
+ * @export
+ * @interface LayoutSettingsRequest
+ */
+export interface LayoutSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettingsRequest
+   */
+  external_app_url?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettingsRequest
+   */
+  external_css_url?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof LayoutSettingsRequest
+   */
+  name: LayoutSettingsRequestNameEnum;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof LayoutSettingsRequest
+   */
+  options?: { [key: string]: any };
+}
+
+/**
+ * @export
+ */
+export const LayoutSettingsRequestNameEnum = {
+  SPOTLIGHT: 'spotlight',
+  GRID: 'grid',
+  SINGLE_PARTICIPANT: 'single-participant',
+  MOBILE: 'mobile',
+  CUSTOM: 'custom',
+} as const;
+export type LayoutSettingsRequestNameEnum =
+  (typeof LayoutSettingsRequestNameEnum)[keyof typeof LayoutSettingsRequestNameEnum];
+
 /**
  *
  * @export
@@ -3286,57 +3438,6 @@ export interface ReactionResponse {
 /**
  *
  * @export
- * @interface RecordSettings
- */
-export interface RecordSettings {
-  /**
-   *
-   * @type {boolean}
-   * @memberof RecordSettings
-   */
-  audio_only: boolean;
-  /**
-   *
-   * @type {string}
-   * @memberof RecordSettings
-   */
-  mode: RecordSettingsModeEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof RecordSettings
-   */
-  quality: RecordSettingsQualityEnum;
-}
-
-/**
- * @export
- */
-export const RecordSettingsModeEnum = {
-  AVAILABLE: 'available',
-  DISABLED: 'disabled',
-  AUTO_ON: 'auto-on',
-} as const;
-export type RecordSettingsModeEnum =
-  (typeof RecordSettingsModeEnum)[keyof typeof RecordSettingsModeEnum];
-
-/**
- * @export
- */
-export const RecordSettingsQualityEnum = {
-  AUDIO_ONLY: 'audio-only',
-  _360P: '360p',
-  _480P: '480p',
-  _720P: '720p',
-  _1080P: '1080p',
-  _1440P: '1440p',
-} as const;
-export type RecordSettingsQualityEnum =
-  (typeof RecordSettingsQualityEnum)[keyof typeof RecordSettingsQualityEnum];
-
-/**
- *
- * @export
  * @interface RecordSettingsRequest
  */
 export interface RecordSettingsRequest {
@@ -3348,10 +3449,16 @@ export interface RecordSettingsRequest {
   audio_only?: boolean;
   /**
    *
+   * @type {LayoutSettingsRequest}
+   * @memberof RecordSettingsRequest
+   */
+  layout?: LayoutSettingsRequest;
+  /**
+   *
    * @type {string}
    * @memberof RecordSettingsRequest
    */
-  mode?: RecordSettingsRequestModeEnum;
+  mode: RecordSettingsRequestModeEnum;
   /**
    *
    * @type {string}
@@ -3375,7 +3482,6 @@ export type RecordSettingsRequestModeEnum =
  * @export
  */
 export const RecordSettingsRequestQualityEnum = {
-  AUDIO_ONLY: 'audio-only',
   _360P: '360p',
   _480P: '480p',
   _720P: '720p',
@@ -3385,6 +3491,37 @@ export const RecordSettingsRequestQualityEnum = {
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
 
+/**
+ *
+ * @export
+ * @interface RecordSettingsResponse
+ */
+export interface RecordSettingsResponse {
+  /**
+   *
+   * @type {boolean}
+   * @memberof RecordSettingsResponse
+   */
+  audio_only: boolean;
+  /**
+   *
+   * @type {LayoutSettings}
+   * @memberof RecordSettingsResponse
+   */
+  layout: LayoutSettings;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettingsResponse
+   */
+  mode: string;
+  /**
+   *
+   * @type {string}
+   * @memberof RecordSettingsResponse
+   */
+  quality: string;
+}
 /**
  *
  * @export
@@ -3630,19 +3767,19 @@ export interface SortParamRequest {
 /**
  *
  * @export
- * @interface StartBroadcastingResponse
+ * @interface StartHLSBroadcastingResponse
  */
-export interface StartBroadcastingResponse {
+export interface StartHLSBroadcastingResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof StartBroadcastingResponse
+   * @memberof StartHLSBroadcastingResponse
    */
   duration: string;
   /**
    *
    * @type {string}
-   * @memberof StartBroadcastingResponse
+   * @memberof StartHLSBroadcastingResponse
    */
   playlist_url: string;
 }
@@ -3675,13 +3812,13 @@ export interface StartTranscriptionResponse {
 /**
  *
  * @export
- * @interface StopBroadcastingResponse
+ * @interface StopHLSBroadcastingResponse
  */
-export interface StopBroadcastingResponse {
+export interface StopHLSBroadcastingResponse {
   /**
    * Duration of the request in human-readable format
    * @type {string}
-   * @memberof StopBroadcastingResponse
+   * @memberof StopHLSBroadcastingResponse
    */
   duration: string;
 }
@@ -3779,6 +3916,45 @@ export interface TargetResolutionRequest {
    * @memberof TargetResolutionRequest
    */
   width?: number;
+}
+/**
+ *
+ * @export
+ * @interface ThumbnailResponse
+ */
+export interface ThumbnailResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ThumbnailResponse
+   */
+  image_url: string;
+}
+/**
+ *
+ * @export
+ * @interface ThumbnailsSettings
+ */
+export interface ThumbnailsSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof ThumbnailsSettings
+   */
+  enabled: boolean;
+}
+/**
+ *
+ * @export
+ * @interface ThumbnailsSettingsRequest
+ */
+export interface ThumbnailsSettingsRequest {
+  /**
+   *
+   * @type {boolean}
+   * @memberof ThumbnailsSettingsRequest
+   */
+  enabled?: boolean;
 }
 /**
  *
@@ -4001,12 +4177,6 @@ export interface UpdateCallRequest {
  * @interface UpdateCallResponse
  */
 export interface UpdateCallResponse {
-  /**
-   *
-   * @type {Array<UserResponse>}
-   * @memberof UpdateCallResponse
-   */
-  blocked_users: Array<UserResponse>;
   /**
    *
    * @type {CallResponse}
@@ -4299,10 +4469,14 @@ export interface UserResponse {
 export type VideoEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.broadcasting_started' } & CallBroadcastingStartedEvent)
-  | ({ type: 'call.broadcasting_stopped' } & CallBroadcastingStoppedEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({
+      type: 'call.hls_broadcasting_started';
+    } & CallHLSBroadcastingStartedEvent)
+  | ({
+      type: 'call.hls_broadcasting_stopped';
+    } & CallHLSBroadcastingStoppedEvent)
   | ({ type: 'call.live_started' } & CallLiveStartedEvent)
   | ({ type: 'call.member_added' } & CallMemberAddedEvent)
   | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
@@ -4314,6 +4488,8 @@ export type VideoEvent =
   | ({ type: 'call.permission_request' } & PermissionRequestEvent)
   | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
   | ({ type: 'call.reaction_new' } & CallReactionEvent)
+  | ({ type: 'call.recording_failed' } & CallRecordingFailedEvent)
+  | ({ type: 'call.recording_ready' } & CallRecordingReadyEvent)
   | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
   | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
   | ({ type: 'call.rejected' } & CallRejectedEvent)

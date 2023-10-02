@@ -211,11 +211,12 @@ export const ParticipantActionsContextMenu = ({
   };
 
   const toggleFullscreenMode = () => {
-    if (!fullscreenModeOn)
+    if (!fullscreenModeOn) {
       return participantViewElement
         ?.requestFullscreen()
         .then(() => setFullscreenModeOn(true))
         .catch(console.error);
+    }
 
     document
       .exitFullscreen()
