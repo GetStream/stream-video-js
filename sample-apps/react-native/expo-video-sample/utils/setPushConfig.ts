@@ -41,7 +41,7 @@ export function setPushConfig() {
             return `${createdUserName} is notifying you about a call`;
           }
         },
-        getBody(_type, createdUserName) {
+        getBody(_type, _createdUserName) {
           return 'Tap to open the call';
         },
       },

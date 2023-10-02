@@ -5,11 +5,7 @@ title: Expo
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This guide discusses how to add push notifications for calls that are not ringing to your project. We will discuss how to set up your Expo app to get push notifications from Stream for the non-ringing calls that your user will receive. 
-
-| Android preview | iOS preview |
-|---|---|
-| ![Android preview of the Firebase push notification](../../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../../assets/06-advanced/04-push-notifications/ios-preview.png)
+This guide discusses how to set up your Expo app to get push notifications from Stream for the non-ringing calls that your user will receive.
 
 ## Add push provider credentials to Stream
 
@@ -97,6 +93,16 @@ export const staticNavigateToActiveCall = () => {
     }
   }, 300);
 };
+
+export const staticNavigateToLivestreamCall = () => {
+  const intervalId = setInterval(async () => {
+    // add any requirements here (like authentication)
+    if (GlobalState.hasAuthentication) {
+      clearInterval(intervalId);
+      router.push('/livestream');
+    }
+  }, 300);
+};
 ```
 
 ### Setup the push config
@@ -111,7 +117,7 @@ import {
 import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STREAM_API_KEY } from '../../constants';
-import { staticNavigateToRingingCall } from './staticNavigationUtils';
+import { staticNavigateToRingingCall, staticNavigateToLivestreamCall } from './staticNavigationUtils';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -149,7 +155,12 @@ export function setPushConfig() {
     },
     // optional: add the callback to be executed when a non ringing call notification is tapped
     onTapNonRingingCallNotification: () => {
-      staticNavigateToActiveCall();
+      const [callType, callId] = call_cid.split(':');
+      if (callType === 'livestream') {
+        staticNavigateToLivestreamCall();
+      } else {
+        staticNavigateToActiveCall();
+      }
     },
     // add the async callback to create a video client
     // for incoming calls in the background on a push notification
@@ -179,6 +190,16 @@ import { setPushConfig } from './utils/setPushConfig';
 
 setPushConfig();
 ```
+
+## Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions in Expo:
+
+```js
+import * as Notifications from 'expo-notifications';
+await Notifications.requestPermissionsAsync();
+```
+
 
 ## Troubleshooting
 

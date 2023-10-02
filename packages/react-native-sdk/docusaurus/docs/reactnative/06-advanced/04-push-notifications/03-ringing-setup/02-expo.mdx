@@ -199,6 +199,15 @@ import { setPushConfig } from './utils/setPushConfig';
 setPushConfig();
 ```
 
+## Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions in Expo:
+
+```js
+import * as Notifications from 'expo-notifications';
+await Notifications.requestPermissionsAsync();
+```
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.

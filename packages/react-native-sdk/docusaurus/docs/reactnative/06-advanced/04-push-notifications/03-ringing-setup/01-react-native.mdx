@@ -68,6 +68,16 @@ The **google-services.json** file contains unique and non-secret identifiers of 
 
 :::
 
+### Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
+
+```js
+import { requestNotifications } from 'react-native-permissions';
+
+await requestNotifications(['alert', 'sound']);
+```
+
 ## iOS-specific setup
 
 ### Disable Firebase installation
@@ -131,7 +141,7 @@ Update `AppDelegate.m` or `AppDelegate.mm` in Xcode with the following parts for
 
 At the top of the file, right after '#import "AppDelegate.h"', add the following headers to import and invoke the methods for the required libraries.
 
-```c
+```objectivec
 // highlight-start
 #import <Firebase.h>
 #import "RNCallKeep.h"
@@ -144,8 +154,7 @@ At the top of the file, right after '#import "AppDelegate.h"', add the following
 
 We need to configure the Firebase library, set up the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
 
-```c
-
+```objectivec
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   // highlight-next-line
@@ -173,7 +182,7 @@ We need to configure the Firebase library, set up the callkeep library and regis
 
 Add the following method to process the VoIP token from iOS and send it to the `react-native-voip-push-notification` library.
 
-```c
+```objectivec
 // handle updated push credentials
 - (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
   [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
@@ -182,7 +191,7 @@ Add the following method to process the VoIP token from iOS and send it to the `
 
 The final method to add is the one that gets invoked when there is a VoIP push notification from Stream. When there is a push notification and if the app is in the background, we want to display an incoming call notification. Add the following method to achieve this,
 
-```c
+```objectivec
 // handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   // send event to JS

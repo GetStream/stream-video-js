@@ -5,13 +5,7 @@ title: React Native
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This guide discusses how to add push notifications for ringing calls to your project. It will discuss both Android and iOS and go through all the necessary steps.
-
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive.  
-
-| Android preview | iOS preview |
-|---|---|
-| ![Android preview of the Firebase push notification](../../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../../assets/06-advanced/04-push-notifications/ios-preview.png)
+This guide discusses how to set up your React Native app to get push notifications from Stream for the non-ringing calls that your user will receive.
 
 ## Add push provider credentials to Stream
 
@@ -98,8 +92,89 @@ In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. B
 ```xml
 <key>UIBackgroundModes</key>
 <array>
-  <string>voip</string>
+  <string>remote-notification</string>
 </array>
+```
+
+### Update `AppDelegate.h`
+
+At the top of the file, add:
+
+```objectivec
+#import <UserNotifications/UNUserNotificationCenter.h>
+```
+
+Then, add the `UNUserNotificationCenterDelegate`:
+
+For React-Native v0.71 and above:
+
+```objectivec
+@interface AppDelegate : RCTAppDelegate <UNUserNotificationCenterDelegate>
+```
+
+For React-Native v0.70 and below:
+
+```objectivec
+@interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCen
+```
+
+### Update `AppDelegate.m` or `AppDelegate.mm`
+
+#### Add headers
+
+At the top of the file, add:
+
+```objectivec
+#import <UserNotifications/UserNotifications.h>
+#import <RNCPushNotificationIOS.h>
+```
+
+#### Add methods
+
+Then add the following methods:
+
+```objectivec
+// Required for the register event.
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+ [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+// Required for the notification event. You must call the completion handler after handling the remote notification.
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+// Required for the registrationError event.
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+ [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
+}
+// Required for localNotification event
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveNotificationResponse:response];
+}
+//Called when a notification is delivered to a foreground app.
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+{
+  completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+}
+```
+
+Then add the following lines to `didFinishLaunchingWithOptions`:
+
+```objectivec
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // highlight-start
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = self;
+   // highlight-end
+  // ...rest
+}
 ```
 
 ### Enable push notifications
@@ -177,30 +252,35 @@ export function setPushConfig() {
       pushProviderName: __DEV__
         ? 'firebase-video-staging'
         : 'firebase-video-production',
-      // configure the notification channel to be used for incoming calls for Android.
-      incomingCallChannel: {
-        id: 'stream_incoming_call',
-        name: 'Incoming call notifications',
-        // This is the advised importance of receiving incoming call notifications.
-        // This will ensure that the notification will appear on-top-of applications.
+      // configure the notification channel to be used for non ringing calls for Android.
+      callChannel: {
+        id: 'stream_call_notifications',
+        name: 'Call notifications',
         importance: AndroidImportance.HIGH,
       },
       // configure the functions to create the texts shown in the notification
-      // for incoming calls in Android.
-      incomingCallNotificationTextGetters: {
-        getTitle: (createdUserName: string) =>
-          `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to answer the call',
+      // for non ringing calls in Android.
+      callNotificationTextGetters: {
+        getTitle(type, createdUserName) {
+          if (type === 'call.live_started') {
+            return `Call went live, it was started by ${createdUserName}`;
+          } else {
+            return `${createdUserName} is notifying you about a call`;
+          }
+        },
+        getBody(_type, createdUserName) {
+          return 'Tap to open the call';
+        },
       },
     },
-    // add the callback to be executed a call is accepted, used for navigation
-    navigateAcceptCall: () => {
-      staticNavigate({ name: 'ActiveCallScreen', params: undefined });
-    },
-    // add the callback to be executed when a notification is tapped,
-    // but the user did not press accept or decline, used for navigation
-    navigateToIncomingCall: () => {
-      staticNavigate({ name: 'IncomingCallScreen', params: undefined });
+    // optional: add the callback to be executed when a non ringing call notification is tapped
+    onTapNonRingingCallNotification: () => {
+      const [callType, callId] = call_cid.split(':');
+      if (callType === 'livestream') {
+        staticNavigate({ name: 'LiveStreamCallScreen', params: undefined });
+      } else {
+        staticNavigate({ name: 'ActiveCallScreen', params: undefined });
+      }
     },
     // add the async callback to create a video client
     // for incoming calls in the background on a push notification
@@ -234,6 +314,17 @@ import App from './App';
 setPushConfig();
 AppRegistry.registerComponent('app', () => App);
 ```
+
+## Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
+
+```js
+import { requestNotifications } from 'react-native-permissions';
+
+await requestNotifications(['alert', 'sound']);
+```
+
 
 ## Troubleshooting
 

@@ -157,21 +157,18 @@ export async function initIosNonVoipToken(
       subscriptionForReceive.remove();
     });
   } else {
-    console.log('register ios notifications');
     const pushNotificationIosLib = getPushNotificationIosLib();
     pushNotificationIosLib.addEventListener('register', (token) => {
       setDeviceToken(token);
-      console.log({ token });
     });
     pushNotificationIosLib.addEventListener('notification', (notification) => {
       const data = notification.getData();
-      console.log('normal ios notification', { data });
       const streamPayload = data?.stream as StreamPayload;
       // listen to foreground notifications
       processNonRingingNotificationStreamPayload(streamPayload);
+      notification.finish(pushNotificationIosLib.FetchResult.NoData);
     });
     setUnsubscribeListener(() => {
-      console.log('unsubscribe ios notifications');
       pushNotificationIosLib.removeEventListener('register');
       pushNotificationIosLib.removeEventListener('notification');
     });
