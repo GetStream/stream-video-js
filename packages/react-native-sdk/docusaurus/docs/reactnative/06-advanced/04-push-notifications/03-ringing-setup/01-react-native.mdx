@@ -349,6 +349,16 @@ setPushConfig();
 AppRegistry.registerComponent('app', () => App);
 ```
 
+## Disabling push - usually on logout
+
+In some cases you would want to disable push from happening. For example, if user logs out of your app. Or if the user switches. You can disable push like below:
+
+```js
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+
+StreamVideoRN.onPushLogout();
+```
+
 ## Troubleshooting
 
 - During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
