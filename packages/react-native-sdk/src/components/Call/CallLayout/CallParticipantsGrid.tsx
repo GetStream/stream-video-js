@@ -9,7 +9,6 @@ import {
 } from '../CallParticipantsList/CallParticipantsList';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -23,6 +22,10 @@ export type CallParticipantsGridProps = CallParticipantsListComponentProps & {
    * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
    */
   showLocalParticipant?: boolean;
+  /**
+   * Check if phone is in landscape mode.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -37,6 +40,7 @@ export const CallParticipantsGrid = ({
   ParticipantView,
   VideoRenderer,
   showLocalParticipant = false,
+  landscape,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -49,9 +53,8 @@ export const CallParticipantsGrid = ({
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
-  const orientation = useOrientation();
   const landScapeStyles: ViewStyle = {
-    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+    flexDirection: landscape ? 'row' : 'column',
   };
 
   const showFloatingView =
@@ -85,6 +88,7 @@ export const CallParticipantsGrid = ({
       {CallParticipantsList && (
         <CallParticipantsList
           participants={participants}
+          landscape={landscape}
           {...participantViewProps}
         />
       )}

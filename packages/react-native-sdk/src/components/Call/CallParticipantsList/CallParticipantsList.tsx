@@ -21,7 +21,6 @@ import {
   ParticipantViewComponentProps,
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
-import { useOrientation } from '../../../utils/hooks';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -57,6 +56,11 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps & {
    * If true, the list will be displayed in horizontal scrolling mode
    */
   horizontal?: boolean;
+  /**
+   * The device orientation
+   * @value "portrait" or `landscape`
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -75,12 +79,12 @@ export const CallParticipantsList = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   VideoRenderer,
+  landscape,
 }: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
     width: 0,
     height: 0,
   });
-  const orientation = useOrientation();
 
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
@@ -164,11 +168,11 @@ export const CallParticipantsList = ({
     if (horizontal) {
       return [styles.participantWrapperHorizontal, style];
     }
-    if (orientation === 'landscape') {
+    if (landscape) {
       return [styles.landScapeStyle, style];
     }
     return style;
-  }, [itemWidth, itemHeight, horizontal, orientation]);
+  }, [itemWidth, itemHeight, horizontal, landscape]);
 
   const participantProps: ParticipantViewComponentProps = {
     ParticipantLabel,

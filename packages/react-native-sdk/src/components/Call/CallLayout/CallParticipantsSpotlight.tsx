@@ -18,7 +18,6 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -29,6 +28,11 @@ export type CallParticipantsSpotlightProps =
      * Component to customize the CallParticipantsList.
      */
     CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+    /**
+     * The device orientation
+     * @value "portrait" or `landscape`
+     */
+    landscape?: boolean;
   };
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
@@ -46,6 +50,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
+  landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -58,7 +63,6 @@ export const CallParticipantsSpotlight = ({
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
-  const orientation = useOrientation();
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -74,11 +78,11 @@ export const CallParticipantsSpotlight = ({
   };
 
   const landScapeStyles: ViewStyle = {
-    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+    flexDirection: landscape ? 'row' : 'column',
   };
 
   const spotlightContainerLandscapeStyles: ViewStyle = {
-    marginHorizontal: orientation === 'landscape' ? 0 : 8,
+    marginHorizontal: landscape ? 0 : 8,
   };
 
   return (
@@ -126,8 +130,9 @@ export const CallParticipantsSpotlight = ({
               participants={
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
-              horizontal={orientation === 'portrait'}
-              numberOfColumns={orientation === 'portrait' ? 2 : 1}
+              horizontal={!landscape}
+              numberOfColumns={!landscape ? 2 : 1}
+              landscape={landscape}
               {...callParticipantsListProps}
             />
           )}

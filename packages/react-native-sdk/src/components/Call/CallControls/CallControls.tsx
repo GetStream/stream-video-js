@@ -6,7 +6,6 @@ import { ToggleCameraFaceButton } from './ToggleCameraFaceButton';
 import { Z_INDEX } from '../../../constants';
 import { HangUpCallButton } from './HangupCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 /**
  * Props for the CallControls Component.
@@ -17,6 +16,10 @@ export type CallControlProps = Pick<ViewProps, 'style'> & {
    * @returns void
    */
   onHangupCallHandler?: () => void;
+  /**
+   * Check if phone is in landscape mode.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -26,15 +29,15 @@ export type CallControlProps = Pick<ViewProps, 'style'> & {
 export const CallControls = ({
   style,
   onHangupCallHandler,
+  landscape,
 }: CallControlProps) => {
   const {
     theme: { colors, callControls },
   } = useTheme();
-  const orientation = useOrientation();
   const landScapeStyles: ViewStyle = {
-    flexDirection: orientation === 'landscape' ? 'column-reverse' : 'row',
-    paddingHorizontal: orientation === 'landscape' ? 12 : 0,
-    paddingVertical: orientation === 'portrait' ? 12 : 0,
+    flexDirection: landscape ? 'column-reverse' : 'row',
+    paddingHorizontal: landscape ? 12 : 0,
+    paddingVertical: landscape ? 0 : 12,
   };
   return (
     <View

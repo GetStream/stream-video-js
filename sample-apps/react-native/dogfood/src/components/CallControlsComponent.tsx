@@ -11,27 +11,26 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
-import { useOrientation } from '../hooks/useOrientation';
 
 export type CallControlsComponentProps = {
   onChatOpenHandler?: () => void;
   onHangupCallHandler?: () => void;
   unreadCountIndicator?: number;
+  landscape?: boolean;
 };
 
 export const CallControlsComponent = ({
   onChatOpenHandler,
   onHangupCallHandler,
   unreadCountIndicator,
+  landscape,
 }: CallControlsComponentProps) => {
   const { bottom } = useSafeAreaInsets();
-  const orientation = useOrientation();
   const landScapeStyles: ViewStyle = {
-    flexDirection: orientation === 'landscape' ? 'column-reverse' : 'row',
-    paddingHorizontal: orientation === 'landscape' ? 12 : 0,
-    paddingVertical: orientation === 'portrait' ? 12 : 0,
-    paddingBottom:
-      orientation === 'portrait' ? Math.max(bottom, appTheme.spacing.lg) : 0,
+    flexDirection: landscape ? 'column-reverse' : 'row',
+    paddingHorizontal: landscape ? 12 : 0,
+    paddingVertical: landscape ? 0 : 12,
+    paddingBottom: landscape ? 0 : Math.max(bottom, appTheme.spacing.lg),
   };
 
   return (

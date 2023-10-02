@@ -25,7 +25,6 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
-import { useOrientation } from '../../../utils/hooks/useOrientation';
 
 export type CallParticipantsComponentProps = Pick<
   CallParticipantsGridProps,
@@ -61,6 +60,10 @@ export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
      * This switches the participant's layout between the grid and the spotlight mode.
      */
     layout?: 'grid' | 'spotlight';
+    /**
+     * Check if phone is in landscape mode.
+     */
+    landscape?: boolean;
   };
 
 export const CallContent = ({
@@ -79,6 +82,7 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
+  landscape = false,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -87,7 +91,6 @@ export const CallContent = ({
   const {
     theme: { callContent },
   } = useTheme();
-  const orientation = useOrientation();
   const {
     useHasOngoingScreenShare,
     useRemoteParticipants,
@@ -142,6 +145,7 @@ export const CallContent = ({
 
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
+    landscape,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
@@ -149,12 +153,13 @@ export const CallContent = ({
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
     ...participantViewProps,
+    landscape,
     ParticipantView,
     CallParticipantsList,
   };
 
   const landScapeStyles: ViewStyle = {
-    flexDirection: orientation === 'portrait' ? 'column' : 'row',
+    flexDirection: landscape ? 'row' : 'column',
   };
 
   return (
@@ -193,7 +198,10 @@ export const CallContent = ({
       </View>
 
       {CallControls && (
-        <CallControls onHangupCallHandler={onHangupCallHandler} />
+        <CallControls
+          onHangupCallHandler={onHangupCallHandler}
+          landscape={landscape}
+        />
       )}
     </View>
   );
