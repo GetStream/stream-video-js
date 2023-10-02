@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.27...@stream-io/video-react-native-sdk-0.0.28) (2023-10-02)
+
+
+### Features
+
+* **react-native:** support landscape more for CallContent ([#1119](https://github.com/GetStream/stream-video-js/issues/1119)) ([2e218b4](https://github.com/GetStream/stream-video-js/commit/2e218b4ad8f00c5eb1632d64df6c5d3456b5af41))
+
 ### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.26...@stream-io/video-react-native-sdk-0.0.27) (2023-09-28)
 
 ### Dependency Updates
