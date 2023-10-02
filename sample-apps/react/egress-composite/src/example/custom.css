@@ -1,0 +1,44 @@
+.str-video {
+  background-color: blanchedalmond;
+}
+
+.str-video .str-video__participant-view {
+  border-radius: 30px;
+}
+
+.str-video .str-video__participant-view {
+  border-radius: 30px;
+}
+
+.str-video__video-placeholder {
+  background-color: burlywood;
+}
+
+.str-video__video-placeholder .str-video__video-placeholder__avatar {
+  border-radius: 30px;
+}
+
+.str-video__video-placeholder .str-video__video-placeholder__initials-fallback {
+  border-radius: 30px;
+  background-color: bisque;
+  color: dimgray;
+}
+
+.str-video__participant-view .str-video__participant-details {
+  background-color: bisque;
+  color: dimgray;
+  border-radius: 9999px;
+  padding: 5px;
+}
+
+.str-video__participant-view
+  .str-video__participant-details
+  .str-video__participant-details__name {
+  padding: 0px;
+  border-radius: 0px;
+}
+
+.str-video__participant-view--dominant-speaker
+  .str-video__participant-details::after {
+  content: '⭐️';
+}
