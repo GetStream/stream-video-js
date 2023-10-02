@@ -319,12 +319,13 @@ AppRegistry.registerComponent('app', () => App);
 
 At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
 
+<!-- vale off -->
 ```js
 import { requestNotifications } from 'react-native-permissions';
 
 await requestNotifications(['alert', 'sound']);
 ```
-
+<!-- vale on -->
 
 ## Troubleshooting
 

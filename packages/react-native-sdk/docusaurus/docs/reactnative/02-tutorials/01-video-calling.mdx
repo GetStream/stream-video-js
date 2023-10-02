@@ -402,8 +402,7 @@ Hit save and you should see on your emulator or device the following UI.
 ## Step 5 - Setup Video Client
 
 Within this configuration, we will establish a `StreamVideoClient` instance and facilitate the user's connection to the Stream Video service.
-In real application, client creation should be encapsulated within a `useEffect` hook and during unmount you should call `client.disconnectUser()`
-to avoid creating multiple websockets.
+In real application, client creation should be encapsulated within a `useEffect` hook and during unmount you should call `client.disconnectUser()` to avoid creating multiple websockets.
 
 Client instance needs to be provided to `StreamVideo` component and it will provide the client instance to all the child components using React Context.
 It needs to go at the top of the component tree.
