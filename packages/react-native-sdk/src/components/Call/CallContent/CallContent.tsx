@@ -62,6 +62,7 @@ export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
     layout?: 'grid' | 'spotlight';
     /**
      * Check if phone is in landscape mode.
+     * This will apply the landscape mode styles to the component.
      */
     landscape?: boolean;
   };
@@ -82,7 +83,7 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
-  landscape = false,
+  landscape = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,

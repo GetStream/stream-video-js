@@ -57,8 +57,8 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps & {
    */
   horizontal?: boolean;
   /**
-   * The device orientation
-   * @value "portrait" or `landscape`
+   * Check if phone is in landscape mode.
+   * This will apply the landscape mode styles to the component.
    */
   landscape?: boolean;
 };

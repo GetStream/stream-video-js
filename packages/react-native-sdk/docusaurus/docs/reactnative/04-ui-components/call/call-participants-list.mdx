@@ -6,6 +6,7 @@ title: CallParticipantsList
 import ImageShowcase from '@site/src/components/ImageShowcase';
 import CallParticipantsListVertical from '../../assets/04-ui-components/call/call-participants-list/vertical.png';
 import CallParticipantsListHorizontal from '../../assets/04-ui-components/call/call-participants-list/horizontal.png';
+import LandScape from '../../common-content/ui-components/call/call-content/landscape.mdx';
 
 import ParticipantLabel from '../../common-content/ui-components/call/call-content/participant-label.mdx';
 import ParticipantReaction from '../../common-content/ui-components/call/call-content/participant-reaction.mdx';
@@ -72,7 +73,7 @@ const VideoCallUI = () => {
 
 The list of participants to list in the view.
 
-### numberOfColumns
+### `numberOfColumns`
 
 | Type                    | Default Value |
 | ----------------------- | ------------- |
@@ -80,13 +81,17 @@ The list of participants to list in the view.
 
 The number of participants to be displayed in a single row. This property is only used when there are more than 2 participants.
 
-### horizontal
+### `horizontal`
 
 | Type                     | Default Value |
 | ------------------------ | ------------- |
 | `boolean` \| `undefined` | false         |
 
 This decides whether the participants should be listed vertically or horizontally.
+
+### `landscape`
+
+<LandScape />
 
 ### `ParticipantLabel`
 
