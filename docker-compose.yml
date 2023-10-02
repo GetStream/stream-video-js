@@ -1,6 +1,7 @@
 # this compose file exists to generate screenshots
 # for the CI to compare against, replace key and token with your own before running
 # docker compose up, each change to the sources (not including tests) requires image rebuild
+# https://github.com/microsoft/playwright/issues/8161
 
 services:
   generate-screenshots:
