@@ -8,6 +8,9 @@ import { CompositeApp } from './CompositeApp';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
+// Uncomment this line to test your own custom CSS
+// import cssUrl from './example/custom.css?url';
+
 // @ts-expect-error TODO: this is a global function, we need to declare it
 window.setupLayout = (configuration: ConfigurationValue) => {
   const newConfiguration = applyConfigurationDefaults(configuration);
@@ -28,15 +31,15 @@ window.setupLayout = (configuration: ConfigurationValue) => {
     call_id: '<call_id>',
     layout: 'grid',
     screenshare_layout: 'spotlight',
-    ext_css: 'https://link.to/your-custom-style.css',
+    ext_css: cssUrl,
     options: {
       'title.text': 'Hey Streamers!',
       'logo.image_url':
         'https://getstream.io/blog/images/stream-logo.png',
       'layout.background_color': 'red',
       'video.background_color': 'green',
-      'video.scale_mode': 'contain',
-      'video.screenshare_scale_mode': 'contain',
+      'video.scale_mode': 'fit',
+      'video.screenshare_scale_mode': 'fit',
       'participant_label.border_color': '#fff',
       'participant_label.border_width': '3px',
       'participant_label.border_radius': '5px',
