@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.11...@stream-io/video-styling-0.1.12) (2023-10-02)
+
+
+### Features
+
+* **egress-composite:** add support for new options ([#1104](https://github.com/GetStream/stream-video-js/issues/1104)) ([2e039c2](https://github.com/GetStream/stream-video-js/commit/2e039c280cd808e6464ee3ab54e8c3606a0a0180)), closes [/github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx#L53-L117](https://github.com/GetStream//github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx/issues/L53-L117)
+
 ### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.10...@stream-io/video-styling-0.1.11) (2023-09-27)
 
 
