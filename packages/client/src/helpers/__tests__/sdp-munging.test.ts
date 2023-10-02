@@ -5,6 +5,7 @@ import {
   setPreferredCodec,
   toggleDtx,
 } from '../sdp-munging';
+import { initialSdp as HQAudioSDP } from './hq-audio-sdp';
 
 const sdpWithRed = `v=0
 o=- 3265541491372987511 2 IN IP4 127.0.0.1
@@ -281,10 +282,8 @@ a=maxptime:40`;
     expect(dtxDisabledSdp.search('usedtx=0') !== -1).toBeTruthy();
   });
 
-  it('enables HighQuality audio for Opus', async () => {
-    const { initialSdp: sdp } = await import('./hq-audio-sdp');
-
-    const sdpWithHighQualityAudio = enableHighQualityAudio(sdp, '3');
+  it('enables HighQuality audio for Opus', () => {
+    const sdpWithHighQualityAudio = enableHighQualityAudio(HQAudioSDP, '3');
     expect(sdpWithHighQualityAudio).toContain('maxaveragebitrate=510000');
     expect(sdpWithHighQualityAudio).toContain('stereo=1');
   });
