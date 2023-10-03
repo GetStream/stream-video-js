@@ -103,6 +103,15 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
+   * Will set the default constraints for the device.
+   *
+   * @param constraints the constraints to set.
+   */
+  async setDefaultConstraints(constraints: C) {
+    this.state.setDefaultConstraints(constraints);
+  }
+
+  /**
    * Select device
    *
    * Note: this method is not supported in React Native

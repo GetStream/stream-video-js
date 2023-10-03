@@ -202,6 +202,21 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.enable).toHaveBeenCalledOnce();
   });
 
+  it('should provide default constraints to `getStream` method', () => {
+    manager.setDefaultConstraints({
+      echoCancellation: true,
+      autoGainControl: false,
+    });
+
+    manager.enable();
+
+    expect(manager.getStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+      echoCancellation: true,
+      autoGainControl: false,
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
