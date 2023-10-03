@@ -39,6 +39,11 @@ const client = new StreamVideoClient({
 });
 const call = client.call('default', callId);
 
+// @ts-ignore
+window.call = call;
+// @ts-ignore
+window.client = client;
+
 call.screenShare.enableScreenShareAudio();
 call.screenShare.setSettings({
   maxFramerate: 10,
@@ -74,13 +79,14 @@ window.addEventListener('beforeunload', () => {
   call.leave();
 });
 
+const screenShareContainer = document.getElementById('screenshare')!;
 const parentContainer = document.getElementById('participants')!;
 call.setViewport(parentContainer);
 
 call.state.participants$.subscribe((participants) => {
   // render / update existing participants
   participants.forEach((participant) => {
-    renderParticipant(call, participant, parentContainer);
+    renderParticipant(call, participant, parentContainer, screenShareContainer);
   });
 
   // Remove stale elements for stale participants
