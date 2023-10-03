@@ -1,9 +1,9 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 
-export abstract class InputMediaDeviceManagerState {
+export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
   protected statusSubject = new BehaviorSubject<InputDeviceStatus>(undefined);
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
@@ -11,6 +11,10 @@ export abstract class InputMediaDeviceManagerState {
   protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
+  protected defaultConstraintsSubject = new BehaviorSubject<C | undefined>(
+    undefined,
+  );
+
   /**
    * @internal
    */
@@ -20,31 +24,30 @@ export abstract class InputMediaDeviceManagerState {
    * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
    *
    */
-  mediaStream$: Observable<MediaStream | undefined>;
+  mediaStream$ = this.mediaStreamSubject.asObservable();
 
   /**
    * An Observable that emits the currently selected device
    */
-  selectedDevice$: Observable<string | undefined>;
+  selectedDevice$ = this.selectedDeviceSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   /**
    * An Observable that emits the device status
    */
-  status$: Observable<InputDeviceStatus>;
+  status$ = this.statusSubject.asObservable().pipe(distinctUntilChanged());
+
+  /**
+   * The default constraints for the device.
+   */
+  defaultConstraints$ = this.defaultConstraintsSubject.asObservable();
 
   constructor(
     public readonly disableMode:
       | 'stop-tracks'
       | 'disable-tracks' = 'stop-tracks',
-  ) {
-    this.mediaStream$ = this.mediaStreamSubject.asObservable();
-    this.selectedDevice$ = this.selectedDeviceSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
-    this.status$ = this.statusSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
-  }
+  ) {}
 
   /**
    * The device status
@@ -100,6 +103,23 @@ export abstract class InputMediaDeviceManagerState {
    */
   setDevice(deviceId: string | undefined) {
     this.setCurrentValue(this.selectedDeviceSubject, deviceId);
+  }
+
+  /**
+   * Gets the default constraints for the device.
+   */
+  get defaultConstraints() {
+    return this.getCurrentValue(this.defaultConstraints$);
+  }
+
+  /**
+   * Sets the default constraints for the device.
+   *
+   * @internal
+   * @param constraints the constraints to set.
+   */
+  setDefaultConstraints(constraints: C | undefined) {
+    this.setCurrentValue(this.defaultConstraintsSubject, constraints);
   }
 
   /**

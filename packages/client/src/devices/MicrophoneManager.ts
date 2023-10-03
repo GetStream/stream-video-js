@@ -42,20 +42,19 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   protected getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices();
   }
+
   protected getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints);
   }
+
   protected publishStream(stream: MediaStream): Promise<void> {
     return this.call.publishAudioStream(stream);
   }
+
   protected stopPublishStream(stopTracks: boolean): Promise<void> {
     return this.call.stopPublish(TrackType.AUDIO, stopTracks);
-  }
-
-  protected getTrack() {
-    return this.state.mediaStream?.getAudioTracks()[0];
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

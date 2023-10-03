@@ -38,12 +38,20 @@ const client = new StreamVideoClient({
   options: { logLevel: import.meta.env.VITE_STREAM_LOG_LEVEL },
 });
 const call = client.call('default', callId);
+
+call.screenShare.enableScreenShareAudio();
+call.screenShare.setSettings({
+  maxFramerate: 10,
+  maxBitrate: 1500000,
+});
+
 call.join({ create: true }).then(async () => {
   // render mic and camera controls
   const controls = renderControls(call);
   const container = document.getElementById('call-controls')!;
   container.appendChild(controls.audioButton);
   container.appendChild(controls.videoButton);
+  container.appendChild(controls.screenShareButton);
 
   container.appendChild(renderAudioDeviceSelector(call));
 

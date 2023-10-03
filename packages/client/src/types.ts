@@ -173,6 +173,21 @@ export type SubscriptionChanges = {
 
 export type PublishOptions = {
   preferredCodec?: string | null;
+  screenShareSettings?: ScreenShareSettings;
+};
+
+export type ScreenShareSettings = {
+  /**
+   * Limits the maximum framerate (in frames per second) of the screen share.
+   * Defaults to 30.
+   */
+  maxFramerate?: number;
+
+  /**
+   * Limits the maximum bitrate (in bits per second) of the screen share.
+   * Defaults to 3000000 (3Mbps).
+   */
+  maxBitrate?: number;
 };
 
 export type CallLeaveOptions = {

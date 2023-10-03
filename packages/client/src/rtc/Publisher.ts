@@ -56,6 +56,12 @@ export class Publisher {
     [TrackType.SCREEN_SHARE_AUDIO]: undefined,
     [TrackType.UNSPECIFIED]: undefined,
   };
+
+  private readonly publishOptionsPerTrackType = new Map<
+    TrackType,
+    PublishOptions
+  >();
+
   /**
    * An array maintaining the order how transceivers were added to the peer connection.
    * This is needed because some browsers (Firefox) don't reliably report
@@ -180,10 +186,11 @@ export class Publisher {
    *
    * Consecutive calls to this method will replace the stream.
    * The previous stream will be stopped.
-   * @param mediaStream
-   * @param track
-   * @param trackType
-   * @param opts
+   *
+   * @param mediaStream the media stream to publish.
+   * @param track the track to publish.
+   * @param trackType the track type to publish.
+   * @param opts the optional publish options to use.
    */
   publishStream = async (
     mediaStream: MediaStream,
@@ -229,6 +236,8 @@ export class Publisher {
       const videoEncodings =
         trackType === TrackType.VIDEO
           ? findOptimalVideoLayers(track, targetResolution)
+          : trackType === TrackType.SCREEN_SHARE
+          ? findOptimalScreenSharingLayers(track, opts.screenShareSettings)
           : undefined;
 
       let preferredCodec = opts.preferredCodec;
@@ -264,6 +273,7 @@ export class Publisher {
       logger('debug', `Added ${TrackType[trackType]} transceiver`);
       this.transceiverInitOrder.push(trackType);
       this.transceiverRegistry[trackType] = transceiver;
+      this.publishOptionsPerTrackType.set(trackType, opts);
 
       if ('setCodecPreferences' in transceiver && codecPreferences) {
         logger(
@@ -659,11 +669,15 @@ export class Publisher {
         const track = transceiver.sender.track!;
         let optimalLayers: OptimalVideoLayer[];
         if (track.readyState === 'live') {
+          const publishOpts = this.publishOptionsPerTrackType.get(trackType);
           optimalLayers =
             trackType === TrackType.VIDEO
               ? findOptimalVideoLayers(track, targetResolution)
               : trackType === TrackType.SCREEN_SHARE
-              ? findOptimalScreenSharingLayers(track)
+              ? findOptimalScreenSharingLayers(
+                  track,
+                  publishOpts?.screenShareSettings,
+                )
               : [];
           this.trackLayersCache[trackType] = optimalLayers;
         } else {

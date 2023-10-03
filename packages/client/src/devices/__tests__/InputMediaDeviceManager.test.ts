@@ -25,7 +25,7 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public getTrack = () => this.state.mediaStream!.getVideoTracks()[0];
+  public getTracks = () => this.state.mediaStream?.getTracks() ?? [];
 
   constructor(call: Call) {
     super(call, new TestInputMediaDeviceManagerState(), TrackType.VIDEO);

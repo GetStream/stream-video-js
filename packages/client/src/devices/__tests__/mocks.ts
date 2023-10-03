@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import { CallingState, CallState } from '../../store';
 import { OwnCapability } from '../../gen/coordinator';
+import { Call } from '../../Call';
 
 export const mockVideoDevices = [
   {
@@ -63,7 +64,7 @@ export const mockAudioDevices = [
   },
 ] as MediaDeviceInfo[];
 
-export const mockCall = () => {
+export const mockCall = (): Partial<Call> => {
   const callState = new CallState();
   callState.setCallingState(CallingState.JOINED);
   callState.setOwnCapabilities([
@@ -74,6 +75,7 @@ export const mockCall = () => {
     state: callState,
     publishVideoStream: vi.fn(),
     publishAudioStream: vi.fn(),
+    publishScreenShareStream: vi.fn(),
     stopPublish: vi.fn(),
   };
 };
@@ -90,6 +92,7 @@ export const mockAudioStream = () => {
     },
   };
   return {
+    getTracks: () => [track],
     getAudioTracks: () => [track],
   } as MediaStream;
 };
@@ -108,6 +111,40 @@ export const mockVideoStream = () => {
     },
   };
   return {
+    getTracks: () => [track],
     getVideoTracks: () => [track],
+  } as MediaStream;
+};
+
+export const mockScreenShareStream = (includeAudio: boolean = true) => {
+  const track = {
+    getSettings: () => ({
+      deviceId: 'screen',
+    }),
+    enabled: true,
+    readyState: 'live',
+    stop: () => {
+      track.readyState = 'ended';
+    },
+  };
+
+  const tracks = [track];
+  if (includeAudio) {
+    tracks.push({
+      getSettings: () => ({
+        deviceId: 'screen-audio',
+      }),
+      enabled: true,
+      readyState: 'live',
+      stop: () => {
+        track.readyState = 'ended';
+      },
+    });
+  }
+
+  return {
+    getTracks: () => tracks,
+    getVideoTracks: () => tracks,
+    getAudioTracks: () => tracks,
   } as MediaStream;
 };

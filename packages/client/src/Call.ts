@@ -122,6 +122,7 @@ import {
   CameraDirection,
   CameraManager,
   MicrophoneManager,
+  ScreenShareManager,
   SpeakerManager,
 } from './devices';
 
@@ -169,6 +170,11 @@ export class Call {
    * Device manager for the speaker.
    */
   readonly speaker: SpeakerManager;
+
+  /**
+   * Device manager for the screen.
+   */
+  readonly screenShare: ScreenShareManager;
 
   /**
    * The DynascaleManager instance.
@@ -283,6 +289,7 @@ export class Call {
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager();
+    this.screenShare = new ScreenShareManager(this);
   }
 
   private registerEffects() {
@@ -1095,7 +1102,6 @@ export class Call {
    * Consecutive calls to this method will replace the audio stream that is currently being published.
    * The previous audio stream will be stopped.
    *
-   *
    * @param audioStream the audio stream to publish.
    */
   publishAudioStream = async (audioStream: MediaStream) => {
@@ -1126,10 +1132,13 @@ export class Call {
    * Consecutive calls to this method will replace the previous screen-share stream.
    * The previous screen-share stream will be stopped.
    *
-   *
    * @param screenShareStream the screen-share stream to publish.
+   * @param opts the options to use when publishing the stream.
    */
-  publishScreenShareStream = async (screenShareStream: MediaStream) => {
+  publishScreenShareStream = async (
+    screenShareStream: MediaStream,
+    opts: PublishOptions = {},
+  ) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
@@ -1154,6 +1163,7 @@ export class Call {
       screenShareStream,
       screenShareTrack,
       TrackType.SCREEN_SHARE,
+      opts,
     );
 
     const [screenShareAudioTrack] = screenShareStream.getAudioTracks();
@@ -1162,6 +1172,7 @@ export class Call {
         screenShareStream,
         screenShareAudioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
+        opts,
       );
     }
   };
