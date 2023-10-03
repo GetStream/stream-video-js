@@ -349,7 +349,13 @@ export class DynascaleManager {
     );
 
     const updateMediaStreamSubscription = participant$
-      .pipe(distinctUntilKeyChanged('audioStream'))
+      .pipe(
+        distinctUntilKeyChanged(
+          trackType === 'screenShareAudioTrack'
+            ? 'screenShareAudioStream'
+            : 'audioStream',
+        ),
+      )
       .subscribe((p) => {
         const source =
           trackType === 'screenShareAudioTrack'
