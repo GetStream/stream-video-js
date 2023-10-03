@@ -21,7 +21,7 @@ env:
 
 jobs:
   test:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     steps:
@@ -58,6 +58,20 @@ jobs:
       - name: Install Playwright system dependencies (always)
         run: npx playwright install-deps
 
+      # - name: Authenticate stream-video-buddy
+      #   uses: nick-fields/retry@v2.8.3
+      #   with:
+      #     timeout_minutes: 5
+      #     max_attempts: 2
+      #     command: yarn workspace @stream-io/egress-composite buddy auth
+
       - name: Run Playwright tests
-        working-directory: sample-apps/react/egress-composite
-        run: yarn buddy auth && yarn test:e2e
+        run: yarn workspace @stream-io/egress-composite test:e2e
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: sample-apps/react/egress-composite/test-results/
+          retention-days: 5

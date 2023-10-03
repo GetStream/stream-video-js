@@ -1,5 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { useCall, CallContent } from '@stream-io/video-react-native-sdk';
+import {
+  useCall,
+  CallContent,
+  CallControlProps,
+} from '@stream-io/video-react-native-sdk';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ParticipantsInfoList } from './ParticipantsInfoList';
@@ -7,6 +11,7 @@ import {
   CallControlsComponent,
   CallControlsComponentProps,
 } from './CallControlsComponent';
+import { useOrientation } from '../hooks/useOrientation';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
@@ -21,20 +26,25 @@ export const ActiveCall = ({
   const [isCallParticipantsVisible, setIsCallParticipantsVisible] =
     useState<boolean>(false);
   const call = useCall();
+  const currentOrientation = useOrientation();
 
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
   };
 
-  const CustomControlsComponent = useCallback(() => {
-    return (
-      <CallControlsComponent
-        onHangupCallHandler={onHangupCallHandler}
-        onChatOpenHandler={onChatOpenHandler}
-        unreadCountIndicator={unreadCountIndicator}
-      />
-    );
-  }, [onChatOpenHandler, onHangupCallHandler, unreadCountIndicator]);
+  const CustomControlsComponent = useCallback(
+    ({ landscape }: CallControlProps) => {
+      return (
+        <CallControlsComponent
+          onHangupCallHandler={onHangupCallHandler}
+          onChatOpenHandler={onChatOpenHandler}
+          unreadCountIndicator={unreadCountIndicator}
+          landscape={landscape}
+        />
+      );
+    },
+    [onChatOpenHandler, onHangupCallHandler, unreadCountIndicator],
+  );
 
   if (!call) {
     return <ActivityIndicator size={'large'} style={StyleSheet.absoluteFill} />;
@@ -46,6 +56,7 @@ export const ActiveCall = ({
         onBackPressed={onBackPressed}
         onParticipantInfoPress={onOpenCallParticipantsInfo}
         CallControls={CustomControlsComponent}
+        landscape={currentOrientation === 'landscape'}
       />
       <ParticipantsInfoList
         isCallParticipantsInfoVisible={isCallParticipantsVisible}

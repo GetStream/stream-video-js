@@ -1,16 +1,19 @@
-.dominant-speaker-screen-share__container {
-  height: 100vh;
+.eca__dominant-speaker-screen-share__container {
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 
-  .dominant-speaker-screen-share__player {
-    flex: 1;
-  }
-
-  .dominant-speaker-screen-share__current-speaker {
+  .eca__dominant-speaker-screen-share__current-speaker {
     position: absolute;
     width: 240px;
     right: 10px;
+    top: 10px;
+  }
+
+  .str-video__participant-view {
+    max-width: unset;
   }
 }

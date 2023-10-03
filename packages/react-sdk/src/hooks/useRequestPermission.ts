@@ -5,8 +5,6 @@ import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
 export const useRequestPermission = (permission: OwnCapability) => {
   const call = useCall();
   const hasPermission = useHasPermissions(permission);
-  const canRequestPermission =
-    !!call?.permissionsContext.canRequest(permission);
   const [isAwaitingPermission, setIsAwaitingPermission] = useState(false); // TODO: load with possibly pending state
 
   useEffect(() => {
@@ -16,8 +14,11 @@ export const useRequestPermission = (permission: OwnCapability) => {
   }, [hasPermission]);
 
   const requestPermission = useCallback(async () => {
-    if (isAwaitingPermission || !canRequestPermission) return false;
     if (hasPermission) return true;
+
+    const canRequestPermission =
+      !!call?.permissionsContext.canRequest(permission);
+    if (isAwaitingPermission || !canRequestPermission) return false;
 
     setIsAwaitingPermission(true);
 
@@ -31,18 +32,12 @@ export const useRequestPermission = (permission: OwnCapability) => {
     }
 
     return false;
-  }, [
-    call,
-    canRequestPermission,
-    hasPermission,
-    isAwaitingPermission,
-    permission,
-  ]);
+  }, [call, hasPermission, isAwaitingPermission, permission]);
 
   return {
     requestPermission,
     hasPermission,
-    canRequestPermission,
+    canRequestPermission: !!call?.permissionsContext.canRequest(permission),
     isAwaitingPermission,
   };
 };

@@ -80,11 +80,14 @@ export const SpeakerLayout = ({
 
   let participantsWithAppliedLimit = otherParticipants;
 
-  if (typeof participantsBarLimit !== 'undefined') {
-    const hardLimitToApply = isVertical
-      ? hardLimit.vertical
-      : hardLimit.horizontal;
+  const hardLimitToApply = isVertical
+    ? hardLimit.vertical
+    : hardLimit.horizontal;
 
+  if (
+    typeof participantsBarLimit !== 'undefined' &&
+    hardLimitToApply !== null
+  ) {
     participantsWithAppliedLimit = otherParticipants.slice(
       0,
       // subtract 1 if speaker is sharing screen as
