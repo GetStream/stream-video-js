@@ -54,21 +54,24 @@ jobs:
       VITE_STREAM_USER_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
       VITE_STREAM_KEY: ${{ vars.STREAM_API_KEY_SAMPLE_APPS }}
       VITE_STREAM_SECRET: ${{ secrets.STREAM_SECRET_SAMPLE_APPS }}
+      VITE_EGRESS_SENTRY_DNS: ${{ secrets.EGRESS_SENTRY_DNS }}
       VITE_VIDEO_DEMO_SENTRY_DNS: ${{secrets.VIDEO_DEMO_SENTRY_DNS}}
       VITE_TOKEN_PROVIDER_URL: ${{secrets.TOKEN_PROVIDER_URL}}
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      PRONTO_SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      EGRESS_SENTRY_AUTH_TOKEN: ${{ secrets.EGRESS_SENTRY_AUTH_TOKEN }}
+      MODE: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-#      - uses: dorny/paths-filter@v2.11.1
-#        id: changes
-#        with:
-#          filters: |
-#            sample-apps:
-#              - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
+      # - uses: dorny/paths-filter@v2.11.1
+      #   id: changes
+      #   with:
+      #     filters: |
+      #       sample-apps:
+      #         - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
 
       - name: Setup Node
         uses: actions/setup-node@v3

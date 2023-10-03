@@ -79,6 +79,7 @@ const sentryWebpackPluginOptions = {
 
   // prevents creating Sentry releases on local builds.
   dryRun: typeof process.env.CI === 'undefined',
+  authToken: process.env.PRONTO_SENTRY_AUTH_TOKEN,
 };
 
 // Make sure adding Sentry options is the last code to run before exporting, to
