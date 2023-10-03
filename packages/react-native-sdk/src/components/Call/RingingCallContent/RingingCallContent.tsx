@@ -55,7 +55,7 @@ const RingingCallPanel = ({
   CallContent = DefaultCallContent,
   JoiningCallIndicator = DefaultJoiningCallIndicator,
   CallTopView,
-  landscape,
+  landscape = false,
 }: RingingCallContentProps) => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;

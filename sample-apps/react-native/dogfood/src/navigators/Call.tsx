@@ -14,12 +14,14 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import { useOrientation } from '../hooks/useOrientation';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const Calls = () => {
   const calls = useCalls();
   const { top } = useSafeAreaInsets();
+  const orientation = useOrientation();
 
   const handleMoreCalls = useCallback(async () => {
     const lastCallCreatedBy = calls[1]?.state.createdBy;
@@ -52,7 +54,7 @@ const Calls = () => {
       }}
     >
       <SafeAreaView style={[styles.container, { top }]}>
-        <RingingCallContent />
+        <RingingCallContent landscape={orientation === 'landscape'} />
       </SafeAreaView>
     </StreamCall>
   );
