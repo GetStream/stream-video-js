@@ -1,13 +1,15 @@
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { useAppGlobalStoreSetState } from '../contexts/AppContext';
 import { appTheme } from '../theme';
 import { Button } from '../components/Button';
 import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useOrientation } from '../hooks/useOrientation';
 
 export const ChooseAppModeScreen = () => {
   const setState = useAppGlobalStoreSetState();
   const { t } = useI18n();
+  const orientation = useOrientation();
 
   const onMeetingSelect = () => {
     setState({ appMode: 'Meeting' });
@@ -21,14 +23,20 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'Call' });
   };
 
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
   return (
-    <View style={styles.container}>
-      <Image source={require('../assets/Logo.png')} style={styles.logo} />
-      <View>
-        <Text style={styles.title}>{t('Stream DogFood App')}</Text>
-        <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
+    <View style={[styles.container, landScapeStyles]}>
+      <View style={styles.topContainer}>
+        <Image source={require('../assets/Logo.png')} style={styles.logo} />
+        <View>
+          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
+          <Text style={styles.subTitle}>{t('Choose the Mode')}</Text>
+        </View>
       </View>
-      <View>
+      <View style={styles.bottomContainer}>
         <Button title={t('Meeting')} onPress={onMeetingSelect} />
         <Button
           title={t('Call')}
@@ -52,6 +60,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.static_grey,
     padding: appTheme.spacing.lg,
   },
+  topContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   callButton: {
     marginTop: appTheme.spacing.md,
   },
@@ -73,5 +85,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: appTheme.spacing.lg,
     marginHorizontal: appTheme.spacing.xl,
+  },
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });
