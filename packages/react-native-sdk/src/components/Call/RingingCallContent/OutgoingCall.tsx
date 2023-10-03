@@ -57,7 +57,7 @@ export const OutgoingCall = ({
       >
         {CallTopView && <CallTopView />}
         <View style={[styles.content, outgoingCall.content]}>
-          <View style={styles.topContainer}>
+          <View style={[styles.topContainer, outgoingCall.topContainer]}>
             <UserInfo />
             <Text
               style={[
@@ -70,7 +70,7 @@ export const OutgoingCall = ({
               {t('Calling...')}
             </Text>
           </View>
-          <View style={styles.bottomContainer}>
+          <View style={[styles.bottomContainer, outgoingCall.bottomContainer]}>
             <View
               style={[
                 styles.outgoingCallControls,
