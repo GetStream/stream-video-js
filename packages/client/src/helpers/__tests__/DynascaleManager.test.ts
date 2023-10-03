@@ -185,14 +185,6 @@ describe('DynascaleManager', () => {
         publishedTracks: [TrackType.SCREEN_SHARE_AUDIO],
       });
 
-      // @ts-ignore
-      call.state.updateOrAddParticipant('session-id-local', {
-        userId: 'user-id-local',
-        sessionId: 'session-id-local',
-        isLocalParticipant: true,
-        publishedTracks: [],
-      });
-
       const cleanup = dynascaleManager.bindAudioElement(
         audioElement,
         'session-id',
