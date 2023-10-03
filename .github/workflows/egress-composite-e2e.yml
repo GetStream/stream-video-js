@@ -58,12 +58,12 @@ jobs:
       - name: Install Playwright system dependencies (always)
         run: npx playwright install-deps
 
-      - name: Authenticate stream-video-buddy
-        uses: nick-fields/retry@v2.8.3
-        with:
-          timeout_minutes: 5
-          max_attempts: 2
-          command: yarn workspace @stream-io/egress-composite buddy auth
+      # - name: Authenticate stream-video-buddy
+      #   uses: nick-fields/retry@v2.8.3
+      #   with:
+      #     timeout_minutes: 5
+      #     max_attempts: 2
+      #     command: yarn workspace @stream-io/egress-composite buddy auth
 
       - name: Run Playwright tests
         run: yarn workspace @stream-io/egress-composite test:e2e
