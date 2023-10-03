@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
@@ -21,6 +21,11 @@ export type CallParticipantsGridProps = ParticipantViewComponentProps &
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
      */
     showLocalParticipant?: boolean;
+    /**
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
   };
 
 /**
@@ -36,6 +41,7 @@ export const CallParticipantsGrid = ({
   VideoRenderer,
   showLocalParticipant = false,
   supportedReactions,
+  landscape,
 }: CallParticipantsGridProps) => {
   const {
     theme: { colors, callParticipantsGrid },
@@ -48,6 +54,9 @@ export const CallParticipantsGrid = ({
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
+  const landScapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
 
   const showFloatingView =
     remoteParticipants.length > 0 && remoteParticipants.length < 3;
@@ -71,6 +80,7 @@ export const CallParticipantsGrid = ({
     <View
       style={[
         styles.container,
+        landScapeStyles,
         { backgroundColor: colors.dark_gray },
         callParticipantsGrid.container,
       ]}
@@ -80,6 +90,7 @@ export const CallParticipantsGrid = ({
         <CallParticipantsList
           participants={participants}
           supportedReactions={supportedReactions}
+          landscape={landscape}
           {...participantViewProps}
         />
       )}

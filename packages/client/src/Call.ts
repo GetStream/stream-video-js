@@ -50,9 +50,9 @@ import {
   SendReactionRequest,
   SendReactionResponse,
   SFUResponse,
-  StartBroadcastingResponse,
+  StartHLSBroadcastingResponse,
   StartRecordingResponse,
-  StopBroadcastingResponse,
+  StopHLSBroadcastingResponse,
   StopLiveResponse,
   StopRecordingResponse,
   UnblockUserRequest,
@@ -116,10 +116,12 @@ import {
 } from './coordinator/connection/types';
 import { getClientDetails, getSdkInfo } from './client-details';
 import { getLogger } from './logger';
-import { CameraManager } from './devices/CameraManager';
-import { MicrophoneManager } from './devices/MicrophoneManager';
-import { CameraDirection } from './devices/CameraManagerState';
-import { SpeakerManager } from './devices/SpeakerManager';
+import {
+  CameraDirection,
+  CameraManager,
+  MicrophoneManager,
+  SpeakerManager,
+} from './devices';
 
 /**
  * An object representation of a `Call`.
@@ -157,19 +159,22 @@ export class Call {
   readonly camera: CameraManager;
 
   /**
-   * Device manager for the microhpone
+   * Device manager for the microphone.
    */
   readonly microphone: MicrophoneManager;
+
+  /**
+   * Device manager for the speaker.
+   */
+  readonly speaker: SpeakerManager;
 
   /**
    * The DynascaleManager instance.
    */
   readonly dynascaleManager = new DynascaleManager(this);
 
-  /*
-   * Device manager for the speaker
-   */
-  readonly speaker: SpeakerManager;
+  subscriber?: Subscriber;
+  publisher?: Publisher;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -188,8 +193,6 @@ export class Call {
    */
   private readonly dispatcher = new Dispatcher();
 
-  private subscriber?: Subscriber;
-  private publisher?: Publisher;
   private trackSubscriptionsSubject = new BehaviorSubject<{
     type: DebounceType;
     data: TrackSubscriptionDetails[];
@@ -277,41 +280,6 @@ export class Call {
 
     this.camera = new CameraManager(this);
     this.microphone = new MicrophoneManager(this);
-
-    // FIXME OL: disable soft-mutes as they are not working properly
-    // this.state.localParticipant$.subscribe(async (p) => {
-    //   if (!this.publisher) return;
-    //   // Mute via device manager
-    //   // If integrator doesn't use device manager, we mute using stopPublish
-    //   if (
-    //     this.publisher.hasEverPublished(TrackType.VIDEO) &&
-    //     this.publisher.isPublishing(TrackType.VIDEO) &&
-    //     !p?.publishedTracks.includes(TrackType.VIDEO)
-    //   ) {
-    //     this.logger(
-    //       'info',
-    //       `Local participant's video track is muted remotely`,
-    //     );
-    //     await this.camera.disable();
-    //     if (this.publisher.isPublishing(TrackType.VIDEO)) {
-    //       await this.stopPublish(TrackType.VIDEO);
-    //     }
-    //   }
-    //   if (
-    //     this.publisher.hasEverPublished(TrackType.AUDIO) &&
-    //     this.publisher.isPublishing(TrackType.AUDIO) &&
-    //     !p?.publishedTracks.includes(TrackType.AUDIO)
-    //   ) {
-    //     this.logger(
-    //       'info',
-    //       `Local participant's audio track is muted remotely`,
-    //     );
-    //     await this.microphone.disable();
-    //     if (this.publisher.isPublishing(TrackType.AUDIO)) {
-    //       await this.stopPublish(TrackType.AUDIO);
-    //     }
-    //   }
-    // });
     this.speaker = new SpeakerManager();
   }
 
@@ -396,7 +364,7 @@ export class Call {
     this.leaveCallHooks.add(
       // handles the case when the user is blocked by the call owner.
       createSubscription(this.state.blockedUserIds$, async (blockedUserIds) => {
-        if (!blockedUserIds) return;
+        if (!blockedUserIds || blockedUserIds.length === 0) return;
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger('info', 'Leaving call because of being blocked');
@@ -1629,7 +1597,7 @@ export class Call {
    * Starts the broadcasting of the call.
    */
   startHLS = async () => {
-    return this.streamClient.post<StartBroadcastingResponse>(
+    return this.streamClient.post<StartHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/start_broadcasting`,
       {},
     );
@@ -1639,7 +1607,7 @@ export class Call {
    * Stops the broadcasting of the call.
    */
   stopHLS = async () => {
-    return this.streamClient.post<StopBroadcastingResponse>(
+    return this.streamClient.post<StopHLSBroadcastingResponse>(
       `${this.streamClientBasePath}/stop_broadcasting`,
       {},
     );
@@ -1901,10 +1869,10 @@ export class Call {
       this.microphone.state.mediaStream &&
       !this.publisher?.isPublishing(TrackType.AUDIO)
     ) {
-      this.publishAudioStream(this.microphone.state.mediaStream);
+      await this.publishAudioStream(this.microphone.state.mediaStream);
     }
 
-    // Start mic if backend config speicifies, and there is no local setting
+    // Start mic if backend config specifies, and there is no local setting
     if (
       this.microphone.state.status === undefined &&
       this.state.settings?.audio.mic_default_on
@@ -1996,6 +1964,44 @@ export class Call {
     return () => {
       this.leaveCallHooks.delete(unbind);
       unbind();
+    };
+  };
+
+  /**
+   * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
+   *
+   * @param imageElement the image element to bind to.
+   * @param opts options for the binding.
+   */
+  bindCallThumbnailElement = (
+    imageElement: HTMLImageElement,
+    opts: {
+      fallbackImageSource?: string;
+    } = {},
+  ) => {
+    const handleError = () => {
+      imageElement.src =
+        opts.fallbackImageSource ||
+        'https://getstream.io/random_svg/?name=x&id=x';
+    };
+
+    const unsubscribe = createSubscription(
+      this.state.thumbnails$,
+      (thumbnails) => {
+        if (!thumbnails) return;
+        imageElement.addEventListener('error', handleError);
+
+        const thumbnailUrl = new URL(thumbnails.image_url);
+        thumbnailUrl.searchParams.set('w', String(imageElement.clientWidth));
+        thumbnailUrl.searchParams.set('h', String(imageElement.clientHeight));
+
+        imageElement.src = thumbnailUrl.toString();
+      },
+    );
+
+    return () => {
+      unsubscribe();
+      imageElement.removeEventListener('error', handleError);
     };
   };
 }

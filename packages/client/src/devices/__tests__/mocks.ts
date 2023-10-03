@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
-import { CallingState } from '../../store';
+import { CallingState, CallState } from '../../store';
+import { OwnCapability } from '../../gen/coordinator';
 
 export const mockVideoDevices = [
   {
@@ -63,10 +64,14 @@ export const mockAudioDevices = [
 ] as MediaDeviceInfo[];
 
 export const mockCall = () => {
+  const callState = new CallState();
+  callState.setCallingState(CallingState.JOINED);
+  callState.setOwnCapabilities([
+    OwnCapability.SEND_AUDIO,
+    OwnCapability.SEND_VIDEO,
+  ]);
   return {
-    state: {
-      callingState: CallingState.IDLE,
-    },
+    state: callState,
     publishVideoStream: vi.fn(),
     publishAudioStream: vi.fn(),
     stopPublish: vi.fn(),
@@ -79,6 +84,10 @@ export const mockAudioStream = () => {
       deviceId: mockAudioDevices[0].deviceId,
     }),
     enabled: true,
+    readyState: 'live',
+    stop: () => {
+      track.readyState = 'ended';
+    },
   };
   return {
     getAudioTracks: () => [track],
@@ -95,7 +104,7 @@ export const mockVideoStream = () => {
     enabled: true,
     readyState: 'live',
     stop: () => {
-      track.readyState = 'eneded';
+      track.readyState = 'ended';
     },
   };
   return {

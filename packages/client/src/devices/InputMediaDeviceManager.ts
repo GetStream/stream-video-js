@@ -87,7 +87,7 @@ export abstract class InputMediaDeviceManager<
       this.state.prevStatus === 'enabled' &&
       this.state.status === 'disabled'
     ) {
-      this.enable();
+      await this.enable();
     }
   }
 
@@ -141,7 +141,7 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getTrack(): undefined | MediaStreamTrack;
 
-  private async muteStream(stopTracks: boolean = true) {
+  protected async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
       return;
     }
@@ -191,7 +191,7 @@ export abstract class InputMediaDeviceManager<
     stopTracks ? this.stopTrack() : this.muteTrack();
   }
 
-  private async unmuteStream() {
+  protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (this.state.mediaStream && this.getTrack()?.readyState === 'live') {
@@ -207,6 +207,8 @@ export abstract class InputMediaDeviceManager<
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
-    this.state.setMediaStream(stream);
+    if (this.state.mediaStream !== stream) {
+      this.state.setMediaStream(stream);
+    }
   }
 }

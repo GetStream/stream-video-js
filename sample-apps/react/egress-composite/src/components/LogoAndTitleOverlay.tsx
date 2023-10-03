@@ -1,33 +1,30 @@
 import { useConfigurationContext } from '../ConfigurationContext';
 
-export const LogoAndTitleOverlay = () => {
-  const { options } = useConfigurationContext();
+import './LogoAndTitle.scss';
 
-  const image_url = options['logo.image_url'];
+export const LogoAndTitleOverlay = () => {
+  const {
+    options: { 'logo.image_url': imageURL, 'title.text': titleText },
+  } = useConfigurationContext();
 
   return (
     <div
-      style={{
-        top: 0,
-        left: 0,
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-      }}
+      data-testid="logo-and-title-overlay"
+      className="eca__logo-and-title-overlay"
     >
-      {/* {text?.length && (
-          <div
-            data-test-id="title"
-            style={{ ...DEFAULT_TITLE_STYLE, ...titleStyle }}
-          >
-            {text}
-          </div>
-        )} */}
-      {image_url && (
+      {titleText?.length && (
+        <span
+          className="eca__logo-and-title-overlay__title"
+          data-testid="title"
+        >
+          {titleText}
+        </span>
+      )}
+      {imageURL && (
         <img
-          data-test-id="logo"
-          src={image_url}
-          // style={{ ...DEFAULT_LOGO_STYLE, ...logoStyle }}
+          className="eca__logo-and-title-overlay__logo"
+          data-testid="logo"
+          src={imageURL}
           alt="logo"
         />
       )}

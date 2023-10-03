@@ -25,6 +25,16 @@ const theme = createTheme({
       contrastText: '#000',
     },
   },
+  components: {
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'initial',
+          color: '#fff',
+        },
+      },
+    },
+  },
 });
 
 type AppProps = {

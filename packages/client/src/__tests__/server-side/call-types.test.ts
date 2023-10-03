@@ -3,7 +3,10 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { StreamVideoServerClient } from '../../StreamVideoServerClient';
 import { generateUUIDv4 } from '../../coordinator/connection/utils';
 import { LogLevel } from '../../coordinator/connection/types';
-import { OwnCapability, RecordSettingsModeEnum } from '../../gen/coordinator';
+import {
+  OwnCapability,
+  RecordSettingsRequestModeEnum,
+} from '../../gen/coordinator';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -94,7 +97,7 @@ describe('call types CRUD API', () => {
       settings: {
         audio: { mic_default_on: false, default_device: 'earpiece' },
         recording: {
-          mode: RecordSettingsModeEnum.DISABLED,
+          mode: RecordSettingsRequestModeEnum.DISABLED,
         },
       },
     });
@@ -102,7 +105,7 @@ describe('call types CRUD API', () => {
     expect(updateResponse.settings.audio.mic_default_on).toBeFalsy();
     expect(updateResponse.settings.audio.default_device).toBe('earpiece');
     expect(updateResponse.settings.recording.mode).toBe(
-      RecordSettingsModeEnum.DISABLED,
+      RecordSettingsRequestModeEnum.DISABLED,
     );
   });
 

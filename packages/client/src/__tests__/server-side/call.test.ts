@@ -122,6 +122,7 @@ describe('call API', () => {
           recording: {
             audio_only: false,
             quality: RecordSettingsRequestQualityEnum._1080P,
+            mode: RecordSettingsRequestModeEnum.AUTO_ON,
           },
         },
       });

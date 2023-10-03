@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "0.3.18",
+  "version": "0.3.35",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -46,10 +46,9 @@
   "devDependencies": {
     "@stream-io/video-styling": "workspace:^",
     "@types/prop-types": "^15.7.5",
-    "@types/rimraf": "^3.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rimraf": "^3.0.2",
+    "rimraf": "^5.0.1",
     "typescript": "^4.9.5"
   }
 }

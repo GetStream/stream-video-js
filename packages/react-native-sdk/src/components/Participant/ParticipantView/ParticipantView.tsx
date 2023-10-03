@@ -157,7 +157,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 4,
     overflow: 'hidden',
-    margin: 2,
+    borderWidth: 2,
+    borderColor: 'transparent',
   },
   footerContainer: {
     flexDirection: 'row',

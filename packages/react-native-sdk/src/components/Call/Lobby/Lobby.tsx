@@ -189,7 +189,7 @@ const ParticipantStatus = () => {
       >
         {participantLabel}
       </Text>
-      {micStatus === 'disabled' && (
+      {(!micStatus || micStatus === 'disabled') && (
         <View
           style={[
             styles.audioMutedIconContainer,

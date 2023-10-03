@@ -2,12 +2,17 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
-import { mockCall, mockAudioDevices, mockAudioStream } from './mocks';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { mockAudioDevices, mockAudioStream, mockCall } from './mocks';
 import { getAudioStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { of } from 'rxjs';
+import {
+  createSoundDetector,
+  SoundStateChangeHandler,
+} from '../../helpers/sound-detector';
+import { OwnCapability } from '../../gen/coordinator';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -17,6 +22,13 @@ vi.mock('../devices.ts', () => {
       return of(mockAudioDevices);
     }),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
+  };
+});
+
+vi.mock('../../helpers/sound-detector.ts', () => {
+  console.log('MOCKING sound detector');
+  return {
+    createSoundDetector: vi.fn(),
   };
 });
 
@@ -64,8 +76,7 @@ describe('MicrophoneManager', () => {
   });
 
   it('publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
 
     await manager.enable();
 
@@ -75,8 +86,7 @@ describe('MicrophoneManager', () => {
   });
 
   it('stop publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
     await manager.enable();
 
     await manager.disable();
@@ -95,6 +105,67 @@ describe('MicrophoneManager', () => {
     await manager.disable();
 
     expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(false);
+  });
+
+  it(`should start sound detection if mic is disabled`, async () => {
+    await manager.enable();
+    // @ts-expect-error
+    vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    await manager.disable();
+
+    expect(manager['startSpeakingWhileMutedDetection']).toHaveBeenCalled();
+  });
+
+  it(`should stop sound detection if mic is enabled`, async () => {
+    manager.state.setSpeakingWhileMuted(true);
+    manager['soundDetectorCleanup'] = () => {};
+
+    await manager.enable();
+
+    expect(manager.state.speakingWhileMuted).toBe(false);
+  });
+
+  it('should update speaking while muted state', async () => {
+    const mock = createSoundDetector as Mock;
+    let handler: SoundStateChangeHandler;
+    mock.mockImplementation((_: MediaStream, h: SoundStateChangeHandler) => {
+      handler = h;
+    });
+    await manager['startSpeakingWhileMutedDetection']();
+
+    expect(manager.state.speakingWhileMuted).toBe(false);
+
+    handler!({ isSoundDetected: true, audioLevel: 2 });
+
+    expect(manager.state.speakingWhileMuted).toBe(true);
+
+    handler!({ isSoundDetected: false, audioLevel: 0 });
+
+    expect(manager.state.speakingWhileMuted).toBe(false);
+  });
+
+  it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
+    await manager.enable();
+    await manager.disable();
+
+    // @ts-expect-error
+    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    manager['call'].state.setOwnCapabilities([]);
+
+    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
+  });
+
+  it('should start speaking while muted notifications if user gains permission to send audio', async () => {
+    await manager.enable();
+    await manager.disable();
+
+    manager['call'].state.setOwnCapabilities([]);
+
+    // @ts-expect-error
+    vi.spyOn(manager, 'stopSpeakingWhileMutedDetection');
+    manager['call'].state.setOwnCapabilities([OwnCapability.SEND_AUDIO]);
+
+    expect(manager['stopSpeakingWhileMutedDetection']).toHaveBeenCalled();
   });
 
   afterEach(() => {

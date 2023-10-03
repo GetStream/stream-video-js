@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
   CallTopViewProps,
@@ -72,6 +72,11 @@ export type CallContentProps = Pick<
      * Reactions that are to be supported in the call
      */
     supportedReactions?: StreamReactionType[];
+    /*
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
   };
 
 export const CallContent = ({
@@ -91,6 +96,7 @@ export const CallContent = ({
   VideoRenderer,
   layout = 'grid',
   supportedReactions,
+  landscape = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -153,6 +159,7 @@ export const CallContent = ({
 
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
+    landscape,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
@@ -161,13 +168,18 @@ export const CallContent = ({
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
     ...participantViewProps,
+    landscape,
     ParticipantView,
     CallParticipantsList,
     supportedReactions,
   };
 
+  const landScapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
+
   return (
-    <View style={[styles.container, callContent.container]}>
+    <View style={[styles.container, callContent.container, landScapeStyles]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}
@@ -203,7 +215,10 @@ export const CallContent = ({
       </View>
 
       {CallControls && (
-        <CallControls onHangupCallHandler={onHangupCallHandler} />
+        <CallControls
+          onHangupCallHandler={onHangupCallHandler}
+          landscape={landscape}
+        />
       )}
     </View>
   );

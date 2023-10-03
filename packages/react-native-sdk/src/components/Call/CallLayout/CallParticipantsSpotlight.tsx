@@ -5,7 +5,7 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -24,7 +24,13 @@ import { CallContentProps } from '../CallContent';
  */
 export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
   Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView'>;
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+    /**
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
+  };
 
 const hasScreenShare = (p: StreamVideoParticipant) =>
   p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
@@ -42,6 +48,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
   supportedReactions,
+  landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { colors, callParticipantsSpotlight },
@@ -68,11 +75,20 @@ export const CallParticipantsSpotlight = ({
     ParticipantView,
   };
 
+  const landScapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
+
+  const spotlightContainerLandscapeStyles: ViewStyle = {
+    marginHorizontal: landscape ? 0 : 8,
+  };
+
   return (
     <View
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
+        landScapeStyles,
         {
           backgroundColor: colors.dark_gray,
         },
@@ -90,6 +106,7 @@ export const CallParticipantsSpotlight = ({
                 ]
               : [
                   styles.spotlightContainer,
+                  spotlightContainerLandscapeStyles,
                   callParticipantsSpotlight.spotlightContainer,
                 ]
           }
@@ -112,8 +129,10 @@ export const CallParticipantsSpotlight = ({
               participants={
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
-              horizontal
               supportedReactions={supportedReactions}
+              horizontal={!landscape}
+              numberOfColumns={!landscape ? 2 : 1}
+              landscape={landscape}
               {...callParticipantsListProps}
             />
           )}
@@ -126,7 +145,6 @@ export const CallParticipantsSpotlight = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 8,
   },
   fullScreenSpotlightContainer: {
     flex: 1,
@@ -136,7 +154,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 10,
     marginHorizontal: 8,
-    marginBottom: 8,
   },
   callParticipantsListContainer: {
     flex: 1,

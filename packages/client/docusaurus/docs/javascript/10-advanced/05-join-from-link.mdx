@@ -1,0 +1,43 @@
+---
+title: Joining a call from a link
+description: Learn how you can add a flow where users can join from a link.
+---
+
+Many video calling apps that offer video and audio conferencing features, support joining a call from a link.
+This is a great way to allow users to join a call without having to go through many complex steps.
+
+In the next few steps, we will show how such a flow can be implemented using the Stream's Video SDKs.
+
+## Define the URL structure
+
+The first step is to define the URL structure that will be used to join a call.
+Typically, the URL will contain the following information:
+
+- your app's domain
+- an optional route pointing to the calling features of your app
+- the call ID
+- optional call type information, in case your app supports multiple call types
+
+In our example, we will use the following URL structure:
+
+- `https://myapp.com/join?call_id=123&call_type=default`
+
+## Get call information and join a call
+
+Once the user opens the link, your app needs to read the call ID and call type from the URL as they are required parameters for our SDK.
+Next, we will use the call information to setup and join the call.
+
+In the example below, we will use standard browser APIs to read the call ID and call type from the URL.
+
+```ts
+import { StreamVideoClient } from '@stream-io/video-client';
+
+const urlParams = new URLSearchParams(window.location.search);
+const callId = urlParams.get('call_id');
+const callType = urlParams.get('call_type') || 'default'; // or your custom call type
+
+// initialize the client, call and join the call
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call(callType, callId);
+await call.join();
+```

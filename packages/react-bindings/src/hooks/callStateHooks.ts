@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import {
   Call,
-  CallState,
-  CameraManagerState,
-  Comparator,
-  MicrophoneManagerState,
   CallIngressResponse,
   CallSessionResponse,
   CallSettingsResponse,
+  CallState,
   CallStatsReport,
+  CameraManagerState,
+  Comparator,
   EgressResponse,
   MemberResponse,
+  MicrophoneManagerState,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
@@ -312,6 +312,14 @@ export const useParticipantCount = () => {
 export const useAnonymousParticipantCount = () => {
   const { anonymousParticipantCount$ } = useCallState();
   return useObservableValue(anonymousParticipantCount$);
+};
+
+/**
+ * Returns the generated thumbnail of the current call, if enabled in settings.
+ */
+export const useCallThumbnail = () => {
+  const { thumbnails$ } = useCallState();
+  return useObservableValue(thumbnails$);
 };
 
 /**

@@ -147,6 +147,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
 
     return (
       <div
+        data-testid="participant-view"
         ref={(element) => {
           applyElementToRef(ref, element);
           setTrackedElement(element);
@@ -162,7 +163,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       >
         <ParticipantViewContext.Provider value={participantViewContextValue}>
           {/* mute the local participant, as we don't want to hear ourselves */}
-          {!isLocalParticipant && !muteAudio && (
+          {!isLocalParticipant && !muteAudio && hasAudio && (
             <Audio participant={participant} />
           )}
           <Video

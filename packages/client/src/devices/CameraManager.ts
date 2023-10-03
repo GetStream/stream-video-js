@@ -34,7 +34,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   async flip() {
     const newDirection = this.state.direction === 'front' ? 'back' : 'front';
-    this.selectDirection(newDirection);
+    await this.selectDirection(newDirection);
   }
 
   /**

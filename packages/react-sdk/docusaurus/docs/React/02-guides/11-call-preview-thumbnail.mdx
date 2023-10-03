@@ -1,0 +1,39 @@
+---
+title: Call Preview and Thumbnail
+description: Learn how to show a call preview image (thumbnail) in your app.
+---
+
+Depending on your call type settings, our system can occasionally generate a preview image (thumbnail) for your call.
+You can use this image to show a preview of the call in your app, typically in a lobby, waiting room, etc.
+
+## Get the preview thumbnail
+
+```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCallThumbnail } = useCallStateHooks();
+const thumbnail = useCallThumbnail();
+
+console.log(thumbnail.image_url);
+```
+
+## Show the preview thumbnail
+
+Our React Video SDK provides a built-in component to show the preview image. You can use it like this:
+
+```tsx
+import { CallPreview } from '@stream-io/video-react-sdk';
+
+export const MyComponent = () => {
+  return (
+    <div className="my-container">
+      <CallPreview
+        className="my-call-preview-class"
+        style={{ width: '240px', height: '135px' }}
+      />
+    </div>
+  );
+};
+```
+
+Optionally, it accepts `className` and `style` props, so you can style it as you wish.

@@ -2,7 +2,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
-import { afterEach, beforeEach, describe, vi, it, expect, Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
 import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -67,8 +67,7 @@ describe('CameraManager', () => {
   });
 
   it('publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
 
     await manager.enable();
 
@@ -78,8 +77,7 @@ describe('CameraManager', () => {
   });
 
   it('stop publish stream', async () => {
-    // @ts-expect-error
-    manager['call'].state.callingState = CallingState.JOINED;
+    manager['call'].state.setCallingState(CallingState.JOINED);
     await manager.enable();
 
     await manager.disable();

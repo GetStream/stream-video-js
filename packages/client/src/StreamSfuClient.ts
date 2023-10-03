@@ -388,7 +388,11 @@ const retryable = async <I extends object, O extends SfuResponseWithError>(
 
     // if the RPC call failed, log the error and retry
     if (rpcCallResult.response.error) {
-      logger('error', 'SFU RPC Error:', rpcCallResult.response.error);
+      logger(
+        'error',
+        `SFU RPC Error (${rpcCallResult.method.name}):`,
+        rpcCallResult.response.error,
+      );
     }
     retryAttempt++;
   } while (

@@ -51,10 +51,9 @@ export const Recordings = () => {
       },
     );
 
-    // @ts-expect-error
     const unsubscribeRecordingReady = call.on('call.recording_ready', (e) => {
+      if (e.type !== 'call.recording_ready') return;
       try {
-        // FIXME OL this event isn't yet available in the OpenAPI schema
         const { call_recording: recording } = e;
         setCallRecordings((prev) => [...prev, recording]);
       } catch (error) {

@@ -2,6 +2,149 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.34...@stream-io/video-react-sdk-0.3.35) (2023-10-02)
+
+
+### Bug Fixes
+
+* requestPermission should be no-op when permission is already granted ([#1122](https://github.com/GetStream/stream-video-js/issues/1122)) ([f3d9e34](https://github.com/GetStream/stream-video-js/commit/f3d9e349825a6052850f7a78c3d6af9f517d136e))
+
+### [0.3.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.33...@stream-io/video-react-sdk-0.3.34) (2023-10-02)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.12`
+
+### Features
+
+* **egress-composite:** add support for new options ([#1104](https://github.com/GetStream/stream-video-js/issues/1104)) ([2e039c2](https://github.com/GetStream/stream-video-js/commit/2e039c280cd808e6464ee3ab54e8c3606a0a0180)), closes [/github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx#L53-L117](https://github.com/GetStream//github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx/issues/L53-L117)
+
+### [0.3.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.32...@stream-io/video-react-sdk-0.3.33) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.28`
+* `@stream-io/video-react-bindings` updated to version `0.2.29`
+### [0.3.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.31...@stream-io/video-react-sdk-0.3.32) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.28`
+### [0.3.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.30...@stream-io/video-react-sdk-0.3.31) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.27`
+* `@stream-io/video-styling` updated to version `0.1.11`
+
+### Features
+
+* **Call Preview:** Support for call thumbnails ([#1099](https://github.com/GetStream/stream-video-js/issues/1099)) ([9274f76](https://github.com/GetStream/stream-video-js/commit/9274f760ed264ee0ee6ac97c6fe679288e067fd8))
+
+### [0.3.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.29...@stream-io/video-react-sdk-0.3.30) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.26`
+* `@stream-io/video-styling` updated to version `0.1.10`
+
+### Features
+
+* **react-sdk:** LivestreamLayout ([#1103](https://github.com/GetStream/stream-video-js/issues/1103)) ([6636699](https://github.com/GetStream/stream-video-js/commit/6636699701dfd5eb5886c50781dd5f16a8470da5))
+
+### [0.3.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.28...@stream-io/video-react-sdk-0.3.29) (2023-09-27)
+
+
+### Features
+
+* **SpeakerLayout:** add participantsBarLimit ([#1090](https://github.com/GetStream/stream-video-js/issues/1090)) ([712f1e7](https://github.com/GetStream/stream-video-js/commit/712f1e7010fdb8859aaa6caba7e7d9e0f4557ccb))
+
+### [0.3.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.27...@stream-io/video-react-sdk-0.3.28) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.25`
+* `@stream-io/video-styling` updated to version `0.1.9`
+
+### Features
+
+* show the anonymous user count in the participant list ([#1109](https://github.com/GetStream/stream-video-js/issues/1109)) ([a253cbf](https://github.com/GetStream/stream-video-js/commit/a253cbfa7552a9ab4302ce824a72653a27dd324d))
+
+### [0.3.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.26...@stream-io/video-react-sdk-0.3.27) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.24`
+### [0.3.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.25...@stream-io/video-react-sdk-0.3.26) (2023-09-25)
+
+### Dependency Updates
+
+* `@stream-io/i18n` updated to version `0.1.2`
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.23`
+* `@stream-io/video-styling` updated to version `0.1.8`
+
+### Bug Fixes
+
+* Add extra delay before attempting to play video in Safari and Firefox ([#1106](https://github.com/GetStream/stream-video-js/issues/1106)) ([5b4a589](https://github.com/GetStream/stream-video-js/commit/5b4a58918240a7b63807726609d6d54b92cfe1d2))
+
+### [0.3.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.24...@stream-io/video-react-sdk-0.3.25) (2023-09-20)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.22`
+* `@stream-io/video-styling` updated to version `0.1.7`
+
+### Bug Fixes
+
+* unmount video element when there is no video track or participant is invisible ([#1096](https://github.com/GetStream/stream-video-js/issues/1096)) ([bd01835](https://github.com/GetStream/stream-video-js/commit/bd01835f4e93c981ca2e5a7e4e09142ea4e326cf)), closes [#1094](https://github.com/GetStream/stream-video-js/issues/1094)
+
+### [0.3.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.23...@stream-io/video-react-sdk-0.3.24) (2023-09-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.21`
+### [0.3.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.22...@stream-io/video-react-sdk-0.3.23) (2023-09-18)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.6`
+
+### Bug Fixes
+
+* hide the video element when a placeholder is visible ([#1094](https://github.com/GetStream/stream-video-js/issues/1094)) ([9efd84c](https://github.com/GetStream/stream-video-js/commit/9efd84cb77b98c372917e6bfa36161763969dddd))
+
+### [0.3.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.21...@stream-io/video-react-sdk-0.3.22) (2023-09-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.20`
+### [0.3.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.20...@stream-io/video-react-sdk-0.3.21) (2023-09-15)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.19`
+### [0.3.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.19...@stream-io/video-react-sdk-0.3.20) (2023-09-14)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.18`
+### [0.3.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.18...@stream-io/video-react-sdk-0.3.19) (2023-09-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.17`
 ### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.17...@stream-io/video-react-sdk-0.3.18) (2023-09-11)
 
 ### Dependency Updates
