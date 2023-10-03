@@ -108,9 +108,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
             hasOngoingScreenShare &&
               'str-video__livestream-layout__floating-participant',
             (hasOngoingScreenShare &&
-              floatingParticipantProps?.position &&
-              `str-video__livestream-layout__floating-participant--${floatingParticipantProps.position}`) ??
-              'str-video__livestream-layout__floating-participant--top-right',
+              `str-video__livestream-layout__floating-participant--${floatingParticipantProps?.position ?? 'top-right'}`),
           )}
           participant={currentSpeaker}
           ParticipantViewUI={FloatingParticipantOverlay || Overlay}
