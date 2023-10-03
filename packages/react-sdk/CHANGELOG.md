@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.35...@stream-io/video-react-sdk-0.3.36) (2023-10-03)
+
+
+### Bug Fixes
+
+* check if `currentParticipant` is actually initialized ([#1124](https://github.com/GetStream/stream-video-js/issues/1124)) ([797b84f](https://github.com/GetStream/stream-video-js/commit/797b84f9f63ae2c98a97b28afc08858705cd6840))
+
 ### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.34...@stream-io/video-react-sdk-0.3.35) (2023-10-02)
 
 
