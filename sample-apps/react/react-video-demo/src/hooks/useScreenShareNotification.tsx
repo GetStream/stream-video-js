@@ -37,7 +37,10 @@ export const useScreenShareNotification = () => {
         firstScreenSharingParticipant?.sessionId ===
         localParticipant?.sessionId;
 
-      const name = isLocal ? 'You' : firstScreenSharingParticipant?.name;
+      const name = isLocal
+        ? 'You'
+        : firstScreenSharingParticipant?.name ||
+          firstScreenSharingParticipant?.userId;
       const message = isLocal
         ? 'You are presenting your screen'
         : `${name} is presenting their screen`;
