@@ -24,11 +24,18 @@ export type StreamVideoConfig = {
     ios: {
       /**
        * The name for the alias of push provider used for iOS
+       * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
        * @example "production-apn-video" or "staging-apn-video" based on the environment
        */
-      pushProviderName: string;
+      pushProviderName?: string;
     };
     android: {
+      /**
+       * The name for the alias of push provider used for Android
+       * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
+       * @example "production-fcm-video" or "staging-fcm-video" based on the environment
+       */
+      pushProviderName?: string;
       /**
        * The notification channel to be used for non ringing calls for Android.
        * @example
@@ -82,11 +89,6 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
-      /**
-       * The name for the alias of push provider used for Android
-       * @example "production-fcm-video" or "staging-fcm-video" based on the environment
-       */
-      pushProviderName: string;
     };
     /**
      * This function is used to create a custom video client.

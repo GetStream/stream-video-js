@@ -93,7 +93,7 @@ export async function initAndroidPushToken(
   pushConfig: PushConfig,
   setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
     return;
   }
   const setDeviceToken = async (token: string) => {
