@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.28...@stream-io/video-react-native-sdk-0.1.0) (2023-10-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** set reactions through props and not config (#1069)
+
+### Features
+
+* **react-native:** set reactions through props and not config ([#1069](https://github.com/GetStream/stream-video-js/issues/1069)) ([9569648](https://github.com/GetStream/stream-video-js/commit/95696482c5622c3c93f071356b980deebee6bfbf))
+
 ### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.27...@stream-io/video-react-native-sdk-0.0.28) (2023-10-02)
 
 
