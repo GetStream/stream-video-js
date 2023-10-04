@@ -42,12 +42,12 @@ export default defineConfig({
     },
   ],
   webServer: [
-    {
-      timeout: 10000,
-      command: 'yarn buddy server --port 4567',
-      reuseExistingServer: false,
-      port: 4567,
-    },
+    // {
+    //   timeout: 10000,
+    //   command: 'yarn buddy server --port 4567',
+    //   reuseExistingServer: false,
+    //   port: 4567,
+    // },
     {
       timeout: 10000,
       command: 'yarn dev',
