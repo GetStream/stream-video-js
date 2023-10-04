@@ -23,6 +23,9 @@ export const useIosVoipPushEventsSetupEffect = () => {
     if (lastVoipToken) {
       // send token to stream (userId might have switched on the same device)
       const push_provider_name = pushConfig.ios.pushProviderName;
+      if (!push_provider_name) {
+        return;
+      }
       client
         .addVoipDevice(lastVoipToken, 'apn', push_provider_name)
         .catch((err) => {
@@ -34,6 +37,9 @@ export const useIosVoipPushEventsSetupEffect = () => {
       // send token to stream
       lastVoipToken = token;
       const push_provider_name = pushConfig.ios.pushProviderName;
+      if (!push_provider_name) {
+        return;
+      }
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
         console.warn('Failed to send voip token to stream', err);
       });
