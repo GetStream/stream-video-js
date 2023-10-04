@@ -1,22 +1,23 @@
 import { DeviceSelector } from './DeviceSelector';
-import { useMediaDevices, useVideoDevices } from '../../core';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
 };
 
 export const DeviceSelectorVideo = ({ title }: DeviceSelectorVideoProps) => {
-  const { selectedVideoDeviceId, switchDevice } = useMediaDevices();
-  const videoDevices = useVideoDevices();
+  const { t } = useI18n();
+  const { useCameraState } = useCallStateHooks();
+  const { camera, devices, selectedDevice } = useCameraState();
 
   return (
     <DeviceSelector
-      devices={videoDevices}
-      selectedDeviceId={selectedVideoDeviceId}
-      onChange={(deviceId) => {
-        switchDevice('videoinput', deviceId);
+      devices={devices || []}
+      selectedDeviceId={selectedDevice}
+      onChange={async (deviceId) => {
+        await camera.select(deviceId);
       }}
-      title={title || 'Select a Camera'}
+      title={title || t('Select a Camera')}
     />
   );
 };

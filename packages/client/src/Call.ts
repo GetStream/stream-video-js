@@ -9,11 +9,7 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import {
-  GoAwayReason,
-  SdkType,
-  TrackType,
-} from './gen/video/sfu/models/models';
+import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -116,7 +112,7 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails, getSdkInfo } from './client-details';
+import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
 import {
   CameraDirection,
@@ -1000,14 +996,11 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      // React uses a different device management for now
-      if (getSdkInfo()?.type !== SdkType.REACT) {
-        try {
-          await this.initCamera();
-          await this.initMic();
-        } catch (error) {
-          this.logger('warn', 'Camera and/or mic init failed during join call');
-        }
+      try {
+        await this.initCamera();
+        await this.initMic();
+      } catch (error) {
+        this.logger('warn', 'Camera and/or mic init failed during join call');
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1316,56 +1309,6 @@ export class Call {
    */
   stopReportingStatsFor = (sessionId: string) => {
     return this.statsReporter?.stopReportingStatsFor(sessionId);
-  };
-
-  /**
-   * Sets the used audio output device (`audioOutputDeviceId` of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
-   *
-   * This method only stores the selection, if you're using custom UI components, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId.
-   *
-   *
-   * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
-   *
-   * @deprecated use `call.speaker` instead
-   */
-  setAudioOutputDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      audioOutputDeviceId: deviceId,
-    });
-  };
-
-  /**
-   * Sets the `audioDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
-   *
-   * This method only stores the selection, if you want to start publishing a media stream call the [`publishAudioStream` method](#publishaudiostream) that will set `audioDeviceId` as well.
-   *
-   *
-   * @param deviceId the selected device, pass `undefined` to clear the device selection
-   *
-   * @deprecated use call.microphone.select
-   */
-  setAudioDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      audioDeviceId: deviceId,
-    });
-  };
-
-  /**
-   * Sets the `videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
-   *
-   * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
-   *
-   * @param deviceId the selected device, pass `undefined` to clear the device selection
-   *
-   * @deprecated use call.camera.select
-   */
-  setVideoDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      videoDeviceId: deviceId,
-    });
   };
 
   /**

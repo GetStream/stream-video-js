@@ -1,28 +1,25 @@
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { DeviceSelector } from './DeviceSelector';
-import {
-  useMediaDevices,
-  useAudioInputDevices,
-  useAudioOutputDevices,
-} from '../../core';
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
 };
 
 export const DeviceSelectorAudioInput = ({
-  title = 'Select a Mic',
+  title,
 }: DeviceSelectorAudioInputProps) => {
-  const { selectedAudioInputDeviceId, switchDevice } = useMediaDevices();
-  const audioInputDevices = useAudioInputDevices();
+  const { t } = useI18n();
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, selectedDevice, devices } = useMicrophoneState();
 
   return (
     <DeviceSelector
-      devices={audioInputDevices}
-      selectedDeviceId={selectedAudioInputDeviceId}
-      onChange={(deviceId) => {
-        switchDevice('audioinput', deviceId);
+      devices={devices || []}
+      selectedDeviceId={selectedDevice}
+      onChange={async (deviceId) => {
+        await microphone.select(deviceId);
       }}
-      title={title}
+      title={title || t('Select a Mic')}
     />
   );
 };
@@ -32,26 +29,23 @@ export type DeviceSelectorAudioOutputProps = {
 };
 
 export const DeviceSelectorAudioOutput = ({
-  title = 'Select Speakers',
+  title,
 }: DeviceSelectorAudioOutputProps) => {
-  const {
-    isAudioOutputChangeSupported,
-    selectedAudioOutputDeviceId,
-    switchDevice,
-  } = useMediaDevices();
+  const { t } = useI18n();
+  const { useSpeakerState } = useCallStateHooks();
+  const { speaker, selectedDevice, devices, isDeviceSelectionSupported } =
+    useSpeakerState();
 
-  const audioOutputDevices = useAudioOutputDevices();
-
-  if (!isAudioOutputChangeSupported) return null;
+  if (!isDeviceSelectionSupported) return null;
 
   return (
     <DeviceSelector
-      devices={audioOutputDevices}
-      selectedDeviceId={selectedAudioOutputDeviceId}
-      onChange={(deviceId) => {
-        switchDevice('audiooutput', deviceId);
+      devices={devices}
+      selectedDeviceId={selectedDevice}
+      onChange={async (deviceId) => {
+        speaker.select(deviceId);
       }}
-      title={title}
+      title={title || t('Select Speakers')}
     />
   );
 };

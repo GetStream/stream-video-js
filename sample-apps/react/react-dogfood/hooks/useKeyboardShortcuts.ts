@@ -1,9 +1,7 @@
 import {
   defaultReactions,
   useCall,
-  useMediaDevices,
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useRef, useState } from 'react';
 
@@ -26,10 +24,11 @@ const isMacOS = () => {
 const [, raiseHandReaction] = defaultReactions;
 
 export const usePushToTalk = (key: string) => {
-  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
-
   const [isTalking, setIsTalking] = useState(false);
   const interactedRef = useRef(false);
+
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone } = useMicrophoneState();
 
   useEffect(() => {
     hotkeys(key, { keyup: true }, (e) => {
@@ -49,18 +48,19 @@ export const usePushToTalk = (key: string) => {
   }, [key]);
 
   useEffect(() => {
-    if (isTalking) publishAudioStream().catch(console.error);
+    if (isTalking) microphone.enable().catch(console.error);
 
     return () => {
-      if (interactedRef.current) stopPublishingAudio();
+      if (interactedRef.current) microphone.disable().catch(console.error);
     };
-  }, [isTalking, publishAudioStream, stopPublishingAudio]);
+  }, [isTalking, microphone]);
 };
 
 export const useKeyboardShortcuts = () => {
-  const { toggleAudioMuteState } = useToggleAudioMuteState();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
   const call = useCall();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { microphone } = useMicrophoneState();
+  const { camera } = useCameraState();
   usePushToTalk(KeyboardShortcut.PUSH_TO_TALK);
 
   useEffect(() => {
@@ -73,13 +73,13 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_AUDIO_MAC.includes(ke.shortcut))
         return;
 
-      toggleAudioMuteState().catch(console.error);
+      microphone.toggle();
     });
 
     return () => {
       hotkeys.unbind(key);
     };
-  }, [toggleAudioMuteState]);
+  }, [microphone]);
 
   useEffect(() => {
     const key = `${KeyboardShortcut.TOGGLE_VIDEO_MAC},${KeyboardShortcut.TOGGLE_VIDEO_OTHER}`;
@@ -91,13 +91,13 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_VIDEO_MAC.includes(ke.shortcut))
         return;
 
-      toggleVideoMuteState().catch(console.error);
+      camera.toggle();
     });
 
     return () => {
       hotkeys.unbind(key);
     };
-  }, [toggleVideoMuteState]);
+  }, [camera]);
 
   useEffect(() => {
     const key = `${KeyboardShortcut.RAISE_HAND_MAC},${KeyboardShortcut.RAISE_HAND_OTHER}`;

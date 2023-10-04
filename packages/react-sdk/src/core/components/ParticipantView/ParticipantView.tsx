@@ -10,7 +10,6 @@ import {
 import clsx from 'clsx';
 import {
   SfuModels,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
@@ -40,7 +39,7 @@ export type ParticipantViewProps = {
   /**
    * The participant whose video/audio stream we want to play.
    */
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  participant: StreamVideoParticipant;
 
   /**
    * Override the default UI for rendering participant information/actions.

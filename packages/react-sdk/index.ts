@@ -13,8 +13,6 @@ export * from './src/translations';
 export {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
 } from './src/hooks';
 
 const [major, minor, patch] = version.split('.');

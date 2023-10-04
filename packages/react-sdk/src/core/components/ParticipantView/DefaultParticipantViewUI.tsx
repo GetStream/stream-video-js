@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import { SfuModels } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { clsx } from 'clsx';
 
 import {
@@ -42,22 +42,23 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 
 export const DefaultScreenShareOverlay = () => {
   const call = useCall();
+  const { t } = useI18n();
 
   const stopScreenShare = () => {
-    call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE).catch(console.error);
+    call?.screenShare.disable();
   };
 
   return (
     <div className="str-video__screen-share-overlay">
       <Icon icon="screen-share-off" />
       <span className="str-video__screen-share-overlay__title">
-        You are presenting your screen
+        {t('You are presenting your screen')}
       </span>
       <button
         onClick={stopScreenShare}
         className="str-video__screen-share-overlay__button"
       >
-        <Icon icon="close" /> Stop Screen Sharing
+        <Icon icon="close" /> {t('Stop Screen Sharing')}
       </button>
     </div>
   );

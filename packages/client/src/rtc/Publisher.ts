@@ -14,10 +14,7 @@ import {
   OptimalVideoLayer,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import {
-  trackTypeToDeviceIdKey,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
@@ -387,14 +384,11 @@ export class Publisher {
         [audioOrVideoOrScreenShareStream]: undefined,
       }));
     } else {
-      const deviceId = track.getSettings().deviceId;
-      const audioOrVideoDeviceKey = trackTypeToDeviceIdKey(trackType);
       this.state.updateParticipant(this.sfuClient.sessionId, (p) => {
         return {
           publishedTracks: p.publishedTracks.includes(trackType)
             ? p.publishedTracks
             : [...p.publishedTracks, trackType],
-          ...(audioOrVideoDeviceKey && { [audioOrVideoDeviceKey]: deviceId }),
           [audioOrVideoOrScreenShareStream]: mediaStream,
         };
       });

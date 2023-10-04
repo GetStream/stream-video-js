@@ -1,17 +1,10 @@
 import { useEffect } from 'react';
-import {
-  MediaDevicesContextAPI,
-  SfuModels,
-  useCallStateHooks,
-  useMediaDevices,
-} from '@stream-io/video-react-sdk';
+import { SfuModels, useCallStateHooks } from '@stream-io/video-react-sdk';
 
-export type LocalDeviceSettings = Pick<
-  MediaDevicesContextAPI,
-  | 'selectedVideoDeviceId'
-  | 'selectedAudioInputDeviceId'
-  | 'selectedAudioOutputDeviceId'
-> & {
+export type LocalDeviceSettings = {
+  selectedVideoDeviceId: string;
+  selectedAudioInputDeviceId: string;
+  selectedAudioOutputDeviceId: string;
   isAudioMute: boolean;
   isVideoMute: boolean;
 };
@@ -31,13 +24,15 @@ export const getDeviceSettings = () => {
 };
 
 export const DeviceSettingsCaptor = () => {
+  // FIXME OL: rework this
+
   const {
-    selectedAudioOutputDeviceId,
-    selectedAudioInputDeviceId,
-    selectedVideoDeviceId,
-    initialAudioEnabled,
-    initialVideoState,
-  } = useMediaDevices();
+    selectedAudioOutputDeviceId = 'default',
+    selectedAudioInputDeviceId = 'default',
+    selectedVideoDeviceId = 'default',
+    initialAudioEnabled = true,
+    initialVideoState = { enabled: true },
+  } = {};
 
   let isAudioMute = !initialAudioEnabled;
   let isVideoMute = !initialVideoState.enabled;

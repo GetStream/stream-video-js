@@ -1,10 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { Call } from '@stream-io/video-client';
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
-import {
-  MediaDevicesProvider,
-  MediaDevicesProviderProps,
-} from '../../contexts';
 
 export type StreamCallProps = {
   call: Call;
@@ -12,7 +8,7 @@ export type StreamCallProps = {
   /**
    * An optional props to pass to the `MediaDevicesProvider`.
    */
-  mediaDevicesProviderProps?: MediaDevicesProviderProps;
+  mediaDevicesProviderProps?: any;
 };
 
 export const StreamCall = ({
@@ -20,11 +16,8 @@ export const StreamCall = ({
   call,
   mediaDevicesProviderProps,
 }: PropsWithChildren<StreamCallProps>) => {
-  return (
-    <StreamCallProvider call={call}>
-      <MediaDevicesProvider {...mediaDevicesProviderProps}>
-        {children}
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
+  if (mediaDevicesProviderProps) {
+    console.warn('mediaDevicesProviderProps is deprecated');
+  }
+  return <StreamCallProvider call={call}>{children}</StreamCallProvider>;
 };

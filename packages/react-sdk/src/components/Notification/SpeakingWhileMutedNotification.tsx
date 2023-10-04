@@ -1,69 +1,48 @@
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { createSoundDetector, SfuModels } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-
-import { useMediaDevices } from '../../core';
 import { Notification } from './Notification';
 
 export type SpeakingWhileMutedNotificationProps = {
-  /*
-  Text message displayed by the notification.
+  /**
+   * Text message displayed by the notification.
    */
   text?: string;
+
+  /**
+   * Duration in milliseconds for which the notification should be displayed.
+   * Default is 3500ms.
+   */
+  displayDuration?: number;
 };
 
 export const SpeakingWhileMutedNotification = ({
   children,
   text,
+  displayDuration = 3500,
 }: PropsWithChildren<SpeakingWhileMutedNotificationProps>) => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  const { getAudioStream } = useMediaDevices();
+  const { useMicrophoneState } = useCallStateHooks();
+  const { isSpeakingWhileMuted } = useMicrophoneState();
   const { t } = useI18n();
 
-  const message = text ?? t('You are muted. Unmute to speak.');
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const audioDeviceId = localParticipant?.audioDeviceId;
-  const [isSpeakingWhileMuted, setIsSpeakingWhileMuted] = useState(false);
-  useEffect(() => {
-    // do nothing when not muted
-    if (!isAudioMute) return;
-    const disposeSoundDetector = getAudioStream({
-      deviceId: audioDeviceId,
-    }).then((audioStream) =>
-      createSoundDetector(audioStream, ({ isSoundDetected }) => {
-        setIsSpeakingWhileMuted((isNotified) =>
-          isNotified ? isNotified : isSoundDetected,
-        );
-      }),
-    );
-    disposeSoundDetector.catch((err) => {
-      console.error('Error while creating sound detector', err);
-    });
-    return () => {
-      disposeSoundDetector
-        .then((dispose) => dispose())
-        .catch((err) => {
-          console.error('Error while disposing sound detector', err);
-        });
-      setIsSpeakingWhileMuted(false);
-    };
-  }, [audioDeviceId, getAudioStream, isAudioMute]);
+  const [showNotification, setShowNotification] = useState(false);
+  if (!showNotification && isSpeakingWhileMuted) {
+    setShowNotification(true);
+  }
 
   useEffect(() => {
-    if (!isSpeakingWhileMuted) return;
+    if (!showNotification) return;
     const timeout = setTimeout(() => {
-      setIsSpeakingWhileMuted(false);
-    }, 3500);
+      setShowNotification(false);
+    }, displayDuration);
     return () => {
       clearTimeout(timeout);
-      setIsSpeakingWhileMuted(false);
+      setShowNotification(false);
     };
-  }, [isSpeakingWhileMuted]);
+  }, [showNotification, displayDuration]);
+
+  const message = text ?? t('You are muted. Unmute to speak.');
   return (
-    <Notification message={message} isVisible={isSpeakingWhileMuted}>
+    <Notification message={message} isVisible={showNotification}>
       {children}
     </Notification>
   );

@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import {
-  StreamVideoLocalParticipant,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { StreamVideoParticipant } from '@stream-io/video-client';
 import clsx from 'clsx';
 
 import {
@@ -22,7 +19,7 @@ type PaginatedGridLayoutGroupProps = {
   /**
    * The group of participants to render.
    */
-  group: Array<StreamVideoParticipant | StreamVideoLocalParticipant>;
+  group: Array<StreamVideoParticipant>;
 } & Pick<ParticipantViewProps, 'VideoPlaceholder'> &
   Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
 
