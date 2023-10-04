@@ -102,19 +102,22 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
           muteAudio // audio is rendered by ParticipantsAudio
         />
       )}
-      <ParticipantView
-        className={clsx(
-          hasOngoingScreenShare &&
-            'str-video__livestream-layout__floating-participant',
-          (hasOngoingScreenShare &&
-            floatingParticipantProps?.position &&
-            `str-video__livestream-layout__floating-participant--${floatingParticipantProps.position}`) ??
-            'str-video__livestream-layout__floating-participant--top-right',
-        )}
-        participant={currentSpeaker}
-        ParticipantViewUI={FloatingParticipantOverlay || Overlay}
-        muteAudio // audio is rendered by ParticipantsAudio
-      />
+      {currentSpeaker && (
+        <ParticipantView
+          className={clsx(
+            hasOngoingScreenShare &&
+              clsx(
+                'str-video__livestream-layout__floating-participant',
+                `str-video__livestream-layout__floating-participant--${
+                  floatingParticipantProps?.position ?? 'top-right'
+                }`,
+              ),
+          )}
+          participant={currentSpeaker}
+          ParticipantViewUI={FloatingParticipantOverlay || Overlay}
+          muteAudio // audio is rendered by ParticipantsAudio
+        />
+      )}
     </div>
   );
 };

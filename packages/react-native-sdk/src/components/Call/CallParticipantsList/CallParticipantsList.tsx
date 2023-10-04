@@ -21,6 +21,7 @@ import {
   ParticipantViewComponentProps,
   ParticipantViewProps,
 } from '../../Participant/ParticipantView';
+import { CallContentProps } from '../CallContent';
 
 type FlatListProps = React.ComponentProps<
   typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
@@ -42,26 +43,27 @@ export type CallParticipantsListComponentProps =
 /**
  * Props of the CallParticipantsList component
  */
-export type CallParticipantsListProps = CallParticipantsListComponentProps & {
-  /**
-   * The list of participants to display in the list
-   */
-  participants: (StreamVideoParticipant | StreamVideoLocalParticipant)[];
-  /**
-   * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
-   * @default 2
-   */
-  numberOfColumns?: number;
-  /**
-   * If true, the list will be displayed in horizontal scrolling mode
-   */
-  horizontal?: boolean;
-  /**
-   * Check if phone is in landscape mode.
-   * This will apply the landscape mode styles to the component.
-   */
-  landscape?: boolean;
-};
+export type CallParticipantsListProps = CallParticipantsListComponentProps &
+  Pick<CallContentProps, 'supportedReactions'> & {
+    /**
+     * The list of participants to display in the list
+     */
+    participants: (StreamVideoParticipant | StreamVideoLocalParticipant)[];
+    /**
+     * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
+     * @default 2
+     */
+    numberOfColumns?: number;
+    /**
+     * If true, the list will be displayed in horizontal scrolling mode
+     */
+    horizontal?: boolean;
+    /**
+     * Check if phone is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
+  };
 
 /**
  * This component displays a list of participants in a FlatList.
@@ -79,6 +81,7 @@ export const CallParticipantsList = ({
   ParticipantReaction,
   ParticipantVideoFallback,
   VideoRenderer,
+  supportedReactions,
   landscape,
 }: CallParticipantsListProps) => {
   const [containerLayout, setContainerLayout] = useState({
@@ -195,6 +198,7 @@ export const CallParticipantsList = ({
               style={itemContainerStyle}
               trackType="videoTrack"
               isVisible={isVisible}
+              supportedReactions={supportedReactions}
               {...participantProps}
             />
           )}
@@ -220,6 +224,7 @@ export const CallParticipantsList = ({
                 style={styles.flexed}
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
+                supportedReactions={supportedReactions}
                 {...participantProps}
               />
             )

@@ -1,5 +1,4 @@
 import { AndroidImportance } from '@notifee/react-native';
-import { defaultEmojiReactions } from '../../constants';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
@@ -9,7 +8,6 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
-  supportedReactions: defaultEmojiReactions,
   foregroundService: {
     android: {
       channel: {

@@ -1,19 +1,9 @@
-import { StreamReaction, StreamVideoClient } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
 import { AndroidChannel } from '@notifee/react-native';
-
-type StreamReactionType = Required<StreamReaction> & {
-  icon: string | JSX.Element;
-};
 
 export type NonRingingPushEvent = 'call.live_started' | 'call.notification';
 
 export type StreamVideoConfig = {
-  /**
-   * Reactions that are to be supported in the app.
-   *
-   * Note: This is an array of reactions that is rendered in the Reaction list.
-   */
-  supportedReactions: StreamReactionType[];
   /**
    * The configuration to be used for push notifications.
    * If undefined, push notifications will not be enabled for the app

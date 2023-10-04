@@ -27,7 +27,7 @@ export const useToggleAudioMuteState = () => {
       if (canPublish) return publishAudioStream();
     }
 
-    if (!isAudioMutedReference.current) stopPublishingAudio();
+    if (!isAudioMutedReference.current) await stopPublishingAudio();
   }, [publishAudioStream, requestPermission, stopPublishingAudio]);
 
   return { toggleAudioMuteState, isAwaitingPermission };
