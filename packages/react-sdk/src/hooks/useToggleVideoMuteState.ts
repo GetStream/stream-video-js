@@ -27,7 +27,7 @@ export const useToggleVideoMuteState = () => {
       if (canPublish) return publishVideoStream();
     }
 
-    if (!isVideoMutedReference.current) stopPublishingVideo();
+    if (!isVideoMutedReference.current) await stopPublishingVideo();
   }, [publishVideoStream, requestPermission, stopPublishingVideo]);
 
   return { toggleVideoMuteState, isAwaitingPermission };

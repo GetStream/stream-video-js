@@ -25,3 +25,12 @@ export const participantsWithScreenShare = users.map<
   publishedTracks: !index ? [] : [3],
   isSpeaking: false,
 }));
+
+export const participantsWithSpeakingFlag = users.map<
+  Partial<StreamVideoParticipant>
+>((user, index) => ({
+  userId: user,
+  sessionId: `${user}_${index}`,
+  publishedTracks: [],
+  isSpeaking: !index,
+}));

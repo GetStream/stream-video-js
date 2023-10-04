@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.27...@stream-io/video-client-0.3.28) (2023-09-28)
+
+
+### Bug Fixes
+
+* use `@stream-io/video-client` as a tag prefix ([#1116](https://github.com/GetStream/stream-video-js/issues/1116)) ([418206a](https://github.com/GetStream/stream-video-js/commit/418206aaa3a013e0d551e109d8243e75a053d5a3))
+
+### [0.3.27](https://github.com/GetStream/stream-video-js/compare/client0.3.26...client0.3.27) (2023-09-28)
+
+
+### Bug Fixes
+
+* use `@types/ws` as a regular dependency ([#1115](https://github.com/GetStream/stream-video-js/issues/1115)) ([bafad33](https://github.com/GetStream/stream-video-js/commit/bafad3317b7b899b4f2a6a3fdf3b051ad4c96c34))
+
 ### [0.3.26](https://github.com/GetStream/stream-video-js/compare/client0.3.25...client0.3.26) (2023-09-27)
 
 

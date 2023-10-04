@@ -36,7 +36,7 @@ export const useToggleScreenShare = () => {
       }
     }
 
-    call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+    await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
   }, [call, requestPermission]);
 
   return { toggleScreenShare, isAwaitingPermission, isScreenSharing };

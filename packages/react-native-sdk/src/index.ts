@@ -31,11 +31,6 @@ export * from './translations';
 
 // Overriding 'StreamVideo' from '@stream-io/video-react-bindings'
 // Explicitly re-exporting to resolve ambiguity.
-export {
-  StreamVideo,
-  StreamCall,
-  MediaStreamManagement,
-  useMediaStreamManagement,
-} from './providers';
+export { StreamVideo, StreamCall, MediaStreamManagement } from './providers';
 
 setClientDetails();

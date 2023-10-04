@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.35...@stream-io/video-react-sdk-0.3.36) (2023-10-03)
+
+
+### Bug Fixes
+
+* check if `currentParticipant` is actually initialized ([#1124](https://github.com/GetStream/stream-video-js/issues/1124)) ([797b84f](https://github.com/GetStream/stream-video-js/commit/797b84f9f63ae2c98a97b28afc08858705cd6840))
+
+### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.34...@stream-io/video-react-sdk-0.3.35) (2023-10-02)
+
+
+### Bug Fixes
+
+* requestPermission should be no-op when permission is already granted ([#1122](https://github.com/GetStream/stream-video-js/issues/1122)) ([f3d9e34](https://github.com/GetStream/stream-video-js/commit/f3d9e349825a6052850f7a78c3d6af9f517d136e))
+
+### [0.3.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.33...@stream-io/video-react-sdk-0.3.34) (2023-10-02)
+
+### Dependency Updates
+
+* `@stream-io/video-styling` updated to version `0.1.12`
+
+### Features
+
+* **egress-composite:** add support for new options ([#1104](https://github.com/GetStream/stream-video-js/issues/1104)) ([2e039c2](https://github.com/GetStream/stream-video-js/commit/2e039c280cd808e6464ee3ab54e8c3606a0a0180)), closes [/github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx#L53-L117](https://github.com/GetStream//github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx/issues/L53-L117)
+
+### [0.3.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.32...@stream-io/video-react-sdk-0.3.33) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.28`
+* `@stream-io/video-react-bindings` updated to version `0.2.29`
+### [0.3.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.31...@stream-io/video-react-sdk-0.3.32) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.28`
 ### [0.3.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.30...@stream-io/video-react-sdk-0.3.31) (2023-09-27)
 
 ### Dependency Updates

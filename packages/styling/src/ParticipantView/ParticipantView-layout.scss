@@ -46,10 +46,10 @@ $scope-name: 'str-video__participant-view';
     display: flex;
     align-items: center;
     gap: 0.3125rem;
+    border-radius: var(--str-video__border-radius-xs);
+    background-color: var(--str-video__background-color4);
 
     .str-video__participant-details__name {
-      border-radius: var(--str-video__border-radius-xs);
-      background-color: var(--str-video__background-color4);
       display: flex;
       align-items: center;
       gap: 0.3125rem;
