@@ -65,7 +65,6 @@ jobs:
           INSTALL_NODE: true
           INSTALL_PODS: true
           INSTALL_RN_DEPENDENCIES: true
-          INSTALL_IOS_PERMISSIONS: true
 
       - name: Test RN SDK
         run: yarn test:react-native:sdk
@@ -99,7 +98,6 @@ jobs:
           INSTALL_MAESTRO: true
           INSTALL_VIDEO_BUDDY: true
           INSTALL_RN_DEPENDENCIES: true
-          INSTALL_IOS_PERMISSIONS: true
 
       - name: Test
         working-directory: sample-apps/react-native/dogfood

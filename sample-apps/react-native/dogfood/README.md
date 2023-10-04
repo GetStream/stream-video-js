@@ -26,9 +26,6 @@ yarn build:all
 ```bash
 cd sample-apps/react-native/dogfood
 
-# Setup relevant iOS related permissions
-npx react-native setup-ios-permissions
-
 # Install pods
 npx pod-install
 ```
