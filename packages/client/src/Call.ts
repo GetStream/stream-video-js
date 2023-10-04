@@ -91,7 +91,11 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
-import { JoinResponse, Migration, VideoLayerSetting, VideoSender } from './gen/video/sfu/event/events';
+import {
+  JoinResponse,
+  Migration,
+  VideoLayerSetting,
+} from './gen/video/sfu/event/events';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   createStatsReporter,
