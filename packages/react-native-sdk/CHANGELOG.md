@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.0...@stream-io/video-react-native-sdk-0.1.1) (2023-10-04)
+
+
+### Features
+
+* **react-native:**  add lobby footer component ([#1091](https://github.com/GetStream/stream-video-js/issues/1091)) ([4945eb3](https://github.com/GetStream/stream-video-js/commit/4945eb358c4217f502a9735865664cef6c133a93))
+
 ## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.28...@stream-io/video-react-native-sdk-0.1.0) (2023-10-04)
 
 
