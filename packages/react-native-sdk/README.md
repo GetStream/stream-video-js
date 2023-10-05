@@ -124,16 +124,14 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 ### 0.4 Milestones
 
 - [x] Expo Support
-- [ ] Leaner Chat Integration Guide
 - [ ] Regular Push Notification
 - [ ] Speaking while muted
+
+### 0.5 Milestones
 - [ ] Landscape Support
 - [ ] PiP
 - [ ] Livestream components
 - [ ] Speaker management (needs docs)
-
-### 0.5 Milestones
-
 - [ ] Audio & Video filters
 - [ ] Screen-share media track support
 - [ ] CPU usage improvement

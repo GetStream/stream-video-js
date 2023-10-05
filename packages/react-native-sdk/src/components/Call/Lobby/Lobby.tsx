@@ -19,6 +19,10 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { useCallMediaStreamCleanup } from '../../../hooks/internal/useCallMediaStreamCleanup';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
+import {
+  LobbyFooter as DefaultLobbyFooter,
+  LobbyFooterProps,
+} from './LobbyFooter';
 
 /**
  * Props for the Lobby Component.
@@ -36,6 +40,10 @@ export type LobbyProps = {
    * Component to customize the Join Call Button in the Lobby component.
    */
   JoinCallButton?: ComponentType<JoinCallButtonProps> | null;
+  /**
+   * Component to customize the Lobby Footer in the Lobby component.
+   */
+  LobbyFooter?: ComponentType<LobbyFooterProps> | null;
 };
 
 /**
@@ -45,20 +53,19 @@ export const Lobby = ({
   onJoinCallHandler,
   LobbyControls = DefaultLobbyControls,
   JoinCallButton = DefaultJoinCallButton,
+  LobbyFooter = DefaultLobbyFooter,
 }: LobbyProps) => {
   const {
     theme: { colors, lobby, typefaces },
   } = useTheme();
   const connectedUser = useConnectedUser();
-  const { useCameraState, useCallSession } = useCallStateHooks();
+  const { useCameraState } = useCallStateHooks();
   const { status: cameraStatus } = useCameraState();
   const call = useCall();
-  const session = useCallSession();
   const { t } = useI18n();
   const localVideoStream = call?.camera.state.mediaStream as unknown as
     | MediaStream
     | undefined;
-  const participantsCount = session?.participants.length;
 
   useCallMediaStreamCleanup();
 
@@ -122,35 +129,12 @@ export const Lobby = ({
           {LobbyControls && <LobbyControls />}
         </>
       )}
-      <View
-        style={[
-          styles.infoContainer,
-          { backgroundColor: colors.static_overlay },
-          lobby.infoContainer,
-        ]}
-      >
-        <Text
-          style={[
-            { color: colors.static_white },
-            typefaces.subtitleBold,
-            lobby.infoText,
-          ]}
-        >
-          {t('You are about to join a call with id {{ callId }}.', {
-            callId: call?.id,
-          }) +
-            ' ' +
-            (participantsCount
-              ? t(
-                  '{{ numberOfParticipants }} participant(s) are in the call.',
-                  { numberOfParticipants: participantsCount },
-                )
-              : t('You are first to Join the call.'))}
-        </Text>
-        {JoinCallButton && (
-          <JoinCallButton onJoinCallHandler={onJoinCallHandler} />
-        )}
-      </View>
+      {LobbyFooter && (
+        <LobbyFooter
+          JoinCallButton={JoinCallButton}
+          onJoinCallHandler={onJoinCallHandler}
+        />
+      )}
     </View>
   );
 };
@@ -229,10 +213,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   topView: {},
-  infoContainer: {
-    padding: 12,
-    borderRadius: 10,
-  },
   participantStatusContainer: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
