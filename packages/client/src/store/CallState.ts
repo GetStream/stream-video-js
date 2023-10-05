@@ -330,8 +330,9 @@ export class CallState {
   constructor() {
     this.logger = getLogger(['CallState']);
     this.participants$ = this.participantsSubject.asObservable().pipe(
-      // TODO: replace with Array.toSorted once available
-      map((ps) => [...ps].sort(this.sortParticipantsBy)),
+      // maintain stable-sort by mutating the participants stored
+      // in the original subject
+      map((ps) => ps.sort(this.sortParticipantsBy)),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
