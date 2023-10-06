@@ -536,7 +536,7 @@ PODS:
     - RNFBApp
   - RNFS (2.20.0):
     - React-Core
-  - RNGestureHandler (2.12.0):
+  - RNGestureHandler (2.12.1):
     - React-Core
   - RNGoogleSignin (8.2.2):
     - GoogleSignIn (~> 6.2)
@@ -599,7 +599,7 @@ PODS:
   - stream-react-native-webrtc (104.0.1):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.0.4):
+  - stream-video-react-native (0.1.1):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -928,11 +928,11 @@ SPEC CHECKSUMS:
   RNFBApp: d59efa0872fff4e27de03cca3c528c203a436ae5
   RNFBMessaging: 216693dd5ba4f18ba65fb39fc73a44a23c26190f
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
-  RNGestureHandler: dec4645026e7401a0899f2846d864403478ff6a5
+  RNGestureHandler: c0d04458598fcb26052494ae23dda8f8f5162b13
   RNGoogleSignin: 81521697b2c8f97f9a586ac7257b1a1d9b51b115
   RNImageCropPicker: 486e2f7e2b0461ce24321f751410dce1b3b49e6d
   RNNotifee: f3c01b391dd8e98e67f539f9a35a9cbcd3bae744
-  RNPermissions: eff9b5e06eede1260a053963f760d3b1fdc51a3b
+  RNPermissions: 215c54462104b3925b412b0fb3c9c497b21c358b
   RNReactNativeHapticFeedback: afa5bf2794aecbb2dba2525329253da0d66656df
   RNReanimated: 9976fbaaeb8a188c36026154c844bf374b3b7eeb
   RNScreens: 218801c16a2782546d30bd2026bb625c0302d70f
@@ -940,7 +940,7 @@ SPEC CHECKSUMS:
   RNVoipPushNotification: 1617f5a07be24066830213ae9252cb790b53886f
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: 92e1aea0964d810af81ddc6f5359c182eb3a0fd9
+  stream-video-react-native: 6b907dbd6d67f9e9b6c9915e4e6a4e5ee3172756
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: f7decafdc5e8c125e6fa0da38a687e35238420fa
