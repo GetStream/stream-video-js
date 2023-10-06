@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.30](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.29...@stream-io/video-client-0.3.30) (2023-10-06)
+
+
+### Features
+
+* ScreenShare Audio support ([#1118](https://github.com/GetStream/stream-video-js/issues/1118)) ([5b63e1c](https://github.com/GetStream/stream-video-js/commit/5b63e1c5f52c76e3761e6907bd3786c19f0e5c6d))
+
 ### [0.3.29](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.28...@stream-io/video-client-0.3.29) (2023-10-05)
 
 
