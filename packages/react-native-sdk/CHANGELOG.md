@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.1...@stream-io/video-react-native-sdk-0.1.2) (2023-10-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.29`
+* `@stream-io/video-react-bindings` updated to version `0.2.30`
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.0...@stream-io/video-react-native-sdk-0.1.1) (2023-10-04)
+
+
+### Features
+
+* **react-native:**  add lobby footer component ([#1091](https://github.com/GetStream/stream-video-js/issues/1091)) ([4945eb3](https://github.com/GetStream/stream-video-js/commit/4945eb358c4217f502a9735865664cef6c133a93))
+
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.28...@stream-io/video-react-native-sdk-0.1.0) (2023-10-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** set reactions through props and not config (#1069)
+
+### Features
+
+* **react-native:** set reactions through props and not config ([#1069](https://github.com/GetStream/stream-video-js/issues/1069)) ([9569648](https://github.com/GetStream/stream-video-js/commit/95696482c5622c3c93f071356b980deebee6bfbf))
+
 ### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.27...@stream-io/video-react-native-sdk-0.0.28) (2023-10-02)
 
 

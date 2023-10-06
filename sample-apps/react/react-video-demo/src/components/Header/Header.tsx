@@ -132,7 +132,7 @@ export const Participants = ({
   const rootClassName = classnames(styles.participants, className);
   const maxDisplayParticipants = participants.slice(0, 3);
   const names = maxDisplayParticipants.map(
-    (participant: any) => participant?.name,
+    (participant: any) => participant?.name ?? participant.userId,
   );
   const last = names.pop();
 
@@ -143,13 +143,18 @@ export const Participants = ({
         <ul className={styles.avatars}>
           {maxDisplayParticipants.map((participant: any) => {
             return (
-              <li key={participant?.name} className={styles.participant}>
+              <li
+                key={participant?.name ?? participant.userId}
+                className={styles.participant}
+              >
                 <Img
                   className={styles.avatar}
                   src={participant?.image}
                   placeholder={
                     <div className={styles.placeholder}>
-                      {String(participant?.name)?.charAt(0)}
+                      {String(participant?.name ?? participant.userId)?.charAt(
+                        0,
+                      )}
                     </div>
                   }
                 />

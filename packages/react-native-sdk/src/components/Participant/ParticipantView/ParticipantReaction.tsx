@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useCall } from '@stream-io/video-react-bindings';
-import { StreamVideoRN } from '../../../utils';
-import { Z_INDEX } from '../../../constants';
+import { Z_INDEX, defaultEmojiReactions } from '../../../constants';
 import { ParticipantViewProps } from './ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallContentProps } from '../../Call';
 
 /**
  * Props for the ParticipantReaction component.
@@ -12,23 +12,24 @@ import { useTheme } from '../../../contexts/ThemeContext';
 export type ParticipantReactionProps = Pick<
   ParticipantViewProps,
   'participant'
-> & {
-  /**
-   * The duration after which the reaction should disappear.
-   *
-   * @default 5500
-   */
-  hideAfterTimeoutInMs?: number;
-};
+> &
+  Pick<CallContentProps, 'supportedReactions'> & {
+    /**
+     * The duration after which the reaction should disappear.
+     *
+     * @default 5500
+     */
+    hideAfterTimeoutInMs?: number;
+  };
 
 /**
  * This component is used to display the current participant reaction.
  */
 export const ParticipantReaction = ({
   participant,
+  supportedReactions = defaultEmojiReactions,
   hideAfterTimeoutInMs = 5500,
 }: ParticipantReactionProps) => {
-  const { supportedReactions } = StreamVideoRN.getConfig();
   const { reaction, sessionId } = participant;
   const call = useCall();
   const {
@@ -38,14 +39,11 @@ export const ParticipantReaction = ({
       participantReaction,
     },
   } = useTheme();
-  const [isShowing, setIsShowing] = useState<boolean>(false);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     if (call) {
-      setIsShowing(true);
       timeoutId = setTimeout(() => {
-        setIsShowing(false);
         call.resetReaction(sessionId);
       }, hideAfterTimeoutInMs);
     }
@@ -61,19 +59,6 @@ export const ParticipantReaction = ({
         supportedReaction.emoji_code === reaction.emoji_code,
     );
 
-  let component;
-  if (isShowing) {
-    if (typeof currentReaction?.icon !== 'string') {
-      component = currentReaction?.icon;
-    } else {
-      component = (
-        <Text style={[participantReaction.reaction, typefaces.heading6]}>
-          {currentReaction.icon}
-        </Text>
-      );
-    }
-  }
-
   return (
     <View
       style={[
@@ -85,7 +70,9 @@ export const ParticipantReaction = ({
         participantReaction.container,
       ]}
     >
-      {component}
+      <Text style={[participantReaction.reaction, typefaces.heading6]}>
+        {currentReaction?.icon}
+      </Text>
     </View>
   );
 };
