@@ -58,8 +58,8 @@ Here are some of the features we support:
 - [x] Enhanced device management API
 - [x] Composite layout for streaming and recording
 - [x] Livestream Player
-- [ ] Screenshare Audio
-- [ ] Screen-sharing resolution and FPS control
+- [x] Screenshare Audio
+- [x] Screen-sharing bitrate and FPS control
 - [ ] Fast-reconnects
 - [ ] New Device Management API
 - [x] SFU retries
