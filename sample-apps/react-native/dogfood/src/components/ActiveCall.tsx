@@ -12,6 +12,7 @@ import {
   CallControlsComponentProps,
 } from './CallControlsComponent';
 import { useOrientation } from '../hooks/useOrientation';
+import useIsInPiPMode from '../hooks/useIsInPiPMode';
 
 type ActiveCallProps = CallControlsComponentProps & {
   onBackPressed?: () => void;
@@ -31,6 +32,8 @@ export const ActiveCall = ({
   const onOpenCallParticipantsInfo = () => {
     setIsCallParticipantsVisible(true);
   };
+
+  const isPiP = useIsInPiPMode();
 
   const CustomControlsComponent = useCallback(
     ({ landscape }: CallControlProps) => {
@@ -53,9 +56,9 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
-        onBackPressed={onBackPressed}
-        onParticipantInfoPress={onOpenCallParticipantsInfo}
-        CallControls={CustomControlsComponent}
+        onBackPressed={isPiP ? null : onBackPressed}
+        onParticipantInfoPress={isPiP ? null : onOpenCallParticipantsInfo}
+        CallControls={isPiP ? null : CustomControlsComponent}
         landscape={currentOrientation === 'landscape'}
       />
       <ParticipantsInfoList
