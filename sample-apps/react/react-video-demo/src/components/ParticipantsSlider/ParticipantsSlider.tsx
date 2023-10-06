@@ -72,10 +72,10 @@ export const ParticipantsSlider: FC<Props> = ({
   );
 
   useEffect(() => {
-    if (!scrollWrapper || !call) return;
+    if (!scrollWrapper || !call || mode === 'vertical') return;
     const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
-  }, [scrollWrapper, call]);
+  }, [scrollWrapper, call, mode]);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
