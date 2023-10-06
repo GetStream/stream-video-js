@@ -56,8 +56,8 @@ export const ActiveCall = ({
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <CallContent
-        onBackPressed={isPiP ? null : onBackPressed}
-        onParticipantInfoPress={isPiP ? null : onOpenCallParticipantsInfo}
+        CallTopView={isPiP ? null : undefined}
+        onBackPressed={onOpenCallParticipantsInfo}
         CallControls={isPiP ? null : CustomControlsComponent}
         landscape={currentOrientation === 'landscape'}
       />
