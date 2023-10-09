@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import {
   CallTopView as DefaultCallTopView,
   CallTopViewProps,
@@ -13,9 +13,10 @@ import {
 import {
   CallControlProps,
   CallControls as DefaultCallControls,
+  HangUpCallButtonProps,
 } from '../CallControls';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, StreamReaction } from '@stream-io/video-client';
 import { useIncallManager } from '../../../hooks';
 import { Z_INDEX } from '../../../constants';
 import { useDebouncedValue } from '../../../utils/hooks';
@@ -25,41 +26,57 @@ import {
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts';
+import {
+  CallParticipantsListComponentProps,
+  CallParticipantsListProps,
+} from '../CallParticipantsList';
 
-export type CallParticipantsComponentProps = Pick<
-  CallParticipantsGridProps,
-  | 'CallParticipantsList'
-  | 'ParticipantLabel'
-  | 'ParticipantNetworkQualityIndicator'
-  | 'ParticipantReaction'
-  | 'ParticipantVideoFallback'
-  | 'ParticipantView'
-  | 'VideoRenderer'
-> & {
-  /**
-   * Component to customize the CallTopView component.
-   */
-  CallTopView?: React.ComponentType<CallTopViewProps> | null;
-  /**
-   * Component to customize the CallControls component.
-   */
-  CallControls?: React.ComponentType<CallControlProps> | null;
-  /**
-   * Component to customize the FloatingParticipantView.
-   */
-  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+export type StreamReactionType = StreamReaction & {
+  icon: string;
 };
 
-export type CallContentProps = Pick<CallControlProps, 'onHangupCallHandler'> &
+type CallContentComponentProps = ParticipantViewComponentProps &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+    /**
+     * Component to customize the CallTopView component.
+     */
+    CallTopView?: React.ComponentType<CallTopViewProps> | null;
+    /**
+     * Component to customize the CallControls component.
+     */
+    CallControls?: React.ComponentType<CallControlProps> | null;
+    /**
+     * Component to customize the FloatingParticipantView.
+     */
+    FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
+    /**
+     * Component to customize the CallParticipantsList.
+     */
+    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+  };
+
+export type CallContentProps = Pick<
+  HangUpCallButtonProps,
+  'onHangupCallHandler'
+> &
   Pick<
     CallTopViewProps,
     'onBackPressed' | 'onParticipantInfoPress' | 'ParticipantsInfoBadge'
   > &
-  CallParticipantsComponentProps & {
+  CallContentComponentProps & {
     /**
      * This switches the participant's layout between the grid and the spotlight mode.
      */
     layout?: 'grid' | 'spotlight';
+    /**
+     * Reactions that are to be supported in the call
+     */
+    supportedReactions?: StreamReactionType[];
+    /*
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
   };
 
 export const CallContent = ({
@@ -78,6 +95,8 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
+  supportedReactions,
+  landscape = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -140,19 +159,27 @@ export const CallContent = ({
 
   const callParticipantsGridProps: CallParticipantsGridProps = {
     ...participantViewProps,
+    landscape,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
     CallParticipantsList,
+    supportedReactions,
   };
 
   const callParticipantsSpotlightProps: CallParticipantsSpotlightProps = {
     ...participantViewProps,
+    landscape,
     ParticipantView,
     CallParticipantsList,
+    supportedReactions,
+  };
+
+  const landScapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
   };
 
   return (
-    <View style={[styles.container, callContent.container]}>
+    <View style={[styles.container, callContent.container, landScapeStyles]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}
@@ -175,6 +202,7 @@ export const CallContent = ({
                   : localParticipant
               }
               onPressHandler={handleFloatingViewParticipantSwitch}
+              supportedReactions={supportedReactions}
               {...participantViewProps}
             />
           )}
@@ -187,7 +215,10 @@ export const CallContent = ({
       </View>
 
       {CallControls && (
-        <CallControls onHangupCallHandler={onHangupCallHandler} />
+        <CallControls
+          onHangupCallHandler={onHangupCallHandler}
+          landscape={landscape}
+        />
       )}
     </View>
   );

@@ -61,6 +61,7 @@ Here are is an excerpt of the call state properties:
 | `settings$`              | `settings`              | The settings of the call.                                                                                    |
 | `startedAt$`             | `startedAt`             | The actual start time of the current call session.                                                           |
 | `startsAt$`              | `startsAt`              | The time the call is scheduled to start.                                                                     |
+| `thumbnails$`            | `thumbnails`            | The thumbnails of the call.                                                                                  |
 | `transcribing$`          | `transcribing`          | The transcribing state of the call.                                                                          |
 | `updatedAt$`             | `updatedAt`             | The time the call was updated.                                                                               |
 
@@ -94,6 +95,7 @@ The `StreamVideoParticipant` object contains the following information:
 | `audioStream`             | The published audio `MediaStream`.                                          |
 | `videoStream`             | The published video `MediaStream`.                                          |
 | `screenShareStream`       | The published screen share `MediaStream`.                                   |
+| `screenShareAudioStream`  | The published screen share audio `MediaStream`.                             |
 | `isLocalParticipant`      | It's `true` if the participant is the local participant.                    |
 | `pin`                     | Holds pinning information.                                                  |
 | `reaction`                | The last reaction this user has sent to this call.                          |

@@ -8,9 +8,10 @@ import {
   CallControls,
   ChatButton,
   HangUpCallButton,
-  ReactionButton,
+  ReactionsButton,
 } from '../../src/components';
 import { OwnCapability } from '@stream-io/video-client';
+import { defaultEmojiReactions } from '../../src/constants';
 
 console.warn = jest.fn();
 jest.useFakeTimers();
@@ -61,7 +62,7 @@ describe('ChatButton', () => {
   });
 });
 
-describe('ReactionButton', () => {
+describe('ReactionsButton', () => {
   it('render reaction button in call controls component', async () => {
     const call = mockCall(
       mockClientWithUser(),
@@ -75,7 +76,7 @@ describe('ReactionButton', () => {
       [OwnCapability.CREATE_REACTION],
     );
 
-    render(<ReactionButton />, {
+    render(<ReactionsButton reactions={defaultEmojiReactions} />, {
       call,
     });
 

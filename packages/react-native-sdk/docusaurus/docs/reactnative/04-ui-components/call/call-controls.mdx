@@ -4,6 +4,7 @@ title: CallControls
 ---
 
 import OnHangupCallHandler from '../../common-content/ui-components/call/call-content/on-hangup-call-handler.mdx';
+import Landscape from '../../common-content/ui-components/call/call-content/landscape.mdx';
 
 CallControls allows users to execute actions during the call(for example, mute/unmute audio/video, reactions, hang-up calls, etc.).
 We provide a built-in `CallControls` component that displays all relevant call controls during a call.
@@ -38,6 +39,10 @@ const VideoCallUI = () => {
 ### `onHangupCallHandler`
 
 <OnHangupCallHandler />
+
+### `landscape`
+
+<LandScape />
 
 ## Built-in call controls
 
@@ -110,7 +115,7 @@ This component is used to toggle camera face(front/back) when in the call.
 | ---------------- | --------------------------- | --------------------------------------------------------------------------- |
 | `onPressHandler` | `() => void` \| `undefined` | Handler to override the default behaviour of the toggle camera face button. |
 
-### [`ReactionButton`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/ReactionButton.tsx)
+### [`ReactionsButton`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/CallControls/ReactionsButton.tsx)
 
 This component is used to display the list of Reactions supported in the call. It can also be used to send reactions.
 

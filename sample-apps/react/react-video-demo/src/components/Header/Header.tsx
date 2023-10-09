@@ -1,7 +1,10 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { differenceInSeconds } from 'date-fns';
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import {
+  StreamVideoParticipant,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 
 import Button from '../Button';
 import { People, Security } from '../Icons';
@@ -18,9 +21,8 @@ import styles from './Header.module.css';
 export type HeaderProps = {
   className?: string;
   callId: string;
-  participants?: any;
   isCallActive: boolean;
-  particpants?: any;
+  participants?: StreamVideoParticipant[];
 };
 
 export const CallIdentification = ({
@@ -125,37 +127,32 @@ export const Img = ({ className, src, placeholder }: ImgProps) => {
   return <>{placeholder}</>;
 };
 
-export const Participants = ({
-  className,
-  participants,
-}: Pick<HeaderProps, 'className' | 'participants'>) => {
-  const rootClassName = classnames(styles.participants, className);
+const Participants = (props: { participants: StreamVideoParticipant[] }) => {
+  const { participants } = props;
   const maxDisplayParticipants = participants.slice(0, 3);
   const names = maxDisplayParticipants.map(
-    (participant: any) => participant?.name,
+    (participant) => participant?.name ?? participant.userId,
   );
   const last = names.pop();
 
   return (
-    <div className={rootClassName}>
+    <div className={styles.participants}>
       <img src={logoURI} className={styles.logo} alt="logo" />
       <div className={styles.innerParticipants}>
         <ul className={styles.avatars}>
-          {maxDisplayParticipants.map((participant: any) => {
-            return (
-              <li key={participant?.name} className={styles.participant}>
-                <Img
-                  className={styles.avatar}
-                  src={participant?.image}
-                  placeholder={
-                    <div className={styles.placeholder}>
-                      {String(participant?.name)?.charAt(0)}
-                    </div>
-                  }
-                />
-              </li>
-            );
-          })}
+          {maxDisplayParticipants.map((participant) => (
+            <li key={participant.sessionId} className={styles.participant}>
+              <Img
+                className={styles.avatar}
+                src={participant.image}
+                placeholder={
+                  <div className={styles.placeholder}>
+                    {String(participant.name ?? participant.userId).charAt(0)}
+                  </div>
+                }
+              />
+            </li>
+          ))}
         </ul>
         <h5 className={styles.names}>
           {names.join(', ')} and {last} {participants.length > 3 ? '...' : ''}
@@ -199,7 +196,7 @@ export const Header = ({
     className,
   );
 
-  const me = participants?.[0];
+  const me = participants?.find((p) => p.isLocalParticipant);
 
   if (isCallActive) {
     return participantsPanelVisibility !== PANEL_VISIBILITY.hidden &&
@@ -211,12 +208,12 @@ export const Header = ({
       />
     ) : (
       <div className={rootClassName}>
-        {participants?.length > 1 ? (
+        {participants && participants.length > 1 ? (
           <Participants participants={participants} />
         ) : (
           <CallIdentification callId={callId} />
         )}
-        <Elapsed joinedAt={me?.joinedAt?.seconds} />
+        <Elapsed joinedAt={Number(me?.joinedAt?.seconds) || Date.now()} />
         {breakpoint === 'xs' || breakpoint === 'sm' ? (
           <ParticipantsToggle />
         ) : (

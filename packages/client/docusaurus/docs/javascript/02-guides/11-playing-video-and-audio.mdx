@@ -33,7 +33,7 @@ if (!videoElement) {
 }
 ```
 
-### Playing Screen Sharing
+## Playing Screen Sharing
 
 Similar to the _Rendering Video_, a screenshare track can be rendered like this:
 
@@ -54,13 +54,14 @@ if (!screenElement) {
 }
 ```
 
-### Playing Audio
+## Playing Audio
 
 Our JS SDK exposes a low-level method that binds an audio element to a participant's audio track.
 This method can be found in `call.bindAudioElement`. It takes two arguments:
 
 - the audio element to bind to
 - the participant's `sessionId`
+- the kind of track to bind to (either `audioTrack` or `screenShareAudioTrack` for screen sharing)
 
 This method needs to be called only once, usually after the element is mounted in the DOM.
 
@@ -73,6 +74,10 @@ if (!audioElement) {
 
   // bind the audio element to the participant's audio track
   // use the returned `unbind()` function to unbind the audio element
-  const unbind = call.bindAudioElement(audioElement, participant.sessionId);
+  const unbind = call.bindAudioElement(
+    audioElement,
+    participant.sessionId,
+    'audioTrack',
+  );
 }
 ```

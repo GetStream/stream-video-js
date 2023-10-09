@@ -142,7 +142,9 @@ const Init = () => {
     if (appleItunesAppMeta) {
       appleItunesAppMeta.setAttribute(
         'content',
-        `app-id=1644313060, app-argument=${window.location.href}`,
+        `app-id=1644313060, app-argument=${window.location.href
+          .replace('http://', 'streamvideo://')
+          .replace('https://', 'streamvideo://')}`,
       );
     }
   }, []);

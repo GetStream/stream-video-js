@@ -2,8 +2,11 @@ import { FC, useEffect, useState } from 'react';
 import { FreeMode, Grid as GridModule, Mousewheel, Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import classnames from 'classnames';
-import { Call, StreamVideoParticipant } from '@stream-io/video-react-sdk';
-import { SfuModels } from '@stream-io/video-client';
+import {
+  Call,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-react-sdk';
 
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from '../Icons';
 import Participant from '../Participant';
@@ -69,10 +72,10 @@ export const ParticipantsSlider: FC<Props> = ({
   );
 
   useEffect(() => {
-    if (!scrollWrapper || !call) return;
+    if (!scrollWrapper || !call || mode === 'vertical') return;
     const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
-  }, [scrollWrapper, call]);
+  }, [scrollWrapper, call, mode]);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -80,7 +83,7 @@ export const ParticipantsSlider: FC<Props> = ({
     } else {
       setMode(mode);
     }
-  }, [breakpoint]);
+  }, [breakpoint, mode]);
 
   const rootClassName = classnames(
     styles.root,
@@ -133,7 +136,7 @@ export const ParticipantsSlider: FC<Props> = ({
           }}
           className={swiperClassName}
         >
-          {participants?.map((participant, index) => {
+          {participants?.map((participant) => {
             const particpantHasVideo = participant.publishedTracks.includes(
               SfuModels.TrackType.VIDEO,
             );
@@ -144,9 +147,11 @@ export const ParticipantsSlider: FC<Props> = ({
             });
 
             return (
-              <SwiperSlide key={index} className={slideClassName}>
+              <SwiperSlide
+                key={participant.sessionId}
+                className={slideClassName}
+              >
                 <Participant
-                  key={participant.sessionId}
                   call={call}
                   className={participantClassName}
                   participant={participant}

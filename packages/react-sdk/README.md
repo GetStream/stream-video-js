@@ -14,9 +14,9 @@ Stream allows developers to rapidly deploy scalable feeds, chat messaging and vi
 
 With Stream's video components, you can use their SDK to build in-app video calling, audio rooms, audio calls, or live streaming. The best place to get started is with their tutorials:
 
-- Video & Audio Calling Tutorial
-- Audio Rooms Tutorial
-- Livestreaming Tutorial
+- [Video & Audio Calling Tutorial](https://getstream.io/video/docs/react/tutorials/video-calling/)
+- [Audio Rooms Tutorial](https://getstream.io/video/docs/react/tutorials/audio-room/)
+- [Livestreaming Tutorial](https://getstream.io/video/docs/react/tutorials/livestream/)
 
 Stream provides UI components and state handling that make it easy to build video calling for your app. All calls run on Stream's network of edge servers around the world, ensuring optimal latency and reliability.
 
@@ -54,17 +54,20 @@ Here are some of the features we support:
 ## Roadmap
 
 ### 0.4 milestone
-- [X] Enhanced device management API
-- [X] Composite layout for streaming and recording
-- [ ] Livestream Player
-- [ ] Screenshare Audio
-- [ ] Screen-sharing resolution and FPS control
+
+- [x] Enhanced device management API
+- [x] Composite layout for streaming and recording
+- [x] Livestream Player
+- [x] Screenshare Audio
+- [x] Screen-sharing bitrate and FPS control
 - [ ] Fast-reconnects
 - [ ] New Device Management API
-- [X] SFU retries
+- [x] SFU retries
+- [x] Call Thumbnails
 - [ ] Query call session endpoint
 
 ### 0.5 milestone
+
 - [ ] Enhanced UI components and theming
 - [ ] Enhanced SDK build system
 - [ ] Typescript generics enhancements
@@ -76,13 +79,13 @@ Here are some of the features we support:
 - [ ] E2E testing platform
 
 ### 0.6 milestone
+
 - [ ] Break-out rooms
 - [ ] Waiting rooms
 - [ ] Transcriptions
 - [ ] Closed captions
 - [ ] Video and audio filters
 - [ ] Dynascale: turn off incoming video when the browser is in the background
-
 
 ## Contributing
 

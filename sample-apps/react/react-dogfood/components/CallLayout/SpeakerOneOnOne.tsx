@@ -3,6 +3,7 @@ import {
   DefaultParticipantViewUI,
   ParticipantView,
   SpeakerLayout,
+  StreamVideoParticipant,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { motion } from 'framer-motion';
@@ -13,10 +14,12 @@ const CustomParticipantViewUISpotlight = () => {
   const constraintsElementRef = useRef<HTMLDivElement | null>(null);
   const hasOngoingScreenShare = useHasOngoingScreenShare();
 
-  const participantToRender =
+  const participantToRender: StreamVideoParticipant | undefined =
     hasOngoingScreenShare && !participantInSpotlight.isLocalParticipant
       ? participantInSpotlight
       : otherParticipant;
+
+  if (!participantToRender) return null;
 
   return (
     <>

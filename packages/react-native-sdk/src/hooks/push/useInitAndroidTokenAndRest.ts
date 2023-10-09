@@ -7,7 +7,7 @@ import { StreamVideoRN } from '../../utils';
 import { initAndroidPushToken } from '../../utils/push/android';
 
 /**
- * This hook is used to initialize the push token for Android and ask notification permissions.
+ * This hook is used to initialize the push token for Android.
  */
 export const useInitAndroidTokenAndRest = () => {
   const client = useStreamVideoClient();
@@ -18,6 +18,12 @@ export const useInitAndroidTokenAndRest = () => {
     if (!client || !connectedUserId || !pushConfig) {
       return;
     }
-    initAndroidPushToken(client, pushConfig);
+    let unsubscribe = () => {};
+    initAndroidPushToken(client, pushConfig, (unsubscribeListener) => {
+      unsubscribe = unsubscribeListener;
+    });
+    return () => {
+      unsubscribe();
+    };
   }, [client, connectedUserId]);
 };

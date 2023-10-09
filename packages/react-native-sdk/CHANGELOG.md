@@ -2,6 +2,107 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.3...@stream-io/video-react-native-sdk-0.1.4) (2023-10-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.31`
+* `@stream-io/video-react-bindings` updated to version `0.2.32`
+
+### Features
+
+* **react-native:** add all push support to Expo and non ringing push for vanilla  ([#1097](https://github.com/GetStream/stream-video-js/issues/1097)) ([9dcbe23](https://github.com/GetStream/stream-video-js/commit/9dcbe23dc949e452132b5450419a9558dc836309))
+
+### [0.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.2...@stream-io/video-react-native-sdk-0.1.3) (2023-10-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.30`
+* `@stream-io/video-react-bindings` updated to version `0.2.31`
+
+### Features
+
+* ScreenShare Audio support ([#1118](https://github.com/GetStream/stream-video-js/issues/1118)) ([5b63e1c](https://github.com/GetStream/stream-video-js/commit/5b63e1c5f52c76e3761e6907bd3786c19f0e5c6d))
+
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.1...@stream-io/video-react-native-sdk-0.1.2) (2023-10-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.29`
+* `@stream-io/video-react-bindings` updated to version `0.2.30`
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.0...@stream-io/video-react-native-sdk-0.1.1) (2023-10-04)
+
+
+### Features
+
+* **react-native:**  add lobby footer component ([#1091](https://github.com/GetStream/stream-video-js/issues/1091)) ([4945eb3](https://github.com/GetStream/stream-video-js/commit/4945eb358c4217f502a9735865664cef6c133a93))
+
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.28...@stream-io/video-react-native-sdk-0.1.0) (2023-10-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** set reactions through props and not config (#1069)
+
+### Features
+
+* **react-native:** set reactions through props and not config ([#1069](https://github.com/GetStream/stream-video-js/issues/1069)) ([9569648](https://github.com/GetStream/stream-video-js/commit/95696482c5622c3c93f071356b980deebee6bfbf))
+
+### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.27...@stream-io/video-react-native-sdk-0.0.28) (2023-10-02)
+
+
+### Features
+
+* **react-native:** support landscape more for CallContent ([#1119](https://github.com/GetStream/stream-video-js/issues/1119)) ([2e218b4](https://github.com/GetStream/stream-video-js/commit/2e218b4ad8f00c5eb1632d64df6c5d3456b5af41))
+
+### [0.0.27](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.26...@stream-io/video-react-native-sdk-0.0.27) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.28`
+* `@stream-io/video-react-bindings` updated to version `0.2.29`
+### [0.0.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.25...@stream-io/video-react-native-sdk-0.0.26) (2023-09-28)
+
+
+### Bug Fixes
+
+* **react-native:** initial media stream management according to BE and SDK settings ([#1110](https://github.com/GetStream/stream-video-js/issues/1110)) ([cca7cf6](https://github.com/GetStream/stream-video-js/commit/cca7cf6d977a3a46e17deb73fa4f1b585d2039e8))
+
+### [0.0.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.24...@stream-io/video-react-native-sdk-0.0.25) (2023-09-28)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.28`
+### [0.0.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.23...@stream-io/video-react-native-sdk-0.0.24) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.27`
+
+### Features
+
+* **Call Preview:** Support for call thumbnails ([#1099](https://github.com/GetStream/stream-video-js/issues/1099)) ([9274f76](https://github.com/GetStream/stream-video-js/commit/9274f760ed264ee0ee6ac97c6fe679288e067fd8))
+
+### [0.0.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.22...@stream-io/video-react-native-sdk-0.0.23) (2023-09-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.26`
+### [0.0.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.21...@stream-io/video-react-native-sdk-0.0.22) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.25`
+### [0.0.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.20...@stream-io/video-react-native-sdk-0.0.21) (2023-09-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.1.0`
+* `@stream-io/video-react-bindings` updated to version `0.2.24`
 ### [0.0.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.19...@stream-io/video-react-native-sdk-0.0.20) (2023-09-25)
 
 ### Dependency Updates

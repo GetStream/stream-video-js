@@ -18,13 +18,13 @@ const config: Config = {
 
 export const generateUser = (): User => {
   const { user_id, user_name, id } = getURLCredentials();
-  const characterName: string = uniqueNamesGenerator(config);
+  const characterName = uniqueNamesGenerator(config);
 
-  const userName: string = user_name ?? `${characterName}`;
-  const userId: string = user_id ?? `demo-${userName}-${uuid()}`;
+  const userName = user_name ?? characterName;
+  const userId = user_id ?? `demo-${userName}-${uuid()}`;
 
   return {
-    id: userId,
+    id: userId.replace(/[^_\-0-9a-zA-Z@]/g, '_'),
     name: userName,
     role: id ? 'user' : 'admin',
     teams: ['@stream-io/video-demo'],

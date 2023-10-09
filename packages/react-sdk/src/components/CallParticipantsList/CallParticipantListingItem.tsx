@@ -142,7 +142,7 @@ export const ParticipantActionsContextMenu = ({
   const [pictureInPictureElement, setPictureInPictureElement] = useState(
     document.pictureInPictureElement,
   );
-  const activeCall = useCall();
+  const call = useCall();
   const { t } = useI18n();
 
   const { pin, publishedTracks, sessionId, userId } = participant;
@@ -152,29 +152,26 @@ export const ParticipantActionsContextMenu = ({
   const hasScreenShare = publishedTracks.includes(
     SfuModels.TrackType.SCREEN_SHARE,
   );
+  const hasScreenShareAudio = publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE_AUDIO,
+  );
 
-  const blockUser = () => {
-    activeCall?.blockUser(userId);
-  };
-  const muteAudio = () => {
-    activeCall?.muteUser(userId, 'audio');
-  };
-  const muteVideo = () => {
-    activeCall?.muteUser(userId, 'video');
-  };
-  const muteScreenShare = () => {
-    activeCall?.muteUser(userId, 'screenshare');
-  };
+  const blockUser = () => call?.blockUser(userId);
+  const muteAudio = () => call?.muteUser(userId, 'audio');
+  const muteVideo = () => call?.muteUser(userId, 'video');
+  const muteScreenShare = () => call?.muteUser(userId, 'screenshare');
+  const muteScreenShareAudio = () =>
+    call?.muteUser(userId, 'screenshare_audio');
 
   const grantPermission = (permission: string) => () => {
-    activeCall?.updateUserPermissions({
+    call?.updateUserPermissions({
       user_id: userId,
       grant_permissions: [permission],
     });
   };
 
   const revokePermission = (permission: string) => () => {
-    activeCall?.updateUserPermissions({
+    call?.updateUserPermissions({
       user_id: userId,
       revoke_permissions: [permission],
     });
@@ -182,14 +179,14 @@ export const ParticipantActionsContextMenu = ({
 
   const toggleParticipantPinnedAt = () => {
     if (pin) {
-      activeCall?.unpin(sessionId);
+      call?.unpin(sessionId);
     } else {
-      activeCall?.pin(sessionId);
+      call?.pin(sessionId);
     }
   };
 
   const pinForEveryone = () => {
-    activeCall
+    call
       ?.pinForEveryone({
         user_id: userId,
         session_id: sessionId,
@@ -200,7 +197,7 @@ export const ParticipantActionsContextMenu = ({
   };
 
   const unpinForEveryone = () => {
-    activeCall
+    call
       ?.unpinForEveryone({
         user_id: userId,
         session_id: sessionId,
@@ -211,11 +208,12 @@ export const ParticipantActionsContextMenu = ({
   };
 
   const toggleFullscreenMode = () => {
-    if (!fullscreenModeOn)
+    if (!fullscreenModeOn) {
       return participantViewElement
         ?.requestFullscreen()
         .then(() => setFullscreenModeOn(true))
         .catch(console.error);
+    }
 
     document
       .exitFullscreen()
@@ -252,10 +250,11 @@ export const ParticipantActionsContextMenu = ({
   }, [videoElement]);
 
   const togglePictureInPicture = () => {
-    if (videoElement && pictureInPictureElement !== videoElement)
+    if (videoElement && pictureInPictureElement !== videoElement) {
       return videoElement
         .requestPictureInPicture()
         .catch(console.error) as Promise<void>;
+    }
 
     document.exitPictureInPicture().catch(console.error);
   };
@@ -306,6 +305,13 @@ export const ParticipantActionsContextMenu = ({
         <GenericMenuButtonItem disabled={!hasAudio} onClick={muteAudio}>
           <Icon icon="no-audio" />
           {t('Mute audio')}
+        </GenericMenuButtonItem>
+        <GenericMenuButtonItem
+          disabled={!hasScreenShareAudio}
+          onClick={muteScreenShareAudio}
+        >
+          <Icon icon="no-audio" />
+          {t('Mute screen share audio')}
         </GenericMenuButtonItem>
       </Restricted>
       {participantViewElement && (

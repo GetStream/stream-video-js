@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.11...@stream-io/video-styling-0.1.12) (2023-10-02)
+
+
+### Features
+
+* **egress-composite:** add support for new options ([#1104](https://github.com/GetStream/stream-video-js/issues/1104)) ([2e039c2](https://github.com/GetStream/stream-video-js/commit/2e039c280cd808e6464ee3ab54e8c3606a0a0180)), closes [/github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx#L53-L117](https://github.com/GetStream//github.com/GetStream/stream-video-js/blob/acc7301c069daeff68a8ad495e4f66bc2e61a137/sample-apps/react/egress-composite/src/ConfigurationContext.tsx/issues/L53-L117)
+
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.10...@stream-io/video-styling-0.1.11) (2023-09-27)
+
+
+### Features
+
+* **Call Preview:** Support for call thumbnails ([#1099](https://github.com/GetStream/stream-video-js/issues/1099)) ([9274f76](https://github.com/GetStream/stream-video-js/commit/9274f760ed264ee0ee6ac97c6fe679288e067fd8))
+
+### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.9...@stream-io/video-styling-0.1.10) (2023-09-27)
+
+
+### Features
+
+* **react-sdk:** LivestreamLayout ([#1103](https://github.com/GetStream/stream-video-js/issues/1103)) ([6636699](https://github.com/GetStream/stream-video-js/commit/6636699701dfd5eb5886c50781dd5f16a8470da5))
+
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.8...@stream-io/video-styling-0.1.9) (2023-09-26)
+
+
+### Features
+
+* show the anonymous user count in the participant list ([#1109](https://github.com/GetStream/stream-video-js/issues/1109)) ([a253cbf](https://github.com/GetStream/stream-video-js/commit/a253cbfa7552a9ab4302ce824a72653a27dd324d))
+
 ### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.7...@stream-io/video-styling-0.1.8) (2023-09-25)
 
 

@@ -30,6 +30,21 @@ const renderVideoButton = (call: Call) => {
   return videoButton;
 };
 
+const renderScreenShareButton = (call: Call) => {
+  const screenShareButton = document.createElement('button');
+
+  screenShareButton.addEventListener('click', async () => {
+    await call.screenShare.toggle();
+  });
+
+  call.screenShare.state.status$.subscribe((status) => {
+    screenShareButton.innerText =
+      status === 'enabled' ? 'Turn off screen share' : 'Turn on screen share';
+  });
+
+  return screenShareButton;
+};
+
 const renderFlipButton = (call: Call) => {
   const flipButton = document.createElement('button');
 
@@ -49,6 +64,7 @@ export const renderControls = (call: Call) => {
   return {
     audioButton: renderAudioButton(call),
     videoButton: renderVideoButton(call),
+    screenShareButton: renderScreenShareButton(call),
     flipButton: renderFlipButton(call),
   };
 };

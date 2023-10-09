@@ -11,9 +11,10 @@ import {
   ParticipantView,
   ParticipantViewProps,
 } from '../ParticipantView';
-import { Audio } from '../Audio';
+import { ParticipantsAudio } from '../Audio';
 import { IconButton } from '../../../components';
 import { chunk } from '../../../utilities';
+import { usePaginatedLayoutSortPreset } from './hooks';
 
 const GROUP_SIZE = 16;
 
@@ -78,12 +79,26 @@ export const PaginatedGridLayout = ({
   ParticipantViewUI = DefaultParticipantViewUI,
 }: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
+  const [
+    paginatedGridLayoutWrapperElement,
+    setPaginatedGridLayoutWrapperElement,
+  ] = useState<HTMLDivElement | null>(null);
 
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const participants = useParticipants();
   // used to render audio elements
   const remoteParticipants = useRemoteParticipants();
+
+  usePaginatedLayoutSortPreset(call);
+
+  useEffect(() => {
+    if (!paginatedGridLayoutWrapperElement || !call) return;
+
+    const cleanup = call.setViewport(paginatedGridLayoutWrapperElement);
+
+    return () => cleanup();
+  }, [paginatedGridLayoutWrapperElement, call]);
 
   // only used to render video elements
   const participantGroups = useMemo(
@@ -109,41 +124,38 @@ export const PaginatedGridLayout = ({
   if (!call) return null;
 
   return (
-    <>
-      {remoteParticipants.map((participant) => (
-        <Audio key={participant.sessionId} participant={participant} />
-      ))}
-      <div className="str-video__paginated-grid-layout__wrapper">
-        <div className="str-video__paginated-grid-layout">
-          {pageArrowsVisible && pageCount > 1 && (
-            <IconButton
-              icon="caret-left"
-              disabled={page === 0}
-              onClick={() =>
-                setPage((currentPage) => Math.max(0, currentPage - 1))
-              }
-            />
-          )}
-          {selectedGroup && (
-            <PaginatedGridLayoutGroup
-              group={participantGroups[page]}
-              VideoPlaceholder={VideoPlaceholder}
-              ParticipantViewUI={ParticipantViewUI}
-            />
-          )}
-          {pageArrowsVisible && pageCount > 1 && (
-            <IconButton
-              disabled={page === pageCount - 1}
-              icon="caret-right"
-              onClick={() =>
-                setPage((currentPage) =>
-                  Math.min(pageCount - 1, currentPage + 1),
-                )
-              }
-            />
-          )}
-        </div>
+    <div
+      className="str-video__paginated-grid-layout__wrapper"
+      ref={setPaginatedGridLayoutWrapperElement}
+    >
+      <ParticipantsAudio participants={remoteParticipants} />
+      <div className="str-video__paginated-grid-layout">
+        {pageArrowsVisible && pageCount > 1 && (
+          <IconButton
+            icon="caret-left"
+            disabled={page === 0}
+            onClick={() =>
+              setPage((currentPage) => Math.max(0, currentPage - 1))
+            }
+          />
+        )}
+        {selectedGroup && (
+          <PaginatedGridLayoutGroup
+            group={participantGroups[page]}
+            VideoPlaceholder={VideoPlaceholder}
+            ParticipantViewUI={ParticipantViewUI}
+          />
+        )}
+        {pageArrowsVisible && pageCount > 1 && (
+          <IconButton
+            disabled={page === pageCount - 1}
+            icon="caret-right"
+            onClick={() =>
+              setPage((currentPage) => Math.min(pageCount - 1, currentPage + 1))
+            }
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 };

@@ -5,8 +5,7 @@ import { generateUUIDv4 } from '../../coordinator/connection/utils';
 import { LogLevel } from '../../coordinator/connection/types';
 import {
   OwnCapability,
-  RecordSettingsModeEnum,
-  RecordSettingsQualityEnum,
+  RecordSettingsRequestModeEnum,
 } from '../../gen/coordinator';
 
 const apiKey = process.env.STREAM_API_KEY!;
@@ -98,10 +97,7 @@ describe('call types CRUD API', () => {
       settings: {
         audio: { mic_default_on: false, default_device: 'earpiece' },
         recording: {
-          mode: RecordSettingsModeEnum.DISABLED,
-          // FIXME OL: these props shouldn't be required to be set when recording is disabled
-          audio_only: false,
-          quality: RecordSettingsQualityEnum._1080P,
+          mode: RecordSettingsRequestModeEnum.DISABLED,
         },
       },
     });
@@ -109,7 +105,7 @@ describe('call types CRUD API', () => {
     expect(updateResponse.settings.audio.mic_default_on).toBeFalsy();
     expect(updateResponse.settings.audio.default_device).toBe('earpiece');
     expect(updateResponse.settings.recording.mode).toBe(
-      RecordSettingsModeEnum.DISABLED,
+      RecordSettingsRequestModeEnum.DISABLED,
     );
   });
 

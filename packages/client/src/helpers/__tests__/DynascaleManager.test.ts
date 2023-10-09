@@ -103,7 +103,7 @@ describe('DynascaleManager', () => {
       videoElement.clientHeight = 100;
     });
 
-    it('should bind audio element', () => {
+    it('audio: should bind audio element', () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
       const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
@@ -128,6 +128,7 @@ describe('DynascaleManager', () => {
       const cleanup = dynascaleManager.bindAudioElement(
         audioElement,
         'session-id',
+        'audioTrack',
       );
       expect(audioElement.autoplay).toBe(true);
 
@@ -168,6 +169,40 @@ describe('DynascaleManager', () => {
       call.speaker.setVolume(0.5);
 
       expect(audioElement.volume).toBe(0.5);
+
+      cleanup?.();
+    });
+
+    it('audio: should bind screenShare audio element', () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+      // @ts-ignore
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.SCREEN_SHARE_AUDIO],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'screenShareAudioTrack',
+      );
+      expect(audioElement.autoplay).toBe(true);
+
+      const audioMediaStream = new MediaStream();
+      const screenShareAudioMediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: audioMediaStream,
+        screenShareAudioStream: screenShareAudioMediaStream,
+      });
+
+      vi.runAllTimers();
+
+      expect(play).toHaveBeenCalled();
+      expect(audioElement.srcObject).toBe(screenShareAudioMediaStream);
 
       cleanup?.();
     });
@@ -227,7 +262,7 @@ describe('DynascaleManager', () => {
 
       cleanup?.();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
+      expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.FAST,
@@ -278,7 +313,7 @@ describe('DynascaleManager', () => {
 
       cleanup?.();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
+      expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.FAST,
@@ -366,7 +401,7 @@ describe('DynascaleManager', () => {
 
       cleanup?.();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
+      expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.FAST,
@@ -436,7 +471,7 @@ describe('DynascaleManager', () => {
 
       cleanup?.();
 
-      expect(updateSubscription).toHaveBeenCalledWith(
+      expect(updateSubscription).toHaveBeenLastCalledWith(
         'videoTrack',
         { 'session-id': { dimension: undefined } },
         DebounceType.FAST,

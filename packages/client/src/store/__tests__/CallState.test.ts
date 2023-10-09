@@ -24,6 +24,8 @@ import {
 import * as TestData from '../../sorting/__tests__/participant-data';
 
 describe('CallState', () => {
+  // TODO OL add API verification test -> observable$ should have a getter!
+
   describe('sorting', () => {
     it('should emit sorted participants', () => {
       const state = new CallState();
@@ -66,6 +68,7 @@ describe('CallState', () => {
       });
 
       const ps2 = state.participants;
+      // should resolve in initial - non-mutated state as set at the beginning
       expect(ps2.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
     });
 
@@ -470,7 +473,7 @@ describe('CallState', () => {
         expect(state.recording).toBe(false);
       });
 
-      it('handles call.broadcasting_started events', () => {
+      it('handles call.hls_broadcasting_started events', () => {
         const state = new CallState();
         state.updateFromCallResponse({
           // @ts-ignore
@@ -483,7 +486,7 @@ describe('CallState', () => {
         });
         // @ts-ignore
         state.updateFromEvent({
-          type: 'call.broadcasting_started',
+          type: 'call.hls_broadcasting_started',
           hls_playlist_url: 'https://example.com/playlist.m3u8',
         });
         expect(state.egress?.broadcasting).toBe(true);
@@ -492,13 +495,13 @@ describe('CallState', () => {
         );
       });
 
-      it('handles call.broadcasting_stopped events', () => {
+      it('handles call.hls_broadcasting_stopped events', () => {
         const state = new CallState();
         // @ts-ignore
         state.updateFromCallResponse({});
         // @ts-ignore
         state.updateFromEvent({
-          type: 'call.broadcasting_stopped',
+          type: 'call.hls_broadcasting_stopped',
         });
         expect(state.egress?.broadcasting).toBe(false);
       });
