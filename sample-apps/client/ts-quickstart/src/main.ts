@@ -38,12 +38,25 @@ const client = new StreamVideoClient({
   options: { logLevel: import.meta.env.VITE_STREAM_LOG_LEVEL },
 });
 const call = client.call('default', callId);
+
+// @ts-ignore
+window.call = call;
+// @ts-ignore
+window.client = client;
+
+call.screenShare.enableScreenShareAudio();
+call.screenShare.setSettings({
+  maxFramerate: 10,
+  maxBitrate: 1500000,
+});
+
 call.join({ create: true }).then(async () => {
   // render mic and camera controls
   const controls = renderControls(call);
   const container = document.getElementById('call-controls')!;
   container.appendChild(controls.audioButton);
   container.appendChild(controls.videoButton);
+  container.appendChild(controls.screenShareButton);
 
   container.appendChild(renderAudioDeviceSelector(call));
 
@@ -66,13 +79,14 @@ window.addEventListener('beforeunload', () => {
   call.leave();
 });
 
+const screenShareContainer = document.getElementById('screenshare')!;
 const parentContainer = document.getElementById('participants')!;
 call.setViewport(parentContainer);
 
 call.state.participants$.subscribe((participants) => {
   // render / update existing participants
   participants.forEach((participant) => {
-    renderParticipant(call, participant, parentContainer);
+    renderParticipant(call, participant, parentContainer, screenShareContainer);
   });
 
   // Remove stale elements for stale participants

@@ -6,11 +6,9 @@ import {
   CallSettingsResponse,
   CallState,
   CallStatsReport,
-  CameraManagerState,
   Comparator,
   EgressResponse,
   MemberResponse,
-  MicrophoneManagerState,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
@@ -330,12 +328,7 @@ export const useCallThumbnail = () => {
  */
 export const useCameraState = () => {
   const call = useCall();
-
-  const {
-    camera = {
-      state: new CameraManagerState(),
-    },
-  } = call as Call;
+  const { camera } = call as Call;
 
   const status = useObservableValue(camera.state.status$);
   const direction = useObservableValue(camera.state.direction$);
@@ -353,12 +346,7 @@ export const useCameraState = () => {
  */
 export const useMicrophoneState = () => {
   const call = useCall();
-
-  const {
-    microphone = {
-      state: new MicrophoneManagerState(),
-    },
-  } = call as Call;
+  const { microphone } = call as Call;
 
   const status = useObservableValue(microphone.state.status$);
   const selectedDevice = useObservableValue(microphone.state.selectedDevice$);
@@ -366,5 +354,16 @@ export const useMicrophoneState = () => {
   return {
     status,
     selectedDevice,
+  };
+};
+
+export const useScreenShareState = () => {
+  const call = useCall();
+  const { screenShare } = call as Call;
+
+  const status = useObservableValue(screenShare.state.status$);
+
+  return {
+    status,
   };
 };
