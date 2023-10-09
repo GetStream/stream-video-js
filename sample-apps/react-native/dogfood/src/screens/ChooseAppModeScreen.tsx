@@ -17,6 +17,10 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'Audio-Room' });
   };
 
+  const onLiveStreamSelect = () => {
+    setState({ appMode: 'LiveStream' });
+  };
+
   const onRingingSelect = () => {
     setState({ appMode: 'Call' });
   };
@@ -38,6 +42,11 @@ export const ChooseAppModeScreen = () => {
         <Button
           title={t('Audio Rooms')}
           onPress={onAudioRoomSelect}
+          buttonStyle={styles.callButton}
+        />
+        <Button
+          title={t('Live streaming')}
+          onPress={onLiveStreamSelect}
           buttonStyle={styles.callButton}
         />
       </View>

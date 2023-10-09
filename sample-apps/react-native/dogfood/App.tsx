@@ -30,6 +30,7 @@ import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
+import { LiveStream } from './src/navigators/Livestream';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -76,6 +77,15 @@ const StackNavigator = () => {
           name="AudioRoom"
           component={AudioRoomScreen}
           options={{ header: NavigationHeader }}
+        />
+      );
+      break;
+    case 'LiveStream':
+      mode = (
+        <Stack.Screen
+          name="LiveStream"
+          component={LiveStream}
+          options={{ headerShown: false }}
         />
       );
       break;

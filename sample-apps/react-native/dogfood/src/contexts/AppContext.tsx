@@ -1,6 +1,6 @@
 import createStoreContext from './createStoreContext';
 
-export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'None';
+export type AppMode = 'Meeting' | 'Call' | 'Audio-Room' | 'LiveStream' | 'None';
 
 type AppGlobalStore = {
   userId: string;
