@@ -9,6 +9,8 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import com.streamvideo.reactnative.StreamVideoReactNative;
 import android.util.Rational;
 
+import androidx.lifecycle.Lifecycle;
+
 public class MainActivity extends ReactActivity {
 
   @Override
@@ -46,13 +48,20 @@ public class MainActivity extends ReactActivity {
   @Override
   public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
     super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+      // when user clicks on Close button of PIP
+      finishAndRemoveTask();
+    } else {
+      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    }
   }
 
   @Override
   public void onUserLeaveHint () {
-    PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-    builder.setAspectRatio(new Rational(480, 640));
-    enterPictureInPictureMode(builder.build());
+    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+      PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
+      builder.setAspectRatio(new Rational(480, 640));
+      enterPictureInPictureMode(builder.build());
+    }
   }
 }

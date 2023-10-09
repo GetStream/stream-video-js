@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
-export default function useIsInPiPMode() {
+export function useIsInPiPMode() {
   const [isInPiPMode, setIsInPiPMode] = useState(false);
 
   useEffect(() => {
@@ -24,8 +24,6 @@ export default function useIsInPiPMode() {
       subscription.remove();
     };
   }, []);
-
-  console.log({ isInPiPMode });
 
   return isInPiPMode;
 }

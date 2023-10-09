@@ -10,6 +10,9 @@ object StreamVideoReactNative {
 
     var pipListeners = ArrayList<(b: Boolean) -> Unit>()
 
+    @JvmField
+    var canAutoEnterPictureInPictureMode = false
+
     // fires off every time value of the property changes
     private var isInPictureInPictureMode: Boolean by Delegates.observable(false) { _, _, newValue ->
         pipListeners.forEach {listener ->

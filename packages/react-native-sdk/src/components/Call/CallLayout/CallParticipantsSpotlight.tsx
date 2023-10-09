@@ -18,6 +18,7 @@ import {
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
+import { useIsInPiPMode } from '../../../hooks';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -61,6 +62,8 @@ export const CallParticipantsSpotlight = ({
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
+
+  const isInPiP = useIsInPiPMode();
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
@@ -117,7 +120,7 @@ export const CallParticipantsSpotlight = ({
           {...participantViewProps}
         />
       )}
-      {!isUserAloneInCall && (
+      {!isInPiP && !isUserAloneInCall && (
         <View
           style={[
             styles.callParticipantsListContainer,

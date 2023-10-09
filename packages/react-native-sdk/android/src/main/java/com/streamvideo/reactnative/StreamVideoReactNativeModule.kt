@@ -38,6 +38,11 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         }
     }
 
+    @ReactMethod
+    fun canAutoEnterPipMode(value: Boolean) {
+        StreamVideoReactNative.canAutoEnterPictureInPictureMode = value
+    }
+
     private fun hasPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
             val appOps =
