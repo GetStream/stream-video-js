@@ -6,4 +6,5 @@ export type RingingPushNotifications = {
 export type ConfigProps = {
   ringingPushNotifications?: RingingPushNotifications;
   enableNonRingingPushNotifications?: boolean;
+  enableAndroidAutomaticPictureInPicture?: boolean;
 };
