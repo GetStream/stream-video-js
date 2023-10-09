@@ -1,5 +1,5 @@
 .root {
-  @apply flex relative;
+  @apply flex relative border-2;
 }
 
 .video {

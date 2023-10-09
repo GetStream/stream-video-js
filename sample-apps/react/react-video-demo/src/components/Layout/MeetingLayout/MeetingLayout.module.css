@@ -32,6 +32,7 @@
   grid-area: layoutContainer;
   @apply grid rounded-container bg-video-black md:bg-video-grey-600 w-full;
   grid-template-rows: 80px calc(100dvh - 150px) 70px;
+  grid-template-columns: 100%;
   grid-template-areas:
     'header'
     'body'
