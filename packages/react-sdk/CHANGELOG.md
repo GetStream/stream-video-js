@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.39](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.38...@stream-io/video-react-sdk-0.3.39) (2023-10-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.31`
+* `@stream-io/video-react-bindings` updated to version `0.2.32`
+
+### Bug Fixes
+
+* sorting in paginated grid ([#1129](https://github.com/GetStream/stream-video-js/issues/1129)) ([d5b280a](https://github.com/GetStream/stream-video-js/commit/d5b280aadeaa4c718d0158561197c7045620ae0f))
+
 ### [0.3.38](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.37...@stream-io/video-react-sdk-0.3.38) (2023-10-06)
 
 ### Dependency Updates
