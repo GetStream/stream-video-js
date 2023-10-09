@@ -22,12 +22,6 @@ runs:
       run: yarn build:react-native:deps
       shell: bash
 
-    - name: Setup and link permissions
-      if: ${{ env.INSTALL_IOS_PERMISSIONS == 'true' }}
-      working-directory: sample-apps/react-native/dogfood
-      run: npx react-native setup-ios-permissions
-      shell: bash
-
     - name: Cache pods
       uses: actions/cache@v3
       if: ${{ env.INSTALL_PODS == 'true' }}

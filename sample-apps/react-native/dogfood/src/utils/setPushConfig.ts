@@ -7,6 +7,7 @@ import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
 import { STREAM_API_KEY } from '../../config';
+import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -15,6 +16,11 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      callChannel: {
+        id: 'stream_call_notifications',
+        name: 'Call notifications',
+        importance: AndroidImportance.HIGH,
+      },
       incomingCallChannel: {
         id: 'stream_incoming_call',
         name: 'Incoming call notifications',
@@ -23,7 +29,19 @@ export function setPushConfig() {
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>
           `Incoming call from ${createdUserName}`,
-        getBody: (_createdUserName: string) => 'Tap to answer the call',
+        getBody: (_createdUserName: string) => 'Tap to open the call',
+      },
+      callNotificationTextGetters: {
+        getTitle(type, createdUserName) {
+          if (type === 'call.live_started') {
+            return `Call went live, it was started by ${createdUserName}`;
+          } else {
+            return `${createdUserName} is notifying you about a call`;
+          }
+        },
+        getBody(_type, _createdUserName) {
+          return 'Tap to open the call';
+        },
       },
     },
     createStreamVideoClient,
@@ -32,6 +50,17 @@ export function setPushConfig() {
     },
     navigateToIncomingCall: () => {
       staticNavigate({ name: 'Call', params: undefined });
+    },
+    onTapNonRingingCallNotification: (call_cid) => {
+      const [callType, callId] = call_cid.split(':');
+      if (callType === 'default') {
+        prontoCallId$.next(callId); // reusing the deeplink logic for non ringing calls s
+        staticNavigate({ name: 'Meeting', params: undefined });
+      } else {
+        console.error(
+          `call type: ${callType}, not supported yet in this app!!`,
+        );
+      }
     },
   });
 }

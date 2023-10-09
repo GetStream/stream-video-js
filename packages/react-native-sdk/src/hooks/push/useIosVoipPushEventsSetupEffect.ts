@@ -5,6 +5,9 @@ import { Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
 import { voipPushNotificationCallCId$ } from '../../utils/push/rxSubjects';
+import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
+
+let lastVoipToken: string | undefined = '';
 
 /**
  * This hook is used to do the initial setup of listeners
@@ -17,13 +20,34 @@ export const useIosVoipPushEventsSetupEffect = () => {
     if (Platform.OS !== 'ios' || !pushConfig || !client) {
       return;
     }
+    if (lastVoipToken) {
+      // send token to stream (userId might have switched on the same device)
+      const push_provider_name = pushConfig.ios.pushProviderName;
+      if (!push_provider_name) {
+        return;
+      }
+      client
+        .addVoipDevice(lastVoipToken, 'apn', push_provider_name)
+        .catch((err) => {
+          console.warn('Failed to send voip token to stream', err);
+        });
+    }
     const voipPushNotification = getVoipPushNotificationLib();
-
     const onTokenReceived = (token: string) => {
       // send token to stream
+      lastVoipToken = token;
       const push_provider_name = pushConfig.ios.pushProviderName;
+      if (!push_provider_name) {
+        return;
+      }
       client.addVoipDevice(token, 'apn', push_provider_name).catch((err) => {
         console.warn('Failed to send voip token to stream', err);
+      });
+      // set the logout callback
+      setPushLogoutCallback(() => {
+        client.removeDevice(token).catch((err) => {
+          console.warn('Failed to remove voip token from stream', err);
+        });
       });
     };
     // fired when PushKit give us the latest token
@@ -68,9 +92,32 @@ export const useIosVoipPushEventsSetupEffect = () => {
 };
 
 const onNotificationReceived = (notification: any) => {
+  /* --- Example payload ---
+  {
+    "aps": {
+      "alert": {
+        "body": "",
+        "title": "Vishal Narkhede is calling you"
+      },
+      "badge": 0,
+      "category": "stream.video",
+      "mutable-content": 1
+    },
+    "stream": {
+      "call_cid": "default:ixbm7y0k74pbjnq",
+      "call_display_name": "",
+      "created_by_display_name": "Vishal Narkhede",
+      "created_by_id": "vishalexpo",
+      "receiver_id": "santhoshexpo",
+      "sender": "stream.video",
+      "type": "call.ring",
+      "version": "v2"
+    }
+  } */
   const sender = notification?.stream?.sender;
-  // do not process any other notifications other than stream.video
-  if (sender !== 'stream.video') {
+  const type = notification?.stream?.type;
+  // do not process any other notifications other than stream.video or ringing
+  if (sender !== 'stream.video' && type !== 'call.ring') {
     return;
   }
   const call_cid = notification?.stream?.call_cid;
