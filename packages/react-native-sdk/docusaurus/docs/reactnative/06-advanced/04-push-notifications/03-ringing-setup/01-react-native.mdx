@@ -1,36 +1,32 @@
 ---
-id: setup
-title: Setup
+title: React Native
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-This guide discusses how to add push notifications to your project. It will discuss both Android and iOS and go through all the necessary steps.
+This guide discusses how to add push notifications for ringing calls to your project. It will discuss both Android and iOS and go through all the necessary steps.
 
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive. 
+The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your React Native app to get push notifications from Stream for the incoming calls that your user will receive.  
 
 | Android preview | iOS preview |
 |---|---|
-| ![Android preview of the Firebase push notification](../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../assets/06-advanced/04-push-notifications/ios-preview.png)
+| ![Android preview of the Firebase push notification](../../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../../assets/06-advanced/04-push-notifications/ios-preview.png)
 
 ## Add push provider credentials to Stream
 
 Please follow the below guides for adding appropriate push providers to Stream:
 
-- Android - [Firebase Cloud Messaging](../push-providers/firebase/)
-- iOS - [VoIP using Apple Push Notification Service (APNs)](../push-providers/apn-voip/)
+- Android - [Firebase Cloud Messaging](../../push-providers/firebase/)
+- iOS - [Apple Push Notification Service (APNs)](../../push-providers/apn-voip/)
 
 ## Install Dependencies
 
-The first step is to install all necessary packages with your package manager of choice. Specifically, you will need to install the Firebase-related packages (for this use case that is [React Native Firebase App module](https://www.npmjs.com/package/@react-native-firebase/app) and [React Native Firebase Messaging module](https://www.npmjs.com/package/@react-native-firebase/messaging)) to receive notifications on Android. Also, you need to install [React Native VoIP Push Notification](https://github.com/react-native-webrtc/react-native-voip-push-notification) package for interacting with VoIP push notifications on iOS. And finally, you need to install [React Native CallKeep](https://github.com/react-native-webrtc/react-native-callkeep) package to report incoming calls to iOS [CallKit](https://developer.apple.com/documentation/callkit).
-
 ```bash title=Terminal
-yarn add \
-  @react-native-firebase/app \
-  @react-native-firebase/messaging \
-  react-native-callkeep \
-  react-native-voip-push-notification
+yarn add @react-native-firebase/app
+yarn add @react-native-firebase/messaging
+yarn add react-native-callkeep
+yarn add react-native-voip-push-notification
 npx pod-install
 ```
 
@@ -42,19 +38,71 @@ So what did we install precisely?
 
 ## Android-specific setup
 
-The only setup required for Android is to configure the Firebase library. Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#2-android-setup) to generate credentials for your Android app and configure Firebase.
+1. To create a Firebase project, go to the [Firebase console](https://console.firebase.google.com/) and click on **Add project**.
 
-## iOS-specific setup
+2. In the console, click the setting icon next to **Project overview** and open **Project settings**. Then, under **Your apps**, click the Android icon to open **Add Firebase to your Android app** and follow the steps. **Make sure that the Android package name you enter is the same as the value of** `android.package` **from your app.json.**
 
-### Configure Firebase
+3. After registering the app, download the **google-services.json** file and place it inside of your project at the following location: `/android/app/google-services.json.`
 
-Follow [this guide at react-native-firebase documentation](https://rnfirebase.io/#3-ios-setup) to generate credentials for your iOS app and configure Firebase.
+4. To allow Firebase on Android to use the credentials, the `google-services` plugin must be enabled on the project. This requires modification to two files in the Android directory. Add the highlighted lines in the relevant files:
+
+```groovy title="/android/build.gradle"
+buildscript {
+  dependencies {
+    // ... other dependencies
+    // highlight-next-line
+    classpath 'com.google.gms:google-services:4.3.15'
+  }
+}
+```
+
+```groovy title="/android/build.gradle"
+apply plugin: 'com.android.application'
+// highlight-next-line
+apply plugin: 'com.google.gms.google-services'
+```
 
 :::note
 
-We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-firebase` library will throw an error if iOS credentials are not added.
+The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
 
 :::
+
+### Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
+<!-- vale off -->
+
+```js
+import { requestNotifications } from 'react-native-permissions';
+
+await requestNotifications(['alert', 'sound']);
+```
+<!-- vale on -->
+## iOS-specific setup
+
+### Disable Firebase installation
+
+We don't use Firebase cloud messaging for iOS in the SDK. Unless Firebase is used for other purposes in your app, you can safely remove it from being installed by iOS and avoid the auto-linking. To do that create a file named `react-native.config.js` in the root of your project and add the following contents:
+
+```js title="react-native.config.js"
+module.exports = {
+  dependencies: {
+    '@react-native-firebase/app': {
+      platforms: {
+        ios: null,
+      },
+    },
+    '@react-native-firebase/messaging': {
+      platforms: {
+        ios: null,
+      },
+    },
+  },
+};
+```
+
+Once this is done, `pod install` must be run again to remove the installed pods. 
 
 ### Link required libraries for react native callkeep library
 
@@ -62,14 +110,14 @@ We don't use Firebase cloud messaging for iOS in the SDK. But the `react-native-
 2. Add `CallKit.framework`
 3. Add `Intents.framework` (and mark it Optional).
 
-![Example of how to use link libraries required for callkeep library](../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png)
+![Example of how to use link libraries required for callkeep library](../../../assets/06-advanced/04-push-notifications/ios-callkit-libraries-link.png)
 
 ### Add header search path for react native callkeep library
 
 1. In Xcode: Click on `Build Settings` tab, then search for `Header Search Paths`.
 2. Add `$(SRCROOT)/../node_modules/react-native-callkeep/ios/RNCallKeep`.
 
-![Example of how to add header search paths that are required for callkeep library](../../assets/06-advanced/04-push-notifications/ios-search-paths.png)
+![Example of how to add header search paths that are required for callkeep library](../../../assets/06-advanced/04-push-notifications/ios-search-paths.png)
 
 ### Add background modes
 
@@ -78,7 +126,6 @@ In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. B
 ```xml
 <key>UIBackgroundModes</key>
 <array>
-  <string>remote-notification</string>
   <string>voip</string>
 </array>
 ```
@@ -95,7 +142,7 @@ Update `AppDelegate.m` or `AppDelegate.mm` in Xcode with the following parts for
 
 At the top of the file, right after '#import "AppDelegate.h"', add the following headers to import and invoke the methods for the required libraries.
 
-```c
+```objectivec
 // highlight-start
 #import <Firebase.h>
 #import "RNCallKeep.h"
@@ -108,17 +155,17 @@ At the top of the file, right after '#import "AppDelegate.h"', add the following
 
 We need to configure the Firebase library, set up the callkeep library and register VoIP at the app launch. To do this, add the following methods to your existing `didFinishLaunchingWithOptions` method,
 
-```c
-
+```objectivec
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   // highlight-next-line
   [FIRApp configure];
 
-  // add your app name here
   // highlight-start
+  NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
+  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
   [RNCallKeep setup:@{
-    @"appName": @"My awesome app",
+    @"appName": localizedAppName != nil ? localizedAppName : appName,
     @"supportsVideo": @YES,
     // pass @YES here if you want the call to be shown in calls history in the built-in dialer app
     @"includesCallsInRecents": @NO,
@@ -136,7 +183,7 @@ We need to configure the Firebase library, set up the callkeep library and regis
 
 Add the following method to process the VoIP token from iOS and send it to the `react-native-voip-push-notification` library.
 
-```c
+```objectivec
 // handle updated push credentials
 - (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {
   [RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];
@@ -145,7 +192,7 @@ Add the following method to process the VoIP token from iOS and send it to the `
 
 The final method to add is the one that gets invoked when there is a VoIP push notification from Stream. When there is a push notification and if the app is in the background, we want to display an incoming call notification. Add the following method to achieve this,
 
-```c
+```objectivec
 // handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   // send event to JS
@@ -300,6 +347,16 @@ import App from './App';
 // highlight-next-line
 setPushConfig();
 AppRegistry.registerComponent('app', () => App);
+```
+
+## Disabling push - usually on logout
+
+In some cases you would want to disable push from happening. For example, if user logs out of your app. Or if the user switches. You can disable push like below:
+
+```js
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+
+StreamVideoRN.onPushLogout();
 ```
 
 ## Troubleshooting

@@ -1,5 +1,6 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import {
+  StreamVideoRN,
   useI18n,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -36,6 +37,7 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
           text: 'OK',
           onPress: async () => {
             try {
+              StreamVideoRN.onPushLogout();
               await Promise.all([
                 GoogleSignin.signOut(),
                 videoClient?.disconnectUser(),

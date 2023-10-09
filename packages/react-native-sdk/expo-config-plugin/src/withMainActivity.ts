@@ -10,9 +10,20 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin = (
   return withMainActivity(configuration, (config) => {
     if (['java', 'kt'].includes(config.modResults.language)) {
       try {
+        /*
+        import com.streamvideo.reactnative.StreamVideoReactNative;
+        import android.util.Rational;
+        import androidx.lifecycle.Lifecycle;
+        import android.app.PictureInPictureParams;
+        */
         config.modResults.contents = addImports(
           config.modResults.contents,
-          ['com.streamvideo.reactnative.StreamVideoReactNative'],
+          [
+            'com.streamvideo.reactnative.StreamVideoReactNative',
+            'android.util.Rational',
+            'androidx.lifecycle.Lifecycle',
+            'android.app.PictureInPictureParams',
+          ],
           config.modResults.language === 'java',
         );
         const statementToInsert = 'StreamVideoReactNative.setup();\n';

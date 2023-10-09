@@ -72,6 +72,7 @@ export const SpeakerLayout = ({
     if (!participantsBarWrapperElement || !call) return;
 
     const cleanup = call.setViewport(participantsBarWrapperElement);
+
     return () => cleanup();
   }, [participantsBarWrapperElement, call]);
 

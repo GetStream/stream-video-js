@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "0.3.36",
+  "version": "0.3.39",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
