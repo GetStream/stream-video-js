@@ -96,6 +96,9 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
 
     const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
     const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
+    const hasScreenShareAudio = publishedTracks.includes(
+      SfuModels.TrackType.SCREEN_SHARE_AUDIO,
+    );
 
     const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
       null,
@@ -163,8 +166,18 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       >
         <ParticipantViewContext.Provider value={participantViewContextValue}>
           {/* mute the local participant, as we don't want to hear ourselves */}
-          {!isLocalParticipant && !muteAudio && hasAudio && (
-            <Audio participant={participant} />
+          {!isLocalParticipant && !muteAudio && (
+            <>
+              {hasAudio && (
+                <Audio participant={participant} trackType="audioTrack" />
+              )}
+              {hasScreenShareAudio && (
+                <Audio
+                  participant={participant}
+                  trackType="screenShareAudioTrack"
+                />
+              )}
+            </>
           )}
           <Video
             VideoPlaceholder={VideoPlaceholder}

@@ -25,7 +25,7 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getStream = vi.fn(() => Promise.resolve(mockVideoStream()));
   public publishStream = vi.fn();
   public stopPublishStream = vi.fn();
-  public getTrack = () => this.state.mediaStream!.getVideoTracks()[0];
+  public getTracks = () => this.state.mediaStream?.getTracks() ?? [];
 
   constructor(call: Call) {
     super(call, new TestInputMediaDeviceManagerState(), TrackType.VIDEO);
@@ -200,6 +200,21 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.resume();
 
     expect(manager.enable).toHaveBeenCalledOnce();
+  });
+
+  it('should provide default constraints to `getStream` method', () => {
+    manager.setDefaultConstraints({
+      echoCancellation: true,
+      autoGainControl: false,
+    });
+
+    manager.enable();
+
+    expect(manager.getStream).toHaveBeenCalledWith({
+      deviceId: undefined,
+      echoCancellation: true,
+      autoGainControl: false,
+    });
   });
 
   afterEach(() => {

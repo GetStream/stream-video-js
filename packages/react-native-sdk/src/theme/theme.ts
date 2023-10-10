@@ -219,10 +219,10 @@ export const defaultTheme: Theme = {
     },
     avatarSizes: {
       xs: 50,
-      sm: 100,
-      md: 120,
-      lg: 180,
-      xl: 80,
+      sm: 90,
+      md: 100,
+      lg: 160,
+      xl: 180,
     },
   },
   typefaces: {

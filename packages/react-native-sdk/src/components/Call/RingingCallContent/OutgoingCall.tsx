@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import {
@@ -31,6 +31,11 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
    * Prop to customize the OutgoingCall controls.
    */
   OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
+  /**
+   * Check if device is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -40,11 +45,16 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
 export const OutgoingCall = ({
   CallTopView = DefaultCallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
+  landscape,
 }: OutgoingCallProps) => {
   const {
     theme: { colors, typefaces, outgoingCall },
   } = useTheme();
   const { t } = useI18n();
+
+  const landScapeContentStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
 
   return (
     <>
@@ -56,7 +66,9 @@ export const OutgoingCall = ({
         ]}
       >
         {CallTopView && <CallTopView />}
-        <View style={[styles.content, outgoingCall.content]}>
+        <View
+          style={[styles.content, landScapeContentStyles, outgoingCall.content]}
+        >
           <View style={[styles.topContainer, outgoingCall.topContainer]}>
             <UserInfo />
             <Text
@@ -138,7 +150,7 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
-  topContainer: { flex: 2 },
+  topContainer: { flex: 1 },
   content: {
     flex: 1,
   },

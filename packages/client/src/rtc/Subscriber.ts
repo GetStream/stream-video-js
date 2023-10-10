@@ -264,6 +264,7 @@ export class Subscriber {
         TRACK_TYPE_AUDIO: 'audioStream',
         TRACK_TYPE_VIDEO: 'videoStream',
         TRACK_TYPE_SCREEN_SHARE: 'screenShareStream',
+        TRACK_TYPE_SCREEN_SHARE_AUDIO: 'screenShareAudioStream',
       } as const
     )[trackType];
 
@@ -374,6 +375,8 @@ export class Subscriber {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    logger('error', `ICE Candidate error`, errorMessage);
+    const logLevel =
+      this.pc.iceConnectionState === 'connected' ? 'debug' : 'error';
+    logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 }

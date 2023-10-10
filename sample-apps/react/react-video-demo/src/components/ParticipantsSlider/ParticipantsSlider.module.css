@@ -13,8 +13,8 @@
 }
 
 .slide.vertical {
-  height: auto;
-  width: 100%;
+  height: 152px;
+  width: 270px;
 }
 
 .participant.vertical {
@@ -39,7 +39,8 @@
 }
 
 .slide.horizontal {
-  @apply min-w-[30%] max-w-[55%] max-h-[125px];
+  height: 152px;
+  width: 270px;
 }
 
 @media screen(md) {

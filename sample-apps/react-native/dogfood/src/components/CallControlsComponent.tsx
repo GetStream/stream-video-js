@@ -1,7 +1,8 @@
 import {
+  CallContentProps,
   ChatButton,
   HangUpCallButton,
-  ReactionButton,
+  ReactionsButton,
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
@@ -12,7 +13,10 @@ import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
 
-export type CallControlsComponentProps = {
+export type CallControlsComponentProps = Pick<
+  CallContentProps,
+  'supportedReactions'
+> & {
   onChatOpenHandler?: () => void;
   onHangupCallHandler?: () => void;
   unreadCountIndicator?: number;
@@ -35,7 +39,7 @@ export const CallControlsComponent = ({
 
   return (
     <View style={[styles.callControlsWrapper, landScapeStyles]}>
-      <ReactionButton />
+      <ReactionsButton />
       <ChatButton
         onPressHandler={onChatOpenHandler}
         unreadBadgeCount={unreadCountIndicator}

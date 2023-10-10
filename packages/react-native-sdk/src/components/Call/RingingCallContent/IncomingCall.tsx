@@ -1,5 +1,11 @@
 import React from 'react';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import {
+  ImageBackground,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
@@ -28,6 +34,11 @@ export type IncomingCallProps = IncomingCallControlsProps & {
    * Prop to customize the IncomingCall controls.
    */
   IncomingCallControls?: React.ComponentType<IncomingCallControlsProps> | null;
+  /**
+   * Check if device is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -39,16 +50,23 @@ export const IncomingCall = ({
   onRejectCallHandler,
   CallTopView = DefaultCallTopView,
   IncomingCallControls = DefaultIncomingCallControls,
+  landscape,
 }: IncomingCallProps) => {
   const { t } = useI18n();
   const {
     theme: { colors, incomingCall, typefaces },
   } = useTheme();
 
+  const landScapeContentStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
+
   return (
     <Background>
       {CallTopView && <CallTopView />}
-      <View style={[styles.content, incomingCall.content]}>
+      <View
+        style={[styles.content, landScapeContentStyles, incomingCall.content]}
+      >
         <View style={[styles.topContainer, incomingCall.topContainer]}>
           <UserInfo />
           <Text
@@ -135,9 +153,9 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  topContainer: { flex: 2 },
+  topContainer: { flex: 1 },
   incomingCallText: {
-    marginTop: 16,
+    marginTop: 8,
     textAlign: 'center',
   },
   bottomContainer: { flex: 1, justifyContent: 'center' },

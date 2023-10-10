@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: appTheme.spacing.lg,
   },
   subTitle: {
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
     marginHorizontal: appTheme.spacing.xl,
   },
   bottomContainer: {

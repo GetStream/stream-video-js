@@ -81,7 +81,7 @@ const JoinCallScreen = () => {
   return (
     <KeyboardAvoidingView
       style={[styles.container, landScapeStyles]}
-      behavior={Platform.OS === 'ios' ? 'position' : 'padding'}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.topContainer}>
         <Text style={styles.headerText}>{t('Select Participants')}</Text>
@@ -131,7 +131,7 @@ const JoinCallScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: appTheme.spacing.lg,
+    padding: appTheme.spacing.lg,
     backgroundColor: appTheme.colors.static_grey,
     flex: 1,
     justifyContent: 'space-evenly',
@@ -140,22 +140,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: appTheme.spacing.lg,
-  },
-  orText: {
-    fontSize: 17,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    marginVertical: appTheme.spacing.lg,
-    textAlign: 'center',
-  },
-  textInputStyle: {
-    flex: 0,
-  },
-  headerText: {
-    fontSize: 20,
-    color: appTheme.colors.static_white,
-    fontWeight: 'bold',
-    marginBottom: appTheme.spacing.lg,
   },
   participant: {
     paddingVertical: appTheme.spacing.sm,
@@ -169,10 +153,11 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
     fontWeight: 'bold',
   },
-  bottomContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: appTheme.spacing.lg,
+  headerText: {
+    fontSize: 16,
+    color: appTheme.colors.static_white,
+    fontWeight: 'bold',
+    marginBottom: appTheme.spacing.lg,
   },
   avatar: {
     height: 40,
@@ -184,6 +169,20 @@ const styles = StyleSheet.create({
     marginLeft: appTheme.spacing.md,
     fontSize: 16,
     fontWeight: '500',
+  },
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  orText: {
+    fontSize: 17,
+    color: appTheme.colors.static_white,
+    fontWeight: '500',
+    marginVertical: appTheme.spacing.lg,
+    textAlign: 'center',
+  },
+  textInputStyle: {
+    flex: 0,
   },
 });
 
