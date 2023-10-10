@@ -25,44 +25,43 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useIsCallBroadcastingInProgress, useIsCallLive } =
-    useCallStateHooks();
+  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallBroadcastingInProgress();
-  const isLive = useIsCallLive();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
     setIsAwaitingResponse((isAwaiting) => {
       if (isAwaiting) return false;
       return isAwaiting;
     });
-  }, [isLive]);
+  }, [isBroadcasting]);
   return (
     <button
       type="button"
-      className={`livestream-toggle-button ${isLive ? 'broadcasting' : ''}`}
+      className={`livestream-toggle-button ${
+        isBroadcasting ? 'broadcasting' : ''
+      }`}
       onClick={async () => {
-        if (isLive) {
-          // call.stopHLS().catch((err) => {
-          //   console.error('Error stopping livestream', err);
-          // });
-          call.stopLive();
+        if (isBroadcasting) {
+          call.stopHLS().catch((err) => {
+            console.error('Error stopping livestream', err);
+          });
         } else {
           call.goLive();
-          // call.startHLS().catch((err) => {
-          //   console.error('Error starting livestream', err);
-          // });
+          call.startHLS().catch((err) => {
+            console.error('Error starting livestream', err);
+          });
         }
         setIsAwaitingResponse(true);
       }}
     >
       {isAwaitingResponse ? (
         <LoadingIndicator />
-      ) : isLive ? (
+      ) : isBroadcasting ? (
         <EndBroadcastIcon />
       ) : (
         <StartBroadcastIcon />
       )}
-      <span>{isLive ? 'End Stream' : 'Start Stream'}</span>
+      <span>{isBroadcasting ? 'End Stream' : 'Start Stream'}</span>
     </button>
   );
 };
