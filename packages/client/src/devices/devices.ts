@@ -24,8 +24,7 @@ const getDevices = (
   kind: MediaDeviceKind,
 ) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    const logger = getLogger(['devices']);
-    const run = async () => {
+    const enumerate = async () => {
       let devices = await navigator.mediaDevices.enumerateDevices();
       // some browsers report empty device labels (Firefox).
       // in that case, we need to request permissions (via getUserMedia)
@@ -42,15 +41,20 @@ const getDevices = (
           if (mediaStream) disposeOfMediaStream(mediaStream);
         }
       }
-      // notify observers and complete
-      subscriber.next(devices);
-      subscriber.complete();
+      return devices;
     };
 
-    run().catch((error) => {
-      logger('error', 'Failed to enumerate devices', error);
-      subscriber.error(error);
-    });
+    enumerate()
+      .then((devices) => {
+        // notify subscribers and complete
+        subscriber.next(devices);
+        subscriber.complete();
+      })
+      .catch((error) => {
+        const logger = getLogger(['devices']);
+        logger('error', 'Failed to enumerate devices', error);
+        subscriber.error(error);
+      });
   });
 };
 
