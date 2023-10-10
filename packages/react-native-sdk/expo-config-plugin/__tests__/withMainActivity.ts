@@ -41,7 +41,9 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     };
 
     const props: ConfigProps = {
-      enableAndroidAutomaticPictureInPicture: true,
+      androidPictureInPicture: {
+        enableAutomaticEnter: true,
+      },
     };
 
     const updatedConfig = withMainActivity(config, props) as CustomExpoConfig;
@@ -54,8 +56,10 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /StreamVideoReactNative.canAutoEnterPictureInPictureMode/,
     );
 
-    const props2 = {
-      enableAndroidAutomaticPictureInPicture: false,
+    const props2: ConfigProps = {
+      androidPictureInPicture: {
+        enableAutomaticEnter: false,
+      },
     };
 
     const config2: CustomExpoConfig = {
@@ -89,7 +93,9 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      enableAndroidAutomaticPictureInPicture: true,
+      androidPictureInPicture: {
+        enableAutomaticEnter: true,
+      },
     };
     expect(() => withMainActivity(config, props)).toThrow();
 

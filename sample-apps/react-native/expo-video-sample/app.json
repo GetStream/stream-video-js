@@ -37,7 +37,10 @@
             "disableVideoIos": false,
             "includesCallsInRecentsIos": false
           },
-          "enableNonRingingPushNotifications": true
+          "enableNonRingingPushNotifications": true,
+          "androidPictureInPicture": {
+            "enableAutomaticEnter": true
+          }
         }
       ],
       "@config-plugins/react-native-callkeep",

@@ -3,8 +3,12 @@ export type RingingPushNotifications = {
   includesCallsInRecentsIos?: boolean;
 };
 
+export type AndroidPictureInPicture = {
+  enableAutomaticEnter: boolean;
+};
+
 export type ConfigProps = {
   ringingPushNotifications?: RingingPushNotifications;
   enableNonRingingPushNotifications?: boolean;
-  enableAndroidAutomaticPictureInPicture?: boolean;
+  androidPictureInPicture?: AndroidPictureInPicture;
 };
