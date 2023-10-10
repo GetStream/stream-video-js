@@ -8,18 +8,21 @@ import { CallSessionResponse, StreamCallEvent } from '@stream-io/video-client';
 /**
  * Props for the HostDurationBadge component.
  */
-export type HostDurationBadgeProps = {};
+export type DurationBadgeProps = {
+  mode?: 'host' | 'viewer';
+};
 
 /**
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
-export const HostDurationBadge = ({}: HostDurationBadgeProps) => {
+export const DurationBadge = ({ mode }: DurationBadgeProps) => {
   const [duration, setDuration] = useState(0);
   const call = useCall();
   const {
     theme: {
       colors,
       variants: { iconSizes },
+      durationBadge,
     },
   } = useTheme();
 
@@ -42,21 +45,34 @@ export const HostDurationBadge = ({}: HostDurationBadgeProps) => {
       }
     };
 
-    call?.on('call.live_started', handleLiveStarted);
-    call?.on('call.updated', handleLiveEnded);
+    if (mode === 'host') {
+      call?.on('call.live_started', handleLiveStarted);
+      call?.on('call.updated', handleLiveEnded);
+    } else {
+      handleLiveStarted();
+    }
+
     return () => {
-      call?.off('call.live_started', handleLiveStarted);
-      call?.off('call.updated', handleLiveEnded);
+      if (mode === 'host') {
+        call?.off('call.live_started', handleLiveStarted);
+        call?.off('call.updated', handleLiveEnded);
+      }
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [call]);
+  }, [call, mode]);
 
   const timestamp = new Date(duration * 1000).toISOString().slice(11, 19);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.dark_gray }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.dark_gray },
+        durationBadge.container,
+      ]}
+    >
       <View
         style={[
           styles.icon,
@@ -64,11 +80,18 @@ export const HostDurationBadge = ({}: HostDurationBadgeProps) => {
             height: iconSizes.xs,
             width: iconSizes.xs,
           },
+          durationBadge.icon,
         ]}
       >
         <ShieldBadge />
       </View>
-      <Text style={[styles.durationLabel, { color: colors.static_white }]}>
+      <Text
+        style={[
+          styles.label,
+          { color: colors.static_white },
+          durationBadge.label,
+        ]}
+      >
         {timestamp}
       </Text>
     </View>
@@ -85,7 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {},
-  durationLabel: {
+  label: {
     textAlign: 'center',
     fontSize: 13,
     fontWeight: '400',

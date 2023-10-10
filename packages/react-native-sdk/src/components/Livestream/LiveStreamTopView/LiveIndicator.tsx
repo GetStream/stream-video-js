@@ -13,16 +13,23 @@ export type LiveIndicatorProps = {};
  */
 export const LiveIndicator = ({}: LiveIndicatorProps) => {
   const {
-    theme: { colors, typefaces },
+    theme: { colors, typefaces, liveIndicator },
   } = useTheme();
   const { t } = useI18n();
   return (
-    <View style={[styles.container, { backgroundColor: colors.primary }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.primary },
+        liveIndicator.container,
+      ]}
+    >
       <Text
         style={[
-          styles.liveLabel,
+          styles.label,
           { color: colors.static_white },
           typefaces.subtitleBold,
+          liveIndicator.label,
         ]}
       >
         {t('Live')}
@@ -39,7 +46,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     justifyContent: 'center',
   },
-  liveLabel: {
+  label: {
     textAlign: 'center',
     includeFontPadding: false,
   },

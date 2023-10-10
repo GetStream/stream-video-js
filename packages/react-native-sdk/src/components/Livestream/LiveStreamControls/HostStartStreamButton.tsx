@@ -44,6 +44,7 @@ export const HostStartStreamButton = ({
       colors,
       variants: { iconSizes },
       typefaces,
+      hostStartStreamButton,
     },
   } = useTheme();
 
@@ -88,11 +89,16 @@ export const HostStartStreamButton = ({
             ? colors.error
             : colors.primary,
         },
+        hostStartStreamButton.container,
       ]}
       onPress={isCallLive ? onEndStreamButtonPress : onStartStreamButtonPress}
     >
       <View
-        style={[styles.icon, { height: iconSizes.xs, width: iconSizes.xs }]}
+        style={[
+          styles.icon,
+          { height: iconSizes.xs, width: iconSizes.xs },
+          hostStartStreamButton.icon,
+        ]}
       >
         {isAwaitingResponse ? (
           <ActivityIndicator />
@@ -107,6 +113,7 @@ export const HostStartStreamButton = ({
           styles.text,
           typefaces.subtitleBold,
           { color: colors.static_white },
+          hostStartStreamButton.text,
         ]}
       >
         {isAwaitingResponse

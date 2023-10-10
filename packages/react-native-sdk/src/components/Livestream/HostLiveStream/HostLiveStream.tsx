@@ -1,12 +1,7 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useIncallManager } from '../../../hooks';
-import {
-  VideoRenderer as DefaultVideoRenderer,
-  VideoRendererProps,
-} from '../../Participant';
 import {
   HostLiveStreamTopView as DefaultHostLiveStreamTopView,
   HostLiveStreamTopViewProps,
@@ -15,6 +10,10 @@ import {
   HostLiveStreamControls as DefaultHostLiveStreamControls,
   HostLiveStreamControlsProps,
 } from '../LiveStreamControls/HostLiveStreamControls';
+import {
+  LiveStreamLayout as DefaultLiveStreamLayout,
+  LiveStreamLayoutProps,
+} from '../LiveStreamLayout';
 
 /**
  * Props for the HostLiveStream component.
@@ -26,10 +25,13 @@ export type HostLiveStreamProps = HostLiveStreamTopViewProps &
      */
     HostLiveStreamTopView?: React.ComponentType<HostLiveStreamTopViewProps> | null;
     /**
+     * Component to customize the live stream video layout.
+     */
+    LiveStreamLayout?: React.ComponentType<LiveStreamLayoutProps> | null;
+    /**
      * Component to customize the bottom view controls at the host's live stream.
      */
     HostLiveStreamControls?: React.ComponentType<HostLiveStreamControlsProps> | null;
-    VideoRenderer?: React.ComponentType<VideoRendererProps> | null;
   };
 
 /**
@@ -38,7 +40,7 @@ export type HostLiveStreamProps = HostLiveStreamTopViewProps &
 export const HostLiveStream = ({
   HostLiveStreamTopView = DefaultHostLiveStreamTopView,
   HostLiveStreamControls = DefaultHostLiveStreamControls,
-  VideoRenderer = DefaultVideoRenderer,
+  LiveStreamLayout = DefaultLiveStreamLayout,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -47,12 +49,9 @@ export const HostLiveStream = ({
   onEndStreamHandler,
   onStartStreamHandler,
 }: HostLiveStreamProps) => {
-  const { useLocalParticipant } = useCallStateHooks();
   const {
-    theme: { colors },
+    theme: { colors, hostLiveStream },
   } = useTheme();
-
-  const localParticipant = useLocalParticipant();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useIncallManager({ media: 'video', auto: true });
@@ -66,21 +65,15 @@ export const HostLiveStream = ({
   return (
     <SafeAreaView
       style={[
-        styles.flexed,
+        styles.container,
         {
           backgroundColor: colors.static_grey,
         },
+        hostLiveStream.container,
       ]}
     >
       {HostLiveStreamTopView && <HostLiveStreamTopView {...topViewProps} />}
-      <View style={styles.flexed}>
-        {localParticipant && VideoRenderer && (
-          <VideoRenderer
-            participant={localParticipant}
-            trackType="videoTrack"
-          />
-        )}
-      </View>
+      {LiveStreamLayout && <LiveStreamLayout />}
       {HostLiveStreamControls && (
         <HostLiveStreamControls
           onEndStreamHandler={onEndStreamHandler}
@@ -94,7 +87,7 @@ export const HostLiveStream = ({
 };
 
 const styles = StyleSheet.create({
-  flexed: {
+  container: {
     flex: 1,
   },
 });

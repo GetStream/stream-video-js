@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
-  ViewerDurationBadge as DefaultViewerDurationBadge,
-  ViewerDurationBadgeProps,
-} from './ViewerDurationBadge';
+  DurationBadge as DefaultDurationBadge,
+  DurationBadgeProps,
+} from './DurationBadge';
 import {
   LiveIndicator as DefaultLiveIndicator,
   LiveIndicatorProps,
@@ -21,7 +21,7 @@ export type ViewerLiveStreamTopViewProps = {
   /**
    * Component to customize the Duration badge component on the viewer's live stream's top view.
    */
-  DurationBadge?: React.ComponentType<ViewerDurationBadgeProps> | null;
+  DurationBadge?: React.ComponentType<DurationBadgeProps> | null;
   /**
    * Component to customize the Live indicator on the viewer's live stream's top view.
    */
@@ -36,31 +36,41 @@ export type ViewerLiveStreamTopViewProps = {
  * The ViewerLiveStreamTopView component displays the top view component of the viewer's live stream.
  */
 export const ViewerLiveStreamTopView = ({
-  DurationBadge = DefaultViewerDurationBadge,
+  DurationBadge = DefaultDurationBadge,
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
 }: ViewerLiveStreamTopViewProps) => {
   const {
-    theme: { colors },
+    theme: { colors, viewerLiveStreamTopView },
   } = useTheme();
   return (
-    <View style={[styles.top, { backgroundColor: colors.static_overlay }]}>
-      <View style={styles.leftElement}>
-        <View style={styles.liveInfo}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_overlay },
+        viewerLiveStreamTopView.container,
+      ]}
+    >
+      <View style={[styles.leftElement, viewerLiveStreamTopView.leftElement]}>
+        <View style={[styles.liveInfo, viewerLiveStreamTopView.liveInfo]}>
           {LiveIndicator && <LiveIndicator />}
           {FollowerCount && <FollowerCount />}
         </View>
       </View>
-      <View style={styles.centerElement}>
-        {DurationBadge && <DurationBadge />}
+      <View
+        style={[styles.centerElement, viewerLiveStreamTopView.centerElement]}
+      >
+        {DurationBadge && <DurationBadge mode="viewer" />}
       </View>
-      <View style={styles.rightElement} />
+      <View
+        style={[styles.rightElement, viewerLiveStreamTopView.rightElement]}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  top: {
+  container: {
     paddingVertical: 16,
     paddingHorizontal: 8,
     flexDirection: 'row',

@@ -35,6 +35,7 @@ export const ViewerLeaveStreamButton = ({
       colors,
       variants: { iconSizes },
       typefaces,
+      viewerLeaveStreamButton,
     },
   } = useTheme();
 
@@ -58,11 +59,16 @@ export const ViewerLeaveStreamButton = ({
         {
           backgroundColor: colors.dark_gray,
         },
+        viewerLeaveStreamButton.container,
       ]}
       onPress={onLeaveStreamButtonPress}
     >
       <View
-        style={[styles.icon, { height: iconSizes.xs, width: iconSizes.xs }]}
+        style={[
+          styles.icon,
+          { height: iconSizes.xs, width: iconSizes.xs },
+          viewerLeaveStreamButton.icon,
+        ]}
       >
         {isAwaitingResponse ? <ActivityIndicator /> : <LeaveStreamIcon />}
       </View>
@@ -71,6 +77,7 @@ export const ViewerLeaveStreamButton = ({
           styles.text,
           typefaces.subtitleBold,
           { color: colors.static_white },
+          viewerLeaveStreamButton.text,
         ]}
       >
         {isAwaitingResponse ? t('Loading...') : t('Leave Stream')}

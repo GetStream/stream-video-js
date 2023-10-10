@@ -17,18 +17,35 @@ export const FollowerCount = ({}: FollowerCountProps) => {
     theme: {
       colors,
       variants: { iconSizes },
+      followerCount,
     },
   } = useTheme();
   const { useParticipantCount } = useCallStateHooks();
   const totalParticipants = useParticipantCount();
   return (
-    <View style={[styles.container, { backgroundColor: colors.dark_gray }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.dark_gray },
+        followerCount.container,
+      ]}
+    >
       <View
-        style={[styles.icon, { height: iconSizes.xs, width: iconSizes.xs }]}
+        style={[
+          styles.icon,
+          { height: iconSizes.xs, width: iconSizes.xs },
+          followerCount.icon,
+        ]}
       >
         <Eye />
       </View>
-      <Text style={[styles.countLabel, { color: colors.static_white }]}>
+      <Text
+        style={[
+          styles.label,
+          { color: colors.static_white },
+          followerCount.label,
+        ]}
+      >
         {totalParticipants}
       </Text>
     </View>
@@ -46,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {},
-  countLabel: {
+  label: {
     fontSize: 13,
     fontWeight: '400',
     flexShrink: 1,

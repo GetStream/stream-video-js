@@ -1,9 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
-  HostDurationBadge as DefaultHostDurationBadge,
-  HostDurationBadgeProps,
-} from './HostDurationBadge';
+  DurationBadge as DefaultDurationBadge,
+  DurationBadgeProps,
+} from './DurationBadge';
 import {
   LiveIndicator as DefaultLiveIndicator,
   LiveIndicatorProps,
@@ -21,7 +21,7 @@ export type HostLiveStreamTopViewProps = {
   /**
    * Component to customize the Duration badge component on the host's live stream's top view.
    */
-  DurationBadge?: React.ComponentType<HostDurationBadgeProps> | null;
+  DurationBadge?: React.ComponentType<DurationBadgeProps> | null;
   /**
    * Component to customize the Live indicator on the host's live stream's top view.
    */
@@ -36,21 +36,29 @@ export type HostLiveStreamTopViewProps = {
  * The HostLiveStreamTopView component displays the top view component of the host's live stream.
  */
 export const HostLiveStreamTopView = ({
-  DurationBadge = DefaultHostDurationBadge,
+  DurationBadge = DefaultDurationBadge,
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
 }: HostLiveStreamTopViewProps) => {
   const {
-    theme: { colors },
+    theme: { colors, hostLiveStreamTopView },
   } = useTheme();
   return (
-    <View style={[styles.top, { backgroundColor: colors.static_overlay }]}>
-      <View style={styles.leftElement}>
-        {DurationBadge && <DurationBadge />}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_overlay },
+        hostLiveStreamTopView.container,
+      ]}
+    >
+      <View style={[styles.leftElement, hostLiveStreamTopView.leftElement]}>
+        {DurationBadge && <DurationBadge mode="host" />}
       </View>
-      <View style={styles.centerElement} />
-      <View style={styles.rightElement}>
-        <View style={styles.liveInfo}>
+      <View
+        style={[styles.centerElement, hostLiveStreamTopView.centerElement]}
+      />
+      <View style={[styles.rightElement, hostLiveStreamTopView.rightElement]}>
+        <View style={[styles.liveInfo, hostLiveStreamTopView.liveInfo]}>
           {LiveIndicator && <LiveIndicator />}
           {FollowerCount && <FollowerCount />}
         </View>
@@ -60,7 +68,7 @@ export const HostLiveStreamTopView = ({
 };
 
 const styles = StyleSheet.create({
-  top: {
+  container: {
     paddingVertical: 16,
     paddingHorizontal: 8,
     flexDirection: 'row',

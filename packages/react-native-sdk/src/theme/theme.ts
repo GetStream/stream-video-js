@@ -193,6 +193,74 @@ export type Theme = {
     participantsIconContainer: ViewStyle;
     participantsCountText: TextStyle;
   };
+  hostLiveStream: {
+    container: ViewStyle;
+  };
+  viewerLiveStream: {
+    container: ViewStyle;
+  };
+  livestreamLayout: {
+    container: ViewStyle;
+  };
+  hostLiveStreamTopView: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    centerElement: ViewStyle;
+    rightElement: ViewStyle;
+    liveInfo: ViewStyle;
+  };
+  viewerLiveStreamTopView: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    centerElement: ViewStyle;
+    rightElement: ViewStyle;
+    liveInfo: ViewStyle;
+  };
+  followerCount: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    label: TextStyle;
+  };
+  durationBadge: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    label: TextStyle;
+  };
+  liveIndicator: {
+    container: ViewStyle;
+    label: TextStyle;
+  };
+  hostLiveStreamControls: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+  };
+  viewerLiveStreamControls: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+  };
+  hostStartStreamButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    text: TextStyle;
+  };
+  viewerLeaveStreamButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    text: TextStyle;
+  };
+  liveStreamMediaControls: {
+    container: ViewStyle;
+  };
+  liveStreamAudioControlButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
+  liveStreamVideoControlButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
 };
 
 export const defaultTheme: Theme = {
@@ -410,5 +478,73 @@ export const defaultTheme: Theme = {
     participantCountContainer: {},
     participantsIconContainer: {},
     participantsCountText: {},
+  },
+  hostLiveStream: {
+    container: {},
+  },
+  hostLiveStreamTopView: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+    centerElement: {},
+    liveInfo: {},
+  },
+  viewerLiveStream: {
+    container: {},
+  },
+  livestreamLayout: {
+    container: {},
+  },
+  viewerLiveStreamTopView: {
+    container: {},
+    leftElement: {},
+    centerElement: {},
+    rightElement: {},
+    liveInfo: {},
+  },
+  followerCount: {
+    container: {},
+    icon: {},
+    label: {},
+  },
+  durationBadge: {
+    container: {},
+    icon: {},
+    label: {},
+  },
+  liveIndicator: {
+    container: {},
+    label: {},
+  },
+  hostLiveStreamControls: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+  },
+  viewerLiveStreamControls: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+  },
+  hostStartStreamButton: {
+    container: {},
+    icon: {},
+    text: {},
+  },
+  viewerLeaveStreamButton: {
+    container: {},
+    icon: {},
+    text: {},
+  },
+  liveStreamMediaControls: {
+    container: {},
+  },
+  liveStreamAudioControlButton: {
+    container: {},
+    icon: {},
+  },
+  liveStreamVideoControlButton: {
+    container: {},
+    icon: {},
   },
 };

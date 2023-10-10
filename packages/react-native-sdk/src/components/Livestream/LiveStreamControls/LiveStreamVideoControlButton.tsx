@@ -15,6 +15,7 @@ export const LiveStreamVideoControlButton = () => {
     theme: {
       colors,
       variants: { iconSizes, buttonSizes },
+      liveStreamVideoControlButton,
     },
   } = useTheme();
 
@@ -26,12 +27,13 @@ export const LiveStreamVideoControlButton = () => {
     <Pressable
       onPress={onPress}
       style={[
-        styles.button,
+        styles.container,
         {
           backgroundColor: colors.dark_gray,
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
+        liveStreamVideoControlButton.container,
       ]}
     >
       {status === 'enabled' ? (
@@ -42,6 +44,7 @@ export const LiveStreamVideoControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
+            liveStreamVideoControlButton.icon,
           ]}
         >
           <Video color={colors.static_white} />
@@ -54,6 +57,7 @@ export const LiveStreamVideoControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
+            liveStreamVideoControlButton.icon,
           ]}
         >
           <VideoSlash color={colors.static_white} />
@@ -64,11 +68,11 @@ export const LiveStreamVideoControlButton = () => {
 };
 
 const styles = StyleSheet.create({
-  icon: {},
-  button: {
+  container: {
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 4,
     borderRadius: 4,
   },
+  icon: {},
 });

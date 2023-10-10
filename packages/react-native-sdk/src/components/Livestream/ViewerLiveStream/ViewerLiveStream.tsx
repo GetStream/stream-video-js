@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StyleSheet, View, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView } from 'react-native';
 import { useIncallManager } from '../../../hooks';
 import { useTheme } from '../../../contexts';
 import {
@@ -12,7 +12,10 @@ import {
   ViewerLiveStreamControlsProps,
 } from '../LiveStreamControls/ViewerLiveStreamControls';
 import { ViewerLeaveStreamButtonProps } from '../LiveStreamControls/ViewerLeaveStreamButton';
-import { CallParticipantsGrid } from '../../Call';
+import {
+  LiveStreamLayout as DefaultLiveStreamLayout,
+  LiveStreamLayoutProps,
+} from '../LiveStreamLayout';
 
 /**
  * Props for the ViewerLiveStream component.
@@ -25,6 +28,10 @@ export type ViewerLiveStreamProps = ViewerLiveStreamTopViewProps &
      */
     ViewerLiveStreamTopView?: React.ComponentType<ViewerLiveStreamTopViewProps> | null;
     /**
+     * Component to customize the live stream video layout.
+     */
+    LiveStreamLayout?: React.ComponentType<LiveStreamLayoutProps> | null;
+    /**
      * Component to customize the bottom view controls at the viewer's live stream.
      */
     ViewerLiveStreamControls?: React.ComponentType<ViewerLiveStreamControlsProps> | null;
@@ -36,6 +43,7 @@ export type ViewerLiveStreamProps = ViewerLiveStreamTopViewProps &
 export const ViewerLiveStream = ({
   ViewerLiveStreamTopView = DefaultViewerLiveStreamTopView,
   ViewerLiveStreamControls = DefaultViewerLiveStreamControls,
+  LiveStreamLayout = DefaultLiveStreamLayout,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -43,7 +51,7 @@ export const ViewerLiveStream = ({
   onLeaveStreamHandler,
 }: ViewerLiveStreamProps) => {
   const {
-    theme: { colors },
+    theme: { colors, viewerLiveStream },
   } = useTheme();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
@@ -57,12 +65,14 @@ export const ViewerLiveStream = ({
 
   return (
     <SafeAreaView
-      style={[styles.flexed, { backgroundColor: colors.static_grey }]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_grey },
+        viewerLiveStream.container,
+      ]}
     >
       {ViewerLiveStreamTopView && <ViewerLiveStreamTopView {...topViewProps} />}
-      <View style={styles.flexed}>
-        <CallParticipantsGrid />
-      </View>
+      {LiveStreamLayout && <LiveStreamLayout />}
       {ViewerLiveStreamControls && (
         <ViewerLiveStreamControls
           ViewerLeaveStreamButton={ViewerLeaveStreamButton}
@@ -74,7 +84,7 @@ export const ViewerLiveStream = ({
 };
 
 const styles = StyleSheet.create({
-  flexed: {
+  container: {
     flex: 1,
   },
 });

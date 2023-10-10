@@ -34,11 +34,17 @@ export const HostLiveStreamControls = ({
   onStartStreamHandler,
 }: HostLiveStreamControlsProps) => {
   const {
-    theme: { colors },
+    theme: { colors, hostLiveStreamControls },
   } = useTheme();
   return (
-    <View style={[styles.bottom, { backgroundColor: colors.static_overlay }]}>
-      <View style={styles.leftElement}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.static_overlay },
+        hostLiveStreamControls.container,
+      ]}
+    >
+      <View style={[styles.leftElement, hostLiveStreamControls.leftElement]}>
         {HostStartStreamButton && (
           <HostStartStreamButton
             onEndStreamHandler={onEndStreamHandler}
@@ -46,7 +52,7 @@ export const HostLiveStreamControls = ({
           />
         )}
       </View>
-      <View style={styles.rightElement}>
+      <View style={[styles.rightElement, hostLiveStreamControls.rightElement]}>
         {LiveStreamMediaControls && <LiveStreamMediaControls />}
       </View>
     </View>
@@ -54,7 +60,7 @@ export const HostLiveStreamControls = ({
 };
 
 const styles = StyleSheet.create({
-  bottom: {
+  container: {
     paddingVertical: 16,
     paddingHorizontal: 8,
     flexDirection: 'row',
@@ -66,11 +72,6 @@ const styles = StyleSheet.create({
   leftElement: {
     flex: 1,
     alignItems: 'flex-start',
-  },
-  centerElement: {
-    flex: 1,
-    alignItems: 'center',
-    flexGrow: 3,
   },
   rightElement: {
     flex: 1,

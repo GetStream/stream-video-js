@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTheme } from '../../../contexts';
 import { LiveStreamAudioControlButton } from './LiveStreamAudioControlButton';
 import { LiveStreamVideoControlButton } from './LiveStreamVideoControlButton';
 
@@ -12,8 +13,11 @@ export type LiveStreamMediaControlsProps = {};
  * The LiveStreamMediaControls component controls the media publish/unpublish for the host's live stream.
  */
 export const LiveStreamMediaControls = ({}: LiveStreamMediaControlsProps) => {
+  const {
+    theme: { liveStreamMediaControls },
+  } = useTheme();
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container, liveStreamMediaControls.container]}>
       <LiveStreamAudioControlButton />
       <LiveStreamVideoControlButton />
     </View>

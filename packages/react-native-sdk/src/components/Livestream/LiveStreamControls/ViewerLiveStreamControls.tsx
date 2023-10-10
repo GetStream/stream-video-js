@@ -25,18 +25,26 @@ export const ViewerLiveStreamControls = ({
   onLeaveStreamHandler,
 }: ViewerLiveStreamControlsProps) => {
   const {
-    theme: { colors },
+    theme: { colors, viewerLiveStreamControls },
   } = useTheme();
   return (
-    <View style={[styles.bottom, { backgroundColor: colors.static_overlay }]}>
-      <View style={styles.leftElement}>
+    <View
+      style={[
+        styles.bottom,
+        { backgroundColor: colors.static_overlay },
+        viewerLiveStreamControls.container,
+      ]}
+    >
+      <View style={[styles.leftElement, viewerLiveStreamControls.leftElement]}>
         {ViewerLeaveStreamButton && (
           <ViewerLeaveStreamButton
             onLeaveStreamHandler={onLeaveStreamHandler}
           />
         )}
       </View>
-      <View style={styles.rightElement} />
+      <View
+        style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
+      />
     </View>
   );
 };
@@ -54,11 +62,6 @@ const styles = StyleSheet.create({
   leftElement: {
     flex: 1,
     alignItems: 'flex-start',
-  },
-  centerElement: {
-    flex: 1,
-    alignItems: 'center',
-    flexGrow: 3,
   },
   rightElement: {
     flex: 1,
