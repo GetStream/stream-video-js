@@ -22,6 +22,10 @@ export type HostLiveStreamControlsProps = HostStartStreamButtonProps & {
    * Component to customize the host's media control(audio/video) buttons.
    */
   LiveStreamMediaControls?: React.ComponentType<LiveStreamMediaControlsProps> | null;
+  /**
+   * Enable HTTP live streaming
+   */
+  hls?: boolean;
 };
 
 /**
@@ -32,6 +36,7 @@ export const HostLiveStreamControls = ({
   LiveStreamMediaControls = DefaultLiveStreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
+  hls = false,
 }: HostLiveStreamControlsProps) => {
   const {
     theme: { colors, hostLiveStreamControls },
@@ -49,6 +54,7 @@ export const HostLiveStreamControls = ({
           <HostStartStreamButton
             onEndStreamHandler={onEndStreamHandler}
             onStartStreamHandler={onStartStreamHandler}
+            hls={hls}
           />
         )}
       </View>

@@ -32,6 +32,10 @@ export type HostLiveStreamProps = HostLiveStreamTopViewProps &
      * Component to customize the bottom view controls at the host's live stream.
      */
     HostLiveStreamControls?: React.ComponentType<HostLiveStreamControlsProps> | null;
+    /**
+     * Enable HTTP live streaming
+     */
+    hls?: boolean;
   };
 
 /**
@@ -48,6 +52,7 @@ export const HostLiveStream = ({
   LiveStreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
+  hls = false,
 }: HostLiveStreamProps) => {
   const {
     theme: { colors, hostLiveStream },
@@ -80,6 +85,7 @@ export const HostLiveStream = ({
           onStartStreamHandler={onStartStreamHandler}
           HostStartStreamButton={HostStartStreamButton}
           LiveStreamMediaControls={LiveStreamMediaControls}
+          hls={hls}
         />
       )}
     </SafeAreaView>

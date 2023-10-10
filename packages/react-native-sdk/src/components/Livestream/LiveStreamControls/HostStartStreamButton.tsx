@@ -28,6 +28,10 @@ export type HostStartStreamButtonProps = {
    * @returns void
    */
   onEndStreamHandler?: () => void;
+  /**
+   * Enable HTTP live streaming
+   */
+  hls?: boolean;
 };
 
 /**
@@ -36,6 +40,7 @@ export type HostStartStreamButtonProps = {
 export const HostStartStreamButton = ({
   onEndStreamHandler,
   onStartStreamHandler,
+  hls,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   const { useIsCallLive } = useCallStateHooks();
@@ -59,6 +64,9 @@ export const HostStartStreamButton = ({
     try {
       setIsAwaitingResponse(true);
       await call?.goLive();
+      if (hls) {
+        await call?.startHLS();
+      }
       setIsAwaitingResponse(false);
     } catch (error) {
       console.error('Error starting livestream', error);
@@ -71,7 +79,12 @@ export const HostStartStreamButton = ({
     }
     try {
       setIsAwaitingResponse(true);
-      await call?.stopLive();
+      if (hls) {
+        await call?.stopHLS();
+      } else {
+        await call?.stopLive();
+      }
+
       setIsAwaitingResponse(false);
     } catch (error) {
       console.error('Error stopping livestream', error);
