@@ -11,46 +11,46 @@ import {
   shareReplay,
 } from 'rxjs';
 import { getLogger } from '../logger';
-import { isFirefox } from '../helpers/browsers';
 
-const getDevices = (constraints?: MediaStreamConstraints) => {
+/**
+ * Returns an Observable that emits the list of available devices
+ * that meet the given constraints.
+ *
+ * @param constraints the constraints to use when requesting the devices.
+ * @param kind the kind of devices to request.
+ */
+const getDevices = (
+  constraints: MediaStreamConstraints,
+  kind: MediaDeviceKind,
+) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    const enumerateDevices = (media?: MediaStream) => {
-      navigator.mediaDevices
-        .enumerateDevices()
-        .then((devices) => {
-          subscriber.next(devices);
-          if (isFirefox() && media) {
-            // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-            disposeOfMediaStream(media);
-          }
-          subscriber.complete();
-        })
-        .catch((error) => {
-          getLogger(['devices'])('error', 'Failed to get devices', error);
-          subscriber.error(error);
-        });
+    const logger = getLogger(['devices']);
+    const run = async () => {
+      let devices = await navigator.mediaDevices.enumerateDevices();
+      // some browsers report empty device labels (Firefox).
+      // in that case, we need to request permissions (via getUserMedia)
+      // to be able to get the device labels
+      const needsGetUserMedia = devices.some(
+        (device) => device.kind === kind && device.label === '',
+      );
+      if (needsGetUserMedia) {
+        let mediaStream: MediaStream | undefined;
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+          devices = await navigator.mediaDevices.enumerateDevices();
+        } finally {
+          if (mediaStream) disposeOfMediaStream(mediaStream);
+        }
+      }
+      // notify observers and complete
+      subscriber.next(devices);
+      subscriber.complete();
     };
 
-    // in Firefox, devices can be enumerated after userMedia is requested
-    // and permissions granted. Otherwise, device labels are empty
-    if (isFirefox()) {
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((media) => {
-          enumerateDevices(media);
-        })
-        .catch((error) => {
-          getLogger(['getUserMedia'])(
-            'error',
-            'Failed to get user media on firefox',
-            error,
-          );
-          subscriber.error(error);
-        });
-    } else {
-      enumerateDevices();
-    }
+    run().catch((error) => {
+      logger('error', 'Failed to enumerate devices', error);
+      subscriber.error(error);
+    });
   });
 };
 
@@ -62,7 +62,7 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
   const element = document.createElement('audio');
-  return (element as any).sinkId !== undefined;
+  return 'setSinkId' in element;
 };
 
 /**
@@ -107,12 +107,17 @@ const deviceChange$ = new Observable((subscriber) => {
 );
 
 const audioDevices$ = merge(
-  getDevices(audioDeviceConstraints),
+  getDevices(audioDeviceConstraints, 'audioinput'),
+  deviceChange$,
+).pipe(shareReplay(1));
+
+const audioOutputDevices$ = merge(
+  getDevices(audioDeviceConstraints, 'audiooutput'),
   deviceChange$,
 ).pipe(shareReplay(1));
 
 const videoDevices$ = merge(
-  getDevices(videoDeviceConstraints),
+  getDevices(videoDeviceConstraints, 'videoinput'),
   deviceChange$,
 ).pipe(shareReplay(1));
 
@@ -147,7 +152,7 @@ export const getVideoDevices = () =>
  * @returns
  */
 export const getAudioOutputDevices = () => {
-  return audioDevices$.pipe(
+  return audioOutputDevices$.pipe(
     map((values) => values.filter((d) => d.kind === 'audiooutput')),
   );
 };
