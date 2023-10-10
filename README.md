@@ -16,9 +16,9 @@ Stream allows developers to rapidly deploy scalable feeds, chat messaging and vi
 
 With Stream's video components, you can use their SDK to build in-app video calling, audio rooms, audio calls, or live streaming. The best place to get started is with their tutorials:
 
-- Video & Audio Calling Tutorial
-- Audio Rooms Tutorial
-- Livestreaming Tutorial
+- Video & Audio Calling Tutorial - [React](https://getstream.io/video/docs/react/tutorials/video-calling/), [React Native](https://getstream.io/video/docs/reactnative/tutorials/video-calling/), [JavaScript](https://getstream.io/video/docs/javascript/tutorials/video-calling/)
+- Audio Rooms Tutorial - [React](https://getstream.io/video/docs/react/tutorials/audio-room/), [React Native](https://getstream.io/video/docs/reactnative/tutorials/audio-room/)
+- Livestreaming Tutorial - [React](https://getstream.io/video/docs/react/tutorials/livestream/), [React Native](https://getstream.io/video/docs/reactnative/tutorials/livestream/), [JavaScript](https://getstream.io/video/docs/javascript/tutorials/livestream/)
 
 Stream provides UI components and state handling that make it easy to build video calling for your app. All calls run on Stream's network of edge servers around the world, ensuring optimal latency and reliability.
 
@@ -66,6 +66,7 @@ This repo contains projects and samples developed by the team and Stream communi
 - `packages/react-native-sdk`: the place where our React Native SDK lives.
 - `packages/styling`: our theme stylesheets live here for web SDKs.
 - `packages/i18n`: a utility package that takes care of internationalization support for our SDKs.
+- `sample-apps/client/*`: contains sample apps built on top of our Low Level Client, with pure browser APIs
 - `sample-apps/react/*`: contains a few sample apps that we have built to showcase our SDK and platform capabilities
 - `sample-apps/react-native/*`: a collection of React Native sample apps for showcasing our SDK and platform
 
