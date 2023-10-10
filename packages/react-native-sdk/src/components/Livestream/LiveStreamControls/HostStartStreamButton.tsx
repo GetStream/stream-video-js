@@ -18,7 +18,15 @@ import { EndBroadcastIcon, StartStreamIcon } from '../../../icons';
  * Props for the HostStartStreamButton component.
  */
 export type HostStartStreamButtonProps = {
+  /**
+   * Handler to be called when the Start Stream button is pressed.
+   * @returns void
+   */
   onStartStreamHandler?: () => void;
+  /**
+   * Handler to be called when the End Stream button is pressed.
+   * @returns void
+   */
   onEndStreamHandler?: () => void;
 };
 

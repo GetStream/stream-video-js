@@ -48,7 +48,7 @@ export const ParticipantsPanel = ({
       const queryRegExp = new RegExp(queryString, 'i');
       return Promise.resolve(
         (participants || []).filter((participant) => {
-          return participant.name.match(queryRegExp);
+          return (participant.name || participant.userId).match(queryRegExp);
         }),
       );
     },
@@ -116,7 +116,7 @@ export const ParticipantsPanelSmallScreen = ({
       const queryRegExp = new RegExp(queryString, 'i');
       return Promise.resolve(
         (participants || []).filter((participant) => {
-          return participant.name.match(queryRegExp);
+          return (participant.name || participant.userId).match(queryRegExp);
         }),
       );
     },

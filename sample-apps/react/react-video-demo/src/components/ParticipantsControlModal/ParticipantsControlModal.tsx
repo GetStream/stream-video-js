@@ -30,7 +30,10 @@ export const ParticipantsControlModal = ({
   );
 
   return (
-    <Panel className={styles.root} title={participant.name}>
+    <Panel
+      className={styles.root}
+      title={participant.name || participant.userId}
+    >
       <ul className={styles.controls}>
         {isAudioOn && (
           <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>

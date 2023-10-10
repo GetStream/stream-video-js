@@ -4,6 +4,9 @@ import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Video, VideoSlash } from '../../../icons';
 
+/**
+ * The LiveStreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
+ */
 export const LiveStreamVideoControlButton = () => {
   const call = useCall();
   const { useCameraState } = useCallStateHooks();

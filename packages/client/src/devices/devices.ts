@@ -199,7 +199,16 @@ export const getScreenShareStream = async (
   try {
     return await navigator.mediaDevices.getDisplayMedia({
       video: true,
-      audio: false,
+      audio: {
+        channelCount: {
+          ideal: 2,
+        },
+        echoCancellation: false,
+        autoGainControl: false,
+        noiseSuppression: false,
+      },
+      // @ts-expect-error - not present in types yet
+      systemAudio: 'include',
       ...options,
     });
   } catch (e) {

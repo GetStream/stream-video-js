@@ -77,9 +77,5 @@
     "typescript": "^4.9.5",
     "vercel": "^32.1.0",
     "vite": "^4.4.9"
-  },
-  "resolutions": {
-    "react-native-incall-manager@^4.0.0": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch",
-    "react-native-incall-manager@^4.0.1": "patch:react-native-incall-manager@npm%3A4.0.1#./.yarn/patches/react-native-incall-manager-npm-4.0.1-b8859eeb2a.patch"
   }
 }

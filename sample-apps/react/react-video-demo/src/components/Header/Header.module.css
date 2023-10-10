@@ -1,4 +1,5 @@
 .header {
+  grid-area: header;
   @apply grid justify-between items-center;
   grid-template-rows: 1fr;
   grid-template-columns: 1fr 100px 1fr;

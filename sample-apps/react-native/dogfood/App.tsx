@@ -29,11 +29,16 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
+import { LogBox, StyleSheet } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
+
+// expo libs are installed for development only in RN SDK
+// So linking is not required actually, so we can ignore these warnings
+// NOTE: this is not need in integrator's apps as dev dependencies are not installed.
+LogBox.ignoreLogs(['expo-modules-core', 'expo-constants']);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

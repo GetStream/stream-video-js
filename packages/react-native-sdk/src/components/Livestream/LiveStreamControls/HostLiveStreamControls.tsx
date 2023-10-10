@@ -14,7 +14,13 @@ import { useTheme } from '../../../contexts';
  * Props for the HostLiveStreamControls component.
  */
 export type HostLiveStreamControlsProps = HostStartStreamButtonProps & {
+  /**
+   * Component to customize the host's start/end live stream button.
+   */
   HostStartStreamButton?: React.ComponentType<HostStartStreamButtonProps> | null;
+  /**
+   * Component to customize the host's media control(audio/video) buttons.
+   */
   LiveStreamMediaControls?: React.ComponentType<LiveStreamMediaControlsProps> | null;
 };
 

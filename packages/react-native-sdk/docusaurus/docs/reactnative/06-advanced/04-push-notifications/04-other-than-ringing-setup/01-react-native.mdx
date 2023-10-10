@@ -1,0 +1,344 @@
+---
+title: React Native
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+This guide discusses how to set up your React Native app to get push notifications from Stream for the non-ringing calls that your user will receive.
+
+## Add push provider credentials to Stream
+
+Please follow the below guides for adding appropriate push providers to Stream:
+
+- Android - [Firebase Cloud Messaging](../../push-providers/firebase/)
+- iOS - [Apple Push Notification Service (APNs)](../../push-providers/apn-voip/)
+
+## Install Dependencies
+
+```bash title=Terminal
+yarn add @react-native-firebase/app
+yarn add @react-native-firebase/messaging
+yarn add @react-native-community/push-notification-ios
+npx pod-install
+```
+
+So what did we install precisely?
+
+- `@react-native-firebase/app` and `@react-native-firebase/messaging` for handling incoming [Firebase Cloud Messaging](https://firebase.google.com/docs/cloud-messaging) notifications on Android.
+- `@react-native-community/push-notification-ios` for handling [Apple Push Notification service (APNs)](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns) notifications on iOS.
+
+## Android-specific setup
+
+1. To create a Firebase project, go to the [Firebase console](https://console.firebase.google.com/) and click on **Add project**.
+
+2. In the console, click the setting icon next to **Project overview** and open **Project settings**. Then, under **Your apps**, click the Android icon to open **Add Firebase to your Android app** and follow the steps. **Make sure that the Android package name you enter is the same as the value of** `android.package` **from your app.json.**
+
+3. After registering the app, download the **google-services.json** file and place it inside of your project at the following location: `/android/app/google-services.json.`
+
+4. To allow Firebase on Android to use the credentials, the `google-services` plugin must be enabled on the project. This requires modification to two files in the Android directory. Add the highlighted lines in the relevant files:
+
+```groovy title="/android/build.gradle"
+buildscript {
+  dependencies {
+    // ... other dependencies
+    // highlight-next-line
+    classpath 'com.google.gms:google-services:4.3.15'
+  }
+}
+```
+
+```groovy title="/android/build.gradle"
+apply plugin: 'com.android.application'
+// highlight-next-line
+apply plugin: 'com.google.gms.google-services'
+```
+
+:::note
+
+The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
+
+:::
+
+## iOS-specific setup
+
+### Disable Firebase installation
+
+We don't use Firebase cloud messaging for iOS in the SDK. Unless Firebase is used for other purposes in your app, you can safely remove it from being installed by iOS and avoid the auto-linking. To do that create a file named `react-native.config.js` in the root of your project and add the following contents:
+
+```js title="react-native.config.js"
+module.exports = {
+  dependencies: {
+    '@react-native-firebase/app': {
+      platforms: {
+        ios: null,
+      },
+    },
+    '@react-native-firebase/messaging': {
+      platforms: {
+        ios: null,
+      },
+    },
+  },
+};
+```
+
+Once this is done, `pod install` must be run again to remove the installed pods.
+
+### Add background modes
+
+In Xcode: Open `Info.plist` file and add the following in `UIBackgroundModes`. By editing this file with the text editor, you should see:
+
+```xml
+<key>UIBackgroundModes</key>
+<array>
+  <string>remote-notification</string>
+</array>
+```
+
+### Update `AppDelegate.h`
+
+At the top of the file, add:
+
+```objectivec
+#import <UserNotifications/UNUserNotificationCenter.h>
+```
+
+Then, add the `UNUserNotificationCenterDelegate`:
+
+For React-Native v0.71 and above:
+
+```objectivec
+@interface AppDelegate : RCTAppDelegate <UNUserNotificationCenterDelegate>
+```
+
+For React-Native v0.70 and below:
+
+```objectivec
+@interface AppDelegate : UIResponder <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCen
+```
+
+### Update `AppDelegate.m` or `AppDelegate.mm`
+
+#### Add headers
+
+At the top of the file, add:
+
+```objectivec
+#import <UserNotifications/UserNotifications.h>
+#import <RNCPushNotificationIOS.h>
+```
+
+#### Add methods
+
+Then add the following methods:
+
+```objectivec
+// Required for the register event.
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+ [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+// Required for the notification event. You must call the completion handler after handling the remote notification.
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+// Required for the registrationError event.
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+ [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
+}
+// Required for localNotification event
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveNotificationResponse:response];
+}
+//Called when a notification is delivered to a foreground app.
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+{
+  completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionBadge);
+}
+```
+
+Then add the following lines to `didFinishLaunchingWithOptions`:
+
+```objectivec
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // highlight-start
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  center.delegate = self;
+   // highlight-end
+  // ...rest
+}
+```
+
+### Enable push notifications
+
+To receive push notifications, enable the Push Notifications capability in the Xcode `Project` > `Signing & Capabilities` pane.
+## Setup the push config for the SDK
+
+The SDK automatically processes the incoming push notifications once the setup above is done if the push config has been set using `StreamVideoRN.setPushConfig`. To do this follow the steps below,
+
+### Add the ability to statically navigate to screens in your app
+
+When a user taps on the push notification and the JS engine is not ready, they should still be able to navigate to the screen that shows the active call. You can achieve this by adding the ability to [navigate without the navigation property in the react-navigation library](https://reactnavigation.org/docs/navigating-without-navigation-prop/).
+
+The following is an example implementation of a utility file that has helpers to statically navigate in the app:
+
+```ts title="src/utils/staticNavigation.ts"
+import { createNavigationContainerRef } from '@react-navigation/native';
+
+import { RootStackParamList } from '../navigation/types';
+
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+/**
+ * This is used to run the navigation logic from root level even before the navigation is ready
+ */
+export const staticNavigate = (
+  ...navigationArgs: Parameters<typeof navigationRef.navigate>
+) => {
+  // note the use of setInterval, it is responsible for constantly checking if requirements are met and then navigating
+  // highlight-start
+  const intervalId = setInterval(async () => {
+    // run only when the navigation is ready and add any other requirements (like authentication)
+    if (navigationRef.isReady() && GlobalState.hasAuthentication) {
+      clearInterval(intervalId);
+      navigationRef.navigate(...navigationArgs);
+    }
+  }, 300);
+  // highlight-end
+};
+```
+
+When doing this it is _very important_ to set the `navigationRef` in your navigation container as shown below:
+
+```ts
+import { navigationRef } from './src/utils/staticNavigationUtils';
+
+// highlight-next-line
+<NavigationContainer ref={navigationRef}>
+  <MyAppNavigator />
+</NavigationContainer>;
+```
+
+### Setup the push config
+
+Once we have set up the methods to navigate the app from a static method we are ready to call the `StreamVideoRN.setPushConfig` method. Below is an example of how this method can be called,
+
+```ts title="src/utils/setPushConfig.ts"
+import {
+  StreamVideoClient,
+  StreamVideoRN,
+} from '@stream-io/video-react-native-sdk';
+import { AndroidImportance } from '@notifee/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STREAM_API_KEY } from '../../constants';
+import { staticNavigate } from './staticNavigationUtils';
+
+export function setPushConfig() {
+  StreamVideoRN.setPushConfig({
+    ios: {
+      // add your push_provider_name for iOS that you have setup in Stream dashboard
+      pushProviderName: __DEV__ ? 'apn-video-staging' : 'apn-video-production',
+    },
+    android: {
+      // add your push_provider_name for Android that you have setup in Stream dashboard
+      pushProviderName: __DEV__
+        ? 'firebase-video-staging'
+        : 'firebase-video-production',
+      // configure the notification channel to be used for non ringing calls for Android.
+      callChannel: {
+        id: 'stream_call_notifications',
+        name: 'Call notifications',
+        importance: AndroidImportance.HIGH,
+      },
+      // configure the functions to create the texts shown in the notification
+      // for non ringing calls in Android.
+      callNotificationTextGetters: {
+        getTitle(type, createdUserName) {
+          if (type === 'call.live_started') {
+            return `Call went live, it was started by ${createdUserName}`;
+          } else {
+            return `${createdUserName} is notifying you about a call`;
+          }
+        },
+        getBody(_type, createdUserName) {
+          return 'Tap to open the call';
+        },
+      },
+    },
+    // optional: add the callback to be executed when a non ringing call notification is tapped
+    onTapNonRingingCallNotification: () => {
+      const [callType, callId] = call_cid.split(':');
+      if (callType === 'livestream') {
+        staticNavigate({ name: 'LiveStreamCallScreen', params: undefined });
+      } else {
+        staticNavigate({ name: 'ActiveCallScreen', params: undefined });
+      }
+    },
+    // add the async callback to create a video client
+    // for incoming calls in the background on a push notification
+    createStreamVideoClient: async () => {
+      // note that since the method is async,
+      // you can call your server to get the user data or token or retrieve from offline storage.
+      const userId = await AsyncStorage.getItem('@userId');
+      const userName = await AsyncStorage.getItem('@userName');
+      const token = await AsyncStorage.getItem('@userToken');
+      if (!username || !userToken) return undefined;
+      const user = { id: userId, name: userName, token };
+      return new StreamVideoClient({
+        apiKey: STREAM_API_KEY, // pass your stream api key
+        user,
+        token,
+      });
+    },
+  });
+}
+```
+
+Now, call the method outside of your application cycle. That is, alongside your `AppRegistry.registerComponent()` method call at the entry point of your application code. This is because the app can be opened from a dead state through a push notification and in that case, we need to use the config as soon as the JS bridge is initialized. Following is an example,
+
+```js title="index.js"
+import { AppRegistry } from 'react-native';
+import { setPushConfig } from 'src/utils/setPushConfig';
+import App from './App';
+
+// Set push config
+// highlight-next-line
+setPushConfig();
+AppRegistry.registerComponent('app', () => App);
+```
+
+## Request for notification permissions
+
+At an appropriate place in your app, request for notification permissions from the user. Below is a small example of how to request permissions using [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library:
+
+<!-- vale off -->
+```js
+import { requestNotifications } from 'react-native-permissions';
+
+await requestNotifications(['alert', 'sound']);
+```
+<!-- vale on -->
+
+## Disabling push - usually on logout
+
+In some cases you would want to disable push from happening. For example, if user logs out of your app. Or if the user switches. You can disable push like below:
+
+```js
+import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+
+StreamVideoRN.onPushLogout();
+```
+
+## Troubleshooting
+
+- During development, you may be facing a situation where push notification is shown but its events like accepting or rejecting a call don't work. This is because, during hot module reloading the global event listeners may get de-registered. To properly test during development, make sure that you fully restart the app or test in release mode without the metro packager.
+- You can check the "Webhook & Push Logs" section in the [Stream Dashboard](https://dashboard.getstream.io/) to see if Notifications were sent by Stream.
+- If you are still having trouble with Push Notifications, please submit a ticket to us at [support](https://getstream.io/contact/support/).

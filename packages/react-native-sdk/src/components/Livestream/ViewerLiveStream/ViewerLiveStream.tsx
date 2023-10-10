@@ -20,7 +20,13 @@ import { CallParticipantsGrid } from '../../Call';
 export type ViewerLiveStreamProps = ViewerLiveStreamTopViewProps &
   ViewerLiveStreamControlsProps &
   ViewerLeaveStreamButtonProps & {
+    /**
+     * Component to customize the top view at the viewer's live stream.
+     */
     ViewerLiveStreamTopView?: React.ComponentType<ViewerLiveStreamTopViewProps> | null;
+    /**
+     * Component to customize the bottom view controls at the viewer's live stream.
+     */
     ViewerLiveStreamControls?: React.ComponentType<ViewerLiveStreamControlsProps> | null;
   };
 

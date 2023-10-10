@@ -4,6 +4,9 @@ import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Mic, MicOff } from '../../../icons';
 
+/**
+ * The LiveStreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
+ */
 export const LiveStreamAudioControlButton = () => {
   const call = useCall();
   const { useMicrophoneState } = useCallStateHooks();

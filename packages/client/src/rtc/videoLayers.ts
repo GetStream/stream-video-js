@@ -1,4 +1,5 @@
 import { getOSInfo } from '../client-details';
+import { ScreenShareSettings } from '../types';
 import { TargetResolution } from '../gen/coordinator';
 import { isReactNative } from '../helpers/platforms';
 
@@ -122,6 +123,7 @@ const withSimulcastConstraints = (
 
 export const findOptimalScreenSharingLayers = (
   videoTrack: MediaStreamTrack,
+  preferences?: ScreenShareSettings,
 ): OptimalVideoLayer[] => {
   const settings = videoTrack.getSettings();
   return [
@@ -130,9 +132,9 @@ export const findOptimalScreenSharingLayers = (
       rid: 'q', // single track, start from 'q'
       width: settings.width || 0,
       height: settings.height || 0,
-      maxBitrate: 3000000,
       scaleResolutionDownBy: 1,
-      maxFramerate: 30,
+      maxBitrate: preferences?.maxBitrate ?? 3000000,
+      maxFramerate: preferences?.maxFramerate ?? 30,
     },
   ];
 };

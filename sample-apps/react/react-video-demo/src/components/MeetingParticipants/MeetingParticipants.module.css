@@ -24,6 +24,7 @@
   @apply grid pl-4 pr-4 pt-0 pb-0 sm:p-4  gap-y-3  w-full;
   height: calc(100dvh - 180px);
   grid-template-rows: 1fr 0.25fr;
+  grid-template-columns: 100%;
   grid-template-areas:
     'localParticipant'
     'participantSlider';

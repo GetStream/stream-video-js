@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
@@ -38,7 +38,8 @@ export const HangUpCallButton = ({
   const {
     theme: { colors, hangupCallButton },
   } = useTheme();
-  const onPress = useCallback(async () => {
+
+  const onPress = async () => {
     if (onPressHandler) {
       onPressHandler();
       return;
@@ -54,8 +55,7 @@ export const HangUpCallButton = ({
     } catch (error) {
       console.error('Error leaving call:', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call]);
+  };
 
   return (
     <CallControlsButton

@@ -67,8 +67,7 @@ export const speakerLayoutSortPreset = combineComparators(
  */
 export const paginatedLayoutSortPreset = combineComparators(
   pinned,
-  screenSharing,
-  dominantSpeaker,
+  ifInvisibleOrUnknownBy(dominantSpeaker),
   ifInvisibleOrUnknownBy(speaking),
   ifInvisibleOrUnknownBy(reactionType('raised-hand')),
   ifInvisibleOrUnknownBy(publishingVideo),

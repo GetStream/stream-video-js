@@ -21,7 +21,13 @@ import {
  */
 export type HostLiveStreamProps = HostLiveStreamTopViewProps &
   HostLiveStreamControlsProps & {
+    /**
+     * Component to customize the top view at the host's live stream.
+     */
     HostLiveStreamTopView?: React.ComponentType<HostLiveStreamTopViewProps> | null;
+    /**
+     * Component to customize the bottom view controls at the host's live stream.
+     */
     HostLiveStreamControls?: React.ComponentType<HostLiveStreamControlsProps> | null;
     VideoRenderer?: React.ComponentType<VideoRendererProps> | null;
   };

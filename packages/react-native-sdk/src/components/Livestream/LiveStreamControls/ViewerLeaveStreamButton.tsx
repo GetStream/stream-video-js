@@ -14,6 +14,10 @@ import { useCall, useI18n } from '@stream-io/video-react-bindings';
  * Props for the ViewerLeaveStreamButton component.
  */
 export type ViewerLeaveStreamButtonProps = {
+  /**
+   * Handler to be called when the viewer's leave stream button is called.
+   * @returns void
+   */
   onLeaveStreamHandler?: () => void;
 };
 

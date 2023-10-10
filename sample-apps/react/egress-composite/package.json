@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@emotion/css": "^11.11.2",
+    "@sentry/react": "^7.70.0",
+    "@sentry/vite-plugin": "^2.7.1",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^1.2.1",
     "js-base64": "^3.7.5",

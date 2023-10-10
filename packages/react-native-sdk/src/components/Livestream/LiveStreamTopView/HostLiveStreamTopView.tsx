@@ -18,8 +18,17 @@ import { useTheme } from '../../../contexts';
  * Props for the HostLiveStreamTopView component.
  */
 export type HostLiveStreamTopViewProps = {
+  /**
+   * Component to customize the Duration badge component on the host's live stream's top view.
+   */
   DurationBadge?: React.ComponentType<HostDurationBadgeProps> | null;
+  /**
+   * Component to customize the Live indicator on the host's live stream's top view.
+   */
   LiveIndicator?: React.ComponentType<LiveIndicatorProps> | null;
+  /**
+   * Component to customize the Follower count indicator on the host's live stream's top view.
+   */
   FollowerCount?: React.ComponentType<FollowerCountProps> | null;
 };
 

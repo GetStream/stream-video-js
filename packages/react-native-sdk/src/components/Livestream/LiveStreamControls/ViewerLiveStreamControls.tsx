@@ -11,6 +11,9 @@ import { useTheme } from '../../../contexts';
  * Props for the ViewerLiveStreamControls component.
  */
 export type ViewerLiveStreamControlsProps = ViewerLeaveStreamButtonProps & {
+  /**
+   * Component to customize the leave stream button on the viewer's end live stream.
+   */
   ViewerLeaveStreamButton?: React.ComponentType<ViewerLeaveStreamButtonProps> | null;
 };
 
