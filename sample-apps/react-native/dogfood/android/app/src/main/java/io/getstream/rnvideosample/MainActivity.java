@@ -8,7 +8,6 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
 import com.streamvideo.reactnative.StreamVideoReactNative;
 import android.util.Rational;
-
 import androidx.lifecycle.Lifecycle;
 
 public class MainActivity extends ReactActivity {
