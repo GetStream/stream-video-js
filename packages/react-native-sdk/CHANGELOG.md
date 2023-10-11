@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.4...@stream-io/video-react-native-sdk-0.1.5) (2023-10-11)
+
+
+### Bug Fixes
+
+* **react-native:** faulty default value for landscape mode for CallContent ([#1137](https://github.com/GetStream/stream-video-js/issues/1137)) ([ecb72b3](https://github.com/GetStream/stream-video-js/commit/ecb72b34c9acce690bfa157501c5dce845519670))
+
 ### [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.3...@stream-io/video-react-native-sdk-0.1.4) (2023-10-09)
 
 ### Dependency Updates
