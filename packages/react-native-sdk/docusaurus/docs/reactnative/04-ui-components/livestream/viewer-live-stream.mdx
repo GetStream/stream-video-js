@@ -1,0 +1,78 @@
+---
+id: viewer-live-stream
+title: ViewerLiveStream
+---
+
+import ViewerLiveStreamTopView from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-live-stream-top-view.mdx';
+import LiveStreamLayout from '../../common-content/ui-components/livestream/live-stream-layout.mdx';
+import ViewerLiveStreamControls from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-live-stream-controls.mdx';
+import DurationBadge from '../../common-content/ui-components/livestream/duration-badge.mdx';
+import FollowerCount from '../../common-content/ui-components/livestream/follower-count.mdx';
+import LiveIndicator from '../../common-content/ui-components/livestream/live-indicator.mdx';
+import ViewerLeaveStreamButton from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-leave-stream-button.mdx';
+import OnLeaveStreamHandler from '../../common-content/ui-components/livestream/viewer-live-stream/on-leave-stream-handler.mdx';
+
+The `ViewerLiveStream` is the UI component that allows you to show the live stream view in the app with minimal efforts. So you don't need to take care much about each feature that you need to build a video live stream call screen with this component.
+
+Basically what you can do with the `ViewerLiveStream` is:
+
+- A complete live stream UI with host's video, screen sharing stream.
+- Duration of the stream.
+- Whether the stream is live and number of participant's watching the stream.
+
+## General usage
+
+Let's see how to show the `ViewerLiveStream` UI:
+
+```tsx {13}
+import {
+  Call,
+  StreamCall,
+  ViewerLiveStream,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      <ViewerLiveStream />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `ViewerLiveStreamTopView`
+
+<ViewerLiveStreamTopView />
+
+### `LiveStreamLayout`
+
+<LiveStreamLayout />
+
+### `ViewerLiveStreamControls`
+
+<ViewerLiveStreamControls />
+
+### `DurationBadge`
+
+<DurationBadge />
+
+### `FollowerCount`
+
+<FollowerCount />
+
+### `LiveIndicator`
+
+<LiveIndicator />
+
+### `ViewerLeaveStreamButton`
+
+<ViewerLeaveStreamButton />
+
+### `OnLeaveStreamHandler`
+
+<OnLeaveStreamHandler />

@@ -43,7 +43,8 @@ export const HostStartStreamButton = ({
   hls,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
-  const { useIsCallLive } = useCallStateHooks();
+  const { useIsCallLive, useIsCallBroadcastingInProgress } =
+    useCallStateHooks();
   const {
     theme: {
       colors,
@@ -55,7 +56,10 @@ export const HostStartStreamButton = ({
 
   const call = useCall();
   const isCallLive = useIsCallLive();
+  const isCallBroadcasting = useIsCallBroadcastingInProgress();
   const { t } = useI18n();
+
+  const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const onStartStreamButtonPress = async () => {
     if (onStartStreamHandler) {
@@ -98,13 +102,15 @@ export const HostStartStreamButton = ({
         {
           backgroundColor: isAwaitingResponse
             ? colors.dark_gray
-            : isCallLive
+            : liveOrBroadcasting
             ? colors.error
             : colors.primary,
         },
         hostStartStreamButton.container,
       ]}
-      onPress={isCallLive ? onEndStreamButtonPress : onStartStreamButtonPress}
+      onPress={
+        liveOrBroadcasting ? onEndStreamButtonPress : onStartStreamButtonPress
+      }
     >
       <View
         style={[
@@ -115,7 +121,7 @@ export const HostStartStreamButton = ({
       >
         {isAwaitingResponse ? (
           <ActivityIndicator />
-        ) : isCallLive ? (
+        ) : liveOrBroadcasting ? (
           <EndBroadcastIcon />
         ) : (
           <StartStreamIcon />
@@ -131,7 +137,7 @@ export const HostStartStreamButton = ({
       >
         {isAwaitingResponse
           ? t('Loading...')
-          : isCallLive
+          : liveOrBroadcasting
           ? t('Stop Livestream')
           : t('Start Livestream')}
       </Text>

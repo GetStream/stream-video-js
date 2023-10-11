@@ -13,6 +13,7 @@ import {
   FollowerCountProps,
 } from './FollowerCount';
 import { useTheme } from '../../../contexts';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 /**
  * Props for the HostLiveStreamTopView component.
@@ -40,6 +41,12 @@ export const HostLiveStreamTopView = ({
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
 }: HostLiveStreamTopViewProps) => {
+  const { useIsCallLive, useIsCallBroadcastingInProgress } =
+    useCallStateHooks();
+  const isCallLive = useIsCallLive();
+  const isBroadcasting = useIsCallBroadcastingInProgress();
+
+  const liveOrBroadcasting = isCallLive || isBroadcasting;
   const {
     theme: { colors, hostLiveStreamTopView },
   } = useTheme();
@@ -59,7 +66,7 @@ export const HostLiveStreamTopView = ({
       />
       <View style={[styles.rightElement, hostLiveStreamTopView.rightElement]}>
         <View style={[styles.liveInfo, hostLiveStreamTopView.liveInfo]}>
-          {LiveIndicator && <LiveIndicator />}
+          {liveOrBroadcasting && LiveIndicator && <LiveIndicator />}
           {FollowerCount && <FollowerCount />}
         </View>
       </View>
