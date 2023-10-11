@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ViewStyle,
 } from 'react-native';
 import { appTheme } from '../../theme';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
@@ -15,6 +16,7 @@ import { Button } from '../../components/Button';
 import { randomId } from '../../modules/helpers/randomId';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
+import { useOrientation } from '../../hooks/useOrientation';
 
 type JoinLiveStreamScreenProps = NativeStackScreenProps<
   LiveStreamParamList,
@@ -29,6 +31,7 @@ export const JoinLiveStream = ({
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const { t } = useI18n();
+  const orientation = useOrientation();
   const {
     params: { mode },
   } = route;
@@ -44,46 +47,54 @@ export const JoinLiveStream = ({
     navigation.navigate('ViewerLiveStream', { callId });
   };
 
+  const landScapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, landScapeStyles]}
     >
-      <Image source={{ uri: userImageUrl }} style={styles.logo} />
-      <View>
-        <Text style={styles.title}>
-          {t('Hello, {{ userName }}', { userName: userName || userId })}
-        </Text>
-        <Text style={styles.subTitle}>
-          {mode === 'host'
-            ? t('Start a live stream by entering the call ID.')
-            : t('Join/View a live stream by entering the call ID.')}
-        </Text>
+      <View style={styles.topContainer}>
+        <Image source={{ uri: userImageUrl }} style={styles.logo} />
+        <View>
+          <Text style={styles.title}>
+            {t('Hello, {{ userName }}', { userName: userName || userId })}
+          </Text>
+          <Text style={styles.subTitle}>
+            {mode === 'host'
+              ? t('Start a live stream by entering the call ID.')
+              : t('Join/View a live stream by entering the call ID.')}
+          </Text>
+        </View>
       </View>
-      <View style={styles.createCall}>
-        <TextInput
-          placeholder={t('Type your Call ID')}
-          value={callId}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={(text) => {
-            setCallId(text.trim().split(' ').join('-'));
-          }}
-        />
+      <View style={styles.bottomContainer}>
+        <View style={styles.createCall}>
+          <TextInput
+            placeholder={t('Type your Call ID')}
+            value={callId}
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={(text) => {
+              setCallId(text.trim().split(' ').join('-'));
+            }}
+          />
+        </View>
+        {mode === 'host' ? (
+          <Button
+            onPress={enterBackstageHandler}
+            title={t('Enter Backstage')}
+            disabled={!callId}
+          />
+        ) : (
+          <Button
+            onPress={joinLiveStreamHandler}
+            title={t('Join Live stream')}
+            disabled={!callId}
+          />
+        )}
       </View>
-      {mode === 'host' ? (
-        <Button
-          onPress={enterBackstageHandler}
-          title={t('Enter Backstage')}
-          disabled={!callId}
-        />
-      ) : (
-        <Button
-          onPress={joinLiveStreamHandler}
-          title={t('Join Live stream')}
-          disabled={!callId}
-        />
-      )}
     </KeyboardAvoidingView>
   );
 };
@@ -94,6 +105,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.static_grey,
     flex: 1,
     justifyContent: 'space-evenly',
+  },
+  topContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   logo: {
     height: 100,
@@ -106,13 +121,17 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: appTheme.spacing.lg,
   },
   subTitle: {
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
     marginHorizontal: appTheme.spacing.xl,
+  },
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   createCall: {
     display: 'flex',
