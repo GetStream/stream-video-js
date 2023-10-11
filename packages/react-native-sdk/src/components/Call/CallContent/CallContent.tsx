@@ -83,7 +83,7 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
-  landscape = true,
+  landscape = false,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
