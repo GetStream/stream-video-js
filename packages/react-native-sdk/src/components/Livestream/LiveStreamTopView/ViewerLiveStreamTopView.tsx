@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   DurationBadge as DefaultDurationBadge,
@@ -40,46 +40,65 @@ export const ViewerLiveStreamTopView = ({
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
 }: ViewerLiveStreamTopViewProps) => {
+  const [liveStreamTopViewHeight, setliveStreamTopViewHeight] =
+    useState<number>(0);
   const {
     theme: { colors, viewerLiveStreamTopView },
   } = useTheme();
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    const { height } = event.nativeEvent.layout;
+    if (setliveStreamTopViewHeight) {
+      setliveStreamTopViewHeight(height);
+    }
+  };
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.static_overlay },
-        viewerLiveStreamTopView.container,
-      ]}
-    >
-      <View style={[styles.leftElement, viewerLiveStreamTopView.leftElement]}>
-        <View style={[styles.liveInfo, viewerLiveStreamTopView.liveInfo]}>
-          {LiveIndicator && <LiveIndicator />}
-          {FollowerCount && <FollowerCount />}
-        </View>
-      </View>
+    <View style={[styles.container, viewerLiveStreamTopView.container]}>
       <View
-        style={[styles.centerElement, viewerLiveStreamTopView.centerElement]}
-      >
-        {DurationBadge && <DurationBadge mode="viewer" />}
-      </View>
-      <View
-        style={[styles.rightElement, viewerLiveStreamTopView.rightElement]}
+        style={[
+          styles.background,
+          {
+            height: liveStreamTopViewHeight,
+            backgroundColor: colors.static_overlay,
+          },
+          viewerLiveStreamTopView.background,
+        ]}
       />
+      <View
+        style={[styles.content, viewerLiveStreamTopView.content]}
+        onLayout={onLayout}
+      >
+        <View style={[styles.leftElement, viewerLiveStreamTopView.leftElement]}>
+          <View style={[styles.liveInfo, viewerLiveStreamTopView.liveInfo]}>
+            {LiveIndicator && <LiveIndicator />}
+            {FollowerCount && <FollowerCount />}
+          </View>
+        </View>
+        <View
+          style={[styles.centerElement, viewerLiveStreamTopView.centerElement]}
+        >
+          {DurationBadge && <DurationBadge mode="viewer" />}
+        </View>
+        <View
+          style={[styles.rightElement, viewerLiveStreamTopView.rightElement]}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'absolute',
-    top: 0,
-    zIndex: 1,
+  container: {},
+  background: {
     borderBottomEndRadius: 8,
     borderBottomStartRadius: 8,
+  },
+  content: {
+    position: 'absolute',
+    top: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   liveInfo: {
     flexDirection: 'row',

@@ -3,12 +3,17 @@ id: viewer-live-stream
 title: ViewerLiveStream
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ViewerLiveStream from '../../assets/04-ui-components/livestream/viewer-live-stream.png';
+import ViewerLiveStreamScreenShare from '../../assets/04-ui-components/livestream/viewer-live-stream-screenshare.png';
+
 import ViewerLiveStreamTopView from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-live-stream-top-view.mdx';
 import LiveStreamLayout from '../../common-content/ui-components/livestream/live-stream-layout.mdx';
 import ViewerLiveStreamControls from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-live-stream-controls.mdx';
 import DurationBadge from '../../common-content/ui-components/livestream/duration-badge.mdx';
 import FollowerCount from '../../common-content/ui-components/livestream/follower-count.mdx';
 import LiveIndicator from '../../common-content/ui-components/livestream/live-indicator.mdx';
+import FloatingParticipantView from '../../common-content/ui-components/call/call-content/floating-participant-view.mdx';
 import ViewerLeaveStreamButton from '../../common-content/ui-components/livestream/viewer-live-stream/viewer-leave-stream-button.mdx';
 import OnLeaveStreamHandler from '../../common-content/ui-components/livestream/viewer-live-stream/on-leave-stream-handler.mdx';
 
@@ -19,6 +24,21 @@ Basically what you can do with the `ViewerLiveStream` is:
 - A complete live stream UI with host's video, screen sharing stream.
 - Duration of the stream.
 - Whether the stream is live and number of participant's watching the stream.
+
+<ImageShowcase
+  items={[
+    {
+      image: ViewerLiveStream,
+      caption: 'Viewer Live Stream',
+      alt: 'Viewer Live Stream',
+    },
+    {
+      image: ViewerLiveStreamScreenShare,
+      caption: 'Viewer Live Stream Screen Share',
+      alt: 'Viewer Live Stream Screen Share',
+    },
+  ]}
+/>
 
 ## General usage
 
@@ -72,6 +92,10 @@ const VideoCallUI = () => {
 ### `ViewerLeaveStreamButton`
 
 <ViewerLeaveStreamButton />
+
+### `FloatingParticipantView`
+
+<FloatingParticipantView />
 
 ### `OnLeaveStreamHandler`
 

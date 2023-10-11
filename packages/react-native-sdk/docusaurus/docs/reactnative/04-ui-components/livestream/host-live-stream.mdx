@@ -3,6 +3,10 @@ id: host-live-stream
 title: HostLiveStream
 ---
 
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import HostLiveStreamStart from '../../assets/04-ui-components/livestream/host-live-stream-start.png';
+import HostLiveStreamEnd from '../../assets/04-ui-components/livestream/host-live-stream-end.png';
+
 import HostLiveStreamTopView from '../../common-content/ui-components/livestream/host-live-stream/host-live-stream-top-view.mdx';
 import LiveStreamLayout from '../../common-content/ui-components/livestream/live-stream-layout.mdx';
 import HostLiveStreamControls from '../../common-content/ui-components/livestream/host-live-stream/host-live-stream-controls.mdx';
@@ -22,6 +26,21 @@ Basically what you can do with the `HostLiveStream` is:
 - Duration of the live stream with live indicator.
 - Whether the stream is live and number of participant's watching the stream.
 - Media controls to control publishing and unpublishing of stream.
+
+<ImageShowcase
+  items={[
+    {
+      image: HostLiveStreamStart,
+      caption: 'Host Live Stream Start',
+      alt: 'Host Live Stream Start',
+    },
+    {
+      image: HostLiveStreamEnd,
+      caption: 'Viewer Live Stream End',
+      alt: 'Viewer Live Stream End',
+    },
+  ]}
+/>
 
 ## General usage
 

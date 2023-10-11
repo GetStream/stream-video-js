@@ -5,8 +5,6 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
 import { useTheme } from '../../../contexts';
 import {
-  FloatingParticipantView as DefaultFloatingParticipantView,
-  FloatingParticipantViewProps,
   VideoRenderer as DefaultVideoRenderer,
   VideoRendererProps,
 } from '../../Participant';
@@ -21,10 +19,6 @@ export type LiveStreamLayoutProps = {
    * Component to customize the video component of the participant.
    */
   VideoRenderer?: React.ComponentType<VideoRendererProps> | null;
-  /**
-   * Component to customize the FloatingParticipantView when screen is shared.
-   */
-  FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
 };
 
 const hasScreenShare = (p?: StreamVideoParticipant) =>
@@ -33,7 +27,6 @@ const hasScreenShare = (p?: StreamVideoParticipant) =>
 export const LiveStreamLayout = ({
   landscape,
   VideoRenderer = DefaultVideoRenderer,
-  FloatingParticipantView = DefaultFloatingParticipantView,
 }: LiveStreamLayoutProps) => {
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
@@ -61,20 +54,12 @@ export const LiveStreamLayout = ({
         livestreamLayout.container,
       ]}
     >
-      {hasOngoingScreenShare && presenter && VideoRenderer && (
+      {VideoRenderer && hasOngoingScreenShare && presenter && (
         <VideoRenderer trackType="screenShareTrack" participant={presenter} />
       )}
-      {hasOngoingScreenShare
-        ? FloatingParticipantView && (
-            <FloatingParticipantView participant={currentSpeaker} />
-          )
-        : currentSpeaker &&
-          VideoRenderer && (
-            <VideoRenderer
-              participant={currentSpeaker}
-              trackType="videoTrack"
-            />
-          )}
+      {VideoRenderer && !hasOngoingScreenShare && currentSpeaker && (
+        <VideoRenderer participant={currentSpeaker} trackType="videoTrack" />
+      )}
     </View>
   );
 };

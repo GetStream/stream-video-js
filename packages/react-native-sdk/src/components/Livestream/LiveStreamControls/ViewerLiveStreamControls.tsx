@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -24,40 +24,60 @@ export const ViewerLiveStreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
   onLeaveStreamHandler,
 }: ViewerLiveStreamControlsProps) => {
+  const [liveStreamBottomViewHeight, setliveStreamBottomViewHeight] =
+    useState<number>(0);
   const {
     theme: { colors, viewerLiveStreamControls },
   } = useTheme();
+
+  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
+    const { height } = event.nativeEvent.layout;
+    if (setliveStreamBottomViewHeight) {
+      setliveStreamBottomViewHeight(height);
+    }
+  };
+
   return (
-    <View
-      style={[
-        styles.bottom,
-        { backgroundColor: colors.static_overlay },
-        viewerLiveStreamControls.container,
-      ]}
-    >
-      <View style={[styles.leftElement, viewerLiveStreamControls.leftElement]}>
-        {ViewerLeaveStreamButton && (
-          <ViewerLeaveStreamButton
-            onLeaveStreamHandler={onLeaveStreamHandler}
-          />
-        )}
-      </View>
+    <View style={[styles.container, viewerLiveStreamControls.container]}>
       <View
-        style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
+        style={[
+          {
+            height: liveStreamBottomViewHeight,
+            backgroundColor: colors.static_overlay,
+          },
+          viewerLiveStreamControls.background,
+        ]}
       />
+      <View
+        style={[styles.content, viewerLiveStreamControls.content]}
+        onLayout={onLayout}
+      >
+        <View
+          style={[styles.leftElement, viewerLiveStreamControls.leftElement]}
+        >
+          {ViewerLeaveStreamButton && (
+            <ViewerLeaveStreamButton
+              onLeaveStreamHandler={onLeaveStreamHandler}
+            />
+          )}
+        </View>
+        <View
+          style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  bottom: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
+  container: {},
+  content: {
+    position: 'absolute',
+    top: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 0,
-    zIndex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   leftElement: {
     flex: 1,

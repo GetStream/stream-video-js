@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView, View } from 'react-native';
 import { useIncallManager } from '../../../hooks';
 import { useTheme } from '../../../contexts';
 import {
@@ -16,6 +16,12 @@ import {
   LiveStreamLayout as DefaultLiveStreamLayout,
   LiveStreamLayoutProps,
 } from '../LiveStreamLayout';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  FloatingParticipantView as DefaultFloatingParticipantView,
+  FloatingParticipantViewProps,
+} from '../../Participant';
+import { Z_INDEX } from '../../../constants';
 
 /**
  * Props for the ViewerLiveStream component.
@@ -35,6 +41,10 @@ export type ViewerLiveStreamProps = ViewerLiveStreamTopViewProps &
      * Component to customize the bottom view controls at the viewer's live stream.
      */
     ViewerLiveStreamControls?: React.ComponentType<ViewerLiveStreamControlsProps> | null;
+    /**
+     * Component to customize the FloatingParticipantView when screen is shared.
+     */
+    FloatingParticipantView?: React.ComponentType<FloatingParticipantViewProps> | null;
   };
 
 /**
@@ -44,6 +54,7 @@ export const ViewerLiveStream = ({
   ViewerLiveStreamTopView = DefaultViewerLiveStreamTopView,
   ViewerLiveStreamControls = DefaultViewerLiveStreamControls,
   LiveStreamLayout = DefaultLiveStreamLayout,
+  FloatingParticipantView = DefaultFloatingParticipantView,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
@@ -53,6 +64,9 @@ export const ViewerLiveStream = ({
   const {
     theme: { colors, viewerLiveStream },
   } = useTheme();
+  const { useHasOngoingScreenShare, useParticipants } = useCallStateHooks();
+  const hasOngoingScreenShare = useHasOngoingScreenShare();
+  const [currentSpeaker] = useParticipants();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
   useIncallManager({ media: 'video', auto: true });
@@ -71,14 +85,29 @@ export const ViewerLiveStream = ({
         viewerLiveStream.container,
       ]}
     >
-      {ViewerLiveStreamTopView && <ViewerLiveStreamTopView {...topViewProps} />}
+      <View style={[styles.view, viewerLiveStream.view]}>
+        {ViewerLiveStreamTopView && (
+          <ViewerLiveStreamTopView {...topViewProps} />
+        )}
+        <View
+          style={[
+            styles.floatingParticipantView,
+            viewerLiveStream.floatingParticipantView,
+          ]}
+        >
+          {hasOngoingScreenShare && FloatingParticipantView && (
+            <FloatingParticipantView participant={currentSpeaker} />
+          )}
+        </View>
+
+        {ViewerLiveStreamControls && (
+          <ViewerLiveStreamControls
+            ViewerLeaveStreamButton={ViewerLeaveStreamButton}
+            onLeaveStreamHandler={onLeaveStreamHandler}
+          />
+        )}
+      </View>
       {LiveStreamLayout && <LiveStreamLayout />}
-      {ViewerLiveStreamControls && (
-        <ViewerLiveStreamControls
-          ViewerLeaveStreamButton={ViewerLeaveStreamButton}
-          onLeaveStreamHandler={onLeaveStreamHandler}
-        />
-      )}
     </SafeAreaView>
   );
 };
@@ -86,5 +115,12 @@ export const ViewerLiveStream = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  floatingParticipantView: {
+    flex: 1,
+  },
+  view: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: Z_INDEX.IN_FRONT,
   },
 });

@@ -67,13 +67,12 @@ export const HostLiveStreamControls = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
     position: 'absolute',
     bottom: 0,
-    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
   },
   leftElement: {
     flex: 1,

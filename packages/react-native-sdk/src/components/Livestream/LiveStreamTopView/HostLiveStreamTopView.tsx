@@ -76,13 +76,12 @@ export const HostLiveStreamTopView = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 16,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
     position: 'absolute',
     top: 0,
-    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
     borderBottomEndRadius: 8,
     borderBottomStartRadius: 8,
   },
