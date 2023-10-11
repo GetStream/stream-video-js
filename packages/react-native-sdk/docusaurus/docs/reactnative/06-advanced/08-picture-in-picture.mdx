@@ -11,6 +11,8 @@ import PipVideo from "../assets/06-advanced/08-picture-in-picture/pip-android.mp
 Picture-in-picture (PiP) mode shrinks the layout in the call into a small window so you can keep watching while using other apps on your mobile device. You can move the small window around your device’s home screen and position it over other apps.
 Through the SDK we provide two ways to enter PiP mode, either manually or automatically. The manual way is using calling a method from the SDK, the automatic way is to make the app enter PiP mode when the home button is pressed.
 
+<!-- vale off -->
+
 <div style={{ display: "flex", justifyContent: "center" }}>
     <div style={{ width: "270px" }}>
         <video muted controls style={{ maxWidth: "100%" }}>
@@ -20,6 +22,8 @@ Through the SDK we provide two ways to enter PiP mode, either manually or automa
         </video>
     </div>
 </div>
+
+<!-- vale on -->
 
 :::note
 PiP is currently only supported in Android by the SDK.
@@ -48,12 +52,16 @@ Add the following attributes to `AndroidManifest.xml` file in `MainActivity`:
 ### Changes to MainActivity
 Add the following imports to `MainActivity.java`:
 
+<!-- vale off -->
+
 ```java title="MainActivity.java"
 import android.app.PictureInPictureParams;
 import com.streamvideo.reactnative.StreamVideoReactNative;
 import android.util.Rational;
 import androidx.lifecycle.Lifecycle;
 ```
+
+<!-- vale on -->
 
 After that, Add the following function to `MainActivity.java`:
 
