@@ -12,10 +12,18 @@ This tutorial teaches you how to build Zoom/Whatsapp style video calling experie
 - Video quality and codecs are automatically optimized.
 - Powered by Stream's [Video Calling API](https://getstream.io/video/video-calling/).
 
-### Step 1 - Setup an app and install React Video SDK
+### Step 0 - Prepare your environment
+
+For this tutorial, you'll need a few tools to be installed on your device.
+You can skip this step in case you already have them installed.
+
+- [Node.js](https://nodejs.org/en/download/) (version 18 or higher)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/) (version 1.22 or higher)
+
+### Step 1 - Set up an app and install React Video SDK
 
 In this step, we will create a new React application using the [Vite CLI](https://vitejs.dev/), and install Stream's React Video SDK.
-We recommend using Vite because it's fast and easy to use.
+We recommend using Vite because it is fast and easy to use.
 
 ```bash title="Terminal"
 yarn create vite video-call --template react-ts
@@ -54,7 +62,7 @@ const client = new StreamVideoClient({ apiKey, user, token });
 const call = client.call('default', callId);
 call.join({ create: true });
 
-export const App = () => {
+export default function App() {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
@@ -62,7 +70,7 @@ export const App = () => {
       </StreamCall>
     </StreamVideo>
   );
-};
+}
 
 export const MyUILayout = () => {
   const call = useCall();
@@ -95,7 +103,7 @@ Now when you run the sample app it will connect successfully. The text will say 
 
 ![Preview of the step](../assets/02-tutorials/video-calling-first-step.png)
 
-Let's review what we did in the above code.
+#### Let's review what we did in the above code
 
 #### User setup
 
@@ -178,6 +186,8 @@ import {
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 
+// ... rest of the App.tsx code
+
 export const MyUILayout = () => {
   const {
     useCallCallingState,
@@ -211,6 +221,8 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 
+// ... rest of the App.tsx code
+
 export const MyParticipantList = (props: {
   participants: StreamVideoParticipant[];
 }) => {
@@ -233,6 +245,8 @@ import {
   ParticipantView,
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
+
+// ... rest of the App.tsx code
 
 export const MyFloatingLocalParticipant = (props: {
   participant?: StreamVideoParticipant;
@@ -261,7 +275,7 @@ The end result should look somewhat like this:
 
 ![Preview of a call running with the local video floating at the top left.](../assets/02-tutorials/video-calling-preview.png)
 
-Let's review the changes we made.
+#### Let's review the changes we made
 
 [ParticipantView](../../ui-components/core/participant-view/) is one of our primary low-level components.
 
