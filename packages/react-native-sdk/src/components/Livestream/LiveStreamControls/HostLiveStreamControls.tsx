@@ -9,6 +9,7 @@ import {
   LiveStreamMediaControlsProps,
 } from './LiveStreamMediaControls';
 import { useTheme } from '../../../contexts';
+import { Z_INDEX } from '../../../constants';
 
 /**
  * Props for the HostLiveStreamControls component.
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 8,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   leftElement: {
     flex: 1,

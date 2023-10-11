@@ -14,6 +14,7 @@ import {
 } from './FollowerCount';
 import { useTheme } from '../../../contexts';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Z_INDEX } from '../../../constants';
 
 /**
  * Props for the HostLiveStreamTopView component.
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderBottomEndRadius: 8,
     borderBottomStartRadius: 8,
+    zIndex: Z_INDEX.IN_FRONT,
   },
   liveInfo: {
     flexDirection: 'row',
