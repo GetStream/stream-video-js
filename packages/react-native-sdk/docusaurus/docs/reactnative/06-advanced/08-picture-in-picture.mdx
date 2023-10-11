@@ -6,9 +6,20 @@ description: Tutorial to integrate deep linking for the calls
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import PipVideo from "../assets/06-advanced/08-picture-in-picture/pip-android.mp4";
 
 Picture-in-picture (PiP) mode shrinks the layout in the call into a small window so you can keep watching while using other apps on your mobile device. You can move the small window around your device’s home screen and position it over other apps.
 Through the SDK we provide two ways to enter PiP mode, either manually or automatically. The manual way is using calling a method from the SDK, the automatic way is to make the app enter PiP mode when the home button is pressed.
+
+<div style={{ display: "flex", justifyContent: "center" }}>
+    <div style={{ width: "270px" }}>
+        <video muted controls style={{ maxWidth: "100%" }}>
+            <source src={PipVideo} type="video/mp4"/>
+            Alas, your browser doesn't support HTML5 video. That's OK! You can still
+            <a href={PipVideo}>download the video</a> and watch it with a video player.
+        </video>
+    </div>
+</div>
 
 :::note
 PiP is currently only supported in Android by the SDK.
@@ -104,9 +115,9 @@ If you do not want the app to automatically enter PiP mode on Home button press.
 
 ## Automatically entering PiP mode
 
-If the setup was done to enter PiP Mode automatically. Then, Wherever `CallContent` component is used, then PiP mode will be activated on home button press. 
+If the setup was done to enter PiP Mode automatically, wherever `CallContent` component is used, the PiP mode will be activated on home button press. 
 
-Alternatively, if you do not use the `CallContent` component but still want to enter PiP mode automatically, You can use the `useAutoEnterPiPEffect` hook from the SDK in your component to enable PiP mode in that component as below:
+Alternatively, if you do not use the `CallContent` component but still want to enter PiP mode automatically. You can use the `useAutoEnterPiPEffect` hook from the SDK in your component to enable PiP mode in that component as below:
 
 ```js
 import { useAutoEnterPiPEffect } from '@stream-io/video-react-native-sdk';
@@ -126,7 +137,7 @@ enterPiPAndroid();
 
 ## Choosing what to render on PiP mode
 
-In PiP mode, the window is small. So you should only selectively render. The important parts of the call. If you use `CallContent` component, this is automatically handled. The `CallContent` component shows only top sorted video on PiP mode. 
+In PiP mode, the window is small. So you should only selectively render the important parts of the call. If you use `CallContent` component, this is automatically handled. The `CallContent` component shows only top sorted video on PiP mode. 
 
 Alternatively, if you do not use the `CallContent` component, we expose a hook named `useIsInPiPMode` to listen to the state of PiP Mode as shown below:
 

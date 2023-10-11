@@ -157,7 +157,9 @@ export const CallContent = ({
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: isInPiPMode ? null : ParticipantLabel,
-    ParticipantNetworkQualityIndicator,
+    ParticipantNetworkQualityIndicator: isInPiPMode
+      ? null
+      : ParticipantNetworkQualityIndicator,
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
