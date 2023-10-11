@@ -28,8 +28,8 @@ export type Props = {
 };
 
 const VideoPlaceholder = forwardRef<HTMLDivElement, VideoPlaceholderProps>(
-  ({ participant }, ref) => (
-    <div className={styles.placeholder} ref={ref}>
+  ({ participant, style }, ref) => (
+    <div className={styles.placeholder} style={style} ref={ref}>
       <div className={styles.fallAvatarContainer}>
         <div className={styles.fallbackInitial}>
           {(participant.name || participant.userId)?.split('')[0]}
@@ -97,12 +97,12 @@ export const Overlay: FC<{
   );
 };
 
-export const Participant: FC<Props> = ({
+export const Participant = ({
   className,
   call,
   participant,
   slider,
-}) => {
+}: Props) => {
   const {
     publishedTracks,
     isSpeaking,
@@ -125,7 +125,10 @@ export const Participant: FC<Props> = ({
   const isPinned = !!participant.pin;
 
   useEffect(() => {
-    if (connectionQuality === SfuModels.ConnectionQuality.POOR) {
+    if (
+      isLocalParticipant &&
+      connectionQuality === SfuModels.ConnectionQuality.POOR
+    ) {
       addNotification({
         id: uuid(),
         message:
@@ -133,7 +136,7 @@ export const Participant: FC<Props> = ({
         icon: <Signal />,
       });
     }
-  }, [connectionQuality, addNotification]);
+  }, [connectionQuality, addNotification, isLocalParticipant]);
 
   const rootClassNames = classnames(
     styles.root,

@@ -1,10 +1,13 @@
 import { AndroidImportance } from '@notifee/react-native';
-import { defaultEmojiReactions } from '../../constants';
 import { setupFirebaseHandlerAndroid } from '../push/android';
 import { StreamVideoConfig } from './types';
+import pushLogoutCallbacks from '../internal/pushLogoutCallback';
+import { setupRemoteNotificationsHandleriOS } from '../push/ios';
+import newNotificationCallbacks, {
+  NewCallNotificationCallback,
+} from '../internal/newNotificationCallbacks';
 
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
-  supportedReactions: defaultEmojiReactions,
   foregroundService: {
     android: {
       channel: {
@@ -24,6 +27,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
+
   /**
    * Update the global config for StreamVideoRN except for push config.
    * To set push config use `StreamVideoRN.setPushConfig` instead.
@@ -59,9 +63,40 @@ export class StreamVideoRN {
     this.config.push = pushConfig;
     // After getting the config we should setup callkeep events, firebase handler asap to handle incoming calls from a dead state
     setupFirebaseHandlerAndroid(pushConfig);
+    // setup ios handler for non-voip push notifications asap
+    setupRemoteNotificationsHandleriOS(pushConfig);
   }
 
   static getConfig() {
     return this.config;
+  }
+
+  /**
+   * This is the function to be called when the push token must be removed.
+   * Typically used on user logout.
+   */
+  static onPushLogout() {
+    if (pushLogoutCallbacks.current) {
+      pushLogoutCallbacks.current.forEach((callback) => callback());
+    }
+  }
+
+  /**
+   * This function is used to add a callback to be called when a new call notification is received.
+   * @param callback
+   * @returns Unsubscribe function
+   */
+  static addOnNewCallNotificationListener(
+    callback: NewCallNotificationCallback,
+  ) {
+    if (!newNotificationCallbacks.current) {
+      newNotificationCallbacks.current = [callback];
+    } else {
+      newNotificationCallbacks.current.push(callback);
+    }
+    return () => {
+      newNotificationCallbacks.current =
+        newNotificationCallbacks.current?.filter((cb) => cb !== callback);
+    };
   }
 }

@@ -14,14 +14,17 @@ describe('presets', () => {
       },
     }));
 
-    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name)).toEqual([
-      'F',
-      'B',
-      'E',
-      'D',
-      'A',
-      'C',
-    ]);
+    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name))
+      .toMatchInlineSnapshot(`
+      [
+        "F",
+        "D",
+        "A",
+        "B",
+        "C",
+        "E",
+      ]
+    `);
 
     // server-pin C
     ps.at(-1)!.pin = {
@@ -29,26 +32,32 @@ describe('presets', () => {
       pinnedAt: Date.now(),
     };
 
-    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name)).toEqual([
-      'C',
-      'F',
-      'B',
-      'E',
-      'D',
-      'A',
-    ]);
+    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name))
+      .toMatchInlineSnapshot(`
+      [
+        "E",
+        "F",
+        "D",
+        "A",
+        "B",
+        "C",
+      ]
+    `);
 
     ps.at(-3)!.publishedTracks = [TrackType.AUDIO]; // E
     ps.at(-2)!.isDominantSpeaker = false; // D
     ps.at(-1)!.isDominantSpeaker = true; // A
 
-    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name)).toEqual([
-      'C',
-      'F',
-      'B',
-      'A',
-      'E',
-      'D',
-    ]);
+    expect(ps.sort(paginatedLayoutSortPreset).map((p) => p.name))
+      .toMatchInlineSnapshot(`
+      [
+        "E",
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+      ]
+    `);
   });
 });

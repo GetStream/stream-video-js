@@ -1,4 +1,4 @@
-import { StreamVideoConfig } from '../utils/StreamVideoRN/types';
+import { StreamReactionType } from '../components';
 
 export const FLOATING_VIDEO_VIEW_STYLE = {
   height: 140,
@@ -8,7 +8,7 @@ export const FLOATING_VIDEO_VIEW_STYLE = {
 
 export const LOBBY_VIDEO_VIEW_HEIGHT = 280;
 
-export const defaultEmojiReactions: StreamVideoConfig['supportedReactions'] = [
+export const defaultEmojiReactions: StreamReactionType[] = [
   {
     type: 'reaction',
     emoji_code: ':like:',

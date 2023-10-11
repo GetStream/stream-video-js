@@ -19,25 +19,9 @@ Additionally, to easily request permissions on both platforms, we will use the [
 yarn add react-native-permissions
 ```
 
-#### iOS
-
-Additionally, for iOS, you need to update your `package.json` by adding the permissions used in your app.
-
-```js title=package.json
-{
-  "reactNativePermissionsIOS": [
-    "Camera",
-    "Microphone",
-  ],
-}
-```
-
-After that, we need to run the following commands:
-
-```bash title=Terminal
-npx react-native setup-ios-permissions
-npx pod-install
-```
+:::note
+Do not forget to perform the additional setup steps for iOS mentioned in the [`react-native-permissions` library documentation](https://github.com/zoontek/react-native-permissions#ios) 
+:::
 
 ## Step 1 - Add a function to request permissions in the app
 

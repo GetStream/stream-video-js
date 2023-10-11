@@ -7,7 +7,7 @@ export * from './ToggleAudioPublishingButton';
 export * from './ToggleVideoPublishingButton';
 export * from './ToggleCameraFaceButton';
 export * from './ChatButton';
-export * from './ReactionButton';
+export * from './ReactionsButton';
 export * from './CallControls';
 export * from './LobbyControls';
 export * from './IncomingCallControls';

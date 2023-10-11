@@ -11,23 +11,20 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   CallParticipantsListComponentProps,
-  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallContentProps } from '../CallContent';
 
 /**
  * Props for the CallParticipantsSpotlight component.
  */
-export type CallParticipantsSpotlightProps =
-  CallParticipantsListComponentProps & {
-    /**
-     * Component to customize the CallParticipantsList.
-     */
-    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
+  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
@@ -50,6 +47,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
+  supportedReactions,
   landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
@@ -115,6 +113,7 @@ export const CallParticipantsSpotlight = ({
           trackType={
             isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
           }
+          supportedReactions={supportedReactions}
           {...participantViewProps}
         />
       )}
@@ -130,6 +129,7 @@ export const CallParticipantsSpotlight = ({
               participants={
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
+              supportedReactions={supportedReactions}
               horizontal={!landscape}
               numberOfColumns={!landscape ? 2 : 1}
               landscape={landscape}

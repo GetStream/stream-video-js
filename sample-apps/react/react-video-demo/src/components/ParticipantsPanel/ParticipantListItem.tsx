@@ -46,7 +46,8 @@ export const ParticipantListItem = ({
   return (
     <>
       <span className={styles.name}>
-        {participant?.name} {isLocalParticipant ? '(You)' : null}
+        {participant?.name || participant?.userId}{' '}
+        {isLocalParticipant ? '(You)' : null}
       </span>
       <div className={styles.media}>
         <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
