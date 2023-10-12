@@ -101,9 +101,11 @@ export type Theme = {
   };
   lobby: {
     container: ViewStyle;
+    topContainer: ViewStyle;
     heading: TextStyle;
     subHeading: TextStyle;
     videoContainer: ViewStyle;
+    bottomContainer: ViewStyle;
     infoContainer: ViewStyle;
     infoText: TextStyle;
     participantStatusContainer: ViewStyle;
@@ -148,8 +150,10 @@ export type Theme = {
   incomingCall: {
     background: ViewStyle;
     content: ViewStyle;
+    topContainer: ViewStyle;
     incomingCallText: TextStyle;
     incomingCallControls: ViewStyle;
+    bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
   };
   joiningCallIndicator: {
@@ -159,8 +163,10 @@ export type Theme = {
     container: ViewStyle;
     background: ViewStyle;
     content: ViewStyle;
+    topContainer: ViewStyle;
     callingText: TextStyle;
     outgoingCallControls: ViewStyle;
+    bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
   };
@@ -213,10 +219,10 @@ export const defaultTheme: Theme = {
     },
     avatarSizes: {
       xs: 50,
-      sm: 100,
-      md: 120,
-      lg: 180,
-      xl: 80,
+      sm: 90,
+      md: 100,
+      lg: 160,
+      xl: 180,
     },
   },
   typefaces: {
@@ -318,8 +324,10 @@ export const defaultTheme: Theme = {
   },
   lobby: {
     container: {},
+    topContainer: {},
     heading: {},
     subHeading: {},
+    bottomContainer: {},
     videoContainer: {},
     infoContainer: {},
     infoText: {},
@@ -373,16 +381,20 @@ export const defaultTheme: Theme = {
   incomingCall: {
     background: {},
     content: {},
+    topContainer: {},
     incomingCallText: {},
     incomingCallControls: {},
+    bottomContainer: {},
     buttonGroup: {},
   },
   outgoingCall: {
     container: {},
     background: {},
     content: {},
+    topContainer: {},
     callingText: {},
     outgoingCallControls: {},
+    bottomContainer: {},
     buttonGroup: {},
     deviceControlButtons: {},
   },

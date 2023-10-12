@@ -75,7 +75,7 @@ export const CallParticipantsSpotlight = ({
     ParticipantView,
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -88,7 +88,7 @@ export const CallParticipantsSpotlight = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         {
           backgroundColor: colors.dark_gray,
         },

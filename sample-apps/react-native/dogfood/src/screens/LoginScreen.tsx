@@ -6,6 +6,7 @@ import {
   View,
   KeyboardAvoidingView,
   Platform,
+  ViewStyle,
 } from 'react-native';
 import {
   GoogleSignin,
@@ -17,6 +18,7 @@ import { Button } from '../components/Button';
 import { TextInput } from '../components/TextInput';
 import { useI18n } from '@stream-io/video-react-native-sdk';
 import { KnownUsers } from '../constants/KnownUsers';
+import { useOrientation } from '../hooks/useOrientation';
 
 GoogleSignin.configure({
   // webClientId: '<FROM DEVELOPER CONSOLE>', // client ID of type WEB for your server (needed to verify user ID and offline access)
@@ -38,6 +40,7 @@ const LoginScreen = () => {
   const [localUserId, setLocalUserId] = useState('');
   const [loader, setLoader] = useState(false);
   const { t } = useI18n();
+  const orientation = useOrientation();
 
   const setState = useAppGlobalStoreSetState();
 
@@ -84,22 +87,27 @@ const LoginScreen = () => {
     }
   };
 
+  const landscapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, landscapeStyles]}
     >
-      <Image source={require('../assets/Logo.png')} style={styles.logo} />
-      <View>
-        <Text style={styles.title}>{t('Stream DogFood App')}</Text>
-        <Text style={styles.subTitle}>
-          {t(
-            'Please sign in with your Google Stream account or a Custom user id.',
-          )}
-        </Text>
+      <View style={styles.topContainer}>
+        <Image source={require('../assets/Logo.png')} style={styles.logo} />
+        <View>
+          <Text style={styles.title}>{t('Stream DogFood App')}</Text>
+          <Text style={styles.subTitle}>
+            {t(
+              'Please sign in with your Google Stream account or a Custom user id.',
+            )}
+          </Text>
+        </View>
       </View>
-
-      <View style={styles.bottomView}>
+      <View style={styles.bottomContainer}>
         <View style={styles.customUser}>
           <TextInput
             placeholder={t('Enter custom user')}
@@ -136,6 +144,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
     backgroundColor: appTheme.colors.static_grey,
   },
+  topContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   logo: {
     height: 100,
     width: 100,
@@ -147,15 +159,17 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: appTheme.spacing.lg,
   },
   subTitle: {
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
     marginHorizontal: appTheme.spacing.xl,
   },
-  bottomView: {
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   customUser: {
