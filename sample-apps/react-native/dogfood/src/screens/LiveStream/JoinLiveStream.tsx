@@ -47,14 +47,14 @@ export const JoinLiveStream = ({
     navigation.navigate('ViewerLiveStream', { callId });
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, landScapeStyles]}
+      style={[styles.container, landscapeStyles]}
     >
       <View style={styles.topContainer}>
         <Image source={{ uri: userImageUrl }} style={styles.logo} />
