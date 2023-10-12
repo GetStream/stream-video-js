@@ -74,13 +74,13 @@ const JoinCallScreen = () => {
     }
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, landScapeStyles]}
+      style={[styles.container, landscapeStyles]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.topContainer}>

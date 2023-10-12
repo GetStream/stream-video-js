@@ -57,7 +57,7 @@ export const IncomingCall = ({
     theme: { colors, incomingCall, typefaces },
   } = useTheme();
 
-  const landScapeContentStyles: ViewStyle = {
+  const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -65,7 +65,7 @@ export const IncomingCall = ({
     <Background>
       {CallTopView && <CallTopView />}
       <View
-        style={[styles.content, landScapeContentStyles, incomingCall.content]}
+        style={[styles.content, landscapeContentStyles, incomingCall.content]}
       >
         <View style={[styles.topContainer, incomingCall.topContainer]}>
           <UserInfo />

@@ -87,14 +87,14 @@ const LoginScreen = () => {
     }
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, landScapeStyles]}
+      style={[styles.container, landscapeStyles]}
     >
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />

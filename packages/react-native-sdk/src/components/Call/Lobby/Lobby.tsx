@@ -81,7 +81,7 @@ export const Lobby = ({
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -89,7 +89,7 @@ export const Lobby = ({
     <View
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         { backgroundColor: colors.static_grey },
         lobby.container,
       ]}

@@ -52,7 +52,7 @@ export const OutgoingCall = ({
   } = useTheme();
   const { t } = useI18n();
 
-  const landScapeContentStyles: ViewStyle = {
+  const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -67,7 +67,7 @@ export const OutgoingCall = ({
       >
         {CallTopView && <CallTopView />}
         <View
-          style={[styles.content, landScapeContentStyles, outgoingCall.content]}
+          style={[styles.content, landscapeContentStyles, outgoingCall.content]}
         >
           <View style={[styles.topContainer, outgoingCall.topContainer]}>
             <UserInfo />

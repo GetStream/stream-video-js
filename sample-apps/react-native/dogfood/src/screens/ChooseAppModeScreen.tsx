@@ -23,12 +23,12 @@ export const ChooseAppModeScreen = () => {
     setState({ appMode: 'Call' });
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
   return (
-    <View style={[styles.container, landScapeStyles]}>
+    <View style={[styles.container, landscapeStyles]}>
       <View style={styles.topContainer}>
         <Image source={require('../assets/Logo.png')} style={styles.logo} />
         <View>

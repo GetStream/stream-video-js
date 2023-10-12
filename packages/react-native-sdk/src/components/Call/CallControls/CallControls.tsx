@@ -31,7 +31,7 @@ export const CallControls = ({
   const {
     theme: { colors, callControls },
   } = useTheme();
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
@@ -42,7 +42,7 @@ export const CallControls = ({
         styles.container,
         { backgroundColor: colors.static_grey },
         callControls.container,
-        landScapeStyles,
+        landscapeStyles,
         style,
       ]}
     >
