@@ -95,8 +95,8 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
+  landscape = false,
   supportedReactions,
-  landscape = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -174,12 +174,12 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
   return (
-    <View style={[styles.container, landScapeStyles, callContent.container]}>
+    <View style={[styles.container, landscapeStyles, callContent.container]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}

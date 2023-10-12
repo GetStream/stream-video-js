@@ -1,5 +1,5 @@
 import React, { ComponentType } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MicOff } from '../../../icons';
 import {
   useCall,
@@ -41,6 +41,11 @@ export type LobbyProps = {
    */
   JoinCallButton?: ComponentType<JoinCallButtonProps> | null;
   /**
+   * Check if device is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
+  /**
    * Component to customize the Lobby Footer in the Lobby component.
    */
   LobbyFooter?: ComponentType<LobbyFooterProps> | null;
@@ -53,6 +58,7 @@ export const Lobby = ({
   onJoinCallHandler,
   LobbyControls = DefaultLobbyControls,
   JoinCallButton = DefaultJoinCallButton,
+  landscape = false,
   LobbyFooter = DefaultLobbyFooter,
 }: LobbyProps) => {
   const {
@@ -75,16 +81,21 @@ export const Lobby = ({
     name: connectedUser?.name,
   } as StreamVideoParticipant;
 
+  const landscapeStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
+
   return (
     <View
       style={[
         styles.container,
+        landscapeStyles,
         { backgroundColor: colors.static_grey },
         lobby.container,
       ]}
     >
       {connectedUser && (
-        <>
+        <View style={[styles.topContainer, lobby.topContainer]}>
           <Text
             style={[
               styles.heading,
@@ -126,15 +137,17 @@ export const Lobby = ({
             )}
             <ParticipantStatus />
           </View>
-          {LobbyControls && <LobbyControls />}
-        </>
+        </View>
       )}
-      {LobbyFooter && (
-        <LobbyFooter
-          JoinCallButton={JoinCallButton}
-          onJoinCallHandler={onJoinCallHandler}
-        />
-      )}
+      <View style={[styles.bottomContainer, lobby.bottomContainer]}>
+        {LobbyControls && <LobbyControls />}
+        {LobbyFooter && (
+          <LobbyFooter
+            JoinCallButton={JoinCallButton}
+            onJoinCallHandler={onJoinCallHandler}
+          />
+        )}
+      </View>
     </View>
   );
 };
@@ -195,13 +208,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+  },
+  topContainer: {
+    flex: 2,
+    justifyContent: 'space-evenly',
     paddingHorizontal: 12,
   },
   heading: {
     textAlign: 'center',
   },
   subHeading: {
-    marginBottom: 16,
     textAlign: 'center',
   },
   videoContainer: {
@@ -213,6 +229,11 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   topView: {},
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 12,
+  },
   participantStatusContainer: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
