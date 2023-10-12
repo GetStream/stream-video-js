@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 import { v1 as uuid } from 'uuid';
 
@@ -16,6 +16,7 @@ import Meeting from '../../Meeting';
 import { Info } from '../../Icons';
 
 import MeetingLayout from '../../Layout/MeetingLayout';
+import { LayoutManagerProvider } from '../../Layout/MeetingLayout/MeetingLayoutManager';
 
 import { useWatchChannel } from '../../../hooks/useWatchChannel';
 
@@ -44,13 +45,11 @@ export const MeetingView = ({
   chatConnectionError,
 }: MeetingViewProps) => {
   const {
-    useLocalParticipant,
     useParticipants,
     useIsCallRecordingInProgress,
     useHasOngoingScreenShare,
   } = useCallStateHooks();
   const participants = useParticipants();
-  const localParticipant = useLocalParticipant();
   const isCallRecordingInProgress = useIsCallRecordingInProgress();
   const [isAwaitingRecordingResponse, setIsAwaitingRecordingResponse] =
     useState(false);
@@ -63,15 +62,7 @@ export const MeetingView = ({
   const { setSteps } = useTourContext();
   const { addNotification } = useNotificationContext();
 
-  const remoteScreenShare = useHasOngoingScreenShare();
-
-  const localScreenShare = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-
-  const isScreenSharing = useMemo(() => {
-    return remoteScreenShare || localScreenShare;
-  }, [remoteScreenShare, localScreenShare]);
+  const isScreenSharing = useHasOngoingScreenShare();
 
   useEffect(() => {
     setSteps(tour);
@@ -147,47 +138,48 @@ export const MeetingView = ({
   }, [call, isCallRecordingInProgress]);
 
   return (
-    <MeetingLayout
-      callId={call.id}
-      chatClient={chatClient}
-      chatConnectionError={chatConnectionError}
-      header={
-        <Header
-          callId={call.id}
-          isCallActive={isCallActive}
-          participants={participants}
-        />
-      }
-      sidebar={
-        <Sidebar
-          callId={call.id}
-          chatClient={chatClient}
-          chatConnectionError={chatConnectionError}
-          participants={participants}
-        />
-      }
-      footer={
-        <Footer
-          chatClient={chatClient}
-          handleStartRecording={handleStartRecording}
-          handleStopRecording={handleStopRecording}
-          isAwaitingRecording={isAwaitingRecordingResponse}
-          toggleShareScreen={toggleShareScreen}
-          call={call}
-          isCallActive={isCallActive}
+    <LayoutManagerProvider>
+      <MeetingLayout
+        callId={call.id}
+        chatClient={chatClient}
+        chatConnectionError={chatConnectionError}
+        header={
+          <Header
+            callId={call.id}
+            isCallActive={isCallActive}
+            participants={participants}
+          />
+        }
+        sidebar={
+          <Sidebar
+            callId={call.id}
+            chatClient={chatClient}
+            chatConnectionError={chatConnectionError}
+            participants={participants}
+          />
+        }
+        footer={
+          <Footer
+            chatClient={chatClient}
+            handleStartRecording={handleStartRecording}
+            handleStopRecording={handleStopRecording}
+            isAwaitingRecording={isAwaitingRecordingResponse}
+            toggleShareScreen={toggleShareScreen}
+            call={call}
+            isCallActive={isCallActive}
+            isScreenSharing={isScreenSharing}
+            isRecording={isCallRecordingInProgress}
+            leave={leave}
+            unreadMessages={unread}
+            participantCount={participants.length}
+          />
+        }
+      >
+        <Meeting
           isScreenSharing={isScreenSharing}
-          isRecording={isCallRecordingInProgress}
-          leave={leave}
-          unreadMessages={unread}
-          participantCount={participants?.length}
+          participantsAmount={participants.length}
         />
-      }
-    >
-      <Meeting
-        isScreenSharing={isScreenSharing}
-        call={call}
-        participantsAmount={participants?.length}
-      />
-    </MeetingLayout>
+      </MeetingLayout>
+    </LayoutManagerProvider>
   );
 };

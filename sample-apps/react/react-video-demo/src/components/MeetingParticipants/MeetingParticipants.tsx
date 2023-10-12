@@ -1,9 +1,9 @@
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import classnames from 'classnames';
 import {
-  Call,
   SfuModels,
   StreamVideoParticipant,
+  useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
@@ -15,15 +15,11 @@ import { useBreakpoint } from '../../hooks/useBreakpoints';
 import styles from './MeetingParticipants.module.css';
 
 export type Props = {
-  className?: string;
-  call: Call;
   maxParticipantsOnScreen?: number;
 };
 
-export const MeetingParticipants: FC<Props> = ({
-  call,
-  maxParticipantsOnScreen = 8,
-}) => {
+export const MeetingParticipants = ({ maxParticipantsOnScreen = 8 }: Props) => {
+  const call = useCall();
   const [maxParticipants, setMaxParticipants] = useState<number>();
   const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
@@ -63,7 +59,6 @@ export const MeetingParticipants: FC<Props> = ({
         <div className={gridClassNames}>
           {participantInSpotlight && (
             <Participant
-              call={call}
               className={localParticipantClassNames}
               participant={participantInSpotlight}
             />
@@ -84,7 +79,6 @@ export const MeetingParticipants: FC<Props> = ({
               return (
                 <Participant
                   key={participant.sessionId}
-                  call={call}
                   className={remoteParticipantsClassNames}
                   participant={participant}
                 />
@@ -93,7 +87,7 @@ export const MeetingParticipants: FC<Props> = ({
           ) : (
             <div className={styles.slider}>
               <ParticipantsSlider
-                call={call}
+                call={call!}
                 mode="horizontal"
                 participants={otherParticipants}
               />

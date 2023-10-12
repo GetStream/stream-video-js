@@ -125,3 +125,17 @@
 .participantCounter {
   @apply absolute top-0 right-0 rounded-full flex items-center justify-center mr-1 -mt-2 h-4 w-4 text-xs bg-video-grey-300 text-video-white;
 }
+
+.layoutSelectorButton {
+  @apply hidden mr-2 ml-2;
+}
+
+.layoutSelectorContainer {
+  @apply absolute bottom-2 w-[220px] accent-video-white;
+}
+
+@screen md {
+  .layoutSelectorButton {
+    @apply block;
+  }
+}
