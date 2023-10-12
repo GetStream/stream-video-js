@@ -7,7 +7,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
 import android.util.Rational
-import com.facebook.react.bridge.*
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 
 
@@ -17,13 +19,29 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
         return NAME;
     }
 
+    private var isInPictureInPictureMode = false
+
     override fun initialize() {
         super.initialize()
         StreamVideoReactNative.pipListeners.add {isInPictureInPictureMode ->
             reactApplicationContext.getJSModule(
                 RCTDeviceEventEmitter::class.java
             ).emit(PIP_CHANGE_EVENT, isInPictureInPictureMode)
+            this.isInPictureInPictureMode = isInPictureInPictureMode
         }
+    }
+
+    @ReactMethod
+    fun isInPiPMode(): Boolean {
+        return isInPictureInPictureMode
+    }
+
+    @ReactMethod
+    fun addListener(eventName: String?) {
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
     }
 
     @ReactMethod
