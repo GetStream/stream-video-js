@@ -136,6 +136,6 @@
 
 @screen md {
   .layoutSelectorButton {
-    @apply block;
+    @apply flex;
   }
 }
