@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
+import com.facebook.react.bridge.Promise;
 
 
 class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -32,8 +33,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     }
 
     @ReactMethod
-    fun isInPiPMode(): Boolean {
-        return isInPictureInPictureMode
+    fun isInPiPMode(promise: Promise) {
+        promise.resolve(isInPictureInPictureMode);
     }
 
     @ReactMethod
