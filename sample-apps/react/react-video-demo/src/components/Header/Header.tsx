@@ -223,9 +223,5 @@ export const Header = ({
     );
   }
 
-  return (
-    <>
-      <CallIdentification callId={callId} />
-    </>
-  );
+  return <CallIdentification callId={callId} />;
 };

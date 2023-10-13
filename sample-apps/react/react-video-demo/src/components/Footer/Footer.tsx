@@ -5,9 +5,10 @@ import { StreamChat } from 'stream-chat';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
-import { PanelButton } from '../ControlButton';
+import ControlButton, { PanelButton } from '../ControlButton';
 import {
   Chat,
+  Layout,
   Leave,
   Like,
   LoadingSpinner,
@@ -26,6 +27,12 @@ import { useModalContext } from '../../contexts/ModalContext';
 import { PANEL_VISIBILITY, usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Footer.module.css';
+import { useLayoutManager } from '../Layout/MeetingLayout/MeetingLayoutManager';
+import {
+  OptionsList,
+  OptionsListItem,
+  SettingsMenu,
+} from '../SettingsMenu/SettingsMenu';
 
 export type FooterProps = {
   call: any;
@@ -74,6 +81,9 @@ export const Footer = ({
     [styles.recording]: isRecording,
     [styles.awaitingRecording]: isAwaitingRecording,
   });
+
+  const { layouts, currentLayout, switchLayout, isSwitchingAllowed } =
+    useLayoutManager();
 
   return (
     <section className={styles.footer}>
@@ -159,6 +169,38 @@ export const Footer = ({
         </Button>
       </div>
       <div className={styles.toggles}>
+        {isSwitchingAllowed && (
+          <ControlButton
+            label="Layout"
+            portalId="layout-selector"
+            className={styles.layoutSelectorButton}
+            panel={
+              <Portal
+                selector="layout-selector"
+                className={styles.layoutSelectorContainer}
+              >
+                <SettingsMenu title="Choose layout">
+                  <OptionsList>
+                    {layouts.map((layout) => (
+                      <OptionsListItem
+                        key={layout.id}
+                        label={layout.displayName}
+                        id={`id-${layout.id}`}
+                        name="layout"
+                        checked={currentLayout.id === layout.id}
+                        defaultChecked={currentLayout.id === layout.id}
+                        value={layout.id}
+                        onClick={() => switchLayout(layout.id)}
+                      />
+                    ))}
+                  </OptionsList>
+                </SettingsMenu>
+              </Portal>
+            }
+          >
+            <Layout />
+          </ControlButton>
+        )}
         <NewMessageNotification
           chatClient={chatClient}
           channelWatched
