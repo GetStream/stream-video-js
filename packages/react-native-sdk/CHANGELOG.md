@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.7...@stream-io/video-react-native-sdk-0.1.8) (2023-10-13)
+
+
+### Bug Fixes
+
+* **react-native:** misc expo config plugin bugs ([bba3f84](https://github.com/GetStream/stream-video-js/commit/bba3f8437cb0f7a662adef4e89fbc487225a5ed5))
+
 ### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.6...@stream-io/video-react-native-sdk-0.1.7) (2023-10-13)
 
 ### Dependency Updates
