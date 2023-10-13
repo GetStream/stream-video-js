@@ -2,14 +2,15 @@
   "name": "@stream-io/video-react-sdk",
   "version": "0.3.41",
   "packageManager": "yarn@3.2.4",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
     "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "yarn copy-version && tsc --project tsconfig.json --watch",
-    "build": "yarn copy-version && tsc --project tsconfig.production.json && yarn copy-css",
+    "start": "yarn copy-version && rollup -c -w",
+    "build": "yarn copy-version && rollup -c && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
@@ -35,7 +36,7 @@
     "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
-    "clsx": "^1.2.1",
+    "clsx": "^2.0.0",
     "prop-types": "^15.8.1",
     "rxjs": "~7.8.1"
   },
@@ -44,11 +45,14 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-typescript": "^11.1.5",
     "@stream-io/video-styling": "workspace:^",
-    "@types/prop-types": "^15.7.5",
+    "@types/prop-types": "^15.7.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rimraf": "^5.0.1",
-    "typescript": "^4.9.5"
+    "rimraf": "^5.0.5",
+    "rollup": "^3.29.4",
+    "typescript": "^5.2.2"
   }
 }

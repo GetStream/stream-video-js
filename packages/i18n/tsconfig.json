@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES2015",
-    "target": "ES2015",
+    "module": "ES2020",
+    "target": "ES2020",
     "lib": [
       "dom",
       "esnext",
@@ -18,7 +18,8 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "inlineSources": true
   },
   "include": [
     "./src",

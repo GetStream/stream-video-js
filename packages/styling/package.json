@@ -8,8 +8,8 @@
     "build": "sass index.scss ./dist/css/styles.css"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
-    "sass": "^1.62.1"
+    "rimraf": "^5.0.5",
+    "sass": "^1.69.3"
   },
   "version": "0.1.12"
 }

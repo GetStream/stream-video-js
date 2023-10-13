@@ -39,25 +39,15 @@ const ifInvisibleOrUnknownBy = conditional(
 export const defaultSortPreset = combineComparators(
   pinned,
   screenSharing,
-  ifInvisibleBy(dominantSpeaker),
-  ifInvisibleBy(speaking),
-  ifInvisibleBy(reactionType('raised-hand')),
-  ifInvisibleBy(publishingVideo),
-  ifInvisibleBy(publishingAudio),
-  // ifInvisibleBy(name),
-);
-
-/**
- * The sorting preset for speaker layout.
- */
-export const speakerLayoutSortPreset = combineComparators(
-  pinned,
-  screenSharing,
-  dominantSpeaker,
-  ifInvisibleBy(speaking),
-  ifInvisibleBy(reactionType('raised-hand')),
-  ifInvisibleBy(publishingVideo),
-  ifInvisibleBy(publishingAudio),
+  ifInvisibleBy(
+    combineComparators(
+      dominantSpeaker,
+      speaking,
+      reactionType('raised-hand'),
+      publishingVideo,
+      publishingAudio,
+    ),
+  ),
   // ifInvisibleBy(name),
 );
 
@@ -67,11 +57,15 @@ export const speakerLayoutSortPreset = combineComparators(
  */
 export const paginatedLayoutSortPreset = combineComparators(
   pinned,
-  ifInvisibleOrUnknownBy(dominantSpeaker),
-  ifInvisibleOrUnknownBy(speaking),
-  ifInvisibleOrUnknownBy(reactionType('raised-hand')),
-  ifInvisibleOrUnknownBy(publishingVideo),
-  ifInvisibleOrUnknownBy(publishingAudio),
+  ifInvisibleOrUnknownBy(
+    combineComparators(
+      dominantSpeaker,
+      speaking,
+      reactionType('raised-hand'),
+      publishingVideo,
+      publishingAudio,
+    ),
+  ),
   // ifInvisibleOrUnknownBy(name),
 );
 
@@ -79,11 +73,15 @@ export const paginatedLayoutSortPreset = combineComparators(
  * The sorting preset for livestreams and audio rooms.
  */
 export const livestreamOrAudioRoomSortPreset = combineComparators(
-  ifInvisibleBy(dominantSpeaker),
-  ifInvisibleBy(speaking),
-  ifInvisibleBy(reactionType('raised-hand')),
-  ifInvisibleBy(publishingVideo),
-  ifInvisibleBy(publishingAudio),
+  ifInvisibleBy(
+    combineComparators(
+      dominantSpeaker,
+      speaking,
+      reactionType('raised-hand'),
+      publishingVideo,
+      publishingAudio,
+    ),
+  ),
   role('admin', 'host', 'speaker'),
   // name,
 );

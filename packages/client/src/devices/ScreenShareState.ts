@@ -1,6 +1,5 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
-import { distinctUntilChanged } from 'rxjs/operators';
 import { ScreenShareSettings } from '../types';
 
 export class ScreenShareState extends InputMediaDeviceManagerState<DisplayMediaStreamOptions> {
