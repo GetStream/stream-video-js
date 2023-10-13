@@ -5,7 +5,7 @@
 	<key>RTCAppGroupIdentifier</key>
 	<string>group.io.getstream.rn.videodogfood</string>
 	<key>RTCScreenSharingExtension</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<string>io.getstream.rnvideosample.Broadcast-Extension</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>

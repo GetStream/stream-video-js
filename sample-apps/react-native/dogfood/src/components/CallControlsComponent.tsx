@@ -6,6 +6,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
+  useCall,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
@@ -29,6 +30,7 @@ export const CallControlsComponent = ({
   unreadCountIndicator,
   landscape,
 }: CallControlsComponentProps) => {
+  const call = useCall();
   const { bottom } = useSafeAreaInsets();
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
@@ -37,9 +39,15 @@ export const CallControlsComponent = ({
     paddingBottom: landscape ? 0 : Math.max(bottom, appTheme.spacing.lg),
   };
 
-  const onPress = () => {
+  const onPress = async () => {
     // @ts-ignore
-    navigator.mediaDevices.getDisplayMedia({ deviceId: 'broadcast' });
+    const media = await navigator.mediaDevices.getDisplayMedia({
+      deviceId: 'broadcast',
+      video: true,
+      audio: true,
+    });
+    console.log({ media });
+    call?.publishScreenShareStream(media);
   };
 
   return (

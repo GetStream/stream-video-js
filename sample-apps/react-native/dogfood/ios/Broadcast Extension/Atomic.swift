@@ -1,4 +1,10 @@
-
+//
+//  Atomic.swift
+//  Broadcast Extension
+//
+//  Created by Maksym Shcheglov.
+//  https://www.onswiftwings.com/posts/atomic-property-wrapper/
+//
 import Foundation
 
 @propertyWrapper
