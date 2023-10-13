@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.6...@stream-io/video-react-native-sdk-0.1.7) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.33`
+* `@stream-io/video-react-bindings` updated to version `0.2.34`
+
+### Bug Fixes
+
+* **react-native:** added missing webrtc android expo config steps ([fb2c5a1](https://github.com/GetStream/stream-video-js/commit/fb2c5a1da24bc6c7d9d235ad1d8a562c8a075360))
+
 ### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.5...@stream-io/video-react-native-sdk-0.1.6) (2023-10-13)
 
 ### Dependency Updates
