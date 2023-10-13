@@ -1,7 +1,7 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  Call,
   SfuModels,
+  useCall,
   useCallStateHooks,
   Video,
 } from '@stream-io/video-react-sdk';
@@ -12,12 +12,8 @@ import { Close, ShareScreen } from '../Icons';
 
 import styles from './ScreenShareParticipants.module.css';
 
-export type Props = {
-  className?: string;
-  call: Call;
-};
-
-export const ScreenShareParticipants: FC<Props> = ({ call }) => {
+export const ScreenShareParticipants = () => {
+  const call = useCall();
   const [wrapperHeight, setWrapperHeight] = useState<number | undefined>(
     undefined,
   );
@@ -49,7 +45,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
   }, [wrapper]);
 
   const stopSharing = useCallback(async () => {
-    await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+    await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
   }, [call]);
 
   return (
@@ -90,7 +86,7 @@ export const ScreenShareParticipants: FC<Props> = ({ call }) => {
 
           <div className={styles.remoteParticipants}>
             <ParticipantsSlider
-              call={call}
+              call={call!}
               mode="vertical"
               participants={allParticipants}
               height={wrapperHeight}
