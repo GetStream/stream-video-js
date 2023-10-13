@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.5...@stream-io/video-react-native-sdk-0.1.6) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.32`
+* `@stream-io/video-react-bindings` updated to version `0.2.33`
+
+### Features
+
+* **react-native:** add landscape mode support to Lobby, RingingCallContent and DF app ([#1123](https://github.com/GetStream/stream-video-js/issues/1123)) ([cc247f0](https://github.com/GetStream/stream-video-js/commit/cc247f07d50acc775034535e37fd5b319f26673d))
+
+
+### Bug Fixes
+
+* **react-native:** incorrect starting position on reanimated floating animation ([#1139](https://github.com/GetStream/stream-video-js/issues/1139)) ([8d09012](https://github.com/GetStream/stream-video-js/commit/8d09012bc42adbd4474ddbc24ebb0b0362e7332e))
+
 ### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.4...@stream-io/video-react-native-sdk-0.1.5) (2023-10-11)
 
 
