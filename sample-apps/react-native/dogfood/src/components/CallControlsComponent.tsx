@@ -37,6 +37,11 @@ export const CallControlsComponent = ({
     paddingBottom: landscape ? 0 : Math.max(bottom, appTheme.spacing.lg),
   };
 
+  const onPress = () => {
+    // @ts-ignore
+    navigator.mediaDevices.getDisplayMedia({ deviceId: 'broadcast' });
+  };
+
   return (
     <View style={[styles.callControlsWrapper, landscapeStyles]}>
       <ReactionsButton />
@@ -48,6 +53,7 @@ export const CallControlsComponent = ({
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
       <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      <HangUpCallButton onPressHandler={onPress} />
     </View>
   );
 };
