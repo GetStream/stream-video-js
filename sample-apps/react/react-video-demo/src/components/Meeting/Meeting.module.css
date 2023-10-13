@@ -29,6 +29,12 @@
 .stage {
   grid-area: stage;
   @apply h-full w-full flex justify-center;
+
+  :global {
+    .str-video__screen-share-overlay__title {
+      color: white;
+    }
+  }
 }
 
 .stage.showParticipants {

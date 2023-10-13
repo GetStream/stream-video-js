@@ -10,7 +10,12 @@ import { useTourContext } from '../../contexts/TourContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Meeting.module.css';
-import { SpeakerLayout } from '@stream-io/video-react-sdk';
+import {
+  DefaultScreenShareOverlay,
+  SfuModels,
+  SpeakerLayout,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 import { Overlay, VideoPlaceholder } from '../Participant/Participant';
 
 export type Props = {
@@ -37,6 +42,12 @@ export const Meeting: FC<Props> = ({ isScreenSharing, participantsAmount }) => {
       (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
+  const { useLocalParticipant } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
+  const isLocalPresenter = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
   const { currentLayout } = useLayoutManager();
   return (
     <>
@@ -48,7 +59,9 @@ export const Meeting: FC<Props> = ({ isScreenSharing, participantsAmount }) => {
             // supports it out of the box.
             <SpeakerLayout
               participantsBarPosition="bottom"
-              ParticipantViewUISpotlight={Overlay}
+              ParticipantViewUISpotlight={
+                isLocalPresenter ? DefaultScreenShareOverlay : Overlay
+              }
               ParticipantViewUIBar={Overlay}
               VideoPlaceholder={VideoPlaceholder}
             />
