@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, MutableRefObject } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { LayoutRectangle, View } from 'react-native';
 import {
   FloatingViewAlignment,
@@ -46,13 +46,8 @@ try {
     children,
   }: FloatingViewProps) => {
     // to store the starting position of the gesture
-    const startRef: MutableRefObject<{ x: number; y: number } | null> = useRef<{
-      x: number;
-      y: number;
-    }>({
-      x: 0,
-      y: 0,
-    });
+    // NOTE: note be used for deriving styling
+    const start = useSharedValue({ x: 0, y: 0 });
     // to store the necessary translate x, y position
     const translationX = useSharedValue(0);
     const translationY = useSharedValue(0);
@@ -82,55 +77,51 @@ try {
       });
     }, [rectangle, containerWidth, containerHeight]);
 
-    const dragGesture = useMemo(
-      () =>
-        Gesture.Pan()
-          .onStart((_e) => {
-            // store the starting position of the gesture
-            startRef.current = {
-              x: translationX.value,
-              y: translationY.value,
-            };
-          })
-          .onUpdate((e) => {
-            // update the translation with the distance of the gesture + starting position
-            translationX.value = Math.max(
-              0,
-              Math.min(
-                e.translationX + (startRef.current?.x ?? 0),
-                snapAlignments[FloatingViewAlignment.bottomRight].x,
-              ),
-            );
-            translationY.value = Math.max(
-              0,
-              Math.min(
-                e.translationY + (startRef.current?.y ?? 0),
-                snapAlignments[FloatingViewAlignment.bottomRight].y,
-              ),
-            );
-          })
-          .onEnd(() => {
-            // snap to the closest alignment with a spring animation
-            const position = {
-              x: translationX.value,
-              y: translationY.value,
-            };
-            const closestAlignment = getClosestSnapAlignment({
-              position,
-              snapAlignments,
-            });
-            translationX.value = withTiming(closestAlignment.x);
-            translationY.value = withTiming(closestAlignment.y);
-          }),
-      [snapAlignments, translationX, translationY],
-    );
+    const dragGesture = Gesture.Pan()
+      .onStart((_e) => {
+        start.value = {
+          x: translationX.value,
+          y: translationY.value,
+        };
+      })
+      .onUpdate((e) => {
+        // update the translation with the distance of the gesture + starting position
+        translationX.value = Math.max(
+          0,
+          Math.min(
+            e.translationX + (start.value.x ?? 0),
+            snapAlignments[FloatingViewAlignment.bottomRight].x,
+          ),
+        );
+        translationY.value = Math.max(
+          0,
+          Math.min(
+            e.translationY + (start.value.y ?? 0),
+            snapAlignments[FloatingViewAlignment.bottomRight].y,
+          ),
+        );
+      })
+      .onEnd(() => {
+        // snap to the closest alignment with a spring animation
+        const position = {
+          x: translationX.value,
+          y: translationY.value,
+        };
+        const closestAlignment = getClosestSnapAlignment({
+          position,
+          snapAlignments,
+        });
+        translationX.value = withTiming(closestAlignment.x);
+        translationY.value = withTiming(closestAlignment.y);
+      });
 
+    /* Move to the initial position */
     useEffect(() => {
       if (!rectangle) {
         return;
       }
       const alignment = snapAlignments[initialAlignment];
-      startRef.current = alignment;
+      start.value = alignment;
 
       translationX.value = alignment.x;
       translationY.value = alignment.y;
@@ -145,6 +136,7 @@ try {
       opacity,
       translationX,
       translationY,
+      start,
     ]);
 
     const animatedStyle = useAnimatedStyle(() => {
