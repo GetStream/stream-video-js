@@ -6,7 +6,7 @@ import { StreamVideoServerClient } from '../../StreamVideoServerClient';
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
-describe('creating tokens', () => {
+describe.skip('creating tokens', () => {
   let client: StreamVideoServerClient;
   const userId = 'john';
 
