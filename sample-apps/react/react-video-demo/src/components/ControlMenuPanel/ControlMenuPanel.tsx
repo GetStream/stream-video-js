@@ -6,12 +6,7 @@ import DeviceList from '../DeviceList';
 export type Props = {
   className?: string;
   selectedDeviceId?: string;
-  devices: {
-    deviceId: string;
-    groupId: string;
-    kind: MediaDeviceKind;
-    label: string;
-  }[];
+  devices: MediaDeviceInfo[];
   title: string;
 
   selectDevice(kind: Partial<MediaDeviceKind>, deviceId: string): void;
