@@ -3,7 +3,7 @@ import { Dimensions } from 'react-native';
 
 type Orientation = 'portrait' | 'landscape';
 
-const isPortrait = (): Orientation => {
+const getOrientation = (): Orientation => {
   const dimensions = Dimensions.get('screen');
   return dimensions.height >= dimensions.width ? 'portrait' : 'landscape';
 };
@@ -13,19 +13,13 @@ const isPortrait = (): Orientation => {
  * @returns 'portrait' : 'landscape'
  */
 export const useOrientation = () => {
-  const [orientation, setOrientation] = useState<Orientation>(isPortrait());
+  const [orientation, setOrientation] = useState<Orientation>(getOrientation());
 
   useEffect(() => {
-    const updateOrientation = () => {
-      setOrientation(isPortrait());
-    };
-
-    Dimensions.addEventListener('change', updateOrientation);
-
-    return () => {
-      // @ts-ignore
-      Dimensions.removeEventListener('change', updateOrientation);
-    };
+    const subscription = Dimensions.addEventListener('change', ({ screen }) => {
+      setOrientation(screen.height >= screen.width ? 'portrait' : 'landscape');
+    });
+    return () => subscription?.remove();
   }, []);
 
   return orientation;
