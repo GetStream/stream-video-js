@@ -8,7 +8,7 @@ export const KichinSink: Props = {
       groupId: 'video',
       kind: 'videoinput',
       label: 'Front face camera',
-    },
+    } as MediaDeviceInfo,
   ],
   title: 'Settings',
   selectDevice: () => {
