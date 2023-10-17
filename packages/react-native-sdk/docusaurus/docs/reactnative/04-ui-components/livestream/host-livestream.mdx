@@ -46,7 +46,7 @@ Basically what you can do with the `HostLivestream` is:
 
 Let's see how to show the `HostLivestream` UI:
 
-```tsx {13}
+```tsx
 import {
   Call,
   StreamCall,
@@ -59,6 +59,7 @@ const VideoCallUI = () => {
 
   return (
     <StreamCall call={call}>
+      // highlight-next-line
       <HostLivestream />
     </StreamCall>
   );
