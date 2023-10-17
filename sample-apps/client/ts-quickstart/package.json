@@ -1,5 +1,5 @@
 {
-  "name": "ts-quickstart",
+  "name": "@stream-io/ts-quickstart",
   "private": true,
   "version": "0.0.0",
   "type": "module",

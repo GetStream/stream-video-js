@@ -7455,6 +7455,72 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/react-video-demo@workspace:sample-apps/react/react-video-demo":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/react-video-demo@workspace:sample-apps/react/react-video-demo"
+  dependencies:
+    "@babel/core": ^7.20.12
+    "@mdx-js/react": ^1.6.22
+    "@nivo/line": ^0.80.0
+    "@sentry/react": ^7.54.0
+    "@storybook/addon-actions": ^6.5.15
+    "@storybook/addon-docs": ^6.5.15
+    "@storybook/addon-essentials": ^6.5.15
+    "@storybook/addon-interactions": ^6.5.15
+    "@storybook/addon-links": ^6.5.15
+    "@storybook/builder-vite": ^0.2.7
+    "@storybook/react": ^6.5.15
+    "@storybook/testing-library": ^0.0.13
+    "@stream-io/stream-chat-css": ^3.14.1
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@stream-io/video-styling": "workspace:^"
+    "@types/babel__core": ^7
+    "@types/geojson": ^7946.0.10
+    "@types/mapbox-gl": ^2.7.16
+    "@types/react": ^18.2.28
+    "@types/react-dom": ^18.2.13
+    "@types/react-form": ^4
+    "@types/react-gtm-module": ^2
+    "@types/react-slick": ^0
+    "@types/react-transition-group": ^4.4.5
+    "@types/uuid": ^9.0.5
+    "@vitejs/plugin-react": ^4.1.0
+    autoprefixer: ^10.4.13
+    classnames: ^2.3.2
+    concurrently: ^7.6.0
+    date-fns: ^2.29.3
+    geojson: ^0.5.0
+    gleap: ^12.0.3
+    hotkeys-js: ^3.12.0
+    mapbox-gl: ^2.15.0
+    mobile-device-detect: ^0.4.3
+    nanoid: ^5.0.2
+    postcss: ^8.4.31
+    qrcode.react: ^3.1.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    react-dropzone: ^14.2.3
+    react-file-utils: ^1.2.0
+    react-form: ^4.0.1
+    react-gtm-module: ^2.0.11
+    react-tooltip: ^5.8.3
+    react-transition-group: ^4.4.5
+    rimraf: ^5.0.5
+    sass: ^1.69.3
+    screenfull: ^6.0.2
+    stream-chat: ^8.13.0
+    stream-chat-css: ^1.0.23
+    stream-chat-react: ^10.14.0
+    swiper: ^9.1.1
+    tailwindcss: ^3.2.4
+    tailwindcss-plugins: ^0.3.0
+    typescript: ^5.2.2
+    unique-names-generator: ^4.7.1
+    uuid: ^9.0.1
+    vite: ^4.4.11
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/stream-chat-css@npm:^3.13.0, @stream-io/stream-chat-css@npm:^3.14.1":
   version: 3.14.1
   resolution: "@stream-io/stream-chat-css@npm:3.14.1"
@@ -7486,6 +7552,18 @@ __metadata:
   checksum: fd1af980023ab1ed6197ddd9cbf67d0db75becaf3528833a6e988eccf4447ffd2a3b3788bd7d7dad8f5b7f414f5ff666346a492eb2414cc811ee9e48b17cb0c0
   languageName: node
   linkType: hard
+
+"@stream-io/ts-quickstart@workspace:sample-apps/client/ts-quickstart":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/ts-quickstart@workspace:sample-apps/client/ts-quickstart"
+  dependencies:
+    "@stream-io/video-client": "workspace:^"
+    "@vitejs/plugin-basic-ssl": ^1.0.1
+    js-base64: ^3.7.5
+    typescript: ^5.2.2
+    vite: ^4.4.11
+  languageName: unknown
+  linkType: soft
 
 "@stream-io/video-client@workspace:^, @stream-io/video-client@workspace:packages/client":
   version: 0.0.0-use.local
@@ -26588,72 +26666,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-video-demo@workspace:sample-apps/react/react-video-demo":
-  version: 0.0.0-use.local
-  resolution: "react-video-demo@workspace:sample-apps/react/react-video-demo"
-  dependencies:
-    "@babel/core": ^7.20.12
-    "@mdx-js/react": ^1.6.22
-    "@nivo/line": ^0.80.0
-    "@sentry/react": ^7.54.0
-    "@storybook/addon-actions": ^6.5.15
-    "@storybook/addon-docs": ^6.5.15
-    "@storybook/addon-essentials": ^6.5.15
-    "@storybook/addon-interactions": ^6.5.15
-    "@storybook/addon-links": ^6.5.15
-    "@storybook/builder-vite": ^0.2.7
-    "@storybook/react": ^6.5.15
-    "@storybook/testing-library": ^0.0.13
-    "@stream-io/stream-chat-css": ^3.14.1
-    "@stream-io/video-react-sdk": "workspace:^"
-    "@stream-io/video-styling": "workspace:^"
-    "@types/babel__core": ^7
-    "@types/geojson": ^7946.0.10
-    "@types/mapbox-gl": ^2.7.16
-    "@types/react": ^18.2.28
-    "@types/react-dom": ^18.2.13
-    "@types/react-form": ^4
-    "@types/react-gtm-module": ^2
-    "@types/react-slick": ^0
-    "@types/react-transition-group": ^4.4.5
-    "@types/uuid": ^9.0.5
-    "@vitejs/plugin-react": ^4.1.0
-    autoprefixer: ^10.4.13
-    classnames: ^2.3.2
-    concurrently: ^7.6.0
-    date-fns: ^2.29.3
-    geojson: ^0.5.0
-    gleap: ^12.0.3
-    hotkeys-js: ^3.12.0
-    mapbox-gl: ^2.15.0
-    mobile-device-detect: ^0.4.3
-    nanoid: ^5.0.2
-    postcss: ^8.4.31
-    qrcode.react: ^3.1.0
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-dropzone: ^14.2.3
-    react-file-utils: ^1.2.0
-    react-form: ^4.0.1
-    react-gtm-module: ^2.0.11
-    react-tooltip: ^5.8.3
-    react-transition-group: ^4.4.5
-    rimraf: ^5.0.5
-    sass: ^1.69.3
-    screenfull: ^6.0.2
-    stream-chat: ^8.13.0
-    stream-chat-css: ^1.0.23
-    stream-chat-react: ^10.14.0
-    swiper: ^9.1.1
-    tailwindcss: ^3.2.4
-    tailwindcss-plugins: ^0.3.0
-    typescript: ^5.2.2
-    unique-names-generator: ^4.7.1
-    uuid: ^9.0.1
-    vite: ^4.4.11
-  languageName: unknown
-  linkType: soft
-
 "react-virtuoso@npm:^2.10.2, react-virtuoso@npm:^2.16.5":
   version: 2.19.1
   resolution: "react-virtuoso@npm:2.19.1"
@@ -29966,18 +29978,6 @@ __metadata:
   checksum: c2a698b85d521298fe6f2435fbf2d3dc5834b423ea25abd321805ead3f399dbeedce7ca09492d7eb005b9d2c009c6b9587055bc3ab273dc6b9e40eefd7edb5b2
   languageName: node
   linkType: hard
-
-"ts-quickstart@workspace:sample-apps/client/ts-quickstart":
-  version: 0.0.0-use.local
-  resolution: "ts-quickstart@workspace:sample-apps/client/ts-quickstart"
-  dependencies:
-    "@stream-io/video-client": "workspace:^"
-    "@vitejs/plugin-basic-ssl": ^1.0.1
-    js-base64: ^3.7.5
-    typescript: ^5.2.2
-    vite: ^4.4.11
-  languageName: unknown
-  linkType: soft
 
 "ts-toolbelt@npm:^6.15.5":
   version: 6.15.5
