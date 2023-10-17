@@ -8268,12 +8268,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mapbox-gl@npm:^2":
-  version: 2.7.10
-  resolution: "@types/mapbox-gl@npm:2.7.10"
+"@types/mapbox-gl@npm:^2.7.16":
+  version: 2.7.16
+  resolution: "@types/mapbox-gl@npm:2.7.16"
   dependencies:
     "@types/geojson": "*"
-  checksum: 0ee433fa7510733fd7744796d8b04c9bbc6e087a3b46a114433528bd7f64b2b475a245bda3598d7cd1db5a9cf5ea93567d234594b7cd3106d32b0c9cbe333888
+  checksum: 91c102fa934055b0dec4fcf34dd8ee38ad0829cab25a6e91afb8181be688c3d416130bfd05e521e2965c6c9f2a42210de5223c8145262dcf575fe8dcb7fcba32
   languageName: node
   linkType: hard
 
@@ -20209,10 +20209,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kdbush@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "kdbush@npm:3.0.0"
-  checksum: bc5fa433958e42664a8a92457e4f0d1db55b3b8e36956aac0102964adb2eab043bdbff156570dc8d867144ceff588fb7a1c6e099ba9be068cd1767a73e1ace92
+"kdbush@npm:^4.0.1, kdbush@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "kdbush@npm:4.0.2"
+  checksum: 6782ef2cdaec9322376b9955a16b0163beda0cefa2f87da76e8970ade2572d8b63bec915347aaeac609484b0c6e84d7b591f229ef353b68b460238095bacde2d
   languageName: node
   linkType: hard
 
@@ -21043,9 +21043,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mapbox-gl@npm:^2.12.0":
-  version: 2.13.0
-  resolution: "mapbox-gl@npm:2.13.0"
+"mapbox-gl@npm:^2.15.0":
+  version: 2.15.0
+  resolution: "mapbox-gl@npm:2.15.0"
   dependencies:
     "@mapbox/geojson-rewind": ^0.5.2
     "@mapbox/jsonlint-lines-primitives": ^2.0.2
@@ -21060,15 +21060,16 @@ __metadata:
     geojson-vt: ^3.2.1
     gl-matrix: ^3.4.3
     grid-index: ^1.1.0
+    kdbush: ^4.0.1
     murmurhash-js: ^1.0.0
     pbf: ^3.2.1
     potpack: ^2.0.0
     quickselect: ^2.0.0
     rw: ^1.3.3
-    supercluster: ^7.1.5
+    supercluster: ^8.0.0
     tinyqueue: ^2.0.3
     vt-pbf: ^3.1.3
-  checksum: de0de328f31ee207295e150d6f715a4f6da4afbda02905f64928aaca5736995f61def941623c8390aa29d5425ddd72e540487fdb2e00c3421e425090d59d4204
+  checksum: 4a2303170cc3e703fb4a3d9866bb4b8000af6975977f220d03d063bfe40edf8ebc5dd72eee18e05a9bf5644c655c151a09529880bb9ca5df62cb1235ef2ef05f
   languageName: node
   linkType: hard
 
@@ -26624,7 +26625,7 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/babel__core": ^7
     "@types/geojson": ^7946.0.10
-    "@types/mapbox-gl": ^2
+    "@types/mapbox-gl": ^2.7.16
     "@types/react": ^18.2.28
     "@types/react-dom": ^18.2.13
     "@types/react-form": ^4
@@ -26640,7 +26641,7 @@ __metadata:
     geojson: ^0.5.0
     gleap: ^12.0.3
     hotkeys: ^1.0.0
-    mapbox-gl: ^2.12.0
+    mapbox-gl: ^2.15.0
     mobile-device-detect: ^0.4.3
     nanoid: ^5.0.1
     postcss: ^8.4.31
@@ -29170,12 +29171,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supercluster@npm:^7.1.5":
-  version: 7.1.5
-  resolution: "supercluster@npm:7.1.5"
+"supercluster@npm:^8.0.0":
+  version: 8.0.1
+  resolution: "supercluster@npm:8.0.1"
   dependencies:
-    kdbush: ^3.0.0
-  checksum: 69863238870093b96617135884721b6343746e14f396b2d67d6b55c52c362ec0516c5e386aa21815e75a9cef2054e831ac34023d0d8b600091d28cea0794f027
+    kdbush: ^4.0.2
+  checksum: 39d141f768a511efa53260252f9dab9a2ce0228b334e55482c8d3019e151932f05e1a9a0252d681737651b13c741c665542a6ddb40ec27de96159ea7ad41f7f4
   languageName: node
   linkType: hard
 
