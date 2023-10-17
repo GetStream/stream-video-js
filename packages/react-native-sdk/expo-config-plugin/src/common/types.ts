@@ -3,7 +3,9 @@ export type RingingPushNotifications = {
   includesCallsInRecentsIos?: boolean;
 };
 
-export type ConfigProps = {
-  ringingPushNotifications?: RingingPushNotifications;
-  enableNonRingingPushNotifications?: boolean;
-};
+export type ConfigProps =
+  | {
+      ringingPushNotifications?: RingingPushNotifications;
+      enableNonRingingPushNotifications?: boolean;
+    }
+  | undefined;
