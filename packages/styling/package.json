@@ -1,5 +1,6 @@
 {
   "name": "@stream-io/video-styling",
+  "version": "0.1.12",
   "packageManager": "yarn@3.2.4",
   "license": "See license in LICENSE",
   "scripts": {
@@ -10,6 +11,5 @@
   "devDependencies": {
     "rimraf": "^5.0.5",
     "sass": "^1.69.3"
-  },
-  "version": "0.1.12"
+  }
 }

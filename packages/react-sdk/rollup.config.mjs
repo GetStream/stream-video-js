@@ -1,5 +1,8 @@
 import typescript from '@rollup/plugin-typescript';
+import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
+
+import pkg from './package.json' assert { type: 'json' };
 
 /**
  * @type {import('rollup').RollupOptions}
@@ -20,6 +23,10 @@ const config = {
   ],
   plugins: [
     json(),
+    replace({
+      preventAssignment: true,
+      'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+    }),
     typescript({
       tsconfig:
         process.env.NODE_ENV === 'production'

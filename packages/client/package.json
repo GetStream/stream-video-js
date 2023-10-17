@@ -9,16 +9,14 @@
   "types": "dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
-    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "yarn copy-version && rollup -w -c",
-    "build": "yarn clean && yarn copy-version && rollup -c",
+    "start": "rollup -w -c",
+    "build": "yarn clean && rollup -c",
     "test": "vitest",
     "clean:docs": "rimraf generated-docs",
     "test-ci": "vitest --coverage",
     "generate:open-api": "./generate-openapi.sh protocol",
-    "generate:open-api:dev": "./generate-openapi.sh chat",
-    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
+    "generate:open-api:dev": "./generate-openapi.sh chat"
   },
   "files": [
     "dist",

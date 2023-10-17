@@ -7,13 +7,11 @@
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
-    "postinstall": "yarn copy-version",
     "clean": "rimraf dist",
-    "start": "yarn copy-version && rollup -c -w",
-    "build": "yarn copy-version && rollup -c && yarn copy-css",
+    "start": "rollup -c -w",
+    "build": "rollup -c && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
-    "start:docs": "npx stream-chat-docusaurus -s",
-    "copy-version": "echo \"export const version = '$npm_package_version';\" > ./version.ts"
+    "start:docs": "npx stream-chat-docusaurus -s"
   },
   "repository": {
     "type": "git",
@@ -45,6 +43,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-replace": "^5.0.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@stream-io/video-styling": "workspace:^",
     "@types/prop-types": "^15.7.8",
