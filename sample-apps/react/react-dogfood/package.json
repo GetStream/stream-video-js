@@ -10,8 +10,8 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.13",
-    "@mui/material": "^5.14.13",
+    "@mui/icons-material": "^5.14.14",
+    "@mui/material": "^5.14.14",
     "@sentry/nextjs": "^7.54.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
@@ -20,19 +20,19 @@
     "framer-motion": "^10.12.16",
     "gleap": "^12.0.3",
     "hotkeys-js": "^3.10.2",
-    "nanoid": "^5.0.1",
+    "nanoid": "^5.0.2",
     "next": "^13.5.5",
     "next-auth": "^4.23.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "starwars-names": "^1.6.0",
-    "stream-chat": "^8.12.4",
+    "stream-chat": "^8.13.0",
     "stream-chat-react": "^10.14.0",
-    "yargs": "^17.7.1"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/starwars-names": "^1.6.0",
-    "@types/yargs": "^17.0.22",
+    "@types/yargs": "^17.0.28",
     "sass": "^1.69.3",
     "source-map-loader": "^4.0.1",
     "vercel": "^32.4.1"

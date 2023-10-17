@@ -12,17 +12,17 @@
     "scripts:generate-url-params": "node scripts/generateUrlParams.js"
   },
   "dependencies": {
-    "@mui/icons-material": "^5.14.13",
+    "@mui/icons-material": "^5.14.14",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.6",
     "immer": "^9.0.16",
-    "nanoid": "^5.0.1",
+    "nanoid": "^5.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0",
+    "react-router-dom": "^6.17.0",
     "sass": "^1.69.3",
-    "stream-chat": "^8.12.4",
+    "stream-chat": "^8.13.0",
     "stream-chat-react": "^10.14.0"
   },
   "devDependencies": {

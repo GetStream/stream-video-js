@@ -11,7 +11,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/material": "^5.14.13",
+    "@mui/material": "^5.14.14",
     "@stream-io/video-react-sdk": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "react": "^18.2.0",

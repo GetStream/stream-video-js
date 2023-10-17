@@ -13,11 +13,11 @@
   "dependencies": {
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.0.0",
-    "nanoid": "^5.0.1",
+    "nanoid": "^5.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0",
-    "stream-chat": "^8.12.4",
+    "react-router-dom": "^6.17.0",
+    "stream-chat": "^8.13.0",
     "stream-chat-react": "^10.14.0"
   },
   "devDependencies": {
