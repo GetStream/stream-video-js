@@ -33,7 +33,6 @@
     "@floating-ui/react": "^0.22.0",
     "@nivo/core": "^0.80.0",
     "@nivo/line": "^0.80.0",
-    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "clsx": "^2.0.0",

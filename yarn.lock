@@ -1795,12 +1795,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.6, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.23.1, @babel/runtime@npm:^7.5.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
-  version: 7.23.1
-  resolution: "@babel/runtime@npm:7.23.1"
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.16.3, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.0, @babel/runtime@npm:^7.20.13, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.22.5, @babel/runtime@npm:^7.23.1, @babel/runtime@npm:^7.5.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
+  version: 7.23.2
+  resolution: "@babel/runtime@npm:7.23.2"
   dependencies:
     regenerator-runtime: ^0.14.0
-  checksum: 0cd0d43e6e7dc7f9152fda8c8312b08321cda2f56ef53d6c22ebdd773abdc6f5d0a69008de90aa41908d00e2c1facb24715ff121274e689305c858355ff02c70
+  checksum: 6c4df4839ec75ca10175f636d6362f91df8a3137f86b38f6cd3a4c90668a0fe8e9281d320958f4fbd43b394988958585a17c3aab2a4ea6bf7316b22916a371fb
   languageName: node
   linkType: hard
 
@@ -7385,18 +7385,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/i18n@workspace:^, @stream-io/i18n@workspace:packages/i18n":
-  version: 0.0.0-use.local
-  resolution: "@stream-io/i18n@workspace:packages/i18n"
-  dependencies:
-    "@rollup/plugin-typescript": ^11.1.5
-    i18next: ^22.4.15
-    rimraf: ^5.0.5
-    rollup: ^3.29.4
-    typescript: ^5.2.2
-  languageName: unknown
-  linkType: soft
-
 "@stream-io/livestream-app@workspace:sample-apps/react/livestream-app":
   version: 0.0.0-use.local
   resolution: "@stream-io/livestream-app@workspace:sample-apps/react/livestream-app"
@@ -7559,16 +7547,15 @@ __metadata:
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
     "@rollup/plugin-typescript": ^11.1.5
-    "@stream-io/i18n": "workspace:^"
     "@stream-io/video-client": "workspace:^"
     "@types/react": ^18.2.28
+    i18next: ^23.5.1
     react: ^18.2.0
     rimraf: ^5.0.5
     rollup: ^3.29.4
     rxjs: ~7.8.1
     typescript: ^5.2.2
   peerDependencies:
-    "@stream-io/i18n": "workspace:^"
     "@stream-io/video-client": "workspace:^"
     react: ">=17.0.0"
   languageName: unknown
@@ -7682,7 +7669,6 @@ __metadata:
     "@react-native-community/push-notification-ios": 1.11.0
     "@react-native-firebase/app": 17.5.0
     "@react-native-firebase/messaging": 17.5.0
-    "@stream-io/i18n": "workspace:^"
     "@stream-io/react-native-webrtc": 104.0.1
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
@@ -7772,7 +7758,6 @@ __metadata:
     "@nivo/line": ^0.80.0
     "@rollup/plugin-json": ^6.0.1
     "@rollup/plugin-typescript": ^11.1.5
-    "@stream-io/i18n": "workspace:^"
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
@@ -18025,12 +18010,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^22.4.15":
-  version: 22.4.15
-  resolution: "i18next@npm:22.4.15"
+"i18next@npm:^23.5.1":
+  version: 23.5.1
+  resolution: "i18next@npm:23.5.1"
   dependencies:
-    "@babel/runtime": ^7.20.6
-  checksum: fced898227983e439c59e7aa6e7b87e53ad1b8a1c85f0613a968881418266e5336e9443831125590559796075d516fe3dbf8118679c894094a0a404be78b02a2
+    "@babel/runtime": ^7.22.5
+  checksum: 4be043bd72287bfae9777a3252b9458d2e3f5e9a97ea62cf434e6e3767b45df4365d8780d0dd14efd4e9da5eb0f90534510b138f1372d1cb9012000a69bbedaf
   languageName: node
   linkType: hard
 
