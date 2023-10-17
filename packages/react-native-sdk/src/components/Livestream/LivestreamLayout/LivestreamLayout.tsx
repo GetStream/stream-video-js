@@ -9,7 +9,10 @@ import {
   VideoRendererProps,
 } from '../../Participant';
 
-export type LiveStreamLayoutProps = {
+/**
+ * Props for the LivestreamLayout component.
+ */
+export type LivestreamLayoutProps = {
   /*
    * Check if device is in landscape mode.
    * This will apply the landscape mode styles to the component.
@@ -24,10 +27,13 @@ export type LiveStreamLayoutProps = {
 const hasScreenShare = (p?: StreamVideoParticipant) =>
   p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 
-export const LiveStreamLayout = ({
+/**
+ * The LivestreamLayout component presents the live stream video layout.
+ */
+export const LivestreamLayout = ({
   landscape,
   VideoRenderer = DefaultVideoRenderer,
-}: LiveStreamLayoutProps) => {
+}: LivestreamLayoutProps) => {
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const {

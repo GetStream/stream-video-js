@@ -1,7 +1,7 @@
 import {
   Call,
   StreamCall,
-  HostLiveStream,
+  HostLivestream,
   useConnectedUser,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -59,7 +59,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   return (
     <StreamCall call={call}>
       <SafeAreaView style={styles.container}>
-        <HostLiveStream />
+        <HostLivestream />
       </SafeAreaView>
     </StreamCall>
   );

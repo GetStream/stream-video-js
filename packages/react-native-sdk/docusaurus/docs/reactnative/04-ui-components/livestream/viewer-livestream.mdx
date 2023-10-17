@@ -1,0 +1,102 @@
+---
+id: viewer-livestream
+title: ViewerLivestream
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ViewerLivestream from '../../assets/04-ui-components/livestream/viewer-livestream.png';
+import ViewerLivestreamScreenShare from '../../assets/04-ui-components/livestream/viewer-livestream-screenshare.png';
+
+import ViewerLivestreamTopView from '../../common-content/ui-components/livestream/viewer-livestream/viewer-livestream-top-view.mdx';
+import LivestreamLayout from '../../common-content/ui-components/livestream/livestream-layout.mdx';
+import ViewerLivestreamControls from '../../common-content/ui-components/livestream/viewer-livestream/viewer-livestream-controls.mdx';
+import DurationBadge from '../../common-content/ui-components/livestream/duration-badge.mdx';
+import FollowerCount from '../../common-content/ui-components/livestream/follower-count.mdx';
+import LiveIndicator from '../../common-content/ui-components/livestream/live-indicator.mdx';
+import FloatingParticipantView from '../../common-content/ui-components/call/call-content/floating-participant-view.mdx';
+import ViewerLeaveStreamButton from '../../common-content/ui-components/livestream/viewer-livestream/viewer-leave-stream-button.mdx';
+import OnLeaveStreamHandler from '../../common-content/ui-components/livestream/viewer-livestream/on-leave-stream-handler.mdx';
+
+The `ViewerLivestream` is the UI component that allows you to show the live stream view in the app with minimal efforts. So you don't need to take care much about each feature that you need to build a video live stream call screen with this component.
+
+Basically what you can do with the `ViewerLivestream` is:
+
+- A complete live stream UI with host's video, screen sharing stream.
+- Duration of the stream.
+- Whether the stream is live and number of participant's watching the stream.
+
+<ImageShowcase
+  items={[
+    {
+      image: ViewerLivestream,
+      caption: 'Viewer Live Stream',
+      alt: 'Viewer Live Stream',
+    },
+    {
+      image: ViewerLivestreamScreenShare,
+      caption: 'Viewer Live Stream Screen Share',
+      alt: 'Viewer Live Stream Screen Share',
+    },
+  ]}
+/>
+
+## General usage
+
+Let's see how to show the `ViewerLivestream` UI:
+
+```tsx {13}
+import {
+  Call,
+  StreamCall,
+  ViewerLivestream,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      <ViewerLivestream />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `ViewerLivestreamTopView`
+
+<ViewerLivestreamTopView />
+
+### `LivestreamLayout`
+
+<LivestreamLayout />
+
+### `ViewerLivestreamControls`
+
+<ViewerLivestreamControls />
+
+### `DurationBadge`
+
+<DurationBadge />
+
+### `FollowerCount`
+
+<FollowerCount />
+
+### `LiveIndicator`
+
+<LiveIndicator />
+
+### `ViewerLeaveStreamButton`
+
+<ViewerLeaveStreamButton />
+
+### `FloatingParticipantView`
+
+<FloatingParticipantView />
+
+### `onLeaveStreamHandler`
+
+<OnLeaveStreamHandler />

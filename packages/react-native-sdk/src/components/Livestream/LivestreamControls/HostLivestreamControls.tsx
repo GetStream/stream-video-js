@@ -5,16 +5,16 @@ import {
   HostStartStreamButtonProps,
 } from './HostStartStreamButton';
 import {
-  LiveStreamMediaControls as DefaultLiveStreamMediaControls,
-  LiveStreamMediaControlsProps,
-} from './LiveStreamMediaControls';
+  LivestreamMediaControls as DefaultLivestreamMediaControls,
+  LivestreamMediaControlsProps,
+} from './LivestreamMediaControls';
 import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 
 /**
  * Props for the HostLiveStreamControls component.
  */
-export type HostLiveStreamControlsProps = HostStartStreamButtonProps & {
+export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
   /**
    * Component to customize the host's start/end live stream button.
    */
@@ -22,7 +22,7 @@ export type HostLiveStreamControlsProps = HostStartStreamButtonProps & {
   /**
    * Component to customize the host's media control(audio/video) buttons.
    */
-  LiveStreamMediaControls?: React.ComponentType<LiveStreamMediaControlsProps> | null;
+  LivestreamMediaControls?: React.ComponentType<LivestreamMediaControlsProps> | null;
   /**
    * Enable HTTP live streaming
    */
@@ -32,13 +32,13 @@ export type HostLiveStreamControlsProps = HostStartStreamButtonProps & {
 /**
  * The HostLiveStreamControls component displays the call controls for the live stream at host's end.
  */
-export const HostLiveStreamControls = ({
+export const HostLivestreamControls = ({
   HostStartStreamButton = DefaultHostStartStreamButton,
-  LiveStreamMediaControls = DefaultLiveStreamMediaControls,
+  LivestreamMediaControls = DefaultLivestreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
-}: HostLiveStreamControlsProps) => {
+}: HostLivestreamControlsProps) => {
   const {
     theme: { colors, hostLiveStreamControls },
   } = useTheme();
@@ -60,7 +60,7 @@ export const HostLiveStreamControls = ({
         )}
       </View>
       <View style={[styles.rightElement, hostLiveStreamControls.rightElement]}>
-        {LiveStreamMediaControls && <LiveStreamMediaControls />}
+        {LivestreamMediaControls && <LivestreamMediaControls />}
       </View>
     </View>
   );

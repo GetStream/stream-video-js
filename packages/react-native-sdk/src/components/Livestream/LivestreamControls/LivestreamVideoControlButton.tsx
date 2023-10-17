@@ -2,25 +2,25 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Mic, MicOff } from '../../../icons';
+import { Video, VideoSlash } from '../../../icons';
 
 /**
- * The LiveStreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
+ * The LivestreamVideoControlButton controls the video stream publish/unpublish while in the livestream for the host.
  */
-export const LiveStreamAudioControlButton = () => {
+export const LivestreamVideoControlButton = () => {
   const call = useCall();
-  const { useMicrophoneState } = useCallStateHooks();
-  const { status } = useMicrophoneState();
+  const { useCameraState } = useCallStateHooks();
+  const { status } = useCameraState();
   const {
     theme: {
       colors,
       variants: { iconSizes, buttonSizes },
-      liveStreamAudioControlButton,
+      liveStreamVideoControlButton,
     },
   } = useTheme();
 
   const onPress = async () => {
-    await call?.microphone.toggle();
+    await call?.camera.toggle();
   };
 
   return (
@@ -33,7 +33,7 @@ export const LiveStreamAudioControlButton = () => {
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
-        liveStreamAudioControlButton.container,
+        liveStreamVideoControlButton.container,
       ]}
     >
       {status === 'enabled' ? (
@@ -44,10 +44,10 @@ export const LiveStreamAudioControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamAudioControlButton.icon,
+            liveStreamVideoControlButton.icon,
           ]}
         >
-          <Mic color={colors.static_white} />
+          <Video color={colors.static_white} />
         </View>
       ) : (
         <View
@@ -57,10 +57,10 @@ export const LiveStreamAudioControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamAudioControlButton.icon,
+            liveStreamVideoControlButton.icon,
           ]}
         >
-          <MicOff color={colors.static_white} />
+          <VideoSlash color={colors.static_white} />
         </View>
       )}
     </Pressable>

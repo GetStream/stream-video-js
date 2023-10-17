@@ -1,6 +1,6 @@
 import {
   StreamCall,
-  ViewerLiveStream,
+  ViewerLivestream,
   useCallStateHooks,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
@@ -130,7 +130,7 @@ export const ViewLiveStreamChilden = ({
       {liveOrBroadcasting && autoJoin && (
         <StreamCall call={call}>
           <SafeAreaView style={styles.livestream}>
-            <ViewerLiveStream
+            <ViewerLivestream
               onLeaveStreamHandler={() => {
                 navigation.goBack();
               }}

@@ -3,35 +3,35 @@ import { StyleSheet, SafeAreaView } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { useIncallManager } from '../../../hooks';
 import {
-  HostLiveStreamTopView as DefaultHostLiveStreamTopView,
-  HostLiveStreamTopViewProps,
-} from '../LiveStreamTopView/HostLiveStreamTopView';
+  HostLivestreamTopView as DefaultHostLivestreamTopView,
+  HostLivestreamTopViewProps,
+} from '../LivestreamTopView/HostLivestreamTopView';
 import {
-  HostLiveStreamControls as DefaultHostLiveStreamControls,
-  HostLiveStreamControlsProps,
-} from '../LiveStreamControls/HostLiveStreamControls';
+  HostLivestreamControls as DefaultHostLivestreamControls,
+  HostLivestreamControlsProps,
+} from '../LivestreamControls/HostLivestreamControls';
 import {
-  LiveStreamLayout as DefaultLiveStreamLayout,
-  LiveStreamLayoutProps,
-} from '../LiveStreamLayout';
+  LivestreamLayout as DefaultLivestreamLayout,
+  LivestreamLayoutProps,
+} from '../LivestreamLayout';
 
 /**
  * Props for the HostLiveStream component.
  */
-export type HostLiveStreamProps = HostLiveStreamTopViewProps &
-  HostLiveStreamControlsProps & {
+export type HostLivestreamProps = HostLivestreamTopViewProps &
+  HostLivestreamControlsProps & {
     /**
      * Component to customize the top view at the host's live stream.
      */
-    HostLiveStreamTopView?: React.ComponentType<HostLiveStreamTopViewProps> | null;
+    HostLivestreamTopView?: React.ComponentType<HostLivestreamTopViewProps> | null;
     /**
      * Component to customize the live stream video layout.
      */
-    LiveStreamLayout?: React.ComponentType<LiveStreamLayoutProps> | null;
+    LivestreamLayout?: React.ComponentType<LivestreamLayoutProps> | null;
     /**
      * Component to customize the bottom view controls at the host's live stream.
      */
-    HostLiveStreamControls?: React.ComponentType<HostLiveStreamControlsProps> | null;
+    HostLivestreamControls?: React.ComponentType<HostLivestreamControlsProps> | null;
     /**
      * Enable HTTP live streaming
      */
@@ -41,19 +41,19 @@ export type HostLiveStreamProps = HostLiveStreamTopViewProps &
 /**
  * The HostLiveStream component displays the UI for the Host's live stream.
  */
-export const HostLiveStream = ({
-  HostLiveStreamTopView = DefaultHostLiveStreamTopView,
-  HostLiveStreamControls = DefaultHostLiveStreamControls,
-  LiveStreamLayout = DefaultLiveStreamLayout,
+export const HostLivestream = ({
+  HostLivestreamTopView = DefaultHostLivestreamTopView,
+  HostLivestreamControls = DefaultHostLivestreamControls,
+  LivestreamLayout = DefaultLivestreamLayout,
   LiveIndicator,
   FollowerCount,
   DurationBadge,
   HostStartStreamButton,
-  LiveStreamMediaControls,
+  LivestreamMediaControls,
   onEndStreamHandler,
   onStartStreamHandler,
   hls = false,
-}: HostLiveStreamProps) => {
+}: HostLivestreamProps) => {
   const {
     theme: { colors, hostLiveStream },
   } = useTheme();
@@ -61,7 +61,7 @@ export const HostLiveStream = ({
   // Automatically route audio to speaker devices as relevant for watching videos.
   useIncallManager({ media: 'video', auto: true });
 
-  const topViewProps: HostLiveStreamTopViewProps = {
+  const topViewProps: HostLivestreamTopViewProps = {
     LiveIndicator,
     FollowerCount,
     DurationBadge,
@@ -77,14 +77,14 @@ export const HostLiveStream = ({
         hostLiveStream.container,
       ]}
     >
-      {HostLiveStreamTopView && <HostLiveStreamTopView {...topViewProps} />}
-      {LiveStreamLayout && <LiveStreamLayout />}
-      {HostLiveStreamControls && (
-        <HostLiveStreamControls
+      {HostLivestreamTopView && <HostLivestreamTopView {...topViewProps} />}
+      {LivestreamLayout && <LivestreamLayout />}
+      {HostLivestreamControls && (
+        <HostLivestreamControls
           onEndStreamHandler={onEndStreamHandler}
           onStartStreamHandler={onStartStreamHandler}
           HostStartStreamButton={HostStartStreamButton}
-          LiveStreamMediaControls={LiveStreamMediaControls}
+          LivestreamMediaControls={LivestreamMediaControls}
           hls={hls}
         />
       )}

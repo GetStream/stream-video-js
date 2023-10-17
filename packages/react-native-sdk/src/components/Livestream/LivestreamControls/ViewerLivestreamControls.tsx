@@ -9,9 +9,9 @@ import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 
 /**
- * Props for the ViewerLiveStreamControls component.
+ * Props for the ViewerLivestreamControls component.
  */
-export type ViewerLiveStreamControlsProps = ViewerLeaveStreamButtonProps & {
+export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
   /**
    * Component to customize the leave stream button on the viewer's end live stream.
    */
@@ -19,12 +19,12 @@ export type ViewerLiveStreamControlsProps = ViewerLeaveStreamButtonProps & {
 };
 
 /**
- * The ViewerLiveStreamControls component displays the call controls for the live stream at viewer's end.
+ * The ViewerLivestreamControls component displays the call controls for the live stream at viewer's end.
  */
-export const ViewerLiveStreamControls = ({
+export const ViewerLivestreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
   onLeaveStreamHandler,
-}: ViewerLiveStreamControlsProps) => {
+}: ViewerLivestreamControlsProps) => {
   const {
     theme: { colors, viewerLiveStreamControls },
   } = useTheme();
