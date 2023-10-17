@@ -1,4 +1,4 @@
-import { FC, useRef, useState, useEffect } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { FeatureCollection, Geometry } from 'geojson';
 import classnames from 'classnames';
@@ -181,6 +181,7 @@ export const LatencyMap: FC<Props> = ({
         name: 'mercator',
       },
       dragPan: false,
+      dragRotate: false,
       container: mapContainer.current,
       style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
       center: [lng, lat],
