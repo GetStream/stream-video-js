@@ -219,8 +219,6 @@ export type Theme = {
   };
   viewerLiveStreamTopView: {
     container: ViewStyle;
-    background: ViewStyle;
-    content: ViewStyle;
     leftElement: ViewStyle;
     centerElement: ViewStyle;
     rightElement: ViewStyle;
@@ -247,8 +245,6 @@ export type Theme = {
   };
   viewerLiveStreamControls: {
     container: ViewStyle;
-    background: ViewStyle;
-    content: ViewStyle;
     leftElement: ViewStyle;
     rightElement: ViewStyle;
   };
@@ -517,8 +513,6 @@ export const defaultTheme: Theme = {
   },
   viewerLiveStreamTopView: {
     container: {},
-    background: {},
-    content: {},
     leftElement: {},
     centerElement: {},
     rightElement: {},
@@ -545,8 +539,6 @@ export const defaultTheme: Theme = {
   },
   viewerLiveStreamControls: {
     container: {},
-    background: {},
-    content: {},
     leftElement: {},
     rightElement: {},
   },

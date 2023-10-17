@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -6,6 +6,7 @@ import {
   ViewerLeaveStreamButtonProps,
 } from './ViewerLeaveStreamButton';
 import { useTheme } from '../../../contexts';
+import { Z_INDEX } from '../../../constants';
 
 /**
  * Props for the ViewerLiveStreamControls component.
@@ -24,61 +25,45 @@ export const ViewerLiveStreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
   onLeaveStreamHandler,
 }: ViewerLiveStreamControlsProps) => {
-  const [liveStreamBottomViewHeight, setliveStreamBottomViewHeight] =
-    useState<number>(0);
   const {
     theme: { colors, viewerLiveStreamControls },
   } = useTheme();
 
-  const onLayout: React.ComponentProps<typeof View>['onLayout'] = (event) => {
-    const { height } = event.nativeEvent.layout;
-    if (setliveStreamBottomViewHeight) {
-      setliveStreamBottomViewHeight(height);
-    }
-  };
-
   return (
-    <View style={[styles.container, viewerLiveStreamControls.container]}>
-      <View
-        style={[
-          {
-            height: liveStreamBottomViewHeight,
-            backgroundColor: colors.static_overlay,
-          },
-          viewerLiveStreamControls.background,
-        ]}
-      />
-      <View
-        style={[styles.content, viewerLiveStreamControls.content]}
-        onLayout={onLayout}
-      >
-        <View
-          style={[styles.leftElement, viewerLiveStreamControls.leftElement]}
-        >
-          {ViewerLeaveStreamButton && (
-            <ViewerLeaveStreamButton
-              onLeaveStreamHandler={onLeaveStreamHandler}
-            />
-          )}
-        </View>
-        <View
-          style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
-        />
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.static_overlay,
+        },
+        viewerLiveStreamControls.container,
+      ]}
+    >
+      <View style={[styles.leftElement, viewerLiveStreamControls.leftElement]}>
+        {ViewerLeaveStreamButton && (
+          <ViewerLeaveStreamButton
+            onLeaveStreamHandler={onLeaveStreamHandler}
+          />
+        )}
       </View>
+      <View
+        style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
-  content: {
+  container: {
     position: 'absolute',
-    top: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 8,
+    zIndex: Z_INDEX.IN_FRONT,
   },
+  content: {},
   leftElement: {
     flex: 1,
     alignItems: 'flex-start',

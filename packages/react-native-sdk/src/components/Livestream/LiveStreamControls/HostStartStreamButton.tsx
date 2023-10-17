@@ -97,6 +97,7 @@ export const HostStartStreamButton = ({
 
   return (
     <Pressable
+      disabled={isAwaitingResponse}
       style={[
         styles.container,
         {
