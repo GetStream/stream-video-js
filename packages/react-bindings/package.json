@@ -9,7 +9,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
-    "build": "rollup -c"
+    "build": "NODE_ENV=production rollup -c"
   },
   "files": [
     "dist",

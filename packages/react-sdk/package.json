@@ -9,7 +9,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "start": "rollup -c -w",
-    "build": "rollup -c && yarn copy-css",
+    "build": "NODE_ENV=production rollup -c && yarn copy-css",
     "copy-css": "cp -R ../../node_modules/@stream-io/video-styling/dist/* dist/",
     "start:docs": "npx stream-chat-docusaurus -s"
   },

@@ -25,6 +25,11 @@ const browserIgnorePlugin = {
     browserIgnoredModules.includes(id) ? 'export default null;' : null,
 };
 
+const external = [
+  ...Object.keys(pkg.dependencies || {}),
+  ...Object.keys(pkg.peerDependencies || {}),
+];
+
 /**
  * @type {import('rollup').RollupOptions}
  */
@@ -35,6 +40,7 @@ const browserConfig = {
     format: 'es',
     sourcemap: true,
   },
+  external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
   plugins: [
     replace({
       preventAssignment: true,
@@ -59,6 +65,7 @@ const nodeConfig = {
       sourcemap: true,
     },
   ],
+  external,
   plugins: [
     replace({
       preventAssignment: true,

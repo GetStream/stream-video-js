@@ -1,5 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 
+import pkg from './package.json' assert { type: 'json' };
+
 /**
  * @type {import('rollup').RollupOptions}
  */
@@ -16,6 +18,12 @@ const config = {
       format: 'cjs',
       sourcemap: true,
     },
+  ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
   ],
   plugins: [
     typescript({

@@ -21,6 +21,12 @@ const config = {
       sourcemap: true,
     },
   ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+  ],
   plugins: [
     json(),
     replace({
