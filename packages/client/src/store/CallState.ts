@@ -401,13 +401,12 @@ export class CallState {
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.permission_request': undefined,
+      'call.recording_failed': undefined,
+      'call.recording_ready': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
-      'call.hls_broadcasting_failed': undefined,
-      'call.recording_failed': undefined,
-      'call.recording_ready': undefined,
       custom: undefined,
 
       // events that update call state:
@@ -418,6 +417,7 @@ export class CallState {
         this.updateFromCallResponse(e.call);
         this.setCurrentValue(this.endedBySubject, e.user);
       },
+      'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
       'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
       'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
       'call.live_started': (e) => this.updateFromCallResponse(e.call),
@@ -987,6 +987,13 @@ export class CallState {
   };
 
   private updateFromHLSBroadcastStopped = () => {
+    this.setCurrentValue(this.egressSubject, (egress) => ({
+      ...egress!,
+      broadcasting: false,
+    }));
+  };
+
+  private updateFromHLSBroadcastingFailed = () => {
     this.setCurrentValue(this.egressSubject, (egress) => ({
       ...egress!,
       broadcasting: false,
