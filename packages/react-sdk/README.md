@@ -69,7 +69,7 @@ Here are some of the features we support:
 ### 0.5 milestone
 
 - [ ] Enhanced UI components and theming
-- [ ] Enhanced SDK build system
+- [x] Enhanced SDK build system
 - [ ] Typescript generics enhancements
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] Performance and bundle-size optimizations

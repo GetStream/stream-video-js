@@ -11,7 +11,7 @@ import {
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
-describe.skip('call types CRUD API', () => {
+describe('call types CRUD API', () => {
   let client: StreamVideoServerClient;
   const callTypeName = `calltype${generateUUIDv4()}`;
 
@@ -92,7 +92,7 @@ describe.skip('call types CRUD API', () => {
     });
   });
 
-  it.skip('update', async () => {
+  it('update', async () => {
     const updateResponse = await client.updateCallType(callTypeName, {
       settings: {
         audio: { mic_default_on: false, default_device: 'earpiece' },

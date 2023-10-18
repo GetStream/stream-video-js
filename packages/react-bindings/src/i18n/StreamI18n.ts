@@ -72,19 +72,19 @@ export class StreamI18n {
     return this.i18nInstance.isInitialized;
   }
 
-  async init() {
+  init = async () => {
     try {
       this.t = await this.i18nInstance.init();
     } catch (e) {
       console.error(`Failed to initialize translations: ${JSON.stringify(e)}`);
     }
     return this;
-  }
+  };
 
-  async changeLanguage(
+  changeLanguage = async (
     language?: TranslationLanguage,
     onChange?: (language: TranslationLanguage) => void,
-  ) {
+  ) => {
     if (!this._checkIsInitialized()) return;
     // i18next detects the language, if none provided, but it is better
     // to show this detection here explicitly
@@ -94,15 +94,15 @@ export class StreamI18n {
         : undefined;
     await this.i18nInstance.changeLanguage(language || browserLanguage);
     onChange?.(this.currentLanguage);
-  }
+  };
 
-  registerTranslationsForLanguage({
+  registerTranslationsForLanguage = ({
     lng,
     translations,
   }: {
     lng: TranslationLanguage;
     translations: TranslationSheet;
-  }) {
+  }) => {
     if (!this._checkIsInitialized()) return;
     this.i18nInstance.addResourceBundle(
       lng,
@@ -111,14 +111,14 @@ export class StreamI18n {
       true,
       true,
     );
-  }
+  };
 
-  private _checkIsInitialized() {
+  private _checkIsInitialized = () => {
     if (!this.i18nInstance.isInitialized) {
       console.warn(
         'I18n instance is not initialized. Call yourStreamI18nInstance.init().',
       );
     }
     return this.i18nInstance.isInitialized;
-  }
+  };
 }

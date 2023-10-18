@@ -5,7 +5,7 @@ import { StreamVideoServerClient } from '../../StreamVideoServerClient';
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
-describe.skip('server side user connect', () => {
+describe('server side user connect', () => {
   let client: StreamVideoServerClient;
 
   beforeEach(() => {

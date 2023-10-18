@@ -65,7 +65,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
           </p>
         )}
         <p className="str-chat__header-livestream-left--members str-chat__channel-header-info">
-          {!live && !!member_count && member_count > 0 && (
+          {!live && !!member_count && (member_count as number) > 0 && (
             <>
               {t('{{ memberCount }} members', {
                 memberCount: member_count,
