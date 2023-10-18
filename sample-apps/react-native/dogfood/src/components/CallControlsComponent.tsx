@@ -6,7 +6,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
-  useCall,
+  ScreenShareButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
@@ -30,24 +30,12 @@ export const CallControlsComponent = ({
   unreadCountIndicator,
   landscape,
 }: CallControlsComponentProps) => {
-  const call = useCall();
   const { bottom } = useSafeAreaInsets();
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
     paddingBottom: landscape ? 0 : Math.max(bottom, appTheme.spacing.lg),
-  };
-
-  const onPress = async () => {
-    // @ts-ignore
-    const media = await navigator.mediaDevices.getDisplayMedia({
-      deviceId: 'broadcast',
-      video: true,
-      audio: true,
-    });
-    console.log({ media });
-    call?.publishScreenShareStream(media);
   };
 
   return (
@@ -57,11 +45,11 @@ export const CallControlsComponent = ({
         onPressHandler={onChatOpenHandler}
         unreadBadgeCount={unreadCountIndicator}
       />
+      <ScreenShareButton />
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
       <HangUpCallButton onPressHandler={onHangupCallHandler} />
-      <HangUpCallButton onPressHandler={onPress} />
     </View>
   );
 };

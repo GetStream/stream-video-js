@@ -11,6 +11,7 @@ export * from './Participants';
 export * from './ThreeDots';
 export * from './PinVertical';
 export * from './Spotlight';
+export * from './ScreenShareIndicator';
 export * from './ScreenShare';
 export * from './Reaction';
 export * from './TopViewBackground';
