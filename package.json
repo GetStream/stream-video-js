@@ -28,7 +28,7 @@
     "build:react:deps": "yarn build:client && yarn build:styling && yarn build:react:bindings && yarn build:react:sdk",
     "build:react-native:deps": "yarn build:client && yarn build:react:bindings && yarn build:react-native:sdk",
     "build:vercel": "yarn build:react:deps && yarn build:react:dogfood",
-    "build:react:video-demo": "yarn build:react:deps && yarn workspace react-video-demo run build:website",
+    "build:react:video-demo": "yarn build:react:deps && yarn workspace @stream-io/react-video-demo run build:website",
     "start:egress": "yarn workspace @stream-io/egress-composite start",
     "build:egress": "yarn workspace @stream-io/egress-composite build",
     "build:all": "yarn workspaces foreach -v --topological-dev run build",
