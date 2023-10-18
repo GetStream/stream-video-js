@@ -2,8 +2,6 @@
 //  SampleHandler.swift
 //  Broadcast Extension
 //
-//  Created by Alex-Dan Bumbu on 04.06.2021.
-//
 import ReplayKit
 import OSLog
 

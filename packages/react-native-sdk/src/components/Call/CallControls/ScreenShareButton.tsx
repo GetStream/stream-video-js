@@ -113,17 +113,13 @@ export const ScreenShareButton = React.memo(
       <CallControlsButton
         disabled={!CanScreenShare}
         onPress={onPress}
-        color={CanScreenShare ? colors.static_white : colors.static_black}
+        color={colors.static_white}
         style={{
           container: screenShareButton.container,
           svgContainer: screenShareButton.svgContainer,
         }}
       >
-        {CanScreenShare ? (
-          <ScreenShare color={colors.static_black} />
-        ) : (
-          <ScreenShare color={colors.static_white} />
-        )}
+        <ScreenShare color={colors.static_white} />
         {Platform.OS === 'ios' && (
           <ScreenCapturePickerView ref={screenCaptureRef} />
         )}

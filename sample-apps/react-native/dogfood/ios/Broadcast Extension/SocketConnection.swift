@@ -2,9 +2,6 @@
 //  SocketConnection.swift
 //  Broadcast Extension
 //
-//  Created by Alex-Dan Bumbu on 22/03/2021.
-//  Copyright © 2021 Atlassian Inc. All rights reserved.
-//
 import Foundation
 import OSLog
 

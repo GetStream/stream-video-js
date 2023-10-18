@@ -2,9 +2,6 @@
 //  DarwinNotificationCenter.swift
 //  Broadcast Extension
 //
-//  Created by Alex-Dan Bumbu on 23/03/2021.
-//  Copyright © 2021 8x8, Inc. All rights reserved.
-//
 import Foundation
 
 enum DarwinNotification: String {
