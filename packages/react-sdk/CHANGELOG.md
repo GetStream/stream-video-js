@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.43...@stream-io/video-react-sdk-0.3.44) (2023-10-19)
+
+
+### Bug Fixes
+
+* sync video "paused" state more accurately ([#1150](https://github.com/GetStream/stream-video-js/issues/1150)) ([39cd42f](https://github.com/GetStream/stream-video-js/commit/39cd42f0035bbabdd9bb078fc8df9192f3b6c42f))
+
 ### [0.3.43](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.42...@stream-io/video-react-sdk-0.3.43) (2023-10-19)
 
 ### Dependency Updates
