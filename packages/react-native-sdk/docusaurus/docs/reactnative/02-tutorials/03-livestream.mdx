@@ -297,7 +297,7 @@ await myCall.join({ create: true });
 
 To create the first call object, specify the call type as **livestream** and provide a unique `callId`. The `livestream` call type comes with default settings that are usually suitable for live streams, but you can customize features, permissions, and settings in the dashboard. Additionally, the dashboard allows you to create new call types as required.
 
-Finally, using `call.join(create = true)` will not only create the call object on our servers but also initiate the real-time transport for audio and video. This allows for seamless and immediate engagement in the live stream.
+Finally, using `call.join({ create: true })` will not only create the call object on our servers but also initiate the real-time transport for audio and video. This allows for seamless and immediate engagement in the live stream.
 
 Note that you can also add members to a call and assign them different roles. For more information, see the [Joining & Creating Calls](../../core/joining-and-creating-calls/) docs.
 

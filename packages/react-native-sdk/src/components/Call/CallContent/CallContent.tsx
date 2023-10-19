@@ -179,7 +179,7 @@ export const CallContent = ({
   };
 
   return (
-    <View style={[styles.container, callContent.container, landscapeStyles]}>
+    <View style={[styles.container, landscapeStyles, callContent.container]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}
