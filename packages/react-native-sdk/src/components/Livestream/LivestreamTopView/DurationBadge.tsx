@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
 import { ShieldBadge } from '../../../icons';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallSessionResponse, StreamCallEvent } from '@stream-io/video-client';
 
 /**
@@ -16,7 +16,18 @@ export type DurationBadgeProps = {
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
 export const DurationBadge = ({ mode }: DurationBadgeProps) => {
-  const [duration, setDuration] = useState(0);
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+
+  const [duration, setDuration] = useState(() => {
+    if (!session || !session.live_started_at) {
+      return 0;
+    }
+    const liveStartTime = new Date(session.live_started_at);
+    const now = new Date();
+    return Math.floor((now.getTime() - liveStartTime.getTime()) / 1000);
+  });
+
   const call = useCall();
   const {
     theme: {
@@ -26,8 +37,13 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     },
   } = useTheme();
 
+  // for host
   useEffect(() => {
+    if (mode !== 'host') {
+      return;
+    }
     let intervalId: NodeJS.Timer;
+
     const handleLiveStarted = () => {
       intervalId = setInterval(() => {
         setDuration((d) => d + 1);
@@ -45,17 +61,19 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
       }
     };
 
-    if (mode === 'host') {
-      call?.on('call.live_started', handleLiveStarted);
-      call?.on('call.updated', handleLiveEnded);
-    } else {
-      handleLiveStarted();
-    }
+    const callLiveStartedUnsubscribe = call?.on(
+      'call.live_started',
+      handleLiveStarted,
+    );
+    const callUpdatedUnsubscribe = call?.on('call.updated', handleLiveEnded);
 
     return () => {
-      if (mode === 'host') {
-        call?.off('call.live_started', handleLiveStarted);
-        call?.off('call.updated', handleLiveEnded);
+      if (mode !== 'host') {
+        return;
+      }
+      if (callLiveStartedUnsubscribe && callUpdatedUnsubscribe) {
+        callLiveStartedUnsubscribe();
+        callUpdatedUnsubscribe();
       }
       if (intervalId) {
         clearInterval(intervalId);
@@ -63,7 +81,37 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     };
   }, [call, mode]);
 
-  const timestamp = new Date(duration * 1000).toISOString().slice(11, 19);
+  // for viewer
+  useEffect(() => {
+    if (mode !== 'viewer') {
+      return;
+    }
+    let intervalId: NodeJS.Timer;
+    const handleLiveStarted = () => {
+      intervalId = setInterval(() => {
+        setDuration((d) => d + 1);
+      }, 1000);
+    };
+
+    handleLiveStarted();
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [mode]);
+
+  const formatDuration = (durationInMs: number) => {
+    const days = Math.floor(durationInMs / 86400);
+    const hours = Math.floor(durationInMs / 3600);
+    const minutes = Math.floor((durationInMs % 3600) / 60);
+    const seconds = durationInMs % 60;
+
+    return `${days ? days + ' ' : ''}${hours ? hours + ':' : ''}${
+      minutes < 10 ? '0' : ''
+    }${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   return (
     <View
@@ -92,7 +140,7 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
           durationBadge.label,
         ]}
       >
-        {timestamp}
+        {formatDuration(duration)}
       </Text>
     </View>
   );
