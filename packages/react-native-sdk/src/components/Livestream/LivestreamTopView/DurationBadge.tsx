@@ -96,6 +96,9 @@ export const DurationBadge = ({ mode }: DurationBadgeProps) => {
     handleLiveStarted();
 
     return () => {
+      if (mode !== 'viewer') {
+        return;
+      }
       if (intervalId) {
         clearInterval(intervalId);
       }
