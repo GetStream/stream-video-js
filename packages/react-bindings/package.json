@@ -1,14 +1,15 @@
 {
   "name": "@stream-io/video-react-bindings",
-  "version": "0.2.33",
+  "version": "0.2.36",
   "packageManager": "yarn@3.2.4",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "tsc --project tsconfig.json --watch",
-    "build": "tsc --project tsconfig.production.json"
+    "start": "rollup -c -w",
+    "build": "NODE_ENV=production rollup -c"
   },
   "files": [
     "dist",
@@ -20,19 +21,20 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "i18next": "^23.5.1",
     "rxjs": "~7.8.1"
   },
   "peerDependencies": {
-    "@stream-io/i18n": "workspace:^",
     "@stream-io/video-client": "workspace:^",
     "react": ">=17.0.0"
   },
   "devDependencies": {
-    "@stream-io/i18n": "workspace:^",
+    "@rollup/plugin-typescript": "^11.1.5",
     "@stream-io/video-client": "workspace:^",
-    "@types/react": "^18.0.26",
+    "@types/react": "^18.2.28",
     "react": "^18.2.0",
-    "rimraf": "^5.0.1",
-    "typescript": "^4.9.5"
+    "rimraf": "^5.0.5",
+    "rollup": "^3.29.4",
+    "typescript": "^5.2.2"
   }
 }

@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.35...@stream-io/video-react-bindings-0.2.36) (2023-10-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.35`
+### [0.2.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.34...@stream-io/video-react-bindings-0.2.35) (2023-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.34`
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
+### [0.2.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.33...@stream-io/video-react-bindings-0.2.34) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.33`
 ### [0.2.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-0.2.32...@stream-io/video-react-bindings-0.2.33) (2023-10-13)
 
 ### Dependency Updates

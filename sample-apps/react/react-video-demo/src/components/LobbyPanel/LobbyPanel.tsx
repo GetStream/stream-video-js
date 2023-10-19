@@ -7,7 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import ControlMenu from '../ControlMenu';
-import { MicMuted, Signal, Mic, Video } from '../Icons';
+import { Mic, MicMuted, Signal, Video } from '../Icons';
 
 import { PoweredBy } from '../PoweredBy/PoweredBy';
 import JoinContainer from '../JoinContainer';
@@ -42,6 +42,17 @@ export const EnableBrowserSettings: FC<any> = () => {
         grant access when asked to confirm this decision on each brwoser and
         computer you use.
       </p>
+    </div>
+  );
+};
+
+export const StartingCamera = () => {
+  return (
+    <div className={styles.enableBrowserSettings}>
+      <div className={styles.enableIcons}>
+        <Video className={styles.enableVideo} />
+      </div>
+      <h2 className={styles.enableHeading}>Starting your camera...</h2>
     </div>
   );
 };
@@ -117,7 +128,7 @@ export const LobbyPanel: FC<Props> = ({
         <VideoPreview
           DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
           NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
-          StartingCameraPreview={() => permissionsErrorComponent}
+          StartingCameraPreview={StartingCamera}
           VideoErrorPreview={() => permissionsErrorComponent}
         />
       </div>

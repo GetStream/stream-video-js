@@ -707,7 +707,6 @@ export class Publisher {
         ].includes(trackType);
 
         const trackSettings = track.getSettings();
-        // @ts-expect-error - `channelCount` is not defined on `MediaTrackSettings`
         const isStereo = isAudioTrack && trackSettings.channelCount === 2;
 
         return {

@@ -92,7 +92,7 @@ describe('call types CRUD API', () => {
     });
   });
 
-  it.skip('update', async () => {
+  it('update', async () => {
     const updateResponse = await client.updateCallType(callTypeName, {
       settings: {
         audio: { mic_default_on: false, default_device: 'earpiece' },

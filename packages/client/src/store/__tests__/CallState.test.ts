@@ -505,6 +505,15 @@ describe('CallState', () => {
         });
         expect(state.egress?.broadcasting).toBe(false);
       });
+
+      it('handles call.hls_broadcasting_failed events', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ egress: { broadcasting: true } });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.hls_broadcasting_failed' });
+        expect(state.egress?.broadcasting).toBe(false);
+      });
     });
 
     describe('call.session events', () => {

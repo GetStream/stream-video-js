@@ -34,7 +34,6 @@ import {
   UserWithId,
 } from './types';
 import { InsightMetrics, postInsights } from './insights';
-import { version } from '../../../version';
 import { getLocationHint } from './location';
 import { CreateGuestRequest, CreateGuestResponse } from '../../gen/coordinator';
 
@@ -796,6 +795,7 @@ export class StreamClient {
   };
 
   getUserAgent = () => {
+    const version = process.env.PKG_VERSION || '0.0.0-development';
     return (
       this.userAgent ||
       `stream-video-javascript-client-${

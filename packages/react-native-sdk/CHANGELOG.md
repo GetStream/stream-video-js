@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.9...@stream-io/video-react-native-sdk-0.1.10) (2023-10-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.35`
+* `@stream-io/video-react-bindings` updated to version `0.2.36`
+
+### Features
+
+* mute screenshare_audio, update to the newest OpenAPI schema ([#1148](https://github.com/GetStream/stream-video-js/issues/1148)) ([81c45a7](https://github.com/GetStream/stream-video-js/commit/81c45a77e6a526de05ce5457357d212fb3e613d9))
+
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.8...@stream-io/video-react-native-sdk-0.1.9) (2023-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.34`
+* `@stream-io/video-react-bindings` updated to version `0.2.35`
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
+### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.7...@stream-io/video-react-native-sdk-0.1.8) (2023-10-13)
+
+
+### Bug Fixes
+
+* **react-native:** misc expo config plugin bugs ([bba3f84](https://github.com/GetStream/stream-video-js/commit/bba3f8437cb0f7a662adef4e89fbc487225a5ed5))
+
+### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.6...@stream-io/video-react-native-sdk-0.1.7) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.33`
+* `@stream-io/video-react-bindings` updated to version `0.2.34`
+
+### Bug Fixes
+
+* **react-native:** added missing webrtc android expo config steps ([fb2c5a1](https://github.com/GetStream/stream-video-js/commit/fb2c5a1da24bc6c7d9d235ad1d8a562c8a075360))
+
 ### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.5...@stream-io/video-react-native-sdk-0.1.6) (2023-10-13)
 
 ### Dependency Updates

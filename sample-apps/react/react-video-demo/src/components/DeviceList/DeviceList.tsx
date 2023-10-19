@@ -7,13 +7,8 @@ export type Props = {
   className?: string;
   selectedDeviceId?: string;
   title?: string;
-  devices: {
-    deviceId: string;
-    groupId: string;
-    kind: MediaDeviceKind;
-    label: string;
-  }[];
-  selectDevice: (kind: Partial<MediaDeviceKind>, deviceId: string) => void;
+  devices: MediaDeviceInfo[];
+  selectDevice: (kind: MediaDeviceKind, deviceId: string) => void;
 };
 
 export const DeviceList: FC<Props> = ({
@@ -32,13 +27,15 @@ export const DeviceList: FC<Props> = ({
     [selectDevice],
   );
 
+  const hasPreference = devices.some((d) => d.deviceId === selectedDeviceId);
   return (
     <div className={rootClassName}>
       {title ? <h3 className={styles.heading}>{title}</h3> : null}
       <OptionsList>
-        {devices.map(({ kind, label, deviceId }) => {
-          const isSelected =
-            selectedDeviceId === deviceId || devices.length === 1;
+        {devices.map(({ kind, label, deviceId }, index) => {
+          const isSelected = hasPreference
+            ? selectedDeviceId === deviceId
+            : index === 0;
           return (
             <OptionsListItem
               key={deviceId}
