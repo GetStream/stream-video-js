@@ -45,7 +45,9 @@ Open your project with Xcode, select `File > New > Target` in menu bar. Select `
 
 ![Preview of choosing broadcast upload extension target](../assets/06-advanced/08-screensharing/ios-choose-broadcast-target.png)
 
-Enter a name in `Product Name` field, lets say "Broadcast Extension", choose the `Team` from dropdown, choose the `Language` to be `Swift` from dropdown, Uncheck `include UI extension` field and click `Finish`. You will then be prompted `Activate "Broadcast Extension" scheme?` pop-up, click `Activate`.
+<!-- vale off -->
+Enter a name in `Product Name` field, lets say "Broadcast Extension", choose the `Team` from dropdown, choose the `Language` to be `Swift` from dropdown, uncheck `include UI extension` field and click `Finish`. You will then be prompted with pop-up titled `Activate "Broadcast Extension" scheme?`, click `Activate` button on that.
+<!-- vale on -->
 
 ![Preview of creating name for the broadcast upload extension target](../assets/06-advanced/08-screensharing/ios-create-name.png)
 
@@ -77,7 +79,7 @@ Go to the `info.plist` of the App and add two new keys:
 | RTCScreenSharingExtension |  `The-bundle-identifier-of-broadcast-extension` | 
 | RTCAppGroupIdentifier     |  `The-app-group-identifier`                     |
 
-![Preview of App Info plist](../assets/06-advanced/08-screensharing/ios-app-info.png)
+![Preview of App's `info.plist`](../assets/06-advanced/08-screensharing/ios-app-info.png)
 
 Head over to the `Info` of the broadcast extension target and ensure that the `Bundle version string (short)` is the same for both the App and the broadcast extension.
 
