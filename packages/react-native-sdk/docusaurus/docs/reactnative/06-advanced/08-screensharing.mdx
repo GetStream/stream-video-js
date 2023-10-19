@@ -7,6 +7,10 @@ The Stream Video React Native SDK has support for displaying screen sharing trac
 
 In order for a user to be able to share their screen, they must have the `screenshare` capability configured for the call they are in.
 
+:::note
+Expo is not supported yet. We are actively working on screen sharing support for Managed Expo apps and will be supported soon. 
+:::
+
 ## Android Setup
 
 In Android, we will use a foreground service to keep the call alive and also to do screen capturing . The SDK will manage the foreground service. But in order to be able to use the foreground service, some declarations need to be added in the `AndroidManifest.xml`:
@@ -83,6 +87,6 @@ Finally, head over to the `Build Settings` of the broadcast extension target and
 
 ![Preview of iOS deployment target of the broadcast extension](../assets/06-advanced/08-screensharing/ios-deployment-target.png)
 
-## Use the ScreenShareButton component of the SDK
+## Use the screen sharing button component of the SDK
 
 The SDK exports the component named `ScreenShareButton` to manage the start and stop of screen sharing. You can either use the button independently or add it to your own [custom call controls component](https://getstream.io/video/docs/reactnative/ui-cookbook/replacing-call-controls/). If you would like to build your own button component, you can look at the [source code](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/src/components/Call/CallControls/ScreenShareButton.tsx) of the `ScreenShareButton` button component and replicate that.
