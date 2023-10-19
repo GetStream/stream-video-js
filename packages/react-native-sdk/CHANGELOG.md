@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.10...@stream-io/video-react-native-sdk-0.1.11) (2023-10-19)
+
+
+### Features
+
+* **react-native:** live stream components for host and viewer ([#1135](https://github.com/GetStream/stream-video-js/issues/1135)) ([5a5f0e1](https://github.com/GetStream/stream-video-js/commit/5a5f0e10ba7c32d77c547bd3e42396a385fb9f50))
+
 ### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.9...@stream-io/video-react-native-sdk-0.1.10) (2023-10-19)
 
 ### Dependency Updates
