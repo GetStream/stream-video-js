@@ -25,9 +25,15 @@ In Android, we will use a foreground service to keep the call alive and also to 
     android:foregroundServiceType="mediaProjection|microphone" />
 ```
 
+Once the user wants to start screen sharing they will be prompted with asking the permission to screen share as below:
+![Preview of android permission](../assets/06-advanced/08-screensharing/android-preview.png)
+
 ## iOS Setup
 
 The screen sharing functionality is supported on iOS 14 or newer versions. To enable screen sharing, we need to create a `Broadcast Upload Extension` for capturing the contents of the user's screen.
+
+Once the user wants to start screen sharing they will be prompted with asking the permission to screen share as below:
+![Preview of iOS permission](../assets/06-advanced/08-screensharing/ios-preview.jpeg)
 
 ### Step 1: Create the Broadcast Upload Extension
 
