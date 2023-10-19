@@ -128,10 +128,10 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 ### 0.5 Milestones
 - [x] Regular Push Notification for Vanilla React Native
 - [x] Ringing and Regular Push Notification for Expo
-- [x] Speaking while muted
 - [x] Landscape Support
-- [ ] PiP
 - [x] Livestream components
+- [ ] Speaking while muted
+- [ ] PiP
 - [ ] Speaker management (needs docs)
 - [ ] Audio & Video filters
 - [ ] Screen-share media track support
