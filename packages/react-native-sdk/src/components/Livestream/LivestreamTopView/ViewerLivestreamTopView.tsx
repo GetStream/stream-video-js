@@ -42,7 +42,7 @@ export const ViewerLivestreamTopView = ({
   FollowerCount = DefaultFollowerCount,
 }: ViewerLivestreamTopViewProps) => {
   const {
-    theme: { colors, viewerLiveStreamTopView },
+    theme: { colors, viewerLivestreamTopView },
   } = useTheme();
 
   return (
@@ -50,22 +50,22 @@ export const ViewerLivestreamTopView = ({
       style={[
         styles.container,
         { backgroundColor: colors.static_overlay },
-        viewerLiveStreamTopView.container,
+        viewerLivestreamTopView.container,
       ]}
     >
-      <View style={[styles.leftElement, viewerLiveStreamTopView.leftElement]}>
-        <View style={[styles.liveInfo, viewerLiveStreamTopView.liveInfo]}>
+      <View style={[styles.leftElement, viewerLivestreamTopView.leftElement]}>
+        <View style={[styles.liveInfo, viewerLivestreamTopView.liveInfo]}>
           {LiveIndicator && <LiveIndicator />}
           {FollowerCount && <FollowerCount />}
         </View>
       </View>
       <View
-        style={[styles.centerElement, viewerLiveStreamTopView.centerElement]}
+        style={[styles.centerElement, viewerLivestreamTopView.centerElement]}
       >
         {DurationBadge && <DurationBadge mode="viewer" />}
       </View>
       <View
-        style={[styles.rightElement, viewerLiveStreamTopView.rightElement]}
+        style={[styles.rightElement, viewerLivestreamTopView.rightElement]}
       />
     </View>
   );

@@ -16,7 +16,7 @@ import {
 } from '../LivestreamLayout';
 
 /**
- * Props for the HostLiveStream component.
+ * Props for the HostLivestream component.
  */
 export type HostLivestreamProps = HostLivestreamTopViewProps &
   HostLivestreamControlsProps & {
@@ -39,7 +39,7 @@ export type HostLivestreamProps = HostLivestreamTopViewProps &
   };
 
 /**
- * The HostLiveStream component displays the UI for the Host's live stream.
+ * The HostLivestream component displays the UI for the Host's live stream.
  */
 export const HostLivestream = ({
   HostLivestreamTopView = DefaultHostLivestreamTopView,
@@ -55,7 +55,7 @@ export const HostLivestream = ({
   hls = false,
 }: HostLivestreamProps) => {
   const {
-    theme: { colors, hostLiveStream },
+    theme: { colors, hostLivestream },
   } = useTheme();
 
   // Automatically route audio to speaker devices as relevant for watching videos.
@@ -74,7 +74,7 @@ export const HostLivestream = ({
         {
           backgroundColor: colors.static_grey,
         },
-        hostLiveStream.container,
+        hostLivestream.container,
       ]}
     >
       {HostLivestreamTopView && <HostLivestreamTopView {...topViewProps} />}

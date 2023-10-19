@@ -26,7 +26,7 @@ export const ViewerLivestreamControls = ({
   onLeaveStreamHandler,
 }: ViewerLivestreamControlsProps) => {
   const {
-    theme: { colors, viewerLiveStreamControls },
+    theme: { colors, viewerLivestreamControls },
   } = useTheme();
 
   return (
@@ -36,10 +36,10 @@ export const ViewerLivestreamControls = ({
         {
           backgroundColor: colors.static_overlay,
         },
-        viewerLiveStreamControls.container,
+        viewerLivestreamControls.container,
       ]}
     >
-      <View style={[styles.leftElement, viewerLiveStreamControls.leftElement]}>
+      <View style={[styles.leftElement, viewerLivestreamControls.leftElement]}>
         {ViewerLeaveStreamButton && (
           <ViewerLeaveStreamButton
             onLeaveStreamHandler={onLeaveStreamHandler}
@@ -47,7 +47,7 @@ export const ViewerLivestreamControls = ({
         )}
       </View>
       <View
-        style={[styles.rightElement, viewerLiveStreamControls.rightElement]}
+        style={[styles.rightElement, viewerLivestreamControls.rightElement]}
       />
     </View>
   );

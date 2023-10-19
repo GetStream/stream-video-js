@@ -199,10 +199,10 @@ export type Theme = {
     participantsIconContainer: ViewStyle;
     participantsCountText: TextStyle;
   };
-  hostLiveStream: {
+  hostLivestream: {
     container: ViewStyle;
   };
-  viewerLiveStream: {
+  viewerLivestream: {
     container: ViewStyle;
     floatingParticipantView: ViewStyle;
     view: ViewStyle;
@@ -210,14 +210,14 @@ export type Theme = {
   livestreamLayout: {
     container: ViewStyle;
   };
-  hostLiveStreamTopView: {
+  hostLivestreamTopView: {
     container: ViewStyle;
     leftElement: ViewStyle;
     centerElement: ViewStyle;
     rightElement: ViewStyle;
     liveInfo: ViewStyle;
   };
-  viewerLiveStreamTopView: {
+  viewerLivestreamTopView: {
     container: ViewStyle;
     leftElement: ViewStyle;
     centerElement: ViewStyle;
@@ -238,12 +238,12 @@ export type Theme = {
     container: ViewStyle;
     label: TextStyle;
   };
-  hostLiveStreamControls: {
+  hostLivestreamControls: {
     container: ViewStyle;
     leftElement: ViewStyle;
     rightElement: ViewStyle;
   };
-  viewerLiveStreamControls: {
+  viewerLivestreamControls: {
     container: ViewStyle;
     leftElement: ViewStyle;
     rightElement: ViewStyle;
@@ -258,14 +258,14 @@ export type Theme = {
     icon: ViewStyle;
     text: TextStyle;
   };
-  liveStreamMediaControls: {
+  livestreamMediaControls: {
     container: ViewStyle;
   };
-  liveStreamAudioControlButton: {
+  livestreamAudioControlButton: {
     container: ViewStyle;
     icon: ViewStyle;
   };
-  liveStreamVideoControlButton: {
+  livestreamVideoControlButton: {
     container: ViewStyle;
     icon: ViewStyle;
   };
@@ -493,17 +493,17 @@ export const defaultTheme: Theme = {
     participantsIconContainer: {},
     participantsCountText: {},
   },
-  hostLiveStream: {
+  hostLivestream: {
     container: {},
   },
-  hostLiveStreamTopView: {
+  hostLivestreamTopView: {
     container: {},
     leftElement: {},
     rightElement: {},
     centerElement: {},
     liveInfo: {},
   },
-  viewerLiveStream: {
+  viewerLivestream: {
     container: {},
     floatingParticipantView: {},
     view: {},
@@ -511,7 +511,7 @@ export const defaultTheme: Theme = {
   livestreamLayout: {
     container: {},
   },
-  viewerLiveStreamTopView: {
+  viewerLivestreamTopView: {
     container: {},
     leftElement: {},
     centerElement: {},
@@ -532,12 +532,12 @@ export const defaultTheme: Theme = {
     container: {},
     label: {},
   },
-  hostLiveStreamControls: {
+  hostLivestreamControls: {
     container: {},
     leftElement: {},
     rightElement: {},
   },
-  viewerLiveStreamControls: {
+  viewerLivestreamControls: {
     container: {},
     leftElement: {},
     rightElement: {},
@@ -552,14 +552,14 @@ export const defaultTheme: Theme = {
     icon: {},
     text: {},
   },
-  liveStreamMediaControls: {
+  livestreamMediaControls: {
     container: {},
   },
-  liveStreamAudioControlButton: {
+  livestreamAudioControlButton: {
     container: {},
     icon: {},
   },
-  liveStreamVideoControlButton: {
+  livestreamVideoControlButton: {
     container: {},
     icon: {},
   },

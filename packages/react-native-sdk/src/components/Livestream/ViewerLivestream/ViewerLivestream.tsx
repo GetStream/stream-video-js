@@ -24,7 +24,7 @@ import {
 import { Z_INDEX } from '../../../constants';
 
 /**
- * Props for the ViewerLiveStream component.
+ * Props for the ViewerLivestream component.
  */
 export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
   ViewerLivestreamControlsProps &
@@ -48,7 +48,7 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
   };
 
 /**
- * The ViewerLiveStream component renders the UI for the Viewer's live stream.
+ * The ViewerLivestream component renders the UI for the Viewer's live stream.
  */
 export const ViewerLivestream = ({
   ViewerLivestreamTopView = DefaultViewerLivestreamTopView,
@@ -62,7 +62,7 @@ export const ViewerLivestream = ({
   onLeaveStreamHandler,
 }: ViewerLivestreamProps) => {
   const {
-    theme: { colors, viewerLiveStream },
+    theme: { colors, viewerLivestream },
   } = useTheme();
   const { useHasOngoingScreenShare, useParticipants } = useCallStateHooks();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
@@ -82,17 +82,17 @@ export const ViewerLivestream = ({
       style={[
         styles.container,
         { backgroundColor: colors.static_grey },
-        viewerLiveStream.container,
+        viewerLivestream.container,
       ]}
     >
-      <View style={[styles.view, viewerLiveStream.view]}>
+      <View style={[styles.view, viewerLivestream.view]}>
         {ViewerLivestreamTopView && (
           <ViewerLivestreamTopView {...topViewProps} />
         )}
         <View
           style={[
             styles.floatingParticipantView,
-            viewerLiveStream.floatingParticipantView,
+            viewerLivestream.floatingParticipantView,
           ]}
         >
           {hasOngoingScreenShare && FloatingParticipantView && (

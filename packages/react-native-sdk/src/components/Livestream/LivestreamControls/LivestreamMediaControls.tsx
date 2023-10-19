@@ -14,10 +14,10 @@ export type LivestreamMediaControlsProps = {};
  */
 export const LivestreamMediaControls = ({}: LivestreamMediaControlsProps) => {
   const {
-    theme: { liveStreamMediaControls },
+    theme: { livestreamMediaControls },
   } = useTheme();
   return (
-    <View style={[styles.container, liveStreamMediaControls.container]}>
+    <View style={[styles.container, livestreamMediaControls.container]}>
       <LivestreamAudioControlButton />
       <LivestreamVideoControlButton />
     </View>

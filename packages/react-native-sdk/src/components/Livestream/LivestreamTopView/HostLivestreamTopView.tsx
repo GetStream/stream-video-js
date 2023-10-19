@@ -49,24 +49,24 @@ export const HostLivestreamTopView = ({
 
   const liveOrBroadcasting = isCallLive || isBroadcasting;
   const {
-    theme: { colors, hostLiveStreamTopView },
+    theme: { colors, hostLivestreamTopView },
   } = useTheme();
   return (
     <View
       style={[
         styles.container,
         { backgroundColor: colors.static_overlay },
-        hostLiveStreamTopView.container,
+        hostLivestreamTopView.container,
       ]}
     >
-      <View style={[styles.leftElement, hostLiveStreamTopView.leftElement]}>
+      <View style={[styles.leftElement, hostLivestreamTopView.leftElement]}>
         {DurationBadge && <DurationBadge mode="host" />}
       </View>
       <View
-        style={[styles.centerElement, hostLiveStreamTopView.centerElement]}
+        style={[styles.centerElement, hostLivestreamTopView.centerElement]}
       />
-      <View style={[styles.rightElement, hostLiveStreamTopView.rightElement]}>
-        <View style={[styles.liveInfo, hostLiveStreamTopView.liveInfo]}>
+      <View style={[styles.rightElement, hostLivestreamTopView.rightElement]}>
+        <View style={[styles.liveInfo, hostLivestreamTopView.liveInfo]}>
           {liveOrBroadcasting && LiveIndicator && <LiveIndicator />}
           {FollowerCount && <FollowerCount />}
         </View>

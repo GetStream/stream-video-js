@@ -64,6 +64,7 @@ export const HostStartStreamButton = ({
   const onStartStreamButtonPress = async () => {
     if (onStartStreamHandler) {
       onStartStreamHandler();
+      return;
     }
     try {
       setIsAwaitingResponse(true);
@@ -80,6 +81,7 @@ export const HostStartStreamButton = ({
   const onEndStreamButtonPress = async () => {
     if (onEndStreamHandler) {
       onEndStreamHandler();
+      return;
     }
     try {
       setIsAwaitingResponse(true);

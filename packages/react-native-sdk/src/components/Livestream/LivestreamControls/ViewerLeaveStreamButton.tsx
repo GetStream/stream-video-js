@@ -42,6 +42,7 @@ export const ViewerLeaveStreamButton = ({
   const onLeaveStreamButtonPress = async () => {
     if (onLeaveStreamHandler) {
       onLeaveStreamHandler();
+      return;
     }
     try {
       setIsAwaitingResponse(true);

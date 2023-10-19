@@ -15,7 +15,7 @@ export const LivestreamVideoControlButton = () => {
     theme: {
       colors,
       variants: { iconSizes, buttonSizes },
-      liveStreamVideoControlButton,
+      livestreamVideoControlButton,
     },
   } = useTheme();
 
@@ -33,7 +33,7 @@ export const LivestreamVideoControlButton = () => {
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
-        liveStreamVideoControlButton.container,
+        livestreamVideoControlButton.container,
       ]}
     >
       {status === 'enabled' ? (
@@ -44,7 +44,7 @@ export const LivestreamVideoControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamVideoControlButton.icon,
+            livestreamVideoControlButton.icon,
           ]}
         >
           <Video color={colors.static_white} />
@@ -57,7 +57,7 @@ export const LivestreamVideoControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamVideoControlButton.icon,
+            livestreamVideoControlButton.icon,
           ]}
         >
           <VideoSlash color={colors.static_white} />

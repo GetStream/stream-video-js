@@ -12,7 +12,7 @@ import { useTheme } from '../../../contexts';
 import { Z_INDEX } from '../../../constants';
 
 /**
- * Props for the HostLiveStreamControls component.
+ * Props for the HostLivestreamControls component.
  */
 export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
   /**
@@ -30,7 +30,7 @@ export type HostLivestreamControlsProps = HostStartStreamButtonProps & {
 };
 
 /**
- * The HostLiveStreamControls component displays the call controls for the live stream at host's end.
+ * The HostLivestreamControls component displays the call controls for the live stream at host's end.
  */
 export const HostLivestreamControls = ({
   HostStartStreamButton = DefaultHostStartStreamButton,
@@ -40,17 +40,17 @@ export const HostLivestreamControls = ({
   hls = false,
 }: HostLivestreamControlsProps) => {
   const {
-    theme: { colors, hostLiveStreamControls },
+    theme: { colors, hostLivestreamControls },
   } = useTheme();
   return (
     <View
       style={[
         styles.container,
         { backgroundColor: colors.static_overlay },
-        hostLiveStreamControls.container,
+        hostLivestreamControls.container,
       ]}
     >
-      <View style={[styles.leftElement, hostLiveStreamControls.leftElement]}>
+      <View style={[styles.leftElement, hostLivestreamControls.leftElement]}>
         {HostStartStreamButton && (
           <HostStartStreamButton
             onEndStreamHandler={onEndStreamHandler}
@@ -59,7 +59,7 @@ export const HostLivestreamControls = ({
           />
         )}
       </View>
-      <View style={[styles.rightElement, hostLiveStreamControls.rightElement]}>
+      <View style={[styles.rightElement, hostLivestreamControls.rightElement]}>
         {LivestreamMediaControls && <LivestreamMediaControls />}
       </View>
     </View>

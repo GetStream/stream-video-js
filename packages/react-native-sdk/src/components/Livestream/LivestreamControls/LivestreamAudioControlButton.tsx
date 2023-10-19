@@ -15,7 +15,7 @@ export const LivestreamAudioControlButton = () => {
     theme: {
       colors,
       variants: { iconSizes, buttonSizes },
-      liveStreamAudioControlButton,
+      livestreamAudioControlButton,
     },
   } = useTheme();
 
@@ -33,7 +33,7 @@ export const LivestreamAudioControlButton = () => {
           height: buttonSizes.xs,
           width: buttonSizes.xs,
         },
-        liveStreamAudioControlButton.container,
+        livestreamAudioControlButton.container,
       ]}
     >
       {status === 'enabled' ? (
@@ -44,7 +44,7 @@ export const LivestreamAudioControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamAudioControlButton.icon,
+            livestreamAudioControlButton.icon,
           ]}
         >
           <Mic color={colors.static_white} />
@@ -57,7 +57,7 @@ export const LivestreamAudioControlButton = () => {
               height: iconSizes.sm,
               width: iconSizes.sm,
             },
-            liveStreamAudioControlButton.icon,
+            livestreamAudioControlButton.icon,
           ]}
         >
           <MicOff color={colors.static_white} />
