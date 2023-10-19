@@ -26,15 +26,15 @@ export type ScreenShareButtonProps = {
   onScreenShareStoppedHandler?: () => void;
 };
 
-// ios >= 14.0 or android >= 10.0
+// ios >= 14.0 or android
 const CanScreenShare =
   (Platform.OS === 'ios' &&
     Number.parseInt(Platform.Version.split('.')[0], 10) >= 14) ||
-  (Platform.OS === 'android' && Platform.Version >= 29);
+  Platform.OS === 'android';
 
 /**
  * Button to start/stop screen share.
- * Note: This button is enabled only on iOS >= 14.0 or Android >= 10.0.
+ * Note: This button is enabled only on iOS >= 14.0 and any Android version.
  */
 export const ScreenShareButton = React.memo(
   ({
