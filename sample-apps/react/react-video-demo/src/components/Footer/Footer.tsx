@@ -5,7 +5,7 @@ import { StreamChat } from 'stream-chat';
 
 import ControlMenu from '../ControlMenu';
 import Button from '../Button';
-import ControlButton, { PanelButton } from '../ControlButton';
+import { PanelButton } from '../ControlButton';
 import {
   Chat,
   Layout,
@@ -68,6 +68,7 @@ export const Footer = ({
     participantsPanelVisibility,
     isSettingsVisible,
     isReactionVisible,
+    isLayoutSwitcherVisible,
     toggleHide,
   } = usePanelContext();
 
@@ -170,9 +171,11 @@ export const Footer = ({
       </div>
       <div className={styles.toggles}>
         {isSwitchingAllowed && (
-          <ControlButton
+          <PanelButton
             label="Layout"
             portalId="layout-selector"
+            showPanel={isLayoutSwitcherVisible}
+            onClick={() => toggleHide('layout-selector')}
             className={styles.layoutSelectorButton}
             panel={
               <Portal
@@ -199,7 +202,7 @@ export const Footer = ({
             }
           >
             <Layout />
-          </ControlButton>
+          </PanelButton>
         )}
         <NewMessageNotification
           chatClient={chatClient}
