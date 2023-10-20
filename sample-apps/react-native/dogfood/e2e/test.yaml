@@ -15,6 +15,10 @@ appId: io.getstream.rnvideosample
 #- Join the call
 - tapOn: ${output.pages.lobby.joinButton}
 #- Assert that user is alone in the call
+- extendedWaitUntil:
+    visible:
+      id: ${output.pages.activeCall.participantsInfoButton}
+    timeout: 5000
 - tapOn:
     id: ${output.pages.activeCall.participantsInfoButton}
 - assertVisible: ${output.assertions.participantsInfo.participantsCountIs1}
