@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.11...@stream-io/video-react-native-sdk-0.1.12) (2023-10-20)
+
+
+### Features
+
+* **react-native:** add picture-in-picture support for Android ([#1133](https://github.com/GetStream/stream-video-js/issues/1133)) ([ad313cc](https://github.com/GetStream/stream-video-js/commit/ad313cc1abf59020936b342621669448bd03c0a8))
+
 ### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.10...@stream-io/video-react-native-sdk-0.1.11) (2023-10-19)
 
 
