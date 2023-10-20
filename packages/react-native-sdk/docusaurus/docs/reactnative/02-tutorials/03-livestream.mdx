@@ -186,6 +186,7 @@ android.enableDexingArtifactTransform.desugaring=false
 ```
 
 <!-- vale on -->
+
 #### Run the app
 
 To ensure the best possible experience, we highly recommend running the app on a physical device.
@@ -385,6 +386,18 @@ Upon running your app, you will be greeted with an interface that looks like thi
 
 ![Preview of the UI](../assets/02-tutorials/03-livestream/livestream-first-preview.png)
 
+Alternatively, you can utilize the [`HostLivestream`](../../ui-components/livestream/host-livestream) component from our SDK, which offers a preconfigured user interface. You have the flexibility to apply your own customizations on top of this default UI.
+
+To do that, you can follow this code snippet:
+
+```tsx
+import { HostLivestream } from '@stream-io/video-react-native-sdk';
+
+const LivestreamUI = () => {
+  return <HostLivestream />;
+};
+```
+
 Stream uses a technology called SFU cascading to replicate your livestream over different SFUs around the world. This makes it possible to reach a large audience in real-time.
 
 Now let's press **Start Livestream** in your new app and click the **Join Call** button below to watch your livestream in another tab in your browser:
@@ -477,6 +490,18 @@ Compared to the current code in `App.tsx` you:
 
 - Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
 - Typically include some small UI elements like viewer count, a button to mute etc.
+
+Additionally, you can use the [`ViewerLivestream`](../../ui-components/livestream/viewer-livestream) component from our SDK, which offers the stream viewing capabililities along side the flexibility to apply your own customizations on top of this default UI.
+
+To do that, you can follow this code snippet:
+
+```tsx
+import { ViewerLivestream } from '@stream-io/video-react-native-sdk';
+
+const LivestreamUI = () => {
+  return <ViewerLivestream />;
+};
+```
 
 ## Step 7 - (Optional) Viewing a livestream with HLS
 
