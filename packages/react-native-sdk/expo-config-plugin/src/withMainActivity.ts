@@ -29,7 +29,7 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
         config.modResults.contents = addOnPictureInPictureModeChanged(
           config.modResults.contents,
         );
-        if (props.androidPictureInPicture?.enableAutomaticEnter) {
+        if (props?.androidPictureInPicture?.enableAutomaticEnter) {
           config.modResults.contents = addOnUserLeaveHint(
             config.modResults.contents,
           );

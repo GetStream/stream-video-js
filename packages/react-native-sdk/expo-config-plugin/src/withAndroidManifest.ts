@@ -53,7 +53,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
       services.push(getNotifeeService());
       mainApplication.service = services;
 
-      if (props.androidPictureInPicture) {
+      if (props?.androidPictureInPicture) {
         const mainActivity = getMainActivityOrThrow(androidManifest);
         ('keyboard|keyboardHidden|orientation|screenSize|uiMode');
         const currentConfigChangesArray = mainActivity.$[
