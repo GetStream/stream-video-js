@@ -3,6 +3,7 @@ import fs from 'fs';
 
 type FileName =
   | 'AppDelegate.mm'
+  | 'MainActivity.java'
   | 'MainApplication.java'
   | 'AndroidManifest.xml'
   | 'app-build.gradle';

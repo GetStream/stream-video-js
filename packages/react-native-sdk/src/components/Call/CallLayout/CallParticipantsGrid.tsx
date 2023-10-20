@@ -10,6 +10,7 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
+import { useIsInPiPMode } from '../../../hooks';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -58,14 +59,27 @@ export const CallParticipantsGrid = ({
     flexDirection: landscape ? 'row' : 'column',
   };
 
-  const showFloatingView =
-    remoteParticipants.length > 0 && remoteParticipants.length < 3;
+  const isInPiPMode = useIsInPiPMode();
 
-  const participants = showFloatingView
+  const showFloatingView =
+    !isInPiPMode &&
+    remoteParticipants.length > 0 &&
+    remoteParticipants.length < 3;
+
+  let participants = showFloatingView
     ? showLocalParticipant && localParticipant
       ? [localParticipant]
       : remoteParticipants
     : allParticipants;
+
+  if (isInPiPMode) {
+    participants =
+      remoteParticipants.length > 0
+        ? [remoteParticipants[0]]
+        : localParticipant
+        ? [localParticipant]
+        : [];
+  }
 
   const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,

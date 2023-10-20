@@ -5,10 +5,11 @@ import {
 } from '@expo/config-plugins';
 import withStreamVideoReactNativeSDKAppDelegate from './withStreamVideoReactNativeSDKAppDelegate';
 import withPushAppDelegate from './withPushAppDelegate';
-import withStreamVideoReactNativeSDKMainApplication from './withMainApplication';
-import withStreamVideoReactNativeSDKAndroidPermissions from './withAndroidPermissions';
-import withStreamVideoReactNativeSDKManifest from './withAndroidManifest';
-import withStreamVideoReactNativeSDKiOSInfoPList from './withiOSInfoPlist';
+import withMainApplication from './withMainApplication';
+import withAndroidPermissions from './withAndroidPermissions';
+import withAndroidManifest from './withAndroidManifest';
+import withiOSInfoPlist from './withiOSInfoPlist';
+import withMainActivity from './withMainActivity';
 import withBuildProperties from './withBuildProperties';
 import withAppBuildGradle from './withAppBuildGradle';
 import { ConfigProps } from './common/types';
@@ -21,14 +22,17 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
   props,
 ) => {
   return withPlugins(config, [
+    // ios
     () => withPushAppDelegate(config, props),
     withStreamVideoReactNativeSDKAppDelegate,
-    withStreamVideoReactNativeSDKMainApplication,
-    withStreamVideoReactNativeSDKAndroidPermissions,
-    withStreamVideoReactNativeSDKManifest,
+    () => withiOSInfoPlist(config, props),
+    // android
+    withMainApplication,
+    withAndroidPermissions,
     withAppBuildGradle,
     withBuildProperties,
-    () => withStreamVideoReactNativeSDKiOSInfoPList(config, props),
+    () => withAndroidManifest(config, props),
+    () => withMainActivity(config, props),
   ]);
 };
 

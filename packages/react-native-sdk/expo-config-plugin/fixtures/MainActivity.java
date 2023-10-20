@@ -1,8 +1,4 @@
 package io.getstream.expovideosample;
-import android.app.PictureInPictureParams;
-import androidx.lifecycle.Lifecycle;
-import android.util.Rational;
-import com.streamvideo.reactnative.StreamVideoReactNative;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -44,7 +40,10 @@ public class MainActivity extends ReactActivity {
         this,
         getMainComponentName(),
         // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-        DefaultNewArchitectureEntryPoint.getFabricEnabled()));
+        DefaultNewArchitectureEntryPoint.getFabricEnabled(), // fabricEnabled
+        // If you opted-in for the New Architecture, we enable Concurrent React (i.e. React 18).
+        DefaultNewArchitectureEntryPoint.getConcurrentReactEnabled() // concurrentRootEnabled
+        ));
   }
 
   /**
@@ -65,25 +64,5 @@ public class MainActivity extends ReactActivity {
     // Use the default back button implementation on Android S
     // because it's doing more than {@link Activity#moveTaskToBack} in fact.
     super.invokeDefaultOnBackPressed();
-  }
-
-@Override
-  public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-    super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
-      // when user clicks on Close button of PIP
-      finishAndRemoveTask();
-    } else {
-      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    }
-  }
-
-@Override
-  public void onUserLeaveHint () {
-    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-      PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-      builder.setAspectRatio(new Rational(480, 640));
-      enterPictureInPictureMode(builder.build());
-    }
   }
 }
