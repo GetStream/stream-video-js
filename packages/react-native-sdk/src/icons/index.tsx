@@ -15,3 +15,8 @@ export * from './ScreenShareIndicator';
 export * from './ScreenShare';
 export * from './Reaction';
 export * from './TopViewBackground';
+export * from './Eye';
+export * from './ShieldBadge';
+export * from './StartStreamIcon';
+export * from './EndStreamIcon';
+export * from './LeaveStreamIcon';

@@ -1,11 +1,14 @@
 package io.getstream.rnvideosample;
 
+import android.app.PictureInPictureParams;
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactActivityDelegate;
-import io.wazo.callkeep.RNCallKeepModule;
+import com.streamvideo.reactnative.StreamVideoReactNative;
+import android.util.Rational;
+import androidx.lifecycle.Lifecycle;
 
 public class MainActivity extends ReactActivity {
 
@@ -39,5 +42,25 @@ public class MainActivity extends ReactActivity {
         // If you opted-in for the New Architecture, we enable Concurrent React (i.e. React 18).
         DefaultNewArchitectureEntryPoint.getConcurrentReactEnabled() // concurrentRootEnabled
         );
+  }
+
+  @Override
+  public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+    super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+      // when user clicks on Close button of PIP
+      finishAndRemoveTask();
+    } else {
+      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+    }
+  }
+
+  @Override
+  public void onUserLeaveHint () {
+    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+      PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
+      builder.setAspectRatio(new Rational(480, 640));
+      enterPictureInPictureMode(builder.build());
+    }
   }
 }

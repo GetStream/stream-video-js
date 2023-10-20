@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.34...@stream-io/video-client-0.3.35) (2023-10-19)
+
+
+### Features
+
+* mute screenshare_audio, update to the newest OpenAPI schema ([#1148](https://github.com/GetStream/stream-video-js/issues/1148)) ([81c45a7](https://github.com/GetStream/stream-video-js/commit/81c45a77e6a526de05ce5457357d212fb3e613d9))
+
+### [0.3.34](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.33...@stream-io/video-client-0.3.34) (2023-10-18)
+
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
+### [0.3.33](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.32...@stream-io/video-client-0.3.33) (2023-10-13)
+
+
+### Bug Fixes
+
+* **client:** disable server side tests ([#1143](https://github.com/GetStream/stream-video-js/issues/1143)) ([68043f3](https://github.com/GetStream/stream-video-js/commit/68043f35630a94f0097dafcee74afe67e1e6054f))
+
+### [0.3.32](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.31...@stream-io/video-client-0.3.32) (2023-10-13)
+
+
+### Bug Fixes
+
+* **client:** skip broken update call types test ([#1142](https://github.com/GetStream/stream-video-js/issues/1142)) ([e1d5837](https://github.com/GetStream/stream-video-js/commit/e1d5837140b19398a42b9c57b6b6bbfafd52bc21))
+
 ### [0.3.31](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.30...@stream-io/video-client-0.3.31) (2023-10-09)
 
 

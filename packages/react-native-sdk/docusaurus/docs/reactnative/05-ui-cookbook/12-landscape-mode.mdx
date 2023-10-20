@@ -1,0 +1,116 @@
+---
+id: landscape-mode
+title: Landscape Mode
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import Portrait from '../assets/05-ui-cookbook/12-landscape-mode/portrait.png';
+import Landscape from '../assets/05-ui-cookbook/12-landscape-mode/landscape.png';
+
+Switching to landscape mode makes it easier to view the participants in a larger area on mobile devices.
+The landscape mode feature introduced in the SDK allows developers to easily implement responsive design for React Native applications between portrait and landscape mode.
+
+## Passing the landscape mode styles
+
+The SDK components can take up the default landscape mode styles once the `landscape` prop is passed as `true` on the respective components.
+
+It can be passed to [`CallContent`](../../ui-components/call/call-content), [`RingingCallContent`](../../ui-components/call/ringing-call-content), [`Lobby`](../../ui-components/call/lobby) components.
+
+An example of the above is shown below:
+
+```tsx {13}
+import {
+  Call,
+  CallContent,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      <CallContent landscape={true} />
+    </StreamCall>
+  );
+};
+```
+
+## Updating the orientation styles dynamically.
+
+We can use the [`Dimensions API`](https://reactnative.dev/docs/dimensions) or use readily available packages such as [react-native-orientation](https://www.npmjs.com/package/react-native-orientation) or [expo-screen-orientation](https://docs.expo.dev/versions/latest/sdk/screen-orientation/) to update/inform the accurate orientation of your device to the SDK.
+
+<ImageShowcase
+  items={[
+    {
+      image: Portrait,
+      caption: 'Call Content Portrait Mode',
+      alt: 'Call Content Portrait Mode',
+    },
+    {
+      image: Landscape,
+      caption: 'Call Content Landscape Mode',
+      alt: 'Call Content Landscape Mode',
+    },
+  ]}
+/>
+
+An example without using any external packages and using the [`Dimensions API`](https://reactnative.dev/docs/dimensions) is shown below:
+
+### Creating the `useOrientation` hook:
+
+```tsx title="src/hooks/useOrientation.ts"
+import { useEffect, useState } from 'react';
+import { Dimensions } from 'react-native';
+
+type Orientation = 'portrait' | 'landscape';
+
+const getOrientation = (): Orientation => {
+  const dimensions = Dimensions.get('screen');
+  return dimensions.height >= dimensions.width ? 'portrait' : 'landscape';
+};
+
+/**
+ * A hook that returns device orientation.
+ * @returns 'portrait' : 'landscape'
+ */
+export const useOrientation = () => {
+  const [orientation, setOrientation] = useState<Orientation>(getOrientation());
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ screen }) => {
+      setOrientation(screen.height >= screen.width ? 'portrait' : 'landscape');
+    });
+    return () => subscription?.remove();
+  }, []);
+
+  return orientation;
+};
+```
+
+### Passing the orientation to the SDK components
+
+This can be done by checking if the value returned from the hook above is `landscape` and passing it as prop to the SDK components.
+
+```tsx
+import {
+  Call,
+  CallContent,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+import { useOrientation } from '../hooks/useOrientation';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+  const orientation = useOrientation();
+  const isLandscape = orientation === 'landscape';
+
+  return (
+    <StreamCall call={call}>
+      <CallContent landscape={isLandscape} />
+    </StreamCall>
+  );
+};
+```

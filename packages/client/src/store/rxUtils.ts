@@ -1,9 +1,19 @@
-import { Observable, Subject, combineLatest } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
+
+type FunctionPatch<T> = (currentValue: T) => T;
 
 /**
  * A value or a function which takes the current value and returns a new value.
  */
-export type Patch<T> = T | ((currentValue: T) => T);
+export type Patch<T> = T | FunctionPatch<T>;
+
+/**
+ * Checks if the provided update is a function patch.
+ *
+ * @param update the value to check.
+ */
+const isFunctionPatch = <T>(update: Patch<T>): update is FunctionPatch<T> =>
+  typeof update === 'function';
 
 /**
  * Gets the current value of an observable, or undefined if the observable has
@@ -39,11 +49,9 @@ export const getCurrentValue = <T>(observable$: Observable<T>) => {
  * @return the updated value.
  */
 export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
-  const next =
-    // TypeScript needs more context to infer the type of update
-    typeof update === 'function' && update instanceof Function
-      ? update(getCurrentValue(subject))
-      : update;
+  const next = isFunctionPatch(update)
+    ? update(getCurrentValue(subject))
+    : update;
 
   subject.next(next);
   return next;
