@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
 import android.util.Rational
+import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -45,6 +46,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
     fun removeListeners(count: Int) {
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @ReactMethod
     fun enterPipMode(width: Int, height: Int) {
         if (hasPermission()) {
@@ -55,6 +57,11 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) : Reac
             pipBuilder.setAspectRatio(ratio)
             reactApplicationContext!!.currentActivity!!.enterPictureInPictureMode(pipBuilder.build())
         }
+    }
+
+    override fun onCatalystInstanceDestroy() {
+        StreamVideoReactNative.pipListeners.clear()
+        super.onCatalystInstanceDestroy()
     }
 
     @ReactMethod
