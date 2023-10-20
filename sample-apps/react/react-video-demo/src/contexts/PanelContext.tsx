@@ -1,10 +1,10 @@
 import {
   createContext,
   ReactNode,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useEffect,
+  useState,
 } from 'react';
 
 import { useBreakpoint } from '../hooks/useBreakpoints';
@@ -30,6 +30,7 @@ type PanelName =
   | 'participant-list'
   | 'device-settings'
   | 'reaction'
+  | 'layout-selector'
   | 'qrcode';
 
 type Props = {
@@ -38,8 +39,10 @@ type Props = {
   chatPanelVisibility: PANEL_VISIBILITY;
   participantsPanelVisibility: PANEL_VISIBILITY;
   qrCodeVisibility: PANEL_VISIBILITY;
+  layoutSwitcherVisibility: PANEL_VISIBILITY;
   isSettingsVisible: boolean;
   isReactionVisible: boolean;
+  isLayoutSwitcherVisible: boolean;
 };
 
 const PanelContext = createContext<Props>({
@@ -48,24 +51,26 @@ const PanelContext = createContext<Props>({
   chatPanelVisibility: PANEL_VISIBILITY.hidden,
   participantsPanelVisibility: PANEL_VISIBILITY.hidden,
   qrCodeVisibility: PANEL_VISIBILITY.expanded,
+  layoutSwitcherVisibility: PANEL_VISIBILITY.hidden,
   isSettingsVisible: false,
   isReactionVisible: false,
+  isLayoutSwitcherVisible: false,
 });
 
 export const PanelProvider = ({ children }: { children: ReactNode }) => {
-  const [chatVisibility, setChatVisibility] = useState<PANEL_VISIBILITY>(
-    PANEL_VISIBILITY.hidden,
-  );
+  const [chatVisibility, setChatVisibility] = useState(PANEL_VISIBILITY.hidden);
   const [participantsPanelVisibility, setParticipantsPanelVisibility] =
-    useState<PANEL_VISIBILITY>(PANEL_VISIBILITY.hidden);
-
-  const [qrCodeVisibility, setQrCodeVisibility] = useState<PANEL_VISIBILITY>(
+    useState(PANEL_VISIBILITY.hidden);
+  const [qrCodeVisibility, setQrCodeVisibility] = useState(
     PANEL_VISIBILITY.expanded,
   );
+  const [layoutSwitcherVisibility, setLayoutSwitcherVisibility] = useState(
+    PANEL_VISIBILITY.hidden,
+  );
 
-  const [isSettingsVisible, setSettingsVisible] = useState<boolean>(false);
-
-  const [isReactionVisible, setReactionVisible] = useState<boolean>(false);
+  const [isSettingsVisible, setSettingsVisible] = useState(false);
+  const [isReactionVisible, setReactionVisible] = useState(false);
+  const [isLayoutSwitcherVisible, setLayoutSwitcherVisible] = useState(false);
 
   const breakpoint = useBreakpoint();
 
@@ -92,6 +97,10 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
 
       if (panel === 'device-settings') setSettingsVisible((prev) => !prev);
       if (panel === 'reaction') setReactionVisible((prev) => !prev);
+      if (panel === 'layout-selector') {
+        setLayoutSwitcherVisible((prev) => !prev);
+        setLayoutSwitcherVisibility(togglePanelVisibility);
+      }
     },
     [breakpoint],
   );
@@ -114,9 +123,11 @@ export const PanelProvider = ({ children }: { children: ReactNode }) => {
         toggleHide,
         chatPanelVisibility: chatVisibility,
         participantsPanelVisibility: participantsPanelVisibility,
+        layoutSwitcherVisibility,
         qrCodeVisibility,
         isSettingsVisible,
         isReactionVisible,
+        isLayoutSwitcherVisible,
       }}
     >
       {children}
