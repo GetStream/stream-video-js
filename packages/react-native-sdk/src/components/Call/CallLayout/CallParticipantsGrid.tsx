@@ -55,7 +55,7 @@ export const CallParticipantsGrid = ({
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -94,7 +94,7 @@ export const CallParticipantsGrid = ({
     <View
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         { backgroundColor: colors.dark_gray },
         callParticipantsGrid.container,
       ]}

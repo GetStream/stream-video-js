@@ -7,8 +7,10 @@ export type AndroidPictureInPicture = {
   enableAutomaticEnter: boolean;
 };
 
-export type ConfigProps = {
-  ringingPushNotifications?: RingingPushNotifications;
-  enableNonRingingPushNotifications?: boolean;
-  androidPictureInPicture?: AndroidPictureInPicture;
-};
+export type ConfigProps =
+  | {
+      ringingPushNotifications?: RingingPushNotifications;
+      enableNonRingingPushNotifications?: boolean;
+      androidPictureInPicture?: AndroidPictureInPicture;
+    }
+  | undefined;

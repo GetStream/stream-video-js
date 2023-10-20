@@ -1,4 +1,4 @@
-import { FC, ReactNode, createElement } from 'react';
+import { FC, PropsWithChildren, ReactNode } from 'react';
 import classnames from 'classnames';
 
 import styles from './SettingsMenu.module.css';
@@ -28,5 +28,58 @@ export const SettingsMenu: FC<Props> = ({
       ) : null}
       <div className={styles.body}>{children}</div>
     </div>
+  );
+};
+
+export const OptionsList = (
+  props: PropsWithChildren<{
+    className?: string;
+  }>,
+) => {
+  return (
+    <ul className={classnames(styles.list, props.className)}>
+      {props.children}
+    </ul>
+  );
+};
+
+export const OptionsListItem = (props: {
+  className?: string;
+  id: string;
+  value: string;
+  onClick: () => void;
+  label: string;
+  defaultChecked: boolean;
+  name: string;
+  checked: boolean;
+}) => {
+  const {
+    className,
+    id,
+    onClick,
+    label,
+    defaultChecked,
+    name,
+    value,
+    checked,
+  } = props;
+  return (
+    <li
+      className={classnames(styles.item, className, {
+        [styles.selectedItem]: checked,
+      })}
+    >
+      <label className={styles.label} htmlFor={id} onClick={onClick}>
+        <input
+          id={id}
+          className={styles.radioButton}
+          name={name}
+          type="radio"
+          defaultChecked={defaultChecked}
+          value={value}
+        />
+        {label}
+      </label>
+    </li>
   );
 };

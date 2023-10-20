@@ -6,7 +6,7 @@ export const FLOATING_VIDEO_VIEW_STYLE = {
   borderRadius: 10,
 };
 
-export const LOBBY_VIDEO_VIEW_HEIGHT = 280;
+export const LOBBY_VIDEO_VIEW_HEIGHT = 240;
 
 export const defaultEmojiReactions: StreamReactionType[] = [
   {

@@ -9,7 +9,7 @@ import {
   defaultTranslationFunction,
   StreamI18n,
   TranslationsMap,
-} from '@stream-io/i18n';
+} from '../i18n';
 
 type StreamI18nContextValue = {
   t: StreamI18n['t'];
@@ -46,7 +46,7 @@ export const useCreateI18n = ({
   language,
   translationsOverrides,
 }: CreateI18nParams) => {
-  const [i18n] = useState<StreamI18n>(
+  const [i18n] = useState(
     () =>
       i18nInstance ||
       new StreamI18n({ currentLanguage: language, translationsOverrides }),
@@ -62,7 +62,9 @@ export const useCreateI18n = ({
       return;
     }
     if (language && i18n?.currentLanguage !== language) {
-      i18n.changeLanguage(language);
+      i18n.changeLanguage(language).catch((err) => {
+        console.log('Error while changing language', err);
+      });
     }
   }, [i18n, i18nInstance, language, translationsOverrides]);
 

@@ -88,12 +88,14 @@
   @apply text-video-stream-500;
 }
 
-.videoOverlay.horizontal .connectionQuality {
-  @apply top-0 mt-2 mr-2 bottom-[auto];
+@media screen(xs) {
+  .videoOverlay .connectionQuality {
+    @apply top-0 mt-2 mr-2 bottom-[auto];
+  }
 }
 
 @media screen(md) {
-  .videoOverlay.horizontal .connectionQuality {
+  .videoOverlay .connectionQuality {
     @apply top-auto mb-4 mr-4 bottom-0;
   }
 }
