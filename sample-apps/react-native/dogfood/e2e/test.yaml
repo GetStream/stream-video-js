@@ -16,7 +16,7 @@ appId: io.getstream.rnvideosample
 - tapOn: ${output.pages.lobby.joinButton}
 #- Assert that user is alone in the call
 - assertVisible:
-    id: ${output.assertions.activeCall.participantsCount}
+    id: ${output.pages.activeCall.participantsCount}
     text: "1"
 #- Add 5 participants to the call via Stream Video Buddy CLI
 - runScript:
