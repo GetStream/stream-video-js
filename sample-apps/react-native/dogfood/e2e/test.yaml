@@ -29,7 +29,7 @@ appId: io.getstream.rnvideosample
 #- Assert that there are 6 participants in the call
 - extendedWaitUntil:
     visible:
-        id: ${output.activeCall.activeCall.participantsCount}
+        id: ${output.pages.activeCall.participantsCount}
         text: "6"
     timeout: 80000
 #- Leave the call
