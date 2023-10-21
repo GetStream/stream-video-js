@@ -15,6 +15,7 @@ output.pages = {
     chooseFlowButton: 'choose-mode',
     logOutButton: 'log-out',
     confirmSignOutButton: 'OK',
+    signOutModalTitle: 'Sign out as.*',
   },
   lobby: {
     joinButton: 'Join',
@@ -26,17 +27,5 @@ output.pages = {
   },
   participantsInfo: {
     exitButton: 'exit-participants-info',
-  },
-};
-output.assertions = {
-  participantsInfo: {
-    participantsCountIs1: 'Participants (1)',
-    participantsCountIs6: 'Participants (6)',
-  },
-  joinMeeting: {
-    signOutModalTitle: 'Sign out as.*',
-  },
-  login: {
-    customUserInputField: 'Enter custom user',
   },
 };

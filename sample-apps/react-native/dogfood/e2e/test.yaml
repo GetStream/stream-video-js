@@ -29,7 +29,7 @@ appId: io.getstream.rnvideosample
 #- Assert that there are 6 participants in the call
 - extendedWaitUntil:
     visible:
-        id: ${output.assertions.activeCall.participantsCount}
+        id: ${output.activeCall.activeCall.participantsCount}
         text: "6"
     timeout: 80000
 #- Leave the call
@@ -40,7 +40,7 @@ appId: io.getstream.rnvideosample
     id: ${output.pages.joinMeeting.chooseFlowButton}
 - tapOn:
     id: ${output.pages.joinMeeting.logOutButton}
-- assertVisible: ${output.assertions.joinMeeting.signOutModalTitle}
+- assertVisible: ${output.signOutModalTitle.joinMeeting.signOutModalTitle}
 - tapOn: ${output.pages.joinMeeting.confirmSignOutButton}
 #- Assert that user is logged out
-- assertVisible: ${output.assertions.login.customUserInputField}
+- assertVisible: ${output.pages.login.customUserInputField}
