@@ -21,6 +21,7 @@ output.pages = {
   },
   activeCall: {
     participantsInfoButton: 'participants-info-button',
+    participantsCount: 'participants-count',
     hangupButton: 'hang-up-call',
   },
   participantsInfo: {

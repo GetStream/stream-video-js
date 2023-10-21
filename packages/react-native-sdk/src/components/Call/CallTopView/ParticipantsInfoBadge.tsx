@@ -90,6 +90,7 @@ export const ParticipantsInfoBadge = ({
             typefaces.subtitle,
             participantInfoBadge.participantsCountText,
           ]}
+          testID={ButtonTestIds.PARTICIPANTS_COUNT}
         >
           {count}
         </Text>

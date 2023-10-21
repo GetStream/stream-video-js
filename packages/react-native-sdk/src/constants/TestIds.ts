@@ -19,6 +19,7 @@ export enum ComponentTestIds {
 
 export enum ButtonTestIds {
   PARTICIPANTS_INFO = 'participants-info-button',
+  PARTICIPANTS_COUNT = 'participants-count',
   HANG_UP_CALL = 'hang-up-call',
   REACTION = 'call-controls-reaction',
 }

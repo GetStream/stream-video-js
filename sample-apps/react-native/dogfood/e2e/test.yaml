@@ -15,13 +15,9 @@ appId: io.getstream.rnvideosample
 #- Join the call
 - tapOn: ${output.pages.lobby.joinButton}
 #- Assert that user is alone in the call
-- extendedWaitUntil:
-    visible:
-      id: ${output.pages.activeCall.participantsInfoButton}
-    timeout: 5000
-- tapOn:
-    id: ${output.pages.activeCall.participantsInfoButton}
-- assertVisible: ${output.assertions.participantsInfo.participantsCountIs1}
+- assertVisible:
+    id: ${output.assertions.activeCall.participantsCount}
+    text: "1"
 #- Add 5 participants to the call via Stream Video Buddy CLI
 - runScript:
     file: js/videoBuddy.js
@@ -32,10 +28,10 @@ appId: io.getstream.rnvideosample
       camera: true
 #- Assert that there are 6 participants in the call
 - extendedWaitUntil:
-    visible: ${output.assertions.participantsInfo.participantsCountIs6}
+    visible:
+        id: ${output.assertions.activeCall.participantsCount}
+        text: "6"
     timeout: 80000
-- longPressOn:
-    id: ${output.pages.participantsInfo.exitButton}
 #- Leave the call
 - tapOn:
     id: ${output.pages.activeCall.hangupButton}
