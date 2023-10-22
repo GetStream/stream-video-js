@@ -69,6 +69,7 @@ export const ParticipantsInfoBadge = ({
           { height: iconSizes.md, width: iconSizes.md },
           participantInfoBadge.participantsIconContainer,
         ]}
+        testID={ButtonTestIds.PARTICIPANTS_COUNT_2}
       >
         <Participants color={colors.static_white} />
       </View>
@@ -80,6 +81,7 @@ export const ParticipantsInfoBadge = ({
           },
           participantInfoBadge.participantCountContainer,
         ]}
+        testID={ButtonTestIds.PARTICIPANTS_COUNT_1}
       >
         <Text
           style={[
@@ -90,7 +92,7 @@ export const ParticipantsInfoBadge = ({
             typefaces.subtitle,
             participantInfoBadge.participantsCountText,
           ]}
-          testID={ButtonTestIds.PARTICIPANTS_COUNT}
+          testID={ButtonTestIds.PARTICIPANTS_COUNT_0}
         >
           {count}
         </Text>
