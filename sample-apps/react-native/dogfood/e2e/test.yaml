@@ -44,7 +44,7 @@ appId: io.getstream.rnvideosample
     id: ${output.pages.joinMeeting.chooseFlowButton}
 - tapOn:
     id: ${output.pages.joinMeeting.logOutButton}
-- assertVisible: ${output.signOutModalTitle.joinMeeting.signOutModalTitle}
+- assertVisible: ${output.pages.joinMeeting.signOutModalTitle}
 - tapOn: ${output.pages.joinMeeting.confirmSignOutButton}
 #- Assert that user is logged out
 - assertVisible: ${output.pages.login.customUserInputField}
