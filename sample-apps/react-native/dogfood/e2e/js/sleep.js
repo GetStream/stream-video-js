@@ -1,5 +1,11 @@
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-sleep(2000);
+(function (ms) {
+  var duration = ms * 1000;
+  var now = new Date().getTime();
+  while (new Date().getTime() < now + duration) {
+    /* sleep */
+  }
+})(
+  seconds !== undefined && seconds !== null && typeof seconds === 'number'
+    ? seconds
+    : 3,
+);
