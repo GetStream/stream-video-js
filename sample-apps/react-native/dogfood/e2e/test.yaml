@@ -2,6 +2,10 @@ appId: io.getstream.rnvideosample
 ---
 - runScript: js/setup.js
 - launchApp
+- runScript:
+    file: js/sleep.js
+    env:
+        seconds: 2
 #- Log in as a custom user
 - tapOn: ${output.pages.login.customUserInputField}
 - inputText: ${output.pages.login.userName}
