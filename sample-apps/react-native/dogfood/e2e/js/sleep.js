@@ -1,1 +1,5 @@
-await new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+sleep(seconds * 1000);
