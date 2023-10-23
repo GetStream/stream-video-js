@@ -80,6 +80,7 @@ export const ParticipantsInfoBadge = ({
           },
           participantInfoBadge.participantCountContainer,
         ]}
+        testID={ButtonTestIds.PARTICIPANTS_COUNT_VIEW}
       >
         <Text
           style={[
@@ -90,7 +91,7 @@ export const ParticipantsInfoBadge = ({
             typefaces.subtitle,
             participantInfoBadge.participantsCountText,
           ]}
-          testID={ButtonTestIds.PARTICIPANTS_COUNT}
+          testID={ButtonTestIds.PARTICIPANTS_COUNT_TEXT}
         >
           {count}
         </Text>
