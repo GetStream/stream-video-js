@@ -28,23 +28,19 @@ export type Props = {
     latency: number;
   };
   isjoiningCall: boolean;
-  browserPermissionsEnabled: boolean;
 };
 
 export type Lobby = {
-  call?: any;
   loading?: boolean;
 };
 
 export const LobbyView: FC<Props & Lobby> = ({
   joinCall,
-  call,
   callId,
   edges,
   fastestEdge,
   isjoiningCall,
   user,
-  browserPermissionsEnabled,
 }) => {
   const [loadingSentence, setLoadingSentence] = useState(loadingSentences[0]);
 
@@ -68,6 +64,7 @@ export const LobbyView: FC<Props & Lobby> = ({
       {isjoiningCall ? (
         <div className={styles.loadingPanel}>
           <img
+            alt="loading"
             className={styles.image}
             src={`${import.meta.env.BASE_URL}images/loading-animation.gif`}
           />
@@ -78,11 +75,9 @@ export const LobbyView: FC<Props & Lobby> = ({
         <LobbyPanel
           className={styles.lobbyPanel}
           joinCall={joinCall}
-          call={call}
           user={user}
           fastestEdge={fastestEdge}
           isJoiningCall={Boolean(callId)}
-          browserPermissionsEnabled={browserPermissionsEnabled}
         />
       )}
     </LobbyLayout>

@@ -1,7 +1,7 @@
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import classnames from 'classnames';
 import {
-  useMediaDevices,
+  useCallStateHooks,
   User,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -18,13 +18,11 @@ export type Props = {
   joinCall(): void;
   user: User;
   className?: string;
-  call?: any;
   fastestEdge?: {
     id: string;
     latency: number;
   };
   isJoiningCall?: boolean;
-  browserPermissionsEnabled?: boolean;
 };
 
 export const EnableBrowserSettings: FC<any> = () => {
@@ -66,35 +64,17 @@ export const DisabledVideoPreview: FC<{ name?: string }> = ({ name }) => {
 };
 
 export const LobbyPanel: FC<Props> = ({
-  call,
   user,
   joinCall,
   className,
   fastestEdge,
   isJoiningCall,
-  browserPermissionsEnabled,
 }) => {
-  const [permissionsErrorComponent, setPermissionsErrorComponent] =
-    useState<any>(() =>
-      browserPermissionsEnabled ? (
-        <DisabledVideoPreview name={user.name} />
-      ) : (
-        <EnableBrowserSettings />
-      ),
-    );
-
-  useEffect(() => {
-    if (!browserPermissionsEnabled) {
-      setPermissionsErrorComponent(<EnableBrowserSettings />);
-    }
-  }, [browserPermissionsEnabled]);
-
-  const { initialAudioEnabled } = useMediaDevices();
-
+  const { useMicrophoneState } = useCallStateHooks();
+  const { isMute: isMicMute } = useMicrophoneState();
   const rootClassName = classnames(styles.root, className);
-
   const callContainerClassNames = classnames(styles.callContainer, {
-    [styles.audioEnabled]: initialAudioEnabled,
+    [styles.audioEnabled]: !isMicMute,
   });
 
   return (
@@ -116,9 +96,7 @@ export const LobbyPanel: FC<Props> = ({
           ) : null}
           <div className={styles.name}>
             {user.name} (You)
-            {initialAudioEnabled ? null : (
-              <MicMuted className={styles.micMuted} />
-            )}
+            {isMicMute ? <MicMuted className={styles.micMuted} /> : null}
           </div>
           <div className={styles.signal}>
             <Signal className={styles.signalIcon} />
@@ -129,10 +107,9 @@ export const LobbyPanel: FC<Props> = ({
           DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
           NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
           StartingCameraPreview={StartingCamera}
-          VideoErrorPreview={() => permissionsErrorComponent}
         />
       </div>
-      <ControlMenu className={styles.controls} call={call} preview={true} />
+      <ControlMenu className={styles.controls} />
 
       <JoinContainer
         className={styles.lobbyContainer}

@@ -69,6 +69,7 @@ const Init = () => {
     'microphone' as PermissionName,
   );
 
+  // FIXME OL: restore browser permissions UI
   useEffect(() => {
     if (hasBrowserPermissionVideoInput && hasBrowserPermissionMicrophoneInput) {
       setHasBrowserMediaPermissions(true);
@@ -223,7 +224,6 @@ const Init = () => {
                 fastestEdge={fastestEdge}
                 isjoiningCall={isjoiningCall}
                 joinCall={joinMeeting}
-                browserPermissionsEnabled={hasBrowserMediaPermissions}
               />
             )}
           </ModalProvider>

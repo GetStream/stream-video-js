@@ -1,11 +1,5 @@
-import { FC, useCallback, useState } from 'react';
-
-import {
-  useMediaDevices,
-  useAudioInputDevices,
-  useAudioOutputDevices,
-  useVideoDevices,
-} from '@stream-io/video-react-sdk';
+import { useCallback, useState } from 'react';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import { Cog } from '../Icons';
 
@@ -18,54 +12,23 @@ import { useModalContext } from '../../contexts/ModalContext';
 import styles from './DeviceSettings.module.css';
 
 export const DeviceSettings = () => {
-  const {
-    selectedVideoDeviceId,
-    isAudioOutputChangeSupported,
-    selectedAudioInputDeviceId,
-    selectedAudioOutputDeviceId,
-    switchDevice,
-  } = useMediaDevices();
-  const videoDevices = useVideoDevices();
-  const audioInputDevices = useAudioInputDevices();
-  const audioOutputDevices = useAudioOutputDevices();
   const { closeModal } = useModalContext();
 
   const [audioInputId, setAudioInputId] = useState<string>();
   const [audioOutputId, setAudioOutputId] = useState<string>();
   const [videoInputId, setVideoInputId] = useState<string>();
 
-  const handleSelectVideoDevice = useCallback(
-    (_: string, videoDeviceId: string) => {
-      setVideoInputId(videoDeviceId);
-    },
-    [],
-  );
-
-  const handleSelectAudioInputDevice = useCallback(
-    (_: string, audioInputDeviceId: string) => {
-      setAudioInputId(audioInputDeviceId);
-    },
-    [],
-  );
-
-  const handleSelectAudioOutputDevice = useCallback(
-    (_: string, audioDeviceId: string) => {
-      setAudioOutputId(audioDeviceId);
-    },
-    [],
-  );
+  const { useCameraState, useMicrophoneState, useSpeakerState } =
+    useCallStateHooks();
+  const cameraApi = useCameraState();
+  const micApi = useMicrophoneState();
+  const speakerApi = useSpeakerState();
 
   const save = useCallback(async () => {
-    if (videoInputId) {
-      await switchDevice('videoinput', videoInputId);
-    }
-
-    if (audioInputId) {
-      await switchDevice('audioinput', audioInputId);
-    }
-
-    if (audioOutputId && isAudioOutputChangeSupported) {
-      await switchDevice('audiooutput', audioOutputId);
+    if (videoInputId) await cameraApi.camera.select(videoInputId);
+    if (audioInputId) await micApi.microphone.select(audioInputId);
+    if (audioOutputId && speakerApi.isDeviceSelectionSupported) {
+      speakerApi.speaker.select(audioOutputId);
     }
 
     closeModal();
@@ -73,9 +36,11 @@ export const DeviceSettings = () => {
     audioInputId,
     audioOutputId,
     closeModal,
-    switchDevice,
+    cameraApi.camera,
+    micApi.microphone,
+    speakerApi.isDeviceSelectionSupported,
+    speakerApi.speaker,
     videoInputId,
-    isAudioOutputChangeSupported,
   ]);
 
   return (
@@ -83,25 +48,25 @@ export const DeviceSettings = () => {
       <DeviceList
         className={styles.video}
         title="Select a Camera"
-        devices={videoDevices}
-        selectedDeviceId={selectedVideoDeviceId}
-        selectDevice={handleSelectVideoDevice}
+        devices={cameraApi.devices || []}
+        selectedDeviceId={cameraApi.selectedDevice}
+        selectDevice={setVideoInputId}
       />
-      {isAudioOutputChangeSupported ? (
+      {speakerApi.isDeviceSelectionSupported ? (
         <DeviceList
           className={styles.audioOutput}
           title="Select an Audio Output"
-          devices={audioOutputDevices}
-          selectedDeviceId={selectedAudioOutputDeviceId}
-          selectDevice={handleSelectAudioOutputDevice}
+          devices={speakerApi.devices || []}
+          selectedDeviceId={speakerApi.selectedDevice}
+          selectDevice={setAudioOutputId}
         />
       ) : null}
       <DeviceList
         className={styles.audioInput}
         title="Select an Audio Input"
-        devices={audioInputDevices}
-        selectedDeviceId={selectedAudioInputDeviceId}
-        selectDevice={handleSelectAudioInputDevice}
+        devices={micApi.devices || []}
+        selectedDeviceId={micApi.selectedDevice}
+        selectDevice={setAudioInputId}
       />
       <div className={styles.footer}>
         <Button

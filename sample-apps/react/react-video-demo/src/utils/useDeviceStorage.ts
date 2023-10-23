@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
-import {
-  MediaDevicesContextAPI,
-  SfuModels,
-  useCallStateHooks,
-  useMediaDevices,
-} from '@stream-io/video-react-sdk';
+import { SfuModels, useCallStateHooks } from '@stream-io/video-react-sdk';
+
+export type LocalDeviceSettings = {
+  isAudioMute: boolean;
+  isVideoMute: boolean;
+  selectedVideoDeviceId: string;
+  selectedAudioInputDeviceId: string;
+  selectedAudioOutputDeviceId: string;
+};
 
 const initialSettings: LocalDeviceSettings = {
   isAudioMute: true,
@@ -12,16 +15,6 @@ const initialSettings: LocalDeviceSettings = {
   selectedAudioOutputDeviceId: 'default',
   selectedAudioInputDeviceId: 'default',
   selectedVideoDeviceId: 'default',
-};
-
-export type LocalDeviceSettings = Pick<
-  MediaDevicesContextAPI,
-  | 'selectedVideoDeviceId'
-  | 'selectedAudioInputDeviceId'
-  | 'selectedAudioOutputDeviceId'
-> & {
-  isAudioMute: boolean;
-  isVideoMute: boolean;
 };
 
 const SETTINGS_KEY = '@react-video-demo/device-settings';
@@ -52,12 +45,12 @@ export const getStoredDeviceSettings = () => {
 
 export const DeviceSettingsCaptor = () => {
   const {
-    selectedAudioOutputDeviceId,
-    selectedAudioInputDeviceId,
-    selectedVideoDeviceId,
-    initialAudioEnabled,
-    initialVideoState,
-  } = useMediaDevices();
+    selectedAudioOutputDeviceId = 'default',
+    selectedAudioInputDeviceId = 'default',
+    selectedVideoDeviceId = 'default',
+    initialAudioEnabled = true,
+    initialVideoState = { enabled: true },
+  } = {};
 
   let isAudioMute = !initialAudioEnabled;
   let isVideoMute = !initialVideoState.enabled;
