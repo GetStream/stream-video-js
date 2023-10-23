@@ -13,12 +13,6 @@ import { DebounceType, VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
-vi.mock('../../client-details.ts', () => {
-  return {
-    getSdkInfo: vi.fn(),
-  };
-});
-
 describe('DynascaleManager', () => {
   let dynascaleManager: DynascaleManager;
   let call: Call;
