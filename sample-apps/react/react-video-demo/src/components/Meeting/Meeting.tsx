@@ -1,9 +1,6 @@
 import { FC } from 'react';
 import classnames from 'classnames';
-import { Call } from '@stream-io/video-react-sdk';
-
-import ScreenShareParticipants from '../ScreenShareParticipants';
-import MeetingParticipants from '../MeetingParticipants';
+import { useLayoutManager } from '../Layout/MeetingLayout/MeetingLayoutManager';
 
 import TourPanel from '../TourPanel';
 import Notifications from '../Notifications';
@@ -13,18 +10,20 @@ import { useTourContext } from '../../contexts/TourContext';
 import { usePanelContext } from '../../contexts/PanelContext';
 
 import styles from './Meeting.module.css';
+import {
+  DefaultScreenShareOverlay,
+  SfuModels,
+  SpeakerLayout,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
+import { Overlay, VideoPlaceholder } from '../Participant/Participant';
 
 export type Props = {
-  call: Call;
   isScreenSharing?: boolean;
   participantsAmount: number;
 };
 
-export const Meeting: FC<Props> = ({
-  call,
-  isScreenSharing,
-  participantsAmount,
-}) => {
+export const Meeting: FC<Props> = ({ isScreenSharing, participantsAmount }) => {
   const breakpoint = useBreakpoint();
   const { next, current, total, step, active, toggleTour } = useTourContext();
 
@@ -43,15 +42,31 @@ export const Meeting: FC<Props> = ({
       (breakpoint === 'xs' || breakpoint === 'sm'),
   });
 
+  const { useLocalParticipant } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
+  const isLocalPresenter = localParticipant?.publishedTracks.includes(
+    SfuModels.TrackType.SCREEN_SHARE,
+  );
+
+  const { currentLayout } = useLayoutManager();
   return (
     <>
       <Notifications className={styles.notifications} />
       <div className={contentClasses}>
         <div className={stageClasses}>
           {isScreenSharing ? (
-            <ScreenShareParticipants call={call} />
+            // use speaker layout for screen share, as it's the only one that
+            // supports it out of the box.
+            <SpeakerLayout
+              participantsBarPosition="bottom"
+              ParticipantViewUISpotlight={
+                isLocalPresenter ? DefaultScreenShareOverlay : Overlay
+              }
+              ParticipantViewUIBar={Overlay}
+              VideoPlaceholder={VideoPlaceholder}
+            />
           ) : (
-            <MeetingParticipants call={call} />
+            currentLayout.getElement()
           )}
         </div>
       </div>

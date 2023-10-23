@@ -30,7 +30,9 @@ export const useParticipantNotification = () => {
 
       addNotification({
         id: uuid(),
-        message: `${newParticipant.name} has joined the call`,
+        message: `${
+          newParticipant.name || newParticipant.userId
+        } has joined the call`,
         icon: <People />,
       });
     }
@@ -45,7 +47,9 @@ export const useParticipantNotification = () => {
 
       addNotification({
         id: uuid(),
-        message: `${leavingParticipant.name} has left the call`,
+        message: `${
+          leavingParticipant.name || leavingParticipant.userId
+        } has left the call`,
         icon: <People />,
       });
     }

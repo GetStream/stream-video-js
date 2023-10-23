@@ -531,7 +531,7 @@ export class Call {
    *
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
-   * @param params.members_limit the members limit.
+   * @param params.members_limit the total number of members to return as part of the response.
    */
   get = async (params?: {
     ring?: boolean;

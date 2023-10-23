@@ -1,9 +1,15 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
-$RNFirebaseAsStaticFramework = true
+require_relative '../node_modules/react-native-permissions/scripts/setup'
 
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
+
+setup_permissions([
+  'Camera',
+  'Microphone',
+  'Notifications'
+])
 
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
 # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
@@ -23,15 +29,6 @@ end
 
 target 'StreamReactNativeVideoSDKSample' do
   config = use_native_modules!
-
-  # Flipper is not compatible with use_frameworks
-  # workaround to enable flipper described [here](https://github.com/invertase/react-native-firebase/issues/6425#issuecomment-1527949355)
-  pod 'FirebaseCore', :modular_headers => true
-  pod 'FirebaseCoreExtension', :modular_headers => true
-  pod 'FirebaseInstallations', :modular_headers => true
-  pod 'GoogleDataTransport', :modular_headers => true
-  pod 'GoogleUtilities', :modular_headers => true
-  pod 'nanopb', :modular_headers => true
 
   # Flags change depending on the env values.
   flags = get_default_flags()

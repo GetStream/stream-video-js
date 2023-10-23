@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.12...@stream-io/video-styling-0.1.13) (2023-10-18)
+
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
 ### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-0.1.11...@stream-io/video-styling-0.1.12) (2023-10-02)
 
 

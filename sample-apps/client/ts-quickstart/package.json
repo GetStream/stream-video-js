@@ -1,5 +1,5 @@
 {
-  "name": "ts-quickstart",
+  "name": "@stream-io/ts-quickstart",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^1.0.1",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.9"
+    "typescript": "^5.2.2",
+    "vite": "^4.4.11"
   }
 }

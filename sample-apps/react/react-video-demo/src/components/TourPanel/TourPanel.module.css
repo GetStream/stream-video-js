@@ -1,5 +1,5 @@
 .root {
-  @apply relative flex flex-col text-video-white pr-4 pl-4 pt-3 pb-3;
+  @apply relative flex flex-col text-video-white pr-4 pl-4 pt-3 pb-3 z-10;
   border-radius: 20px;
   max-width: 524px;
 

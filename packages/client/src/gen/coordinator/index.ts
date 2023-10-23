@@ -449,6 +449,31 @@ export interface CallEndedEvent {
   user?: UserResponse;
 }
 /**
+ * This event is sent when HLS broadcasting has failed
+ * @export
+ * @interface CallHLSBroadcastingFailedEvent
+ */
+export interface CallHLSBroadcastingFailedEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingFailedEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallHLSBroadcastingFailedEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.hls_broadcasting_failed" in this case
+   * @type {string}
+   * @memberof CallHLSBroadcastingFailedEvent
+   */
+  type: string;
+}
+/**
  * This event is sent when HLS broadcasting has started
  * @export
  * @interface CallHLSBroadcastingStartedEvent
@@ -2969,6 +2994,12 @@ export interface MuteUsersRequest {
   screenshare?: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof MuteUsersRequest
+   */
+  screenshare_audio?: boolean;
+  /**
+   *
    * @type {Array<string>}
    * @memberof MuteUsersRequest
    */
@@ -4471,6 +4502,7 @@ export type VideoEvent =
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
+  | ({ type: 'call.hls_broadcasting_failed' } & CallHLSBroadcastingFailedEvent)
   | ({
       type: 'call.hls_broadcasting_started';
     } & CallHLSBroadcastingStartedEvent)

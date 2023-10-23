@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ViewStyle,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { randomId } from '../../modules/helpers/randomId';
@@ -16,6 +17,7 @@ import { TextInput } from '../../components/TextInput';
 import { Button } from '../../components/Button';
 import { prontoCallId$ } from '../../hooks/useProntoLinkEffect';
 import { useI18n } from '@stream-io/video-react-native-sdk';
+import { useOrientation } from '../../hooks/useOrientation';
 
 type JoinMeetingScreenProps = NativeStackScreenProps<
   MeetingStackParamList,
@@ -26,6 +28,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   const [callId, setCallId] = useState<string>('');
   const [linking, setLinking] = useState<boolean>(false);
   const { t } = useI18n();
+  const orientation = useOrientation();
 
   const { navigation } = props;
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
@@ -59,46 +62,54 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     }
   }, [linking, joinCallHandler]);
 
+  const landscapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, landscapeStyles]}
     >
-      <Image source={{ uri: userImageUrl }} style={styles.logo} />
-      <View>
-        <Text style={styles.title}>
-          {t('Hello, {{ userName }}', { userName: userName || userId })}
-        </Text>
-        <Text style={styles.subTitle}>
-          {t('Start or join a meeting by entering the call ID.')}
-        </Text>
+      <View style={styles.topContainer}>
+        <Image source={{ uri: userImageUrl }} style={styles.logo} />
+        <View>
+          <Text style={styles.title}>
+            {t('Hello, {{ userName }}', { userName: userName || userId })}
+          </Text>
+          <Text style={styles.subTitle}>
+            {t('Start or join a meeting by entering the call ID.')}
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.createCall}>
-        <TextInput
-          placeholder={t('Type your Call ID')}
-          value={callId}
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={(text) => {
-            setCallId(text.trim().split(' ').join('-'));
-          }}
-        />
+      <View style={styles.bottomContainer}>
+        <View style={styles.createCall}>
+          <TextInput
+            placeholder={t('Type your Call ID')}
+            value={callId}
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={(text) => {
+              setCallId(text.trim().split(' ').join('-'));
+            }}
+          />
+          <Button
+            onPress={joinCallHandler}
+            title={t('Join Call')}
+            disabled={!callId}
+            buttonStyle={styles.joinCallButton}
+          />
+        </View>
         <Button
-          onPress={joinCallHandler}
-          title={t('Join Call')}
-          disabled={!callId}
-          buttonStyle={styles.joinCallButton}
+          onPress={() => {
+            const randomCallID = randomId();
+            startNewCallHandler(randomCallID);
+          }}
+          title={t('Start a New Call')}
+          buttonStyle={styles.startNewCallButton}
         />
       </View>
-      <Button
-        onPress={() => {
-          const randomCallID = randomId();
-          startNewCallHandler(randomCallID);
-        }}
-        title={t('Start a New Call')}
-        buttonStyle={styles.startNewCallButton}
-      />
     </KeyboardAvoidingView>
   );
 };
@@ -109,6 +120,10 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.static_grey,
     flex: 1,
     justifyContent: 'space-evenly',
+  },
+  topContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   logo: {
     height: 100,
@@ -121,13 +136,17 @@ const styles = StyleSheet.create({
     color: appTheme.colors.static_white,
     fontWeight: '500',
     textAlign: 'center',
+    marginTop: appTheme.spacing.lg,
   },
   subTitle: {
     color: appTheme.colors.light_gray,
     fontSize: 16,
     textAlign: 'center',
-    marginTop: appTheme.spacing.lg,
     marginHorizontal: appTheme.spacing.xl,
+  },
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   joinCallButton: {
     marginLeft: appTheme.spacing.lg,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { UserInfo } from './UserInfo';
 import { Z_INDEX } from '../../../constants';
 import {
@@ -31,6 +31,11 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
    * Prop to customize the OutgoingCall controls.
    */
   OutgoingCallControls?: React.ComponentType<OutgoingCallControlsProps> | null;
+  /**
+   * Check if device is in landscape mode.
+   * This will apply the landscape mode styles to the component.
+   */
+  landscape?: boolean;
 };
 
 /**
@@ -40,11 +45,16 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
 export const OutgoingCall = ({
   CallTopView = DefaultCallTopView,
   OutgoingCallControls = DefaultOutgoingCallControls,
+  landscape,
 }: OutgoingCallProps) => {
   const {
     theme: { colors, typefaces, outgoingCall },
   } = useTheme();
   const { t } = useI18n();
+
+  const landscapeContentStyles: ViewStyle = {
+    flexDirection: landscape ? 'row' : 'column',
+  };
 
   return (
     <>
@@ -56,28 +66,35 @@ export const OutgoingCall = ({
         ]}
       >
         {CallTopView && <CallTopView />}
-        <View style={[styles.content, outgoingCall.content]}>
-          <UserInfo />
-          <Text
-            style={[
-              styles.callingText,
-              { color: colors.static_white },
-              typefaces.heading6,
-              outgoingCall.callingText,
-            ]}
-          >
-            {t('Calling...')}
-          </Text>
-        </View>
         <View
-          style={[
-            styles.outgoingCallControls,
-            outgoingCall.outgoingCallControls,
-          ]}
+          style={[styles.content, landscapeContentStyles, outgoingCall.content]}
         >
-          {OutgoingCallControls && <OutgoingCallControls />}
+          <View style={[styles.topContainer, outgoingCall.topContainer]}>
+            <UserInfo />
+            <Text
+              style={[
+                styles.callingText,
+                { color: colors.static_white },
+                typefaces.heading6,
+                outgoingCall.callingText,
+              ]}
+            >
+              {t('Calling...')}
+            </Text>
+          </View>
+          <View style={[styles.bottomContainer, outgoingCall.bottomContainer]}>
+            <View
+              style={[
+                styles.outgoingCallControls,
+                outgoingCall.outgoingCallControls,
+              ]}
+            >
+              {OutgoingCallControls && <OutgoingCallControls />}
+            </View>
+          </View>
         </View>
       </View>
+
       <Background />
     </>
   );
@@ -133,17 +150,16 @@ const styles = StyleSheet.create({
   container: {
     zIndex: Z_INDEX.IN_MIDDLE,
   },
+  topContainer: { flex: 1 },
   content: {
-    paddingTop: 8,
+    flex: 1,
   },
   callingText: {
     marginTop: 16,
     textAlign: 'center',
   },
+  bottomContainer: { flex: 1, alignSelf: 'center', justifyContent: 'center' },
   outgoingCallControls: {
-    position: 'absolute',
-    bottom: 64,
-    left: 0,
-    right: 0,
+    justifyContent: 'center',
   },
 });

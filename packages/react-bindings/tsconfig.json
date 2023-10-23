@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES2015",
-    "target": "ES2015",
+    "module": "ES2020",
+    "target": "ES2020",
     "lib": ["esnext", "dom"],
     "declaration": true,
     "moduleResolution": "node",
@@ -14,7 +14,9 @@
     "strict": true,
     "strictNullChecks": true,
     "sourceMap": true,
+    "inlineSources": true,
     "jsx": "react-jsxdev"
   },
-  "include": ["./src", "index.ts"]
+  "exclude": ["**/__tests__/**"],
+  "include": ["./src", "index.ts"],
 }

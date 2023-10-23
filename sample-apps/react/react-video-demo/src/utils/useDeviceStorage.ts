@@ -28,23 +28,26 @@ const SETTINGS_KEY = '@react-video-demo/device-settings';
 
 export const getStoredDeviceSettings = () => {
   if (typeof window === 'undefined') return;
-  const settings = window.localStorage.getItem(SETTINGS_KEY);
-  if (settings) {
-    try {
-      return JSON.parse(settings) as LocalDeviceSettings;
-    } catch (e) {
-      console.log('Error parsing device settings', e);
+  try {
+    const settings = window.localStorage.getItem(SETTINGS_KEY);
+    if (settings) {
+      try {
+        return JSON.parse(settings) as LocalDeviceSettings;
+      } catch (e) {
+        console.log('Error parsing device settings', e);
+      }
+    } else {
+      window.localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({ ...initialSettings }),
+      );
     }
-  } else {
-    window.localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify({ ...initialSettings }),
-    );
-
-    return {
-      ...initialSettings,
-    };
+  } catch (e) {
+    console.warn(`Failed to retrieve device settings`, e);
   }
+  return {
+    ...initialSettings,
+  };
 };
 
 export const DeviceSettingsCaptor = () => {
@@ -69,16 +72,20 @@ export const DeviceSettingsCaptor = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify({
-        isAudioMute,
-        isVideoMute,
-        selectedAudioOutputDeviceId,
-        selectedAudioInputDeviceId,
-        selectedVideoDeviceId,
-      }),
-    );
+    try {
+      window.localStorage.setItem(
+        SETTINGS_KEY,
+        JSON.stringify({
+          isAudioMute,
+          isVideoMute,
+          selectedAudioOutputDeviceId,
+          selectedAudioInputDeviceId,
+          selectedVideoDeviceId,
+        }),
+      );
+    } catch (e) {
+      console.warn(`Failed to store device settings`, e);
+    }
   }, [
     isAudioMute,
     isVideoMute,

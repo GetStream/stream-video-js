@@ -69,7 +69,7 @@ describe('CallState', () => {
 
       const ps2 = state.participants;
       // should resolve in initial - non-mutated state as set at the beginning
-      expect(ps2.map((p) => p.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F']);
+      expect(ps2.map((p) => p.name)).toEqual(['F', 'B', 'E', 'A', 'C', 'D']);
     });
 
     it('should support custom sorting', () => {
@@ -503,6 +503,15 @@ describe('CallState', () => {
         state.updateFromEvent({
           type: 'call.hls_broadcasting_stopped',
         });
+        expect(state.egress?.broadcasting).toBe(false);
+      });
+
+      it('handles call.hls_broadcasting_failed events', () => {
+        const state = new CallState();
+        // @ts-expect-error incomplete data
+        state.updateFromCallResponse({ egress: { broadcasting: true } });
+        // @ts-expect-error incomplete data
+        state.updateFromEvent({ type: 'call.hls_broadcasting_failed' });
         expect(state.egress?.broadcasting).toBe(false);
       });
     });

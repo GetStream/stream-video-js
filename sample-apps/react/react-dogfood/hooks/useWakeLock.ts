@@ -1,10 +1,6 @@
 import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { useEffect } from 'react';
 
-interface WakeLockSentinel {
-  release(): Promise<void>;
-}
-
 export const useWakeLock = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
@@ -14,7 +10,6 @@ export const useWakeLock = () => {
 
     let interrupted = false;
     let wakeLockSentinel: null | WakeLockSentinel = null;
-    // @ts-expect-error
     navigator.wakeLock
       .request('screen')
       .then((wls: WakeLockSentinel) => {

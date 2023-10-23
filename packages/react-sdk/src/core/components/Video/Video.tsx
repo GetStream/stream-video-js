@@ -31,8 +31,20 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
    * Override the default UI that's visible when a participant turned off their video.
    */
   VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
+  /**
+   * An object with setRef functions
+   * meant for exposing some of the internal elements of this component.
+   */
   refs?: {
+    /**
+     * The video element that's used to play the video stream.
+     * @param element the video element.
+     */
     setVideoElement?: (element: HTMLVideoElement | null) => void;
+    /**
+     * The video placeholder element that's used when the video stream is not playing.
+     * @param element the video placeholder element.
+     */
     setVideoPlaceholderElement?: (element: HTMLDivElement | null) => void;
   };
 };
@@ -93,6 +105,11 @@ export const Video = ({
       setIsWideMode(width >= height);
     };
 
+    // playback may have started before we had a chance to
+    // attach the 'play/pause' event listener, so we set the state
+    // here to make sure it's in sync
+    setIsVideoPaused(videoElement.paused);
+
     videoElement.addEventListener('play', handlePlayPause);
     videoElement.addEventListener('pause', handlePlayPause);
     track.addEventListener('unmute', handlePlayPause);
@@ -100,6 +117,9 @@ export const Video = ({
       videoElement.removeEventListener('play', handlePlayPause);
       videoElement.removeEventListener('pause', handlePlayPause);
       track.removeEventListener('unmute', handlePlayPause);
+
+      // reset the 'pause' state once we unmount the video element
+      setIsVideoPaused(true);
     };
   }, [stream, videoElement]);
 

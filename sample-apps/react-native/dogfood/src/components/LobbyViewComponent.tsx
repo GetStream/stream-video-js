@@ -8,6 +8,7 @@ import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, View, Text } from 'react-native';
 import { MeetingStackParamList } from '../../types';
 import { appTheme } from '../theme';
+import { useOrientation } from '../hooks/useOrientation';
 
 type LobbyViewComponentType = NativeStackScreenProps<
   MeetingStackParamList,
@@ -24,37 +25,45 @@ export const LobbyViewComponent = ({
   onJoinCallHandler,
 }: LobbyViewComponentType) => {
   const { t } = useI18n();
+  const orientation = useOrientation();
 
   const JoinCallButtonComponent = useCallback(() => {
-    return <JoinCallButton onPressHandler={onJoinCallHandler} />;
-  }, [onJoinCallHandler]);
+    return (
+      <>
+        <JoinCallButton onPressHandler={onJoinCallHandler} />
+        {route.name === 'MeetingScreen' ? (
+          <Pressable
+            style={styles.anonymousButton}
+            onPress={() => {
+              navigation.navigate('GuestModeScreen', { callId });
+            }}
+          >
+            <Text style={styles.anonymousButtonText}>
+              {t('Join as Guest or Anonymously')}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.anonymousButton}
+            onPress={() => {
+              navigation.navigate('MeetingScreen', { callId });
+            }}
+          >
+            <Text style={styles.anonymousButtonText}>
+              {t('Join with your Stream Account')}
+            </Text>
+          </Pressable>
+        )}
+      </>
+    );
+  }, [onJoinCallHandler, callId, navigation, route.name, t]);
 
   return (
     <View style={styles.container}>
-      <Lobby JoinCallButton={JoinCallButtonComponent} />
-      {route.name === 'MeetingScreen' ? (
-        <Pressable
-          style={styles.anonymousButton}
-          onPress={() => {
-            navigation.navigate('GuestModeScreen', { callId });
-          }}
-        >
-          <Text style={styles.anonymousButtonText}>
-            {t('Join as Guest or Anonymously')}
-          </Text>
-        </Pressable>
-      ) : (
-        <Pressable
-          style={styles.anonymousButton}
-          onPress={() => {
-            navigation.navigate('MeetingScreen', { callId });
-          }}
-        >
-          <Text style={styles.anonymousButtonText}>
-            {t('Join with your Stream Account')}
-          </Text>
-        </Pressable>
-      )}
+      <Lobby
+        JoinCallButton={JoinCallButtonComponent}
+        landscape={orientation === 'landscape'}
+      />
     </View>
   );
 };
@@ -65,11 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: appTheme.colors.static_grey,
   },
   anonymousButton: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    marginBottom: appTheme.spacing.lg,
+    marginTop: 8,
   },
   anonymousButtonText: {
     fontSize: 20,

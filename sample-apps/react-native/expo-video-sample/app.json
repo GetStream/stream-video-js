@@ -23,18 +23,45 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "googleServicesFile": "./google-services.json",
       "package": "io.getstream.expovideosample"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "@stream-io/video-react-native-sdk",
+      [
+        "@stream-io/video-react-native-sdk",
+        {
+          "ringingPushNotifications": {
+            "disableVideoIos": false,
+            "includesCallsInRecentsIos": false
+          },
+          "enableNonRingingPushNotifications": true,
+          "androidPictureInPicture": {
+            "enableAutomaticEnter": true
+          }
+        }
+      ],
+      "@config-plugins/react-native-callkeep",
       [
         "@config-plugins/react-native-webrtc",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone"
+        }
+      ],
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 33,
+            "targetSdkVersion": 33,
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+            ]
+          }
         }
       ]
     ]

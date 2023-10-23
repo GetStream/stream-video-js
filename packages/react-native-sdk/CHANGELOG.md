@@ -2,6 +2,129 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.1.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.11...@stream-io/video-react-native-sdk-0.1.12) (2023-10-20)
+
+
+### Features
+
+* **react-native:** add picture-in-picture support for Android ([#1133](https://github.com/GetStream/stream-video-js/issues/1133)) ([ad313cc](https://github.com/GetStream/stream-video-js/commit/ad313cc1abf59020936b342621669448bd03c0a8))
+
+### [0.1.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.10...@stream-io/video-react-native-sdk-0.1.11) (2023-10-19)
+
+
+### Features
+
+* **react-native:** live stream components for host and viewer ([#1135](https://github.com/GetStream/stream-video-js/issues/1135)) ([5a5f0e1](https://github.com/GetStream/stream-video-js/commit/5a5f0e10ba7c32d77c547bd3e42396a385fb9f50))
+
+### [0.1.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.9...@stream-io/video-react-native-sdk-0.1.10) (2023-10-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.35`
+* `@stream-io/video-react-bindings` updated to version `0.2.36`
+
+### Features
+
+* mute screenshare_audio, update to the newest OpenAPI schema ([#1148](https://github.com/GetStream/stream-video-js/issues/1148)) ([81c45a7](https://github.com/GetStream/stream-video-js/commit/81c45a77e6a526de05ce5457357d212fb3e613d9))
+
+### [0.1.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.8...@stream-io/video-react-native-sdk-0.1.9) (2023-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.34`
+* `@stream-io/video-react-bindings` updated to version `0.2.35`
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
+### [0.1.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.7...@stream-io/video-react-native-sdk-0.1.8) (2023-10-13)
+
+
+### Bug Fixes
+
+* **react-native:** misc expo config plugin bugs ([bba3f84](https://github.com/GetStream/stream-video-js/commit/bba3f8437cb0f7a662adef4e89fbc487225a5ed5))
+
+### [0.1.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.6...@stream-io/video-react-native-sdk-0.1.7) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.33`
+* `@stream-io/video-react-bindings` updated to version `0.2.34`
+
+### Bug Fixes
+
+* **react-native:** added missing webrtc android expo config steps ([fb2c5a1](https://github.com/GetStream/stream-video-js/commit/fb2c5a1da24bc6c7d9d235ad1d8a562c8a075360))
+
+### [0.1.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.5...@stream-io/video-react-native-sdk-0.1.6) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.32`
+* `@stream-io/video-react-bindings` updated to version `0.2.33`
+
+### Features
+
+* **react-native:** add landscape mode support to Lobby, RingingCallContent and DF app ([#1123](https://github.com/GetStream/stream-video-js/issues/1123)) ([cc247f0](https://github.com/GetStream/stream-video-js/commit/cc247f07d50acc775034535e37fd5b319f26673d))
+
+
+### Bug Fixes
+
+* **react-native:** incorrect starting position on reanimated floating animation ([#1139](https://github.com/GetStream/stream-video-js/issues/1139)) ([8d09012](https://github.com/GetStream/stream-video-js/commit/8d09012bc42adbd4474ddbc24ebb0b0362e7332e))
+
+### [0.1.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.4...@stream-io/video-react-native-sdk-0.1.5) (2023-10-11)
+
+
+### Bug Fixes
+
+* **react-native:** faulty default value for landscape mode for CallContent ([#1137](https://github.com/GetStream/stream-video-js/issues/1137)) ([ecb72b3](https://github.com/GetStream/stream-video-js/commit/ecb72b34c9acce690bfa157501c5dce845519670))
+
+### [0.1.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.3...@stream-io/video-react-native-sdk-0.1.4) (2023-10-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.31`
+* `@stream-io/video-react-bindings` updated to version `0.2.32`
+
+### Features
+
+* **react-native:** add all push support to Expo and non ringing push for vanilla  ([#1097](https://github.com/GetStream/stream-video-js/issues/1097)) ([9dcbe23](https://github.com/GetStream/stream-video-js/commit/9dcbe23dc949e452132b5450419a9558dc836309))
+
+### [0.1.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.2...@stream-io/video-react-native-sdk-0.1.3) (2023-10-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.30`
+* `@stream-io/video-react-bindings` updated to version `0.2.31`
+
+### Features
+
+* ScreenShare Audio support ([#1118](https://github.com/GetStream/stream-video-js/issues/1118)) ([5b63e1c](https://github.com/GetStream/stream-video-js/commit/5b63e1c5f52c76e3761e6907bd3786c19f0e5c6d))
+
+### [0.1.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.1...@stream-io/video-react-native-sdk-0.1.2) (2023-10-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.29`
+* `@stream-io/video-react-bindings` updated to version `0.2.30`
+### [0.1.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.0...@stream-io/video-react-native-sdk-0.1.1) (2023-10-04)
+
+
+### Features
+
+* **react-native:**  add lobby footer component ([#1091](https://github.com/GetStream/stream-video-js/issues/1091)) ([4945eb3](https://github.com/GetStream/stream-video-js/commit/4945eb358c4217f502a9735865664cef6c133a93))
+
+## [0.1.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.28...@stream-io/video-react-native-sdk-0.1.0) (2023-10-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** set reactions through props and not config (#1069)
+
+### Features
+
+* **react-native:** set reactions through props and not config ([#1069](https://github.com/GetStream/stream-video-js/issues/1069)) ([9569648](https://github.com/GetStream/stream-video-js/commit/95696482c5622c3c93f071356b980deebee6bfbf))
+
 ### [0.0.28](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.0.27...@stream-io/video-react-native-sdk-0.0.28) (2023-10-02)
 
 

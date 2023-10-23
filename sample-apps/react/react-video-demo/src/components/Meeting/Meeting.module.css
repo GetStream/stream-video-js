@@ -10,7 +10,7 @@
 .content.activeTour {
   @apply relative grid gap-y-3;
   grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: 100% 1fr;
   grid-template-areas:
     'stage'
     'tour';
@@ -18,9 +18,8 @@
 
 @media screen(sm) {
   .content.activeTour {
-    @apply relative grid gap-y-0 h-auto;
+    @apply relative grid gap-y-0;
     grid-template-columns: 1fr;
-    grid-template-rows: 50vh 1fr;
     grid-template-areas:
       'stage'
       'tour';
@@ -30,6 +29,12 @@
 .stage {
   grid-area: stage;
   @apply h-full w-full flex justify-center;
+
+  :global {
+    .str-video__screen-share-overlay__title {
+      color: white;
+    }
+  }
 }
 
 .stage.showParticipants {

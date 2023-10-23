@@ -1,30 +1,34 @@
 import { useEffect, useState } from 'react';
 import { StreamVideoClient } from '@stream-io/video-react-sdk';
-import { FeatureCollection, Geometry } from 'geojson';
+import { FeatureCollection } from 'geojson';
 import { createGeoJsonFeatures } from '../utils/useCreateGeoJsonFeatures';
 
 const EDGES_KEY = '@react-video-demo/edges';
 const oneDay = 24 * 3600 * 1000;
 
 type CachedEdges = {
-  edges: FeatureCollection<Geometry>;
+  edges: FeatureCollection;
   expires_at: number;
 };
 
-const cacheEdges = (edges: FeatureCollection<Geometry>) => {
+const cacheEdges = (edges: FeatureCollection) => {
   const payload: CachedEdges = {
     edges,
     expires_at: new Date().getTime() + oneDay,
   };
-  localStorage.setItem(EDGES_KEY, JSON.stringify(payload));
+  try {
+    localStorage.setItem(EDGES_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.warn(`Failed to store edges in the cache`);
+  }
 
   return payload;
 };
 
 const getCachedEdges = (): CachedEdges | undefined => {
-  const edgeJSON = localStorage.getItem(EDGES_KEY);
-  if (!edgeJSON) return;
   try {
+    const edgeJSON = localStorage.getItem(EDGES_KEY);
+    if (!edgeJSON) return;
     return JSON.parse(edgeJSON);
   } catch {
     return undefined;

@@ -1,5 +1,9 @@
 import { Call, StreamVideoClient } from '@stream-io/video-client';
-import type { StreamVideoConfig } from '../StreamVideoRN/types';
+import type {
+  NonRingingPushEvent,
+  StreamVideoConfig,
+} from '../StreamVideoRN/types';
+import { onNewCallNotification } from '../internal/newNotificationCallbacks';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -55,4 +59,34 @@ export const processCallFromPush = async (
   } catch (e) {
     console.log('failed to process call from push notification', e, action);
   }
+};
+
+/**
+ * This function is used process the call from push notifications due to non ringing calls
+ * It does the following steps:
+ * 1. Get the call from the client if present or create a new call
+ * 2. Fetch the latest state of the call from the server if its not already in ringing state
+ * 3. Call all the callbacks to inform the app about the call
+ */
+export const processNonIncomingCallFromPush = async (
+  client: StreamVideoClient,
+  call_cid: string,
+  nonRingingNotificationType: NonRingingPushEvent,
+) => {
+  let callFromPush: Call;
+  try {
+    const _callFromPush = client.state.calls.find((c) => c.cid === call_cid);
+    if (_callFromPush) {
+      callFromPush = _callFromPush;
+    } else {
+      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
+      const [callType, callId] = call_cid.split(':');
+      callFromPush = client.call(callType, callId);
+      await callFromPush.get();
+    }
+  } catch (e) {
+    console.log('failed to fetch call from push notification', e);
+    return;
+  }
+  onNewCallNotification(callFromPush, nonRingingNotificationType);
 };

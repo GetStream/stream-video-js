@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { PERMISSIONS, requestMultiple } from 'react-native-permissions';
+import {
+  PERMISSIONS,
+  requestMultiple,
+  requestNotifications,
+} from 'react-native-permissions';
 
 /**
  * This hook is used to sync the permissions of the app with the Stream Video SDK.
@@ -22,7 +26,7 @@ const requestAndUpdatePermissions = async () => {
       PERMISSIONS.ANDROID.CAMERA,
       PERMISSIONS.ANDROID.RECORD_AUDIO,
       PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-      PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
     ]);
   }
+  await requestNotifications(['alert', 'sound']);
 };

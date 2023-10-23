@@ -14,6 +14,7 @@ import {
   UserResponse,
 } from '@stream-io/video-client';
 import {
+  TranslatorFunction,
   useCall,
   useCallStateHooks,
   useHasPermissions,
@@ -22,7 +23,6 @@ import {
 import clsx from 'clsx';
 
 import { useFloatingUIPreset } from '../../hooks';
-import { TranslatorFunction } from '@stream-io/i18n';
 
 const byNameOrId = (a: UserResponse, b: UserResponse) => {
   if (a.name && b.name && a.name < b.name) return -1;

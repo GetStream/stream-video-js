@@ -76,6 +76,10 @@ export const PaginatedGridLayout = ({
   ParticipantViewUI = DefaultParticipantViewUI,
 }: PaginatedGridLayoutProps) => {
   const [page, setPage] = useState(0);
+  const [
+    paginatedGridLayoutWrapperElement,
+    setPaginatedGridLayoutWrapperElement,
+  ] = useState<HTMLDivElement | null>(null);
 
   const call = useCall();
   const { useParticipants, useRemoteParticipants } = useCallStateHooks();
@@ -84,6 +88,14 @@ export const PaginatedGridLayout = ({
   const remoteParticipants = useRemoteParticipants();
 
   usePaginatedLayoutSortPreset(call);
+
+  useEffect(() => {
+    if (!paginatedGridLayoutWrapperElement || !call) return;
+
+    const cleanup = call.setViewport(paginatedGridLayoutWrapperElement);
+
+    return () => cleanup();
+  }, [paginatedGridLayoutWrapperElement, call]);
 
   // only used to render video elements
   const participantGroups = useMemo(
@@ -109,7 +121,10 @@ export const PaginatedGridLayout = ({
   if (!call) return null;
 
   return (
-    <div className="str-video__paginated-grid-layout__wrapper">
+    <div
+      className="str-video__paginated-grid-layout__wrapper"
+      ref={setPaginatedGridLayoutWrapperElement}
+    >
       <ParticipantsAudio participants={remoteParticipants} />
       <div className="str-video__paginated-grid-layout">
         {pageArrowsVisible && pageCount > 1 && (

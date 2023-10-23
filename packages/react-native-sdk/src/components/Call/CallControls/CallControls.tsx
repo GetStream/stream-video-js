@@ -4,24 +4,20 @@ import { ToggleAudioPublishingButton } from './ToggleAudioPublishingButton';
 import { ToggleVideoPublishingButton } from './ToggleVideoPublishingButton';
 import { ToggleCameraFaceButton } from './ToggleCameraFaceButton';
 import { Z_INDEX } from '../../../constants';
-import { HangUpCallButton } from './HangupCallButton';
+import { HangUpCallButton, HangUpCallButtonProps } from './HangupCallButton';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 /**
  * Props for the CallControls Component.
  */
-export type CallControlProps = Pick<ViewProps, 'style'> & {
-  /**
-   * Handler to override the hang up handler when the hangup button is pressed.
-   * @returns void
-   */
-  onHangupCallHandler?: () => void;
-  /**
-   * Check if device is in landscape mode.
-   * This will apply the landscape mode styles to the component.
-   */
-  landscape?: boolean;
-};
+export type CallControlProps = Pick<ViewProps, 'style'> &
+  Pick<HangUpCallButtonProps, 'onHangupCallHandler'> & {
+    /**
+     * Check if device is in landscape mode.
+     * This will apply the landscape mode styles to the component.
+     */
+    landscape?: boolean;
+  };
 
 /**
  * A list/row of controls (mute audio/video, toggle front/back camera, hangup call etc.)
@@ -35,7 +31,7 @@ export const CallControls = ({
   const {
     theme: { colors, callControls },
   } = useTheme();
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
@@ -46,7 +42,7 @@ export const CallControls = ({
         styles.container,
         { backgroundColor: colors.static_grey },
         callControls.container,
-        landScapeStyles,
+        landscapeStyles,
         style,
       ]}
     >

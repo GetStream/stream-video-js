@@ -1,0 +1,117 @@
+---
+id: host-livestream
+title: HostLivestream
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import HostLivestreamStart from '../../assets/04-ui-components/livestream/host-livestream-start.png';
+import HostLivestreamEnd from '../../assets/04-ui-components/livestream/host-livestream-end.png';
+
+import HostLivestreamTopView from '../../common-content/ui-components/livestream/host-livestream/host-livestream-top-view.mdx';
+import LivestreamLayout from '../../common-content/ui-components/livestream/livestream-layout.mdx';
+import HostLivestreamControls from '../../common-content/ui-components/livestream/host-livestream/host-livestream-controls.mdx';
+import DurationBadge from '../../common-content/ui-components/livestream/duration-badge.mdx';
+import FollowerCount from '../../common-content/ui-components/livestream/follower-count.mdx';
+import LiveIndicator from '../../common-content/ui-components/livestream/live-indicator.mdx';
+import HostStartStreamButton from '../../common-content/ui-components/livestream/host-livestream/host-start-stream-button.mdx';
+import LiveStreamMediaControls from '../../common-content/ui-components/livestream/livestream-media-controls.mdx';
+import OnStartStreamHandler from '../../common-content/ui-components/livestream/host-livestream/on-start-stream-handler.mdx';
+import OnEndStreamHandler from '../../common-content/ui-components/livestream/host-livestream/on-end-stream-handler.mdx';
+
+The `HostLivestream` is the UI component that allows you to show the livestream view in the app on the host's end with minimal efforts. So you don't need to take care much about each feature that you need to build a video livestream call screen with this component.
+
+`HostLivestream` offers following features:
+
+- A fully fledged livestream user interface, complete with the capability to host and stream video content.
+- Real-time display of the livestream's duration, along with a live indicator.
+- An indication of whether the stream is currently live, and a count of the number of participants who are actively watching the stream.
+- Buttons to start and end the livestream and media control buttons to pause/resume audio/video streams.
+
+<ImageShowcase
+  items={[
+    {
+      image: HostLivestreamStart,
+      caption: 'Host Livestream Start',
+      alt: 'Host Livestream Start',
+    },
+    {
+      image: HostLivestreamEnd,
+      caption: 'Host Livestream End',
+      alt: 'Host Livestream End',
+    },
+  ]}
+/>
+
+## General usage
+
+Let's see how to show the `HostLivestream` UI:
+
+```tsx
+import {
+  Call,
+  StreamCall,
+  HostLivestream,
+} from '@stream-io/video-react-native-sdk';
+
+const VideoCallUI = () => {
+  let call: Call;
+  // your logic to create a new call or get an existing call
+
+  return (
+    <StreamCall call={call}>
+      // highlight-next-line
+      <HostLivestream />
+    </StreamCall>
+  );
+};
+```
+
+## Props
+
+### `hls`
+
+Enable HTTP livestreaming
+
+| Type      | Default |
+| --------- | ------- |
+| `boolean` | false   |
+
+### `HostLivestreamTopView`
+
+<HostLivestreamTopView />
+
+### `LivestreamLayout`
+
+<LivestreamLayout />
+
+### `HostLivestreamControls`
+
+<HostLivestreamControls />
+
+### `DurationBadge`
+
+<DurationBadge />
+
+### `FollowerCount`
+
+<FollowerCount />
+
+### `LiveIndicator`
+
+<LiveIndicator />
+
+### `HostStartStreamButton`
+
+<HostStartStreamButton />
+
+### `LivestreamMediaControls`
+
+<LiveStreamMediaControls />
+
+### `onStartStreamHandler`
+
+<OnStartStreamHandler />
+
+### `onEndStreamHandler`
+
+<OnEndStreamHandler />
