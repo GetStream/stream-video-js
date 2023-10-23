@@ -17,10 +17,7 @@ import {
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import appTranslations from '../../translations';
-import {
-  DeviceSettingsCaptor,
-  getDeviceSettings,
-} from '../../components/DeviceSettingsCaptor';
+import { DeviceSettingsCaptor } from '../../components/DeviceSettingsCaptor';
 import { customSentryLogger } from '../../helpers/logger';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
@@ -101,8 +98,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   useGleap(gleapApiKey, client, user);
 
-  const settings = getDeviceSettings();
-
   if (!client || !call) return null;
 
   return (
@@ -116,16 +111,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         language={language}
         translationsOverrides={appTranslations}
       >
-        <StreamCall
-          call={call}
-          mediaDevicesProviderProps={{
-            initialAudioEnabled: !settings?.isAudioMute,
-            initialVideoEnabled: !settings?.isVideoMute,
-            initialVideoInputDeviceId: settings?.selectedVideoDeviceId,
-            initialAudioInputDeviceId: settings?.selectedAudioInputDeviceId,
-            initialAudioOutputDeviceId: settings?.selectedAudioOutputDeviceId,
-          }}
-        >
+        <StreamCall call={call}>
           <MeetingUI chatClient={chatClient} />
           <DeviceSettingsCaptor />
         </StreamCall>

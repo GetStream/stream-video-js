@@ -23,11 +23,7 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 import { PanelProvider } from './contexts/PanelContext';
-import {
-  DeviceSettingsCaptor,
-  getStoredDeviceSettings,
-  LocalDeviceSettings,
-} from './utils/useDeviceStorage';
+import { DeviceSettingsCaptor } from './utils/useDeviceStorage';
 import { getURLCredentials } from './utils/getURLCredentials';
 
 import { UserContextProvider, useUserContext } from './contexts/UserContext';
@@ -49,8 +45,6 @@ const Init = () => {
   const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
-  const [storedDeviceSettings, setStoredDeviceSettings] =
-    useState<LocalDeviceSettings>();
 
   const [hasBrowserMediaPermissions, setHasBrowserMediaPermissions] =
     useState<boolean>(false);
@@ -154,15 +148,6 @@ const Init = () => {
     setSteps(tour);
   }, []);
 
-  useEffect(() => {
-    const getSettings = () => {
-      const settings = getStoredDeviceSettings();
-      setStoredDeviceSettings(settings);
-    };
-
-    getSettings();
-  }, []);
-
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
     try {
@@ -183,57 +168,41 @@ const Init = () => {
     return null;
   }
 
-  if (storedDeviceSettings) {
-    return (
-      <StreamVideo client={client}>
-        <StreamCall
-          call={activeCall}
-          mediaDevicesProviderProps={{
-            initialVideoEnabled: !storedDeviceSettings?.isVideoMute,
-            initialAudioEnabled: !storedDeviceSettings?.isAudioMute,
-            initialAudioInputDeviceId:
-              storedDeviceSettings?.selectedAudioInputDeviceId,
-            initialVideoInputDeviceId:
-              storedDeviceSettings?.selectedVideoDeviceId,
-            initialAudioOutputDeviceId:
-              storedDeviceSettings?.selectedAudioOutputDeviceId,
-          }}
-        >
-          <ModalProvider>
-            {isCallActive && callId && client ? (
-              <NotificationProvider>
-                <PanelProvider>
-                  <TourProvider>
-                    {activeCall && (
-                      <MeetingView
-                        call={activeCall}
-                        isCallActive={isCallActive}
-                        setCallHasEnded={setCallHasEnded}
-                        chatClient={chatClient}
-                        chatConnectionError={chatConnectionError}
-                      />
-                    )}
-                  </TourProvider>
-                </PanelProvider>
-              </NotificationProvider>
-            ) : (
-              <LobbyView
-                user={user}
-                callId={callId || ''}
-                edges={edges}
-                fastestEdge={fastestEdge}
-                isjoiningCall={isjoiningCall}
-                joinCall={joinMeeting}
-              />
-            )}
-          </ModalProvider>
-          <DeviceSettingsCaptor />
-        </StreamCall>
-      </StreamVideo>
-    );
-  }
-
-  return null;
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={activeCall}>
+        <ModalProvider>
+          {isCallActive && callId && client ? (
+            <NotificationProvider>
+              <PanelProvider>
+                <TourProvider>
+                  {activeCall && (
+                    <MeetingView
+                      call={activeCall}
+                      isCallActive={isCallActive}
+                      setCallHasEnded={setCallHasEnded}
+                      chatClient={chatClient}
+                      chatConnectionError={chatConnectionError}
+                    />
+                  )}
+                </TourProvider>
+              </PanelProvider>
+            </NotificationProvider>
+          ) : (
+            <LobbyView
+              user={user}
+              callId={callId || ''}
+              edges={edges}
+              fastestEdge={fastestEdge}
+              isjoiningCall={isjoiningCall}
+              joinCall={joinMeeting}
+            />
+          )}
+        </ModalProvider>
+        <DeviceSettingsCaptor />
+      </StreamCall>
+    </StreamVideo>
+  );
 };
 
 const App = () => {

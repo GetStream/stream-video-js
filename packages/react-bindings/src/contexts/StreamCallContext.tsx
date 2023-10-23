@@ -4,22 +4,14 @@ import { Call } from '@stream-io/video-client';
 const StreamCallContext = createContext<Call | undefined>(undefined);
 
 /**
- *
- * We don't expose types in our docs site but we should still add doc comments
- * @internal
+ * The props for the StreamCallProvider component.
  */
 export interface StreamCallProviderProps {
   call?: Call;
 }
 
 /**
- *
- * @param props
- * @returns
- *
- * @category Call State
- *
- * @react If you're using the React SDK we recommend using the `StreamCall` component that wraps the `StreamCallProvider`. You only need to use the `StreamCallProvider` for advanced use-cases.
+ * A provider for the call object.
  */
 export const StreamCallProvider = (
   props: PropsWithChildren<StreamCallProviderProps>,
@@ -33,10 +25,7 @@ export const StreamCallProvider = (
 };
 
 /**
- *
- * @returns
- *
- * @category Call State
+ * A hook to get the call object from the closest provider.
  */
 export const useCall = () => {
   return useContext(StreamCallContext);
