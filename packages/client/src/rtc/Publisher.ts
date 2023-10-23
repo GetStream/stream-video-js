@@ -441,37 +441,33 @@ export class Publisher {
       if (shouldEnable) {
         let layer = enabledLayers.find((vls) => vls.name === enc.rid);
         if (layer !== undefined) {
-          // It is possible that the SDK changes are deployed before SFU. Older SFUs
-          // send 0 and it must not be considered. The minimum valid value is 1.0
-          // because resolution scale up is not allowed
           if (
             layer.scaleResolutionDownBy >= 1 &&
             layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
           ) {
+            logger('debug', '[dynascale]: setting scaleResolutionDownBy from server', 
+              'layer', layer.name, 'scale-resolution-down-by', layer.scaleResolutionDownBy)
             enc.scaleResolutionDownBy = layer.scaleResolutionDownBy;
             changed = true;
           }
-          if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
+
+          if (
+            layer.maxBitrate > 0 && 
+            layer.maxBitrate !== enc.maxBitrate
+          ) {
+            logger('debug', '[dynascale] setting max-bitrate from the server', 
+              'layer', layer.name, 'max-bitrate', layer.maxBitrate);
             enc.maxBitrate = layer.maxBitrate;
             changed = true;
           }
-          // Wait till it is merged in protocol repo (https://github.com/GetStream/protocol/pull/254)
-          // if (layer.maxFramerate > 0 && layer.maxFramerate !== enc.maxFramerate) {
-          //   enc.maxFramerate = layer.maxFramerate;
-          //   changed = true;
-          // }
-          // TODO: Set priority from the ChangePublishQuality message
-        }
-        if (
-          layer !== undefined &&
-          layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
-        ) {
-          // TODO: Find a default scale down value if SFU specifies some nonsense or doesn't set it
-          enc.scaleResolutionDownBy = Math.max(
-            1.0,
-            layer.scaleResolutionDownBy,
-          ); // min should be 1.0
-          changed = true;
+
+          if (
+            layer.maxFramerate > 0 && 
+            layer.maxFramerate !== enc.maxFramerate
+          ) {
+            enc.maxFramerate = layer.maxFramerate;
+            changed = true;
+          }
         }
       }
     });
