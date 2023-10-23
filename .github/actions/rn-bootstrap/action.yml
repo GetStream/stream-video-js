@@ -87,7 +87,7 @@ runs:
           brew install facebook/fb/idb-companion
           pip install fb-idb
         fi
-        env MAESTRO_VERSION="1.33.1" curl -Ls 'https://get.maestro.mobile.dev' | bash
+        env MAESTRO_VERSION="1.29.0" curl -Ls 'https://get.maestro.mobile.dev' | bash
         echo "$HOME/.maestro/bin" >> $GITHUB_PATH
 
     # Required to emulate the participants during E2E testing
