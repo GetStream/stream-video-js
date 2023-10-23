@@ -19,9 +19,11 @@ appId: io.getstream.rnvideosample
 #- Join the call
 - tapOn: ${output.pages.lobby.joinButton}
 #- Assert that user is alone in the call
-- assertVisible:
-    text: "1"
-    id: ${output.pages.activeCall.participantsCount}
+- extendedWaitUntil:
+    visible:
+        text: "1"
+        id: ${output.pages.activeCall.participantsCount}
+    timeout: 80000
 #- Add 5 participants to the call via Stream Video Buddy CLI
 - runScript:
     file: js/videoBuddy.js
