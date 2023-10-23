@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useI18n } from '@stream-io/video-react-bindings';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import {
   DeviceSelectorAudioInput,
