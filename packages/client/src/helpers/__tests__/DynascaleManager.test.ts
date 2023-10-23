@@ -144,7 +144,7 @@ describe('DynascaleManager', () => {
       expect(audioElement.volume).toBe(1);
 
       // @ts-expect-error setSinkId is not defined in types
-      expect(audioElement.setSinkId).toHaveBeenCalledWith('');
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
 
       call.speaker.select('different-device-id');
 
