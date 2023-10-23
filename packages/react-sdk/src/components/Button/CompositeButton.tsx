@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import { ComponentType, forwardRef, PropsWithChildren } from 'react';
+import { useI18n } from '@stream-io/video-react-bindings';
 import { Placement } from '@floating-ui/react';
 
 import { IconButton } from './IconButton';
@@ -39,12 +40,16 @@ export const CompositeButton = forwardRef<
 });
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  ({ menuShown }, ref) => (
-    <IconButton
-      className={'str-video__menu-toggle-button'}
-      icon={menuShown ? 'caret-down' : 'caret-up'}
-      title="Toggle device menu"
-      ref={ref}
-    />
-  ),
+  ({ menuShown }, ref) => {
+    const { t } = useI18n();
+
+    return (
+      <IconButton
+        className={'str-video__menu-toggle-button'}
+        icon={menuShown ? 'caret-down' : 'caret-up'}
+        title={t('Toggle device menu')}
+        ref={ref}
+      />
+    );
+  }
 );
