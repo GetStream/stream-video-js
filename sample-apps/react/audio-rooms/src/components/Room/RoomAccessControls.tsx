@@ -5,13 +5,11 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router-dom';
 import { useJoinedCall } from '../../contexts';
 
 export const RoomAccessControls = () => {
-  const { setInitialAudioEnabled } = useMediaDevices();
   const { setJoinedCall, joinedCall } = useJoinedCall();
   const call = useCall();
   const { useCallEndedAt, useCallCallingState, useIsCallLive } =
@@ -50,7 +48,6 @@ export const RoomAccessControls = () => {
                   await joinedCall.leave().catch((err) => {
                     console.error('Error leaving call', err);
                   });
-                  setInitialAudioEnabled(false);
                 }
                 await call.goLive();
                 if (canJoin) await call.join();
@@ -83,7 +80,6 @@ export const RoomAccessControls = () => {
               await call.leave().catch((err) => {
                 console.error('Error leaving call', err);
               });
-              setInitialAudioEnabled(false);
               setJoinedCall(undefined);
             }}
           >

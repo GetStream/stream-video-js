@@ -8,7 +8,6 @@ import {
   useCallStateHooks,
   useConnectedUser,
   useHasPermissions,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -39,9 +38,6 @@ export const LiveRoomControls = ({
   const canRequestSpeakingPermissions = call?.permissionsContext.canRequest(
     OwnCapability.SEND_AUDIO,
   );
-  const { publishAudioStream, stopPublishingAudio, setInitialAudioEnabled } =
-    useMediaDevices();
-
   const [isAwaitingAudioApproval, setIsAwaitingAudioApproval] = useState(false);
 
   const isSpeaker = (customData as CustomCallData).speakerIds?.some(
@@ -54,32 +50,21 @@ export const LiveRoomControls = ({
   const toggleAudio = useCallback(async () => {
     if (!call) return;
 
-    if (isAudioMute) {
-      if (!canSendAudio) {
-        setIsAwaitingAudioApproval(true);
-        await call
-          .requestPermissions({
-            permissions: [OwnCapability.SEND_AUDIO],
-          })
-          .catch((reason) => {
-            console.log('RequestPermissions failed', reason);
-          });
-        return;
-      }
-      // todo move to publishAudioStream()
-      setInitialAudioEnabled(true);
-      await publishAudioStream();
+    if (!canSendAudio) {
+      setIsAwaitingAudioApproval(true);
+      await call
+        .requestPermissions({
+          permissions: [OwnCapability.SEND_AUDIO],
+        })
+        .catch((reason) => {
+          console.log('RequestPermissions failed', reason);
+        });
     } else {
-      stopPublishingAudio();
+      await call.microphone.toggle().catch((err) => {
+        console.log('toggleAudio failed', err);
+      });
     }
-  }, [
-    call,
-    canSendAudio,
-    isAudioMute,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
+  }, [call, canSendAudio]);
 
   useEffect(() => {
     if (!(call && connectedUser)) return;
@@ -87,19 +72,16 @@ export const LiveRoomControls = ({
       if (event.type !== 'call.permissions_updated') return;
       if (connectedUser.id !== event.user.id) return;
       if (event.own_capabilities.includes(OwnCapability.SEND_AUDIO)) {
-        setInitialAudioEnabled(true);
-        publishAudioStream();
+        call.microphone.enable().catch((err) => {
+          console.log('enable microphone failed', err);
+        });
       } else {
-        stopPublishingAudio();
+        call.microphone.disable().catch((err) => {
+          console.log('disable microphone failed', err);
+        });
       }
     });
-  }, [
-    call,
-    connectedUser,
-    publishAudioStream,
-    setInitialAudioEnabled,
-    stopPublishingAudio,
-  ]);
+  }, [call, connectedUser]);
 
   useEffect(() => {
     if (canSendAudio) {
