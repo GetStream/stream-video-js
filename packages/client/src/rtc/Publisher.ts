@@ -455,26 +455,43 @@ export class Publisher {
             layer.scaleResolutionDownBy >= 1 &&
             layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
           ) {
-            logger('debug', '[dynascale]: setting scaleResolutionDownBy from server', 
-              'layer', layer.name, 'scale-resolution-down-by', layer.scaleResolutionDownBy)
+            logger(
+              'debug',
+              '[dynascale]: setting scaleResolutionDownBy from server',
+              'layer',
+              layer.name,
+              'scale-resolution-down-by',
+              layer.scaleResolutionDownBy,
+            );
             enc.scaleResolutionDownBy = layer.scaleResolutionDownBy;
             changed = true;
           }
 
-          if (
-            layer.maxBitrate > 0 && 
-            layer.maxBitrate !== enc.maxBitrate
-          ) {
-            logger('debug', '[dynascale] setting max-bitrate from the server', 
-              'layer', layer.name, 'max-bitrate', layer.maxBitrate);
+          if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
+            logger(
+              'debug',
+              '[dynascale] setting max-bitrate from the server',
+              'layer',
+              layer.name,
+              'max-bitrate',
+              layer.maxBitrate,
+            );
             enc.maxBitrate = layer.maxBitrate;
             changed = true;
           }
 
           if (
-            layer.maxFramerate > 0 && 
+            layer.maxFramerate > 0 &&
             layer.maxFramerate !== enc.maxFramerate
           ) {
+            logger(
+              'debug',
+              '[dynascale]: setting maxFramerate from server',
+              'layer',
+              layer.name,
+              'max-framerate',
+              layer.maxFramerate,
+            );
             enc.maxFramerate = layer.maxFramerate;
             changed = true;
           }
