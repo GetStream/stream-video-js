@@ -19,9 +19,7 @@ export enum ComponentTestIds {
 
 export enum ButtonTestIds {
   PARTICIPANTS_INFO = 'participants-info-button',
-  PARTICIPANTS_COUNT_0 = 'participants-count-0',
-  PARTICIPANTS_COUNT_1 = 'participants-count-1',
-  PARTICIPANTS_COUNT_2 = 'participants-count-2',
+  PARTICIPANTS_COUNT = 'participants-count',
   HANG_UP_CALL = 'hang-up-call',
   REACTION = 'call-controls-reaction',
 }
