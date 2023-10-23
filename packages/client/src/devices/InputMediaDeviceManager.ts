@@ -8,7 +8,8 @@ import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 
 export abstract class InputMediaDeviceManager<
-  T extends InputMediaDeviceManagerState,
+  T extends InputMediaDeviceManagerState<C>,
+  C = MediaTrackConstraints,
 > {
   /**
    * @internal
@@ -20,7 +21,7 @@ export abstract class InputMediaDeviceManager<
   disablePromise?: Promise<void>;
   logger: Logger;
 
-  constructor(
+  protected constructor(
     protected readonly call: Call,
     public readonly state: T,
     protected readonly trackType: TrackType,
@@ -40,7 +41,7 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * Starts camera/microphone
+   * Starts stream.
    */
   async enable() {
     if (this.state.status === 'enabled') {
@@ -57,9 +58,7 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * Stops camera/microphone
-   *
-   * @returns
+   * Stops the stream.
    */
   async disable() {
     this.state.prevStatus = this.state.status;
@@ -80,7 +79,7 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * If status was previously enabled, it will reenable the device.
+   * If status was previously enabled, it will re-enable the device.
    */
   async resume() {
     if (
@@ -92,9 +91,8 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * If current device statis is disabled, it will enable the device, else it will disable it.
-   *
-   * @returns
+   * If the current device status is disabled, it will enable the device,
+   * else it will disable it.
    */
   async toggle() {
     if (this.state.status === 'enabled') {
@@ -102,6 +100,15 @@ export abstract class InputMediaDeviceManager<
     } else {
       return this.enable();
     }
+  }
+
+  /**
+   * Will set the default constraints for the device.
+   *
+   * @param constraints the constraints to set.
+   */
+  async setDefaultConstraints(constraints: C) {
+    this.state.setDefaultConstraints(constraints);
   }
 
   /**
@@ -131,15 +138,15 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
-  protected abstract getStream(
-    constraints: MediaTrackConstraints,
-  ): Promise<MediaStream>;
+  protected abstract getStream(constraints: C): Promise<MediaStream>;
 
   protected abstract publishStream(stream: MediaStream): Promise<void>;
 
   protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
 
-  protected abstract getTrack(): undefined | MediaStreamTrack;
+  protected getTracks(): MediaStreamTrack[] {
+    return this.state.mediaStream?.getTracks() ?? [];
+  }
 
   protected async muteStream(stopTracks: boolean = true) {
     if (!this.state.mediaStream) {
@@ -150,59 +157,67 @@ export abstract class InputMediaDeviceManager<
       await this.stopPublishStream(stopTracks);
     }
     this.muteLocalStream(stopTracks);
-    if (this.getTrack()?.readyState === 'ended') {
-      // @ts-expect-error release() is present in react-native-webrtc and must be called to dispose the stream
-      if (typeof this.state.mediaStream.release === 'function') {
-        // @ts-expect-error
-        this.state.mediaStream.release();
+    this.getTracks().forEach((track) => {
+      if (track.readyState === 'ended') {
+        // @ts-expect-error release() is present in react-native-webrtc
+        // and must be called to dispose the stream
+        if (typeof this.state.mediaStream.release === 'function') {
+          // @ts-expect-error
+          this.state.mediaStream.release();
+        }
+        this.state.setMediaStream(undefined);
       }
-      this.state.setMediaStream(undefined);
-    }
+    });
   }
 
-  private muteTrack() {
-    const track = this.getTrack();
-    if (!track || !track.enabled) {
-      return;
-    }
-    track.enabled = false;
+  private muteTracks() {
+    this.getTracks().forEach((track) => {
+      if (track.enabled) track.enabled = false;
+    });
   }
 
-  private unmuteTrack() {
-    const track = this.getTrack();
-    if (!track || track.enabled) {
-      return;
-    }
-    track.enabled = true;
+  private unmuteTracks() {
+    this.getTracks().forEach((track) => {
+      if (!track.enabled) track.enabled = true;
+    });
   }
 
-  private stopTrack() {
-    const track = this.getTrack();
-    if (!track || track.readyState === 'ended') {
-      return;
-    }
-    track.stop();
+  private stopTracks() {
+    this.getTracks().forEach((track) => {
+      if (track.readyState === 'live') track.stop();
+    });
   }
 
   private muteLocalStream(stopTracks: boolean) {
     if (!this.state.mediaStream) {
       return;
     }
-    stopTracks ? this.stopTrack() : this.muteTrack();
+    if (stopTracks) {
+      this.stopTracks();
+    } else {
+      this.muteTracks();
+    }
   }
 
   protected async unmuteStream() {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
-    if (this.state.mediaStream && this.getTrack()?.readyState === 'live') {
+    if (
+      this.state.mediaStream &&
+      this.getTracks().every((t) => t.readyState === 'live')
+    ) {
       stream = this.state.mediaStream;
-      this.unmuteTrack();
+      this.unmuteTracks();
     } else {
       if (this.state.mediaStream) {
-        this.stopTrack();
+        this.stopTracks();
       }
-      const constraints = { deviceId: this.state.selectedDevice };
-      stream = await this.getStream(constraints);
+      const defaultConstraints = this.state.defaultConstraints;
+      const constraints: MediaTrackConstraints = {
+        ...defaultConstraints,
+        deviceId: this.state.selectedDevice,
+      };
+      stream = await this.getStream(constraints as C);
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);

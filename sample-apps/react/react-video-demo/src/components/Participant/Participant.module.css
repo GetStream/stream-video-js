@@ -1,9 +1,9 @@
 .root {
-  @apply flex relative;
+  @apply flex relative border-2 border-video-transparent;
 }
 
-.video {
-  border-radius: 12px;
+.root :global .str-video__video {
+  border-radius: unset;
 }
 
 .reaction {
@@ -26,10 +26,10 @@
 }
 
 .isDominantSpeaker {
-  @apply border-2 border-video-stream-500;
+  @apply border-video-stream-500;
 }
 .isSpeaking {
-  @apply border-2 border-video-stream-500;
+  @apply border-video-stream-500;
 }
 
 .isPinned {
@@ -88,12 +88,14 @@
   @apply text-video-stream-500;
 }
 
-.videoOverlay.horizontal .connectionQuality {
-  @apply top-0 mt-2 mr-2 bottom-[auto];
+@media screen(xs) {
+  .videoOverlay .connectionQuality {
+    @apply top-0 mt-2 mr-2 bottom-[auto];
+  }
 }
 
 @media screen(md) {
-  .videoOverlay.horizontal .connectionQuality {
+  .videoOverlay .connectionQuality {
     @apply top-auto mb-4 mr-4 bottom-0;
   }
 }

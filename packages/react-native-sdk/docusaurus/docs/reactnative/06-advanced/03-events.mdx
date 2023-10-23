@@ -65,10 +65,11 @@ The list of call events:
 | --------------------------------- | -------------------------------------------------------------- | ---------------- |
 | `call.accepted`                   | A user accepts a notification to join a call                   | All call members |
 | `call.blocked_user`               | A user is blocked from the call                                | Call watchers    |
-| `call.broadcasting_started`       | The call started to broadcast                                  | Call watchers    |
-| `call.broadcasting_stopped`       | The call stopped broadcasting                                  | Call watchers    |
 | `call.created`                    | The call was created                                           | All call members |
 | `call.ended`                      | The call was ended                                             | All call members |
+| `call.hls_broadcasting_failed`    | The call failed to broadcast                                   | Call watchers    |
+| `call.hls_broadcasting_started`   | The call started to broadcast                                  | Call watchers    |
+| `call.hls_broadcasting_stopped`   | The call stopped broadcasting                                  | Call watchers    |
 | `call.live_started`               | The call left backstage mode                                   | Call watchers    |
 | `call.member_added`               | One or more members were added to the call                     | All call members |
 | `call.member_removed`             | One or more members were removed from the call                 | All call members |
@@ -78,6 +79,8 @@ The list of call events:
 | `call.permission_request`         | A user is requesting permissions                               | Call watchers    |
 | `call.permissions_updated`        | A member's permissions were updated                            | Call watchers    |
 | `call.reaction_new`               | A new reaction was sent                                        | Call watchers    |
+| `call.recording_failed`           | A recording failed                                             | Call watchers    |
+| `call.recording_ready`            | A recording is ready                                           | Call watchers    |
 | `call.recording_started`          | A recording has been started                                   | Call watchers    |
 | `call.recording_stopped`          | The recording was stopped                                      | Call watchers    |
 | `call.rejected`                   | A user declined to join the call                               | All call members |

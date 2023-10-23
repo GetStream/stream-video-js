@@ -1,42 +1,30 @@
 import React, { useCallback, useEffect } from 'react';
-import {
-  Image,
-  PermissionsAndroid,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import notifee from '@notifee/react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { users } from '../data/users';
 import { useAppContext } from '../context/AppContext';
 import { UserType } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const UsersList = () => {
   const { loginHandler } = useAppContext();
 
-  useEffect(() => {
-    const run = async () => {
-      if (Platform.OS === 'android') {
-        await notifee.requestPermission();
-        if (Platform.Version > 30) {
-          await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-          );
-        }
-      }
-    };
-    run();
-  }, []);
-
   const moveToCallLobby = useCallback(
     (user: UserType) => {
+      AsyncStorage.setItem('my-user', JSON.stringify(user));
       loginHandler({ ...user, image: user.imageUrl });
     },
     [loginHandler],
   );
+
+  useEffect(() => {
+    AsyncStorage.getItem('my-user').then((userJson) => {
+      const user = userJson && JSON.parse(userJson);
+      if (user) {
+        loginHandler({ ...user, image: user.imageUrl });
+      }
+    });
+  }, [loginHandler]);
 
   return (
     <SafeAreaView>

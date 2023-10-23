@@ -25,8 +25,7 @@ import {
   VideoRendererProps,
 } from './VideoRenderer';
 import { useTheme } from '../../../contexts/ThemeContext';
-
-export type ParticipantVideoType = VideoTrackType;
+import { CallContentProps } from '../../Call';
 
 export type ParticipantViewComponentProps = {
   /**
@@ -54,35 +53,36 @@ export type ParticipantViewComponentProps = {
 /**
  * Props to be passed for the Participant component.
  */
-export type ParticipantViewProps = ParticipantViewComponentProps & {
-  /**
-   * The participant that will be displayed.
-   */
-  participant: StreamVideoParticipant;
-  /**
-   * The zOrder for the video that will be displayed.
-   * For example, a video call
-   * application usually needs a maximum of two zOrder values: 0 for the
-   * remote video(s) which appear in the background, and 1 for the local
-   * video(s) which appear above the remote video(s).
-   * @default 0
-   */
-  videoZOrder?: number;
-  /**
-   * The video track that is to be displayed.
-   */
-  trackType?: ParticipantVideoType;
-  /**
-   * Custom style to be merged with the participant view.
-   */
-  style?: StyleProp<ViewStyle>;
-  /**
-   * When set to false, the video stream will not be shown even if it is available.
-   *
-   * @default true
-   */
-  isVisible?: boolean;
-};
+export type ParticipantViewProps = ParticipantViewComponentProps &
+  Pick<CallContentProps, 'supportedReactions'> & {
+    /**
+     * The participant that will be displayed.
+     */
+    participant: StreamVideoParticipant;
+    /**
+     * The zOrder for the video that will be displayed.
+     * For example, a video call
+     * application usually needs a maximum of two zOrder values: 0 for the
+     * remote video(s) which appear in the background, and 1 for the local
+     * video(s) which appear above the remote video(s).
+     * @default 0
+     */
+    videoZOrder?: number;
+    /**
+     * The video track that is to be displayed.
+     */
+    trackType?: VideoTrackType;
+    /**
+     * Custom style to be merged with the participant view.
+     */
+    style?: StyleProp<ViewStyle>;
+    /**
+     * When set to false, the video stream will not be shown even if it is available.
+     *
+     * @default true
+     */
+    isVisible?: boolean;
+  };
 
 /**
  * A component that renders the participants' video track or screenShare track
@@ -100,6 +100,7 @@ export const ParticipantView = ({
   ParticipantNetworkQualityIndicator = DefaultParticipantNetworkQualityIndicator,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   videoZOrder = 0,
+  supportedReactions,
 }: ParticipantViewProps) => {
   const {
     theme: { colors, participantView },
@@ -124,7 +125,12 @@ export const ParticipantView = ({
           : `participant-${userId}-is-not-speaking`
       }
     >
-      {ParticipantReaction && <ParticipantReaction participant={participant} />}
+      {ParticipantReaction && (
+        <ParticipantReaction
+          participant={participant}
+          supportedReactions={supportedReactions}
+        />
+      )}
       {VideoRenderer && (
         <VideoRenderer
           isVisible={isVisible}

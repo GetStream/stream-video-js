@@ -58,8 +58,8 @@ Here are some of the features we support:
 - [x] Enhanced device management API
 - [x] Composite layout for streaming and recording
 - [x] Livestream Player
-- [ ] Screenshare Audio
-- [ ] Screen-sharing resolution and FPS control
+- [x] Screenshare Audio
+- [x] Screen-sharing bitrate and FPS control
 - [ ] Fast-reconnects
 - [ ] New Device Management API
 - [x] SFU retries
@@ -69,7 +69,7 @@ Here are some of the features we support:
 ### 0.5 milestone
 
 - [ ] Enhanced UI components and theming
-- [ ] Enhanced SDK build system
+- [x] Enhanced SDK build system
 - [ ] Typescript generics enhancements
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] Performance and bundle-size optimizations

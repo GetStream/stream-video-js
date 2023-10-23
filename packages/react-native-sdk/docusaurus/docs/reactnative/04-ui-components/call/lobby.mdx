@@ -3,6 +3,8 @@ id: lobby
 title: Lobby
 ---
 
+import Landscape from '../../common-content/ui-components/call/call-content/landscape.mdx';
+
 Lobby is a component that is designed to make your entrance and invite experience to a meeting call user-friendly. The purpose is to allow users to test their setup before entering the meeting call. This component mainly contains all the necessary information about the meeting, including:
 
 - The call details such as its id, etc.
@@ -29,6 +31,10 @@ const LobbyComponent = () => {
 
 ## Props
 
+### `landscape`
+
+<Landscape />
+
 ### `onJoinCallHandler`
 
 Handler to be called when the call is joined using the join button in the Lobby.
@@ -52,3 +58,11 @@ Prop to customize the Join call button in the Lobby component.
 | Type                          | Default Value                                                                                                                                     |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `ComponentType`\| `undefined` | [`JoinCallButton`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/Lobby/JoinCallButton.tsx) |
+
+### `LobbyFooter`
+
+Prop to customize the Lobby Footer in the Lobby component.
+
+| Type                          | Default Value                                                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ComponentType`\| `undefined` | [`LobbyFooter`](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/components/Call/Lobby/LobbyFooter.tsx) |

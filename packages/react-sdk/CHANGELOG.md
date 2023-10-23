@@ -2,6 +2,76 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.44](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.43...@stream-io/video-react-sdk-0.3.44) (2023-10-19)
+
+
+### Bug Fixes
+
+* sync video "paused" state more accurately ([#1150](https://github.com/GetStream/stream-video-js/issues/1150)) ([39cd42f](https://github.com/GetStream/stream-video-js/commit/39cd42f0035bbabdd9bb078fc8df9192f3b6c42f))
+
+### [0.3.43](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.42...@stream-io/video-react-sdk-0.3.43) (2023-10-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.35`
+* `@stream-io/video-react-bindings` updated to version `0.2.36`
+
+### Features
+
+* mute screenshare_audio, update to the newest OpenAPI schema ([#1148](https://github.com/GetStream/stream-video-js/issues/1148)) ([81c45a7](https://github.com/GetStream/stream-video-js/commit/81c45a77e6a526de05ce5457357d212fb3e613d9))
+
+### [0.3.42](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.41...@stream-io/video-react-sdk-0.3.42) (2023-10-18)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.34`
+* `@stream-io/video-react-bindings` updated to version `0.2.35`
+* `@stream-io/video-styling` updated to version `0.1.13`
+
+### Features
+
+* **build:** ESM and CJS bundles ([#1144](https://github.com/GetStream/stream-video-js/issues/1144)) ([58b60ee](https://github.com/GetStream/stream-video-js/commit/58b60eee4b1cd667d2eef8f17ed4e6da74876a51)), closes [#1025](https://github.com/GetStream/stream-video-js/issues/1025)
+
+### [0.3.41](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.40...@stream-io/video-react-sdk-0.3.41) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.33`
+* `@stream-io/video-react-bindings` updated to version `0.2.34`
+### [0.3.40](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.39...@stream-io/video-react-sdk-0.3.40) (2023-10-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.32`
+* `@stream-io/video-react-bindings` updated to version `0.2.33`
+### [0.3.39](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.38...@stream-io/video-react-sdk-0.3.39) (2023-10-09)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.31`
+* `@stream-io/video-react-bindings` updated to version `0.2.32`
+
+### Bug Fixes
+
+* sorting in paginated grid ([#1129](https://github.com/GetStream/stream-video-js/issues/1129)) ([d5b280a](https://github.com/GetStream/stream-video-js/commit/d5b280aadeaa4c718d0158561197c7045620ae0f))
+
+### [0.3.38](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.37...@stream-io/video-react-sdk-0.3.38) (2023-10-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.30`
+* `@stream-io/video-react-bindings` updated to version `0.2.31`
+
+### Features
+
+* ScreenShare Audio support ([#1118](https://github.com/GetStream/stream-video-js/issues/1118)) ([5b63e1c](https://github.com/GetStream/stream-video-js/commit/5b63e1c5f52c76e3761e6907bd3786c19f0e5c6d))
+
+### [0.3.37](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.36...@stream-io/video-react-sdk-0.3.37) (2023-10-05)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.3.29`
+* `@stream-io/video-react-bindings` updated to version `0.2.30`
 ### [0.3.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.35...@stream-io/video-react-sdk-0.3.36) (2023-10-03)
 
 

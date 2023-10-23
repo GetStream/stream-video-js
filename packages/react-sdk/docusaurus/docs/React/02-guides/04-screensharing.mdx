@@ -1,0 +1,76 @@
+---
+id: screensharing
+title: Screen Sharing
+description: Managing Screen Sharing
+---
+
+## Screen Sharing
+
+### Start/Stop Screen Sharing
+
+```typescript
+call.screenShare.toggle();
+
+// or
+call.screenShare.enable();
+call.screenShare.disable();
+```
+
+### Screen Sharing Status
+
+Here is how you can access the status of screen sharing:
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+call.screenShare.state.status; // enabled, disabled or undefined
+
+// or, if you want to subscribe to changes
+const { useScreenShareState } = useCallStateHooks();
+const { status } = useScreenShareState();
+```
+
+### Screen Sharing Settings
+
+The behavior of the screen share video track can be customized, and a few parameters can be set:
+
+```typescript
+call.screenShare.setSettings({
+  maxFramerate: 15, // will be clamped between 1 and 15 fps
+  maxBitrate: 1500000, // will use at most 1.5Mbps
+});
+
+call.screenShare.enable();
+```
+
+### Render Screen Share
+
+Our SDK provided [`ParticipantView`](../../ui-components/core/participant-view/) component can automatically render the screen share video track.
+
+## Screen Share Audio
+
+### Start/Stop Screen Share Audio
+
+```typescript
+// enable it
+call.screenShare.enableScreenShareAudio();
+
+// publish video and audio (if available, and supported by the browser)
+call.screenShare.enable();
+
+// disable it
+call.screenShare.disableScreenShareAudio();
+```
+
+### Play Screen Share Audio
+
+Our SDK provided [`ParticipantView`](../../ui-components/core/participant-view/) component can automatically play the screen share audio track.
+
+### Caveats
+
+Screen Share Audio has limited support across browsers and platforms.
+For most up-to-date information, please take a look at [Browser Compatibility](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture#browser_compatibility).
+
+In addition to that, there are a [few caveats](https://caniuse.com/?search=getDisplayMedia) that you should be aware of:
+
+- On Windows, the entire system audio can be captured, but on MacOS and Linux, only the audio of a tab can be captured.

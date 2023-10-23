@@ -67,7 +67,6 @@
 .callContainer video {
   @apply w-full h-auto  h-[225px];
   aspect-ratio: 16/9;
-  border-radius: 10px;
 }
 
 @media screen(2xl) {

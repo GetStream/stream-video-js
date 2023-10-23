@@ -11,23 +11,21 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   CallParticipantsListComponentProps,
-  CallParticipantsListProps,
 } from '../CallParticipantsList/CallParticipantsList';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CallContentProps } from '../CallContent';
+import { useIsInPiPMode } from '../../../hooks';
 
 /**
  * Props for the CallParticipantsSpotlight component.
  */
-export type CallParticipantsSpotlightProps =
-  CallParticipantsListComponentProps & {
-    /**
-     * Component to customize the CallParticipantsList.
-     */
-    CallParticipantsList?: React.ComponentType<CallParticipantsListProps> | null;
+export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
+  Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
+  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
     /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
@@ -50,6 +48,7 @@ export const CallParticipantsSpotlight = ({
   ParticipantVideoFallback,
   ParticipantView = DefaultParticipantView,
   VideoRenderer,
+  supportedReactions,
   landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
@@ -64,6 +63,8 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
 
+  const isInPiP = useIsInPiPMode();
+
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
     ParticipantNetworkQualityIndicator,
@@ -77,7 +78,7 @@ export const CallParticipantsSpotlight = ({
     ParticipantView,
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -90,7 +91,7 @@ export const CallParticipantsSpotlight = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         {
           backgroundColor: colors.dark_gray,
         },
@@ -115,10 +116,11 @@ export const CallParticipantsSpotlight = ({
           trackType={
             isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
           }
+          supportedReactions={supportedReactions}
           {...participantViewProps}
         />
       )}
-      {!isUserAloneInCall && (
+      {!isInPiP && !isUserAloneInCall && (
         <View
           style={[
             styles.callParticipantsListContainer,
@@ -130,6 +132,7 @@ export const CallParticipantsSpotlight = ({
               participants={
                 isScreenShareOnSpotlight ? allParticipants : otherParticipants
               }
+              supportedReactions={supportedReactions}
               horizontal={!landscape}
               numberOfColumns={!landscape ? 2 : 1}
               landscape={landscape}

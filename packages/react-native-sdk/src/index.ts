@@ -19,7 +19,6 @@ if (Platform.OS !== 'web') {
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
 
-export * from '@stream-io/i18n';
 export * from '@stream-io/video-client';
 export * from '@stream-io/video-react-bindings';
 export * from './components';
