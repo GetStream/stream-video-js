@@ -30,6 +30,7 @@
     "package.json",
     "app.plugin.js",
     "expo-config-plugin/README.md",
+    "expo-config-plugin/static/**/*",
     "expo-config-plugin/dist/**/*",
     "!expo-config-plugin/src/*",
     "!expo-config-plugin/fixtures/*",
