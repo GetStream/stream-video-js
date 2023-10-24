@@ -17,7 +17,6 @@ import {
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import appTranslations from '../../translations';
-import { DeviceSettingsCaptor } from '../../components/DeviceSettingsCaptor';
 import { customSentryLogger } from '../../helpers/logger';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
@@ -113,7 +112,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       >
         <StreamCall call={call}>
           <MeetingUI chatClient={chatClient} />
-          <DeviceSettingsCaptor />
         </StreamCall>
       </StreamVideo>
     </>

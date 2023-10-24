@@ -13,6 +13,7 @@ import {
   StreamVideo,
   StreamVideoClient,
   useHasBrowserPermissions,
+  usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
 import LobbyView from './components/Views/LobbyView';
@@ -23,7 +24,6 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 import { PanelProvider } from './contexts/PanelContext';
-import { DeviceSettingsCaptor } from './utils/useDeviceStorage';
 import { getURLCredentials } from './utils/getURLCredentials';
 
 import { UserContextProvider, useUserContext } from './contexts/UserContext';
@@ -199,7 +199,7 @@ const Init = () => {
             />
           )}
         </ModalProvider>
-        <DeviceSettingsCaptor />
+        <DevicePreferences />
       </StreamCall>
     </StreamVideo>
   );
@@ -214,3 +214,8 @@ const App = () => {
 };
 
 export default App;
+
+const DevicePreferences = () => {
+  usePersistedDevicePreferences('@react-video-demo/device-preferences');
+  return null;
+};
