@@ -40,5 +40,5 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         // tabindex={0}
       />
     );
-  }
+  },
 );

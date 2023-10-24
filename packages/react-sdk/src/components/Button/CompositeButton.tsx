@@ -51,5 +51,5 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         ref={ref}
       />
     );
-  }
+  },
 );
