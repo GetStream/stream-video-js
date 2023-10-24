@@ -2,6 +2,7 @@ appId: io.getstream.rnvideosample
 ---
 - runScript: js/setup.js
 - launchApp
+#- waits for ios system alert to pop up, then waits for maestro to handle it
 - runScript:
     file: js/sleep.js
     env:
