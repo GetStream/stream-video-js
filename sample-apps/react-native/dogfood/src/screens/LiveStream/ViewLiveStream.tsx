@@ -89,11 +89,8 @@ export const ViewLiveStreamChilden = ({
   const {
     params: { callId },
   } = route;
-  const { useIsCallBroadcastingInProgress, useIsCallLive } =
-    useCallStateHooks();
+  const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
-  const isCallBroadcasting = useIsCallBroadcastingInProgress();
-  const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const client = useAnonymousInitVideoClient({
     callId,
@@ -122,14 +119,14 @@ export const ViewLiveStreamChilden = ({
 
   return (
     <>
-      {(!autoJoin || !liveOrBroadcasting) && (
+      {(!autoJoin || !isCallLive) && (
         <ViewerLobby
           autoJoin={autoJoin}
           setAutoJoin={setAutoJoin}
-          isLive={liveOrBroadcasting}
+          isLive={isCallLive}
         />
       )}
-      {liveOrBroadcasting && autoJoin && (
+      {isCallLive && autoJoin && (
         <StreamCall call={call}>
           <SafeAreaView style={styles.livestream}>
             <ViewerLivestream
