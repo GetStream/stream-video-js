@@ -615,6 +615,10 @@ export enum ErrorCode {
    * @generated from protobuf enum value: ERROR_CODE_SFU_SHUTTING_DOWN = 600;
    */
   SFU_SHUTTING_DOWN = 600,
+  /**
+   * @generated from protobuf enum value: ERROR_CODE_SFU_FULL = 700;
+   */
+  SFU_FULL = 700,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.SdkType
@@ -648,6 +652,10 @@ export enum SdkType {
    * @generated from protobuf enum value: SDK_TYPE_REACT_NATIVE = 6;
    */
   REACT_NATIVE = 6,
+  /**
+   * @generated from protobuf enum value: SDK_TYPE_UNITY = 7;
+   */
+  UNITY = 7,
 }
 /**
  * @generated from protobuf enum stream.video.sfu.models.TrackUnpublishReason

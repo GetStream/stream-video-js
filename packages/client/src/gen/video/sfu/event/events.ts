@@ -620,6 +620,10 @@ export interface VideoMediaRequest {
   idealFrameRate: number;
 }
 /**
+ * VideoLayerSetting is used to specify various parameters of a particular encoding in simulcast.
+ * The parameters are specified here - https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpEncodingParameters
+ * SDKs use these parameters sent from the server to dynamically adjust these parameters to save CPU, bandwidth
+ *
  * @generated from protobuf message stream.video.sfu.event.VideoLayerSetting
  */
 export interface VideoLayerSetting {
@@ -647,6 +651,10 @@ export interface VideoLayerSetting {
    * @generated from protobuf field: stream.video.sfu.models.Codec codec = 6;
    */
   codec?: Codec;
+  /**
+   * @generated from protobuf field: uint32 max_framerate = 7;
+   */
+  maxFramerate: number;
 }
 /**
  * @generated from protobuf enum stream.video.sfu.event.VideoLayerSetting.Priority
@@ -3489,6 +3497,12 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
         ],
       },
       { no: 6, name: 'codec', kind: 'message', T: () => Codec },
+      {
+        no: 7,
+        name: 'max_framerate',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
     ]);
   }
   create(value?: PartialMessage<VideoLayerSetting>): VideoLayerSetting {
@@ -3498,6 +3512,7 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
       maxBitrate: 0,
       scaleResolutionDownBy: 0,
       priority: 0,
+      maxFramerate: 0,
     };
     globalThis.Object.defineProperty(message, MESSAGE_TYPE, {
       enumerable: false,
@@ -3540,6 +3555,9 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
             options,
             message.codec,
           );
+          break;
+        case /* uint32 max_framerate */ 7:
+          message.maxFramerate = reader.uint32();
           break;
         default:
           let u = options.readUnknownField;
@@ -3587,6 +3605,9 @@ class VideoLayerSetting$Type extends MessageType<VideoLayerSetting> {
         writer.tag(6, WireType.LengthDelimited).fork(),
         options,
       ).join();
+    /* uint32 max_framerate = 7; */
+    if (message.maxFramerate !== 0)
+      writer.tag(7, WireType.Varint).uint32(message.maxFramerate);
     let u = options.writeUnknownFields;
     if (u !== false)
       (u == true ? UnknownFieldHandler.onWrite : u)(

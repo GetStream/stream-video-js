@@ -21,9 +21,7 @@ export const watchChangePublishQuality = (
     const { videoSenders } = e.eventPayload.changePublishQuality;
     videoSenders.forEach((videoSender) => {
       const { layers } = videoSender;
-      call.updatePublishQuality(
-        layers.filter((l) => l.active).map((l) => l.name),
-      );
+      call.updatePublishQuality(layers.filter((l) => l.active));
     });
   });
 };

@@ -144,7 +144,6 @@ At the top of the file, right after '#import "AppDelegate.h"', add the following
 
 ```objectivec
 // highlight-start
-#import <Firebase.h>
 #import "RNCallKeep.h"
 #import <PushKit/PushKit.h>
 #import "RNVoipPushNotificationManager.h"
@@ -158,9 +157,6 @@ We need to configure the Firebase library, set up the callkeep library and regis
 ```objectivec
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  // highlight-next-line
-  [FIRApp configure];
-
   // highlight-start
   NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
   NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
