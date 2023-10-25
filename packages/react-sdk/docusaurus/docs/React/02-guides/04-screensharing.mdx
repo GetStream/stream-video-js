@@ -9,11 +9,18 @@ description: Managing Screen Sharing
 ### Start/Stop Screen Sharing
 
 ```typescript
-call.screenShare.toggle();
+await call.screenShare.toggle();
 
 // or
-call.screenShare.enable();
-call.screenShare.disable();
+await call.screenShare.enable();
+await call.screenShare.disable();
+
+// alternatively
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useScreenShareState } = useCallStateHooks();
+const { screenShare } = useScreenShareState();
+await screenShare.toggle();
 ```
 
 ### Screen Sharing Status
@@ -42,7 +49,7 @@ call.screenShare.setSettings({
   maxBitrate: 1500000, // will use at most 1.5Mbps
 });
 
-call.screenShare.enable();
+await call.screenShare.enable();
 ```
 
 ### Render Screen Share
@@ -58,7 +65,7 @@ Our SDK provided [`ParticipantView`](../../ui-components/core/participant-view/)
 call.screenShare.enableScreenShareAudio();
 
 // publish video and audio (if available, and supported by the browser)
-call.screenShare.enable();
+await call.screenShare.enable();
 
 // disable it
 call.screenShare.disableScreenShareAudio();
