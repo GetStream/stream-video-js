@@ -59,7 +59,7 @@ export const HostLiveStreamScreen = ({ route }: HostLiveStreamScreenProps) => {
   return (
     <StreamCall call={call}>
       <SafeAreaView style={styles.container}>
-        <HostLivestream />
+        <HostLivestream hls={true} />
       </SafeAreaView>
     </StreamCall>
   );

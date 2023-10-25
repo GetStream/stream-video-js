@@ -89,9 +89,11 @@ export const ViewLiveStreamChilden = ({
   const {
     params: { callId },
   } = route;
-  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
+  const { useIsCallBroadcastingInProgress, useIsCallLive } =
+    useCallStateHooks();
+  const isCallLive = useIsCallLive();
   const isCallBroadcasting = useIsCallBroadcastingInProgress();
-  const liveOrBroadcasting = isCallBroadcasting;
+  const liveOrBroadcasting = isCallLive || isCallBroadcasting;
 
   const client = useAnonymousInitVideoClient({
     callId,
