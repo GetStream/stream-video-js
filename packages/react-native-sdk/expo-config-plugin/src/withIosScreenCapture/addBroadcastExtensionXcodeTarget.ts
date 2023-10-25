@@ -7,6 +7,7 @@ type AddXcodeTargetParams = {
   extensionBundleIdentifier: string;
   currentProjectVersion: string;
   marketingVersion: string;
+  developmentTeamId: string;
 };
 
 type AddBuildPhaseParams = {
@@ -24,6 +25,7 @@ export default function addBroadcastExtensionXcodeTarget(
     extensionBundleIdentifier,
     currentProjectVersion,
     marketingVersion,
+    developmentTeamId,
   }: AddXcodeTargetParams,
 ) {
   const targets = proj.getFirstProject().firstProject.targets ?? [];
@@ -55,7 +57,7 @@ export default function addBroadcastExtensionXcodeTarget(
     xCConfigurationList,
   });
 
-  addToPbxProjectSection(proj, target);
+  addToPbxProjectSection({ proj, target, developmentTeamId });
 
   addTargetDependency(proj, target);
 
@@ -83,7 +85,7 @@ const addXCConfigurationList = (
     currentProjectVersion,
     marketingVersion,
     extensionName,
-  }: AddXcodeTargetParams,
+  }: Omit<AddXcodeTargetParams, 'developmentTeamId'>,
 ) => {
   const commonBuildSettings: any = {
     CLANG_ANALYZER_NONNULL: 'YES',
@@ -223,7 +225,15 @@ const addToPbxNativeTargetSection = (
   return target;
 };
 
-const addToPbxProjectSection = (proj: XcodeProject, target: any) => {
+const addToPbxProjectSection = ({
+  proj,
+  target,
+  developmentTeamId,
+}: {
+  proj: XcodeProject;
+  target: any;
+  developmentTeamId: string;
+}) => {
   proj.addToPbxProjectSection(target);
 
   console.log(`Added target to pbx project section ${target.uuid}`);
@@ -247,7 +257,7 @@ const addToPbxProjectSection = (proj: XcodeProject, target: any) => {
   ].attributes.TargetAttributes[target.uuid] = {
     CreatedOnToolsVersion: '13.4.1',
     ProvisioningStyle: 'Automatic',
-    DevelopmentTeam: 'EHV7XZLAHA',
+    DevelopmentTeam: developmentTeamId,
   };
 };
 
@@ -314,24 +324,6 @@ const addBuildPhases = (
   );
   console.log(`Added PBXResourcesBuildPhase ${resourcesBuildPhaseUuid}`);
 };
-
-export function getMainAppTarget(project: XcodeProject): any {
-  const mainAppTarget = project.rootObject.props.targets.filter(
-    (target: any) => {
-      return target.props.productType === 'com.apple.product-type.application';
-    },
-  );
-
-  if (mainAppTarget.length > 1) {
-    console.warn(
-      `Multiple main app targets found, using first one: ${mainAppTarget
-        .map((t: any) => t.getDisplayName())
-        .join(', ')}}`,
-    );
-  }
-
-  return mainAppTarget[0];
-}
 
 const addPbxGroup = (proj: XcodeProject, productFile: any) => {
   // Add PBX group

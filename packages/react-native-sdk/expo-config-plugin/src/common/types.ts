@@ -12,5 +12,7 @@ export type ConfigProps =
       ringingPushNotifications?: RingingPushNotifications;
       enableNonRingingPushNotifications?: boolean;
       androidPictureInPicture?: AndroidPictureInPicture;
+      enableScreenshare?: boolean;
+      appleTeamId?: string;
     }
   | undefined;

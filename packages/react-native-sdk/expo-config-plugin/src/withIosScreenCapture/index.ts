@@ -5,6 +5,9 @@ import withFilesMod from './withFilesMod';
 import withTarget from './withTarget';
 
 const withIosScreenCapture: ConfigPlugin<ConfigProps> = (config, props) => {
+  if (!props?.enableScreenshare) {
+    return config;
+  }
   return withPlugins(config, [
     () => withFilesMod(config, props),
     () => withTarget(config, props),

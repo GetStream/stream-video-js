@@ -11,7 +11,7 @@ import * as path from 'path';
 import addBroadcastExtensionXcodeTarget from './addBroadcastExtensionXcodeTarget';
 
 // adds the extension's entitlements file
-const withTarget: ConfigPlugin<ConfigProps> = (configuration, _props) => {
+const withTarget: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withXcodeProject(configuration, (config) => {
     const appName = config.modRequest.projectName!;
     const extensionName = 'broadcast';
@@ -20,15 +20,23 @@ const withTarget: ConfigPlugin<ConfigProps> = (configuration, _props) => {
     const currentProjectVersion = config.ios!.buildNumber || '1';
     const marketingVersion = config.version!;
 
-    addBroadcastExtensionXcodeTarget(config.modResults, {
+    const proj = config.modResults;
+    const developmentTeamId = props?.appleTeamId;
+    if (!developmentTeamId) {
+      throw new Error(
+        'No appleTeamId was provided in the Expo config. Please provide one to create the screenshare broadcast extension',
+      );
+    }
+
+    addBroadcastExtensionXcodeTarget(proj, {
       appName,
       extensionName,
       extensionBundleIdentifier,
       currentProjectVersion,
       marketingVersion,
+      developmentTeamId,
     });
 
-    const proj = config.modResults;
     const appGroupIdentifier = `group.${config.ios!
       .bundleIdentifier!}.appgroup`;
     const extensionRootPath = path.join(
