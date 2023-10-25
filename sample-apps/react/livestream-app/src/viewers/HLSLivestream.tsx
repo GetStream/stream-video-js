@@ -11,9 +11,9 @@ import { ViewerControls } from './ui/ViewerControls';
 import { Lobby } from './ui/Lobby';
 
 export const HLSLivestreamUI = () => {
-  const { useIsCallBroadcastingInProgress, useCallEgress } =
+  const { useIsCallHLSBroadcastingInProgress, useCallEgress } =
     useCallStateHooks();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const egress = useCallEgress();
   const hls = useMemo(() => new HLS(), []);
 

@@ -15,10 +15,10 @@ import {
 export const BackstageHeader = () => {
   const call = useCall();
   const currentUser = useConnectedUser();
-  const { useIsCallBroadcastingInProgress, useCallCustomData } =
+  const { useIsCallHLSBroadcastingInProgress, useCallCustomData } =
     useCallStateHooks();
   const customData = useCallCustomData();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (
     <div className="backstage-header">
       <div className="backstage-header-section pull-left">

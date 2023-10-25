@@ -25,8 +25,8 @@ export const BackstageControls = () => {
 
 const ToggleLivestreamButton = (props: { call: Call }) => {
   const { call } = props;
-  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
+  const { useIsCallHLSBroadcastingInProgress } = useCallStateHooks();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
   useEffect(() => {
     setIsAwaitingResponse((isAwaiting) => {
