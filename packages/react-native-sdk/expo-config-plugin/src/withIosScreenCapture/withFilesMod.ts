@@ -1,33 +1,33 @@
 import {
-  withXcodeProject,
   ConfigPlugin,
   InfoPlist,
   withDangerousMod,
+  withPlugins,
 } from '@expo/config-plugins';
 import plist from '@expo/plist';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigProps } from '../common/types';
-import addBroadcastExtensionXcodeTarget from './addBroadcastExtensionXcodeTarget';
 
-const withIosBroadcastExtension: ConfigPlugin<ConfigProps> = (config) => {
-  config = withBroadcastExtensionHandler(config);
-  config = withBroadcastExtensionPlist(config);
-  config = withBroadcastExtensionXcodeTarget(config);
-  return config;
-};
+const withFilesMod: ConfigPlugin<ConfigProps> = (config) =>
+  withPlugins(config, [
+    withBroadcastExtensionHandler,
+    withBroadcastExtensionPlist,
+  ]);
+
+export default withFilesMod;
 
 // creates the extension handler directory and adds the SampleHandler.swift file
 const withBroadcastExtensionHandler: ConfigPlugin = (configuration) => {
   return withDangerousMod(configuration, [
     'ios',
-    async (config) => {
+    (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
         'broadcast',
       );
-      await fs.promises.mkdir(extensionRootPath, { recursive: true });
-      await fs.promises.copyFile(
+      fs.mkdirSync(extensionRootPath, { recursive: true });
+      fs.copyFileSync(
         path.join(__dirname, '..', '..', 'static', 'SampleHandler.swift'),
         path.join(extensionRootPath, 'SampleHandler.swift'),
       );
@@ -40,7 +40,7 @@ const withBroadcastExtensionHandler: ConfigPlugin = (configuration) => {
 const withBroadcastExtensionPlist: ConfigPlugin = (configuration) => {
   return withDangerousMod(configuration, [
     'ios',
-    async (config) => {
+    (config) => {
       const extensionRootPath = path.join(
         config.modRequest.platformProjectRoot,
         'broadcast',
@@ -55,38 +55,12 @@ const withBroadcastExtensionPlist: ConfigPlugin = (configuration) => {
         },
       };
 
-      await fs.promises.mkdir(path.dirname(extensionPlistPath), {
+      fs.mkdirSync(path.dirname(extensionPlistPath), {
         recursive: true,
       });
-      await fs.promises.writeFile(
-        extensionPlistPath,
-        plist.build(extensionPlist),
-      );
+      fs.writeFileSync(extensionPlistPath, plist.build(extensionPlist));
 
       return config;
     },
   ]);
 };
-
-const withBroadcastExtensionXcodeTarget: ConfigPlugin = (configuration) => {
-  return withXcodeProject(configuration, async (config) => {
-    const appName = config.modRequest.projectName!;
-    const extensionName = 'broadcast';
-    const extensionBundleIdentifier = `${config.ios!
-      .bundleIdentifier!}.broadcast`;
-    const currentProjectVersion = config.ios!.buildNumber || '1';
-    const marketingVersion = config.version!;
-
-    await addBroadcastExtensionXcodeTarget(config.modResults, {
-      appName,
-      extensionName,
-      extensionBundleIdentifier,
-      currentProjectVersion,
-      marketingVersion,
-    });
-
-    return config;
-  });
-};
-
-export default withIosBroadcastExtension;

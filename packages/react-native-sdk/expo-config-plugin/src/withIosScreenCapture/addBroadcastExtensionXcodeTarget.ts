@@ -16,7 +16,7 @@ type AddBuildPhaseParams = {
   frameworkPath: string;
 };
 
-export default async function addBroadcastExtensionXcodeTarget(
+export default function addBroadcastExtensionXcodeTarget(
   proj: XcodeProject,
   {
     appName,
@@ -26,7 +26,12 @@ export default async function addBroadcastExtensionXcodeTarget(
     marketingVersion,
   }: AddXcodeTargetParams,
 ) {
-  if (proj.getFirstProject().firstProject.targets?.length > 1) {
+  const targets = proj.getFirstProject().firstProject.targets ?? [];
+  if (
+    targets.length > 0 &&
+    targets.some((target: any) => target.comment === extensionName)
+  ) {
+    // Broadcast extension already exists, no creating a new one again
     return;
   }
 
