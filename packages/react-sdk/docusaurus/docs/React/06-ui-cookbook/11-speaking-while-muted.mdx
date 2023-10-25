@@ -13,31 +13,13 @@ Our speaking-while-muted notification component will be based on simple principl
 The UI will be rendered only, when `isSpeakingWhileMuted` is set to `true`.
 
 ```tsx
-import { useEffect, useState } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const SpeakingWhileMutedNotification = () => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
 
-  const [showNotification, setShowNotification] = useState(false);
-  if (!showNotification && isSpeakingWhileMuted) {
-    setShowNotification(true);
-  }
-
-  useEffect(() => {
-    if (!showNotification) return;
-    const timeout = setTimeout(() => {
-      setShowNotification(false);
-    }, 3500);
-    return () => {
-      clearTimeout(timeout);
-      setShowNotification(false);
-    };
-  }, [showNotification, 3500]);
-
   if (!isSpeakingWhileMuted) return null;
-
   return <div>You are muted</div>;
 };
 ```
