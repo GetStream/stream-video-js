@@ -40,7 +40,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
               if (!hasPermission) {
                 await requestPermission();
               } else {
-                screenShare.toggle();
+                await screenShare.toggle();
               }
             }}
           />

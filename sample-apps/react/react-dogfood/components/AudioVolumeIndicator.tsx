@@ -9,7 +9,7 @@ import {
 export const AudioVolumeIndicator = () => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isEnabled, mediaStream } = useMicrophoneState();
-  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [audioLevel, setAudioLevel] = useState(0);
 
   useEffect(() => {
     if (!isEnabled || !mediaStream) return;

@@ -73,7 +73,7 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_AUDIO_MAC.includes(ke.shortcut))
         return;
 
-      microphone.toggle();
+      microphone.toggle().catch(console.error);
     });
 
     return () => {
@@ -91,7 +91,7 @@ export const useKeyboardShortcuts = () => {
       if (isMac && !KeyboardShortcut.TOGGLE_VIDEO_MAC.includes(ke.shortcut))
         return;
 
-      camera.toggle();
+      camera.toggle().catch(console.error);
     });
 
     return () => {

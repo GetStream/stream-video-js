@@ -11,6 +11,7 @@ export * from './src/translations';
 export {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
+  useRequestPermission,
   usePersistedDevicePreferences,
 } from './src/hooks';
 

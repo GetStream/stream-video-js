@@ -43,7 +43,9 @@ Learn more about setting up the boilerplate of joining a call room in our [Joini
 
 ### Video input preview
 
-The SDK comes with a pre-build [`VideoPreview`](../../ui-components/participants/video-preview) component that handles video input stream retrieval and disposal. It also presents various UIs based on video playing state (starting, playing, error, unavailable video devices). In the example below, we are assembling a custom video preview using SDK's [`VideoPreview`](../../ui-components/participants/video-preview) component and our custom UI components for each playing state.
+The SDK comes with a pre-build [`VideoPreview`](../../ui-components/participants/video-preview) component that handles video input stream preview.
+It also presents various UIs based on video playing state (starting, playing, unavailable video devices).
+In the example below, we are assembling a custom video preview using SDK's [`VideoPreview`](../../ui-components/participants/video-preview) component and our custom UI components for each playing state.
 
 ```tsx
 import {
@@ -53,7 +55,7 @@ import {
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 
-import { CameraIcon, ErrorIcon, LoadingIndicator } from '../icons';
+import { CameraIcon, LoadingIndicator } from '../icons';
 
 export const Lobby = () => {
   return (
@@ -62,7 +64,6 @@ export const Lobby = () => {
       <VideoPreview
         DisabledVideoPreview={DisabledVideoPreview}
         NoCameraPreview={NoCameraPreview}
-        VideoErrorPreview={VideoErrorPreview}
         StartingCameraPreview={StartingCameraPreview}
       />
       {/* ... other components */}
@@ -92,12 +93,6 @@ const NoCameraPreview = () => (
   </div>
 );
 
-const VideoErrorPreview = () => (
-  <div>
-    <ErrorIcon />
-  </div>
-);
-
 const StartingCameraPreview = () => (
   <div>
     <LoadingIndicator />
@@ -119,45 +114,36 @@ We build our custom sound detector in the [dedicated tutorial about Audio Volume
 
 ### Device selection
 
-Switching devices is handled by `switchDevice()` function provided by the `useMediaDevices` hook. We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
+Switching devices is done through a set of utility methods or hooks.
+We speak a bit more about the function and the pre-built components in the [media devices guide](../../guides/camera-and-microphone).
 
 **Device selector example**
 
 The selectors can be thought of as dropdowns in our example.
 
 ```tsx
-import {
-  useAudioInputDevices,
-  useAudioOutputDevices,
-  useMediaDevices,
-  useVideoDevices,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 type DeviceSelectorProps = {
   devices: MediaDeviceInfo[];
-  deviceKind: MediaDeviceKind;
   selectedDeviceId?: string;
+  onSelect: (deviceId: string) => void;
 };
 
 export const DeviceSelector = ({
   devices,
-  deviceKind,
   selectedDeviceId,
+  onSelect,
 }: DeviceSelectorProps) => {
-  // highlight-next-line
-  const { switchDevice } = useMediaDevices();
-
   return (
     <div className="selector">
       {devices.map((device) => {
+        const selected = selectedDeviceId === device.deviceId;
         return (
           <div
-            className={`option ${
-              selectedDeviceId === device.deviceId ? 'option--selected' : ''
-            }`}
             key={device.deviceId}
-            // highlight-next-line
-            onClick={() => switchDevice(deviceKind, device.deviceId)}
+            className={`option ${selected ? 'option--selected' : ''}`}
+            onClick={() => onSelect(device.deviceId)}
           >
             {device.label}
           </div>
@@ -168,46 +154,40 @@ export const DeviceSelector = ({
 };
 
 export const AudioInputDeviceSelector = () => {
-  const { selectedAudioInputDeviceId } = useMediaDevices();
-  // maintains an up-to-date array of MediaDeviceInfo objects of kind "audioinput"
-  const audioInputDevices = useAudioInputDevices();
-
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, devices, selectedDevice } = useMicrophoneState();
   return (
     <DeviceSelector
-      devices={audioInputDevices}
-      deviceKind="audioinput"
-      selectedDeviceId={selectedAudioInputDeviceId}
-    />
-  );
-};
-
-export const AudioOutputDeviceSelector = () => {
-  const { isAudioOutputChangeSupported, selectedAudioOutputDeviceId } =
-    useMediaDevices();
-  // maintains an up-to-date array of MediaDeviceInfo objects of kind "audiooutput"
-  const audioOutputDevices = useAudioOutputDevices();
-
-  if (!isAudioOutputChangeSupported) return null;
-
-  return (
-    <DeviceSelector
-      devices={audioOutputDevices}
-      deviceKind="audiooutput"
-      selectedDeviceId={selectedAudioOutputDeviceId}
+      devices={devices || []}
+      selectedDeviceId={selectedDevice}
+      onSelect={(deviceId) => microphone.select(deviceId)}
     />
   );
 };
 
 export const VideoInputDeviceSelector = () => {
-  const { selectedVideoDeviceId } = useMediaDevices();
-  // maintains an up-to-date array of MediaDeviceInfo objects of kind "videoinput"
-  const videoDevices = useVideoDevices();
-
+  const { useCameraState } = useCallStateHooks();
+  const { camera, devices, selectedDevice } = useCameraState();
   return (
     <DeviceSelector
-      devices={videoDevices}
-      deviceKind="videoinput"
-      selectedDeviceId={selectedVideoDeviceId}
+      devices={devices || []}
+      selectedDeviceId={selectedDevice}
+      onSelect={(deviceId) => camera.select(deviceId)}
+    />
+  );
+};
+
+export const AudioOutputDeviceSelector = () => {
+  const { useSpeakerState } = useCallStateHooks();
+  const { speaker, devices, selectedDevice, isDeviceSelectionSupported } =
+    useSpeakerState();
+
+  if (!isDeviceSelectionSupported) return null;
+  return (
+    <DeviceSelector
+      devices={devices || []}
+      selectedDeviceId={selectedDevice}
+      onSelect={(deviceId) => speaker.select(deviceId)}
     />
   );
 };

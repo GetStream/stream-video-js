@@ -28,6 +28,8 @@ call.screenShare.state.status; // enabled, disabled or undefined
 // or, if you want to subscribe to changes
 const { useScreenShareState } = useCallStateHooks();
 const { status } = useScreenShareState();
+
+console.log('Screen sharing is:', status === 'enabled' ? 'active' : 'inactive');
 ```
 
 ### Screen Sharing Settings

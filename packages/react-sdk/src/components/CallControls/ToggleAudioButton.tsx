@@ -67,7 +67,7 @@ export const ToggleAudioPublishingButton = (
               if (!hasPermission) {
                 await requestPermission();
               } else {
-                microphone.toggle();
+                await microphone.toggle();
               }
             }}
           />

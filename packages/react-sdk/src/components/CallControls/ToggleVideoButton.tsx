@@ -70,7 +70,7 @@ export const ToggleVideoPublishingButton = (
               if (!hasPermission) {
                 await requestPermission();
               } else {
-                camera.toggle();
+                await camera.toggle();
               }
             }}
           />

@@ -4,7 +4,6 @@ title: Video preview
 ---
 
 import DisabledVideoPreview from '../../assets/03-ui-components/video-preview/disabled-video-preview.png';
-import ErrorVideoPreview from '../../assets/03-ui-components/video-preview/error-video-preview.png';
 import NoCameraPreview from '../../assets/03-ui-components/video-preview/no-camera-found-video-preview.png';
 import StartingCameraPreview from '../../assets/03-ui-components/video-preview/starting-camera-video-preview.png';
 
@@ -15,7 +14,6 @@ You can customize what is displayed, when:
 1. the video is starting to play
 2. the video is disabled
 3. camera device could not be found
-4. error when retrieving the video stream is thrown
 
 The custom components should be passed to `VideoPreview` props. See the [Props](./#props) section for more details.
 
@@ -87,20 +85,7 @@ Component rendered above the BaseVideo until the video is ready (meaning until t
   width={300}
 />
 
-### `VideoErrorPreview`
-
-| Type                                                   |
-| ------------------------------------------------------ |
-| `ComponentType<VideoErrorPreviewProps>` \| `undefined` |
-
-Component rendered when the video stream could not be retrieved.
-
-<img
-  src={ErrorVideoPreview}
-  alt="Default component for VideoErrorPreview"
-  width={300}
-/>
-
 ## Customization
 
-If the [built-in props](#props) don't provide enough flexibility for you, you can create your own video preview component. You can rely on the state and API provided by the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).
+If the [built-in props](#props) don't provide enough flexibility for you, you can create your own video preview component.
+You can rely on the state and API provided by the [`Camera API`](../../../guides/camera-and-microphone).

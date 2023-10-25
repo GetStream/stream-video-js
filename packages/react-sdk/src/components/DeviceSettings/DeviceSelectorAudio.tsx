@@ -42,7 +42,7 @@ export const DeviceSelectorAudioOutput = ({
     <DeviceSelector
       devices={devices}
       selectedDeviceId={selectedDevice}
-      onChange={async (deviceId) => {
+      onChange={(deviceId) => {
         speaker.select(deviceId);
       }}
       title={title || t('Select Speakers')}
