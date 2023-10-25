@@ -26,6 +26,7 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { Dispatcher } from './Dispatcher';
 import { getOSInfo } from '../client-details';
+import { VideoLayerSetting } from '../gen/video/sfu/event/events';
 
 const logger: Logger = getLogger(['Publisher']);
 
@@ -414,11 +415,11 @@ export class Publisher {
     });
   };
 
-  updateVideoPublishQuality = async (enabledRids: string[]) => {
+  updateVideoPublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
     logger(
       'info',
-      'Update publish quality, requested rids by SFU:',
-      enabledRids,
+      'Update publish quality, requested layers by SFU:',
+      enabledLayers,
     );
 
     const videoSender = this.transceiverRegistry[TrackType.VIDEO]?.sender;
@@ -437,6 +438,9 @@ export class Publisher {
     }
 
     let changed = false;
+    let enabledRids = enabledLayers
+      .filter((ly) => ly.active)
+      .map((ly) => ly.name);
     params.encodings.forEach((enc) => {
       // flip 'active' flag only when necessary
       const shouldEnable = enabledRids.includes(enc.rid!);
@@ -444,17 +448,63 @@ export class Publisher {
         enc.active = shouldEnable;
         changed = true;
       }
+      if (shouldEnable) {
+        let layer = enabledLayers.find((vls) => vls.name === enc.rid);
+        if (layer !== undefined) {
+          if (
+            layer.scaleResolutionDownBy >= 1 &&
+            layer.scaleResolutionDownBy !== enc.scaleResolutionDownBy
+          ) {
+            logger(
+              'debug',
+              '[dynascale]: setting scaleResolutionDownBy from server',
+              'layer',
+              layer.name,
+              'scale-resolution-down-by',
+              layer.scaleResolutionDownBy,
+            );
+            enc.scaleResolutionDownBy = layer.scaleResolutionDownBy;
+            changed = true;
+          }
+
+          if (layer.maxBitrate > 0 && layer.maxBitrate !== enc.maxBitrate) {
+            logger(
+              'debug',
+              '[dynascale] setting max-bitrate from the server',
+              'layer',
+              layer.name,
+              'max-bitrate',
+              layer.maxBitrate,
+            );
+            enc.maxBitrate = layer.maxBitrate;
+            changed = true;
+          }
+
+          if (
+            layer.maxFramerate > 0 &&
+            layer.maxFramerate !== enc.maxFramerate
+          ) {
+            logger(
+              'debug',
+              '[dynascale]: setting maxFramerate from server',
+              'layer',
+              layer.name,
+              'max-framerate',
+              layer.maxFramerate,
+            );
+            enc.maxFramerate = layer.maxFramerate;
+            changed = true;
+          }
+        }
+      }
     });
 
-    const activeRids = params.encodings
-      .filter((e) => e.active)
-      .map((e) => e.rid)
-      .join(', ');
+    const activeLayers = params.encodings.filter((e) => e.active);
     if (changed) {
       await videoSender.setParameters(params);
-      logger('info', `Update publish quality, enabled rids: ${activeRids}`);
+      logger('info', `Update publish quality, enabled rids: `, activeLayers);
     } else {
-      logger('info', `Update publish quality, no change: ${activeRids}`);
+      logger('info', `Update publish quality, no change: `, activeLayers);
     }
   };
 

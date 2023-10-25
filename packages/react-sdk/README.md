@@ -73,7 +73,8 @@ Here are some of the features we support:
 - [ ] Typescript generics enhancements
 - [ ] Hardware-accelerated video encoding on supported platforms
 - [ ] Performance and bundle-size optimizations
-- [ ] Dynascale 2.0 (codecs, f resolution switches, resolution webrtc handling)
+- [x] Dynascale 2.0 (f resolution switches, resolution WebRTC handling)
+- [ ] Dynascale 2.0 (codec switching)
 - [ ] Call analytics / stats
 - [ ] Logging 2.0
 - [ ] E2E testing platform

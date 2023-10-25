@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.35...@stream-io/video-client-0.3.36) (2023-10-25)
+
+
+### Features
+
+* **dynascale:** pick scaleResolutionDownBy parameter from the changePublishQuality message ([#1113](https://github.com/GetStream/stream-video-js/issues/1113)) ([81b91d4](https://github.com/GetStream/stream-video-js/commit/81b91d48ca90a74f6af4b879c553ff2575dcb5bb))
+
 ### [0.3.35](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.34...@stream-io/video-client-0.3.35) (2023-10-19)
 
 

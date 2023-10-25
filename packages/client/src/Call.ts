@@ -93,7 +93,11 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
-import { JoinResponse, Migration } from './gen/video/sfu/event/events';
+import {
+  JoinResponse,
+  Migration,
+  VideoLayerSetting,
+} from './gen/video/sfu/event/events';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   createStatsReporter,
@@ -1393,8 +1397,8 @@ export class Call {
    * @param enabledRids
    * @returns
    */
-  updatePublishQuality = async (enabledRids: string[]) => {
-    return this.publisher?.updateVideoPublishQuality(enabledRids);
+  updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
+    return this.publisher?.updateVideoPublishQuality(enabledLayers);
   };
 
   private assertCallJoined = () => {
