@@ -4,10 +4,9 @@ import { ScreenCapturePickerView } from '@stream-io/react-native-webrtc';
 import { ScreenShare } from '../../../icons';
 import { CallControlsButton } from './CallControlsButton';
 import { SfuModels } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { useIsIosScreenshareBroadcastStarted } from '../../../hooks';
-import { useLocalParticipant } from '@stream-io/video-react-bindings/dist/src/hooks/callStateHooks';
 import { usePrevious } from '../../../utils/hooks';
 
 /**
@@ -44,6 +43,7 @@ export const ScreenShareButton = ({
     theme: { colors, screenShareButton },
   } = useTheme();
   const call = useCall();
+  const { useLocalParticipant } = useCallStateHooks();
 
   const onScreenShareStartedHandlerRef = useRef(onScreenShareStartedHandler);
   onScreenShareStartedHandlerRef.current = onScreenShareStartedHandler;
