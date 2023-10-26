@@ -17,7 +17,7 @@ import { Reaction } from '../../../components/Reaction';
 import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
 import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
-import { useParticipantViewContext } from './ParticipantView';
+import { useParticipantViewContext } from './ParticipantViewContext';
 
 export type DefaultParticipantViewUIProps = {
   /**
