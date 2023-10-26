@@ -35,13 +35,16 @@ export const CallRecordingsPage = ({
     });
     setVideoClient(_client);
 
+    // @ts-ignore - for debugging
+    window.client = _client;
+
     return () => {
       _client
         .disconnectUser()
         .catch((e) => console.error(`Couldn't disconnect user`, e));
       setVideoClient(undefined);
     };
-  }, []);
+  }, [apiKey, user, userToken]);
 
   if (!videoClient) {
     return null;

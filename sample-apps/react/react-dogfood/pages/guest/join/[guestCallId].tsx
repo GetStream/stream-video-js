@@ -33,7 +33,6 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
   const [client, setClient] = useState<StreamVideoClient>();
-
   useEffect(() => {
     const userToConnect: User =
       mode === 'anon'
@@ -51,19 +50,24 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     });
     setClient(_client);
 
+    // @ts-ignore - for debugging
+    window.client = _client;
+
     return () => {
       _client
         .disconnectUser()
         .catch((e) => console.error('Failed to disconnect user', e));
       setClient(undefined);
     };
-  }, []);
+  }, [apiKey, guestUserId, mode, token]);
 
   const [call, setCall] = useState<Call>();
-
   useEffect(() => {
     const _call = client?.call(callType, callId);
     setCall(_call);
+
+    // @ts-ignore - for debugging
+    window.call = _call;
 
     return () => {
       if (_call?.state.callingState !== CallingState.LEFT) {
