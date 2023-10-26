@@ -1,15 +1,8 @@
 ---
-title: Screen sharing
-description: Tutorial to support screen sharing in the calls
+title: React Native Screen sharing Setup
 ---
 
-The Stream Video React Native SDK has support for displaying screen sharing tracks, as well as screen sharing from an iOS or Android device.
-
-In order for a user to be able to share their screen, they must have the `screenshare` capability configured for the call they are in.
-
-:::note
-Expo is not supported yet. We are actively working on screen sharing support for Managed Expo apps and will be supported soon. 
-:::
+In this document, we explain how to setup screen share for Android and iOS in your React Native App.
 
 ## Android Setup
 
@@ -29,46 +22,40 @@ In Android, we will use a foreground service to keep the call alive and also to 
     android:foregroundServiceType="mediaProjection|microphone" />
 ```
 
-Once the user wants to start screen sharing they will be prompted with asking the permission to screen share as below:
-![Preview of android permission](../assets/06-advanced/08-screensharing/android-preview.png)
-
 ## iOS Setup
 
 The screen sharing functionality is supported on iOS 14 or newer versions. To enable screen sharing, we need to create a `Broadcast Upload Extension` for capturing the contents of the user's screen.
-
-Once the user wants to start screen sharing they will be prompted with asking the permission to screen share as below:
-![Preview of iOS permission](../assets/06-advanced/08-screensharing/ios-preview.jpeg)
 
 ### Step 1: Create the Broadcast Upload Extension
 
 Open your project with Xcode, select `File > New > Target` in menu bar. Select `Broadcast Upload Extension`, and click `Next`.
 
-![Preview of choosing broadcast upload extension target](../assets/06-advanced/08-screensharing/ios-choose-broadcast-target.png)
+![Preview of choosing broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-choose-broadcast-target.png)
 
 <!-- vale off -->
 Enter a name in `Product Name` field, lets say "Broadcast Extension", choose the `Team` from dropdown, choose the `Language` to be `Swift` from dropdown, uncheck `include UI extension` field and click `Finish`. You will then be prompted with pop-up titled `Activate "Broadcast Extension" scheme?`, click `Activate` button on that.
 <!-- vale on -->
 
-![Preview of creating name for the broadcast upload extension target](../assets/06-advanced/08-screensharing/ios-create-name.png)
+![Preview of creating name for the broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-create-name.png)
 
 ### Step 2: Copy over the files from Sample App
 
 From [`@stream-io/video-react-native-dogfood` app](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/dogfood/ios/Broadcast%20Extension/), copy the content of `SampleHandler.swift` file and paste it to the `SampleHandler.swift` file in your extension and also copy `Atomic.swift`, `SocketConnection.swift`, `SampleUploader.swift` and `DarwinNotificationCenter.swift` files to your extension's folder and ensure that they are added to the target.
 
-![Preview of files inside the broadcast upload extension target](../assets/06-advanced/08-screensharing/ios-copy-files.png)
+![Preview of files inside the broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-copy-files.png)
 
 ### Step 3: Add App Group Id
 
 Go to `App-Name > Signing & Capabilities` and add `App Groups` Capability. Also, go to `Broadcast Extension > Signing & Capabilities` and add `App Groups` Capability.
 
-![Preview of adding App Groups Capability](../assets/06-advanced/08-screensharing/ios-add-capability.png)
+![Preview of adding App Groups Capability](../../../assets/06-advanced/08-screensharing/ios-add-capability.png)
 
 Then, select or add a new app-group-identifier to both the App and the Extension. **Ensure that the App Group for both the targets are the same**.
-![Preview of adding App Groups Capability](../assets/06-advanced/08-screensharing/ios-add-app-group-name.png)
+![Preview of adding App Groups Capability](../../../assets/06-advanced/08-screensharing/ios-add-app-group-name.png)
 
 Then, head over to `SampleHandler.swift` file and paste the app-group-identifier in the `appGroupIdentifier` constant variable.
 
-![Preview of copying the App Groups name](../assets/06-advanced/08-screensharing/ios-copy-app-group-to-file.png)
+![Preview of copying the App Groups name](../../../assets/06-advanced/08-screensharing/ios-copy-app-group-to-file.png)
 
 ### Step 4: Update `Info`
 
@@ -79,16 +66,12 @@ Go to the `info.plist` of the App and add two new keys:
 | RTCScreenSharingExtension |  `The-bundle-identifier-of-broadcast-extension` | 
 | RTCAppGroupIdentifier     |  `The-app-group-identifier`                     |
 
-![Preview of App's `info.plist`](../assets/06-advanced/08-screensharing/ios-app-info.png)
+![Preview of App's `info.plist`](../../../assets/06-advanced/08-screensharing/ios-app-info.png)
 
 Head over to the `Info` of the broadcast extension target and ensure that the `Bundle version string (short)` is the same for both the App and the broadcast extension.
 
-![Preview of Info of the broadcast extension](../assets/06-advanced/08-screensharing/ios-bundle-version.png)
+![Preview of Info of the broadcast extension](../../../assets/06-advanced/08-screensharing/ios-bundle-version.png)
 
 Finally, head over to the `Build Settings` of the broadcast extension target and ensure that the `iOS Deployment Target` is 14.0 or above. The deployment target is the minimum iOS version that the extension can run on. The minimum it can run on is 14.0. But if your app is set to a higher iOS deployment target then it is best to keep them both aligned.
 
-![Preview of iOS deployment target of the broadcast extension](../assets/06-advanced/08-screensharing/ios-deployment-target.png)
-
-## Use the screen sharing button component of the SDK
-
-The SDK exports the component named `ScreenShareButton` to manage the start and stop of screen sharing. You can either use the button independently or add it to your own [custom call controls component](https://getstream.io/video/docs/reactnative/ui-cookbook/replacing-call-controls/). If you would like to build your own button component, you can look at the [source code](https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-sdk/src/components/Call/CallControls/ScreenShareButton.tsx) of the `ScreenShareButton` button component and replicate that.
+![Preview of iOS deployment target of the broadcast extension](../../../assets/06-advanced/08-screensharing/ios-deployment-target.png)
