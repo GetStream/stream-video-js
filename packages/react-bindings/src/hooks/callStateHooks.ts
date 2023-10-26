@@ -49,7 +49,7 @@ export const useIsCallRecordingInProgress = (): boolean => {
  *
  * @category Call State
  */
-export const useIsCallBroadcastingInProgress = (): boolean => {
+export const useIsCallHLSBroadcastingInProgress = (): boolean => {
   const { egress$ } = useCallState();
   const egress = useObservableValue(egress$);
   if (!egress) return false;

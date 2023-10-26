@@ -42,10 +42,10 @@ export const HostLivestreamTopView = ({
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
 }: HostLivestreamTopViewProps) => {
-  const { useIsCallLive, useIsCallBroadcastingInProgress } =
+  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
   const isCallLive = useIsCallLive();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
 
   const liveOrBroadcasting = isCallLive || isBroadcasting;
   const {

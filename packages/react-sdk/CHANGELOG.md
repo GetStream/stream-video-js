@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.46...@stream-io/video-react-sdk-0.3.47) (2023-10-26)
+
+
+### Bug Fixes
+
+* Localize "Screen Share" caption ([#1164](https://github.com/GetStream/stream-video-js/issues/1164)) ([0a9ed96](https://github.com/GetStream/stream-video-js/commit/0a9ed960ee5ef8409b61dc5d747912b17a521160))
+
 ### [0.3.46](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.45...@stream-io/video-react-sdk-0.3.46) (2023-10-25)
 
 ### Dependency Updates

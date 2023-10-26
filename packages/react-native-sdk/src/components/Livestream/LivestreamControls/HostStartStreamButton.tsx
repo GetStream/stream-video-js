@@ -43,7 +43,7 @@ export const HostStartStreamButton = ({
   hls,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
-  const { useIsCallLive, useIsCallBroadcastingInProgress } =
+  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
     useCallStateHooks();
   const {
     theme: {
@@ -56,7 +56,7 @@ export const HostStartStreamButton = ({
 
   const call = useCall();
   const isCallLive = useIsCallLive();
-  const isCallBroadcasting = useIsCallBroadcastingInProgress();
+  const isCallBroadcasting = useIsCallHLSBroadcastingInProgress();
   const { t } = useI18n();
 
   const liveOrBroadcasting = isCallLive || isCallBroadcasting;
