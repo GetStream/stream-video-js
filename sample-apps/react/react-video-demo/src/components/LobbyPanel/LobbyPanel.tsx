@@ -2,6 +2,7 @@ import { FC } from 'react';
 import classnames from 'classnames';
 import {
   useCallStateHooks,
+  useHasBrowserPermissions,
   User,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -77,6 +78,15 @@ export const LobbyPanel: FC<Props> = ({
     [styles.audioEnabled]: !isMicMute,
   });
 
+  const hasCameraPermission = useHasBrowserPermissions(
+    'camera' as PermissionName,
+  );
+  const hasMicPermission = useHasBrowserPermissions(
+    'microphone' as PermissionName,
+  );
+
+  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
+
   return (
     <div className={rootClassName}>
       <h1 className={styles.heading}>Optimizing Call Experience</h1>
@@ -104,7 +114,11 @@ export const LobbyPanel: FC<Props> = ({
         </div>
 
         <VideoPreview
-          DisabledVideoPreview={() => <DisabledVideoPreview name={user.name} />}
+          DisabledVideoPreview={
+            hasBrowserMediaPermission
+              ? () => <DisabledVideoPreview name={user.name} />
+              : EnableBrowserSettings
+          }
           NoCameraPreview={() => <DisabledVideoPreview name={user.name} />}
           StartingCameraPreview={StartingCamera}
         />

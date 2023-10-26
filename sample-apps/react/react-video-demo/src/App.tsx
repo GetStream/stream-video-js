@@ -12,7 +12,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useHasBrowserPermissions,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
@@ -46,29 +45,12 @@ const Init = () => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
 
-  const [hasBrowserMediaPermissions, setHasBrowserMediaPermissions] =
-    useState<boolean>(false);
-
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
 
   const [client, setClient] = useState<StreamVideoClient>();
 
   const { edges, fastestEdge } = useEdges(client);
-
-  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
-    'camera' as PermissionName,
-  );
-  const hasBrowserPermissionMicrophoneInput = useHasBrowserPermissions(
-    'microphone' as PermissionName,
-  );
-
-  // FIXME OL: restore browser permissions UI
-  useEffect(() => {
-    if (hasBrowserPermissionVideoInput && hasBrowserPermissionMicrophoneInput) {
-      setHasBrowserMediaPermissions(true);
-    }
-  }, [hasBrowserPermissionVideoInput, hasBrowserPermissionMicrophoneInput]);
 
   useEffect(() => {
     const _client = new StreamVideoClient({
