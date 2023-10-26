@@ -136,17 +136,19 @@ export const ViewLiveStreamChilden = ({
     return null;
   }
 
-  return !(isCallLive && callJoined) ? (
-    <ViewerLobby
-      isLive={isCallLive}
-      handleJoinCall={handleJoinCall}
-      setCallJoined={setCallJoined}
-    />
-  ) : (
+  return (
     <StreamCall call={call}>
-      <SafeAreaView style={styles.livestream}>
-        <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
-      </SafeAreaView>
+      {!(isCallLive && callJoined) ? (
+        <ViewerLobby
+          isLive={isCallLive}
+          handleJoinCall={handleJoinCall}
+          setCallJoined={setCallJoined}
+        />
+      ) : (
+        <SafeAreaView style={styles.livestream}>
+          <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
+        </SafeAreaView>
+      )}
     </StreamCall>
   );
 };
