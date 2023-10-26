@@ -1,43 +1,35 @@
 import { useI18n } from '@stream-io/video-react-native-sdk';
-import React from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { appTheme } from '../../theme';
 
 type LobbyProps = {
-  autoJoin: boolean;
   isLive: boolean;
-  setAutoJoin: (join: boolean) => void;
+  handleJoinCall?: () => void;
+  setCallJoined: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const ViewerLobby = ({ autoJoin, isLive, setAutoJoin }: LobbyProps) => {
+export const ViewerLobby = ({
+  isLive,
+  handleJoinCall,
+  setCallJoined,
+}: LobbyProps) => {
   const { t } = useI18n();
+  useEffect(() => {
+    setCallJoined(false);
+  }, [setCallJoined]);
   return (
     <View style={styles.container}>
-      {!isLive && <ActivityIndicator style={styles.activityIndicator} />}
       <Text style={styles.text}>
         {isLive
           ? t('Stream is ready!')
           : t('Waiting for the livestream to start')}
       </Text>
-      <View style={styles.switchView}>
-        <Switch
-          value={autoJoin}
-          onValueChange={(value: boolean) => setAutoJoin(value)}
-        />
-        <Text style={styles.switchText}>
-          {t('Join automatically, when stream is ready')}
-        </Text>
-      </View>
+      {!isLive && <ActivityIndicator style={styles.activityIndicator} />}
       <Button
         disabled={!isLive}
-        onPress={() => setAutoJoin(true)}
+        onPress={handleJoinCall}
         title={t('Join Stream')}
       />
     </View>
@@ -54,7 +46,8 @@ const styles = StyleSheet.create({
   },
   text: {
     color: appTheme.colors.static_white,
-    fontSize: 32,
+    fontSize: 20,
+    margin: 20,
   },
   activityIndicator: {
     marginBottom: 20,

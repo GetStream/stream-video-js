@@ -1,4 +1,5 @@
 import {
+  CallingState,
   StreamCall,
   ViewerLivestream,
   useCallStateHooks,
@@ -89,55 +90,66 @@ export const ViewLiveStreamChilden = ({
   const {
     params: { callId },
   } = route;
+  const [callJoined, setCallJoined] = useState<boolean>(false);
   const { useIsCallLive } = useCallStateHooks();
   const isCallLive = useIsCallLive();
-
   const client = useAnonymousInitVideoClient({
     callId,
     callType,
   });
-  const [autoJoin, setAutoJoin] = useState(false);
   const call = useSetCall(callId, callType, client);
 
-  useEffect(() => {
-    const joinCall = async () => {
-      try {
-        if (!(call && autoJoin)) {
-          return;
-        }
-        await call?.join();
-      } catch (error) {
-        console.error('Failed to join call', error);
+  const handleJoinCall = async () => {
+    try {
+      if (!(call && isCallLive)) {
+        return;
       }
-    };
-    joinCall();
-  }, [call, autoJoin]);
+      if (
+        [CallingState.JOINED, CallingState.JOINING].includes(
+          call.state.callingState,
+        )
+      ) {
+        setCallJoined(true);
+        return;
+      }
+      await call?.join();
+      setCallJoined(true);
+    } catch (error) {
+      console.error('Failed to join call', error);
+    }
+  };
+
+  const handleLeaveCall = async () => {
+    try {
+      if (!call) {
+        return;
+      }
+      await call.leave();
+      setCallJoined(false);
+      navigation.goBack();
+    } catch (error) {
+      console.log('Failed to leave call', error);
+    }
+  };
 
   if (!call) {
     return null;
   }
 
   return (
-    <>
-      {(!autoJoin || !isCallLive) && (
+    <StreamCall call={call}>
+      {!(isCallLive && callJoined) ? (
         <ViewerLobby
-          autoJoin={autoJoin}
-          setAutoJoin={setAutoJoin}
           isLive={isCallLive}
+          handleJoinCall={handleJoinCall}
+          setCallJoined={setCallJoined}
         />
+      ) : (
+        <SafeAreaView style={styles.livestream}>
+          <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
+        </SafeAreaView>
       )}
-      {isCallLive && autoJoin && (
-        <StreamCall call={call}>
-          <SafeAreaView style={styles.livestream}>
-            <ViewerLivestream
-              onLeaveStreamHandler={() => {
-                navigation.goBack();
-              }}
-            />
-          </SafeAreaView>
-        </StreamCall>
-      )}
-    </>
+    </StreamCall>
   );
 };
 
