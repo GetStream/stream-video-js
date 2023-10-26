@@ -13,14 +13,14 @@ export type ScreenShareButtonProps = {
   caption?: string;
 };
 
-export const ScreenShareButton = ({
-  caption = 'Screen Share',
-}: ScreenShareButtonProps) => {
+export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const call = useCall();
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
 
   const { t } = useI18n();
+  const { caption = t('Screen Share') } = props;
+
   const { toggleScreenShare, isAwaitingPermission, isScreenSharing } =
     useToggleScreenShare();
 
