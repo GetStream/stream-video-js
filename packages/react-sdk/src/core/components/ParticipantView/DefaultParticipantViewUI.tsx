@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import { SfuModels } from '@stream-io/video-client';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 import {
   Icon,
