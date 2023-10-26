@@ -65,8 +65,8 @@ export const DevMenu = () => {
 
 const StartStopBroadcasting = () => {
   const call = useCall();
-  const { useIsCallBroadcastingInProgress } = useCallStateHooks();
-  const isBroadcasting = useIsCallBroadcastingInProgress();
+  const { useIsCallHLSBroadcastingInProgress } = useCallStateHooks();
+  const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (
     <MenuItem
       onClick={() => {
