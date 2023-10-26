@@ -143,13 +143,7 @@ export const ViewLiveStreamChilden = ({
       setCallJoined={setCallJoined}
     />
   ) : (
-    <StreamCall
-      call={call}
-      mediaDeviceInitialState={{
-        initialAudioEnabled: false,
-        initialVideoEnabled: false,
-      }}
-    >
+    <StreamCall call={call}>
       <SafeAreaView style={styles.livestream}>
         <ViewerLivestream onLeaveStreamHandler={handleLeaveCall} />
       </SafeAreaView>
