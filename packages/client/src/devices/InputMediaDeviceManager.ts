@@ -51,6 +51,7 @@ export abstract class InputMediaDeviceManager<
     try {
       await this.enablePromise;
       this.state.setStatus('enabled');
+      this.enablePromise = undefined;
     } catch (error) {
       this.enablePromise = undefined;
       throw error;
