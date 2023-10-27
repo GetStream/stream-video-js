@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.0...@stream-io/video-react-native-sdk-0.2.1) (2023-10-27)
+
+
+### Features
+
+* **react-native:** add screensharing ([#1149](https://github.com/GetStream/stream-video-js/issues/1149)) ([e021365](https://github.com/GetStream/stream-video-js/commit/e021365158d9bbe3c6192294a02fa694ce9f24fe))
+
 ## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.14...@stream-io/video-react-native-sdk-0.2.0) (2023-10-27)
 
 ### Dependency Updates
