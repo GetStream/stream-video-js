@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.0...@stream-io/video-react-sdk-0.4.1) (2023-10-27)
+
+
+### Bug Fixes
+
+* **video-preview:** accept `className` prop ([#1166](https://github.com/GetStream/stream-video-js/issues/1166)) ([bfbfa1e](https://github.com/GetStream/stream-video-js/commit/bfbfa1ed52d4a0b19f9221252640d2926ebda641))
+
 ## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.47...@stream-io/video-react-sdk-0.4.0) (2023-10-27)
 
 ### Dependency Updates
