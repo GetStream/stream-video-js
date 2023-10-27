@@ -130,11 +130,12 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Ringing and Regular Push Notification for Expo
 - [x] Landscape Support
 - [x] Livestream components
+- [x] Screen-share media track support
+- [x] PiP on Android
 - [ ] Speaking while muted
-- [ ] PiP
+- [ ] PiP on iOS
 - [ ] Speaker management (needs docs)
 - [ ] Audio & Video filters
-- [ ] Screen-share media track support
 - [ ] CPU usage improvement
 - [ ] Analytics Integration
 - [ ] Demo app on play-store and app-store
