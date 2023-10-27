@@ -35,6 +35,22 @@ const MyVideoPreview = () => {
 
 ## Props
 
+### `className`
+
+| Type                    | Default     |
+| ----------------------- | ----------- |
+| `string` \| `undefined` | `undefined` |
+
+Additional CSS class to add to the component container.
+
+### `mirror`
+
+| Type                     | Default |
+| ------------------------ | ------- |
+| `boolean` \| `undefined` | `true`  |
+
+Enforces mirroring of the video on the X axis.
+
 ### `DisabledVideoPreview`
 
 | Type                           |
@@ -48,14 +64,6 @@ Component rendered when user turns off the video.
   alt="Default component for DisabledVideoPreview"
   width={300}
 />
-
-### `mirror`
-
-| Type                     | Default |
-| ------------------------ | ------- |
-| `boolean` \| `undefined` | `true`  |
-
-Enforces mirroring of the video on the X axis.
 
 ### `NoCameraPreview`
 
