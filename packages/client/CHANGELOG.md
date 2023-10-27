@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.36...@stream-io/video-client-0.4.0) (2023-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-sdk:** Universal Device Management API (#1127)
+
+### Features
+
+* **react-sdk:** Universal Device Management API ([#1127](https://github.com/GetStream/stream-video-js/issues/1127)) ([aeb3561](https://github.com/GetStream/stream-video-js/commit/aeb35612745f45254b536281c5f81d1bcac2bab5))
+
 ### [0.3.36](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.3.35...@stream-io/video-client-0.3.36) (2023-10-25)
 
 
