@@ -43,6 +43,12 @@ export const GuestModeScreen = ({
     });
   };
 
+  const isValidCallId = () => {
+    // Allows only alphabets, numbers and -(hyphen)
+    const callIdRegex = /^[A-Za-z0-9_-]*$/g;
+    return callId && callId.match(callIdRegex);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('Guest Mode')}</Text>
@@ -61,8 +67,13 @@ export const GuestModeScreen = ({
         />
       </View>
       <View>
-        <Button onPress={joinAsGuestHandler} title={t('Join As Guest')} />
         <Button
+          disabled={!isValidCallId()}
+          onPress={joinAsGuestHandler}
+          title={t('Join As Guest')}
+        />
+        <Button
+          disabled={!isValidCallId()}
           onPress={joinAnonymously}
           title={t('Continue Anonymously')}
           buttonStyle={styles.anonymousButton}
