@@ -3,6 +3,8 @@ video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
 bundle_id = 'io.getstream.rnvideosample'
+bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
+provisioning_profile_prefix = 'match AppStore '
 android_app_id = '1:296557120037:android:b5d44592a3a4b44af60dcc'
 
 before_all do
@@ -16,7 +18,7 @@ desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
     type: 'appstore',
-    app_identifier: [bundle_id],
+    app_identifier: [bundle_id, bundle_id_broadcast],
     readonly: is_ci
   )
 end
@@ -84,19 +86,18 @@ lane :build_ios do
 
   match_appstore
 
-  settings_to_override = {
-    BUNDLE_IDENTIFIER: 'io.getstream.rnvideosample',
-    PROVISIONING_PROFILE_SPECIFIER: 'match AppStore io.getstream.rnvideosample'
-  }
-
   gym(
     workspace: 'ios/StreamReactNativeVideoSDKSample.xcworkspace',
     scheme: 'StreamReactNativeVideoSDKSample',
     export_method: 'app-store',
-    export_options: './fastlane/testflight_gym_export_options.plist',
     silent: true,
     clean: true,
-    xcargs: settings_to_override,
+    export_options: {
+      provisioningProfiles: {
+        bundle_id => provisioning_profile_prefix + bundle_id,
+        bundle_id_broadcast => provisioning_profile_prefix + bundle_id_broadcast
+      }
+    },
     include_symbols: true,
     output_directory: build_dir
   )

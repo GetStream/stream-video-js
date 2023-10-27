@@ -1,7 +1,9 @@
 import { ConfigPlugin } from '@expo/config-plugins';
 import { withBuildProperties } from 'expo-build-properties';
 
-const withStreamVideoReactNativeBuildGradle: ConfigPlugin = (configuration) => {
+const withStreamVideoReactNativeBuildProperties: ConfigPlugin = (
+  configuration,
+) => {
   return withBuildProperties(configuration, {
     android: {
       extraProguardRules: `
@@ -11,4 +13,4 @@ const withStreamVideoReactNativeBuildGradle: ConfigPlugin = (configuration) => {
   });
 };
 
-export default withStreamVideoReactNativeBuildGradle;
+export default withStreamVideoReactNativeBuildProperties;

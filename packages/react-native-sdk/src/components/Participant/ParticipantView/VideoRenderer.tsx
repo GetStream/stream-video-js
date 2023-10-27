@@ -74,7 +74,9 @@ export const VideoRenderer = ({
   const videoStreamToRender = (isScreenSharing
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
-  const mirror = isLocalParticipant && direction === 'front';
+
+  const mirror =
+    isLocalParticipant && !isScreenSharing && direction === 'front';
 
   /**
    * This effect updates the participant's viewportVisibilityState

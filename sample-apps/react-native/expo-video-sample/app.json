@@ -33,6 +33,8 @@
       [
         "@stream-io/video-react-native-sdk",
         {
+          "enableScreenshare": true,
+          "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,
             "includesCallsInRecentsIos": false

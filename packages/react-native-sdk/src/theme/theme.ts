@@ -57,6 +57,10 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
+  screenShareButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
   toggleAudioPreviewButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
@@ -360,6 +364,10 @@ export const defaultTheme: Theme = {
     svgContainer: {},
   },
   rejectCallButton: {
+    container: {},
+    svgContainer: {},
+  },
+  screenShareButton: {
     container: {},
     svgContainer: {},
   },

@@ -18,6 +18,13 @@
 		DD17437229221798001CBEA0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD17437029221798001CBEA0 /* GoogleService-Info.plist */; };
 		DD6FC6022987E2D700B13B16 /* Intents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD6FC6012987E2D700B13B16 /* Intents.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		DD6FC6042987E2E800B13B16 /* CallKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD6FC6032987E2E800B13B16 /* CallKit.framework */; };
+		DD74B7542AD83F640042DB4B /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD74B7532AD83F640042DB4B /* ReplayKit.framework */; };
+		DD74B7572AD83F640042DB4B /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7562AD83F640042DB4B /* SampleHandler.swift */; };
+		DD74B75B2AD83F640042DB4B /* Broadcast Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DD74B7522AD83F640042DB4B /* Broadcast Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DD74B7622AD846FB0042DB4B /* SampleUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7612AD846FB0042DB4B /* SampleUploader.swift */; };
+		DD74B7642AD847420042DB4B /* Atomic.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7632AD847420042DB4B /* Atomic.swift */; };
+		DD74B7662AD8479E0042DB4B /* SocketConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7652AD8479E0042DB4B /* SocketConnection.swift */; };
+		DD74B7682AD847F10042DB4B /* DarwinNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +35,28 @@
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
 			remoteInfo = StreamReactNativeVideoSDKSample;
 		};
+		DD74B7592AD83F640042DB4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD74B7512AD83F640042DB4B;
+			remoteInfo = "Broadcast Extension";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DD74B75C2AD83F650042DB4B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DD74B75B2AD83F640042DB4B /* Broadcast Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00E356EE1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StreamReactNativeVideoSDKSampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -51,6 +79,15 @@
 		DD17437329229D96001CBEA0 /* StreamReactNativeVideoSDKSample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StreamReactNativeVideoSDKSample.entitlements; path = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements; sourceTree = "<group>"; };
 		DD6FC6012987E2D700B13B16 /* Intents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Intents.framework; path = System/Library/Frameworks/Intents.framework; sourceTree = SDKROOT; };
 		DD6FC6032987E2E800B13B16 /* CallKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CallKit.framework; path = System/Library/Frameworks/CallKit.framework; sourceTree = SDKROOT; };
+		DD74B7522AD83F640042DB4B /* Broadcast Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Broadcast Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD74B7532AD83F640042DB4B /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
+		DD74B7562AD83F640042DB4B /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		DD74B7582AD83F640042DB4B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DD74B7602AD842640042DB4B /* Broadcast Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Broadcast Extension.entitlements"; sourceTree = "<group>"; };
+		DD74B7612AD846FB0042DB4B /* SampleUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleUploader.swift; sourceTree = "<group>"; };
+		DD74B7632AD847420042DB4B /* Atomic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Atomic.swift; sourceTree = "<group>"; };
+		DD74B7652AD8479E0042DB4B /* SocketConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketConnection.swift; sourceTree = "<group>"; };
+		DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarwinNotificationCenter.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -70,6 +107,14 @@
 				DD6FC6042987E2E800B13B16 /* CallKit.framework in Frameworks */,
 				DD6FC6022987E2D700B13B16 /* Intents.framework in Frameworks */,
 				D60F78EC16CA0DD1ACEF890C /* libPods-StreamReactNativeVideoSDKSample.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD74B74F2AD83F640042DB4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD74B7542AD83F640042DB4B /* ReplayKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +161,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				9FAC086DB956152C16435BF1 /* libPods-StreamReactNativeVideoSDKSample.a */,
 				C42539220A21BB7C6961E53A /* libPods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.a */,
+				DD74B7532AD83F640042DB4B /* ReplayKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -133,6 +179,7 @@
 				13B07FAE1A68108700A75B9A /* StreamReactNativeVideoSDKSample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests */,
+				DD74B7552AD83F640042DB4B /* Broadcast Extension */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -147,6 +194,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* StreamReactNativeVideoSDKSample.app */,
 				00E356EE1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests.xctest */,
+				DD74B7522AD83F640042DB4B /* Broadcast Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -160,6 +208,20 @@
 				D9BA28C1DE31CC574CAF95CF /* Pods-StreamReactNativeVideoSDKSample-StreamReactNativeVideoSDKSampleTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		DD74B7552AD83F640042DB4B /* Broadcast Extension */ = {
+			isa = PBXGroup;
+			children = (
+				DD74B7602AD842640042DB4B /* Broadcast Extension.entitlements */,
+				DD74B7562AD83F640042DB4B /* SampleHandler.swift */,
+				DD74B7582AD83F640042DB4B /* Info.plist */,
+				DD74B7612AD846FB0042DB4B /* SampleUploader.swift */,
+				DD74B7632AD847420042DB4B /* Atomic.swift */,
+				DD74B7652AD8479E0042DB4B /* SocketConnection.swift */,
+				DD74B7672AD847F10042DB4B /* DarwinNotificationCenter.swift */,
+			);
+			path = "Broadcast Extension";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -198,15 +260,34 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				4623B4B911013BF02A675B4A /* [CP] Embed Pods Frameworks */,
 				8EACAB609F9BB513D86DDB4F /* [CP] Copy Pods Resources */,
+				DD74B75C2AD83F650042DB4B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DD74B75A2AD83F640042DB4B /* PBXTargetDependency */,
 			);
 			name = StreamReactNativeVideoSDKSample;
 			productName = StreamReactNativeVideoSDKSample;
 			productReference = 13B07F961A680F5B00A75B9A /* StreamReactNativeVideoSDKSample.app */;
 			productType = "com.apple.product-type.application";
+		};
+		DD74B7512AD83F640042DB4B /* Broadcast Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DD74B75F2AD83F650042DB4B /* Build configuration list for PBXNativeTarget "Broadcast Extension" */;
+			buildPhases = (
+				DD74B74E2AD83F640042DB4B /* Sources */,
+				DD74B74F2AD83F640042DB4B /* Frameworks */,
+				DD74B7502AD83F640042DB4B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Broadcast Extension";
+			productName = "Broadcast Extension";
+			productReference = DD74B7522AD83F640042DB4B /* Broadcast Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -214,6 +295,7 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 1420;
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
@@ -222,6 +304,9 @@
 					};
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+					};
+					DD74B7512AD83F640042DB4B = {
+						CreatedOnToolsVersion = 14.2;
 					};
 				};
 			};
@@ -240,6 +325,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* StreamReactNativeVideoSDKSample */,
 				00E356ED1AD99517003FC87E /* StreamReactNativeVideoSDKSampleTests */,
+				DD74B7512AD83F640042DB4B /* Broadcast Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -260,6 +346,13 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				DD17437129221798001CBEA0 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD74B7502AD83F640042DB4B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -433,6 +526,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DD74B74E2AD83F640042DB4B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD74B7682AD847F10042DB4B /* DarwinNotificationCenter.swift in Sources */,
+				DD74B7572AD83F640042DB4B /* SampleHandler.swift in Sources */,
+				DD74B7642AD847420042DB4B /* Atomic.swift in Sources */,
+				DD74B7662AD8479E0042DB4B /* SocketConnection.swift in Sources */,
+				DD74B7622AD846FB0042DB4B /* SampleUploader.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -440,6 +545,11 @@
 			isa = PBXTargetDependency;
 			target = 13B07F861A680F5B00A75B9A /* StreamReactNativeVideoSDKSample */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
+		};
+		DD74B75A2AD83F640042DB4B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD74B7512AD83F640042DB4B /* Broadcast Extension */;
+			targetProxy = DD74B7592AD83F640042DB4B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -503,6 +613,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 9FF5873D7CFBD5B6ADF5E88E /* Pods-StreamReactNativeVideoSDKSample.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements;
@@ -607,6 +718,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BFF02C9ED8B0E334A6042435 /* Pods-StreamReactNativeVideoSDKSample.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StreamReactNativeVideoSDKSample/StreamReactNativeVideoSDKSample.entitlements;
@@ -843,6 +955,90 @@
 			};
 			name = Release;
 		};
+		DD74B75D2AD83F650042DB4B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "Broadcast Extension/Broadcast Extension.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = EHV7XZLAHA;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Broadcast Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Broadcast Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.getstream.rnvideosample.Broadcast-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DD74B75E2AD83F650042DB4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = "Broadcast Extension/Broadcast Extension.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = EHV7XZLAHA;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Broadcast Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Broadcast Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.getstream.rnvideosample.Broadcast-Extension";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore io.getstream.rnvideosample.Broadcast-Extension";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -869,6 +1065,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DD74B75F2AD83F650042DB4B /* Build configuration list for PBXNativeTarget "Broadcast Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DD74B75D2AD83F650042DB4B /* Debug */,
+				DD74B75E2AD83F650042DB4B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
