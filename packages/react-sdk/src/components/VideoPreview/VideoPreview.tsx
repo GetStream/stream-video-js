@@ -1,26 +1,32 @@
 import { ComponentType } from 'react';
 import clsx from 'clsx';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { BaseVideo } from '../../core/components/Video';
 import { LoadingIndicator } from '../LoadingIndicator';
 
 const DefaultDisabledVideoPreview = () => {
-  return <div>Video is disabled</div>;
+  const { t } = useI18n();
+  return <div>{t('Video is disabled')}</div>;
 };
 
 const DefaultNoCameraPreview = () => {
-  return <div>No camera found</div>;
+  const { t } = useI18n();
+  return <div>{t('No camera found')}</div>;
 };
 
 export type VideoPreviewProps = {
   /**
-   * Component rendered when user turns off the video.
+   * Additional CSS class name to apply to the root element.
    */
-  DisabledVideoPreview?: ComponentType;
+  className?: string;
   /**
    * Enforces mirroring of the video on the X axis. Defaults to true.
    */
   mirror?: boolean;
+  /**
+   * Component rendered when user turns off the video.
+   */
+  DisabledVideoPreview?: ComponentType;
   /**
    * Component rendered when no camera devices are available.
    */
@@ -32,6 +38,7 @@ export type VideoPreviewProps = {
 };
 
 export const VideoPreview = ({
+  className,
   mirror = true,
   DisabledVideoPreview = DefaultDisabledVideoPreview,
   NoCameraPreview = DefaultNoCameraPreview,
@@ -63,5 +70,9 @@ export const VideoPreview = ({
     contents = <DisabledVideoPreview />;
   }
 
-  return <div className="str-video__video-preview-container">{contents}</div>;
+  return (
+    <div className={clsx('str-video__video-preview-container', className)}>
+      {contents}
+    </div>
+  );
 };
