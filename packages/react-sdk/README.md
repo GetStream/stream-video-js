@@ -61,7 +61,7 @@ Here are some of the features we support:
 - [x] Screenshare Audio
 - [x] Screen-sharing bitrate and FPS control
 - [ ] Fast-reconnects
-- [ ] New Device Management API
+- [x] New Device Management API
 - [x] SFU retries
 - [x] Call Thumbnails
 - [ ] Query call session endpoint

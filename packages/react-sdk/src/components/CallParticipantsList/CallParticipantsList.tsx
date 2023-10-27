@@ -17,7 +17,7 @@ import {
   OwnCapability,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { clsx } from 'clsx';
+import clsx from 'clsx';
 
 import { BlockedUserListing } from './BlockedUserListing';
 import {

@@ -5,21 +5,20 @@ title: Keyboard shortcuts
 
 In this guide, you'll learn how to apply keyboard shortcuts to your Stream Video application. Some users find it much easier to use their keyboard instead of reaching for their mouse/touchpad and having to find an unmute button to be then able click to unmute. In this example we'll be implementing `Ctrl + d` (or `⌘ + d` on Mac) and `Ctrl + e` (or `⌘ + e` on Mac) shortcuts to mute/unmute your video and audio.
 
-### Define custom `useKeyboardShortcuts` hook
+## Define custom `useKeyboardShortcuts` hook
 
 As this hook will introduce keyboard shortcuts related to [`CallControls`](../03-ui-components/call/call-controls.mdx) (mute/unmute audio) we should ideally invoke it in the same component to group logical parts together for easier debugging later. The same goes for your other keyboard shortcuts you might introduce to your application. Learn how to adjust your `CallControls` component in [the Replacing Call Controls guide](../06-ui-cookbook/02-replacing-call-controls.mdx).
 
 ```ts
-import {
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
+import { useEffect } from 'react';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 const isMacOS = () => !!navigator.userAgent.match(/(Mac\s?OS)/g)?.length;
 
 export const useKeyboardShortcuts = () => {
-  const { toggleAudioMuteState } = useToggleAudioMuteState();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { microphone } = useMicrophoneState();
+  const { camera } = useCameraState();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,13 +30,13 @@ export const useKeyboardShortcuts = () => {
         return;
       e.preventDefault();
 
-      toggleAudioMuteState().catch(console.error);
+      microphone.toggle().catch(console.error);
     };
 
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleAudioMuteState]);
+  }, [microphone]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,13 +48,13 @@ export const useKeyboardShortcuts = () => {
         return;
       e.preventDefault();
 
-      toggleVideoMuteState().catch(console.error);
+      camera.toggle().catch(console.error);
     };
 
     window.addEventListener('keydown', handleKeyDown);
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleVideoMuteState]);
+  }, [camera]);
 };
 ```
 
@@ -64,42 +63,39 @@ export const useKeyboardShortcuts = () => {
 The previous implementation looks a bit messy and hard to read so we'll refactor this hook with the help of the [`hotkeys-js`](https://github.com/jaywcjlove/hotkeys-js) which makes shortcut registering and handling much easier.
 
 ```ts
-import {
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
+import { useEffect } from 'react';
 import hotkeys from 'hotkeys-js';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const isMacOS = () => !!navigator.userAgent.match(/(Mac\s?OS)/g)?.length;
 
 export const useKeyboardShortcuts = () => {
-  const { toggleAudioMuteState } = useToggleAudioMuteState();
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { microphone } = useMicrophoneState();
+  const { camera } = useCameraState();
 
   useEffect(() => {
     const shortcuts = 'cmd+d,ctrl+d';
-
     hotkeys(shortcuts, (e, ke) => {
       if (isMacOS() && ke.shortcut !== 'cmd+d') return;
-
       e.preventDefault();
 
-      toggleAudioMuteState().catch(console.error);
+      microphone.toggle().catch(console.error);
     });
 
     return () => hotkeys.unbind(shortcuts);
-  }, [toggleAudioMuteState]);
+  }, [microphone]);
 
   useEffect(() => {
     const shortcuts = 'cmd+e,ctrl+e';
-
     hotkeys(shortcuts, (e, ke) => {
       if (isMacOS() && ke.shortcut !== 'cmd+e') return;
-
       e.preventDefault();
 
-      toggleVideoMuteState().catch(console.error);
+      camera.toggle().catch(console.error);
     });
 
     return () => hotkeys.unbind(shortcuts);
-  }, [toggleVideoMuteState]);
+  }, [camera]);
 };
 ```

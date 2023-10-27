@@ -6,8 +6,6 @@ import {
   StreamVideoParticipant,
   useCall,
   useConnectedUser,
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
 } from '@stream-io/video-react-sdk';
 import ParticipantsControlModal from '../ParticipantsControlModal';
 import { Mic, MicMuted, Options, Video, VideoOff } from '../Icons';
@@ -24,9 +22,6 @@ export const ParticipantListItem = ({
 }: ParticipantListItemProps) => {
   const call = useCall();
   const connectedUser = useConnectedUser();
-  const { toggleAudioMuteState } = useToggleAudioMuteState();
-
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
 
   const { setModal } = useModalContext();
 
@@ -54,7 +49,7 @@ export const ParticipantListItem = ({
           <div
             onClick={() => {
               if (isLocalParticipant) {
-                return toggleAudioMuteState();
+                return call?.microphone.toggle();
               }
               if (!isAudioOn) return;
               call?.muteUser(participant.userId, 'audio');
@@ -72,7 +67,7 @@ export const ParticipantListItem = ({
           <div
             onClick={() => {
               if (isLocalParticipant) {
-                return toggleVideoMuteState();
+                return call?.camera.toggle();
               }
               if (!isVideoOn) return;
               call?.muteUser(participant.userId, 'video');

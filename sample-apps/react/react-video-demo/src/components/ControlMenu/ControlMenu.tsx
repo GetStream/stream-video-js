@@ -1,13 +1,6 @@
 import { FC, useCallback, useState } from 'react';
 import classnames from 'classnames';
-import {
-  SfuModels,
-  useAudioInputDevices,
-  useAudioOutputDevices,
-  useCallStateHooks,
-  useMediaDevices,
-  useVideoDevices,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import ControlButton, { PanelButton } from '../ControlButton';
 import ControlMenuPanel from '../ControlMenuPanel';
@@ -18,88 +11,31 @@ import styles from './ControlMenu.module.css';
 
 export type Props = {
   className?: string;
-  call?: any;
-  preview?: boolean;
 };
 
-export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
-  const [isAudioOutputVisible, setAudioOutputVisible] = useState(false);
+export const ControlMenu: FC<Props> = ({ className }) => {
+  const { useCameraState, useMicrophoneState, useSpeakerState } =
+    useCallStateHooks();
   const {
-    selectedAudioInputDeviceId,
-    selectedVideoDeviceId,
-    selectedAudioOutputDeviceId,
-    switchDevice,
-    toggleInitialAudioMuteState,
-    toggleInitialVideoMuteState,
-    publishVideoStream,
-    publishAudioStream,
-    initialVideoState,
-    initialAudioEnabled,
-    isAudioOutputChangeSupported,
-  } = useMediaDevices();
+    camera,
+    isMute: isCameraMute,
+    devices: cameraDevices,
+    selectedDevice: selectedCameraId,
+  } = useCameraState();
+  const {
+    microphone,
+    isMute: isMicMute,
+    selectedDevice: selectedMicId,
+    devices: micDevices,
+  } = useMicrophoneState();
+  const {
+    speaker,
+    selectedDevice: selectedSpeakerId,
+    devices: speakers,
+    isDeviceSelectionSupported,
+  } = useSpeakerState();
 
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  const videoDevices = useVideoDevices();
-  const audioInputDevices = useAudioInputDevices();
-  const audioOutputDevices = useAudioOutputDevices();
-
-  const isVideoMuted = preview
-    ? !initialVideoState.enabled
-    : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.VIDEO);
-
-  const isAudioMuted = preview
-    ? !initialAudioEnabled
-    : !localParticipant?.publishedTracks.includes(SfuModels.TrackType.AUDIO);
-
-  const disableVideo = useCallback(() => {
-    call.stopPublish(SfuModels.TrackType.VIDEO);
-  }, [call]);
-
-  const enableVideo = useCallback(() => {
-    publishVideoStream().catch((err) => {
-      console.log(`Error while publishing video`, err);
-    });
-  }, [publishVideoStream]);
-
-  const disableAudio = useCallback(() => {
-    call.stopPublish(SfuModels.TrackType.AUDIO);
-  }, [call]);
-
-  const enableAudio = useCallback(() => {
-    publishAudioStream().catch((err) => {
-      console.log(`Error while publishing audio`, err);
-    });
-  }, [publishAudioStream]);
-
-  const video = useCallback(() => {
-    if (preview) {
-      toggleInitialVideoMuteState();
-    } else {
-      isVideoMuted ? enableVideo() : disableVideo();
-    }
-  }, [
-    preview,
-    toggleInitialVideoMuteState,
-    isVideoMuted,
-    enableVideo,
-    disableVideo,
-  ]);
-
-  const audio = useCallback(() => {
-    if (preview) {
-      toggleInitialAudioMuteState();
-    } else {
-      isAudioMuted ? enableAudio() : disableAudio();
-    }
-  }, [
-    preview,
-    toggleInitialAudioMuteState,
-    isAudioMuted,
-    enableAudio,
-    disableAudio,
-  ]);
-
+  const [isAudioOutputVisible, setAudioOutputVisible] = useState(false);
   const toggleAudioOutputPanel = useCallback(() => {
     setAudioOutputVisible(!isAudioOutputVisible);
   }, [isAudioOutputVisible]);
@@ -108,17 +44,17 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
     <div className={classnames(styles.root, className)}>
       <ControlButton
         className={styles.audioButton}
-        onClick={audio}
-        prefix={isAudioMuted ? <MicMuted /> : <Mic />}
+        onClick={() => microphone.toggle()}
+        prefix={isMicMute ? <MicMuted /> : <Mic />}
         portalId="audio-settings"
         label="Mic"
         panel={
           <Portal className={styles.audioSettings} selector="audio-settings">
             <ControlMenuPanel
               className={styles.panel}
-              selectedDeviceId={selectedAudioInputDeviceId}
-              selectDevice={switchDevice}
-              devices={audioInputDevices}
+              selectedDeviceId={selectedMicId}
+              selectDevice={(deviceId) => microphone.select(deviceId)}
+              devices={micDevices || []}
               title="Select an Audio Input"
             />
           </Portal>
@@ -127,24 +63,24 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
 
       <ControlButton
         className={styles.videoButton}
-        onClick={video}
-        prefix={isVideoMuted ? <VideoOff /> : <Video />}
+        onClick={() => camera.toggle()}
+        prefix={isCameraMute ? <VideoOff /> : <Video />}
         portalId="camera-settings"
         label="Video"
         panel={
           <Portal className={styles.cameraSettings} selector="camera-settings">
             <ControlMenuPanel
               className={styles.panel}
-              selectedDeviceId={selectedVideoDeviceId}
-              selectDevice={switchDevice}
-              devices={videoDevices}
+              selectedDeviceId={selectedCameraId}
+              selectDevice={(deviceId) => camera.select(deviceId)}
+              devices={cameraDevices || []}
               title="Select a Camera"
             />
           </Portal>
         }
       />
 
-      {isAudioOutputChangeSupported ? (
+      {isDeviceSelectionSupported ? (
         <PanelButton
           className={styles.speakerButton}
           prefix={<Speaker />}
@@ -159,9 +95,9 @@ export const ControlMenu: FC<Props> = ({ className, call, preview }) => {
             >
               <ControlMenuPanel
                 className={styles.panel}
-                selectedDeviceId={selectedAudioOutputDeviceId}
-                selectDevice={switchDevice}
-                devices={audioOutputDevices}
+                selectedDeviceId={selectedSpeakerId}
+                selectDevice={(deviceId) => speaker.select(deviceId)}
+                devices={speakers || []}
                 title="Select an Audio Output"
               />
             </Portal>

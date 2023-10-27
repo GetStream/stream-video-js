@@ -2,18 +2,12 @@ import { Call } from '../Call';
 import {
   AudioTrackType,
   DebounceType,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VideoTrackType,
   VisibilityState,
 } from '../types';
+import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
 import {
-  SdkType,
-  TrackType,
-  VideoDimension,
-} from '../gen/video/sfu/models/models';
-import {
-  combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
   map,
@@ -22,7 +16,6 @@ import {
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
 import { getLogger } from '../logger';
-import { getSdkInfo } from '../client-details';
 import { isFirefox, isSafari } from './browsers';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
@@ -174,7 +167,7 @@ export class DynascaleManager {
         (participants) =>
           participants.find(
             (participant) => participant.sessionId === sessionId,
-          ) as StreamVideoLocalParticipant | StreamVideoParticipant,
+          ) as StreamVideoParticipant,
       ),
       takeWhile((participant) => !!participant),
       distinctUntilChanged(),
@@ -339,9 +332,9 @@ export class DynascaleManager {
     const participant$ = this.call.state.participants$.pipe(
       map(
         (participants) =>
-          participants.find((p) => p.sessionId === sessionId) as
-            | StreamVideoLocalParticipant
-            | StreamVideoParticipant,
+          participants.find(
+            (p) => p.sessionId === sessionId,
+          ) as StreamVideoParticipant,
       ),
       takeWhile((p) => !!p),
       distinctUntilChanged(),
@@ -373,20 +366,14 @@ export class DynascaleManager {
         });
       });
 
-    const sinkIdSubscription = combineLatest([
-      this.call.state.localParticipant$,
-      this.call.speaker.state.selectedDevice$,
-    ]).subscribe(([p, selectedDevice]) => {
-      const deviceId =
-        getSdkInfo()?.type === SdkType.REACT
-          ? p?.audioOutputDeviceId
-          : selectedDevice;
-
-      if ('setSinkId' in audioElement && typeof deviceId === 'string') {
-        // @ts-expect-error setSinkId is not yet in the lib
-        audioElement.setSinkId(deviceId);
-      }
-    });
+    const sinkIdSubscription = !('setSinkId' in audioElement)
+      ? null
+      : this.call.speaker.state.selectedDevice$.subscribe((deviceId) => {
+          if (deviceId) {
+            // @ts-expect-error setSinkId is not yet in the lib
+            audioElement.setSinkId(deviceId);
+          }
+        });
 
     const volumeSubscription = this.call.speaker.state.volume$.subscribe(
       (volume) => {
@@ -397,7 +384,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      sinkIdSubscription.unsubscribe();
+      sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
     };

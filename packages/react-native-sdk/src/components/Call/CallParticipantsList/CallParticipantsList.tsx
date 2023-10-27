@@ -8,7 +8,6 @@ import React, {
 import { FlatList, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 import {
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   VisibilityState,
@@ -24,7 +23,7 @@ import {
 import { CallContentProps } from '../CallContent';
 
 type FlatListProps = React.ComponentProps<
-  typeof FlatList<StreamVideoParticipant | StreamVideoLocalParticipant>
+  typeof FlatList<StreamVideoParticipant>
 >;
 
 const VIEWABILITY_CONFIG: FlatListProps['viewabilityConfig'] = {
@@ -48,7 +47,7 @@ export type CallParticipantsListProps = CallParticipantsListComponentProps &
     /**
      * The list of participants to display in the list
      */
-    participants: (StreamVideoParticipant | StreamVideoLocalParticipant)[];
+    participants: StreamVideoParticipant[];
     /**
      * The number of columns to display in the list of participants while in vertical or horizontal scrolling mode. This property is only used when there are more than 2 participants.
      * @default 2

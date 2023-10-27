@@ -9,7 +9,7 @@ export type Props = {
   devices: MediaDeviceInfo[];
   title: string;
 
-  selectDevice(kind: Partial<MediaDeviceKind>, deviceId: string): void;
+  selectDevice(deviceId: string): void;
 };
 
 export const ControlMenuPanel: FC<Props> = ({

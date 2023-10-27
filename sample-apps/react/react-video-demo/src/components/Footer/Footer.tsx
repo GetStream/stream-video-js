@@ -158,7 +158,7 @@ export const Footer = ({
         />
       </div>
       <div className={styles.controls}>
-        <ControlMenu className={styles.controlMenu} call={call} />
+        <ControlMenu className={styles.controlMenu} />
         <Button
           className={styles.cancel}
           color="danger"

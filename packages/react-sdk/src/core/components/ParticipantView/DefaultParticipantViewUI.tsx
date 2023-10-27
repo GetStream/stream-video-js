@@ -1,8 +1,8 @@
 import { forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import { SfuModels } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
-import { clsx } from 'clsx';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import clsx from 'clsx';
 
 import {
   Icon,
@@ -17,7 +17,7 @@ import { Reaction } from '../../../components/Reaction';
 import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
 import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
 import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
-import { useParticipantViewContext } from './ParticipantView';
+import { useParticipantViewContext } from './ParticipantViewContext';
 
 export type DefaultParticipantViewUIProps = {
   /**
@@ -42,22 +42,23 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 
 export const DefaultScreenShareOverlay = () => {
   const call = useCall();
+  const { t } = useI18n();
 
   const stopScreenShare = () => {
-    call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE).catch(console.error);
+    call?.screenShare.disable();
   };
 
   return (
     <div className="str-video__screen-share-overlay">
       <Icon icon="screen-share-off" />
       <span className="str-video__screen-share-overlay__title">
-        You are presenting your screen
+        {t('You are presenting your screen')}
       </span>
       <button
         onClick={stopScreenShare}
         className="str-video__screen-share-overlay__button"
       >
-        <Icon icon="close" /> Stop Screen Sharing
+        <Icon icon="close" /> {t('Stop Screen Sharing')}
       </button>
     </div>
   );

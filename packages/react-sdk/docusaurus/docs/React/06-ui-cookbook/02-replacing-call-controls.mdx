@@ -99,155 +99,69 @@ export const CustomCancelCallButton = ({
 Toggling microphone in an active call turns around publishing audio input streams and enabling the audio state. The bare-bones button to toggle audio in an active call could look like the following:
 
 ```tsx
-import {
-  SfuModels,
-  useCallStateHooks,
-  useToggleAudioMuteState,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const CustomToggleAudioPublishingButton = () => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  // Check, whether the audio input stream is already being published to Stream's server
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-  const { toggleAudioMuteState, isAwaitingApproval } =
-    useToggleAudioMuteState();
-
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
   return (
-    <button disabled={isAwaitingApproval} onClick={toggleAudioMuteState}>
-      {!isAudioMute ? (
-        <span className="my-icon-enabled" />
-      ) : (
+    <button onClick={() => microphone.toggle()}>
+      {isMute ? (
         <span className="my-icon-disabled" />
+      ) : (
+        <span className="my-icon-enabled" />
       )}
     </button>
   );
 };
 ```
 
-`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish audio, and a request has been sent to call admins.
-
-To toggle audio before joining a call (for example in a call lobby or on pending call panel), we simply invoke `toggleInitialAudioMuteState` provided by the `MediaDevicesProvider`. The initial audio state is then transferred to the active call. So if in the preview the audio was disabled, then the active call will start with disabled audio. The flag toggled is `initialAudioEnabled`. A most basic implementation could look as follows:
-
-```tsx
-import { useMediaDevices } from '@stream-io/video-react-sdk';
-
-export const CustomToggleAudioPreviewButton = () => {
-  // the API to control the audio enablement in a view before joining a call
-  const { initialAudioEnabled, toggleInitialAudioMuteState } =
-    useMediaDevices();
-
-  return (
-    <button onClick={toggleInitialAudioMuteState}>
-      {initialAudioEnabled ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
+To toggle audio before joining a call (for example in a call lobby or on pending call panel), we can use the same API.
+The state is kept on a `call` level, so if in the preview the audio was disabled, then it will remain disabled after joining the call.
 
 ### Toggling video
 
-To toggle video input the approach is analogous to that of audio input.
+To toggle video input, the approach is analogous to that of audio input.
 
 ```tsx
-import {
-  SfuModels,
-  useCallStateHooks,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const CustomToggleVideoPublishingButton = () => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  // Check, whether the video input stream is already being published to Stream's server
-  const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-  const { toggleVideoMuteState, isAwaitingApproval } =
-    useToggleVideoMuteState();
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
   return (
-    <button disabled={isAwaitingApproval} onClick={toggleVideoMuteState}>
-      {!isVideoMute ? (
-        <span className="my-icon-enabled" />
-      ) : (
+    <button onClick={() => camera.toggle()}>
+      {isMute ? (
         <span className="my-icon-disabled" />
+      ) : (
+        <span className="my-icon-enabled" />
       )}
     </button>
   );
 };
 ```
 
-`isAwaitingApproval` will be `true` if the user doesn't have the necessary permission to publish video, and a request has been sent to call admins.
+To toggle video before joining a call (for example in a call lobby or on pending call panel), we can use the same API.
+The state is kept on a `call` level, so if in the preview the video was disabled, then it will remain disabled after joining the call.
 
-The video preview toggle button implementation is very simple:
+### Toggling screen sharing
 
-```tsx
-import { useMediaDevices } from '@stream-io/video-react-sdk';
-
-export const CustomToggleVideoPreviewButton = () => {
-  // the API to control the video enablement in a view before joining a call
-  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
-
-  return (
-    <button onClick={toggleInitialVideoMuteState}>
-      {initialVideoState ? (
-        <span className="my-icon-enabled" />
-      ) : (
-        <span className="my-icon-disabled" />
-      )}
-    </button>
-  );
-};
-```
-
-### Enabling screensharing
-
-Screensharing involves sharing a video stream, which is obtained through the use of the [`navigator.mediaDevices.getDisplayMedia()`](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia) call. To simplify this process, the SDK exports a utility function [`getScreenShareStream`](https://github.com/GetStream/stream-video-js/tree/main/packages/client/src/devices/devices.ts), that retrieves the `MediaStream` object for us. Additionally, we utilize a screenshare-specific hook called `useHasOngoingScreenShare` which informs us whether any call participant is already sharing their screen.
+To toggle Screen Sharing, you can utilize the following API:
 
 ```tsx
-import { useCallback } from 'react';
-import {
-  getScreenShareStream,
-  SfuModels,
-  useCall,
-  useCallStateHooks,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const CustomScreenShareButton = () => {
-  const call = useCall();
-  const { useLocalParticipant, useHasOngoingScreenShare } = useCallStateHooks();
+  const { useScreenShareState, useHasOngoingScreenShare } = useCallStateHooks();
+  const { screenShare, isMute: isScreenSharing } = useScreenShareState();
 
-  const localParticipant = useLocalParticipant();
   // determine, whether somebody else is sharing their screen
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
-  // determine, whether we are sharing the screen
-  const isScreenSharing = localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.SCREEN_SHARE,
-  );
-  const handleClick = useCallback(async () => {
-    if (!isScreenSharing) {
-      // Retrieve the screenshare stream to be published
-      const stream = await getScreenShareStream().catch((e) => {
-        console.log(`Can't share screen: ${e}`);
-      });
-      if (stream) {
-        await call?.publishScreenShareStream(stream);
-      }
-    } else {
-      await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-    }
-  }, [call, isScreenSharing]);
-
   return (
     <button
-      onClick={handleClick}
-      disabled={(!isScreenSharing && isSomeoneScreenSharing) || !call}
+      // disable the button in case I'm not the one sharing the screen
+      disabled={!isScreenSharing && isSomeoneScreenSharing}
+      onClick={() => screenShare.toggle()}
     >
       {isScreenSharing ? (
         <span className="my-icon-enabled" />

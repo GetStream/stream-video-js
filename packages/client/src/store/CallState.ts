@@ -8,8 +8,6 @@ import {
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import {
-  isStreamVideoLocalParticipant,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
@@ -142,9 +140,9 @@ export class CallState {
   private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
   private participantCountSubject = new BehaviorSubject<number>(0);
   private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
-  private participantsSubject = new BehaviorSubject<
-    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >([]);
+  private participantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
+    [],
+  );
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
@@ -172,9 +170,7 @@ export class CallState {
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
-  participants$: Observable<
-    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >;
+  participants$: Observable<StreamVideoParticipant[]>;
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -184,7 +180,7 @@ export class CallState {
   /**
    * The local participant of the current call (the logged-in user).
    */
-  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  localParticipant$: Observable<StreamVideoParticipant | undefined>;
 
   /**
    * Pinned participants of the current call.
@@ -342,7 +338,7 @@ export class CallState {
     );
 
     this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find(isStreamVideoLocalParticipant)),
+      map((participants) => participants.find((p) => p.isLocalParticipant)),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
@@ -784,10 +780,7 @@ export class CallState {
    */
   getParticipantLookupBySessionId = () => {
     return this.participants.reduce<{
-      [sessionId: string]:
-        | StreamVideoParticipant
-        | StreamVideoLocalParticipant
-        | undefined;
+      [sessionId: string]: StreamVideoParticipant | undefined;
     }>((lookupTable, participant) => {
       lookupTable[participant.sessionId] = participant;
       return lookupTable;
@@ -817,9 +810,7 @@ export class CallState {
     }
 
     const thePatch = typeof patch === 'function' ? patch(participant) : patch;
-    const updatedParticipant:
-      | StreamVideoParticipant
-      | StreamVideoLocalParticipant = {
+    const updatedParticipant: StreamVideoParticipant = {
       // FIXME OL: this is not a deep merge, we might want to revisit this
       ...participant,
       ...thePatch,

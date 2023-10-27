@@ -75,22 +75,24 @@ More information about state management can be found in the [Call & Participant 
 Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera:
 
 ```tsx
-import {
-  SfuModels,
-  useCallStateHooks,
-  useToggleVideoMuteState,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const MyVideoButton = () => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
-  const { toggleVideoMuteState } = useToggleVideoMuteState();
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
   return (
-    <button onClick={toggleVideoMuteState}>
-      {isVideoMute ? 'Turn on camera' : 'Turn off camera'}
+    <button onClick={() => camera.toggle()}>
+      {isMute ? 'Turn on camera' : 'Turn off camera'}
+    </button>
+  );
+};
+
+export const MyMicrophoneButton = () => {
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
+  return (
+    <button onClick={() => microphone.toggle()}>
+      {isMute ? 'Turn on microphone' : 'Turn off microphone'}
     </button>
   );
 };

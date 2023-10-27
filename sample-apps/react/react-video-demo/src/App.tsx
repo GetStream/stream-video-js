@@ -12,7 +12,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useHasBrowserPermissions,
+  usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
 import LobbyView from './components/Views/LobbyView';
@@ -23,11 +23,6 @@ import { TourProvider, useTourContext } from './contexts/TourContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationsContext';
 import { PanelProvider } from './contexts/PanelContext';
-import {
-  DeviceSettingsCaptor,
-  getStoredDeviceSettings,
-  LocalDeviceSettings,
-} from './utils/useDeviceStorage';
 import { getURLCredentials } from './utils/getURLCredentials';
 
 import { UserContextProvider, useUserContext } from './contexts/UserContext';
@@ -49,11 +44,6 @@ const Init = () => {
   const { apiKey, token, tokenProvider, user } = useUserContext();
   const [isCallActive, setIsCallActive] = useState(false);
   const [callHasEnded, setCallHasEnded] = useState(false);
-  const [storedDeviceSettings, setStoredDeviceSettings] =
-    useState<LocalDeviceSettings>();
-
-  const [hasBrowserMediaPermissions, setHasBrowserMediaPermissions] =
-    useState<boolean>(false);
 
   const [isjoiningCall, setIsJoiningCall] = useState(false);
   const { setSteps } = useTourContext();
@@ -61,19 +51,6 @@ const Init = () => {
   const [client, setClient] = useState<StreamVideoClient>();
 
   const { edges, fastestEdge } = useEdges(client);
-
-  const hasBrowserPermissionVideoInput = useHasBrowserPermissions(
-    'camera' as PermissionName,
-  );
-  const hasBrowserPermissionMicrophoneInput = useHasBrowserPermissions(
-    'microphone' as PermissionName,
-  );
-
-  useEffect(() => {
-    if (hasBrowserPermissionVideoInput && hasBrowserPermissionMicrophoneInput) {
-      setHasBrowserMediaPermissions(true);
-    }
-  }, [hasBrowserPermissionVideoInput, hasBrowserPermissionMicrophoneInput]);
 
   useEffect(() => {
     const _client = new StreamVideoClient({
@@ -153,15 +130,6 @@ const Init = () => {
     setSteps(tour);
   }, []);
 
-  useEffect(() => {
-    const getSettings = () => {
-      const settings = getStoredDeviceSettings();
-      setStoredDeviceSettings(settings);
-    };
-
-    getSettings();
-  }, []);
-
   const joinMeeting = useCallback(async () => {
     setIsJoiningCall(true);
     try {
@@ -182,58 +150,41 @@ const Init = () => {
     return null;
   }
 
-  if (storedDeviceSettings) {
-    return (
-      <StreamVideo client={client}>
-        <StreamCall
-          call={activeCall}
-          mediaDevicesProviderProps={{
-            initialVideoEnabled: !storedDeviceSettings?.isVideoMute,
-            initialAudioEnabled: !storedDeviceSettings?.isAudioMute,
-            initialAudioInputDeviceId:
-              storedDeviceSettings?.selectedAudioInputDeviceId,
-            initialVideoInputDeviceId:
-              storedDeviceSettings?.selectedVideoDeviceId,
-            initialAudioOutputDeviceId:
-              storedDeviceSettings?.selectedAudioOutputDeviceId,
-          }}
-        >
-          <ModalProvider>
-            {isCallActive && callId && client ? (
-              <NotificationProvider>
-                <PanelProvider>
-                  <TourProvider>
-                    {activeCall && (
-                      <MeetingView
-                        call={activeCall}
-                        isCallActive={isCallActive}
-                        setCallHasEnded={setCallHasEnded}
-                        chatClient={chatClient}
-                        chatConnectionError={chatConnectionError}
-                      />
-                    )}
-                  </TourProvider>
-                </PanelProvider>
-              </NotificationProvider>
-            ) : (
-              <LobbyView
-                user={user}
-                callId={callId || ''}
-                edges={edges}
-                fastestEdge={fastestEdge}
-                isjoiningCall={isjoiningCall}
-                joinCall={joinMeeting}
-                browserPermissionsEnabled={hasBrowserMediaPermissions}
-              />
-            )}
-          </ModalProvider>
-          <DeviceSettingsCaptor />
-        </StreamCall>
-      </StreamVideo>
-    );
-  }
-
-  return null;
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={activeCall}>
+        <ModalProvider>
+          {isCallActive && callId && client ? (
+            <NotificationProvider>
+              <PanelProvider>
+                <TourProvider>
+                  {activeCall && (
+                    <MeetingView
+                      call={activeCall}
+                      isCallActive={isCallActive}
+                      setCallHasEnded={setCallHasEnded}
+                      chatClient={chatClient}
+                      chatConnectionError={chatConnectionError}
+                    />
+                  )}
+                </TourProvider>
+              </PanelProvider>
+            </NotificationProvider>
+          ) : (
+            <LobbyView
+              user={user}
+              callId={callId || ''}
+              edges={edges}
+              fastestEdge={fastestEdge}
+              isjoiningCall={isjoiningCall}
+              joinCall={joinMeeting}
+            />
+          )}
+        </ModalProvider>
+        <DevicePreferences />
+      </StreamCall>
+    </StreamVideo>
+  );
 };
 
 const App = () => {
@@ -245,3 +196,8 @@ const App = () => {
 };
 
 export default App;
+
+const DevicePreferences = () => {
+  usePersistedDevicePreferences('@react-video-demo/device-preferences');
+  return null;
+};
