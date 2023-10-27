@@ -19,15 +19,14 @@ export type VideoPreviewProps = {
    * Additional CSS class name to apply to the root element.
    */
   className?: string;
-
-  /**
-   * Component rendered when user turns off the video.
-   */
-  DisabledVideoPreview?: ComponentType;
   /**
    * Enforces mirroring of the video on the X axis. Defaults to true.
    */
   mirror?: boolean;
+  /**
+   * Component rendered when user turns off the video.
+   */
+  DisabledVideoPreview?: ComponentType;
   /**
    * Component rendered when no camera devices are available.
    */
