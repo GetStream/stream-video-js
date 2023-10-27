@@ -34,6 +34,26 @@ await client.call(callType, callId).getOrCreate();
 
 See all possible options at the [Call creation options section](#call-creation-options)
 
+### Join with mic and camera on or off
+
+You can override the default mic and camera settings before you join a call.
+Typically, you should configure this in your Lobby view:
+
+```typescript
+const call = client.call('default', 'test-call');
+
+// enable mic and camera
+await call.camera.enable();
+await call.microphone.enable();
+
+// alternatively, you can disable them
+await call.camera.disable();
+await call.microphone.disable();
+
+// and then join the call
+await call.join();
+```
+
 ### Leave call
 
 To leave a call, you can use the `leave` method:

@@ -13,6 +13,10 @@ The `SpeakerLayout` displays [participants](../../../ui-components/core/particip
 
 ![Preview of the SpeakerLayout component.](../../assets/03-ui-components/speaker-view.png)
 
+The `LivestreamLayout` is suitable for livestreaming and displays the dominant speaker/shared screen in a large video.
+
+![Preview of the LivestreamLayout component.](../../assets/06-ui-cookbook/15-watching-a-livestream/normal-mode.png)
+
 ## General usage
 
 Both layouts gather all necessary [state information via hooks](../../../guides/call-and-participant-state), so you don't need to provide state-related props:
@@ -91,6 +95,21 @@ const MyApp = () => {
 | `ParticipantViewUISpotlight` | The participant UI for the spotlight view, [see `ParticipantView` documentation](../../../ui-components/core/participant-view/#participantviewui)          | [See `ParticipantView` documentation](../../../ui-components/core/participant-view/#participantviewui) |
 | `ParticipantViewUIBar`       | The participant UI for the participants in the bar, [see `ParticipantView` documentation](../../../ui-components/core/participant-view/#participantviewui) | [See `ParticipantView` documentation](../../../ui-components/core/participant-view/#participantviewui) |
 | `VideoPlaceholder`           | [See `ParticipantView` documentation](../../../ui-components/core/participant-view/#videoplaceholder)                                                      | [See `ParticipantView` documentation](../../../ui-components/core/participant-view/#videoplaceholder)  |
+
+### `LivestreamLayout`
+
+#### Props
+
+| Name                                | Description                                             | Type      |
+| ----------------------------------- | ------------------------------------------------------- | --------- |
+| `muted`                             | Mutes all audio                                         | `boolean` |
+| `enableFullscreen`                  | Will render a button to enable fullscreen mode          | `boolean` |
+| `showParticipantCount`              | Will show the number of participants                    | `boolean` |
+| `showDuration`                      | Will show the duration of the livestream                | `boolean` |
+| `showLiveBadge`                     | Will show a badge whether the livestream is live or not | `boolean` |
+| `showSpeakerName`                   | Will show the name of the speaker                       | `boolean` |
+| `floatingParticipantProps`          | Props to pass to the floating participant view          | `object`  |
+| `floatingParticipantProps.position` | Position of the floating participant view               | `string`  |
 
 ## Customization
 
