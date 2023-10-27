@@ -1,0 +1,105 @@
+---
+id: watching-a-livestream
+title: Watching a livestream
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ViewerLivestream from '../assets/05-ui-cookbook/13-livestream/viewer-livestream.png';
+import ViewerLivestreamScreenShare from '../assets/05-ui-cookbook/13-livestream/viewer-livestream-screenshare.png';
+
+As you might be aware that there are two types of livestream users: a host or a viewer. Our SDK exports component for both the modes.
+
+In our [livestream tutorial](../../tutorials/livestream), there are two ways how a livestream can be watched: either via HLS or via WebRTC.
+
+This guide describes how to customize watching a livestream through our SDK.
+
+### Default component
+
+Our React Native SDK provides a specialized components for it: the [`ViewerLivestream`](../../ui-components/livestream/viewer-livestream).
+
+Here is a preview of the above components in video mode:
+
+<ImageShowcase
+  items={[
+    {
+      image: ViewerLivestream,
+      caption: 'Viewer Livestream',
+      alt: 'Viewer Livestream',
+    },
+    {
+      image: ViewerLivestreamScreenShare,
+      caption: 'Viewer Livestream Screen Share',
+      alt: 'Viewer Livestream Screen Share',
+    },
+  ]}
+/>
+
+```tsx
+import {
+  ViewerLivestream,
+  StreamVideo,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+export const MyLivestreamApp = () => {
+  // init client and call here...
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <ViewerLivestream />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+### Adding customization
+
+The `ViewerLivestream` provides a lot of customization options that can be passed as props:
+
+- `ViewerLivestreamTopView` allows customizing the top view or the header of the `ViewerLivestream`. It contains the `LiveIndicator`, `FollowerCount`, and the `DurationBadge` component by default.
+- `LivestreamLayout` allows customizing the main video layout component of the `ViewerLivestream`.
+- `ViewerLivestreamControls` allows customization of the bottom livestream controls component of the `ViewerLivestream`. It contains the `ViewerLeaveStreamButton`.
+- `LiveIndicator` allows customizing the live indicator component that is present in the top view of the `ViewerLivestream`.
+- `FollowerCount` allows customization of the follower count component that is present in the top view of the `ViewerLivestream`.
+- `DurationBadge` allows customizing the duration badge that shows the duration of the livestream in the top view of the `ViewerLivestream`.
+- `ViewerLeaveStreamButton` allows customization of the leave button of the livestream on the controls of the `ViewerLivestream`.
+- `FloatingParticipantView` allows customization of the Floating Participant View that renders the video of the participant when screen is shared.
+- `onLeaveStreamHandler` allows full override of the default functionality on what should happen when viewer ends the streaming using `ViewerLeaveStreamButton`.
+
+```tsx
+import {
+  ViewerLivestream,
+  StreamVideo,
+  StreamCall,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
+import { Button } from 'react-native';
+
+const ViewerLeaveStreamButtonComponent = () => {
+  const call = useCall();
+
+  const onPressHandler = async () => {
+    await call.leave();
+  };
+
+  return <Button title="Leave Stream" onPress={onPressHandler} />;
+};
+
+export const MyLivestreamApp = () => {
+  // init client and call here...
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <ViewerLivestream
+          ViewerLeaveStreamButton={ViewerLeaveStreamButtonComponent}
+        />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+Result:
+
+![Preview of the Custom ViewerLeaveStreamButton](../assets/05-ui-cookbook/13-livestream/leave-stream-button.png)
