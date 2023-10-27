@@ -94,7 +94,7 @@ lane :build_ios do
     clean: true,
     export_options: {
       provisioningProfiles: {
-        bundle_id => provisioning_profile_prefix + bundle_id ,
+        bundle_id => provisioning_profile_prefix + bundle_id,
         bundle_id_broadcast => provisioning_profile_prefix + bundle_id_broadcast
       }
     },
