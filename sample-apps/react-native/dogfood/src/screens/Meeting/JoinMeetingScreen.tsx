@@ -63,7 +63,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
   }, [linking, joinCallHandler]);
 
   const isValidCallId = () => {
-    // Allows only alphabets, numbers and -(hyphen)
+    // Allows only alphabets, numbers, -(hyphen) and _(underscore)
     const callIdRegex = /^[A-Za-z0-9_-]*$/g;
     return callId && callId.match(callIdRegex);
   };
