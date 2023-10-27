@@ -36,7 +36,7 @@ export const AudioVolumeIndicator = () => {
     const disposeSoundDetector = createSoundDetector(
       mediaStream,
       ({ audioLevel: al }) => setAudioLevel(al),
-      { detectionFrequencyInMs: 80 },
+      { detectionFrequencyInMs: 80, destroyStreamOnStop: false },
     );
 
     return () => {
