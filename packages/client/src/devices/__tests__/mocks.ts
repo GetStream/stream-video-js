@@ -156,7 +156,7 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
 
   const tracks = [track];
   if (includeAudio) {
-    const track = {
+    const audioTrack = {
       eventHandlers: {},
       getSettings: () => ({
         deviceId: 'screen-audio',
@@ -170,10 +170,10 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
         event: string,
         handler: EventListenerOrEventListenerObject,
       ) => {
-        track.eventHandlers[event] = handler;
+        audioTrack.eventHandlers[event] = handler;
       },
     };
-    tracks.push(track);
+    tracks.push(audioTrack);
   }
 
   return {
