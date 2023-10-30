@@ -132,9 +132,9 @@ Stream's video roadmap and changelog are available [here](https://github.com/Get
 - [x] Livestream components
 - [x] Screen-share media track support
 - [x] PiP on Android
+- [x] Speaker management (needs docs)
 - [ ] Speaking while muted
 - [ ] PiP on iOS
-- [ ] Speaker management (needs docs)
 - [ ] Audio & Video filters
 - [ ] CPU usage improvement
 - [ ] Analytics Integration
