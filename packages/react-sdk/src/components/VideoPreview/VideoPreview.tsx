@@ -6,12 +6,20 @@ import { LoadingIndicator } from '../LoadingIndicator';
 
 const DefaultDisabledVideoPreview = () => {
   const { t } = useI18n();
-  return <div>{t('Video is disabled')}</div>;
+  return (
+    <div className="str_video__video-preview__disabled-video-preview">
+      {t('Video is disabled')}
+    </div>
+  );
 };
 
 const DefaultNoCameraPreview = () => {
   const { t } = useI18n();
-  return <div>{t('No camera found')}</div>;
+  return (
+    <div className="str_video__video-preview__no-camera-preview">
+      {t('No camera found')}
+    </div>
+  );
 };
 
 export type VideoPreviewProps = {

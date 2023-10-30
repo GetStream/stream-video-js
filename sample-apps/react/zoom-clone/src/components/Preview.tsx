@@ -19,7 +19,7 @@ export const Preview = {
       const disposeSoundDetector = createSoundDetector(
         mediaStream,
         ({ audioLevel }) => setPercentage(audioLevel),
-        { detectionFrequencyInMs: 80 },
+        { detectionFrequencyInMs: 80, destroyStreamOnStop: false },
       );
 
       return () => {
