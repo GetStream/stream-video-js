@@ -560,6 +560,8 @@ export class Call {
       this.clientStore.registerCall(this);
     }
 
+    this.applyDeviceConfig();
+
     return response;
   };
 
@@ -586,6 +588,8 @@ export class Call {
       this.watching = true;
       this.clientStore.registerCall(this);
     }
+
+    this.applyDeviceConfig();
 
     return response;
   };
@@ -1001,8 +1005,8 @@ export class Call {
       this.state.setCallingState(CallingState.JOINED);
 
       try {
-        await this.initCamera();
-        await this.initMic();
+        await this.initCamera({ setStatus: true });
+        await this.initMic({ setStatus: true });
       } catch (error) {
         this.logger('warn', 'Camera and/or mic init failed during join call');
       }
@@ -1782,7 +1786,12 @@ export class Call {
     );
   };
 
-  private async initCamera() {
+  applyDeviceConfig = () => {
+    this.initCamera({ setStatus: false });
+    this.initMic({ setStatus: false });
+  };
+
+  private async initCamera(options: { setStatus: boolean }) {
     // Wait for any in progress camera operation
     if (this.camera.enablePromise) {
       await this.camera.enablePromise;
@@ -1814,25 +1823,27 @@ export class Call {
       await this.camera.selectTargetResolution(targetResolution);
     }
 
-    // Publish already that was set before we joined
-    if (
-      this.camera.state.status === 'enabled' &&
-      this.camera.state.mediaStream &&
-      !this.publisher?.isPublishing(TrackType.VIDEO)
-    ) {
-      await this.publishVideoStream(this.camera.state.mediaStream);
-    }
+    if (options.setStatus) {
+      // Publish already that was set before we joined
+      if (
+        this.camera.state.status === 'enabled' &&
+        this.camera.state.mediaStream &&
+        !this.publisher?.isPublishing(TrackType.VIDEO)
+      ) {
+        await this.publishVideoStream(this.camera.state.mediaStream);
+      }
 
-    // Start camera if backend config speicifies, and there is no local setting
-    if (
-      this.camera.state.status === undefined &&
-      this.state.settings?.video.camera_default_on
-    ) {
-      await this.camera.enable();
+      // Start camera if backend config speicifies, and there is no local setting
+      if (
+        this.camera.state.status === undefined &&
+        this.state.settings?.video.camera_default_on
+      ) {
+        await this.camera.enable();
+      }
     }
   }
 
-  private async initMic() {
+  private async initMic(options: { setStatus: boolean }) {
     // Wait for any in progress mic operation
     if (this.microphone.enablePromise) {
       await this.microphone.enablePromise;
@@ -1848,21 +1859,23 @@ export class Call {
       return;
     }
 
-    // Publish media stream that was set before we joined
-    if (
-      this.microphone.state.status === 'enabled' &&
-      this.microphone.state.mediaStream &&
-      !this.publisher?.isPublishing(TrackType.AUDIO)
-    ) {
-      await this.publishAudioStream(this.microphone.state.mediaStream);
-    }
+    if (options.setStatus) {
+      // Publish media stream that was set before we joined
+      if (
+        this.microphone.state.status === 'enabled' &&
+        this.microphone.state.mediaStream &&
+        !this.publisher?.isPublishing(TrackType.AUDIO)
+      ) {
+        await this.publishAudioStream(this.microphone.state.mediaStream);
+      }
 
-    // Start mic if backend config specifies, and there is no local setting
-    if (
-      this.microphone.state.status === undefined &&
-      this.state.settings?.audio.mic_default_on
-    ) {
-      await this.microphone.enable();
+      // Start mic if backend config specifies, and there is no local setting
+      if (
+        this.microphone.state.status === undefined &&
+        this.state.settings?.audio.mic_default_on
+      ) {
+        await this.microphone.enable();
+      }
     }
   }
 
