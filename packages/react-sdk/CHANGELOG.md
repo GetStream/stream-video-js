@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.2...@stream-io/video-react-sdk-0.4.3) (2023-10-30)
+
+
+### Bug Fixes
+
+* add marker classes for the default `VideoPreview` components ([#1172](https://github.com/GetStream/stream-video-js/issues/1172)) ([7948cd8](https://github.com/GetStream/stream-video-js/commit/7948cd81a5ad6271872239a77b2a5ab8a856d231))
+
 ### [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.1...@stream-io/video-react-sdk-0.4.2) (2023-10-30)
 
 ### Dependency Updates
