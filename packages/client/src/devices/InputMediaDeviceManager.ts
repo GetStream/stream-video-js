@@ -204,9 +204,6 @@ export abstract class InputMediaDeviceManager<
       stream = this.state.mediaStream;
       this.unmuteTracks();
     } else {
-      if (this.state.mediaStream) {
-        this.stopTracks();
-      }
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
@@ -219,6 +216,14 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream);
+      this.getTracks().forEach((track) => {
+        track.addEventListener('ended', async () => {
+          if (this.state.status === 'disabled' || this.disablePromise) {
+            return;
+          }
+          await this.disable();
+        });
+      });
     }
   }
 }

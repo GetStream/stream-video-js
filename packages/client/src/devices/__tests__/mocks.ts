@@ -80,8 +80,14 @@ export const mockCall = (): Partial<Call> => {
   };
 };
 
+export type MockTrack = Partial<MediaStreamTrack> & {
+  eventHandlers: { [key: string]: EventListenerOrEventListenerObject };
+  readyState: string;
+};
+
 export const mockAudioStream = () => {
-  const track = {
+  const track: MockTrack = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: mockAudioDevices[0].deviceId,
     }),
@@ -90,15 +96,22 @@ export const mockAudioStream = () => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
   return {
     getTracks: () => [track],
     getAudioTracks: () => [track],
-  } as MediaStream;
+  } as any as MediaStream;
 };
 
 export const mockVideoStream = () => {
-  const track = {
+  const track: MockTrack = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: mockVideoDevices[0].deviceId,
       width: 1280,
@@ -109,15 +122,22 @@ export const mockVideoStream = () => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
   return {
     getTracks: () => [track],
     getVideoTracks: () => [track],
-  } as MediaStream;
+  } as any as MediaStream;
 };
 
 export const mockScreenShareStream = (includeAudio: boolean = true) => {
   const track = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: 'screen',
     }),
@@ -126,11 +146,18 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
 
   const tracks = [track];
   if (includeAudio) {
-    tracks.push({
+    const track = {
+      eventHandlers: {},
       getSettings: () => ({
         deviceId: 'screen-audio',
       }),
@@ -139,12 +166,19 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       stop: () => {
         track.readyState = 'ended';
       },
-    });
+      addEventListener: (
+        event: string,
+        handler: EventListenerOrEventListenerObject,
+      ) => {
+        track.eventHandlers[event] = handler;
+      },
+    };
+    tracks.push(track);
   }
 
   return {
     getTracks: () => tracks,
     getVideoTracks: () => tracks,
     getAudioTracks: () => tracks,
-  } as MediaStream;
+  } as any as MediaStream;
 };

@@ -3,7 +3,12 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
+import {
+  MockTrack,
+  mockCall,
+  mockVideoDevices,
+  mockVideoStream,
+} from './mocks';
 import { InputMediaDeviceManager } from '../InputMediaDeviceManager';
 import { InputMediaDeviceManagerState } from '../InputMediaDeviceManagerState';
 import { of } from 'rxjs';
@@ -215,6 +220,18 @@ describe('InputMediaDeviceManager.test', () => {
       echoCancellation: true,
       autoGainControl: false,
     });
+  });
+
+  it('should set status to disabled if track ends', async () => {
+    await manager.enable();
+
+    await (
+      (manager.state.mediaStream?.getTracks()[0] as MockTrack).eventHandlers[
+        'ended'
+      ] as Function
+    )();
+
+    expect(manager.state.status).toBe('disabled');
   });
 
   afterEach(() => {
