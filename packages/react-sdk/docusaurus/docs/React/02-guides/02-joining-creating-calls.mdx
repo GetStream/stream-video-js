@@ -96,16 +96,53 @@ await client.call('default', 'test-outgoing-call').getOrCreate({
 See all possible options at the [Call creation options section](#call-creation-options)
 
 This step will start the signaling flow.
-
 The caller will automatically join the call once the first callee accepts the call.
-
 The calling will automatically stop if all callee rejects the call.
 
 ### Watch for incoming and outgoing calls
 
 The easiest way to watch for incoming and outgoing calls is to use the `useCalls` hook.
 
-Let's see how the cancel, accept and reject operations work:
+```tsx
+import { useCalls, CallingState } from '@stream-io/video-react-sdk';
+
+export const MyCallUI = () => {
+  const calls = useCalls();
+
+  // handle incoming ring calls
+  const incomingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === false &&
+      call.state.callingState === CallingState.RINGING,
+  );
+
+  const [incomingCall] = incomingCalls;
+  if (incomingCall) {
+    // render the incoming call UI
+    return <MyIncomingCallUI call={incomingCall} />;
+  }
+
+  // handle outgoing ring calls
+  const outgoingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === true &&
+      call.state.callingState === CallingState.RINGING,
+  );
+
+  const [outgoingCall] = outgoingCalls;
+  if (outgoingCall) {
+    // render the outgoing call UI
+    return <MyOutgoingCallUI call={outgoingCall} />;
+  }
+
+  return null;
+};
+```
+
+You can also check the sample integration in the following CodeSandboxes:
+
+- [Caller side](https://codesandbox.io/s/stream-video-ringing-caller-x3twcw)
+- [Callee side](https://codesandbox.io/s/stream-video-ringing-callee-28wssp)
 
 ### Canceling a call
 
@@ -122,7 +159,7 @@ Please note that calling `call.leave()` after joining the call won't stop the si
 A callee can accept or reject an incoming call. To accept and join the call:
 
 ```typescript
-call.join();
+await call.join();
 ```
 
 Please note that it's possible to join multiple calls. If you only want to allow one active call, you must leave joined calls before accepting an incoming call.
