@@ -258,23 +258,17 @@ export const getScreenShareStream = async (
   }
 };
 
-const watchForDisconnectedDevice = (
-  kind: MediaDeviceKind,
+const devices$ = memoizedObservable(() =>
+  merge(
+    from(navigator.mediaDevices.enumerateDevices()),
+    getDeviceChangeObserver(),
+  ).pipe(shareReplay(1)),
+);
+
+export const watchForDisconnectedDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  let devices$;
-  switch (kind) {
-    case 'audioinput':
-      devices$ = getAudioDevices();
-      break;
-    case 'videoinput':
-      devices$ = getVideoDevices();
-      break;
-    case 'audiooutput':
-      devices$ = getAudioOutputDevices();
-      break;
-  }
-  return combineLatest([devices$, deviceId$]).pipe(
+  return combineLatest([devices$(), deviceId$]).pipe(
     filter(
       ([devices, deviceId]) =>
         !!deviceId && !devices.find((d) => d.deviceId === deviceId),
@@ -289,11 +283,13 @@ const watchForDisconnectedDevice = (
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
+ *
+ * @deprecated use `watchForDisconnectedDevice`
  */
 export const watchForDisconnectedAudioDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice('audioinput', deviceId$);
+  return watchForDisconnectedDevice(deviceId$);
 };
 
 /**
@@ -302,11 +298,13 @@ export const watchForDisconnectedAudioDevice = (
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
+ *
+ * @deprecated use `watchForDisconnectedDevice`
  */
 export const watchForDisconnectedVideoDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice('videoinput', deviceId$);
+  return watchForDisconnectedDevice(deviceId$);
 };
 
 /**
@@ -315,11 +313,13 @@ export const watchForDisconnectedVideoDevice = (
  * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
+ *
+ * @deprecated use `watchForDisconnectedDevice`
  */
 export const watchForDisconnectedAudioOutputDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice('audiooutput', deviceId$);
+  return watchForDisconnectedDevice(deviceId$);
 };
 
 const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {

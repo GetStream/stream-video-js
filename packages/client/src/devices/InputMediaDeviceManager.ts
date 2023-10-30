@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -6,6 +6,7 @@ import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { watchForDisconnectedDevice } from './devices';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -20,6 +21,7 @@ export abstract class InputMediaDeviceManager<
    */
   disablePromise?: Promise<void>;
   logger: Logger;
+  private subscriptions: Subscription[] = [];
 
   protected constructor(
     protected readonly call: Call,
@@ -27,6 +29,22 @@ export abstract class InputMediaDeviceManager<
     protected readonly trackType: TrackType,
   ) {
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+    if (
+      typeof navigator !== 'undefined' &&
+      typeof navigator.mediaDevices !== 'undefined' &&
+      !isReactNative() &&
+      (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
+    ) {
+      this.subscriptions.push(
+        watchForDisconnectedDevice(this.state.selectedDevice$).subscribe(
+          async (isDisconnected) => {
+            if (isDisconnected) {
+              await this.disable();
+            }
+          },
+        ),
+      );
+    }
   }
 
   /**
