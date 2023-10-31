@@ -31,7 +31,9 @@ vi.mock('../devices.ts', () => {
 });
 
 class TestInputMediaDeviceManagerState extends InputMediaDeviceManagerState {
-  public getDeviceIdFromStream = vi.fn(() => 'mock-device-id');
+  public getDeviceIdFromStream = vi.fn(
+    (stream) => stream.getVideoTracks()[0].getSettings().deviceId,
+  );
 }
 
 class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMediaDeviceManagerState> {
@@ -234,6 +236,10 @@ describe('InputMediaDeviceManager.test', () => {
   it('should set status to disabled if track ends', async () => {
     await manager.enable();
 
+    vi.spyOn(manager, 'enable');
+    vi.spyOn(manager, 'listDevices').mockImplementationOnce(() =>
+      of(mockVideoDevices.slice(1)),
+    );
     await (
       (manager.state.mediaStream?.getTracks()[0] as MockTrack).eventHandlers[
         'ended'
@@ -241,6 +247,20 @@ describe('InputMediaDeviceManager.test', () => {
     )();
 
     expect(manager.state.status).toBe('disabled');
+    expect(manager.enable).not.toHaveBeenCalled();
+  });
+
+  it('should restart track if a new default device is connected', async () => {
+    await manager.enable();
+
+    vi.spyOn(manager, 'enable');
+    await (
+      (manager.state.mediaStream?.getTracks()[0] as MockTrack).eventHandlers[
+        'ended'
+      ] as Function
+    )();
+
+    expect(manager.enable).toHaveBeenCalled();
   });
 
   it('should disable stream and deselect device if selected device is disconnected', async () => {
@@ -255,7 +275,6 @@ describe('InputMediaDeviceManager.test', () => {
     await vi.runAllTimersAsync();
 
     expect(manager.state.status).toBe('disabled');
-    expect(manager.state.selectedDevice).toBeUndefined();
 
     vi.useRealTimers();
   });

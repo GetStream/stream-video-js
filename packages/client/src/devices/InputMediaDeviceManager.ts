@@ -1,4 +1,4 @@
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -245,6 +245,18 @@ export abstract class InputMediaDeviceManager<
             return;
           }
           await this.disable();
+          if (this.state.selectedDevice) {
+            this.listDevices()
+              .pipe(take(1))
+              .subscribe(async (devices) => {
+                if (
+                  devices &&
+                  devices.find((d) => d.deviceId === this.state.selectedDevice)
+                ) {
+                  await this.enable();
+                }
+              });
+          }
         });
       });
     }
