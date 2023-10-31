@@ -51,6 +51,10 @@ export const JoinLiveStream = ({
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
 
+  // Allows only alphabets, numbers, -(hyphen) and _(underscore)
+  const callIdRegex = /^[A-Za-z0-9_-]*$/g;
+  const isValidCallId = callId && callId.match(callIdRegex);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -85,13 +89,13 @@ export const JoinLiveStream = ({
           <Button
             onPress={enterBackstageHandler}
             title={t('Enter Backstage')}
-            disabled={!callId}
+            disabled={!isValidCallId}
           />
         ) : (
           <Button
             onPress={joinLiveStreamHandler}
             title={t('Join Live stream')}
-            disabled={!callId}
+            disabled={!isValidCallId}
           />
         )}
       </View>

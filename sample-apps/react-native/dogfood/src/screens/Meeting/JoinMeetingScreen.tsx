@@ -62,6 +62,10 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
     }
   }, [linking, joinCallHandler]);
 
+  // Allows only alphabets, numbers, -(hyphen) and _(underscore)
+  const callIdRegex = /^[A-Za-z0-9_-]*$/g;
+  const isValidCallId = callId && callId.match(callIdRegex);
+
   const landscapeStyles: ViewStyle = {
     flexDirection: orientation === 'landscape' ? 'row' : 'column',
   };
@@ -97,7 +101,7 @@ const JoinMeetingScreen = (props: JoinMeetingScreenProps) => {
           <Button
             onPress={joinCallHandler}
             title={t('Join Call')}
-            disabled={!callId}
+            disabled={!isValidCallId}
             buttonStyle={styles.joinCallButton}
           />
         </View>
