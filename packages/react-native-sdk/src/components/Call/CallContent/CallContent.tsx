@@ -30,6 +30,7 @@ import {
   CallParticipantsListComponentProps,
   CallParticipantsListProps,
 } from '../CallParticipantsList';
+import { useIsInPiPMode, useAutoEnterPiPEffect } from '../../../hooks';
 
 export type StreamReactionType = StreamReaction & {
   icon: string;
@@ -95,8 +96,8 @@ export const CallContent = ({
   ParticipantsInfoBadge,
   VideoRenderer,
   layout = 'grid',
+  landscape = false,
   supportedReactions,
-  landscape = true,
 }: CallContentProps) => {
   const [
     showRemoteParticipantInFloatingView,
@@ -111,19 +112,24 @@ export const CallContent = ({
     useLocalParticipant,
   } = useCallStateHooks();
 
+  useAutoEnterPiPEffect();
+
   const _remoteParticipants = useRemoteParticipants();
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const localParticipant = useLocalParticipant();
-
+  const isInPiPMode = useIsInPiPMode();
   const hasScreenShare = useHasOngoingScreenShare();
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
   const showFloatingView =
     !showSpotlightLayout &&
+    !isInPiPMode &&
     remoteParticipants.length > 0 &&
     remoteParticipants.length < 3;
   const isRemoteParticipantInFloatingView =
-    showRemoteParticipantInFloatingView && remoteParticipants.length === 1;
+    showFloatingView &&
+    showRemoteParticipantInFloatingView &&
+    remoteParticipants.length === 1;
 
   /**
    * This hook is used to handle IncallManager specs of the application.
@@ -150,8 +156,10 @@ export const CallContent = ({
   }, []);
 
   const participantViewProps: ParticipantViewComponentProps = {
-    ParticipantLabel,
-    ParticipantNetworkQualityIndicator,
+    ParticipantLabel: isInPiPMode ? null : ParticipantLabel,
+    ParticipantNetworkQualityIndicator: isInPiPMode
+      ? null
+      : ParticipantNetworkQualityIndicator,
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
@@ -174,12 +182,12 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
   return (
-    <View style={[styles.container, callContent.container, landScapeStyles]}>
+    <View style={[styles.container, landscapeStyles, callContent.container]}>
       <View style={[styles.container, callContent.callParticipantsContainer]}>
         <View
           style={[styles.view, callContent.topContainer]}
@@ -187,7 +195,7 @@ export const CallContent = ({
           // and allows only the top and floating view (its child views) to take up the touches
           pointerEvents="box-none"
         >
-          {CallTopView && (
+          {!isInPiPMode && CallTopView && (
             <CallTopView
               onBackPressed={onBackPressed}
               onParticipantInfoPress={onParticipantInfoPress}
@@ -214,7 +222,7 @@ export const CallContent = ({
         )}
       </View>
 
-      {CallControls && (
+      {!isInPiPMode && CallControls && (
         <CallControls
           onHangupCallHandler={onHangupCallHandler}
           landscape={landscape}

@@ -12,3 +12,4 @@ export * from './CallControls';
 export * from './LobbyControls';
 export * from './IncomingCallControls';
 export * from './OutgoingCallControls';
+export * from './ScreenShareButton';

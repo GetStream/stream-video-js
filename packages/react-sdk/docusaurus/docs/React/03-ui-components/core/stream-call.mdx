@@ -5,8 +5,6 @@ title: StreamCall
 
 The `<StreamCall />` component is a declarative component wrapper around `Call` objects. It utilizes the `StreamCallProvider` to make the [call and its state](../../../guides/call-and-participant-state) available to all child components.
 
-Additionally, the `<StreamCall />` component sets up a [`MediaDevicesProvider`](../../../guides/camera-and-microphone) instance, making device management (microphone, camera) easier for integrators.
-
 ## General usage
 
 ```tsx
@@ -33,11 +31,3 @@ export const App = () => {
 | `Call` |
 
 Stream's `Call` instance propagated to the component's children as a part of `StreamCallContext`. Children can access it with `useCall()` hook.
-
-### `mediaDevicesProviderProps`
-
-| Type                                       |
-| ------------------------------------------ |
-| `MediaDevicesProviderProps` \| `undefined` |
-
-An optional props to pass to the [`MediaDevicesProvider`](../../../guides/camera-and-microphone).

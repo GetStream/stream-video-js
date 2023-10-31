@@ -1,30 +1,4 @@
-import { PropsWithChildren } from 'react';
-import { Call } from '@stream-io/video-client';
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
-import {
-  MediaDevicesProvider,
-  MediaDevicesProviderProps,
-} from '../../contexts';
 
-export type StreamCallProps = {
-  call: Call;
-
-  /**
-   * An optional props to pass to the `MediaDevicesProvider`.
-   */
-  mediaDevicesProviderProps?: MediaDevicesProviderProps;
-};
-
-export const StreamCall = ({
-  children,
-  call,
-  mediaDevicesProviderProps,
-}: PropsWithChildren<StreamCallProps>) => {
-  return (
-    <StreamCallProvider call={call}>
-      <MediaDevicesProvider {...mediaDevicesProviderProps}>
-        {children}
-      </MediaDevicesProvider>
-    </StreamCallProvider>
-  );
-};
+// re-exporting the StreamCallProvider as StreamCall
+export const StreamCall = StreamCallProvider;

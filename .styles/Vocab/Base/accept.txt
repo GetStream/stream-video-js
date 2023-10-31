@@ -52,6 +52,7 @@ staticNavigate
 _Note
 (?i)dynascale
 bitrate
+codec
 codecs
 (?i)geofencing
 (?i)npm
@@ -80,3 +81,4 @@ unmount
 websockets
 hardcoded
 UIs
+useOrientation

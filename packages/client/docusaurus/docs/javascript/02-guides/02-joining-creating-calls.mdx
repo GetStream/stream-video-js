@@ -6,7 +6,7 @@ description: An overview of how to create calls and join them
 
 This guide shows how to create, join, leave, and end call rooms and ring calls.
 
-## Call room
+## Call
 
 ### Create and join a call
 
@@ -33,6 +33,26 @@ await client.call(callType, callId).getOrCreate();
 ```
 
 See all possible options at the [Call creation options section](#call-creation-options)
+
+### Join with mic and camera on or off
+
+You can override the default mic and camera settings before you join a call.
+Typically, you should configure this in your Lobby view:
+
+```typescript
+const call = client.call('default', 'test-call');
+
+// enable mic and camera
+await call.camera.enable();
+await call.microphone.enable();
+
+// alternatively, you can disable them
+await call.camera.disable();
+await call.microphone.disable();
+
+// and then join the call
+await call.join();
+```
 
 ### Leave call
 
@@ -76,16 +96,32 @@ await client.call('default', 'test-outgoing-call').getOrCreate({
 See all possible options at the [Call creation options section](#call-creation-options)
 
 This step will start the signaling flow.
-
 The caller will automatically join the call once the first callee accepts the call.
-
 The calling will automatically stop if all callee rejects the call.
 
 ### Watch for incoming and outgoing calls
 
 The easiest way to watch for incoming and outgoing calls is to use the `client.state.calls$` Observable.
 
-Let's see how the cancel, accept and reject operations work:
+```typescript
+import { CallingState } from '@stream-io/video-client';
+
+client.state.calls$.subscribe((calls) => {
+  const incomingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === false &&
+      call.state.callingState === CallingState.RINGING,
+  );
+  console.log('Incoming calls', incomingCalls);
+
+  const outgoingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === true &&
+      call.state.callingState === CallingState.RINGING,
+  );
+  console.log('Outgoing calls', outgoingCalls);
+});
+```
 
 ### Canceling a call
 
@@ -143,3 +179,52 @@ The following options are supported when creating a call:
 | `startsAt` | When the call will start. Used for calls scheduled in the future, livestreams, audio rooms etc                  | -       |
 | `team`     | Restrict the access to this call to a specific team                                                             | -       |
 | `ring`     | If you want the call to ring for each member                                                                    | false   |
+
+### Restricting access
+
+You can restrict access to a call by tweaking the [Call Type](../../guides/configuring-call-types/) permissions and roles.
+A typical use case is to restrict access to a call to a specific set of users -> call members.
+
+#### Step 1: Set up the roles and permissions
+
+On our [dashboard](https://dashboard.getstream.io/), navigate to the **Video & Audio -> Roles & Permissions** section and select the appropriate role and scope.
+In this example, we will use `my-call-type` scope.
+
+By default, all users unless specified otherwise, have the `user` role.
+
+We start by removing the `JoinCall` permission from the `user` role for the `my-call-type` scope.
+It will prevent regular users from joining a call of this type.
+
+![Revoke JoinCall for user role](../assets/02-guides/02-joining-creating-calls/user-revoke-joincall.png)
+
+Next, let's ensure that the `call_member` role has the `JoinCall` permission for the `my-call-type` scope.
+It will allow users with the `call_member` role to join a call of this type.
+
+![Grant JoinCall for call_member role](../assets/02-guides/02-joining-creating-calls/call_member-grant-joincall.png)
+
+Once this is set, we can proceed with setting up a `call` instance.
+
+#### Step 2: Set up the call
+
+```typescript
+const call = client.call('my-call-type', 'my-call-id');
+await call.getOrCreate({
+  data: {
+    members: [
+      // please note the `role` property
+      { user_id: 'alice', role: 'call_member' },
+      { user_id: 'bob', role: 'call_member' },
+    ],
+  },
+});
+
+// and if necessary, to grant access to more users
+await call.updateCallMembers({
+  update_members: [{ user_id: 'charlie', role: 'call_member' }],
+});
+
+// or, to remove access from some users
+await call.updateCallMembers({
+  remove_members: ['charlie'],
+});
+```

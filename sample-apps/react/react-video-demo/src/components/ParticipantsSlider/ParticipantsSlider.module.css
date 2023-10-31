@@ -20,7 +20,6 @@
 .participant.vertical {
   width: 100%;
   border-radius: 12px;
-  aspect-ratio: auto;
 }
 
 .participant.vertical video {

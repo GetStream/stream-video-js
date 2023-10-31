@@ -6,9 +6,15 @@
   "Join": "Join",
   "You": "You",
   "Reconnecting...": "Reconnecting...",
-  "You are first to join the call.": "You are first to join the call.",
+  "Loading...": "Loading...",
+  "Start Stream": "Start Stream",
+  "End Stream": "End Stream",
+  "Leave Stream": "Leave Stream",
+  "Live": "Live",
+  "You are first to Join the call.": "You are first to Join the call.",
   "Participants ({{ numberOfParticipants }})": "Participants ({{ numberOfParticipants }})",
   "{{ userName }} is sharing their screen": "{{ userName }} is sharing their screen",
+  "You are sharing your screen": "You are sharing your screen",
   "{{ numberOfParticipants }} participant(s) are in the call.": "{{ numberOfParticipants }} participant(s) are in the call.",
   "You are about to join a call with id {{ callId }}.": "You are about to join a call with id {{ callId }}."
 }

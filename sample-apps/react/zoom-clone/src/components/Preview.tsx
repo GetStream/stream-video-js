@@ -1,69 +1,45 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   createSoundDetector,
   DeviceSettings,
-  disposeOfMediaStream,
-  getAudioStream,
   IconButton,
-  useMediaDevices,
+  useCallStateHooks,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 
 export const Preview = {
   SpeechIndicator: () => {
-    const { selectedAudioInputDeviceId, initialAudioEnabled } =
-      useMediaDevices();
-    const [percentage, setPercentage] = useState<number>(0);
+    const { useMicrophoneState } = useCallStateHooks();
+    const { isEnabled, mediaStream } = useMicrophoneState();
+    const [percentage, setPercentage] = useState(0);
 
-    useLayoutEffect(() => {
-      let mediaStream: MediaStream | undefined;
-      let interrupted = false;
-      let disposeOfSoundDetector:
-        | undefined
-        | ReturnType<typeof createSoundDetector>;
+    useEffect(() => {
+      if (!isEnabled || !mediaStream) return;
 
-      if (!initialAudioEnabled) return;
-
-      getAudioStream({ deviceId: selectedAudioInputDeviceId }).then((ms) => {
-        if (interrupted) return disposeOfMediaStream(ms);
-
-        mediaStream = ms;
-
-        disposeOfSoundDetector = createSoundDetector(
-          ms,
-          ({ audioLevel }) => {
-            setPercentage(audioLevel);
-          },
-          { detectionFrequencyInMs: 50 },
-        );
-      });
+      const disposeSoundDetector = createSoundDetector(
+        mediaStream,
+        ({ audioLevel }) => setPercentage(audioLevel),
+        { detectionFrequencyInMs: 80, destroyStreamOnStop: false },
+      );
 
       return () => {
-        interrupted = true;
-        disposeOfSoundDetector?.();
-        if (mediaStream) disposeOfMediaStream(mediaStream);
-        setPercentage(0);
+        disposeSoundDetector().catch(console.error);
       };
-    }, [selectedAudioInputDeviceId, initialAudioEnabled]);
+    }, [isEnabled, mediaStream]);
 
     return (
       <div className="w-8 h-8 bg-zinc-800 rounded-full flex justify-center items-center">
         <div
-          className="rounded-full bg-zinc-100 to-transparent w-full h-full
-          "
+          className="rounded-full bg-zinc-100 to-transparent w-full h-full"
           style={{ transform: `scale(${percentage / 100})` }}
         />
       </div>
     );
   },
   Layout: () => {
-    const {
-      toggleInitialAudioMuteState,
-      toggleInitialVideoMuteState,
-      initialAudioEnabled,
-      initialVideoState,
-    } = useMediaDevices();
-
+    const { useMicrophoneState, useCameraState } = useCallStateHooks();
+    const { isMute: isMicMute, microphone } = useMicrophoneState();
+    const { isMute: isCameraMute, camera } = useCameraState();
     return (
       <>
         <div className="preview-layout relative lg:w-3/5 xl:w-1/4 w-full flex justify-center">
@@ -80,12 +56,12 @@ export const Preview = {
         <div className="flex justify-between items-center lg:w-3/5 xl:w-1/4 w-full">
           <div className="str-video__call-controls bg-zinc-700 rounded-full px-6">
             <IconButton
-              icon={!initialAudioEnabled ? 'mic-off' : 'mic'}
-              onClick={toggleInitialAudioMuteState}
+              icon={isMicMute ? 'mic-off' : 'mic'}
+              onClick={() => microphone.toggle()}
             />
             <IconButton
-              icon={!initialVideoState.enabled ? 'camera-off' : 'camera'}
-              onClick={toggleInitialVideoMuteState}
+              icon={isCameraMute ? 'camera-off' : 'camera'}
+              onClick={() => camera.toggle()}
             />
           </div>
         </div>

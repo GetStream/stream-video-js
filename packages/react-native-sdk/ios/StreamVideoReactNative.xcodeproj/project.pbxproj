@@ -39,7 +39,7 @@
 		134814211AA4EA7D00B7C361 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				134814201AA4EA6300B7C361 /* libLivekitReactNative.a */,
+				134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,7 +71,7 @@
 			);
 			name = StreamVideoReactNative;
 			productName = RCTDataManager;
-			productReference = 134814201AA4EA6300B7C361 /* libLivekitReactNative.a */;
+			productReference = 134814201AA4EA6300B7C361 /* libStreamVideoReactNative.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */

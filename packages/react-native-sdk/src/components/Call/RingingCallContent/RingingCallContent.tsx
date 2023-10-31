@@ -55,7 +55,7 @@ const RingingCallPanel = ({
   CallContent = DefaultCallContent,
   JoiningCallIndicator = DefaultJoiningCallIndicator,
   CallTopView,
-  landscape,
+  landscape = false,
 }: RingingCallContentProps) => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
@@ -66,8 +66,12 @@ const RingingCallPanel = ({
   switch (callingState) {
     case CallingState.RINGING:
       return isCallCreatedByMe
-        ? OutgoingCall && <OutgoingCall CallTopView={CallTopView} />
-        : IncomingCall && <IncomingCall CallTopView={CallTopView} />;
+        ? OutgoingCall && (
+            <OutgoingCall CallTopView={CallTopView} landscape={landscape} />
+          )
+        : IncomingCall && (
+            <IncomingCall CallTopView={CallTopView} landscape={landscape} />
+          );
     case CallingState.JOINED:
       return (
         CallContent && (

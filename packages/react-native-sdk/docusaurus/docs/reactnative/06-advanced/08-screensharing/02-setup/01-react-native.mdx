@@ -1,0 +1,77 @@
+---
+title: React Native Screen sharing Setup
+---
+
+In this document, we explain how to setup screen share for Android and iOS in your React Native App.
+
+## Android Setup
+
+In Android, we will use a foreground service to keep the call alive and also to do screen capturing . The SDK will manage the foreground service. But in order to be able to use the foreground service, some declarations need to be added in the `AndroidManifest.xml`:
+
+```xml title="AndroidManifest.xml"
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<!-- We declare the permissions to for using foreground service -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
+<!-- add the following inside the <application> section -->
+<service
+    android:name="app.notifee.core.ForegroundService"
+    android:stopWithTask="true"
+    android:foregroundServiceType="mediaProjection|microphone" />
+```
+
+## iOS Setup
+
+The screen sharing functionality is supported on iOS 14 or newer versions. To enable screen sharing, we need to create a `Broadcast Upload Extension` for capturing the contents of the user's screen.
+
+### Step 1: Create the Broadcast Upload Extension
+
+Open your project with Xcode, select `File > New > Target` in menu bar. Select `Broadcast Upload Extension`, and click `Next`.
+
+![Preview of choosing broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-choose-broadcast-target.png)
+
+<!-- vale off -->
+Enter a name in `Product Name` field, lets say "Broadcast Extension", choose the `Team` from dropdown, choose the `Language` to be `Swift` from dropdown, uncheck `include UI extension` field and click `Finish`. You will then be prompted with pop-up titled `Activate "Broadcast Extension" scheme?`, click `Activate` button on that.
+<!-- vale on -->
+
+![Preview of creating name for the broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-create-name.png)
+
+### Step 2: Copy over the files from Sample App
+
+From [`@stream-io/video-react-native-dogfood` app](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/dogfood/ios/Broadcast%20Extension/), copy the content of `SampleHandler.swift` file and paste it to the `SampleHandler.swift` file in your extension and also copy `Atomic.swift`, `SocketConnection.swift`, `SampleUploader.swift` and `DarwinNotificationCenter.swift` files to your extension's folder and ensure that they are added to the target.
+
+![Preview of files inside the broadcast upload extension target](../../../assets/06-advanced/08-screensharing/ios-copy-files.png)
+
+### Step 3: Add App Group Id
+
+Go to `App-Name > Signing & Capabilities` and add `App Groups` Capability. Also, go to `Broadcast Extension > Signing & Capabilities` and add `App Groups` Capability.
+
+![Preview of adding App Groups Capability](../../../assets/06-advanced/08-screensharing/ios-add-capability.png)
+
+Then, select or add a new app-group-identifier to both the App and the Extension. **Ensure that the App Group for both the targets are the same**.
+![Preview of adding App Groups Capability](../../../assets/06-advanced/08-screensharing/ios-add-app-group-name.png)
+
+Then, head over to `SampleHandler.swift` file and paste the app-group-identifier in the `appGroupIdentifier` constant variable.
+
+![Preview of copying the App Groups name](../../../assets/06-advanced/08-screensharing/ios-copy-app-group-to-file.png)
+
+### Step 4: Update `Info`
+
+Go to the `info.plist` of the App and add two new keys:
+
+| Key                       |      Value                                      | 
+|---------------------------|-------------------------------------------------|
+| RTCScreenSharingExtension |  `The-bundle-identifier-of-broadcast-extension` | 
+| RTCAppGroupIdentifier     |  `The-app-group-identifier`                     |
+
+![Preview of App's `info.plist`](../../../assets/06-advanced/08-screensharing/ios-app-info.png)
+
+Head over to the `Info` of the broadcast extension target and ensure that the `Bundle version string (short)` is the same for both the App and the broadcast extension.
+
+![Preview of Info of the broadcast extension](../../../assets/06-advanced/08-screensharing/ios-bundle-version.png)
+
+Finally, head over to the `Build Settings` of the broadcast extension target and ensure that the `iOS Deployment Target` is 14.0 or above. The deployment target is the minimum iOS version that the extension can run on. The minimum it can run on is 14.0. But if your app is set to a higher iOS deployment target then it is best to keep them both aligned.
+
+![Preview of iOS deployment target of the broadcast extension](../../../assets/06-advanced/08-screensharing/ios-deployment-target.png)

@@ -136,6 +136,13 @@ export type CallStackParamList = {
   JoinCallScreen: undefined;
 };
 
+export type LiveStreamParamList = {
+  LiveStreamChoose: undefined;
+  JoinLiveStream: { mode: 'host' | 'viewer' };
+  HostLiveStream: { callId: string };
+  ViewerLiveStream: { callId: string };
+};
+
 export type AppModeParamList = {
   ChooseAppModeScreen: undefined;
 };
@@ -145,6 +152,7 @@ export type RootStackParamList = {
   Call: undefined;
   AudioRoom: undefined;
   ChooseAppMode: undefined;
+  LiveStream: undefined;
 };
 
 export type ScreenTypes =

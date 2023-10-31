@@ -10,6 +10,7 @@ import { ComponentTestIds } from '../../../constants/TestIds';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
 import { ParticipantViewComponentProps } from '../../Participant';
+import { useIsInPiPMode } from '../../../hooks';
 
 /**
  * Props for the CallParticipantsGrid component.
@@ -54,18 +55,31 @@ export const CallParticipantsGrid = ({
   // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
   const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
   const allParticipants = useDebouncedValue(_allParticipants, 300);
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
-  const showFloatingView =
-    remoteParticipants.length > 0 && remoteParticipants.length < 3;
+  const isInPiPMode = useIsInPiPMode();
 
-  const participants = showFloatingView
+  const showFloatingView =
+    !isInPiPMode &&
+    remoteParticipants.length > 0 &&
+    remoteParticipants.length < 3;
+
+  let participants = showFloatingView
     ? showLocalParticipant && localParticipant
       ? [localParticipant]
       : remoteParticipants
     : allParticipants;
+
+  if (isInPiPMode) {
+    participants =
+      remoteParticipants.length > 0
+        ? [remoteParticipants[0]]
+        : localParticipant
+        ? [localParticipant]
+        : [];
+  }
 
   const participantViewProps: CallParticipantsListComponentProps = {
     ParticipantView,
@@ -80,7 +94,7 @@ export const CallParticipantsGrid = ({
     <View
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         { backgroundColor: colors.dark_gray },
         callParticipantsGrid.container,
       ]}

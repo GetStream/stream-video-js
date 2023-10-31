@@ -72,10 +72,10 @@ export const ParticipantsSlider: FC<Props> = ({
   );
 
   useEffect(() => {
-    if (!scrollWrapper || !call || mode === 'vertical') return;
+    if (!scrollWrapper || !call) return;
     const cleanup = call.setViewport(scrollWrapper);
     return () => cleanup();
-  }, [scrollWrapper, call, mode]);
+  }, [scrollWrapper, call]);
 
   useEffect(() => {
     if (breakpoint === 'xs' || breakpoint === 'sm') {
@@ -152,10 +152,8 @@ export const ParticipantsSlider: FC<Props> = ({
                 className={slideClassName}
               >
                 <Participant
-                  call={call}
                   className={participantClassName}
                   participant={participant}
-                  slider={derivedMode}
                 />
               </SwiperSlide>
             );

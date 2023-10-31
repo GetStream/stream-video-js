@@ -76,9 +76,7 @@ client.call('default', 'test-outgoing-call').getOrCreate({
 See all possible options at the [Call creation options section](#call-creation-options)
 
 This step will start the signaling flow.
-
 The caller will automatically join the call once the first callee accepts the call.
-
 The calling will automatically stop if all callee rejects the call.
 
 :::note
@@ -89,7 +87,41 @@ When ring is true, a push notification will be sent to the members, provided the
 
 The easiest way to watch for incoming and outgoing calls is to use the `useCalls` hook.
 
-Let's see how the cancel, accept and reject operations work:
+```tsx
+import { useCalls, CallingState } from '@stream-io/video-react-native-sdk';
+
+export const MyCallUI = () => {
+  const calls = useCalls();
+
+  // handle incoming ring calls
+  const incomingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === false &&
+      call.state.callingState === CallingState.RINGING,
+  );
+
+  const [incomingCall] = incomingCalls;
+  if (incomingCall) {
+    // render the incoming call UI
+    return <MyIncomingCallUI call={incomingCall} />;
+  }
+
+  // handle outgoing ring calls
+  const outgoingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === true &&
+      call.state.callingState === CallingState.RINGING,
+  );
+
+  const [outgoingCall] = outgoingCalls;
+  if (outgoingCall) {
+    // render the outgoing call UI
+    return <MyOutgoingCallUI call={outgoingCall} />;
+  }
+
+  return null;
+};
+```
 
 ### Canceling a call
 
@@ -147,4 +179,4 @@ The following options are supported when creating a call:
 | `startsAt` | When the call will start. Used for calls scheduled in the future, livestreams, audio rooms etc                  | -       |
 | `team`     | Restrict the access to this call to a specific team                                                             | -       |
 | `ring`     | If you want the call to ring for each member                                                                    | false   |
-| `notify`   | If you want the call to notify each member by sending push notification                                                              | false   |
+| `notify`   | If you want the call to notify each member by sending push notification                                         | false   |

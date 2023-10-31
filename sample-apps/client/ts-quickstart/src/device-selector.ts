@@ -10,7 +10,7 @@ export const renderAudioDeviceSelector = (call: Call) => {
   call.microphone.listDevices().subscribe({
     next: (devices) => {
       element.innerHTML = '';
-      devices.forEach((device) => {
+      devices?.forEach((device) => {
         const option = document.createElement('option');
         option.value = device.deviceId;
         option.innerText = device.label;
@@ -25,15 +25,15 @@ export const renderAudioDeviceSelector = (call: Call) => {
 
 export const renderVideoDeviceSelector = (call: Call) => {
   const element = document.createElement('select');
-  element.addEventListener('change', (e) => {
+  element.addEventListener('change', async (e) => {
     const target = e.target as HTMLSelectElement;
-    call.camera.select(target.value);
+    await call.camera.select(target.value);
   });
 
   call.camera.listDevices().subscribe({
     next: (devices) => {
       element.innerHTML = '';
-      devices.forEach((device) => {
+      devices?.forEach((device) => {
         const option = document.createElement('option');
         option.value = device.deviceId;
         option.innerText = device.label;

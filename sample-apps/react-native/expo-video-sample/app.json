@@ -33,11 +33,16 @@
       [
         "@stream-io/video-react-native-sdk",
         {
+          "enableScreenshare": true,
+          "appleTeamId": "EHV7XZLAHA",
           "ringingPushNotifications": {
             "disableVideoIos": false,
             "includesCallsInRecentsIos": false
           },
-          "enableNonRingingPushNotifications": true
+          "enableNonRingingPushNotifications": true,
+          "androidPictureInPicture": {
+            "enableAutomaticEnter": true
+          }
         }
       ],
       "@config-plugins/react-native-callkeep",

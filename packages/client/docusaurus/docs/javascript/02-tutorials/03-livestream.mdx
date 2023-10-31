@@ -51,14 +51,8 @@ const user: User = {
   image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver',
 };
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-});
-
+const client = new StreamVideoClient({ apiKey, token, user });
 const call = client.call('livestream', callId);
-
 call.join({ create: true }).then(() => {
   call.camera.enable();
   call.microphone.enable();

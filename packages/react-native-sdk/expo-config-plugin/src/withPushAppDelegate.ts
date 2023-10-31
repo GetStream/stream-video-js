@@ -20,7 +20,7 @@ const withPushAppDelegate: ConfigPlugin<ConfigProps> = (
   props,
 ) => {
   return withAppDelegate(configuration, (config) => {
-    if (!props.ringingPushNotifications) {
+    if (!props?.ringingPushNotifications) {
       // user doesnt want to use ringing push notifications, so quit early
       return config;
     }

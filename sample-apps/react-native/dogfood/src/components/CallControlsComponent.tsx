@@ -6,6 +6,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
+  ScreenShareButton,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
@@ -30,7 +31,7 @@ export const CallControlsComponent = ({
   landscape,
 }: CallControlsComponentProps) => {
   const { bottom } = useSafeAreaInsets();
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
     paddingHorizontal: landscape ? 12 : 0,
     paddingVertical: landscape ? 0 : 12,
@@ -38,12 +39,13 @@ export const CallControlsComponent = ({
   };
 
   return (
-    <View style={[styles.callControlsWrapper, landScapeStyles]}>
+    <View style={[styles.callControlsWrapper, landscapeStyles]}>
       <ReactionsButton />
       <ChatButton
         onPressHandler={onChatOpenHandler}
         unreadBadgeCount={unreadCountIndicator}
       />
+      <ScreenShareButton />
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />

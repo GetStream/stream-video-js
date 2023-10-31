@@ -19,11 +19,19 @@ We'll cover the following topics:
 
 Let's get started, if you have any questions or feedback be sure to let us know via the feedback button.
 
+### Step 0 - Prepare your environment
+
+For this tutorial, you'll need a few tools to be installed on your device.
+You can skip this step in case you already have them installed.
+
+- [Node.js](https://nodejs.org/en/download/) (version 18 or higher)
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/) (version 1.22 or higher)
+
 ### Step 1 - Create a new React app and install the React Video SDK
 
 In this step, we will create a new React application using the [Vite CLI](https://vitejs.dev/),
 and install Stream's React Video SDK.
-We recommend using Vite because it's fast and easy to use.
+We recommend using Vite because its fast and easy to use.
 
 ```bash title="Terminal"
 yarn create vite livestream-app --template react-ts
@@ -305,14 +313,57 @@ Now that we've learned to publish using WebRTC or RTMP let's talk about watching
 ### Step 5 - Viewing a livestream (WebRTC)
 
 Watching a livestream is even easier than broadcasting.
+Our SDK provides a built-in `LivestreamLayout` that you can use out of the box. Read more about it here: [Watching a livestream (WebRTC)](../../ui-cookbook/watching-a-livestream).
 
-Compared to the current code in in `App.tsx` you:
+```tsx title=ViewerApp.tsx
+import {
+  LivestreamLayout,
+  StreamCall,
+  StreamVideo,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
 
-- Don't render the local video, but instead render the remote videos - `useRemoteParticipants` instead of `useLocalParticipant`
-- Typically include some small UI elements like viewer count, a button to mute etc.
+const apiKey = 'REPLACE_WITH_API_KEY'; // the API key can be found in the "Credentials" section
+const token = 'REPLACE_WITH_TOKEN'; // the token can be found in the "Credentials" section
+const userId = 'REPLACE_WITH_USER_ID'; // the user id can be found in the "Credentials" section
+const callId = 'REPLACE_WITH_CALL_ID'; // the call id can be found in the "Credentials" section
 
-Additionally, you can use our SDK provided `LivestreamLayout` that enables consuming WebRTC-based livestreams.
-Read more about it here: [Watching a livestream (WebRTC)](../../ui-cookbook/watching-a-livestream).
+// set up the user object
+const user: User = {
+  id: userId,
+  name: 'Oliver-Viewer',
+  image: 'https://getstream.io/random_svg/?id=oliver&name=Oliver-Viewer',
+};
+
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('livestream', callId);
+
+// make sure the viewer doesn't accidentally publish audio or video
+call.camera.disable();
+call.microphone.disable();
+
+call.join();
+
+export const MyViewerApp = () => {
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <LivestreamLayout
+          showParticipantCount={true}
+          showDuration={true}
+          showLiveBadge={true}
+        />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+Keep in mind that this component respects the [Call Type](../../guides/configuring-call-types/) settings,
+and it may happen that audio and video are published automatically, unless explicitly disabled.
+
+You can check the full example in [this CodeSandbox](https://codesandbox.io/s/livestream-tutorial-viewer-y9y7t9).
 
 ### Step 6 - (Optional) Viewing a livestream with HLS
 
@@ -330,9 +381,10 @@ If you want to explicitly start it, when you are live, you can use the following
 import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 const call = useCall();
-await call.startHLS();
+await call.goLive({ start_hls: true });
+
 // or alternatively:
-// await call.goLive({ start_hls: true });
+// await call.startHLS();
 
 // take the URL to the M3U8 playlist
 const { useCallEgress } = useCallStateHooks();

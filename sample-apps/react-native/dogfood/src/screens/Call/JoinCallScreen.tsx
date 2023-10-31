@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  ViewStyle,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import {
@@ -20,6 +21,7 @@ import { Button } from '../../components/Button';
 import { TextInput } from '../../components/TextInput';
 import { KnownUsers } from '../../constants/KnownUsers';
 import { randomId } from '../../modules/helpers/randomId';
+import { useOrientation } from '../../hooks/useOrientation';
 
 const JoinCallScreen = () => {
   const [ringingUserIdsText, setRingingUserIdsText] = useState<string>('');
@@ -27,6 +29,7 @@ const JoinCallScreen = () => {
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
   const videoClient = useStreamVideoClient();
   const { t } = useI18n();
+  const orientation = useOrientation();
 
   const startCallHandler = useCallback(async () => {
     let ringingUserIds = !ringingUserIdsText
@@ -71,12 +74,16 @@ const JoinCallScreen = () => {
     }
   };
 
+  const landscapeStyles: ViewStyle = {
+    flexDirection: orientation === 'landscape' ? 'row' : 'column',
+  };
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'position' : 'padding'}
+      style={[styles.container, landscapeStyles]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View>
+      <View style={styles.topContainer}>
         <Text style={styles.headerText}>{t('Select Participants')}</Text>
         {KnownUsers.filter((user) => user.id !== userId).map((user) => {
           return (
@@ -99,6 +106,8 @@ const JoinCallScreen = () => {
             </Pressable>
           );
         })}
+      </View>
+      <View style={styles.bottomContainer}>
         <Text style={styles.orText}>{t('OR')}</Text>
         <TextInput
           autoCapitalize="none"
@@ -110,12 +119,12 @@ const JoinCallScreen = () => {
           }}
           style={styles.textInputStyle}
         />
+        <Button
+          title={t('Start a New Call')}
+          disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
+          onPress={startCallHandler}
+        />
       </View>
-      <Button
-        title={t('Start a New Call')}
-        disabled={ringingUserIdsText === '' && ringingUsers.length === 0}
-        onPress={startCallHandler}
-      />
     </KeyboardAvoidingView>
   );
 };
@@ -127,21 +136,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-evenly',
   },
-  orText: {
-    fontSize: 17,
-    color: appTheme.colors.static_white,
-    fontWeight: '500',
-    marginVertical: appTheme.spacing.lg,
-    textAlign: 'center',
-  },
-  textInputStyle: {
-    flex: 0,
-  },
-  headerText: {
-    fontSize: 20,
-    color: appTheme.colors.static_white,
-    fontWeight: 'bold',
-    marginBottom: appTheme.spacing.lg,
+  topContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: appTheme.spacing.lg,
   },
   participant: {
     paddingVertical: appTheme.spacing.sm,
@@ -155,6 +153,12 @@ const styles = StyleSheet.create({
     color: appTheme.colors.primary,
     fontWeight: 'bold',
   },
+  headerText: {
+    fontSize: 16,
+    color: appTheme.colors.static_white,
+    fontWeight: 'bold',
+    marginBottom: appTheme.spacing.lg,
+  },
   avatar: {
     height: 40,
     width: 40,
@@ -165,6 +169,20 @@ const styles = StyleSheet.create({
     marginLeft: appTheme.spacing.md,
     fontSize: 16,
     fontWeight: '500',
+  },
+  bottomContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  orText: {
+    fontSize: 17,
+    color: appTheme.colors.static_white,
+    fontWeight: '500',
+    marginVertical: appTheme.spacing.lg,
+    textAlign: 'center',
+  },
+  textInputStyle: {
+    flex: 0,
   },
 });
 

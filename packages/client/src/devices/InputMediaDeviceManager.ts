@@ -51,6 +51,7 @@ export abstract class InputMediaDeviceManager<
     try {
       await this.enablePromise;
       this.state.setStatus('enabled');
+      this.enablePromise = undefined;
     } catch (error) {
       this.enablePromise = undefined;
       throw error;
@@ -136,7 +137,7 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
-  protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
+  protected abstract getDevices(): Observable<MediaDeviceInfo[] | undefined>;
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 

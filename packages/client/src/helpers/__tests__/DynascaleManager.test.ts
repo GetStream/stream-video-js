@@ -4,21 +4,14 @@
 
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { DebounceType, VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
-import { SdkType, TrackType } from '../../gen/video/sfu/models/models';
-import { getSdkInfo } from '../../client-details';
-
-vi.mock('../../client-details.ts', () => {
-  return {
-    getSdkInfo: vi.fn(),
-  };
-});
+import { TrackType } from '../../gen/video/sfu/models/models';
 
 describe('DynascaleManager', () => {
   let dynascaleManager: DynascaleManager;
@@ -145,7 +138,7 @@ describe('DynascaleManager', () => {
       expect(audioElement.volume).toBe(1);
 
       // @ts-expect-error setSinkId is not defined in types
-      expect(audioElement.setSinkId).toHaveBeenCalledWith('');
+      expect(audioElement.setSinkId).not.toHaveBeenCalled();
 
       call.speaker.select('different-device-id');
 
@@ -153,18 +146,6 @@ describe('DynascaleManager', () => {
       expect(audioElement.setSinkId).toHaveBeenCalledWith(
         'different-device-id',
       );
-
-      const mock = getSdkInfo as Mock;
-      mock.mockImplementation(() => ({
-        type: SdkType.REACT,
-      }));
-
-      call.state.updateParticipant('session-id-local', {
-        audioOutputDeviceId: 'new-device-id',
-      });
-
-      // @ts-expect-error setSinkId is not defined in types
-      expect(audioElement.setSinkId).toHaveBeenCalledWith('new-device-id');
 
       call.speaker.setVolume(0.5);
 

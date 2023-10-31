@@ -99,7 +99,6 @@ describe('Publisher', () => {
     // initial publish
     await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
 
-    expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id');
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);
     expect(transceiver.setCodecPreferences).toHaveBeenCalled();
@@ -136,7 +135,6 @@ describe('Publisher', () => {
       expect.any(Function),
     );
     expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(newTrack);
-    expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
 
     // stop publishing
     await publisher.unpublishStream(TrackType.VIDEO, true);
@@ -144,7 +142,6 @@ describe('Publisher', () => {
     expect(state.localParticipant?.publishedTracks).not.toContain(
       TrackType.VIDEO,
     );
-    expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id-2');
   });
 
   it('can publish and un-pubish with just enabling and disabling tracks', async () => {
@@ -178,7 +175,6 @@ describe('Publisher', () => {
     // initial publish
     await publisher.publishStream(mediaStream, track, TrackType.VIDEO);
 
-    expect(state.localParticipant?.videoDeviceId).toEqual('test-device-id');
     expect(state.localParticipant?.publishedTracks).toContain(TrackType.VIDEO);
     expect(track.enabled).toBe(true);
     expect(state.localParticipant?.videoStream).toEqual(mediaStream);

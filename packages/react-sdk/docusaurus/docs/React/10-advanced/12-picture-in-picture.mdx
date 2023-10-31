@@ -5,11 +5,12 @@ title: Picture-in-Picture
 
 In this guide, you'll learn how to display floating video element of the `ParticipantView` component which is visible even if you minimise your browser window utilising the [Picture-in-Picture API](https://developer.mozilla.org/en-US/docs/Web/API/Picture-in-Picture_API). You might want to use this customization in combination with `SpeakerLayout` (`ParticipantViewUISpotlight` property) where spotlighted `ParticipantView` switches between dominant speakers automatically.
 
-### Define custom `ParticipantViewUI`
+## Define custom ParticipantViewUI
 
 The `ParticipantViewUI` template is incredibly versatile and can render anything you want it to. In this case, we'll be rendering a single button which we'll use to open the video element in the floating picture-in-picture window.
 
 ```tsx
+import { useEffect } from 'react';
 import { useParticipantViewContext } from '@stream-io/video-react-sdk';
 
 const CustomParticipantViewUI = () => {
@@ -59,7 +60,7 @@ const CustomParticipantViewUI = () => {
       <button
         disabled={!document.pictureInPictureEnabled}
         style={{ position: 'absolute', top: 10, right: 10 }}
-        onClick={toggleFullscreen}
+        onClick={togglePictureInPicture}
       >
         {pictureInPictureElement === videoElement ? 'Leave' : 'Enter'}{' '}
         picture-in-picture

@@ -42,11 +42,8 @@ export const MeetingLayout: FC<Props> = ({
   const { chatPanelVisibility, participantsPanelVisibility, toggleHide } =
     usePanelContext();
 
-  // useKeyboardShortcuts();
   const transitionRef = useRef(null);
-
   const breakpoint = useBreakpoint();
-
   const rootClassName = classnames(styles.root, className);
 
   const layoutContainerClassName = classnames(styles.layoutContainer, {

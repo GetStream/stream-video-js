@@ -14,4 +14,4 @@ export * from './Permissions';
 export * from './StreamTheme';
 export * from './Search';
 export * from './Tooltip';
-export * from './Video';
+export * from './VideoPreview';

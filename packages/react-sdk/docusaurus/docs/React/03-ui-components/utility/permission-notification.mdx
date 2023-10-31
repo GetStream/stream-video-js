@@ -30,7 +30,8 @@ import {
   OwnCapability,
   PermissionNotification,
   Restricted,
-  useToggleAudioMuteState,
+  useRequestPermission,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import MyIcon from '../Icon';
 
@@ -41,19 +42,30 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
-  const { toggleAudioMuteState: handleClick, isAwaitingApproval } =
-    useToggleAudioMuteState();
+  const { hasPermission, requestPermission, isAwaitingPermission } =
+    useRequestPermission(OwnCapability.SEND_AUDIO);
+
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone } = useMicrophoneState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
       <PermissionNotification
         permission={OwnCapability.SEND_AUDIO}
-        isAwaitingApproval={isAwaitingApproval}
+        isAwaitingApproval={isAwaitingPermission}
         messageApproved="You can now speak."
         messageAwaitingApproval="Awaiting for an approval to speak."
         messageRevoked="You can no longer speak."
       >
-        <MyButton onClick={handleClick}>
+        <MyButton
+          onClick={async () => {
+            if (!hasPermission) {
+              await requestPermission();
+            } else {
+              await microphone.toggle();
+            }
+          }}
+        >
           <MyIcon />
         </MyButton>
       </PermissionNotification>

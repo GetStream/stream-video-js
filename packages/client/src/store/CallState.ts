@@ -1,10 +1,13 @@
-import { BehaviorSubject, Observable } from 'rxjs';
-import { distinctUntilChanged, map, shareReplay } from 'rxjs/operators';
+import {
+  BehaviorSubject,
+  distinctUntilChanged,
+  map,
+  Observable,
+  shareReplay,
+} from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import {
-  isStreamVideoLocalParticipant,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
   StreamVideoParticipantPatches,
@@ -137,9 +140,9 @@ export class CallState {
   private startedAtSubject = new BehaviorSubject<Date | undefined>(undefined);
   private participantCountSubject = new BehaviorSubject<number>(0);
   private anonymousParticipantCountSubject = new BehaviorSubject<number>(0);
-  private participantsSubject = new BehaviorSubject<
-    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >([]);
+  private participantsSubject = new BehaviorSubject<StreamVideoParticipant[]>(
+    [],
+  );
   private callStatsReportSubject = new BehaviorSubject<
     CallStatsReport | undefined
   >(undefined);
@@ -167,9 +170,7 @@ export class CallState {
   /**
    * All participants of the current call (this includes the current user and other participants as well).
    */
-  participants$: Observable<
-    (StreamVideoParticipant | StreamVideoLocalParticipant)[]
-  >;
+  participants$: Observable<StreamVideoParticipant[]>;
 
   /**
    * Remote participants of the current call (this includes every participant except the logged-in user).
@@ -179,7 +180,7 @@ export class CallState {
   /**
    * The local participant of the current call (the logged-in user).
    */
-  localParticipant$: Observable<StreamVideoLocalParticipant | undefined>;
+  localParticipant$: Observable<StreamVideoParticipant | undefined>;
 
   /**
    * Pinned participants of the current call.
@@ -337,7 +338,7 @@ export class CallState {
     );
 
     this.localParticipant$ = this.participants$.pipe(
-      map((participants) => participants.find(isStreamVideoLocalParticipant)),
+      map((participants) => participants.find((p) => p.isLocalParticipant)),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
@@ -396,48 +397,49 @@ export class CallState {
     this.eventHandlers = {
       // these events are not updating the call state:
       'call.permission_request': undefined,
+      'call.recording_failed': undefined,
+      'call.recording_ready': undefined,
       'call.user_muted': undefined,
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
-      'call.recording_failed': undefined,
-      'call.recording_ready': undefined,
       custom: undefined,
 
       // events that update call state:
       'call.accepted': (e) => this.updateFromCallResponse(e.call),
+      'call.blocked_user': this.blockUser,
       'call.created': (e) => this.updateFromCallResponse(e.call),
-      'call.notification': (e) => {
-        this.updateFromCallResponse(e.call);
-        this.setMembers(e.members);
-      },
-      'call.rejected': (e) => this.updateFromCallResponse(e.call),
-      'call.ring': (e) => this.updateFromCallResponse(e.call),
-      'call.live_started': (e) => this.updateFromCallResponse(e.call),
-      'call.updated': (e) => this.updateFromCallResponse(e.call),
-      'call.session_started': (e) => this.updateFromCallResponse(e.call),
-      'call.session_ended': (e) => this.updateFromCallResponse(e.call),
       'call.ended': (e) => {
         this.updateFromCallResponse(e.call);
         this.setCurrentValue(this.endedBySubject, e.user);
       },
+      'call.hls_broadcasting_failed': this.updateFromHLSBroadcastingFailed,
+      'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
+      'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
+      'call.live_started': (e) => this.updateFromCallResponse(e.call),
+      'call.member_added': this.updateFromMemberAdded,
+      'call.member_removed': this.updateFromMemberRemoved,
+      'call.member_updated_permission': this.updateMembers,
+      'call.member_updated': this.updateMembers,
+      'call.notification': (e) => {
+        this.updateFromCallResponse(e.call);
+        this.setMembers(e.members);
+      },
+      'call.permissions_updated': this.updateOwnCapabilities,
+      'call.reaction_new': this.updateParticipantReaction,
       'call.recording_started': () =>
         this.setCurrentValue(this.recordingSubject, true),
       'call.recording_stopped': () =>
         this.setCurrentValue(this.recordingSubject, false),
-      'call.hls_broadcasting_started': this.updateFromHLSBroadcastStarted,
-      'call.hls_broadcasting_stopped': this.updateFromHLSBroadcastStopped,
+      'call.rejected': (e) => this.updateFromCallResponse(e.call),
+      'call.ring': (e) => this.updateFromCallResponse(e.call),
+      'call.session_ended': (e) => this.updateFromCallResponse(e.call),
       'call.session_participant_joined':
         this.updateFromSessionParticipantJoined,
       'call.session_participant_left': this.updateFromSessionParticipantLeft,
-      'call.blocked_user': this.blockUser,
+      'call.session_started': (e) => this.updateFromCallResponse(e.call),
       'call.unblocked_user': this.unblockUser,
-      'call.permissions_updated': this.updateOwnCapabilities,
-      'call.member_added': this.updateFromMemberAdded,
-      'call.member_removed': this.updateFromMemberRemoved,
-      'call.member_updated': this.updateMembers,
-      'call.member_updated_permission': this.updateMembers,
-      'call.reaction_new': this.updateParticipantReaction,
+      'call.updated': (e) => this.updateFromCallResponse(e.call),
     };
   }
 
@@ -778,10 +780,7 @@ export class CallState {
    */
   getParticipantLookupBySessionId = () => {
     return this.participants.reduce<{
-      [sessionId: string]:
-        | StreamVideoParticipant
-        | StreamVideoLocalParticipant
-        | undefined;
+      [sessionId: string]: StreamVideoParticipant | undefined;
     }>((lookupTable, participant) => {
       lookupTable[participant.sessionId] = participant;
       return lookupTable;
@@ -811,9 +810,7 @@ export class CallState {
     }
 
     const thePatch = typeof patch === 'function' ? patch(participant) : patch;
-    const updatedParticipant:
-      | StreamVideoParticipant
-      | StreamVideoLocalParticipant = {
+    const updatedParticipant: StreamVideoParticipant = {
       // FIXME OL: this is not a deep merge, we might want to revisit this
       ...participant,
       ...thePatch,
@@ -981,6 +978,13 @@ export class CallState {
   };
 
   private updateFromHLSBroadcastStopped = () => {
+    this.setCurrentValue(this.egressSubject, (egress) => ({
+      ...egress!,
+      broadcasting: false,
+    }));
+  };
+
+  private updateFromHLSBroadcastingFailed = () => {
     this.setCurrentValue(this.egressSubject, (egress) => ({
       ...egress!,
       broadcasting: false,

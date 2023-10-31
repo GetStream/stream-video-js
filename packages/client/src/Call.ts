@@ -9,11 +9,7 @@ import {
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
-import {
-  GoAwayReason,
-  SdkType,
-  TrackType,
-} from './gen/video/sfu/models/models';
+import { GoAwayReason, TrackType } from './gen/video/sfu/models/models';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -93,7 +89,11 @@ import {
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
-import { JoinResponse, Migration } from './gen/video/sfu/event/events';
+import {
+  JoinResponse,
+  Migration,
+  VideoLayerSetting,
+} from './gen/video/sfu/event/events';
 import { Timestamp } from './gen/google/protobuf/timestamp';
 import {
   createStatsReporter,
@@ -116,7 +116,7 @@ import {
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
-import { getClientDetails, getSdkInfo } from './client-details';
+import { getClientDetails } from './client-details';
 import { getLogger } from './logger';
 import {
   CameraDirection,
@@ -535,7 +535,7 @@ export class Call {
    *
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
-   * @param params.members_limit the members limit.
+   * @param params.members_limit the total number of members to return as part of the response.
    */
   get = async (params?: {
     ring?: boolean;
@@ -559,6 +559,8 @@ export class Call {
       this.watching = true;
       this.clientStore.registerCall(this);
     }
+
+    this.applyDeviceConfig();
 
     return response;
   };
@@ -586,6 +588,8 @@ export class Call {
       this.watching = true;
       this.clientStore.registerCall(this);
     }
+
+    this.applyDeviceConfig();
 
     return response;
   };
@@ -1000,14 +1004,11 @@ export class Call {
       this.reconnectAttempts = 0; // reset the reconnect attempts counter
       this.state.setCallingState(CallingState.JOINED);
 
-      // React uses a different device management for now
-      if (getSdkInfo()?.type !== SdkType.REACT) {
-        try {
-          await this.initCamera();
-          await this.initMic();
-        } catch (error) {
-          this.logger('warn', 'Camera and/or mic init failed during join call');
-        }
+      try {
+        await this.initCamera({ setStatus: true });
+        await this.initMic({ setStatus: true });
+      } catch (error) {
+        this.logger('warn', 'Camera and/or mic init failed during join call');
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1319,56 +1320,6 @@ export class Call {
   };
 
   /**
-   * Sets the used audio output device (`audioOutputDeviceId` of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
-   *
-   * This method only stores the selection, if you're using custom UI components, you'll have to implement the audio switching, for more information see: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/sinkId.
-   *
-   *
-   * @param deviceId the selected device, `undefined` means the user wants to use the system's default audio output
-   *
-   * @deprecated use `call.speaker` instead
-   */
-  setAudioOutputDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      audioOutputDeviceId: deviceId,
-    });
-  };
-
-  /**
-   * Sets the `audioDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore)).
-   *
-   * This method only stores the selection, if you want to start publishing a media stream call the [`publishAudioStream` method](#publishaudiostream) that will set `audioDeviceId` as well.
-   *
-   *
-   * @param deviceId the selected device, pass `undefined` to clear the device selection
-   *
-   * @deprecated use call.microphone.select
-   */
-  setAudioDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      audioDeviceId: deviceId,
-    });
-  };
-
-  /**
-   * Sets the `videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore).
-   *
-   * This method only stores the selection, if you want to start publishing a media stream call the [`publishVideoStream` method](#publishvideostream) that will set `videoDeviceId` as well.
-   *
-   * @param deviceId the selected device, pass `undefined` to clear the device selection
-   *
-   * @deprecated use call.camera.select
-   */
-  setVideoDevice = (deviceId?: string) => {
-    if (!this.sfuClient) return;
-    this.state.updateParticipant(this.sfuClient.sessionId, {
-      videoDeviceId: deviceId,
-    });
-  };
-
-  /**
    * Resets the last sent reaction for the user holding the given `sessionId`. This is a local action, it won't reset the reaction on the backend.
    *
    * @param sessionId the session id.
@@ -1393,8 +1344,8 @@ export class Call {
    * @param enabledRids
    * @returns
    */
-  updatePublishQuality = async (enabledRids: string[]) => {
-    return this.publisher?.updateVideoPublishQuality(enabledRids);
+  updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
+    return this.publisher?.updateVideoPublishQuality(enabledLayers);
   };
 
   private assertCallJoined = () => {
@@ -1835,7 +1786,12 @@ export class Call {
     );
   };
 
-  private async initCamera() {
+  applyDeviceConfig = () => {
+    this.initCamera({ setStatus: false });
+    this.initMic({ setStatus: false });
+  };
+
+  private async initCamera(options: { setStatus: boolean }) {
     // Wait for any in progress camera operation
     if (this.camera.enablePromise) {
       await this.camera.enablePromise;
@@ -1867,25 +1823,27 @@ export class Call {
       await this.camera.selectTargetResolution(targetResolution);
     }
 
-    // Publish already that was set before we joined
-    if (
-      this.camera.state.status === 'enabled' &&
-      this.camera.state.mediaStream &&
-      !this.publisher?.isPublishing(TrackType.VIDEO)
-    ) {
-      await this.publishVideoStream(this.camera.state.mediaStream);
-    }
+    if (options.setStatus) {
+      // Publish already that was set before we joined
+      if (
+        this.camera.state.status === 'enabled' &&
+        this.camera.state.mediaStream &&
+        !this.publisher?.isPublishing(TrackType.VIDEO)
+      ) {
+        await this.publishVideoStream(this.camera.state.mediaStream);
+      }
 
-    // Start camera if backend config speicifies, and there is no local setting
-    if (
-      this.camera.state.status === undefined &&
-      this.state.settings?.video.camera_default_on
-    ) {
-      await this.camera.enable();
+      // Start camera if backend config speicifies, and there is no local setting
+      if (
+        this.camera.state.status === undefined &&
+        this.state.settings?.video.camera_default_on
+      ) {
+        await this.camera.enable();
+      }
     }
   }
 
-  private async initMic() {
+  private async initMic(options: { setStatus: boolean }) {
     // Wait for any in progress mic operation
     if (this.microphone.enablePromise) {
       await this.microphone.enablePromise;
@@ -1901,21 +1859,23 @@ export class Call {
       return;
     }
 
-    // Publish media stream that was set before we joined
-    if (
-      this.microphone.state.status === 'enabled' &&
-      this.microphone.state.mediaStream &&
-      !this.publisher?.isPublishing(TrackType.AUDIO)
-    ) {
-      await this.publishAudioStream(this.microphone.state.mediaStream);
-    }
+    if (options.setStatus) {
+      // Publish media stream that was set before we joined
+      if (
+        this.microphone.state.status === 'enabled' &&
+        this.microphone.state.mediaStream &&
+        !this.publisher?.isPublishing(TrackType.AUDIO)
+      ) {
+        await this.publishAudioStream(this.microphone.state.mediaStream);
+      }
 
-    // Start mic if backend config specifies, and there is no local setting
-    if (
-      this.microphone.state.status === undefined &&
-      this.state.settings?.audio.mic_default_on
-    ) {
-      await this.microphone.enable();
+      // Start mic if backend config specifies, and there is no local setting
+      if (
+        this.microphone.state.status === undefined &&
+        this.state.settings?.audio.mic_default_on
+      ) {
+        await this.microphone.enable();
+      }
     }
   }
 

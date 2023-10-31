@@ -57,6 +57,10 @@ export type Theme = {
     container: ViewStyle;
     svgContainer: ViewStyle;
   };
+  screenShareButton: {
+    container: ViewStyle;
+    svgContainer: ViewStyle;
+  };
   toggleAudioPreviewButton: {
     container: ViewStyle;
     svgContainer: ViewStyle;
@@ -101,9 +105,11 @@ export type Theme = {
   };
   lobby: {
     container: ViewStyle;
+    topContainer: ViewStyle;
     heading: TextStyle;
     subHeading: TextStyle;
     videoContainer: ViewStyle;
+    bottomContainer: ViewStyle;
     infoContainer: ViewStyle;
     infoText: TextStyle;
     participantStatusContainer: ViewStyle;
@@ -148,8 +154,10 @@ export type Theme = {
   incomingCall: {
     background: ViewStyle;
     content: ViewStyle;
+    topContainer: ViewStyle;
     incomingCallText: TextStyle;
     incomingCallControls: ViewStyle;
+    bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
   };
   joiningCallIndicator: {
@@ -159,8 +167,10 @@ export type Theme = {
     container: ViewStyle;
     background: ViewStyle;
     content: ViewStyle;
+    topContainer: ViewStyle;
     callingText: TextStyle;
     outgoingCallControls: ViewStyle;
+    bottomContainer: ViewStyle;
     buttonGroup: ViewStyle;
     deviceControlButtons: ViewStyle;
   };
@@ -193,6 +203,76 @@ export type Theme = {
     participantsIconContainer: ViewStyle;
     participantsCountText: TextStyle;
   };
+  hostLivestream: {
+    container: ViewStyle;
+  };
+  viewerLivestream: {
+    container: ViewStyle;
+    floatingParticipantView: ViewStyle;
+    view: ViewStyle;
+  };
+  livestreamLayout: {
+    container: ViewStyle;
+  };
+  hostLivestreamTopView: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    centerElement: ViewStyle;
+    rightElement: ViewStyle;
+    liveInfo: ViewStyle;
+  };
+  viewerLivestreamTopView: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    centerElement: ViewStyle;
+    rightElement: ViewStyle;
+    liveInfo: ViewStyle;
+  };
+  followerCount: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    label: TextStyle;
+  };
+  durationBadge: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    label: TextStyle;
+  };
+  liveIndicator: {
+    container: ViewStyle;
+    label: TextStyle;
+  };
+  hostLivestreamControls: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+  };
+  viewerLivestreamControls: {
+    container: ViewStyle;
+    leftElement: ViewStyle;
+    rightElement: ViewStyle;
+  };
+  hostStartStreamButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    text: TextStyle;
+  };
+  viewerLeaveStreamButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+    text: TextStyle;
+  };
+  livestreamMediaControls: {
+    container: ViewStyle;
+  };
+  livestreamAudioControlButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
+  livestreamVideoControlButton: {
+    container: ViewStyle;
+    icon: ViewStyle;
+  };
 };
 
 export const defaultTheme: Theme = {
@@ -213,10 +293,10 @@ export const defaultTheme: Theme = {
     },
     avatarSizes: {
       xs: 50,
-      sm: 100,
-      md: 120,
-      lg: 180,
-      xl: 80,
+      sm: 90,
+      md: 100,
+      lg: 160,
+      xl: 180,
     },
   },
   typefaces: {
@@ -287,6 +367,10 @@ export const defaultTheme: Theme = {
     container: {},
     svgContainer: {},
   },
+  screenShareButton: {
+    container: {},
+    svgContainer: {},
+  },
   toggleAudioPreviewButton: {
     container: {},
     svgContainer: {},
@@ -318,8 +402,10 @@ export const defaultTheme: Theme = {
   },
   lobby: {
     container: {},
+    topContainer: {},
     heading: {},
     subHeading: {},
+    bottomContainer: {},
     videoContainer: {},
     infoContainer: {},
     infoText: {},
@@ -373,16 +459,20 @@ export const defaultTheme: Theme = {
   incomingCall: {
     background: {},
     content: {},
+    topContainer: {},
     incomingCallText: {},
     incomingCallControls: {},
+    bottomContainer: {},
     buttonGroup: {},
   },
   outgoingCall: {
     container: {},
     background: {},
     content: {},
+    topContainer: {},
     callingText: {},
     outgoingCallControls: {},
+    bottomContainer: {},
     buttonGroup: {},
     deviceControlButtons: {},
   },
@@ -410,5 +500,75 @@ export const defaultTheme: Theme = {
     participantCountContainer: {},
     participantsIconContainer: {},
     participantsCountText: {},
+  },
+  hostLivestream: {
+    container: {},
+  },
+  hostLivestreamTopView: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+    centerElement: {},
+    liveInfo: {},
+  },
+  viewerLivestream: {
+    container: {},
+    floatingParticipantView: {},
+    view: {},
+  },
+  livestreamLayout: {
+    container: {},
+  },
+  viewerLivestreamTopView: {
+    container: {},
+    leftElement: {},
+    centerElement: {},
+    rightElement: {},
+    liveInfo: {},
+  },
+  followerCount: {
+    container: {},
+    icon: {},
+    label: {},
+  },
+  durationBadge: {
+    container: {},
+    icon: {},
+    label: {},
+  },
+  liveIndicator: {
+    container: {},
+    label: {},
+  },
+  hostLivestreamControls: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+  },
+  viewerLivestreamControls: {
+    container: {},
+    leftElement: {},
+    rightElement: {},
+  },
+  hostStartStreamButton: {
+    container: {},
+    icon: {},
+    text: {},
+  },
+  viewerLeaveStreamButton: {
+    container: {},
+    icon: {},
+    text: {},
+  },
+  livestreamMediaControls: {
+    container: {},
+  },
+  livestreamAudioControlButton: {
+    container: {},
+    icon: {},
+  },
+  livestreamVideoControlButton: {
+    container: {},
+    icon: {},
   },
 };

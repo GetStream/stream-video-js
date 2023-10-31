@@ -49,7 +49,7 @@ export const useIsCallRecordingInProgress = (): boolean => {
  *
  * @category Call State
  */
-export const useIsCallBroadcastingInProgress = (): boolean => {
+export const useIsCallHLSBroadcastingInProgress = (): boolean => {
   const { egress$ } = useCallState();
   const egress = useObservableValue(egress$);
   if (!egress) return false;
@@ -330,12 +330,24 @@ export const useCameraState = () => {
   const call = useCall();
   const { camera } = call as Call;
 
+  const devices$ = useMemo(() => camera.listDevices(), [camera]);
+
   const status = useObservableValue(camera.state.status$);
   const direction = useObservableValue(camera.state.direction$);
+  const mediaStream = useObservableValue(camera.state.mediaStream$);
+  const selectedDevice = useObservableValue(camera.state.selectedDevice$);
+  const devices = useObservableValue(devices$);
+  const isMute = status !== 'enabled';
 
   return {
+    camera,
     status,
+    isEnabled: status === 'enabled',
     direction,
+    mediaStream,
+    devices,
+    selectedDevice,
+    isMute,
   };
 };
 
@@ -348,22 +360,62 @@ export const useMicrophoneState = () => {
   const call = useCall();
   const { microphone } = call as Call;
 
-  const status = useObservableValue(microphone.state.status$);
-  const selectedDevice = useObservableValue(microphone.state.selectedDevice$);
+  const devices$ = useMemo(() => microphone.listDevices(), [microphone]);
+
+  const { state } = microphone;
+  const status = useObservableValue(state.status$);
+  const mediaStream = useObservableValue(state.mediaStream$);
+  const selectedDevice = useObservableValue(state.selectedDevice$);
+  const devices = useObservableValue(devices$);
+  const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const isMute = status !== 'enabled';
 
   return {
+    microphone,
     status,
+    isEnabled: status === 'enabled',
+    mediaStream,
+    devices,
     selectedDevice,
+    isSpeakingWhileMuted,
+    isMute,
   };
 };
 
+/**
+ * Returns the speaker state of the current call.
+ */
+export const useSpeakerState = () => {
+  const call = useCall();
+  const { speaker } = call as Call;
+
+  const devices$ = useMemo(() => speaker.listDevices(), [speaker]);
+  const devices = useObservableValue(devices$);
+  const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
+
+  return {
+    speaker,
+    devices,
+    selectedDevice,
+    isDeviceSelectionSupported: speaker.state.isDeviceSelectionSupported,
+  };
+};
+
+/**
+ * Returns the Screen Share state of the current call.
+ */
 export const useScreenShareState = () => {
   const call = useCall();
   const { screenShare } = call as Call;
 
   const status = useObservableValue(screenShare.state.status$);
+  const mediaStream = useObservableValue(screenShare.state.mediaStream$);
+  const isMute = status !== 'enabled';
 
   return {
+    screenShare,
+    mediaStream,
     status,
+    isMute,
   };
 };

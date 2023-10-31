@@ -1,6 +1,7 @@
 export enum IconTestIds {
   MUTED_VIDEO = 'muted-video-icon',
   HANG_UP_CALL = 'hang-up-call-icon',
+  SCREEN_SHARE_INDICATOR = 'screen-share-indicator-icon',
   SCREEN_SHARE = 'screen-share-icon',
 }
 
@@ -19,6 +20,8 @@ export enum ComponentTestIds {
 
 export enum ButtonTestIds {
   PARTICIPANTS_INFO = 'participants-info-button',
+  PARTICIPANTS_COUNT_VIEW = 'participants-count-view',
+  PARTICIPANTS_COUNT_TEXT = 'participants-count-text',
   HANG_UP_CALL = 'hang-up-call',
   REACTION = 'call-controls-reaction',
 }

@@ -41,7 +41,6 @@ The component will rely on data accessed via our helper hooks:
 - `useCallCallingState`
 - `useCallCreatedBy`
 - `useCallMembers`
-- `useMediaDevices`
 
 ### User preview
 
@@ -50,23 +49,18 @@ The panel will render [`VideoPreview`](../../ui-components/participants/video-pr
 - show all the called users' avatars if the call is outgoing (who am I calling)
 - show the avatar of the person who initiated the call in case of an incoming call (who is calling me)
 
-:::note
-Note, how the initial video state is handled by [`MediaDevicesProvider`](../../guides/camera-and-microphone). We only consume the API through corresponding context consumer hook `useMediaDevices`.
-:::
-
 ```tsx
 import {
   useCall,
   useCallStateHooks,
-  useMediaDevices,
   VideoPreview,
+  UserResponse,
 } from '@stream-io/video-react-sdk';
-
-import type { UserResponse } from '@stream-io/video-react-sdk';
 
 import { CallCallingStateLabel } from './CallCallingStateLabel';
 import { CallControls } from './CallControls';
 import { CallMembers } from './CallMembers';
+import { useEffect } from 'react';
 
 type RingingCallProps = {
   showMemberCount?: number;
@@ -76,11 +70,17 @@ export const CustomRingingCall = ({
   showMemberCount = 3,
 }: RingingCallProps) => {
   const call = useCall();
-  const { useCallMembers, useCallCreatedBy } = useCallStateHooks();
+  const { useCallMembers, useCallCreatedBy, useCameraState } =
+    useCallStateHooks();
+
   const members = useCallMembers();
   const creator = useCallCreatedBy();
-  // highlight-next-line
-  const { initialVideoState } = useMediaDevices();
+
+  const { camera, isMute: isCameraMute } = useCameraState();
+  useEffect(() => {
+    // enable the camera by default for all ring calls
+    camera.enable();
+  }, [camera]);
 
   if (!call) return null;
 
@@ -99,11 +99,10 @@ export const CustomRingingCall = ({
 
   return (
     <div>
-      // highlight-next-line
-      {initialVideoState.enabled ? (
-        <VideoPreview />
-      ) : (
+      {isCameraMute ? (
         <CallMembers members={membersToShow} />
+      ) : (
+        <VideoPreview />
       )}
       <CallCallingStateLabel />
       <CallControls />
@@ -112,9 +111,9 @@ export const CustomRingingCall = ({
 };
 ```
 
-#### Video preview enablement
+#### Incoming call panel
 
-Enable the initial video in [`VideoPreview`](../../ui-components/participants/video-preview) component with `mediaDevicesProviderProps` prop on [`StreamCall`](../../ui-components/core/stream-call) component. In the snippet below, the `CallPanel` component is expected to render our `CustomRingingCall`.
+In the snippet below, the `CallPanel` component is expected to render our `CustomRingingCall`.
 
 ```tsx
 import {
@@ -133,12 +132,7 @@ export const Video = () => {
   return (
     <>
       {calls.map((call) => (
-        <StreamCall
-          call={call}
-          key={call.cid}
-          // highlight-next-line
-          mediaDevicesProviderProps={{ initialVideoEnabled: true }}
-        >
+        <StreamCall call={call} key={call.cid}>
           <CallPanel />
         </StreamCall>
       ))}
@@ -163,20 +157,6 @@ const CallPanel = () => {
   }
 
   return null;
-};
-```
-
-Or, if instead of using [`StreamCall`](../../ui-components/core/stream-call), we want to use the `MediaDevicesProvider` component directly, we pass `initialVideoEnabled` value to it as follows:
-
-```tsx
-import { MediaDevicesProvider } from '@stream-io/video-react-sdk';
-
-const MyComponent = () => {
-  return (
-    // ...
-    <MediaDevicesProvider initialVideoEnabled>//...</MediaDevicesProvider>
-    // ...
-  );
 };
 ```
 
@@ -251,10 +231,6 @@ const CallCallingStateLabel = () => {
 
 Finally, we build the call control buttons. We include buttons to toggle camera and microphone and buttons to accept and reject the call.
 
-:::note
-The toggle video and audio buttons are just wrappers around pre-built button components attaching click handlers provided by `MediaDevicesProvider`.
-:::
-
 ```tsx
 import {
   AcceptCallButton,
@@ -263,7 +239,6 @@ import {
   IconButton,
   useCall,
   useCallStateHooks,
-  useMediaDevices,
 } from '@stream-io/video-react-sdk';
 
 const CallControls = () => {
@@ -299,24 +274,23 @@ const CallControls = () => {
 };
 
 const ToggleAudioButton = () => {
-  const { initialAudioEnabled, toggleInitialAudioMuteState } =
-    useMediaDevices();
-
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
   return (
     <IconButton
-      icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-      onClick={toggleInitialAudioMuteState}
+      icon={isMute ? 'mic-off' : 'mic'}
+      onClick={() => microphone.toggle()}
     />
   );
 };
 
 const ToggleVideoButton = () => {
-  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
-
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
   return (
     <IconButton
-      icon={initialVideoState.enabled ? 'camera' : 'camera-off'}
-      onClick={toggleInitialVideoMuteState}
+      icon={isMute ? 'camera-off' : 'camera'}
+      onClick={() => camera.toggle()}
     />
   );
 };

@@ -90,31 +90,6 @@ export interface StreamVideoParticipant extends Participant {
   viewportVisibilityState?: Record<VideoTrackType, VisibilityState>;
 }
 
-export interface StreamVideoLocalParticipant extends StreamVideoParticipant {
-  /**
-   * The device ID of the currently selected audio input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
-   *
-   * @deprecated use call.microphone.state.selectedDevice
-   */
-  audioDeviceId?: string;
-
-  /**
-   * The device ID of the currently selected video input device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
-   *
-   * @deprecated use call.camera.state.selectedDevice
-   */
-  videoDeviceId?: string;
-
-  /**
-   * The device ID of the currently selected audio output device of the local participant (returned by the [MediaDevices API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia))
-   *
-   * If the value is not defined, the user hasn't selected any device (in these cases the default system audio output could be used)
-   *
-   * @deprecated use call.speaker.state.selectedDevice
-   */
-  audioOutputDeviceId?: string;
-}
-
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
 export type AudioTrackType = 'audioTrack' | 'screenShareAudioTrack';
 export type TrackMuteType =
@@ -139,18 +114,10 @@ export type ParticipantPin = {
   pinnedAt: number;
 };
 
-export const isStreamVideoLocalParticipant = (
-  p: StreamVideoParticipant | StreamVideoLocalParticipant,
-): p is StreamVideoLocalParticipant => {
-  return !!p.isLocalParticipant;
-};
-
 /**
  * A partial representation of the StreamVideoParticipant.
  */
-export type StreamVideoParticipantPatch = Partial<
-  StreamVideoParticipant | StreamVideoLocalParticipant
->;
+export type StreamVideoParticipantPatch = Partial<StreamVideoParticipant>;
 
 /**
  * A collection of {@link StreamVideoParticipantPatch} organized by sessionId.

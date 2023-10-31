@@ -12,7 +12,12 @@ To observe call state you need to provide a `Call` instance to the [`StreamCall`
 Let's see an example where we use the `useCall`, `useCallCallingState` and `useParticipants` hooks to display some basic information about the call:
 
 ```tsx
-import { Call, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import {
+  Call,
+  StreamCall,
+  useCall,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 
 export default function App() {
   let call: Call;
@@ -47,33 +52,37 @@ The `StreamCall` component uses the `StreamCallProvider` under the hood.
 
 Here is an excerpt of the available call state hooks:
 
-| Name                              | Description                                                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `useCall`                         | The `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls. |
-| `useCallBlockedUserIds`           | The list of blocked user IDs.                                                                                 |
-| `useCallCallingState`             | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
-| `useCallCreatedAt`                | The time the call was created.                                                                                |
-| `useCallCreatedBy`                | The user that created the call.                                                                               |
-| `useCallCustomData`               | The custom data attached to the call.                                                                         |
-| `useCallEgress`                   | The egress information of the call.                                                                           |
-| `useCallEndedBy`                  | The user that ended the call.                                                                                 |
-| `useCallIngress`                  | The ingress information of the call.                                                                          |
-| `useCallMembers`                  | The list of call members                                                                                      |
-| `useCallSession`                  | The information for the current call session.                                                                 |
-| `useCallSettings`                 | The settings of the call.                                                                                     |
-| `useCallStartedAt`                | The actual start time of the current call session.                                                            |
-| `useCallStartsAt`                 | The scheduled start time of the call.                                                                         |
-| `useCallStatsReport`              | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
-| `useCallThumbnail`                | The thumbnail of the call.                                                                                    |
-| `useCallUpdatedAt`                | The time the call was last updated.                                                                           |
-| `useDominantSpeaker`              | The participant that is the current dominant speaker of the call.                                             |
-| `useHasOngoingScreenShare`        | It will return `true` if at least one participant is sharing their screen.                                    |
-| `useHasPermissions`               | Returns `true` if the local participant has all the given permissions.                                        |
-| `useIsCallBroadcastingInProgress` | It's `true` if the call is being broadcasted.                                                                 |
-| `useIsCallLive`                   | It's `true` if the call is currently live.                                                                    |
-| `useIsCallRecordingInProgress`    | It's' `true` if the call is being recorded.                                                                   |
-| `useIsCallTranscribingInProgress` | It's `true` if the call is being transcribed.                                                                 |
-| `useOwnCapabilities`              | The capabilities of the local participant.                                                                    |
+| Name                                 | Description                                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `useCall`                            | The `Call` instance that is registered with `StreamCall`. You need the `Call` instance to initiate API calls. |
+| `useCallBlockedUserIds`              | The list of blocked user IDs.                                                                                 |
+| `useCallCallingState`                | Provides information about the call state. For example, `RINGING`, `JOINED` or `RECONNECTING`.                |
+| `useCallCreatedAt`                   | The time the call was created.                                                                                |
+| `useCallCreatedBy`                   | The user that created the call.                                                                               |
+| `useCallCustomData`                  | The custom data attached to the call.                                                                         |
+| `useCallEgress`                      | The egress information of the call.                                                                           |
+| `useCallEndedBy`                     | The user that ended the call.                                                                                 |
+| `useCallIngress`                     | The ingress information of the call.                                                                          |
+| `useCallMembers`                     | The list of call members                                                                                      |
+| `useCallSession`                     | The information for the current call session.                                                                 |
+| `useCallSettings`                    | The settings of the call.                                                                                     |
+| `useCallStartedAt`                   | The actual start time of the current call session.                                                            |
+| `useCallStartsAt`                    | The scheduled start time of the call.                                                                         |
+| `useCallStatsReport`                 | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
+| `useCallThumbnail`                   | The thumbnail of the call.                                                                                    |
+| `useCallUpdatedAt`                   | The time the call was last updated.                                                                           |
+| `useCameraState`                     | The camera state of the local participant.                                                                    |
+| `useDominantSpeaker`                 | The participant that is the current dominant speaker of the call.                                             |
+| `useHasOngoingScreenShare`           | It will return `true` if at least one participant is sharing their screen.                                    |
+| `useHasPermissions`                  | Returns `true` if the local participant has all the given permissions.                                        |
+| `useIsCallHLSBroadcastingInProgress` | It's `true` if the call is being broadcasted in HLS mode.                                                     |
+| `useIsCallLive`                      | It's `true` if the call is currently live.                                                                    |
+| `useIsCallRecordingInProgress`       | It's' `true` if the call is being recorded.                                                                   |
+| `useIsCallTranscribingInProgress`    | It's `true` if the call is being transcribed.                                                                 |
+| `useMicrophoneState`                 | The microphone state of the local participant.                                                                |
+| `useOwnCapabilities`                 | The capabilities of the local participant.                                                                    |
+| `useScreenShareState`                | The screen share state of the local participant.                                                              |
+| `useSpeakerState`                    | The speaker state of the local participant.                                                                   |
 
 In your IDE of choice, you can see the full list if you destructure the `useCallStateHooks` object:
 
@@ -148,14 +157,6 @@ The `StreamVideoParticipant` object contains the following information:
 | `pin`                     | Holds pinning information.                                                  |
 | `reaction`                | The last reaction this user has sent to this call.                          |
 | `viewportVisibilityState` | The viewport visibility state of the participant.                           |
-
-The `StreamVideoLocalParticipant` has these additional properties:
-
-| Name                  | Description                                                  |
-| --------------------- | ------------------------------------------------------------ |
-| `audioDeviceId`       | The device ID of the currently selected audio input device.  |
-| `videoDeviceId`       | The device ID of the currently selected video input device.  |
-| `audioOutputDeviceId` | The device ID of the currently selected audio output device. |
 
 ## Client state
 

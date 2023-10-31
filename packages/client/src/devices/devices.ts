@@ -90,73 +90,84 @@ const videoDeviceConstraints = {
   },
 } satisfies MediaStreamConstraints;
 
-// Audio and video devices are requested in two separate requests: that way users will be presented with two separate prompts -> they can give access to just camera, or just microphone
-const deviceChange$ = new Observable((subscriber) => {
-  const deviceChangeHandler = () => subscriber.next();
+/**
+ * Creates a memoized observable instance
+ * that will be created only once and shared between all callers.
+ *
+ * @param create a function that creates an Observable.
+ */
+const memoizedObservable = <T>(create: () => Observable<T>) => {
+  let memoized: Observable<T>;
+  return () => {
+    if (!memoized) memoized = create();
+    return memoized;
+  };
+};
 
-  navigator.mediaDevices.addEventListener?.(
-    'devicechange',
-    deviceChangeHandler,
+const getDeviceChangeObserver = memoizedObservable(() => {
+  // Audio and video devices are requested in two separate requests.
+  // That way, users will be presented with two separate prompts
+  // -> they can give access to just camera, or just microphone
+  return new Observable((subscriber) => {
+    // 'addEventListener' is not available in React Native
+    if (!navigator.mediaDevices.addEventListener) return;
+
+    const notify = () => subscriber.next();
+    navigator.mediaDevices.addEventListener('devicechange', notify);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', notify);
+    };
+  }).pipe(
+    debounceTime(500),
+    concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
+    shareReplay(1),
   );
+});
 
-  return () =>
-    navigator.mediaDevices.removeEventListener?.(
-      'devicechange',
-      deviceChangeHandler,
-    );
-}).pipe(
-  debounceTime(500),
-  concatMap(() => from(navigator.mediaDevices.enumerateDevices())),
-  shareReplay(1),
-);
+const getAudioDevicesObserver = memoizedObservable(() => {
+  return merge(
+    getDevices(audioDeviceConstraints, 'audioinput'),
+    getDeviceChangeObserver(),
+  ).pipe(shareReplay(1));
+});
 
-const audioDevices$ = merge(
-  getDevices(audioDeviceConstraints, 'audioinput'),
-  deviceChange$,
-).pipe(shareReplay(1));
+const getAudioOutputDevicesObserver = memoizedObservable(() => {
+  return merge(
+    getDevices(audioDeviceConstraints, 'audiooutput'),
+    getDeviceChangeObserver(),
+  ).pipe(shareReplay(1));
+});
 
-const audioOutputDevices$ = merge(
-  getDevices(audioDeviceConstraints, 'audiooutput'),
-  deviceChange$,
-).pipe(shareReplay(1));
-
-const videoDevices$ = merge(
-  getDevices(videoDeviceConstraints, 'videoinput'),
-  deviceChange$,
-).pipe(shareReplay(1));
+const getVideoDevicesObserver = memoizedObservable(() => {
+  return merge(
+    getDevices(videoDeviceConstraints, 'videoinput'),
+    getDeviceChangeObserver(),
+  ).pipe(shareReplay(1));
+});
 
 /**
  * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audioinput' devices, if devices are added/removed the list is updated.
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @returns
  */
-export const getAudioDevices = () =>
-  audioDevices$.pipe(
+export const getAudioDevices = () => {
+  return getAudioDevicesObserver().pipe(
     map((values) => values.filter((d) => d.kind === 'audioinput')),
   );
+};
 
 /**
  * Prompts the user for a permission to use video devices (if not already granted) and lists the available 'videoinput' devices, if devices are added/removed the list is updated.
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @returns
  */
-export const getVideoDevices = () =>
-  videoDevices$.pipe(
-    map((values) =>
-      values.filter((d) => d.kind === 'videoinput' && d.deviceId.length),
-    ),
+export const getVideoDevices = () => {
+  return getVideoDevicesObserver().pipe(
+    map((values) => values.filter((d) => d.kind === 'videoinput')),
   );
+};
 
 /**
  * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audiooutput' devices, if devices are added/removed the list is updated. Selecting 'audiooutput' device only makes sense if [the browser has support for changing audio output on 'audio' elements](#checkifaudiooutputchangesupported)
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @returns
  */
 export const getAudioOutputDevices = () => {
-  return audioOutputDevices$.pipe(
+  return getAudioOutputDevicesObserver().pipe(
     map((values) => values.filter((d) => d.kind === 'audiooutput')),
   );
 };

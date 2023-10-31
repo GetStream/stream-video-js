@@ -1,0 +1,35 @@
+---
+title: Expo Screen Sharing Setup
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+In this document, we explain how to setup screen share for Android and iOS in your Expo App.
+
+In **app.json**, in the `plugins` field, add the `enableScreenshare` property and `appleTeamId` property to the `@stream-io/video-react-native-sdk` plugin.
+
+```js title="app.json"
+{
+ "plugins": [
+      [
+        "@stream-io/video-react-native-sdk",
+        {
+          // highlight-start
+          "enableScreenshare": true,
+          "appleTeamId": <ADD-YOUR-APPLE-TEAM-ID>, // example: "EHV7XZLAHA"
+          // highlight-end
+          // .. rest
+        }
+      ],
+  ]
+}
+```
+
+:::note
+
+- The `appleTeamId` field is used for signing the new extension created for screen share.
+
+:::
+
+The above configuration in the plugin will generate a new screen sharing extension named as "broadcast" and adds relevant information to your iOS app target as well.

@@ -18,6 +18,7 @@ import {
 } from '../../Participant';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CallContentProps } from '../CallContent';
+import { useIsInPiPMode } from '../../../hooks';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -62,6 +63,8 @@ export const CallParticipantsSpotlight = ({
   const isScreenShareOnSpotlight = hasScreenShare(participantInSpotlight);
   const isUserAloneInCall = _allParticipants?.length === 1;
 
+  const isInPiP = useIsInPiPMode();
+
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel,
     ParticipantNetworkQualityIndicator,
@@ -75,7 +78,7 @@ export const CallParticipantsSpotlight = ({
     ParticipantView,
   };
 
-  const landScapeStyles: ViewStyle = {
+  const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
@@ -88,7 +91,7 @@ export const CallParticipantsSpotlight = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
-        landScapeStyles,
+        landscapeStyles,
         {
           backgroundColor: colors.dark_gray,
         },
@@ -117,7 +120,7 @@ export const CallParticipantsSpotlight = ({
           {...participantViewProps}
         />
       )}
-      {!isUserAloneInCall && (
+      {!isInPiP && !isUserAloneInCall && (
         <View
           style={[
             styles.callParticipantsListContainer,

@@ -3,12 +3,7 @@ import {
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import {
-  isStreamVideoLocalParticipant,
-  JoinCallData,
-  StreamVideoLocalParticipant,
-  StreamVideoParticipant,
-} from '../../types';
+import { JoinCallData, StreamVideoParticipant } from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
 
 /**
@@ -107,21 +102,11 @@ const getCascadingModeParams = () => {
  * @param source the participant to reconcile from.
  */
 export const reconcileParticipantLocalState = (
-  target: StreamVideoParticipant | StreamVideoLocalParticipant,
-  source?: StreamVideoParticipant | StreamVideoLocalParticipant,
+  target: StreamVideoParticipant,
+  source?: StreamVideoParticipant,
 ) => {
   if (!source) return target;
 
   // copy everything from source to target
-  Object.assign(target, source);
-
-  if (
-    isStreamVideoLocalParticipant(source) &&
-    isStreamVideoLocalParticipant(target)
-  ) {
-    target.audioDeviceId = source.audioDeviceId;
-    target.videoDeviceId = source.videoDeviceId;
-    target.audioOutputDeviceId = source.audioOutputDeviceId;
-  }
-  return target;
+  return Object.assign(target, source);
 };

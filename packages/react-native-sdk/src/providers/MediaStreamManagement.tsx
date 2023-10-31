@@ -1,6 +1,7 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';
+import { NativeModules, Platform } from 'react-native';
 
 export type MediaDevicesInitialState = {
   /**
@@ -38,7 +39,19 @@ export const MediaStreamManagement = ({
       call?.camera?.resume();
     },
     () => {
-      call?.camera?.disable();
+      if (Platform.OS === 'android') {
+        // in Android, we need to check if we are in PiP mode
+        // in PiP mode, we don't want to disable the camera
+        NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
+          (isInPiP: boolean) => {
+            if (!isInPiP) {
+              call?.camera?.disable();
+            }
+          },
+        );
+      } else {
+        call?.camera?.disable();
+      }
     },
   );
 

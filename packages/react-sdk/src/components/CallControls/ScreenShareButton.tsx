@@ -1,29 +1,27 @@
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
-  useCall,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
-import { useToggleScreenShare } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 
 export type ScreenShareButtonProps = {
   caption?: string;
 };
 
-export const ScreenShareButton = ({
-  caption = 'Screen Share',
-}: ScreenShareButtonProps) => {
-  const call = useCall();
-  const { useHasOngoingScreenShare } = useCallStateHooks();
-  const isSomeoneScreenSharing = useHasOngoingScreenShare();
-
+export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
-  const { toggleScreenShare, isAwaitingPermission, isScreenSharing } =
-    useToggleScreenShare();
+  const { caption = t('Screen Share') } = props;
 
+  const { useHasOngoingScreenShare, useScreenShareState } = useCallStateHooks();
+  const isSomeoneScreenSharing = useHasOngoingScreenShare();
+  const { hasPermission, requestPermission, isAwaitingPermission } =
+    useRequestPermission(OwnCapability.SCREENSHARE);
+
+  const { screenShare, isMute: isScreenSharing } = useScreenShareState();
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
@@ -37,8 +35,14 @@ export const ScreenShareButton = ({
           <IconButton
             icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
             title={t('Share screen')}
-            disabled={(!isScreenSharing && isSomeoneScreenSharing) || !call}
-            onClick={toggleScreenShare}
+            disabled={!isScreenSharing && isSomeoneScreenSharing}
+            onClick={async () => {
+              if (!hasPermission) {
+                await requestPermission();
+              } else {
+                await screenShare.toggle();
+              }
+            }}
           />
         </CompositeButton>
       </PermissionNotification>

@@ -225,9 +225,13 @@ const hasScreenShare = (p: StreamVideoParticipant) =>
 // the sorting code goes here
 ```
 
-### Bandwidth and CPU optimizations with `ViewportTracker`
+### Bandwidth and CPU optimization
 
-In calls with a large number of participants, your horizontal list will grow past viewable boundaries. Each of these `ParticipantView` components will keep subscribing to the video stream and will keep playing it even if they're not visible to the user which is wasteful because of heavy CPU and bandwidth usage. To mitigate this issue each `Call` instance contains one `ViewportTracker` instance (`call.viewportTracker`) with `observe` and `setViewport` methods. The `ParticipantView` component already utilizes this functionality under the hood (`observe`) so all we need to do is to call `setViewport` with your horizontal list element as an argument and we're set.
+In calls with a large number of participants, your horizontal list will grow past viewable boundaries.
+Each of these `ParticipantView` components will keep subscribing to the video stream
+and will keep playing it even if they're not visible to the user which is wasteful because of heavy CPU and bandwidth usage.
+To mitigate this issue each `Call` instance utilizes one `ViewportTracker` instance (`call.dynascaleManager.viewportTracker`) with `observe` and `setViewport` methods.
+The `ParticipantView` component already utilizes this functionality under the hood (`observe`) so all we need to do is to call `setViewport` with your horizontal list element as an argument and we're set.
 
 ```tsx
 export const SpeakerView = () => {
@@ -252,7 +256,7 @@ export const SpeakerView = () => {
   useEffect(() => {
     if (!participantsBar || !call) return;
 
-    const cleanup = call.viewportTracker.setViewport(participantsBar);
+    const cleanup = call.dynascaleManager.setViewport(participantsBar);
 
     return () => cleanup();
   }, [participantsBar, call]);
@@ -288,8 +292,8 @@ export const SpeakerView = () => {
 };
 
 // utility to determine whether the participant in spotlight is sharing their screen
-const hasScreenShare = (p: StreamVideoParticipant) =>
-  p.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
+const hasScreenShare = (p?: StreamVideoParticipant) =>
+  p?.publishedTracks.includes(SfuModels.TrackType.SCREEN_SHARE);
 ```
 
 Now these changes will ensure that we only subscribe to the video streams users actually see on their screens.

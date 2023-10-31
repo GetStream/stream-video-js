@@ -1,16 +1,14 @@
 import { ComponentType } from 'react';
-import { OwnCapability, SfuModels } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-
-import { useMediaDevices } from '../../core';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
-import { useToggleAudioMuteState } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 
 export type ToggleAudioPreviewButtonProps = {
   caption?: string;
@@ -20,20 +18,17 @@ export type ToggleAudioPreviewButtonProps = {
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { initialAudioEnabled, toggleInitialAudioMuteState } =
-    useMediaDevices();
   const { t } = useI18n();
   const { caption = t('Mic'), Menu = DeviceSelectorAudioInput } = props;
 
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
+
   return (
-    <CompositeButton
-      Menu={Menu}
-      active={!initialAudioEnabled}
-      caption={caption || t('Mic')}
-    >
+    <CompositeButton Menu={Menu} active={isMute} caption={caption || t('Mic')}>
       <IconButton
-        icon={initialAudioEnabled ? 'mic' : 'mic-off'}
-        onClick={toggleInitialAudioMuteState}
+        icon={!isMute ? 'mic' : 'mic-off'}
+        onClick={() => microphone.toggle()}
       />
     </CompositeButton>
   );
@@ -47,18 +42,14 @@ export type ToggleAudioPublishingButtonProps = {
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
   const { t } = useI18n();
-
   const { caption = t('Mic'), Menu = DeviceSelectorAudioInput } = props;
 
-  const isAudioMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
+  const { hasPermission, requestPermission, isAwaitingPermission } =
+    useRequestPermission(OwnCapability.SEND_AUDIO);
 
-  const { toggleAudioMuteState: handleClick, isAwaitingPermission } =
-    useToggleAudioMuteState();
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -69,10 +60,16 @@ export const ToggleAudioPublishingButton = (
         messageAwaitingApproval={t('Awaiting for an approval to speak.')}
         messageRevoked={t('You can no longer speak.')}
       >
-        <CompositeButton Menu={Menu} active={isAudioMute} caption={caption}>
+        <CompositeButton Menu={Menu} active={isMute} caption={caption}>
           <IconButton
-            icon={isAudioMute ? 'mic-off' : 'mic'}
-            onClick={handleClick}
+            icon={isMute ? 'mic-off' : 'mic'}
+            onClick={async () => {
+              if (!hasPermission) {
+                await requestPermission();
+              } else {
+                await microphone.toggle();
+              }
+            }}
           />
         </CompositeButton>
       </PermissionNotification>

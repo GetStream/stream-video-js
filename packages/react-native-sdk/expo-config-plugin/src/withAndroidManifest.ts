@@ -3,7 +3,9 @@ import {
   ConfigPlugin,
   withAndroidManifest,
 } from '@expo/config-plugins';
-const { prefixAndroidKeys, getMainApplicationOrThrow } = AndroidConfig.Manifest;
+import { ConfigProps } from './common/types';
+const { prefixAndroidKeys, getMainApplicationOrThrow, getMainActivityOrThrow } =
+  AndroidConfig.Manifest;
 
 // extract the type from array
 type Unpacked<T> = T extends Array<infer U>
@@ -16,38 +18,67 @@ type ManifestService = Unpacked<
   NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
 >;
 
-function getNotifeeService() {
+function getNotifeeService(enableScreenshare: boolean = false) {
   /*
     <service
         android:name="app.notifee.core.ForegroundService"
         android:stopWithTask="true"
-        android:foregroundServiceType="microphone" />
+        android:foregroundServiceType="mediaProjection|microphone" />
  */
+  let foregroundServiceType = 'microphone';
+  if (enableScreenshare) {
+    foregroundServiceType = 'mediaProjection|' + foregroundServiceType;
+  }
   const head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
     stopWithTask: 'true',
-    foregroundServiceType: 'microphone',
+    foregroundServiceType,
   });
   return {
     $: head,
   } as ManifestService;
 }
 
-const withStreamVideoReactNativeSDKManifest: ConfigPlugin = (configuration) => {
+const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
+  configuration,
+  props,
+) => {
   return withAndroidManifest(configuration, (config) => {
     try {
       const androidManifest = config.modResults;
       const mainApplication = getMainApplicationOrThrow(androidManifest);
+      /* Add the notifee Service */
       let services = mainApplication.service ?? [];
       // we filter out the existing notifee service (if any) so that we can override it
       services = services.filter(
         (service) =>
           service.$['android:name'] !== 'app.notifee.core.ForegroundService',
       );
-      services.push(getNotifeeService());
+      services.push(getNotifeeService(props?.enableScreenshare));
       mainApplication.service = services;
+
+      if (props?.androidPictureInPicture) {
+        const mainActivity = getMainActivityOrThrow(androidManifest);
+        ('keyboard|keyboardHidden|orientation|screenSize|uiMode');
+        const currentConfigChangesArray = mainActivity.$[
+          'android:configChanges'
+        ]
+          ? mainActivity.$['android:configChanges'].split('|')
+          : [];
+        const neededConfigChangesArray =
+          'screenSize|smallestScreenSize|screenLayout|orientation'.split('|');
+        // Create a Set from the two arrays.
+        const set = new Set([
+          ...currentConfigChangesArray,
+          ...neededConfigChangesArray,
+        ]);
+        const mergedConfigChanges = [...set];
+        mainActivity.$['android:configChanges'] = mergedConfigChanges.join('|');
+        mainActivity.$['android:supportsPictureInPicture'] = 'true';
+      }
       config.modResults = androidManifest;
     } catch (error: any) {
+      console.log(error);
       throw new Error(
         'Cannot setup StreamVideoReactNativeSDK because the AndroidManifest is malformed',
       );

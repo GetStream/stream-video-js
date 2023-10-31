@@ -1,12 +1,10 @@
-import {
-  CallStatsButton,
-  CancelCallButton,
-  RecordCallButton,
-  ScreenShareButton,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
-} from './index';
 import { SpeakingWhileMutedNotification } from '../Notification';
+import { RecordCallButton } from './RecordCallButton';
+import { CallStatsButton } from './CallStatsButton';
+import { ScreenShareButton } from './ScreenShareButton';
+import { ToggleAudioPublishingButton } from './ToggleAudioButton';
+import { ToggleVideoPublishingButton } from './ToggleVideoButton';
+import { CancelCallButton } from './CancelCallButton';
 
 export type CallControlsProps = {
   onLeave?: () => void;
