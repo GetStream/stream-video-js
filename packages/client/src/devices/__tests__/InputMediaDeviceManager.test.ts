@@ -5,7 +5,9 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MockTrack,
+  disconnectDevice,
   mockCall,
+  mockDeviceDisconnectWatcher,
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
@@ -18,6 +20,13 @@ vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
     Call: vi.fn(() => mockCall()),
+  };
+});
+
+vi.mock('../devices.ts', () => {
+  console.log('MOCKING devices API');
+  return {
+    watchForDisconnectedDevice: mockDeviceDisconnectWatcher(),
   };
 });
 
@@ -232,6 +241,23 @@ describe('InputMediaDeviceManager.test', () => {
     )();
 
     expect(manager.state.status).toBe('disabled');
+  });
+
+  it('should disable stream and deselect device if selected device is disconnected', async () => {
+    vi.useFakeTimers();
+
+    await manager.enable();
+    const deviceId = mockVideoDevices[1].deviceId;
+    await manager.select(deviceId);
+
+    disconnectDevice();
+
+    await vi.runAllTimersAsync();
+
+    expect(manager.state.status).toBe('disabled');
+    expect(manager.state.selectedDevice).toBeUndefined();
+
+    vi.useRealTimers();
   });
 
   afterEach(() => {

@@ -1,9 +1,29 @@
+import { Subscription } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
-import { getAudioOutputDevices } from './devices';
+import { getAudioOutputDevices, watchForDisconnectedDevice } from './devices';
 
 export class SpeakerManager {
   public readonly state = new SpeakerState();
+  private subscriptions: Subscription[] = [];
+
+  constructor() {
+    if (
+      typeof navigator !== 'undefined' &&
+      typeof navigator.mediaDevices !== 'undefined' &&
+      !isReactNative()
+    ) {
+      this.subscriptions.push(
+        watchForDisconnectedDevice(this.state.selectedDevice$).subscribe(
+          async (isDisconnected) => {
+            if (isDisconnected) {
+              this.select('');
+            }
+          },
+        ),
+      );
+    }
+  }
 
   /**
    * Lists the available audio output devices
@@ -29,6 +49,10 @@ export class SpeakerManager {
     }
     this.state.setDevice(deviceId);
   }
+
+  removeSubscriptions = () => {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  };
 
   /**
    * Set the volume of the audio elements

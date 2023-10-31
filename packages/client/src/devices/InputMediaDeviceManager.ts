@@ -40,6 +40,7 @@ export abstract class InputMediaDeviceManager<
           async (isDisconnected) => {
             if (isDisconnected) {
               await this.disable();
+              this.select(undefined);
             }
           },
         ),
@@ -142,6 +143,10 @@ export abstract class InputMediaDeviceManager<
     this.state.setDevice(deviceId);
     await this.applySettingsToStream();
   }
+
+  removeSubscriptions = () => {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  };
 
   protected async applySettingsToStream() {
     if (this.state.status === 'enabled') {
