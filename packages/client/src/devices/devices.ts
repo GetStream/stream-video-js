@@ -258,7 +258,7 @@ export const getScreenShareStream = async (
   }
 };
 
-const devices$ = memoizedObservable(() =>
+const getDeviceIds = memoizedObservable(() =>
   merge(
     from(navigator.mediaDevices.enumerateDevices()),
     getDeviceChangeObserver(),
@@ -268,7 +268,7 @@ const devices$ = memoizedObservable(() =>
 export const watchForDisconnectedDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return combineLatest([devices$(), deviceId$]).pipe(
+  return combineLatest([getDeviceIds(), deviceId$]).pipe(
     filter(
       ([devices, deviceId]) =>
         !!deviceId && !devices.find((d) => d.deviceId === deviceId),
