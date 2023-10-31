@@ -34,8 +34,7 @@
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "clsx": "^2.0.0",
-    "prop-types": "^15.8.1",
-    "rxjs": "~7.8.1"
+    "prop-types": "^15.8.1"
   },
   "peerDependencies": {
     "react": "^18.0.0",
