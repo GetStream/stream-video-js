@@ -17,7 +17,7 @@ import { getLogger } from '../logger';
  * that meet the given constraints.
  *
  * @param constraints the constraints to use when requesting the devices.
- * @param kind the kind of devices to request.
+ * @param kind the kind of devices to enumerate.
  */
 const getDevices = (
   constraints: MediaStreamConstraints,
