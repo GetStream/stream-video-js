@@ -16,22 +16,30 @@ export type LocalDevicePreferences = {
  * @param key the key to use for local storage.
  */
 const usePersistDevicePreferences = (key: string) => {
-  const { useMicrophoneState, useCameraState, useSpeakerState } =
-    useCallStateHooks();
+  const {
+    useMicrophoneState,
+    useCameraState,
+    useSpeakerState,
+    useCallSettings,
+  } = useCallStateHooks();
   const mic = useMicrophoneState();
   const camera = useCameraState();
   const speaker = useSpeakerState();
+  const settings = useCallSettings();
   useEffect(() => {
+    if (!settings) return;
     try {
+      const hasPreferences = !!window.localStorage.getItem(key);
+      const { audio, video } = settings;
       const defaultDevice = 'default';
       const preferences: LocalDevicePreferences = {
         mic: {
           selectedDeviceId: mic.selectedDevice || defaultDevice,
-          muted: mic.isMute,
+          muted: hasPreferences ? mic.isMute : !audio.mic_default_on,
         },
         camera: {
           selectedDeviceId: camera.selectedDevice || defaultDevice,
-          muted: camera.isMute,
+          muted: hasPreferences ? camera.isMute : !video.camera_default_on,
         },
         speaker: {
           selectedDeviceId: speaker.selectedDevice || defaultDevice,
@@ -48,6 +56,7 @@ const usePersistDevicePreferences = (key: string) => {
     key,
     mic.isMute,
     mic.selectedDevice,
+    settings,
     speaker.selectedDevice,
   ]);
 };
@@ -59,8 +68,10 @@ const usePersistDevicePreferences = (key: string) => {
  */
 const useApplyDevicePreferences = (key: string) => {
   const call = useCall();
+  const { useCallSettings } = useCallStateHooks();
+  const settings = useCallSettings();
   useEffect(() => {
-    if (!call) return;
+    if (!call || !settings) return;
 
     const apply = async () => {
       const initMic = async (setting: LocalDevicePreference) => {
@@ -85,24 +96,29 @@ const useApplyDevicePreferences = (key: string) => {
         call.speaker.select(setting.selectedDeviceId);
       };
 
+      let preferences: LocalDevicePreferences | null = null;
       try {
-        const preferences = JSON.parse(
+        preferences = JSON.parse(
           window.localStorage.getItem(key)!,
         ) as LocalDevicePreferences;
-        if (preferences) {
-          await initMic(preferences.mic);
-          await initCamera(preferences.camera);
-          initSpeaker(preferences.speaker);
-        }
       } catch (err) {
         console.warn('Failed to load device preferences', err);
+      }
+      if (preferences) {
+        await initMic(preferences.mic);
+        await initCamera(preferences.camera);
+        initSpeaker(preferences.speaker);
+      } else {
+        const { audio, video } = settings;
+        if (audio.mic_default_on) await call.microphone.enable();
+        if (video.camera_default_on) await call.camera.enable();
       }
     };
 
     apply().catch((err) => {
       console.warn('Failed to apply device preferences', err);
     });
-  }, [call, key]);
+  }, [call, key, settings]);
 };
 
 /**

@@ -2,12 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 import { v1 as uuid } from 'uuid';
 
-import {
-  Call,
-  getScreenShareStream,
-  SfuModels,
-  useCallStateHooks,
-} from '@stream-io/video-react-sdk';
+import { Call, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 import Header from '../../Header';
 import Footer from '../../Footer';
@@ -47,6 +42,7 @@ export const MeetingView = ({
   const {
     useParticipants,
     useIsCallRecordingInProgress,
+    useScreenShareState,
     useHasOngoingScreenShare,
   } = useCallStateHooks();
   const participants = useParticipants();
@@ -62,6 +58,7 @@ export const MeetingView = ({
   const { setSteps } = useTourContext();
   const { addNotification } = useNotificationContext();
 
+  const { screenShare } = useScreenShareState();
   const isScreenSharing = useHasOngoingScreenShare();
 
   useEffect(() => {
@@ -101,19 +98,6 @@ export const MeetingView = ({
     call.leave();
     setCallHasEnded(true);
   }, [call, setCallHasEnded]);
-
-  const toggleShareScreen = useCallback(async () => {
-    if (!isScreenSharing) {
-      const stream = await getScreenShareStream().catch((e) => {
-        console.log(`Can't share screen: ${e}`);
-      });
-      if (stream) {
-        await call.publishScreenShareStream(stream);
-      }
-    } else {
-      await call.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
-    }
-  }, [isScreenSharing, call]);
 
   const handleStartRecording = useCallback(async () => {
     setIsAwaitingRecordingResponse(true);
@@ -164,7 +148,7 @@ export const MeetingView = ({
             handleStartRecording={handleStartRecording}
             handleStopRecording={handleStopRecording}
             isAwaitingRecording={isAwaitingRecordingResponse}
-            toggleShareScreen={toggleShareScreen}
+            toggleShareScreen={() => screenShare.toggle()}
             call={call}
             isCallActive={isCallActive}
             isScreenSharing={isScreenSharing}
