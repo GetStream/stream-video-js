@@ -21,7 +21,10 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SCREENSHARE);
 
-  const { screenShare, isMute: isScreenSharing } = useScreenShareState();
+  const { screenShare, isMute: amIScreenSharing } = useScreenShareState();
+  const disableScreenShareButton = amIScreenSharing
+    ? isSomeoneScreenSharing
+    : false;
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
       <PermissionNotification
@@ -33,9 +36,11 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
       >
         <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
           <IconButton
-            icon={isScreenSharing ? 'screen-share-on' : 'screen-share-off'}
+            icon={
+              isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
+            }
             title={t('Share screen')}
-            disabled={!isScreenSharing && isSomeoneScreenSharing}
+            disabled={disableScreenShareButton}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();
