@@ -12,22 +12,47 @@ import {
 } from 'rxjs';
 import { getLogger } from '../logger';
 
-const getDevices = (constraints?: MediaStreamConstraints) => {
+/**
+ * Returns an Observable that emits the list of available devices
+ * that meet the given constraints.
+ *
+ * @param constraints the constraints to use when requesting the devices.
+ * @param kind the kind of devices to enumerate.
+ */
+const getDevices = (
+  constraints: MediaStreamConstraints,
+  kind: MediaDeviceKind,
+) => {
   return new Observable<MediaDeviceInfo[]>((subscriber) => {
-    navigator.mediaDevices
-      .getUserMedia(constraints)
-      .then((media) => {
-        // in Firefox, devices can be enumerated after userMedia is requested
-        // and permissions granted. Otherwise, device labels are empty
-        navigator.mediaDevices.enumerateDevices().then((devices) => {
-          subscriber.next(devices);
-          // If we stop the tracks before enumerateDevices -> the labels won't show up in Firefox
-          disposeOfMediaStream(media);
-          subscriber.complete();
-        });
+    const enumerate = async () => {
+      let devices = await navigator.mediaDevices.enumerateDevices();
+      // some browsers report empty device labels (Firefox).
+      // in that case, we need to request permissions (via getUserMedia)
+      // to be able to get the device labels
+      const needsGetUserMedia = devices.some(
+        (device) => device.kind === kind && device.label === '',
+      );
+      if (needsGetUserMedia) {
+        let mediaStream: MediaStream | undefined;
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+          devices = await navigator.mediaDevices.enumerateDevices();
+        } finally {
+          if (mediaStream) disposeOfMediaStream(mediaStream);
+        }
+      }
+      return devices;
+    };
+
+    enumerate()
+      .then((devices) => {
+        // notify subscribers and complete
+        subscriber.next(devices);
+        subscriber.complete();
       })
       .catch((error) => {
-        getLogger(['devices'])('error', 'Failed to get devices', error);
+        const logger = getLogger(['devices']);
+        logger('error', 'Failed to enumerate devices', error);
         subscriber.error(error);
       });
   });
@@ -41,7 +66,7 @@ const getDevices = (constraints?: MediaStreamConstraints) => {
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
   const element = document.createElement('audio');
-  return (element as any).sinkId !== undefined;
+  return 'setSinkId' in element;
 };
 
 /**
@@ -101,14 +126,21 @@ const getDeviceChangeObserver = memoizedObservable(() => {
 
 const getAudioDevicesObserver = memoizedObservable(() => {
   return merge(
-    getDevices(audioDeviceConstraints),
+    getDevices(audioDeviceConstraints, 'audioinput'),
+    getDeviceChangeObserver(),
+  ).pipe(shareReplay(1));
+});
+
+const getAudioOutputDevicesObserver = memoizedObservable(() => {
+  return merge(
+    getDevices(audioDeviceConstraints, 'audiooutput'),
     getDeviceChangeObserver(),
   ).pipe(shareReplay(1));
 });
 
 const getVideoDevicesObserver = memoizedObservable(() => {
   return merge(
-    getDevices(videoDeviceConstraints),
+    getDevices(videoDeviceConstraints, 'videoinput'),
     getDeviceChangeObserver(),
   ).pipe(shareReplay(1));
 });
@@ -135,7 +167,7 @@ export const getVideoDevices = () => {
  * Prompts the user for a permission to use audio devices (if not already granted) and lists the available 'audiooutput' devices, if devices are added/removed the list is updated. Selecting 'audiooutput' device only makes sense if [the browser has support for changing audio output on 'audio' elements](#checkifaudiooutputchangesupported)
  */
 export const getAudioOutputDevices = () => {
-  return getAudioDevicesObserver().pipe(
+  return getAudioOutputDevicesObserver().pipe(
     map((values) => values.filter((d) => d.kind === 'audiooutput')),
   );
 };

@@ -324,10 +324,8 @@ export class Publisher {
         ? transceiver.sender.track.stop()
         : (transceiver.sender.track.enabled = false);
       // We don't need to notify SFU if unpublishing in response to remote soft mute
-      if (!this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        return;
-      } else {
-        return this.notifyTrackMuteStateChanged(
+      if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
+        await this.notifyTrackMuteStateChanged(
           undefined,
           transceiver.sender.track,
           trackType,
