@@ -1,14 +1,14 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import {
-  checkIfAudioOutputChangeSupported,
   DeviceSelectorAudioInput,
   ToggleAudioOutputButton,
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
+  useCallStateHooks,
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -34,9 +34,8 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const [isAudioOutputChangeSupported] = useState(() =>
-    checkIfAudioOutputChangeSupported(),
-  );
+  const { useSpeakerState } = useCallStateHooks();
+  const { isDeviceSelectionSupported } = useSpeakerState();
   const { t } = useI18n();
 
   const router = useRouter();
@@ -100,7 +99,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               >
                 <ToggleAudioPreviewButton Menu={LobbyToggleAudioMenu} />
                 <ToggleVideoPreviewButton />
-                {isAudioOutputChangeSupported && <ToggleAudioOutputButton />}
+                {isDeviceSelectionSupported && <ToggleAudioOutputButton />}
               </div>
             )}
           </Box>

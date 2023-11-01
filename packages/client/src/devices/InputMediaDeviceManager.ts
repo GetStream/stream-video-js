@@ -44,9 +44,7 @@ export abstract class InputMediaDeviceManager<
    * Starts stream.
    */
   async enable() {
-    if (this.state.status === 'enabled') {
-      return;
-    }
+    if (this.state.status === 'enabled') return;
     this.enablePromise = this.unmuteStream();
     try {
       await this.enablePromise;
@@ -63,12 +61,9 @@ export abstract class InputMediaDeviceManager<
    */
   async disable() {
     this.state.prevStatus = this.state.status;
-    if (this.state.status === 'disabled') {
-      return;
-    }
-    this.disablePromise = this.muteStream(
-      this.state.disableMode === 'stop-tracks',
-    );
+    if (this.state.status === 'disabled') return;
+    const stopTracks = this.state.disableMode === 'stop-tracks';
+    this.disablePromise = this.muteStream(stopTracks);
     try {
       await this.disablePromise;
       this.state.setStatus('disabled');
@@ -108,7 +103,7 @@ export abstract class InputMediaDeviceManager<
    *
    * @param constraints the constraints to set.
    */
-  async setDefaultConstraints(constraints: C) {
+  setDefaultConstraints(constraints: C) {
     this.state.setDefaultConstraints(constraints);
   }
 
@@ -150,25 +145,24 @@ export abstract class InputMediaDeviceManager<
   }
 
   protected async muteStream(stopTracks: boolean = true) {
-    if (!this.state.mediaStream) {
-      return;
-    }
+    if (!this.state.mediaStream) return;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(stopTracks);
     }
     this.muteLocalStream(stopTracks);
-    this.getTracks().forEach((track) => {
-      if (track.readyState === 'ended') {
+    const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
+    if (allEnded) {
+      if (
+        this.state.mediaStream &&
         // @ts-expect-error release() is present in react-native-webrtc
-        // and must be called to dispose the stream
-        if (typeof this.state.mediaStream.release === 'function') {
-          // @ts-expect-error
-          this.state.mediaStream.release();
-        }
-        this.state.setMediaStream(undefined);
+        typeof this.state.mediaStream.release === 'function'
+      ) {
+        // @ts-expect-error called to dispose the stream in RN
+        this.state.mediaStream.release();
       }
-    });
+      this.state.setMediaStream(undefined);
+    }
   }
 
   private muteTracks() {

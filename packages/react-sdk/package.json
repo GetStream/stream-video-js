@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
@@ -34,8 +34,7 @@
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "clsx": "^2.0.0",
-    "prop-types": "^15.8.1",
-    "rxjs": "~7.8.1"
+    "prop-types": "^15.8.1"
   },
   "peerDependencies": {
     "react": "^18.0.0",
