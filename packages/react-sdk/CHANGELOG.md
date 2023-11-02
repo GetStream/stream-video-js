@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.5...@stream-io/video-react-sdk-0.4.6) (2023-11-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.4`
+
+### Bug Fixes
+
+* allow audio and screen share audio tracks, delay setSinkId ([#1176](https://github.com/GetStream/stream-video-js/issues/1176)) ([6a099c5](https://github.com/GetStream/stream-video-js/commit/6a099c5c7cc6f5d389961a7c594e914e19be4ddb))
+
 ### [0.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.4...@stream-io/video-react-sdk-0.4.5) (2023-11-01)
 
 ### Dependency Updates
