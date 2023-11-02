@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
