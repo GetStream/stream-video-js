@@ -362,6 +362,15 @@ export class DynascaleManager {
             audioElement.play().catch((e) => {
               this.logger('warn', `Failed to play stream`, e);
             });
+
+            // audio output device shall be set after the audio element is played
+            // otherwise, the browser will not pick it up, and will always
+            // play audio through the system's default device
+            const { selectedDevice } = this.call.speaker.state;
+            if (selectedDevice && 'setSinkId' in audioElement) {
+              // @ts-expect-error setSinkId is not yet in the lib
+              audioElement.setSinkId(selectedDevice);
+            }
           }
         });
       });

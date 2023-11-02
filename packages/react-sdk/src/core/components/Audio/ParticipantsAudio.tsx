@@ -20,33 +20,42 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
     <>
       {participants.map((participant) => {
         if (participant.isLocalParticipant) return null;
-        const hasAudio = participant.publishedTracks.includes(
-          SfuModels.TrackType.AUDIO,
+        const {
+          publishedTracks,
+          audioStream,
+          screenShareAudioStream,
+          sessionId,
+        } = participant;
+
+        const hasAudio = publishedTracks.includes(SfuModels.TrackType.AUDIO);
+        const audioTrackElement = hasAudio && audioStream && (
+          <Audio
+            {...audioProps}
+            trackType="audioTrack"
+            participant={participant}
+            key={`${sessionId}-audio`}
+          />
         );
-        const hasScreenShareAudio = participant.publishedTracks.includes(
+
+        const hasScreenShareAudio = publishedTracks.includes(
           SfuModels.TrackType.SCREEN_SHARE_AUDIO,
         );
-        if (hasAudio && participant.audioStream) {
-          return (
-            <Audio
-              {...audioProps}
-              trackType="audioTrack"
-              participant={participant}
-              key={participant.sessionId}
-            />
-          );
-        }
-        if (hasScreenShareAudio && participant.screenShareAudioStream) {
-          return (
+        const screenShareAudioTrackElement = hasScreenShareAudio &&
+          screenShareAudioStream && (
             <Audio
               {...audioProps}
               trackType="screenShareAudioTrack"
               participant={participant}
-              key={participant.sessionId}
+              key={`${sessionId}-screen-share-audio`}
             />
           );
-        }
-        return null;
+
+        return (
+          <>
+            {audioTrackElement}
+            {screenShareAudioTrackElement}
+          </>
+        );
       })}
     </>
   );
