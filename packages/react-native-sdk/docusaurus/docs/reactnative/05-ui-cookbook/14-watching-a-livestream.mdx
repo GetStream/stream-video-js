@@ -9,7 +9,7 @@ import ViewerLivestreamScreenShare from '../assets/05-ui-cookbook/14-watching-a-
 
 The Video API allows you to assign specific roles for users in a livestream, such as hosts and viewers. Our SDK provides dedicated livestreaming components for both of these roles.
 
-The `ViewerLivestream` leverages the WebRTC protocol for seamless livestream viewing within the SDK. To enable external publishing, you can access HLS credentials from the dashboard. For additional information, please refer to our [livestream tutorial](../../tutorials/livestream).
+The `ViewerLivestream` component leverages the WebRTC protocol for seamless livestream viewing within the SDK. To enable external publishing, you can access HLS credentials from the dashboard. For additional information, please refer to our [livestream tutorial](../../tutorials/livestream).
 
 This guide describes how to customize watching a livestream through our SDK.
 
@@ -66,6 +66,8 @@ The `ViewerLivestream` provides a lot of customization options that can be passe
 - `ViewerLeaveStreamButton` allows customizing the leave button of the livestream on the controls of the `ViewerLivestream`.
 - `FloatingParticipantView` allows customizing the Floating Participant View that renders the video of the participant when screen is shared.
 - `onLeaveStreamHandler` allows full override of the default functionality on what should happen when viewer ends the streaming using `ViewerLeaveStreamButton`.
+
+An example to customize the `ViewerLeaveStreamButton` button is shown below:
 
 ```tsx
 import {
