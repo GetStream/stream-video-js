@@ -3,13 +3,15 @@ id: hosting-a-livestream
 title: Hosting a livestream
 ---
 
-This cookbook tutorial walks you through how to customize the UI for hosting a livestream on React Native SDK.
+The Video API allows you to assign specific roles for users in a livestream, such as hosts and viewers. Our SDK provides dedicated livestreaming components for both of these roles.
+
+For the host role, our React Native SDK includes the specialized `HostLivestream` component.
 
 ### Default component
 
 Our React Native SDK provides a specialized components for it: the [`HostLivestream`](../../ui-components/livestream/host-livestream).
 
-Here is a preview of the above components in video mode:
+Here is a preview of the above component in video mode:
 
 ![Preview of the UI](../assets/05-ui-cookbook/13-hosting-a-livestream/host-livestream-start.png)
 
@@ -38,12 +40,12 @@ The `HostLivestream` provides a lot of customization options that can be passed 
 
 - `HostLivestreamTopView` allows customizing the top view or the header of the `HostLivestream`. It contains the `LiveIndicator`, `FollowerCount`, and the `DurationBadge` component by default.
 - `LivestreamLayout` allows customizing the main video layout component of the `HostLivestream`.
-- `HostLivestreamControls` allows customization of the bottom livestream controls component of the `HostLivestream`. It contains the `HostStartStreamButton` and the `LivestreamMediaControls` component by default.
+- `HostLivestreamControls` allows customizing the bottom livestream controls component of the `HostLivestream`. It contains the `HostStartStreamButton` and the `LivestreamMediaControls` component by default.
 - `LiveIndicator` allows customizing the live indicator component that is present in the top view of the `HostLivestream`.
-- `FollowerCount` allows customization of the follower count component that is present in the top view of the `HostLivestream`.
+- `FollowerCount` allows customizing the follower count component that is present in the top view of the `HostLivestream`.
 - `DurationBadge` allows customizing the duration badge that shows the duration of the livestream in the top view of the `HostLivestream`.
-- `HostStartStreamButton` allows customization of the start/end button of the livestream on the controls of the `HostLivestream`.
-- `LivestreamMediaControls` allows customization of the media controls button of the livestream on the controls of the `HostLivestream`.
+- `HostStartStreamButton` allows customizing the start/end button of the livestream on the controls of the `HostLivestream`.
+- `LivestreamMediaControls` allows customizing the media controls button of the livestream on the controls of the `HostLivestream`.
 - `onEndStreamHandler` allows full override of the default functionality on what should happen when host ends the streaming using `HostStartStreamButton`.
 - `onStartStreamHandler` allows full override of the default functionality on what should happen when host starts the streaming using `HostStartStreamButton`.
 
