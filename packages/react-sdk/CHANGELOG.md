@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.6...@stream-io/video-react-sdk-0.4.7) (2023-11-03)
+
+
+### Bug Fixes
+
+* set `key` prop to the correct element ([#1178](https://github.com/GetStream/stream-video-js/issues/1178)) ([b24c07d](https://github.com/GetStream/stream-video-js/commit/b24c07dd366e8aa64055aae7dd48cabe8761eac0)), closes [#1176](https://github.com/GetStream/stream-video-js/issues/1176)
+
 ### [0.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.5...@stream-io/video-react-sdk-0.4.6) (2023-11-02)
 
 ### Dependency Updates
