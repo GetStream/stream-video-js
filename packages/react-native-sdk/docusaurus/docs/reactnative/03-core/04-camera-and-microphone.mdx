@@ -13,12 +13,12 @@ Handling audio and video devices in a your application means working with `Media
 The default state of the camera is determined by the settings in the call object.
 
 ```ts
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 const { useCallSettings } = useCallStateHooks();
 const settings = useCallSettings();
 
-settings?.video.camera_default_on;
+console.log(settings?.video.camera_default_on);
 ```
 
 :::note
@@ -34,20 +34,29 @@ Alternatively, you can use `camera.toggle()`.
 ```ts
 const call = useCall();
 
-call.camera.enable();
-call.camera.disable();
-// or
-call.camera.toggle();
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+
+const { useCameraState } = useCallStateHooks();
+const { camera, isMute } = useCameraState();
+
+console.log(`Camera is ${isMute ? 'off' : 'on'}`);
+await camera.toggle();
+
+// or, alternatively
+await camera.enable();
+await camera.disable();
 ```
 
 ### Manage Camera Facing Mode
 
-We can toggle the camera face from front to back and vice-versa using `camera.flip()` function inside the call object derived from `useCall` hook.
+We can toggle the camera face from front to back and vice-versa using `camera.flip()`.
 
 ```ts
-const call = useCall();
+const { useCameraState } = useCallStateHooks();
+const { camera } = useCameraState();
 
-call.camera.flip();
+console.log(direction); // direction returns 'front' or 'back'.
+camera.flip();
 ```
 
 We can get the facing mode state of the camera by:
@@ -72,9 +81,10 @@ We can get the video stream from the camera using the media stream from the `cal
 
 ```tsx
 import { RTCView } from '@stream-io/react-native-webrtc';
-const call = useCall();
+const { useCameraState } = useCallStateHooks();
+const { camera } = useCameraState();
 
-const localVideoStream = call?.camera.state.mediaStream;
+const localVideoStream = camera.state.mediaStream;
 
 return <RTCView streamURL={localVideoStream?.toURL()} />;
 ```
@@ -86,12 +96,12 @@ return <RTCView streamURL={localVideoStream?.toURL()} />;
 The default state of the microphone is determined by the settings in the call object.
 
 ```ts
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
 const { useCallSettings } = useCallStateHooks();
 const settings = useCallSettings();
 
-settings?.audio.mic_default_on;
+console.log(settings?.audio.mic_default_on);
 ```
 
 :::note
@@ -105,12 +115,17 @@ We can use the functions `microphone.enable()` and `microphone.disable()` to con
 Alternatively, you can use `microphone.toggle()`.
 
 ```ts
-const call = useCall();
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
-call.microphone.enable();
-call.microphone.disable();
-// or
-call.microphone.toggle();
+const { useMicrophoneState } = useCallStateHooks();
+const { microphone, isMute } = useMicrophoneState();
+
+console.log(`Microphone is ${isMute ? 'off' : 'on'}`);
+await microphone.toggle();
+
+// or, alternatively
+await microphone.enable();
+await microphone.disable();
 ```
 
 ### Audio mute status

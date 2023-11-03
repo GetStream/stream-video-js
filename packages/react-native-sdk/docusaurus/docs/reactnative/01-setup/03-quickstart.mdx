@@ -25,16 +25,11 @@ const token = 'authentication-token';
 const callId = 'my-call-id';
 const user: User = { id: userId };
 
+const client = new StreamVideoClient({ apiKey, user, token });
+const call = client.call('default', callId);
+call.join({ create: true });
+
 export default function App() {
-  const [client] = useState(
-    () => new StreamVideoClient({ apiKey, user, token }),
-  );
-  const [call] = useState(() => client.call('default', callId));
-
-  useEffect(() => {
-    call.join({ create: true });
-  }, [call]);
-
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>{/* Your UI */}</StreamCall>
@@ -50,15 +45,19 @@ The second argument is the call id. Call ids can be reused, meaning it's possibl
 
 ## Rendering video
 
+The call's state can be accessed using hooks, all exposed through the top-level `useCallStateHooks` hook.
+
 The call participant's state can be accessed using hooks like `useParticipants`. Have a look below for a basic example of how to render the videos of all participants:
 
 ```tsx
 import {
+  useCallStateHooks,
   CallParticipantsList,
   useParticipants,
 } from '@stream-io/video-react-native-sdk';
 
 function VideoUI() {
+  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
 
   return <CallParticipantsList participants={participants} />;
@@ -74,24 +73,31 @@ More information about state management can be found in the [Call & Participant 
 Most video apps will show buttons to mute/unmute the audio or video. The example below shows how to use the camera and microphone:
 
 ```tsx
-import { useMediaStreamManagement } from '@stream-io/video-react-native-sdk';
+import { Button } from 'react-native';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
-// You can use this hook inside your component
-const {
-  publishAudioStream,
-  publishVideoStream,
-  stopPublishingAudio,
-  stopPublishingVideo,
-  isCameraOnFrontFacingMode,
-  toggleCameraFacingMode,
-} = useMediaStreamManagement();
+export const MyVideoButton = () => {
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
+  return (
+    <Button 
+      title={isMute ? 'Turn on camera' : 'Turn off camera'}
+      onClick={() => camera.toggle()}>
+    </Button>
+  );
+};
+
+export const MyMicrophoneButton = () => {
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
+  return (
+    <Button
+      title={isMute ? 'Turn on microphone' : 'Turn off microphone'}
+      onClick={() => microphone.toggle()}>
+    </Button>
+  );
+};
 ```
-
-With the help of the `useMediaStreamManagement` hook, you can manage the camera and audio of the device.
-
-- `publishAudioStream`/` stopPublishingAudio` can be used to publish/un-publish the audio stream.
-- `publishVideoStream`/` stopPublishingVideo` can be used to publish/un-publish the video stream.
-- `isCameraOnFrontFacingMode`/`toggleCameraFacingMode` is a function that flips the camera and gives the status of the current face of the camera.
 
 More information about this topic can be found in the [Camera & Microphone guide](../../core/camera-and-microphone).
 
@@ -103,5 +109,4 @@ The goal of this library is to make it easy to build any type of video/calling e
 - Use our library of built-in components.
 - Mix & Match between your own and built-in components.
 
-You can use and customize the [built-in components](../../ui-components/overview).
-If you decide to build your own components we have a dedicated [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
+The built-in components you can customize using theming and props. If you decide to build your own components we have a dedicated [UI Cookbook section](../../ui-cookbook/overview) to help you get started.
