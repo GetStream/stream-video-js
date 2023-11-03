@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
   CallingState,
@@ -20,6 +20,7 @@ import {
   ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
+  usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
 import { Lobby } from './Lobby';
@@ -142,8 +143,9 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
 
   useKeyboardShortcuts();
   useWakeLock();
+  usePersistedDevicePreferences('@pronto/device-preferences');
 
-  let ComponentToRender: JSX.Element | null = null;
+  let ComponentToRender: React.JSX.Element | null = null;
   if (show === 'error-join' || show === 'error-leave') {
     ComponentToRender = (
       <ErrorPage

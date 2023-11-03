@@ -2,6 +2,69 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.5...@stream-io/video-react-sdk-0.4.6) (2023-11-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.4`
+
+### Bug Fixes
+
+* allow audio and screen share audio tracks, delay setSinkId ([#1176](https://github.com/GetStream/stream-video-js/issues/1176)) ([6a099c5](https://github.com/GetStream/stream-video-js/commit/6a099c5c7cc6f5d389961a7c594e914e19be4ddb))
+
+### [0.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.4...@stream-io/video-react-sdk-0.4.5) (2023-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.3`
+* `@stream-io/video-react-bindings` updated to version `0.3.3`
+### [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.3...@stream-io/video-react-sdk-0.4.4) (2023-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.2`
+* `@stream-io/video-react-bindings` updated to version `0.3.2`
+
+### Bug Fixes
+
+* respect server-side settings in the lobby ([#1175](https://github.com/GetStream/stream-video-js/issues/1175)) ([b722a0a](https://github.com/GetStream/stream-video-js/commit/b722a0a4f8fd4e4e56787db3d9a56e45ee195974))
+
+### [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.2...@stream-io/video-react-sdk-0.4.3) (2023-10-30)
+
+
+### Bug Fixes
+
+* add marker classes for the default `VideoPreview` components ([#1172](https://github.com/GetStream/stream-video-js/issues/1172)) ([7948cd8](https://github.com/GetStream/stream-video-js/commit/7948cd81a5ad6271872239a77b2a5ab8a856d231))
+
+### [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.1...@stream-io/video-react-sdk-0.4.2) (2023-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.1`
+* `@stream-io/video-react-bindings` updated to version `0.3.1`
+### [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.0...@stream-io/video-react-sdk-0.4.1) (2023-10-27)
+
+
+### Bug Fixes
+
+* **video-preview:** accept `className` prop ([#1166](https://github.com/GetStream/stream-video-js/issues/1166)) ([bfbfa1e](https://github.com/GetStream/stream-video-js/commit/bfbfa1ed52d4a0b19f9221252640d2926ebda641))
+
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.47...@stream-io/video-react-sdk-0.4.0) (2023-10-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.0`
+* `@stream-io/video-react-bindings` updated to version `0.3.0`
+
+### ⚠ BREAKING CHANGES
+
+* **react-sdk:** Universal Device Management API (#1127)
+
+### Features
+
+* **react-sdk:** Universal Device Management API ([#1127](https://github.com/GetStream/stream-video-js/issues/1127)) ([aeb3561](https://github.com/GetStream/stream-video-js/commit/aeb35612745f45254b536281c5f81d1bcac2bab5))
+
 ### [0.3.47](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.3.46...@stream-io/video-react-sdk-0.3.47) (2023-10-26)
 
 

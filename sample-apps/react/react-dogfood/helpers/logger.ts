@@ -19,6 +19,14 @@ export const customSentryLogger: Logger = (
     });
   }
 
+  if (
+    message.startsWith('[sfu-client]') &&
+    /audioLevelChanged|dominantSpeakerChanged/.test(message)
+  ) {
+    // reduce noise from audioLevelChanged and dominantSpeakerChanged events
+    return;
+  }
+
   // Call the SDK's default log method
   logToConsole(logLevel, message, ...args);
 };

@@ -11,8 +11,8 @@ export * from './src/translations';
 export {
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
-  useToggleAudioMuteState,
-  useToggleVideoMuteState,
+  useRequestPermission,
+  usePersistedDevicePreferences,
 } from './src/hooks';
 
 const [major, minor, patch] = (

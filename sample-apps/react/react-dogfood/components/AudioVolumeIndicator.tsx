@@ -3,41 +3,29 @@ import { useEffect, useState } from 'react';
 import {
   createSoundDetector,
   Icon,
-  useMediaDevices,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const AudioVolumeIndicator = () => {
-  const { getAudioStream, selectedAudioInputDeviceId, initialAudioEnabled } =
-    useMediaDevices();
-  const [audioLevel, setAudioLevel] = useState<number>(0);
+  const { useMicrophoneState } = useCallStateHooks();
+  const { isEnabled, mediaStream } = useMicrophoneState();
+  const [audioLevel, setAudioLevel] = useState(0);
 
   useEffect(() => {
-    if (!initialAudioEnabled) return;
+    if (!isEnabled || !mediaStream) return;
 
-    const disposeSoundDetector = getAudioStream({
-      deviceId: selectedAudioInputDeviceId,
-    }).then((audioStream) =>
-      createSoundDetector(
-        audioStream,
-        ({ audioLevel: al }) => setAudioLevel(al),
-        { detectionFrequencyInMs: 80 },
-      ),
+    const disposeSoundDetector = createSoundDetector(
+      mediaStream,
+      ({ audioLevel: al }) => setAudioLevel(al),
+      { detectionFrequencyInMs: 80, destroyStreamOnStop: false },
     );
 
-    disposeSoundDetector.catch((err) => {
-      console.error('Error while creating sound detector', err);
-    });
-
     return () => {
-      disposeSoundDetector
-        .then((dispose) => dispose())
-        .catch((err) => {
-          console.error('Error while disposing sound detector', err);
-        });
+      disposeSoundDetector().catch(console.error);
     };
-  }, [initialAudioEnabled, getAudioStream, selectedAudioInputDeviceId]);
+  }, [isEnabled, mediaStream]);
 
-  if (!initialAudioEnabled) return null;
+  if (!isEnabled) return null;
 
   return (
     <div

@@ -12,6 +12,7 @@ import withiOSInfoPlist from './withiOSInfoPlist';
 import withMainActivity from './withMainActivity';
 import withBuildProperties from './withBuildProperties';
 import withAppBuildGradle from './withAppBuildGradle';
+import withIosScreenCapture from './withIosScreenCapture';
 import { ConfigProps } from './common/types';
 
 // path should be relative to dist
@@ -26,6 +27,7 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
     () => withPushAppDelegate(config, props),
     withStreamVideoReactNativeSDKAppDelegate,
     () => withiOSInfoPlist(config, props),
+    () => withIosScreenCapture(config, props),
     // android
     withMainApplication,
     withAndroidPermissions,

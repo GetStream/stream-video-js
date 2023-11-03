@@ -44,11 +44,15 @@ export class PermissionsContext {
    * within the call.
    *
    * @param permission the permission to check for.
+   * @param settings the call settings to check against (optional).
    */
-  canRequest = (permission: OwnCapability) => {
-    if (!this.settings) return false;
+  canRequest = (
+    permission: OwnCapability,
+    settings: CallSettingsResponse | undefined = this.settings,
+  ) => {
+    if (!settings) return false;
 
-    const { audio, video, screensharing } = this.settings;
+    const { audio, video, screensharing } = settings;
     switch (permission) {
       case OwnCapability.SEND_AUDIO:
         return audio.access_request_enabled;

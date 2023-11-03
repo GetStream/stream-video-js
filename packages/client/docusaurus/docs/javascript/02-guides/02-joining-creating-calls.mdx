@@ -34,6 +34,26 @@ await client.call(callType, callId).getOrCreate();
 
 See all possible options at the [Call creation options section](#call-creation-options)
 
+### Join with mic and camera on or off
+
+You can override the default mic and camera settings before you join a call.
+Typically, you should configure this in your Lobby view:
+
+```typescript
+const call = client.call('default', 'test-call');
+
+// enable mic and camera
+await call.camera.enable();
+await call.microphone.enable();
+
+// alternatively, you can disable them
+await call.camera.disable();
+await call.microphone.disable();
+
+// and then join the call
+await call.join();
+```
+
 ### Leave call
 
 To leave a call, you can use the `leave` method:
@@ -76,16 +96,32 @@ await client.call('default', 'test-outgoing-call').getOrCreate({
 See all possible options at the [Call creation options section](#call-creation-options)
 
 This step will start the signaling flow.
-
 The caller will automatically join the call once the first callee accepts the call.
-
 The calling will automatically stop if all callee rejects the call.
 
 ### Watch for incoming and outgoing calls
 
 The easiest way to watch for incoming and outgoing calls is to use the `client.state.calls$` Observable.
 
-Let's see how the cancel, accept and reject operations work:
+```typescript
+import { CallingState } from '@stream-io/video-client';
+
+client.state.calls$.subscribe((calls) => {
+  const incomingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === false &&
+      call.state.callingState === CallingState.RINGING,
+  );
+  console.log('Incoming calls', incomingCalls);
+
+  const outgoingCalls = calls.filter(
+    (call) =>
+      call.isCreatedByMe === true &&
+      call.state.callingState === CallingState.RINGING,
+  );
+  console.log('Outgoing calls', outgoingCalls);
+});
+```
 
 ### Canceling a call
 

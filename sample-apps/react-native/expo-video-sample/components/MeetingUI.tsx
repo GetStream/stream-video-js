@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProgressLoader } from './AuthProgressLoader';
 import { StyleSheet } from 'react-native';
+import { CallControlsComponent } from './CallControlsComponent';
 
 export const MeetingUI = () => {
   const { useCallCallingState } = useCallStateHooks();
@@ -20,7 +21,7 @@ export const MeetingUI = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <CallContent />
+      <CallContent CallControls={CallControlsComponent} />
     </SafeAreaView>
   );
 };

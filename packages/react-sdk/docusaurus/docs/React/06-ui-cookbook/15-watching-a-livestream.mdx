@@ -36,7 +36,23 @@ export const MyLivestreamApp = () => {
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <LivestreamLayout />
+        <LivestreamLayout
+          muted={false}
+          enableFullscreen={true}
+          showParticipantCount={true}
+          showDuration={true}
+          showLiveBadge={true}
+          showSpeakerName={false}
+          floatingParticipantProps={{
+            muted: false,
+            enableFullscreen: true,
+            showParticipantCount: true,
+            showDuration: true,
+            showLiveBadge: true,
+            showSpeakerName: false,
+            position: 'top-right',
+          }}
+        />
       </StreamCall>
     </StreamVideo>
   );

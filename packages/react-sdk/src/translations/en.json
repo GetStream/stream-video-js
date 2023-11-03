@@ -38,6 +38,9 @@
   "Unknown": "Unknown",
   "Toggle device menu": "Toggle device menu",
 
+  "You are presenting your screen": "You are presenting your screen",
+  "Stop Screen Sharing": "Stop Screen Sharing",
+
   "Allow": "Allow",
   "Revoke": "Revoke",
   "Dismiss": "Dismiss",
@@ -46,6 +49,8 @@
   "Microphone off": "Microphone off",
   "Camera on": "Camera on",
   "Camera off": "Camera off",
+  "No camera found": "No camera found",
+  "Video is disabled": "Video is disabled",
   "Pinned": "Pinned",
   "Unpin": "Unpin",
   "Pin": "Pin",

@@ -8,7 +8,7 @@ export type Props = {
   selectedDeviceId?: string;
   title?: string;
   devices: MediaDeviceInfo[];
-  selectDevice: (kind: MediaDeviceKind, deviceId: string) => void;
+  selectDevice: (deviceId: string) => void;
 };
 
 export const DeviceList: FC<Props> = ({
@@ -21,8 +21,8 @@ export const DeviceList: FC<Props> = ({
   const rootClassName = classnames(styles.root, className);
 
   const handleSelectDevice = useCallback(
-    (kind: MediaDeviceKind, deviceId: string) => {
-      selectDevice(kind, deviceId);
+    (deviceId: string) => {
+      selectDevice(deviceId);
     },
     [selectDevice],
   );
@@ -40,7 +40,7 @@ export const DeviceList: FC<Props> = ({
             <OptionsListItem
               key={deviceId}
               id={`${kind}-${deviceId}`}
-              onClick={() => handleSelectDevice(kind, deviceId)}
+              onClick={() => handleSelectDevice(deviceId)}
               label={label}
               checked={isSelected}
               defaultChecked={isSelected}

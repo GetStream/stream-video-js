@@ -2,6 +2,52 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.4...@stream-io/video-react-native-sdk-0.2.5) (2023-11-02)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.4`
+### [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.3...@stream-io/video-react-native-sdk-0.2.4) (2023-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.3`
+* `@stream-io/video-react-bindings` updated to version `0.3.3`
+### [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.2...@stream-io/video-react-native-sdk-0.2.3) (2023-11-01)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.2`
+* `@stream-io/video-react-bindings` updated to version `0.3.2`
+### [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.1...@stream-io/video-react-native-sdk-0.2.2) (2023-10-30)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.1`
+* `@stream-io/video-react-bindings` updated to version `0.3.1`
+### [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.0...@stream-io/video-react-native-sdk-0.2.1) (2023-10-27)
+
+
+### Features
+
+* **react-native:** add screensharing ([#1149](https://github.com/GetStream/stream-video-js/issues/1149)) ([e021365](https://github.com/GetStream/stream-video-js/commit/e021365158d9bbe3c6192294a02fa694ce9f24fe))
+
+## [0.2.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.14...@stream-io/video-react-native-sdk-0.2.0) (2023-10-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.0`
+* `@stream-io/video-react-bindings` updated to version `0.3.0`
+
+### ⚠ BREAKING CHANGES
+
+* **react-sdk:** Universal Device Management API (#1127)
+
+### Features
+
+* **react-sdk:** Universal Device Management API ([#1127](https://github.com/GetStream/stream-video-js/issues/1127)) ([aeb3561](https://github.com/GetStream/stream-video-js/commit/aeb35612745f45254b536281c5f81d1bcac2bab5))
+
 ### [0.1.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.1.13...@stream-io/video-react-native-sdk-0.1.14) (2023-10-26)
 
 ### Dependency Updates

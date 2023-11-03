@@ -137,6 +137,31 @@ const { useMicrophoneState } = useCallStateHooks();
 const { status } = useMicrophoneState(); // status returns enabled, disabled or undefined
 ```
 
+## Speaker management
+
+We use [react-native-incall-manager](https://github.com/react-native-webrtc/react-native-incall-manager) for most of our speaker/audio output management.
+
+InCallManager allows you to start/stop the audio output on the device through:
+
+```tsx
+import InCallManager from 'react-native-incall-manager';
+
+InCallManager.start({ media: 'video' }); // `media` values - audio/video, default: audio
+InCallManager.stop();
+```
+
+InCallManager allows you to enable/disable the speaker phone.
+
+```tsx
+import InCallManager from 'react-native-incall-manager';
+
+// For Android
+InCallManager.setSpeakerphoneOn(enable: ?boolean); // Pass true for on, and false for off.
+
+// To force speaker phone on/off on both android and iOS.
+InCallManager.setForceSpeakerphoneOn(flag: ?boolean) // Pass true for on, and false for off.
+```
+
 ## Client-side settings
 
 Before joining a call, user may need to preview their streams and decide their mute status. We provide utility functions in the hook `useMediaStreamManagement` for this.

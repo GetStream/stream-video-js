@@ -5,7 +5,6 @@ import {
   SfuEvents,
   SfuModels,
   StreamVideoEvent,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
@@ -118,7 +117,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
       },
       { speakers: [], listeners: [] } as Record<
         string,
-        (StreamVideoParticipant | StreamVideoLocalParticipant)[]
+        StreamVideoParticipant[]
       >,
     );
   }, [hosts, speakerIds, participants]);

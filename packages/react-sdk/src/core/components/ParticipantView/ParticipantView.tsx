@@ -1,16 +1,13 @@
 import {
   ComponentType,
-  createContext,
   forwardRef,
   ReactElement,
-  useContext,
   useMemo,
   useState,
 } from 'react';
 import clsx from 'clsx';
 import {
   SfuModels,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
@@ -20,27 +17,13 @@ import { Video, VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { applyElementToRef, isComponentType } from '../../../utilities';
-
-export type ParticipantViewContextValue = Required<
-  Pick<ParticipantViewProps, 'participant' | 'trackType'>
-> & {
-  participantViewElement: HTMLDivElement | null;
-  videoElement: HTMLVideoElement | null;
-  videoPlaceholderElement: HTMLDivElement | null;
-};
-
-const ParticipantViewContext = createContext<
-  ParticipantViewContextValue | undefined
->(undefined);
-
-export const useParticipantViewContext = () =>
-  useContext(ParticipantViewContext) as ParticipantViewContextValue;
+import { ParticipantViewContext } from './ParticipantViewContext';
 
 export type ParticipantViewProps = {
   /**
    * The participant whose video/audio stream we want to play.
    */
-  participant: StreamVideoParticipant | StreamVideoLocalParticipant;
+  participant: StreamVideoParticipant;
 
   /**
    * Override the default UI for rendering participant information/actions.

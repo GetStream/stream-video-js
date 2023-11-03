@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.1.14",
+  "version": "0.2.5",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -30,6 +30,7 @@
     "package.json",
     "app.plugin.js",
     "expo-config-plugin/README.md",
+    "expo-config-plugin/static/**/*",
     "expo-config-plugin/dist/**/*",
     "!expo-config-plugin/src/*",
     "!expo-config-plugin/fixtures/*",

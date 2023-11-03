@@ -14,10 +14,7 @@ import {
   OptimalVideoLayer,
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
-import {
-  trackTypeToDeviceIdKey,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
@@ -327,10 +324,8 @@ export class Publisher {
         ? transceiver.sender.track.stop()
         : (transceiver.sender.track.enabled = false);
       // We don't need to notify SFU if unpublishing in response to remote soft mute
-      if (!this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        return;
-      } else {
-        return this.notifyTrackMuteStateChanged(
+      if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
+        await this.notifyTrackMuteStateChanged(
           undefined,
           transceiver.sender.track,
           trackType,
@@ -388,14 +383,11 @@ export class Publisher {
         [audioOrVideoOrScreenShareStream]: undefined,
       }));
     } else {
-      const deviceId = track.getSettings().deviceId;
-      const audioOrVideoDeviceKey = trackTypeToDeviceIdKey(trackType);
       this.state.updateParticipant(this.sfuClient.sessionId, (p) => {
         return {
           publishedTracks: p.publishedTracks.includes(trackType)
             ? p.publishedTracks
             : [...p.publishedTracks, trackType],
-          ...(audioOrVideoDeviceKey && { [audioOrVideoDeviceKey]: deviceId }),
           [audioOrVideoOrScreenShareStream]: mediaStream,
         };
       });

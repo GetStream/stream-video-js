@@ -1,6 +1,7 @@
 export enum IconTestIds {
   MUTED_VIDEO = 'muted-video-icon',
   HANG_UP_CALL = 'hang-up-call-icon',
+  SCREEN_SHARE_INDICATOR = 'screen-share-indicator-icon',
   SCREEN_SHARE = 'screen-share-icon',
 }
 

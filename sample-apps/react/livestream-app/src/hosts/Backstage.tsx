@@ -1,13 +1,9 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  CallingState,
   PaginatedGridLayout,
   StreamCall,
-  useCall,
-  useCallStateHooks,
   useConnectedUser,
-  useMediaDevices,
   useStreamVideoClient,
 } from '@stream-io/video-react-sdk';
 import { BackstageHeader } from './ui/BackstageHeader';
@@ -51,17 +47,6 @@ export const Backstage = () => {
 };
 
 const BackstageUI = () => {
-  const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
-  const callState = useCallCallingState();
-  const { publishVideoStream, publishAudioStream } = useMediaDevices();
-  useEffect(() => {
-    if (!call) return;
-    if (callState === CallingState.JOINED) {
-      publishVideoStream();
-      publishAudioStream();
-    }
-  }, [call, callState, publishAudioStream, publishVideoStream]);
   return (
     <>
       <BackstageHeader />

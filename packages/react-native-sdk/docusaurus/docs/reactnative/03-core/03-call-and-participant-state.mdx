@@ -70,6 +70,7 @@ Here is an excerpt of the available call state hooks:
 | `useCallStatsReport`                 | When stats gathering is enabled, this observable will emit a new value at a regular (configurable) interval.  |
 | `useCallThumbnail`                   | The thumbnail of the call.                                                                                    |
 | `useCallUpdatedAt`                   | The time the call was last updated.                                                                           |
+| `useCameraState`                     | The camera state of the local participant.                                                                    |
 | `useDominantSpeaker`                 | The participant that is the current dominant speaker of the call.                                             |
 | `useHasOngoingScreenShare`           | It will return `true` if at least one participant is sharing their screen.                                    |
 | `useHasPermissions`                  | Returns `true` if the local participant has all the given permissions.                                        |
@@ -77,7 +78,10 @@ Here is an excerpt of the available call state hooks:
 | `useIsCallLive`                      | It's `true` if the call is currently live.                                                                    |
 | `useIsCallRecordingInProgress`       | It's' `true` if the call is being recorded.                                                                   |
 | `useIsCallTranscribingInProgress`    | It's `true` if the call is being transcribed.                                                                 |
+| `useMicrophoneState`                 | The microphone state of the local participant.                                                                |
 | `useOwnCapabilities`                 | The capabilities of the local participant.                                                                    |
+| `useScreenShareState`                | The screen share state of the local participant.                                                              |
+| `useSpeakerState`                    | The speaker state of the local participant.                                                                   |
 
 In your IDE of choice, you can see the full list if you de-structure the `useCallStateHooks` object:
 

@@ -3,7 +3,6 @@ import {
   Avatar,
   OwnCapability,
   SfuModels,
-  StreamVideoLocalParticipant,
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
@@ -15,7 +14,7 @@ import type { CustomCallData } from '../../types';
 export const SpeakerElement = ({
   speaker,
 }: {
-  speaker: StreamVideoParticipant | StreamVideoLocalParticipant;
+  speaker: StreamVideoParticipant;
 }) => {
   const call = useCall();
   const { useCallCustomData } = useCallStateHooks();

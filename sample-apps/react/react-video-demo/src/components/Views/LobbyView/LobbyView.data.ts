@@ -14,5 +14,4 @@ export const KichinSink: Props = {
     latency: 100,
   },
   isjoiningCall: false,
-  browserPermissionsEnabled: true,
 };

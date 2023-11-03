@@ -7,7 +7,7 @@ import ParticipantViewUIImage from '../assets/06-ui-cookbook/14-participant-view
 
 In this guide, you'll learn how to customize default call layouts and how to apply custom video placeholder and UI components to the `ParticipantView` component. We recommend using the `ParticipantView` component provided by the SDK because it handles rendering your video. It also manages video quality updates, subscriptions, and visibility state when the element is not in the visible viewport. By following this guide, you'll be able to tailor the call layouts and visual elements according to your specific needs while leveraging the capabilities provided by the `ParticipantView` component.
 
-### Purpose of the `ParticipantViewUI` and `VideoPlaceholder` templates
+## ParticipantViewUI and VideoPlaceholder templates
 
 `ParticipantView` comes by default with certain participant information displayed in the "box" - such as mute states of either video or audio, quality indicator, participant's name, reactions, etc. which are displayed over the video element positioned absolutely (see picture). By utilizing the `ParticipantViewUI` property, we can extend the `ParticipantView` component with custom UI elements specific to each participant. This allows us to tailor the visual representation of the participant based on our application's requirements and design.
 
@@ -23,7 +23,7 @@ Our custom `VideoPlaceholder` component should be able to accept a `style` prope
 
 We highly recommend using layout components provided by the SDK as it is possible to modify the `ParticipantViewUI` in these call layouts. You can follow [this guide](../video-layout) to build your own call layout.
 
-### `PaginatedGridLayout`
+### PaginatedGridLayout
 
 Call layout for large calls where `ParticipantView` elements are equally sized, you have the ability to customize the `ParticipantViewUI` and `VideoPlaceholder` components using their respective properties of this component.
 
@@ -68,7 +68,7 @@ const App = ({ client, callId }) => {
 };
 ```
 
-### `SpeakerLayout`
+### SpeakerLayout
 
 The `SpeakerLayout` component allows you to tweak participant UI in the spotlight and in the scrollable bar independently.
 
@@ -126,7 +126,7 @@ const App = ({ client, callId }) => {
 };
 ```
 
-## Standalone `ParticipantView` customization (in custom call layouts)
+## Standalone ParticipantView customization (in custom call layouts)
 
 The `ParticipantViewUI` property accepts three possible values:
 

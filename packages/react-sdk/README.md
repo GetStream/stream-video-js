@@ -60,14 +60,14 @@ Here are some of the features we support:
 - [x] Livestream Player
 - [x] Screenshare Audio
 - [x] Screen-sharing bitrate and FPS control
-- [ ] Fast-reconnects
-- [ ] New Device Management API
+- [x] New Device Management API
 - [x] SFU retries
 - [x] Call Thumbnails
-- [ ] Query call session endpoint
 
 ### 0.5 milestone
 
+- [ ] Fast-reconnects
+- [ ] Query call session endpoint
 - [ ] Enhanced UI components and theming
 - [x] Enhanced SDK build system
 - [ ] Typescript generics enhancements

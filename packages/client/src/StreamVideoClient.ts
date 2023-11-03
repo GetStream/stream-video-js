@@ -352,6 +352,7 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
+      call.applyDeviceConfig();
       if (data.watch) {
         this.writeableStateStore.registerCall(call);
       }

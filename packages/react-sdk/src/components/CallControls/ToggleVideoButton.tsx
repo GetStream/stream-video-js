@@ -5,12 +5,11 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 
-import { OwnCapability, SfuModels } from '@stream-io/video-client';
+import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { useMediaDevices } from '../../core';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
-import { useToggleVideoMuteState } from '../../hooks';
+import { useRequestPermission } from '../../hooks';
 
 export type ToggleVideoPreviewButtonProps = {
   caption?: string;
@@ -20,19 +19,17 @@ export type ToggleVideoPreviewButtonProps = {
 export const ToggleVideoPreviewButton = (
   props: ToggleVideoPreviewButtonProps,
 ) => {
-  const { toggleInitialVideoMuteState, initialVideoState } = useMediaDevices();
   const { t } = useI18n();
   const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
 
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
+
   return (
-    <CompositeButton
-      Menu={Menu}
-      active={!initialVideoState.enabled}
-      caption={caption}
-    >
+    <CompositeButton Menu={Menu} active={isMute} caption={caption}>
       <IconButton
-        icon={initialVideoState.enabled ? 'camera' : 'camera-off'}
-        onClick={toggleInitialVideoMuteState}
+        icon={!isMute ? 'camera' : 'camera-off'}
+        onClick={() => camera.toggle()}
       />
     </CompositeButton>
   );
@@ -46,18 +43,14 @@ type ToggleVideoPublishingButtonProps = {
 export const ToggleVideoPublishingButton = (
   props: ToggleVideoPublishingButtonProps,
 ) => {
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
   const { t } = useI18n();
-
   const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
 
-  const isVideoMute = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.VIDEO,
-  );
+  const { hasPermission, requestPermission, isAwaitingPermission } =
+    useRequestPermission(OwnCapability.SEND_VIDEO);
 
-  const { toggleVideoMuteState: handleClick, isAwaitingPermission } =
-    useToggleVideoMuteState();
+  const { useCameraState } = useCallStateHooks();
+  const { camera, isMute } = useCameraState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
@@ -70,10 +63,16 @@ export const ToggleVideoPublishingButton = (
         )}
         messageRevoked={t('You can no longer share your video.')}
       >
-        <CompositeButton Menu={Menu} active={isVideoMute} caption={caption}>
+        <CompositeButton Menu={Menu} active={isMute} caption={caption}>
           <IconButton
-            icon={isVideoMute ? 'camera-off' : 'camera'}
-            onClick={handleClick}
+            icon={isMute ? 'camera-off' : 'camera'}
+            onClick={async () => {
+              if (!hasPermission) {
+                await requestPermission();
+              } else {
+                await camera.toggle();
+              }
+            }}
           />
         </CompositeButton>
       </PermissionNotification>

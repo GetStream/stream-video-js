@@ -1,6 +1,11 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { MicOff, PinVertical, ScreenShare, VideoSlash } from '../../../icons';
+import {
+  MicOff,
+  PinVertical,
+  ScreenShareIndicator,
+  VideoSlash,
+} from '../../../icons';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { ParticipantViewProps } from './ParticipantView';
@@ -43,6 +48,7 @@ export const ParticipantLabel = ({
   const call = useCall();
   const { t } = useI18n();
   const participantName = name ?? userId;
+
   const participantLabel = isLocalParticipant ? t('You') : participantName;
   const isPinningEnabled = pin?.isLocalPin;
   const isAudioMuted = !publishedTracks.includes(SfuModels.TrackType.AUDIO);
@@ -53,6 +59,11 @@ export const ParticipantLabel = ({
   };
 
   if (trackType === 'screenShareTrack') {
+    const screenShareText = isLocalParticipant
+      ? t('You are sharing your screen')
+      : t('{{ userName }} is sharing their screen', {
+          userName: participantName,
+        });
     return (
       <View
         style={[
@@ -72,7 +83,7 @@ export const ParticipantLabel = ({
             screenShareIconContainer,
           ]}
         >
-          <ScreenShare color={colors.static_white} />
+          <ScreenShareIndicator color={colors.static_white} />
         </View>
         <Text
           style={[
@@ -83,9 +94,7 @@ export const ParticipantLabel = ({
           ]}
           numberOfLines={1}
         >
-          {t('{{ userName }} is sharing their screen', {
-            userName: participantLabel,
-          })}
+          {screenShareText}
         </Text>
       </View>
     );

@@ -298,33 +298,23 @@ export const MyLiveButton = () => {
 While we're at it, let's also add a button that allows to mute/unmute the local audio track:
 
 ```tsx title=MyMicButton.tsx
-import {
-  SfuModels,
-  useCallStateHooks,
-  useMediaDevices,
-} from '@stream-io/video-react-sdk';
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const MyMicButton = () => {
-  const { publishAudioStream, stopPublishingAudio } = useMediaDevices();
-
-  const { useLocalParticipant } = useCallStateHooks();
-  const localParticipant = useLocalParticipant();
-  const isMuted = !localParticipant?.publishedTracks.includes(
-    SfuModels.TrackType.AUDIO,
-  );
-
+  const { useMicrophoneState } = useCallStateHooks();
+  const { microphone, isMute } = useMicrophoneState();
   return (
     <button
       className="mic-button"
       onClick={async () => {
-        if (isMuted) {
-          await publishAudioStream();
+        if (isMute) {
+          await microphone.enable();
         } else {
-          await stopPublishingAudio();
+          await microphone.disable();
         }
       }}
     >
-      {isMuted ? 'Unmute' : 'Mute'}
+      {isMute ? 'Unmute' : 'Mute'}
     </button>
   );
 };
