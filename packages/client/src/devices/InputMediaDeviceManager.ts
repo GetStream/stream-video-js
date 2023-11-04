@@ -1,4 +1,4 @@
-import { Observable, Subscription, take } from 'rxjs';
+import { Observable, Subscription, combineLatest, pairwise, take } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -6,7 +6,7 @@ import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
-import { watchForDisconnectedDevice } from './devices';
+import { deviceIds$ } from './devices';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -30,21 +30,11 @@ export abstract class InputMediaDeviceManager<
   ) {
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
     if (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.mediaDevices !== 'undefined' &&
+      deviceIds$ &&
       !isReactNative() &&
       (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
     ) {
-      this.subscriptions.push(
-        watchForDisconnectedDevice(this.state.selectedDevice$).subscribe(
-          async (isDisconnected) => {
-            if (isDisconnected) {
-              await this.disable();
-              this.select(undefined);
-            }
-          },
-        ),
-      );
+      this.handleDisconnectedOrReplacedDevices();
     }
   }
 
@@ -245,20 +235,66 @@ export abstract class InputMediaDeviceManager<
             return;
           }
           await this.disable();
-          if (this.state.selectedDevice) {
-            this.listDevices()
-              .pipe(take(1))
-              .subscribe(async (devices) => {
-                if (
-                  devices &&
-                  devices.find((d) => d.deviceId === this.state.selectedDevice)
-                ) {
-                  await this.enable();
-                }
-              });
-          }
         });
       });
     }
+  }
+
+  private get mediaDeviceKind() {
+    if (this.trackType === TrackType.AUDIO) {
+      return 'audioinput';
+    }
+    if (this.trackType === TrackType.VIDEO) {
+      return 'videoinput';
+    }
+  }
+
+  private handleDisconnectedOrReplacedDevices() {
+    this.subscriptions.push(
+      combineLatest([
+        deviceIds$!.pipe(pairwise()),
+        this.state.selectedDevice$,
+      ]).subscribe(async ([[prevDevices, currentDevices], deviceId]) => {
+        if (!deviceId) {
+          return;
+        }
+        if (this.enablePromise) {
+          await this.enablePromise;
+        }
+        if (this.disablePromise) {
+          await this.disablePromise;
+        }
+
+        let isDeviceDisconnected = false;
+        let isDeviceReplaced = false;
+        const currentDevice = this.findDeviceInList(currentDevices, deviceId);
+        const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+        if (!currentDevice && prevDevice) {
+          isDeviceDisconnected = true;
+        } else if (
+          currentDevice &&
+          prevDevice &&
+          currentDevice.deviceId === prevDevice.deviceId &&
+          currentDevice.groupId !== prevDevice.groupId
+        ) {
+          isDeviceReplaced = true;
+        }
+
+        if (isDeviceDisconnected) {
+          await this.disable();
+          this.select(undefined);
+        }
+        if (isDeviceReplaced && this.state.status === 'enabled') {
+          await this.disable();
+          await this.enable();
+        }
+      }),
+    );
+  }
+
+  private findDeviceInList(devices: MediaDeviceInfo[], deviceId: string) {
+    return devices.find(
+      (d) => d.deviceId === deviceId && d.kind == this.mediaDeviceKind,
+    );
   }
 }

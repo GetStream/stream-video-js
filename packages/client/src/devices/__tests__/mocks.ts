@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { CallingState, CallState } from '../../store';
 import { OwnCapability } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 export const mockVideoDevices = [
   {
@@ -184,15 +184,16 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
   } as any as MediaStream;
 };
 
-const deviceDisconnectSubject = new Subject<boolean>();
-export const mockDeviceDisconnectWatcher = () => {
+let deviceIds: Subject<MediaDeviceInfo[]>;
+export const mockDeviceIds$ = () => {
   global.navigator = {
-    // @ts-expect-error
+    //@ts-expect-error
     mediaDevices: {},
   };
-  return () => deviceDisconnectSubject;
+  deviceIds = new Subject();
+  return deviceIds;
 };
 
-export const disconnectDevice = () => {
-  deviceDisconnectSubject.next(true);
+export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
+  deviceIds.next(values);
 };

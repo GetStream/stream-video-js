@@ -258,17 +258,34 @@ export const getScreenShareStream = async (
   }
 };
 
-const getDeviceIds = memoizedObservable(() =>
-  merge(
-    from(navigator.mediaDevices.enumerateDevices()),
-    getDeviceChangeObserver(),
-  ).pipe(shareReplay(1)),
-);
+export const deviceIds$ =
+  typeof navigator !== 'undefined' &&
+  typeof navigator.mediaDevices !== 'undefined'
+    ? memoizedObservable(() =>
+        merge(
+          from(navigator.mediaDevices.enumerateDevices()),
+          getDeviceChangeObserver(),
+        ).pipe(shareReplay(1)),
+      )()
+    : undefined;
 
 export const watchForDisconnectedDevice = (
+  kind: MediaDeviceKind,
   deviceId$: Observable<string | undefined>,
 ) => {
-  return combineLatest([getDeviceIds(), deviceId$]).pipe(
+  let devices$;
+  switch (kind) {
+    case 'audioinput':
+      devices$ = getAudioDevices();
+      break;
+    case 'videoinput':
+      devices$ = getVideoDevices();
+      break;
+    case 'audiooutput':
+      devices$ = getAudioOutputDevices();
+      break;
+  }
+  return combineLatest([devices$, deviceId$]).pipe(
     filter(
       ([devices, deviceId]) =>
         !!deviceId && !devices.find((d) => d.deviceId === deviceId),
@@ -284,12 +301,12 @@ export const watchForDisconnectedDevice = (
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  *
- * @deprecated use `watchForDisconnectedDevice`
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForDisconnectedAudioDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice(deviceId$);
+  return watchForDisconnectedDevice('audioinput', deviceId$);
 };
 
 /**
@@ -299,12 +316,12 @@ export const watchForDisconnectedAudioDevice = (
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  *
- * @deprecated use `watchForDisconnectedDevice`
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForDisconnectedVideoDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice(deviceId$);
+  return watchForDisconnectedDevice('videoinput', deviceId$);
 };
 
 /**
@@ -314,12 +331,12 @@ export const watchForDisconnectedVideoDevice = (
  * @param deviceId$ an Observable that specifies which device to watch for
  * @returns
  *
- * @deprecated use `watchForDisconnectedDevice`
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForDisconnectedAudioOutputDevice = (
   deviceId$: Observable<string | undefined>,
 ) => {
-  return watchForDisconnectedDevice(deviceId$);
+  return watchForDisconnectedDevice('audiooutput', deviceId$);
 };
 
 const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {
@@ -359,6 +376,8 @@ const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {
 /**
  * Notifies the subscriber about newly added default audio input device.
  * @returns Observable<boolean>
+ *
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForAddedDefaultAudioDevice = () =>
   watchForAddedDefaultDevice('audioinput');
@@ -366,6 +385,8 @@ export const watchForAddedDefaultAudioDevice = () =>
 /**
  * Notifies the subscriber about newly added default audio output device.
  * @returns Observable<boolean>
+ *
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForAddedDefaultAudioOutputDevice = () =>
   watchForAddedDefaultDevice('audiooutput');
@@ -373,6 +394,8 @@ export const watchForAddedDefaultAudioOutputDevice = () =>
 /**
  * Notifies the subscriber about newly added default video input device.
  * @returns Observable<boolean>
+ *
+ * @deprecated use the [new device API](https://getstream.io/video/docs/javascript/guides/camera-and-microphone/)
  */
 export const watchForAddedDefaultVideoDevice = () =>
   watchForAddedDefaultDevice('videoinput');

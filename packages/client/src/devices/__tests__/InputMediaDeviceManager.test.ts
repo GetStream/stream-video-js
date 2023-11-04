@@ -5,9 +5,9 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MockTrack,
-  disconnectDevice,
+  emitDeviceIds,
   mockCall,
-  mockDeviceDisconnectWatcher,
+  mockDeviceIds$,
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
@@ -26,7 +26,7 @@ vi.mock('../../Call.ts', () => {
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
   return {
-    watchForDisconnectedDevice: mockDeviceDisconnectWatcher(),
+    deviceIds$: mockDeviceIds$(),
   };
 });
 
@@ -250,30 +250,70 @@ describe('InputMediaDeviceManager.test', () => {
     expect(manager.enable).not.toHaveBeenCalled();
   });
 
-  it('should restart track if a new default device is connected', async () => {
+  it('should restart track if the default device is replaced and status is enabled', async () => {
+    vi.useFakeTimers();
+    emitDeviceIds(mockVideoDevices);
+
     await manager.enable();
+    const device = mockVideoDevices[0];
+    await manager.select(device.deviceId);
 
     vi.spyOn(manager, 'enable');
-    await (
-      (manager.state.mediaStream?.getTracks()[0] as MockTrack).eventHandlers[
-        'ended'
-      ] as Function
-    )();
+    vi.spyOn(manager, 'disable');
 
-    expect(manager.enable).toHaveBeenCalled();
+    emitDeviceIds([
+      { ...device, groupId: device.groupId + 'new' },
+      ...mockVideoDevices.slice(1),
+    ]);
+
+    await vi.runAllTimersAsync();
+
+    expect(manager.enable).toHaveBeenCalledOnce();
+    expect(manager.disable).toHaveBeenCalledOnce();
+    expect(manager.state.status).toBe('enabled');
+
+    vi.useRealTimers();
+  });
+
+  it('should do nothing if default device is replaced and status is disabled', async () => {
+    vi.useFakeTimers();
+    emitDeviceIds(mockVideoDevices);
+
+    const device = mockVideoDevices[0];
+    await manager.select(device.deviceId);
+    await manager.disable();
+
+    vi.spyOn(manager, 'enable');
+    vi.spyOn(manager, 'disable');
+
+    emitDeviceIds([
+      { ...device, groupId: device.groupId + 'new' },
+      ...mockVideoDevices.slice(1),
+    ]);
+
+    await vi.runAllTimersAsync();
+
+    expect(manager.enable).not.toHaveBeenCalledOnce();
+    expect(manager.disable).not.toHaveBeenCalledOnce();
+    expect(manager.state.status).toBe('disabled');
+    expect(manager.state.selectedDevice).toBe(device.deviceId);
+
+    vi.useRealTimers();
   });
 
   it('should disable stream and deselect device if selected device is disconnected', async () => {
     vi.useFakeTimers();
+    emitDeviceIds(mockVideoDevices);
 
     await manager.enable();
-    const deviceId = mockVideoDevices[1].deviceId;
-    await manager.select(deviceId);
+    const device = mockVideoDevices[0];
+    await manager.select(device.deviceId);
 
-    disconnectDevice();
+    emitDeviceIds(mockVideoDevices.slice(1));
 
     await vi.runAllTimersAsync();
 
+    expect(manager.state.selectedDevice).toBe(undefined);
     expect(manager.state.status).toBe('disabled');
 
     vi.useRealTimers();

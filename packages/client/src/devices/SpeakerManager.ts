@@ -1,22 +1,24 @@
-import { Subscription } from 'rxjs';
+import { Subscription, combineLatest } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
-import { getAudioOutputDevices, watchForDisconnectedDevice } from './devices';
+import { deviceIds$, getAudioOutputDevices } from './devices';
 
 export class SpeakerManager {
   public readonly state = new SpeakerState();
   private subscriptions: Subscription[] = [];
 
   constructor() {
-    if (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.mediaDevices !== 'undefined' &&
-      !isReactNative()
-    ) {
+    if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
-        watchForDisconnectedDevice(this.state.selectedDevice$).subscribe(
-          async (isDisconnected) => {
-            if (isDisconnected) {
+        combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(
+          ([devices, deviceId]) => {
+            if (!deviceId) {
+              return;
+            }
+            const device = devices.find(
+              (d) => d.deviceId === deviceId && d.kind === 'audiooutput',
+            );
+            if (!device) {
               this.select('');
             }
           },

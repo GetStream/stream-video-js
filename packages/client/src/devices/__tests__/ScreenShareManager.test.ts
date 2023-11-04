@@ -4,7 +4,7 @@ import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import * as RxUtils from '../../store/rxUtils';
-import { mockCall, mockScreenShareStream } from './mocks';
+import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
@@ -14,6 +14,7 @@ vi.mock('../devices.ts', () => {
     disposeOfMediaStream: vi.fn(),
     getScreenShareStream: vi.fn(() => Promise.resolve(mockScreenShareStream())),
     checkIfAudioOutputChangeSupported: vi.fn(() => Promise.resolve(true)),
+    deviceIds$: () => mockDeviceIds$(),
   };
 });
 

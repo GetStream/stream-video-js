@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, vi, it, expect } from 'vitest';
-import {
-  disconnectDevice,
-  mockAudioDevices,
-  mockDeviceDisconnectWatcher,
-} from './mocks';
+import { emitDeviceIds, mockAudioDevices, mockDeviceIds$ } from './mocks';
 import { of } from 'rxjs';
 import { SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
@@ -13,7 +9,7 @@ vi.mock('../devices.ts', () => {
   return {
     getAudioOutputDevices: vi.fn(() => of(mockAudioDevices)),
     checkIfAudioOutputChangeSupported: vi.fn(() => true),
-    watchForDisconnectedDevice: mockDeviceDisconnectWatcher(),
+    deviceIds$: mockDeviceIds$(),
   };
 });
 
@@ -65,10 +61,11 @@ describe('SpeakerManager.test', () => {
   });
 
   it('should disable device if selected device is disconnected', () => {
+    emitDeviceIds(mockAudioDevices);
     const deviceId = mockAudioDevices[1].deviceId;
     manager.select(deviceId);
 
-    disconnectDevice();
+    emitDeviceIds(mockAudioDevices.slice(2));
 
     expect(manager.state.selectedDevice).toBe('');
   });
