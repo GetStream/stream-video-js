@@ -234,6 +234,8 @@ describe('InputMediaDeviceManager.test', () => {
   });
 
   it('should set status to disabled if track ends', async () => {
+    vi.useFakeTimers();
+
     await manager.enable();
 
     vi.spyOn(manager, 'enable');
@@ -245,9 +247,12 @@ describe('InputMediaDeviceManager.test', () => {
         'ended'
       ] as Function
     )();
+    await vi.runAllTimersAsync();
 
     expect(manager.state.status).toBe('disabled');
     expect(manager.enable).not.toHaveBeenCalled();
+
+    vi.useRealTimers();
   });
 
   it('should restart track if the default device is replaced and status is enabled', async () => {
@@ -258,8 +263,8 @@ describe('InputMediaDeviceManager.test', () => {
     const device = mockVideoDevices[0];
     await manager.select(device.deviceId);
 
-    vi.spyOn(manager, 'enable');
-    vi.spyOn(manager, 'disable');
+    //@ts-expect-error
+    vi.spyOn(manager, 'applySettingsToStream');
 
     emitDeviceIds([
       { ...device, groupId: device.groupId + 'new' },
@@ -268,8 +273,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(manager.enable).toHaveBeenCalledOnce();
-    expect(manager.disable).toHaveBeenCalledOnce();
+    expect(manager['applySettingsToStream']).toHaveBeenCalledOnce();
     expect(manager.state.status).toBe('enabled');
 
     vi.useRealTimers();
@@ -283,9 +287,6 @@ describe('InputMediaDeviceManager.test', () => {
     await manager.select(device.deviceId);
     await manager.disable();
 
-    vi.spyOn(manager, 'enable');
-    vi.spyOn(manager, 'disable');
-
     emitDeviceIds([
       { ...device, groupId: device.groupId + 'new' },
       ...mockVideoDevices.slice(1),
@@ -293,9 +294,9 @@ describe('InputMediaDeviceManager.test', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(manager.enable).not.toHaveBeenCalledOnce();
-    expect(manager.disable).not.toHaveBeenCalledOnce();
     expect(manager.state.status).toBe('disabled');
+    expect(manager.disablePromise).toBeUndefined();
+    expect(manager.enablePromise).toBeUndefined();
     expect(manager.state.selectedDevice).toBe(device.deviceId);
 
     vi.useRealTimers();
