@@ -82,14 +82,13 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     channelId: activeCall?.id,
   });
 
-  const toggleParticipantList = useCallback(
-    () => setShowParticipants((prev) => !prev),
-    [],
-  );
-
   const onJoin = useCallback(async () => {
     setShow('loading');
     try {
+      const preferredCodec = router.query['video_codec'];
+      if (typeof preferredCodec === 'string') {
+        activeCall?.camera.setPreferredCodec(preferredCodec);
+      }
       await activeCall?.join({ create: true });
       setShow('active-call');
     } catch (e) {
@@ -97,7 +96,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
       setLastError(e as Error);
       setShow('error-join');
     }
-  }, [activeCall]);
+  }, [activeCall, router]);
 
   const onLeave = useCallback(async () => {
     setShow('loading');
@@ -204,7 +203,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <CallStatsButton />
               <ToggleParticipantListButton
                 enabled={showParticipants}
-                onClick={toggleParticipantList}
+                onClick={() => setShowParticipants((prev) => !prev)}
               />
               <NewMessageNotification
                 chatClient={chatClient}
