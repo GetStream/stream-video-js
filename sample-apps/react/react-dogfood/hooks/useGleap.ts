@@ -65,20 +65,49 @@ export const useGleap = (
 };
 
 export const serializeCallState = (call: Call) => {
+  const { microphone, camera, speaker, screenShare } = call;
+  const callState: Record<string, any> = {
+    cid: call.cid,
+    sfu: call['sfuClient']?.edgeName,
+    devices: {
+      microphone: {
+        enabled: microphone.state.status,
+        devices: RxUtils.getCurrentValue(microphone.listDevices()),
+        selectedDeviceId: microphone.state.selectedDevice,
+        defaultConstraints: microphone.state.defaultConstraints,
+      },
+      camera: {
+        enabled: camera.state.status,
+        devices: RxUtils.getCurrentValue(camera.listDevices()),
+        selectedDeviceId: camera.state.selectedDevice,
+        defaultConstraints: camera.state.defaultConstraints,
+      },
+      speakers: {
+        devices: RxUtils.getCurrentValue(speaker.listDevices()),
+        selectedDeviceId: speaker.state.selectedDevice,
+      },
+      screenShare: {
+        enabled: screenShare.state.status,
+        defaultConstraints: screenShare.state.defaultConstraints,
+      },
+    },
+  };
+
   const ignoredKeys = [
-    // these two are derived from participants$.
-    // we don't want to send the same data twice.
-    'localParticipant$',
-    'remoteParticipants$',
+    // we ignore `participants$` because, we would like to separately
+    // report localParticipant$ and remoteParticipants$
+    // (both of which are derived from participants$).
+    'participants$',
   ];
-  return Object.entries(call.state)
+  Object.entries(call.state)
     .filter(([k]) => k.endsWith('$') && !ignoredKeys.includes(k))
-    .reduce<Record<string, any>>((acc, [k, v]) => {
+    .forEach(([k, v]) => {
       if (!!v && typeof v.subscribe === 'function') {
-        acc[k] = RxUtils.getCurrentValue(v);
+        callState[k] = RxUtils.getCurrentValue(v);
       } else {
-        acc[k] = v;
+        callState[k] = v;
       }
-      return acc;
-    }, {});
+    });
+
+  return callState;
 };

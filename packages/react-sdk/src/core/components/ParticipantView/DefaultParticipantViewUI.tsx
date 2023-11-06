@@ -13,10 +13,6 @@ import {
   ToggleMenuButtonProps,
 } from '../../../components';
 import { Reaction } from '../../../components/Reaction';
-
-import { DebugParticipantPublishQuality } from '../../../components/Debug/DebugParticipantPublishQuality';
-import { DebugStatsView } from '../../../components/Debug/DebugStatsView';
-import { useIsDebugMode } from '../../../components/Debug/useIsDebugMode';
 import { useParticipantViewContext } from './ParticipantViewContext';
 
 export type DefaultParticipantViewUIProps = {
@@ -124,10 +120,10 @@ export const ParticipantDetails = ({
     sessionId,
     name,
     userId,
-    videoStream,
   } = participant;
-  const call = useCall()!;
+  const call = useCall();
 
+  const { t } = useI18n();
   const connectionQualityAsString =
     !!connectionQuality &&
     SfuModels.ConnectionQuality[connectionQuality].toLowerCase();
@@ -136,8 +132,6 @@ export const ParticipantDetails = ({
   const hasVideo = publishedTracks.includes(SfuModels.TrackType.VIDEO);
   const canUnpin = !!pin && pin.isLocalPin;
 
-  const isDebugMode = useIsDebugMode();
-
   return (
     <div className="str-video__participant-details">
       <span className="str-video__participant-details__name">
@@ -145,7 +139,7 @@ export const ParticipantDetails = ({
         {indicatorsVisible && isDominantSpeaker && (
           <span
             className="str-video__participant-details__name--dominant_speaker"
-            title="Dominant speaker"
+            title={t('Dominant speaker')}
           />
         )}
         {indicatorsVisible && (
@@ -154,7 +148,7 @@ export const ParticipantDetails = ({
               isLocalParticipant &&
               connectionQuality === SfuModels.ConnectionQuality.POOR
             }
-            message="Poor connection quality. Please check your internet connection."
+            message={t('Poor connection quality')}
           >
             {connectionQualityAsString && (
               <span
@@ -176,27 +170,13 @@ export const ParticipantDetails = ({
         {indicatorsVisible && canUnpin && (
           // TODO: remove this monstrosity once we have a proper design
           <span
-            title="Unpin"
+            title={t('Unpin')}
             onClick={() => call?.unpin(sessionId)}
             style={{ cursor: 'pointer' }}
             className="str-video__participant-details__name--pinned"
           />
         )}
       </span>
-      {isDebugMode && (
-        <>
-          <DebugParticipantPublishQuality
-            participant={participant}
-            call={call}
-          />
-          <DebugStatsView
-            call={call}
-            sessionId={sessionId}
-            userId={userId}
-            mediaStream={videoStream}
-          />
-        </>
-      )}
     </div>
   );
 };

@@ -1,18 +1,18 @@
 import { useEffect } from 'react';
+import type { UseFloatingData } from '@floating-ui/react';
 import {
-  offset,
   autoUpdate,
+  flip,
+  offset,
+  shift,
   size,
   useFloating,
-  shift,
-  flip,
 } from '@floating-ui/react';
-import type { UseFloatingProps } from '@floating-ui/react';
 
 export const useFloatingUIPreset = ({
   placement,
   strategy,
-}: Pick<UseFloatingProps, 'placement' | 'strategy'>) => {
+}: Pick<UseFloatingData, 'placement' | 'strategy'>) => {
   const {
     refs,
     x,

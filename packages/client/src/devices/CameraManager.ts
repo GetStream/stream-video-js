@@ -16,8 +16,9 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   /**
-   * Select the camera direaction
-   * @param direction
+   * Select the camera direction.
+   *
+   * @param direction the direction of the camera to select.
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     this.state.setDirection(direction);

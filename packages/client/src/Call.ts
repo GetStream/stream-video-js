@@ -701,14 +701,6 @@ export class Call {
       throw error;
     }
 
-    // FIXME OL: remove once cascading is implemented
-    if (typeof window !== 'undefined' && window.location?.search) {
-      const params = new URLSearchParams(window.location.search);
-      sfuServer.url = params.get('sfuUrl') || sfuServer.url;
-      sfuServer.ws_endpoint = params.get('sfuWsUrl') || sfuServer.ws_endpoint;
-      sfuServer.edge_name = params.get('sfuUrl') || sfuServer.edge_name;
-    }
-
     const previousSfuClient = this.sfuClient;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,

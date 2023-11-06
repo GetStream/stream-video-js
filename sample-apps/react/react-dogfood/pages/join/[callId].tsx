@@ -18,6 +18,10 @@ import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
+import {
+  defaultRequestTransformers,
+  defaultResponseTransformers,
+} from '../../helpers/axiosApiTransformers';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -49,6 +53,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
         logLevel: 'debug',
         logger: customSentryLogger,
+        transformRequest: defaultRequestTransformers,
+        transformResponse: defaultResponseTransformers,
       },
     });
     setClient(_client);

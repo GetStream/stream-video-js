@@ -1,14 +1,13 @@
 import { useMemo } from 'react';
 
-const useQueryParams = () => {
-  return useMemo(
+const useQueryParams = () =>
+  useMemo(
     () =>
       typeof window === 'undefined'
         ? null
         : new URLSearchParams(window.location.search),
     [],
   );
-};
 
 /**
  * Internal purpose hook. Enables certain development mode tools.
@@ -16,9 +15,4 @@ const useQueryParams = () => {
 export const useIsDebugMode = () => {
   const params = useQueryParams();
   return !!params?.get('debug');
-};
-
-export const useDebugPreferredVideoCodec = () => {
-  const params = useQueryParams();
-  return params?.get('video_codec');
 };
