@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.7...@stream-io/video-react-sdk-0.4.8) (2023-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.5`
+* `@stream-io/video-styling` updated to version `0.1.14`
+
+### Bug Fixes
+
+* lift the debug helpers from the SDK to Pronto ([#1182](https://github.com/GetStream/stream-video-js/issues/1182)) ([8f31efc](https://github.com/GetStream/stream-video-js/commit/8f31efc71d9f85ef147d21b42f23876599c36072))
+
 ### [0.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.6...@stream-io/video-react-sdk-0.4.7) (2023-11-03)
 
 
