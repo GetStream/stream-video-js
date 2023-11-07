@@ -3133,25 +3133,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.2.1, @floating-ui/dom@npm:^1.5.1":
+"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.5.1":
   version: 1.5.3
   resolution: "@floating-ui/dom@npm:1.5.3"
   dependencies:
     "@floating-ui/core": ^1.4.2
     "@floating-ui/utils": ^0.1.3
   checksum: 00053742064aac70957f0bd5c1542caafb3bfe9716588bfe1d409fef72a67ed5e60450d08eb492a77f78c22ed1ce4f7955873cc72bf9f9caf2b0f43ae3561c21
-  languageName: node
-  linkType: hard
-
-"@floating-ui/react-dom@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@floating-ui/react-dom@npm:1.3.0"
-  dependencies:
-    "@floating-ui/dom": ^1.2.1
-  peerDependencies:
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: ce0ad3e3bbe43cfd15a6a0d5cccede02175c845862bfab52027995ab99c6b29630180dc7d146f76ebb34730f90a6ab9bf193c8984fe8d7f56062308e4ca98f77
   languageName: node
   linkType: hard
 
@@ -3167,21 +3155,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react@npm:^0.22.0":
-  version: 0.22.2
-  resolution: "@floating-ui/react@npm:0.22.2"
+"@floating-ui/react@npm:^0.26.1":
+  version: 0.26.1
+  resolution: "@floating-ui/react@npm:0.26.1"
   dependencies:
-    "@floating-ui/react-dom": ^1.3.0
-    aria-hidden: ^1.1.3
+    "@floating-ui/react-dom": ^2.0.2
+    "@floating-ui/utils": ^0.1.5
     tabbable: ^6.0.1
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 590285aaf0baacdc044694b4423107250bccaf679e503d61dd133f6f844cb1767845c66be3e9979d04887a53a059697dfcaddca39188d8677dc2de5c67f65347
+  checksum: e89fda56735027dd635ca46baaec31c2c7abfbd772855db2f22dad9a320b67bb01cea8f75e1bdab8d82f8cb4a5dd3c60c608e1e242a23cdc781c8c5856634e4c
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.1.3":
+"@floating-ui/utils@npm:^0.1.3, @floating-ui/utils@npm:^0.1.5":
   version: 0.1.6
   resolution: "@floating-ui/utils@npm:0.1.6"
   checksum: b34d4b5470869727f52e312e08272edef985ba5a450a76de0917ba0a9c6f5df2bdbeb99448e2c60f39b177fb8981c772ff1831424e75123471a27ebd5b52c1eb
@@ -7490,7 +7478,7 @@ __metadata:
     concurrently: ^7.6.0
     date-fns: ^2.29.3
     geojson: ^0.5.0
-    gleap: ^12.0.3
+    gleap: ^12.1.2
     hotkeys-js: ^3.12.0
     mapbox-gl: ^2.15.0
     mobile-device-detect: ^0.4.3
@@ -7580,7 +7568,7 @@ __metadata:
     "@types/ua-parser-js": ^0.7.37
     "@types/ws": ^8.5.7
     "@vitest/coverage-v8": ^0.34.4
-    axios: ^1.5.1
+    axios: ^1.6.0
     base64-js: ^1.5.1
     dotenv: ^16.3.1
     happy-dom: ^11.0.2
@@ -7652,6 +7640,7 @@ __metadata:
   dependencies:
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
+    "@floating-ui/react": ^0.26.1
     "@mui/icons-material": ^5.14.14
     "@mui/material": ^5.14.14
     "@sentry/nextjs": ^7.54.0
@@ -7659,10 +7648,11 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/starwars-names": ^1.6.0
     "@types/yargs": ^17.0.28
+    axios: ^1.6.0
     clsx: ^2.0.0
     dotenv: ^16.3.1
     framer-motion: ^10.12.16
-    gleap: ^12.0.3
+    gleap: ^12.1.2
     hotkeys-js: ^3.12.0
     nanoid: ^5.0.2
     next: ^13.5.5
@@ -7838,7 +7828,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
-    "@floating-ui/react": ^0.22.0
+    "@floating-ui/react": ^0.26.1
     "@nivo/core": ^0.80.0
     "@nivo/line": ^0.80.0
     "@rollup/plugin-json": ^6.0.1
@@ -10380,15 +10370,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aria-hidden@npm:^1.1.3":
-  version: 1.2.3
-  resolution: "aria-hidden@npm:1.2.3"
-  dependencies:
-    tslib: ^2.0.0
-  checksum: 7d7d211629eef315e94ed3b064c6823d13617e609d3f9afab1c2ed86399bb8e90405f9bdd358a85506802766f3ecb468af985c67c846045a34b973bcc0289db9
-  languageName: node
-  linkType: hard
-
 "aria-query@npm:^5.0.0, aria-query@npm:^5.1.3":
   version: 5.1.3
   resolution: "aria-query@npm:5.1.3"
@@ -10833,14 +10814,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0, axios@npm:^1.5.1":
-  version: 1.5.1
-  resolution: "axios@npm:1.5.1"
+"axios@npm:^1.0.0, axios@npm:^1.5.1, axios@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "axios@npm:1.6.0"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 4444f06601f4ede154183767863d2b8e472b4a6bfc5253597ed6d21899887e1fd0ee2b3de792ac4f8459fe2e359d2aa07c216e45fd8b9e4e0688a6ebf48a5a8d
+  checksum: c7c9f2ae9e0b9bad7d6f9a4dff030930b12ee667dedf54c3c776714f91681feb743c509ac0796ae5c01e12c4ab4a2bee74905068dd200fbc1ab86f9814578fb0
   languageName: node
   linkType: hard
 
@@ -17303,10 +17284,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gleap@npm:^12.0.3":
-  version: 12.0.3
-  resolution: "gleap@npm:12.0.3"
-  checksum: 6e405a5dcba942e640d296e8ab762037ad6767c2c02f44a8bfe44d150f15259100064ccbec23a3f917faab24af35649c01d0b880c3918e907d1656054539ea87
+"gleap@npm:^12.1.2":
+  version: 12.1.2
+  resolution: "gleap@npm:12.1.2"
+  checksum: cf2d811057daaec78c5a7c3d9896a5984bb44bb8b6428495ddac0ee84b81028efa7af831ab723834bef5035442e68e740f1b58614b5df8415e96200b3e003fee
   languageName: node
   linkType: hard
 

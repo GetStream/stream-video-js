@@ -1,11 +1,12 @@
 import {
   createContext,
+  PropsWithChildren,
   useCallback,
   useContext,
   useMemo,
   useState,
 } from 'react';
-import { ChildrenOnly, TokenProvider } from '@stream-io/video-react-sdk';
+import { TokenProvider } from '@stream-io/video-react-sdk';
 import { generateUser, User } from '../utils/useGenerateUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
 
@@ -31,7 +32,7 @@ const UserContext = createContext<UserContextValue>({
     teams: [],
   },
 });
-export const UserContextProvider = ({ children }: ChildrenOnly) => {
+export const UserContextProvider = ({ children }: PropsWithChildren) => {
   const { api_key: urlApiKey, token } = getURLCredentials();
   const user = useMemo(generateUser, []);
   const [authInProgress, setAuthInProgress] = useState(false);

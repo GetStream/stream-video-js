@@ -1,12 +1,8 @@
-import { useEffect, useState } from 'react';
-import {
-  ChildrenOnly,
-  StreamVideo,
-  StreamVideoClient,
-} from '@stream-io/video-react-sdk';
+import { PropsWithChildren, useEffect, useState } from 'react';
+import { StreamVideo, StreamVideoClient } from '@stream-io/video-react-sdk';
 import { useUserContext } from './UserContext';
 
-export const VideoClientProvider = ({ children }: ChildrenOnly) => {
+export const VideoClientProvider = ({ children }: PropsWithChildren) => {
   const { apiKey, user, tokenProvider, token } = useUserContext();
   const [client, setClient] = useState<StreamVideoClient>();
 

@@ -49,6 +49,7 @@ export const PermissionRequests = () => {
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );
 
+  const localUserId = localParticipant?.userId;
   useEffect(() => {
     if (!call || !canUpdateCallPermissions) return;
 
@@ -56,8 +57,7 @@ export const PermissionRequests = () => {
       'call.permission_request',
       (event: StreamVideoEvent) => {
         if (event.type !== 'call.permission_request') return;
-
-        if (event.user.id !== localParticipant?.userId) {
+        if (event.user.id !== localUserId) {
           setPermissionRequests((requests) =>
             [...requests, event as PermissionRequestEvent].sort((a, b) =>
               byNameOrId(a.user, b.user),
@@ -69,7 +69,7 @@ export const PermissionRequests = () => {
     return () => {
       unsubscribe();
     };
-  }, [call, canUpdateCallPermissions, localParticipant]);
+  }, [call, canUpdateCallPermissions, localUserId]);
 
   const handleUpdatePermission: HandleUpdatePermission = (request, type) => {
     return async () => {

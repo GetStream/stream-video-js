@@ -1,6 +1,5 @@
 import {
   CallingState,
-  ChildrenOnly,
   OwnCapability,
   Restricted,
   useCall,
@@ -8,6 +7,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useNavigate } from 'react-router-dom';
 import { useJoinedCall } from '../../contexts';
+import { PropsWithChildren } from 'react';
 
 export const RoomAccessControls = () => {
   const { setJoinedCall, joinedCall } = useJoinedCall();
@@ -91,7 +91,7 @@ export const RoomAccessControls = () => {
   );
 };
 
-export const CloseInactiveRoomButton = ({ children }: ChildrenOnly) => {
+export const CloseInactiveRoomButton = ({ children }: PropsWithChildren) => {
   const navigate = useNavigate();
   return (
     <button

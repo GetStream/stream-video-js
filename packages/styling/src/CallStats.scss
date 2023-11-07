@@ -11,15 +11,6 @@
     margin: unset;
   }
 
-  &.str-video__call-stats-angular {
-    width: 400px;
-
-    canvas {
-      width: 400px;
-      height: 200px;
-    }
-  }
-
   .str-video__call-stats__card-container {
     --gap: 1rem;
     display: flex;

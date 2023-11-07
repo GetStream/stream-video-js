@@ -701,14 +701,6 @@ export class Call {
       throw error;
     }
 
-    // FIXME OL: remove once cascading is implemented
-    if (typeof window !== 'undefined' && window.location?.search) {
-      const params = new URLSearchParams(window.location.search);
-      sfuServer.url = params.get('sfuUrl') || sfuServer.url;
-      sfuServer.ws_endpoint = params.get('sfuWsUrl') || sfuServer.ws_endpoint;
-      sfuServer.edge_name = params.get('sfuUrl') || sfuServer.edge_name;
-    }
-
     const previousSfuClient = this.sfuClient;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,
@@ -798,7 +790,11 @@ export class Call {
 
         // restore previous publishing state
         if (audioStream) await this.publishAudioStream(audioStream);
-        if (videoStream) await this.publishVideoStream(videoStream);
+        if (videoStream) {
+          await this.publishVideoStream(videoStream, {
+            preferredCodec: this.camera.preferredCodec,
+          });
+        }
         if (screenShare) await this.publishScreenShareStream(screenShare);
       }
       this.logger(
@@ -1830,10 +1826,12 @@ export class Call {
         this.camera.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
-        await this.publishVideoStream(this.camera.state.mediaStream);
+        await this.publishVideoStream(this.camera.state.mediaStream, {
+          preferredCodec: this.camera.preferredCodec,
+        });
       }
 
-      // Start camera if backend config speicifies, and there is no local setting
+      // Start camera if backend config specifies, and there is no local setting
       if (
         this.camera.state.status === undefined &&
         this.state.settings?.video.camera_default_on

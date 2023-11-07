@@ -1,7 +1,5 @@
-import { PropsWithChildren } from 'react';
 import { LiteralStringForUnion, UR } from 'stream-chat';
 
-export type PropsWithChildrenOnly = PropsWithChildren<Record<never, never>>;
 type AttachmentType = UR;
 type ChannelType = UR;
 type CommandType = LiteralStringForUnion;

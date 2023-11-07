@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Call } from '@stream-io/video-client';
-import { useFloatingUIPreset } from '../../hooks';
-import { StatCard } from '../CallStats';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Call, StatCard, useCallStateHooks } from '@stream-io/video-react-sdk';
+import {
+  autoUpdate,
+  flip,
+  offset,
+  shift,
+  size,
+  useFloating,
+  UseFloatingData,
+} from '@floating-ui/react';
 
 export const DebugStatsView = (props: {
   call: Call;
@@ -52,7 +58,7 @@ export const DebugStatsView = (props: {
   return (
     <>
       <span
-        className="str-video__debug__track-stats-icon"
+        className="rd__debug__track-stats-icon"
         tabIndex={0}
         ref={refs.setReference}
         title={
@@ -67,7 +73,7 @@ export const DebugStatsView = (props: {
       />
       {isPopperOpen && (
         <div
-          className="str-video__debug__track-stats str-video__call-stats"
+          className="rd__debug__track-stats str-video__call-stats"
           ref={refs.setFloating}
           style={{
             position: strategy,
@@ -123,4 +129,43 @@ const unwrapStats = (rawStats?: RTCStatsReport) => {
     decodedStats[s.id] = s;
   });
   return decodedStats;
+};
+
+const useFloatingUIPreset = (
+  props: Pick<UseFloatingData, 'placement' | 'strategy'>,
+) => {
+  const {
+    refs,
+    x,
+    y,
+    update,
+    elements: { domReference, floating },
+  } = useFloating({
+    placement: props.placement,
+    strategy: props.strategy,
+    middleware: [
+      offset(10),
+      shift(),
+      flip(),
+      size({
+        padding: 10,
+        apply: ({ availableHeight, elements }) => {
+          Object.assign(elements.floating.style, {
+            maxHeight: `${availableHeight}px`,
+          });
+        },
+      }),
+    ],
+  });
+
+  // handle window resizing
+  useEffect(() => {
+    if (!domReference || !floating) return;
+    const cleanup = autoUpdate(domReference, floating, update);
+    return () => {
+      cleanup();
+    };
+  }, [domReference, floating, update]);
+
+  return { refs, x, y, domReference, floating, strategy: props.strategy };
 };

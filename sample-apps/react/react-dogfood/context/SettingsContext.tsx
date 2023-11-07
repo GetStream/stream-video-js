@@ -1,5 +1,4 @@
-import { createContext, useContext, useState } from 'react';
-import { ChildrenOnly } from '@stream-io/video-react-sdk';
+import { createContext, PropsWithChildren, useContext, useState } from 'react';
 import { SettingsDialog } from '../components';
 import { useLanguage } from '../hooks/useLanguage';
 
@@ -20,7 +19,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   settings: defaultState,
 });
 
-export const SettingsProvider = ({ children }: ChildrenOnly) => {
+export const SettingsProvider = ({ children }: PropsWithChildren) => {
   const [isOpen, setOpen] = useState(false);
   const { language, setLanguage } = useLanguage();
 

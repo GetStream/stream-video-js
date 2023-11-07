@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { JSX, useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
   CallingState,
@@ -24,7 +24,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { Lobby } from './Lobby';
-import { Button, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
 
 import {
@@ -56,6 +56,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
+  const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const activeCall = useCall();
   const { useCallCallingState } = useCallStateHooks();
@@ -81,23 +82,21 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     channelId: activeCall?.id,
   });
 
-  const toggleParticipantList = useCallback(
-    () => setShowParticipants((prev) => !prev),
-    [],
-  );
-
-  const hideParticipantList = useCallback(() => setShowParticipants(false), []);
-
   const onJoin = useCallback(async () => {
     setShow('loading');
     try {
+      const preferredCodec = router.query['video_codec'];
+      if (typeof preferredCodec === 'string') {
+        activeCall?.camera.setPreferredCodec(preferredCodec);
+      }
       await activeCall?.join({ create: true });
       setShow('active-call');
     } catch (e) {
       console.error(e);
+      setLastError(e as Error);
       setShow('error-join');
     }
-  }, [activeCall]);
+  }, [activeCall, router]);
 
   const onLeave = useCallback(async () => {
     setShow('loading');
@@ -105,6 +104,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
       await router.push('/');
     } catch (e) {
       console.error(e);
+      setLastError(e as Error);
       setShow('error-leave');
     }
   }, [router]);
@@ -145,11 +145,12 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   useWakeLock();
   usePersistedDevicePreferences('@pronto/device-preferences');
 
-  let ComponentToRender: React.JSX.Element | null = null;
+  let ComponentToRender: JSX.Element;
   if (show === 'error-join' || show === 'error-leave') {
     ComponentToRender = (
       <ErrorPage
         heading={contents[show].heading}
+        error={lastError}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
@@ -202,7 +203,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <CallStatsButton />
               <ToggleParticipantListButton
                 enabled={showParticipants}
-                onClick={toggleParticipantList}
+                onClick={() => setShowParticipants((prev) => !prev)}
               />
               <NewMessageNotification
                 chatClient={chatClient}
@@ -233,7 +234,9 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
         {showSidebar && (
           <div className="str-video__sidebar">
             {showParticipants && (
-              <CallParticipantsList onClose={hideParticipantList} />
+              <CallParticipantsList
+                onClose={() => setShowParticipants(false)}
+              />
             )}
 
             <ChatWrapper chatClient={chatClient}>
@@ -257,17 +260,33 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
 
 type ErrorPageProps = {
   heading: string;
+  error?: Error;
   onClickHome: () => void;
   onClickLobby: () => void;
 };
 
-const ErrorPage = ({ heading, onClickHome, onClickLobby }: ErrorPageProps) => (
+const ErrorPage = ({
+  heading,
+  onClickHome,
+  onClickLobby,
+  error,
+}: ErrorPageProps) => (
   <Stack height={1} justifyContent="center" alignItems="center" gap={5}>
     <div>
       <Typography variant="h2" textAlign="center">
         {heading}
       </Typography>
       <Typography variant="subtitle1" textAlign="center">
+        {error?.stack && (
+          <Box
+            textAlign="left"
+            fontFamily="Monospace"
+            color="#d32f2f"
+            fontSize="0.75rem"
+          >
+            <pre>{error.stack}</pre>
+          </Box>
+        )}
         (see the console for more info)
       </Typography>
     </div>

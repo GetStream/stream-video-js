@@ -32,7 +32,7 @@
     "@protobuf-ts/runtime-rpc": "^2.9.1",
     "@protobuf-ts/twirp-transport": "^2.9.1",
     "@types/ws": "^8.5.7",
-    "axios": "^1.5.1",
+    "axios": "^1.6.0",
     "base64-js": "^1.5.1",
     "isomorphic-ws": "^5.0.0",
     "jsonwebtoken": "^9.0.2",

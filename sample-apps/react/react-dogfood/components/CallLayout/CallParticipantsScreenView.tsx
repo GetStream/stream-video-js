@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ComponentType, useEffect, useState } from 'react';
 
 import {
   Call,
@@ -11,8 +11,11 @@ import {
   Video,
 } from '@stream-io/video-react-sdk';
 
-export const CallParticipantsScreenView = (props: { call: Call }) => {
-  const { call } = props;
+export const CallParticipantsScreenView = (props: {
+  call: Call;
+  ParticipantViewUI?: ComponentType;
+}) => {
+  const { call, ParticipantViewUI } = props;
   const { useLocalParticipant, useParticipants } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const allParticipants = useParticipants();
@@ -105,7 +108,9 @@ export const CallParticipantsScreenView = (props: { call: Call }) => {
               <ParticipantView
                 key={participant.sessionId}
                 participant={participant}
-                ParticipantViewUI={DefaultParticipantViewUI}
+                ParticipantViewUI={
+                  ParticipantViewUI || DefaultParticipantViewUI
+                }
               />
             ))}
           </div>
