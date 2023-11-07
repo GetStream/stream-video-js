@@ -4,8 +4,8 @@ title: Runtime layout switching
 ---
 
 import ImageShowcase from '@site/src/components/ImageShowcase';
-import ParticipantLayoutGrid from '../assets/05-ui-cookbook/14-runtime-layout-switching/grid.png';
-import ParticipantLayoutSpotlight from '../assets/05-ui-cookbook/14-runtime-layout-switching/spotlight.png';
+import ParticipantLayoutGrid from '../assets/05-ui-cookbook/11-runtime-layout-switching/grid.png';
+import ParticipantLayoutSpotlight from '../assets/05-ui-cookbook/11-runtime-layout-switching/spotlight.png';
 
 Runtime Layout Switching is basically switching the participant's layout from the app. We currently support switching between `grid` and `spotlight` layout modes through our SDK.
 
@@ -54,7 +54,7 @@ const VideoCallUI = () => {
 
 We will create a component that renders the Button which on press opens up a Modal to switch the Layout. Clicking on the layout item will switch the layout and set the state for the `selectedLayout` state in the `VideoCallUI` component that we created above.
 
-![Preview of the Layout Switch Modal and Button](../assets/05-ui-cookbook/14-runtime-layout-switching/runtime-layout-switching-modal.png)
+![Preview of the Layout Switch Modal and Button](../assets/05-ui-cookbook/11-runtime-layout-switching/runtime-layout-switching-modal.png)
 
 ```tsx
 import React, { useState } from 'react';
