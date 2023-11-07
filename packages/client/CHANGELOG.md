@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.4...@stream-io/video-client-0.4.5) (2023-11-07)
+
+
+### Bug Fixes
+
+* lift the debug helpers from the SDK to Pronto ([#1182](https://github.com/GetStream/stream-video-js/issues/1182)) ([8f31efc](https://github.com/GetStream/stream-video-js/commit/8f31efc71d9f85ef147d21b42f23876599c36072))
+
 ### [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.3...@stream-io/video-client-0.4.4) (2023-11-02)
 
 
