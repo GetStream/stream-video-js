@@ -1,18 +1,9 @@
-import { useMemo } from 'react';
-
-const useQueryParams = () =>
-  useMemo(
-    () =>
-      typeof window === 'undefined'
-        ? null
-        : new URLSearchParams(window.location.search),
-    [],
-  );
+import { useSearchParams } from 'next/navigation';
 
 /**
  * Internal purpose hook. Enables certain development mode tools.
  */
 export const useIsDebugMode = () => {
-  const params = useQueryParams();
-  return !!params?.get('debug');
+  const params = useSearchParams();
+  return !!params.get('debug');
 };

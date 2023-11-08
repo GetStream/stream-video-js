@@ -17,7 +17,7 @@ export const Stage = ({
   if (selectedLayout === 'LegacyGrid' || selectedLayout === 'LegacySpeaker') {
     return (
       <div className="str-video__stage">
-        <SelectedComponent call={call!} />
+        <SelectedComponent call={call!} {...LayoutMap[selectedLayout].props} />
       </div>
     );
   }

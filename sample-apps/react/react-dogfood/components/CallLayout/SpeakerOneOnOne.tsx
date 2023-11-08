@@ -67,7 +67,9 @@ export const SpeakerOneOnOne = ({
           <CustomParticipantViewUISpotlight
             ParticipantViewUI={ParticipantViewUI}
           />
-        ) : undefined
+        ) : (
+          ParticipantViewUI || DefaultParticipantViewUI
+        )
       }
       ParticipantViewUIBar={ParticipantViewUI || DefaultParticipantViewUI}
       participantsBarPosition={isOneOnOneCall ? null : 'bottom'}
