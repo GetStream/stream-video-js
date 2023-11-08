@@ -22,7 +22,7 @@ export abstract class InputMediaDeviceManager<
   disablePromise?: Promise<void>;
   logger: Logger;
   private subscriptions: Subscription[] = [];
-  private trackEndedTimeout: any;
+  private isTrackStoppedDueToTrackEnd = false;
 
   protected constructor(
     protected readonly call: Call,
@@ -232,13 +232,16 @@ export abstract class InputMediaDeviceManager<
       this.state.setMediaStream(stream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          if (this.state.status === 'disabled' || this.disablePromise) {
-            return;
+          if (this.enablePromise) {
+            await this.enablePromise;
           }
-          // Wait before disable, maybe the device was replaced not disconnected
-          this.trackEndedTimeout = setTimeout(async () => {
+          if (this.disablePromise) {
+            await this.disablePromise;
+          }
+          if (this.state.status === 'enabled') {
+            this.isTrackStoppedDueToTrackEnd = true;
             await this.disable();
-          }, 200);
+          }
         });
       });
     }
@@ -289,8 +292,15 @@ export abstract class InputMediaDeviceManager<
           this.select(undefined);
         }
         if (isDeviceReplaced) {
-          clearTimeout(this.trackEndedTimeout);
-          await this.applySettingsToStream();
+          if (
+            this.isTrackStoppedDueToTrackEnd &&
+            this.state.status === 'disabled'
+          ) {
+            await this.enable();
+            this.isTrackStoppedDueToTrackEnd = false;
+          } else {
+            await this.applySettingsToStream();
+          }
         }
       }),
     );
