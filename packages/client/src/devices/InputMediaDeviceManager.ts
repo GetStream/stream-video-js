@@ -1,4 +1,4 @@
-import { Observable, Subscription, combineLatest, pairwise, take } from 'rxjs';
+import { Observable, Subscription, combineLatest, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -254,6 +254,7 @@ export abstract class InputMediaDeviceManager<
     if (this.trackType === TrackType.VIDEO) {
       return 'videoinput';
     }
+    return '';
   }
 
   private handleDisconnectedOrReplacedDevices() {
@@ -308,7 +309,7 @@ export abstract class InputMediaDeviceManager<
 
   private findDeviceInList(devices: MediaDeviceInfo[], deviceId: string) {
     return devices.find(
-      (d) => d.deviceId === deviceId && d.kind == this.mediaDeviceKind,
+      (d) => d.deviceId === deviceId && d.kind === this.mediaDeviceKind,
     );
   }
 }
