@@ -332,11 +332,13 @@ export const useCameraState = () => {
 
   const devices$ = useMemo(() => camera.listDevices(), [camera]);
 
-  const status = useObservableValue(camera.state.status$);
-  const direction = useObservableValue(camera.state.direction$);
-  const mediaStream = useObservableValue(camera.state.mediaStream$);
-  const selectedDevice = useObservableValue(camera.state.selectedDevice$);
+  const { state } = camera;
+  const status = useObservableValue(state.status$);
+  const direction = useObservableValue(state.direction$);
+  const mediaStream = useObservableValue(state.mediaStream$);
+  const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
+  const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isMute = status !== 'enabled';
 
   return {
@@ -346,6 +348,7 @@ export const useCameraState = () => {
     direction,
     mediaStream,
     devices,
+    hasBrowserPermission,
     selectedDevice,
     isMute,
   };
@@ -367,6 +370,7 @@ export const useMicrophoneState = () => {
   const mediaStream = useObservableValue(state.mediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const devices = useObservableValue(devices$);
+  const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const isMute = status !== 'enabled';
 
@@ -377,6 +381,7 @@ export const useMicrophoneState = () => {
     mediaStream,
     devices,
     selectedDevice,
+    hasBrowserPermission,
     isSpeakingWhileMuted,
     isMute,
   };

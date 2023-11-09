@@ -28,7 +28,14 @@ class TestInputMediaDeviceManager extends InputMediaDeviceManager<TestInputMedia
   public getTracks = () => this.state.mediaStream?.getTracks() ?? [];
 
   constructor(call: Call) {
-    super(call, new TestInputMediaDeviceManagerState(), TrackType.VIDEO);
+    super(
+      call,
+      new TestInputMediaDeviceManagerState(
+        'stop-tracks',
+        'camera' as PermissionName,
+      ),
+      TrackType.VIDEO,
+    );
   }
 }
 
