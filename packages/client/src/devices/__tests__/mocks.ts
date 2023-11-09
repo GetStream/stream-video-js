@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { CallingState, CallState } from '../../store';
 import { OwnCapability } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 export const mockVideoDevices = [
   {
