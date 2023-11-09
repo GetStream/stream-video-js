@@ -16,7 +16,7 @@ describe('InputMediaDeviceManagerState', () => {
     state = new TestInputMediaDeviceManagerState();
   });
 
-  describe('hasSystemPermission', () => {
+  describe('hasBrowserPermission', () => {
     it('should emit true when permission is granted', async () => {
       const permissionStatus: Partial<PermissionStatus> = {
         state: 'granted',
