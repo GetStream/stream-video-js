@@ -240,6 +240,9 @@ export abstract class InputMediaDeviceManager<
           }
           if (this.state.status === 'enabled') {
             this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
             await this.disable();
           }
         });
