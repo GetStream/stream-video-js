@@ -19,5 +19,5 @@ export const layoutMap: Record<
   'single-participant': [DominantSpeaker, DominantSpeakerScreenShare],
   grid: [PaginatedGrid],
   spotlight: [Spotlight, Spotlight],
-  mobile: [() => null],
+  mobile: [DominantSpeaker, DominantSpeakerScreenShare],
 };
