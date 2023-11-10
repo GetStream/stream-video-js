@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.6...@stream-io/video-react-native-sdk-0.2.7) (2023-11-10)
+
+
+### Bug Fixes
+
+* **react-native:** Cannot find interface declaration for 'RCTEventEmitter' ([#1185](https://github.com/GetStream/stream-video-js/issues/1185)) ([ab0f314](https://github.com/GetStream/stream-video-js/commit/ab0f314bb035529b9b0da27e2c6c6ed17cd4c626))
+
 ### [0.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.5...@stream-io/video-react-native-sdk-0.2.6) (2023-11-07)
 
 ### Dependency Updates
