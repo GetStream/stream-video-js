@@ -60,7 +60,8 @@ const Init = () => {
       tokenProvider,
       options: {
         logLevel:
-          log_level || import.meta.env.MODE === 'production' ? 'warn' : 'debug',
+          log_level ||
+          (import.meta.env.MODE === 'production' ? 'warn' : 'debug'),
       },
     });
     setClient(_client);
@@ -99,7 +100,10 @@ const Init = () => {
   useEffect(() => {
     if (!client) return;
     const call = client.call(callType, callId);
-    setActiveCall(call);
+    call
+      .getOrCreate()
+      .then(() => setActiveCall(call))
+      .catch((err) => console.error(`Failed to get or create call`, err));
 
     // @ts-ignore - for debugging
     window.call = call;
