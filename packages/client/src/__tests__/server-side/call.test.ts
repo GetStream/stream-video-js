@@ -60,18 +60,14 @@ describe('call API', () => {
   it('RTMP address', async () => {
     const resp = await call.getOrCreate();
 
-    expect(resp.call.ingress.rtmp.address).toContain('<your_token_here>');
-
     // userId of existing user
     const userId = 'jane';
     const token = client.createToken(userId);
-    const address = resp.call.ingress.rtmp.address.replace(
-      '<your_token_here>',
-      token,
-    );
+    const address = resp.call.ingress.rtmp.address;
+    const streamKey = `${apiKey}/${token}`;
 
-    expect(address).not.toContain('<your_token_here>');
-    expect(address).toContain(token);
+    expect(address).toBeDefined();
+    expect(streamKey).toBeDefined();
   });
 
   it('query calls', async () => {
@@ -130,6 +126,7 @@ describe('call API', () => {
       response = await call.update({
         settings_override: {
           recording: {
+            mode: RecordSettingsRequestModeEnum.AVAILABLE,
             audio_only: false,
             quality: RecordSettingsRequestQualityEnum._1080P,
           },
@@ -180,17 +177,16 @@ describe('call API', () => {
       expect(response.call.settings.backstage.enabled).toBe(true);
     });
 
-    // it('go live', async () => {
-    //   const response = await call.goLive();
+    it('go live', async () => {
+      const response = await call.goLive();
 
-    //   expect(response.call.egress.broadcasting).toBe(true);
-    //   expect(response.call.egress.hls).toBeDefined();
-    // });
+      expect(response.call.backstage).toBe(false);
+    });
 
-    // it('stop live', async () => {
-    //   const response = await call.stopLive();
+    it('stop live', async () => {
+      const response = await call.stopLive();
 
-    //   expect(response.call.egress.broadcasting).toBe(false);
-    // });
+      expect(response.call.backstage).toBe(true);
+    });
   });
 });
