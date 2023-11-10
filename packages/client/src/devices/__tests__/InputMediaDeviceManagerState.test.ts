@@ -47,15 +47,11 @@ describe('InputMediaDeviceManagerState', () => {
       globalThis.navigator.permissions = { query };
 
       const hasPermission = await new Promise((resolve) => {
-        const subscription = state.hasBrowserPermission$.subscribe((v) => {
-          subscription.unsubscribe();
-          resolve(v);
-        });
+        state.hasBrowserPermission$.subscribe((v) => resolve(v));
       });
       expect(hasPermission).toBe(false);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
-      expect(permissionStatus.removeEventListener).toHaveBeenCalled();
     });
 
     it('should emit false when prompt is needed', async () => {

@@ -76,7 +76,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     return () => {
       permissionState?.removeEventListener('change', notify);
     };
-  }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+  }).pipe(shareReplay(1));
 
   /**
    * Constructs new InputMediaDeviceManagerState instance.
