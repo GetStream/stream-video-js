@@ -270,7 +270,7 @@ So let's see how to publish using RTMPs. Feel free to skip this step if you don'
 call.state.ingress$.subscribe((ingress) => {
   if (ingress?.rtmp.address) {
     const rtmpURL = ingress?.rtmp.address;
-    const streamKey = `${apiKey}/${token}`;
+    const streamKey = token;
 
     console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
   }

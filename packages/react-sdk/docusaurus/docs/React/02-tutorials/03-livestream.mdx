@@ -295,7 +295,7 @@ import { useCallStateHooks } from '@stream-io/video-react-sdk';
 const { useCallIngress } = useCallStateHooks();
 const ingress = useCallIngress();
 const rtmpURL = ingress?.rtmp.address;
-const streamKey = `${apiKey}/${token}`;
+const streamKey = token;
 
 console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
 ```
