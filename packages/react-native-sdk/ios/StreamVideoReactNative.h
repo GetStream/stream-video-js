@@ -1,7 +1,9 @@
+#import <React/RCTEventEmitter.h>
+
 @interface StreamVideoReactNative : RCTEventEmitter <RCTBridgeModule>
 
--(void)screenShareEventReceived:(NSString*)event;
+- (void)screenShareEventReceived:(NSString *)event;
 
-+(void)setup;
++ (void)setup;
 
 @end
