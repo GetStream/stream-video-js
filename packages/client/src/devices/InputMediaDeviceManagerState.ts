@@ -1,4 +1,9 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import {
+  BehaviorSubject,
+  distinctUntilChanged,
+  Observable,
+  shareReplay,
+} from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { RxUtils } from '../store';
 
@@ -71,7 +76,7 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     return () => {
       permissionState?.removeEventListener('change', notify);
     };
-  });
+  }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
 
   /**
    * Constructs new InputMediaDeviceManagerState instance.
