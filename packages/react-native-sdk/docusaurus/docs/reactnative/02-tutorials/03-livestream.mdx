@@ -466,7 +466,7 @@ const { useCallIngress } = useCallStateHooks();
 const ingress = useCallIngress();
 // highlight-start
 const rtmpURL = ingress?.rtmp.address;
-const streamKey = `${apiKey}/${token}`;
+const streamKey = token;
 // highlight-end
 
 console.log('RTMP url:', rtmpURL, 'Stream key:', streamKey);
