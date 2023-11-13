@@ -1,4 +1,10 @@
-import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import {
+  BehaviorSubject,
+  distinctUntilChanged,
+  Observable,
+  shareReplay,
+} from 'rxjs';
+import { isReactNative } from '../helpers/platforms';
 import { RxUtils } from '../store';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
@@ -43,10 +49,47 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    */
   defaultConstraints$ = this.defaultConstraintsSubject.asObservable();
 
+  /**
+   * An observable that will emit `true` if browser/system permission
+   * is granted, `false` otherwise.
+   */
+  hasBrowserPermission$ = new Observable<boolean>((subscriber) => {
+    const notifyGranted = () => subscriber.next(true);
+    if (isReactNative() || !this.permissionName) return notifyGranted();
+
+    let permissionState: PermissionStatus;
+    const notify = () => subscriber.next(permissionState.state === 'granted');
+    navigator.permissions
+      .query({ name: this.permissionName })
+      .then((permissionStatus) => {
+        permissionState = permissionStatus;
+        permissionState.addEventListener('change', notify);
+        notify();
+      })
+      .catch(() => {
+        // permission doesn't exist or can't be queried -> assume it's granted
+        // an example would be Firefox,
+        // where neither camera microphone permission can be queried
+        notifyGranted();
+      });
+
+    return () => {
+      permissionState?.removeEventListener('change', notify);
+    };
+  }).pipe(shareReplay(1));
+
+  /**
+   * Constructs new InputMediaDeviceManagerState instance.
+   *
+   * @param disableMode the disable mode to use.
+   * @param permissionName the permission name to use for querying.
+   * `undefined` means no permission is required.
+   */
   constructor(
     public readonly disableMode:
       | 'stop-tracks'
       | 'disable-tracks' = 'stop-tracks',
+    private readonly permissionName: PermissionName | undefined = undefined,
   ) {}
 
   /**

@@ -2,7 +2,6 @@ import { FC } from 'react';
 import classnames from 'classnames';
 import {
   useCallStateHooks,
-  useHasBrowserPermissions,
   User,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
@@ -38,7 +37,7 @@ export const EnableBrowserSettings: FC<any> = () => {
       </h2>
       <p className={styles.enableDescription}>
         Stream needs access to your camera and microphone for the call. Please
-        grant access when asked to confirm this decision on each brwoser and
+        grant access when asked to confirm this decision on each browser and
         computer you use.
       </p>
     </div>
@@ -71,19 +70,14 @@ export const LobbyPanel: FC<Props> = ({
   fastestEdge,
   isJoiningCall,
 }) => {
-  const { useMicrophoneState } = useCallStateHooks();
-  const { isMute: isMicMute } = useMicrophoneState();
+  const { useMicrophoneState, useCameraState } = useCallStateHooks();
+  const { isMute: isMicMute, hasBrowserPermission: hasMicPermission } =
+    useMicrophoneState();
+  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const rootClassName = classnames(styles.root, className);
   const callContainerClassNames = classnames(styles.callContainer, {
     [styles.audioEnabled]: !isMicMute,
   });
-
-  const hasCameraPermission = useHasBrowserPermissions(
-    'camera' as PermissionName,
-  );
-  const hasMicPermission = useHasBrowserPermissions(
-    'microphone' as PermissionName,
-  );
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
 

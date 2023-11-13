@@ -46,4 +46,5 @@ global.navigator = {
     getUserMedia: jest.fn().mockResolvedValue(mockedMedia),
     enumerateDevices: jest.fn().mockResolvedValue(mockedDevices),
   },
+  product: 'ReactNative',
 };

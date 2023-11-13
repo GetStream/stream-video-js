@@ -54,6 +54,21 @@ const preferredDevice = devices.find((d) => d.label === 'My Camera');
 await camera.select(preferredDevice.deviceId);
 ```
 
+### Camera permissions
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useCameraState } = useCallStateHooks();
+const { hasBrowserPermission } = useCameraState();
+
+if (hasBrowserPermission) {
+  console.log('User has granted camera permissions!');
+} else {
+  console.log('User has denied or not granted camera permissions!');
+}
+```
+
 ### Lobby preview
 
 Here is how to set up a video preview displayed before joining the call:
@@ -117,6 +132,21 @@ console.log('available devices:', devices);
 
 const preferredDevice = devices.find((d) => d.label === 'My Mic');
 await microphone.select(preferredDevice.deviceId);
+```
+
+### Microphone permissions
+
+```typescript
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useMicrophoneState } = useCallStateHooks();
+const { hasBrowserPermission } = useMicrophoneState();
+
+if (hasBrowserPermission) {
+  console.log('User has granted microphone permissions!');
+} else {
+  console.log('User has denied or not granted microphone permissions!');
+}
 ```
 
 ### Speaking while muted detection

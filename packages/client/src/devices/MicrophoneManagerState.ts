@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, distinctUntilChanged } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 
 export class MicrophoneManagerState extends InputMediaDeviceManagerState {
@@ -12,7 +12,12 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
   speakingWhileMuted$: Observable<boolean>;
 
   constructor() {
-    super('disable-tracks');
+    super(
+      'disable-tracks',
+      // `microphone` is not in the W3C standard yet,
+      // but it's supported by Chrome and Safari.
+      'microphone' as PermissionName,
+    );
 
     this.speakingWhileMuted$ = this.speakingWhileMutedSubject
       .asObservable()

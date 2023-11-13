@@ -118,11 +118,10 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
-   * Select device
+   * Selects a device.
    *
    * Note: this method is not supported in React Native
-   *
-   * @param deviceId
+   * @param deviceId the device id to select.
    */
   async select(deviceId: string | undefined) {
     if (isReactNative()) {
