@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.8...@stream-io/video-react-native-sdk-0.2.9) (2023-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.7`
+* `@stream-io/video-react-bindings` updated to version `0.3.7`
+
+### Features
+
+* **device-api:** Browser Permissions API ([#1184](https://github.com/GetStream/stream-video-js/issues/1184)) ([a0b3573](https://github.com/GetStream/stream-video-js/commit/a0b3573b630ff8450953cdf1102fe722aea83f6f))
+
 ### [0.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.7...@stream-io/video-react-native-sdk-0.2.8) (2023-11-13)
 
 ### Dependency Updates
