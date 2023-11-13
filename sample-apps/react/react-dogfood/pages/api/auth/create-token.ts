@@ -1,36 +1,47 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
+import { SampleAppCallConfig } from '../call/sample';
 
-const apiKeyAndSecretWhitelist =
-  (process.env.STREAM_API_KEY_AND_SECRET_WHITE_LIST as string) || '';
+const config: SampleAppCallConfig = JSON.parse(
+  process.env.SAMPLE_APP_CALL_CONFIG || '{}',
+);
 
-const streamApiKey = process.env.STREAM_API_KEY;
-const streamSecret = process.env.STREAM_SECRET_KEY;
+export type AppName = 'pronto' | 'demo' | string;
 
-const secretKeyLookup = apiKeyAndSecretWhitelist
-  .trim()
-  .replace(/\s+/g, '')
-  .split(';')
-  .reduce<Record<string, string>>(
-    (acc, item) => {
-      const [apiKey, secret] = item.trim().split(':');
-      if (apiKey && secret) {
-        acc[apiKey] = secret;
-      }
-      return acc;
-    },
-    // whitelist current application's api key and secret
-    streamApiKey && streamSecret ? { [streamApiKey]: streamSecret } : {},
-  );
+export type CreateJwtTokenErrorResponse = {
+  error: string;
+};
 
-const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { user_id: userId, api_key: apiKey, ...params } = req.query;
+export type CreateJwtTokenResponse = {
+  userId: string;
+  apiKey: string;
+  token: string;
+  error?: never;
+};
 
-  if (!apiKey || typeof apiKey !== 'string') {
-    return error(res, `'api_key' parameter is a mandatory query parameter.`);
+export type CreateJwtTokenRequest = {
+  user_id: string;
+  app_name?: AppName;
+  [key: string]: string | undefined;
+};
+
+const createJwtToken = async (
+  req: NextApiRequest,
+  res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
+) => {
+  const { user_id: userId, app_name: appName = 'demo', ...params } = req.query;
+  const appConfig = config[appName as AppName];
+  if (!appConfig) {
+    return error(res, `'app_name' parameter is invalid.`);
   }
 
-  const secretKey = secretKeyLookup[apiKey];
+  if (!appConfig.apiKey || !appConfig.secret) {
+    return res.status(400).json({
+      error: `app_name: '${appName}' is not configured properly.`,
+    });
+  }
+
+  const { apiKey, secret: secretKey } = appConfig;
   if (!secretKey) {
     return error(res, `'api_key' parameter is invalid.`);
   }
@@ -67,6 +78,7 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
   );
   return res.status(200).json({
     userId,
+    apiKey,
     token,
   });
 };

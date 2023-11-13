@@ -26,7 +26,7 @@ export const createToken = (
   );
 
   const payload: Record<string, unknown> = {
-    iss: 'pronto',
+    iss: 'https://pronto.getstream.io',
     sub: `user/${userId}`,
     // subtract 5 seconds, sometimes the coordinator fails with
     // "token used before issued at (iat)" error
