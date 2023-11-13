@@ -1,13 +1,10 @@
 import {
-  combineLatest,
   concatMap,
   debounceTime,
-  filter,
   from,
   map,
   merge,
   Observable,
-  pairwise,
   shareReplay,
 } from 'rxjs';
 import { getLogger } from '../logger';
@@ -61,8 +58,7 @@ const getDevices = (
 /**
  * [Tells if the browser supports audio output change on 'audio' elements](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/setSinkId).
  *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- */
+ *  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
   const element = document.createElement('audio');
@@ -258,124 +254,16 @@ export const getScreenShareStream = async (
   }
 };
 
-const watchForDisconnectedDevice = (
-  kind: MediaDeviceKind,
-  deviceId$: Observable<string | undefined>,
-) => {
-  let devices$;
-  switch (kind) {
-    case 'audioinput':
-      devices$ = getAudioDevices();
-      break;
-    case 'videoinput':
-      devices$ = getVideoDevices();
-      break;
-    case 'audiooutput':
-      devices$ = getAudioOutputDevices();
-      break;
-  }
-  return combineLatest([devices$, deviceId$]).pipe(
-    filter(
-      ([devices, deviceId]) =>
-        !!deviceId && !devices.find((d) => d.deviceId === deviceId),
-    ),
-    map(() => true),
-  );
-};
-
-/**
- * Notifies the subscriber if a given 'audioinput' device is disconnected
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @param deviceId$ an Observable that specifies which device to watch for
- * @returns
- */
-export const watchForDisconnectedAudioDevice = (
-  deviceId$: Observable<string | undefined>,
-) => {
-  return watchForDisconnectedDevice('audioinput', deviceId$);
-};
-
-/**
- * Notifies the subscriber if a given 'videoinput' device is disconnected
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @param deviceId$ an Observable that specifies which device to watch for
- * @returns
- */
-export const watchForDisconnectedVideoDevice = (
-  deviceId$: Observable<string | undefined>,
-) => {
-  return watchForDisconnectedDevice('videoinput', deviceId$);
-};
-
-/**
- * Notifies the subscriber if a given 'audiooutput' device is disconnected
- *
- * @angular It's recommended to use the [`DeviceManagerService`](./DeviceManagerService.md) for a higher level API, use this low-level method only if the `DeviceManagerService` doesn't suit your requirements.
- * @param deviceId$ an Observable that specifies which device to watch for
- * @returns
- */
-export const watchForDisconnectedAudioOutputDevice = (
-  deviceId$: Observable<string | undefined>,
-) => {
-  return watchForDisconnectedDevice('audiooutput', deviceId$);
-};
-
-const watchForAddedDefaultDevice = (kind: MediaDeviceKind) => {
-  let devices$;
-  switch (kind) {
-    case 'audioinput':
-      devices$ = getAudioDevices();
-      break;
-    case 'videoinput':
-      devices$ = getVideoDevices();
-      break;
-    case 'audiooutput':
-      devices$ = getAudioOutputDevices();
-      break;
-    default:
-      throw new Error('Unknown MediaDeviceKind', kind);
-  }
-
-  return devices$.pipe(
-    pairwise(),
-    filter(([prev, current]) => {
-      const prevDefault = prev.find((device) => device.deviceId === 'default');
-      const currentDefault = current.find(
-        (device) => device.deviceId === 'default',
-      );
-      return !!(
-        current.length > prev.length &&
-        prevDefault &&
-        currentDefault &&
-        prevDefault.groupId !== currentDefault.groupId
-      );
-    }),
-    map(() => true),
-  );
-};
-
-/**
- * Notifies the subscriber about newly added default audio input device.
- * @returns Observable<boolean>
- */
-export const watchForAddedDefaultAudioDevice = () =>
-  watchForAddedDefaultDevice('audioinput');
-
-/**
- * Notifies the subscriber about newly added default audio output device.
- * @returns Observable<boolean>
- */
-export const watchForAddedDefaultAudioOutputDevice = () =>
-  watchForAddedDefaultDevice('audiooutput');
-
-/**
- * Notifies the subscriber about newly added default video input device.
- * @returns Observable<boolean>
- */
-export const watchForAddedDefaultVideoDevice = () =>
-  watchForAddedDefaultDevice('videoinput');
+export const deviceIds$ =
+  typeof navigator !== 'undefined' &&
+  typeof navigator.mediaDevices !== 'undefined'
+    ? memoizedObservable(() =>
+        merge(
+          from(navigator.mediaDevices.enumerateDevices()),
+          getDeviceChangeObserver(),
+        ).pipe(shareReplay(1)),
+      )()
+    : undefined;
 
 /**
  * Deactivates MediaStream (stops and removes tracks) to be later garbage collected

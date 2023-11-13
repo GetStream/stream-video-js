@@ -3,7 +3,12 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { mockAudioDevices, mockAudioStream, mockCall } from './mocks';
+import {
+  mockAudioDevices,
+  mockAudioStream,
+  mockCall,
+  mockDeviceIds$,
+} from './mocks';
 import { getAudioStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { MicrophoneManager } from '../MicrophoneManager';
@@ -22,6 +27,7 @@ vi.mock('../devices.ts', () => {
       return of(mockAudioDevices);
     }),
     getAudioStream: vi.fn(() => Promise.resolve(mockAudioStream())),
+    deviceIds$: mockDeviceIds$(),
   };
 });
 

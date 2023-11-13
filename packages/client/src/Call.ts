@@ -507,6 +507,11 @@ export class Call {
 
     this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
+
+    this.camera.removeSubscriptions();
+    this.microphone.removeSubscriptions();
+    this.screenShare.removeSubscriptions();
+    this.speaker.removeSubscriptions();
   };
 
   /**
@@ -1004,7 +1009,11 @@ export class Call {
         await this.initCamera({ setStatus: true });
         await this.initMic({ setStatus: true });
       } catch (error) {
-        this.logger('warn', 'Camera and/or mic init failed during join call');
+        this.logger(
+          'warn',
+          'Camera and/or mic init failed during join call',
+          error,
+        );
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state

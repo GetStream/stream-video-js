@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { Observable, Subscription, combineLatest, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -6,6 +6,7 @@ import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
+import { deviceIds$ } from './devices';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -20,6 +21,8 @@ export abstract class InputMediaDeviceManager<
    */
   disablePromise?: Promise<void>;
   logger: Logger;
+  private subscriptions: Subscription[] = [];
+  private isTrackStoppedDueToTrackEnd = false;
 
   protected constructor(
     protected readonly call: Call,
@@ -27,6 +30,13 @@ export abstract class InputMediaDeviceManager<
     protected readonly trackType: TrackType,
   ) {
     this.logger = getLogger([`${TrackType[trackType].toLowerCase()} manager`]);
+    if (
+      deviceIds$ &&
+      !isReactNative() &&
+      (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
+    ) {
+      this.handleDisconnectedOrReplacedDevices();
+    }
   }
 
   /**
@@ -124,6 +134,10 @@ export abstract class InputMediaDeviceManager<
     await this.applySettingsToStream();
   }
 
+  removeSubscriptions = () => {
+    this.subscriptions.forEach((s) => s.unsubscribe());
+  };
+
   protected async applySettingsToStream() {
     if (this.state.status === 'enabled') {
       await this.muteStream();
@@ -203,9 +217,6 @@ export abstract class InputMediaDeviceManager<
       stream = this.state.mediaStream;
       this.unmuteTracks();
     } else {
-      if (this.state.mediaStream) {
-        this.stopTracks();
-      }
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
@@ -218,6 +229,89 @@ export abstract class InputMediaDeviceManager<
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream);
+      this.getTracks().forEach((track) => {
+        track.addEventListener('ended', async () => {
+          if (this.enablePromise) {
+            await this.enablePromise;
+          }
+          if (this.disablePromise) {
+            await this.disablePromise;
+          }
+          if (this.state.status === 'enabled') {
+            this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
+            await this.disable();
+          }
+        });
+      });
     }
+  }
+
+  private get mediaDeviceKind() {
+    if (this.trackType === TrackType.AUDIO) {
+      return 'audioinput';
+    }
+    if (this.trackType === TrackType.VIDEO) {
+      return 'videoinput';
+    }
+    return '';
+  }
+
+  private handleDisconnectedOrReplacedDevices() {
+    this.subscriptions.push(
+      combineLatest([
+        deviceIds$!.pipe(pairwise()),
+        this.state.selectedDevice$,
+      ]).subscribe(async ([[prevDevices, currentDevices], deviceId]) => {
+        if (!deviceId) {
+          return;
+        }
+        if (this.enablePromise) {
+          await this.enablePromise;
+        }
+        if (this.disablePromise) {
+          await this.disablePromise;
+        }
+
+        let isDeviceDisconnected = false;
+        let isDeviceReplaced = false;
+        const currentDevice = this.findDeviceInList(currentDevices, deviceId);
+        const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+        if (!currentDevice && prevDevice) {
+          isDeviceDisconnected = true;
+        } else if (
+          currentDevice &&
+          prevDevice &&
+          currentDevice.deviceId === prevDevice.deviceId &&
+          currentDevice.groupId !== prevDevice.groupId
+        ) {
+          isDeviceReplaced = true;
+        }
+
+        if (isDeviceDisconnected) {
+          await this.disable();
+          this.select(undefined);
+        }
+        if (isDeviceReplaced) {
+          if (
+            this.isTrackStoppedDueToTrackEnd &&
+            this.state.status === 'disabled'
+          ) {
+            await this.enable();
+            this.isTrackStoppedDueToTrackEnd = false;
+          } else {
+            await this.applySettingsToStream();
+          }
+        }
+      }),
+    );
+  }
+
+  private findDeviceInList(devices: MediaDeviceInfo[], deviceId: string) {
+    return devices.find(
+      (d) => d.deviceId === deviceId && d.kind === this.mediaDeviceKind,
+    );
   }
 }
