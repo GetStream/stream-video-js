@@ -24,9 +24,9 @@ import {
   defaultResponseTransformers,
 } from '../../helpers/axiosApiTransformers';
 import {
-  AppName,
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
+  EnvironmentName,
 } from '../api/auth/create-token';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
@@ -41,9 +41,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const fetchAuthDetails = useCallback(
     async (init?: RequestInit) => {
+      const environment = process.env.NEXT_PUBLIC_APP_ENVIRONMENT as
+        | EnvironmentName
+        | undefined;
       const params = {
         user_id: user.id || '!anon',
-        app_name: (process.env.NEXT_PUBLIC_APP_NAME as AppName) || 'pronto',
+        environment: environment || 'pronto',
         exp: String(4 * 60 * 60), // 4 hours
       } satisfies CreateJwtTokenRequest;
       return fetch(

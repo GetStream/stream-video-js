@@ -6,7 +6,7 @@ const config: SampleAppCallConfig = JSON.parse(
   process.env.SAMPLE_APP_CALL_CONFIG || '{}',
 );
 
-export type AppName = 'pronto' | 'demo' | string;
+export type EnvironmentName = 'pronto' | 'demo' | string;
 
 export type CreateJwtTokenErrorResponse = {
   error: string;
@@ -21,23 +21,37 @@ export type CreateJwtTokenResponse = {
 
 export type CreateJwtTokenRequest = {
   user_id: string;
-  app_name?: AppName;
-  [key: string]: string | undefined;
+  environment?: EnvironmentName;
+  /** @deprecated */
+  api_key?: string;
+  [key: string]: string | string[] | undefined;
 };
 
 const createJwtToken = async (
   req: NextApiRequest,
   res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
 ) => {
-  const { user_id: userId, app_name: appName = 'demo', ...params } = req.query;
-  const appConfig = config[appName as AppName];
+  let {
+    user_id: userId,
+    environment,
+    api_key: apiKeyFromRequest,
+    ...params
+  } = req.query as CreateJwtTokenRequest;
+
+  // support for the deprecated `api_key` param during the transition phase
+  if (apiKeyFromRequest && !environment) {
+    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto';
+    else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
+  }
+
+  const appConfig = config[(environment || 'demo') as EnvironmentName];
   if (!appConfig) {
-    return error(res, `'app_name' parameter is invalid.`);
+    return error(res, `'environment' parameter is invalid.`);
   }
 
   if (!appConfig.apiKey || !appConfig.secret) {
     return res.status(400).json({
-      error: `app_name: '${appName}' is not configured properly.`,
+      error: `environment: '${environment}' is not configured properly.`,
     });
   }
 
@@ -46,7 +60,7 @@ const createJwtToken = async (
     return error(res, `'api_key' parameter is invalid.`);
   }
 
-  if (!userId || typeof userId !== 'string') {
+  if (!userId) {
     return error(res, `'user_id' is a mandatory query parameter.`);
   }
 
