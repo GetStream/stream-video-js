@@ -42,6 +42,8 @@ const createJwtToken = async (
   if (apiKeyFromRequest && !environment) {
     if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto';
     else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
+    // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
+    else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';
   }
 
   const appConfig = config[(environment || 'demo') as EnvironmentName];
