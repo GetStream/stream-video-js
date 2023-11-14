@@ -3,7 +3,7 @@ import names from 'starwars-names';
 import { meetingId } from '../../../lib/meetingId';
 import { createToken } from '../../../helpers/jwt';
 
-type AppConfig = {
+export type AppConfig = {
   apiKey?: string;
   secret?: string;
   // a link to the app that can be opened in a browser:
@@ -16,7 +16,7 @@ type AppConfig = {
   defaultCallType?: string;
 };
 
-type SampleAppCallConfig = {
+export type SampleAppCallConfig = {
   [appType: string]: AppConfig | undefined;
 };
 

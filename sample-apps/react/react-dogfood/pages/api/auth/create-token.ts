@@ -1,41 +1,68 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
+import { SampleAppCallConfig } from '../call/sample';
 
-const apiKeyAndSecretWhitelist =
-  (process.env.STREAM_API_KEY_AND_SECRET_WHITE_LIST as string) || '';
+const config: SampleAppCallConfig = JSON.parse(
+  process.env.SAMPLE_APP_CALL_CONFIG || '{}',
+);
 
-const streamApiKey = process.env.STREAM_API_KEY;
-const streamSecret = process.env.STREAM_SECRET_KEY;
+export type EnvironmentName = 'pronto' | 'demo' | string;
 
-const secretKeyLookup = apiKeyAndSecretWhitelist
-  .trim()
-  .replace(/\s+/g, '')
-  .split(';')
-  .reduce<Record<string, string>>(
-    (acc, item) => {
-      const [apiKey, secret] = item.trim().split(':');
-      if (apiKey && secret) {
-        acc[apiKey] = secret;
-      }
-      return acc;
-    },
-    // whitelist current application's api key and secret
-    streamApiKey && streamSecret ? { [streamApiKey]: streamSecret } : {},
-  );
+export type CreateJwtTokenErrorResponse = {
+  error: string;
+};
 
-const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { user_id: userId, api_key: apiKey, ...params } = req.query;
+export type CreateJwtTokenResponse = {
+  userId: string;
+  apiKey: string;
+  token: string;
+  error?: never;
+};
 
-  if (!apiKey || typeof apiKey !== 'string') {
-    return error(res, `'api_key' parameter is a mandatory query parameter.`);
+export type CreateJwtTokenRequest = {
+  user_id: string;
+  environment?: EnvironmentName;
+  /** @deprecated */
+  api_key?: string;
+  [key: string]: string | string[] | undefined;
+};
+
+const createJwtToken = async (
+  req: NextApiRequest,
+  res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
+) => {
+  let {
+    user_id: userId,
+    environment,
+    api_key: apiKeyFromRequest,
+    ...params
+  } = req.query as CreateJwtTokenRequest;
+
+  // support for the deprecated `api_key` param during the transition phase
+  if (apiKeyFromRequest && !environment) {
+    if (apiKeyFromRequest === 'hd8szvscpxvd') environment = 'pronto';
+    else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
+    // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
+    else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';
   }
 
-  const secretKey = secretKeyLookup[apiKey];
+  const appConfig = config[(environment || 'demo') as EnvironmentName];
+  if (!appConfig) {
+    return error(res, `'environment' parameter is invalid.`);
+  }
+
+  if (!appConfig.apiKey || !appConfig.secret) {
+    return res.status(400).json({
+      error: `environment: '${environment}' is not configured properly.`,
+    });
+  }
+
+  const { apiKey, secret: secretKey } = appConfig;
   if (!secretKey) {
     return error(res, `'api_key' parameter is invalid.`);
   }
 
-  if (!userId || typeof userId !== 'string') {
+  if (!userId) {
     return error(res, `'user_id' is a mandatory query parameter.`);
   }
 
@@ -67,6 +94,7 @@ const createJwtToken = async (req: NextApiRequest, res: NextApiResponse) => {
   );
   return res.status(200).json({
     userId,
+    apiKey,
     token,
   });
 };

@@ -15,7 +15,7 @@ export const useCreateStreamChatClient = <
   userData,
   tokenOrProvider,
 }: {
-  apiKey: string;
+  apiKey: string | undefined;
   userData: OwnUserResponse<SCG> | UserResponse<SCG>;
   tokenOrProvider: TokenOrProvider;
 }) => {
@@ -23,7 +23,7 @@ export const useCreateStreamChatClient = <
 
   const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
   useEffect(() => {
-    if (disableChat) return;
+    if (disableChat || !apiKey) return;
 
     const client = new StreamChat<SCG>(apiKey, {
       timeout: 5000,
