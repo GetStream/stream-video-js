@@ -6,7 +6,6 @@ import { AndroidImportance } from '@notifee/react-native';
 import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
-import { STREAM_API_KEY } from '../../config';
 import { prontoCallId$ } from '../hooks/useProntoLinkEffect';
 
 export function setPushConfig() {
@@ -81,13 +80,11 @@ const createStreamVideoClient = async () => {
     name: userName,
     imageUrl: userImageUrl,
   };
+  const { token, apiKey } = await createToken({ user_id: user.id });
   const client = new StreamVideoClient({
-    apiKey: STREAM_API_KEY,
+    apiKey,
     user,
-    tokenProvider: async () => {
-      const token = await createToken({ user_id: user.id });
-      return token;
-    },
+    token,
   });
   return client;
 };
