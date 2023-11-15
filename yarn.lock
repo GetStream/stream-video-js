@@ -7697,7 +7697,6 @@ __metadata:
     "@types/express": ^4
     "@types/jest": ^29.2.1
     "@types/react": ^18.2.28
-    "@types/react-native-dotenv": ^0.2.0
     "@types/react-native-incall-manager": ^3.2.1
     "@types/react-native-video": ^5
     "@types/react-test-renderer": ^18.0.0
@@ -8497,13 +8496,6 @@ __metadata:
   version: 2.0.1
   resolution: "@types/react-gtm-module@npm:2.0.1"
   checksum: cd57eece80d80453e79b16c977e13d51dc22c19af69a16ac6ea1eda01ab471f4dbe46ce80ce04ef13a0ecd0082372addec4c2e394978d1ce7fe86dbda4dfb922
-  languageName: node
-  linkType: hard
-
-"@types/react-native-dotenv@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@types/react-native-dotenv@npm:0.2.0"
-  checksum: 23d59b8ebd35e8fe693531f9c630f7518cb149c06694c8c35fc3b628ac8e8e26cc602cec9372447873fbbb13bf0c40bbd951ba5306c1b83b169cc3a927cb935f
   languageName: node
   linkType: hard
 
