@@ -345,7 +345,7 @@ export class Call {
                     .catch((err) =>
                       this.logger(
                         'error',
-                        `Error disabling camera after pemission revoked`,
+                        `Error disabling camera after permission revoked`,
                         err,
                       ),
                     );
@@ -359,7 +359,7 @@ export class Call {
                     .catch((err) =>
                       this.logger(
                         'error',
-                        `Error disabling microphone after pemission revoked`,
+                        `Error disabling microphone after permission revoked`,
                         err,
                       ),
                     );

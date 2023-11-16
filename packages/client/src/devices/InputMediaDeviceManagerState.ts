@@ -6,6 +6,7 @@ import {
 } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { RxUtils } from '../store';
+import { getLogger } from '../logger';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 
@@ -55,7 +56,14 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
    */
   hasBrowserPermission$ = new Observable<boolean>((subscriber) => {
     const notifyGranted = () => subscriber.next(true);
-    if (isReactNative() || !this.permissionName) return notifyGranted();
+    const permissionsAPIAvailable = !!navigator?.permissions?.query;
+    if (isReactNative() || !this.permissionName || !permissionsAPIAvailable) {
+      getLogger(['devices'])(
+        'warn',
+        `Permissions can't be queried. Assuming granted.`,
+      );
+      return notifyGranted();
+    }
 
     let permissionState: PermissionStatus;
     const notify = () => subscriber.next(permissionState.state === 'granted');
