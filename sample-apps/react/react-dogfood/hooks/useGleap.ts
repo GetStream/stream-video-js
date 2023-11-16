@@ -68,23 +68,26 @@ export const serializeCallState = (call: Call) => {
   const { microphone, camera, speaker, screenShare } = call;
   const callState: Record<string, any> = {
     cid: call.cid,
-    sfu: call['sfuClient']?.edgeName,
+    sfu: {
+      edgeName: call['sfuClient']?.edgeName,
+      sessionId: call['sfuClient']?.sessionId,
+    },
     devices: {
       microphone: {
         enabled: microphone.state.status,
-        devices: RxUtils.getCurrentValue(microphone.listDevices()),
         selectedDeviceId: microphone.state.selectedDevice,
+        devices: RxUtils.getCurrentValue(microphone.listDevices()),
         defaultConstraints: microphone.state.defaultConstraints,
       },
       camera: {
         enabled: camera.state.status,
-        devices: RxUtils.getCurrentValue(camera.listDevices()),
         selectedDeviceId: camera.state.selectedDevice,
+        devices: RxUtils.getCurrentValue(camera.listDevices()),
         defaultConstraints: camera.state.defaultConstraints,
       },
       speakers: {
-        devices: RxUtils.getCurrentValue(speaker.listDevices()),
         selectedDeviceId: speaker.state.selectedDevice,
+        devices: RxUtils.getCurrentValue(speaker.listDevices()),
       },
       screenShare: {
         enabled: screenShare.state.status,
