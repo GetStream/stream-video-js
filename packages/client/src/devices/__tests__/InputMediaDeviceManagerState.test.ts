@@ -84,5 +84,16 @@ describe('InputMediaDeviceManagerState', () => {
       expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
     });
+
+    it('should emit true when permissions API is unavailable', async () => {
+      globalThis.navigator ??= {} as Navigator;
+      // @ts-ignore - navigator is readonly, but we need to mock it
+      globalThis.navigator.permissions = null;
+
+      const hasPermission = await new Promise((resolve) => {
+        state.hasBrowserPermission$.subscribe((v) => resolve(v));
+      });
+      expect(hasPermission).toBe(true);
+    });
   });
 });
