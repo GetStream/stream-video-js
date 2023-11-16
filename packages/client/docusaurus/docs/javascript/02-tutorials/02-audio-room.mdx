@@ -266,10 +266,10 @@ As a next step, let's render the actual list of participants and show an indicat
 // ... previous code
 
 // participant list
-const participantListElement = $$('.participants-panel .speakers-list');
+const speakerListElement = $$('.participants-panel .speakers-list');
 call.state.participants$.subscribe((participants) => {
   // clear the list
-  participantListElement!.innerHTML = '';
+  speakerListElement!.innerHTML = '';
 
   // loop over the participants and add them to the list
   participants.forEach((participant) => {
@@ -278,7 +278,7 @@ call.state.participants$.subscribe((participants) => {
 
     const participantElement = document.createElement('li');
     participantElement.textContent = `${name}${isSpeaking}`;
-    participantListElement!.appendChild(participantElement);
+    speakerListElement!.appendChild(participantElement);
   });
 });
 ```
@@ -498,11 +498,11 @@ import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 // ... previous code
 
 // participant lists
-const participantListElement = $$('.participants-panel .speakers-list');
+const speakerListElement = $$('.participants-panel .speakers-list');
 const listenersListElement = $$('.participants-panel .listeners-list');
 call.state.participants$.subscribe((participants) => {
   // clear the lists
-  participantListElement!.innerHTML = '';
+  speakerListElement!.innerHTML = '';
   listenersListElement!.innerHTML = '';
 
   // a helper function to check if a participant has audio
@@ -517,7 +517,7 @@ call.state.participants$.subscribe((participants) => {
     const participantElement = document.createElement('li');
     participantElement.textContent = `${name}${isSpeaking}`;
     if (hasAudio(participant)) {
-      participantListElement!.appendChild(participantElement);
+      speakerListElement!.appendChild(participantElement);
     } else {
       listenersListElement!.appendChild(participantElement);
     }
