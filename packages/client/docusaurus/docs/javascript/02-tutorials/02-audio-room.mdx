@@ -130,7 +130,7 @@ To actually run this sample we need a valid user token. The user token is typica
 When a user logs in to your app you return the user token that gives them access to the call.
 To make this tutorial easier to follow, we'll generate a user token for you:
 
-Please update **REPLACE_WITH_USER_ID**, **REPLACE_WITH_TOKEN** and **REPLACE_WITH_CALL_ID** with the actual values shown below:
+Please update **REPLACE_WITH_API_KEY**, **REPLACE_WITH_USER_ID**, **REPLACE_WITH_TOKEN** and **REPLACE_WITH_CALL_ID** with the actual values shown below:
 
 <TokenSnippet sampleApp="audio-rooms" displayStyle="credentials" />
 
@@ -336,7 +336,7 @@ const unsubscribe = call.on(
 unsubscribe();
 ```
 
-Let's add another view that shows the last incoming request as well as the buttons to grant / reject it.
+Let's add another view that shows the incoming permission requests as well as the buttons to grant / reject it.
 
 We start by updating the `index.html` file:
 
@@ -442,7 +442,7 @@ call.on('call.permission_request', (permissionRequest) => {
 ### Step 6 - Group participants
 
 It is common for audio rooms and similar interactive audio/video experiences to show users in separate groups.
-Let's see how we can update this application to render participants in two separate sections: speakers and listeners.
+Let's see how we can update this application to render participants in two separate sections: _Speakers_ and _Listeners_.
 
 Building custom layout is straight forward. All we need to do is to apply some filtering to the result of `call.state.participants$` observable.
 
@@ -494,6 +494,7 @@ Now, let's update the code accordingly:
 
 ```tsx title=src/main.ts
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
+
 // ... previous code
 
 // participant lists
@@ -523,8 +524,10 @@ call.state.participants$.subscribe((participants) => {
   });
 });
 
-// ... follow-up code
+// ... remaining code
 ```
+
+With these changes applied, the app now renders participants in two separate groups: _Speakers_ and _Listeners_.
 
 :::note
 Because of simplicity, in this tutorial, we are skipping some of the best practices for building a production ready app.
