@@ -1,31 +1,19 @@
 import { forwardRef } from 'react';
-import clsx from 'clsx';
 
 import {
-  ButtonWithIconProps,
   CompositeButton,
-  IconButton,
   Icon,
-  useI18n,
+  IconButton,
   MenuToggle,
+  MenuVisualType,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
 import { CallRecordings } from './CallRecordings';
 
-export type ToggleMoreOptionsListButtonProps = { caption?: string } & Omit<
-  ButtonWithIconProps,
-  'icon' | 'ref'
->;
-
-export type ToggleOptionButtonProps = { icon: string; label: string };
-
-const ToggleFeedbackButton = forwardRef<
-  HTMLButtonElement,
-  ToggleOptionButtonProps
->((_, ref) => {
+const ToggleFeedbackButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
-
   return (
     <button ref={ref} className="str-video__more-button">
       <Icon icon={'feedback'} />
@@ -34,12 +22,8 @@ const ToggleFeedbackButton = forwardRef<
   );
 });
 
-const ToggleRecordLibraryButton = forwardRef<
-  HTMLButtonElement,
-  ToggleOptionButtonProps
->((_, ref) => {
+const ToggleRecordLibraryButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
-
   return (
     <button ref={ref} className="str-video__more-button">
       <Icon icon={'film-roll'} />
@@ -55,7 +39,7 @@ const Menu = () => {
       <li className="strt-video__more-option--record-library">
         <MenuToggle
           ToggleButton={ToggleRecordLibraryButton}
-          visualType="portal"
+          visualType={MenuVisualType.PORTAL}
         >
           <CallRecordings />
         </MenuToggle>
@@ -68,7 +52,10 @@ const Menu = () => {
         </div>
       </li>
       <li className="str-video__more-option--feedback">
-        <MenuToggle ToggleButton={ToggleFeedbackButton} visualType="portal">
+        <MenuToggle
+          ToggleButton={ToggleFeedbackButton}
+          visualType={MenuVisualType.PORTAL}
+        >
           <Feedback />
         </MenuToggle>
       </li>
@@ -76,21 +63,15 @@ const Menu = () => {
   );
 };
 
-export const ToggleMenuButton = forwardRef<
-  HTMLButtonElement,
-  ToggleMoreOptionsListButtonProps
->((props, ref) => {
-  const { enabled, caption } = props;
+export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
   return (
-    <CompositeButton active={enabled} caption={caption}>
-      <IconButton ref={ref} icon="more" {...props} />
+    <CompositeButton>
+      <IconButton ref={ref} icon="more" />
     </CompositeButton>
   );
 });
 
-export const ToggleMoreOptionsListButton = (
-  props: ToggleMoreOptionsListButtonProps,
-) => {
+export const ToggleMoreOptionsListButton = () => {
   return (
     <MenuToggle placement="top-start" ToggleButton={ToggleMenuButton}>
       <Menu />

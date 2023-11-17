@@ -2,7 +2,6 @@ import { Children, forwardRef, PropsWithChildren, useState } from 'react';
 import clsx from 'clsx';
 
 import {
-  ButtonWithIconProps,
   CallStats,
   CompositeButton,
   DeviceSelectorAudioInput,
@@ -20,9 +19,8 @@ import { LanguageMenu } from './LanguageMenu';
 import { useLanguage } from '../../hooks/useLanguage';
 
 type ToggleSettingsTabModalProps = {
-  caption?: string;
   close: () => void;
-} & Omit<ButtonWithIconProps, 'icon' | 'ref'>;
+};
 
 type SettingsTabModalProps = {
   close: () => void;
@@ -111,14 +109,10 @@ export const TabWrapper = ({
   return children;
 };
 
-export const ToggleMenuButton = forwardRef<
-  HTMLButtonElement,
-  ToggleSettingsTabModalProps
->((props, ref) => {
-  const { enabled, caption } = props;
+export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
   return (
-    <CompositeButton active={enabled} caption={caption}>
-      <IconButton ref={ref} icon="device-settings" {...props} />
+    <CompositeButton>
+      <IconButton ref={ref} icon="device-settings" />
     </CompositeButton>
   );
 });
