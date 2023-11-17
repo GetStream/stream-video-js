@@ -15,7 +15,7 @@
     "@notifee/react-native": "^7.8.0",
     "@react-native-async-storage/async-storage": "1.18.2",
     "@react-native-community/netinfo": "9.3.10",
-    "@stream-io/react-native-webrtc": "^104.0.1",
+    "@stream-io/react-native-webrtc": "104.0.3",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "^49.0.11",
     "expo-constants": "~14.4.2",

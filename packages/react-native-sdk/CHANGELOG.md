@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.10...@stream-io/video-react-native-sdk-0.2.11) (2023-11-17)
+
+
+### Features
+
+* **react-native:** update rn-webrtc version ([159b1cc](https://github.com/GetStream/stream-video-js/commit/159b1cc6b581f9dff257aad481170a36d5d065e9))
+
 ### [0.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.9...@stream-io/video-react-native-sdk-0.2.10) (2023-11-16)
 
 ### Dependency Updates
