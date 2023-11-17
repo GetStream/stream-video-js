@@ -12,7 +12,7 @@ if (window.location.href.includes('no-trace')) {
   console.log('Setting up Sentry');
 
   Sentry.init({
-    dsn: SENTRY_DSN, // ||'https://fe0b0bd8c3244e9fa3cb8e252f4a4ceb@o14368.ingest.sentry.io/4504044576374784',
+    dsn: SENTRY_DSN,
     // Adjust this value in production, or use tracesSampler for greater control
     tracesSampleRate: 1.0,
     // ...

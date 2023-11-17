@@ -3,7 +3,12 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { mockCall, mockVideoDevices, mockVideoStream } from './mocks';
+import {
+  mockCall,
+  mockDeviceIds$,
+  mockVideoDevices,
+  mockVideoStream,
+} from './mocks';
 import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
@@ -17,6 +22,7 @@ vi.mock('../devices.ts', () => {
       return of(mockVideoDevices);
     }),
     getVideoStream: vi.fn(() => Promise.resolve(mockVideoStream())),
+    deviceIds$: mockDeviceIds$(),
   };
 });
 
@@ -73,6 +79,23 @@ describe('CameraManager', () => {
 
     expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      {
+        preferredCodec: undefined,
+      },
+    );
+  });
+
+  it('publish stream with preferred codec', async () => {
+    manager['call'].state.setCallingState(CallingState.JOINED);
+    manager.setPreferredCodec('h264');
+
+    await manager.enable();
+
+    expect(manager['call'].publishVideoStream).toHaveBeenCalledWith(
+      manager.state.mediaStream,
+      {
+        preferredCodec: 'h264',
+      },
     );
   });
 

@@ -72,6 +72,9 @@
   "{{ direction }} fullscreen": "{{ direction }} fullscreen",
   "{{ direction }} picture-in-picture": "{{ direction }} picture-in-picture",
 
+  "Dominant Speaker": "Dominant Speaker",
+  "Poor connection quality": "Poor connection quality. Please check your internet connection.",
+
   "Participants": "Participants",
   "Anonymous": ", and ({{ count }}) anonymous",
   "No participants found": "No participants found",

@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.7...@stream-io/video-client-0.4.8) (2023-11-16)
+
+
+### Bug Fixes
+
+* **device-api:** check for Permissions API availability ([#1193](https://github.com/GetStream/stream-video-js/issues/1193)) ([5ffeaa0](https://github.com/GetStream/stream-video-js/commit/5ffeaa0d2abdab401f9028a14b114d00723605c1)), closes [#1184](https://github.com/GetStream/stream-video-js/issues/1184)
+
+### [0.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.6...@stream-io/video-client-0.4.7) (2023-11-13)
+
+
+### Features
+
+* **device-api:** Browser Permissions API ([#1184](https://github.com/GetStream/stream-video-js/issues/1184)) ([a0b3573](https://github.com/GetStream/stream-video-js/commit/a0b3573b630ff8450953cdf1102fe722aea83f6f))
+
+### [0.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.5...@stream-io/video-client-0.4.6) (2023-11-13)
+
+
+### Features
+
+* handle device disconnection ([#1174](https://github.com/GetStream/stream-video-js/issues/1174)) ([ae3779f](https://github.com/GetStream/stream-video-js/commit/ae3779fbfd820d8ef85ad58dafb698e06c00a3e3))
+
+### [0.4.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.4...@stream-io/video-client-0.4.5) (2023-11-07)
+
+
+### Bug Fixes
+
+* lift the debug helpers from the SDK to Pronto ([#1182](https://github.com/GetStream/stream-video-js/issues/1182)) ([8f31efc](https://github.com/GetStream/stream-video-js/commit/8f31efc71d9f85ef147d21b42f23876599c36072))
+
 ### [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.3...@stream-io/video-client-0.4.4) (2023-11-02)
 
 

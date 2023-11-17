@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import { CallingState, CallState } from '../../store';
 import { OwnCapability } from '../../gen/coordinator';
 import { Call } from '../../Call';
+import { Subject } from 'rxjs';
 
 export const mockVideoDevices = [
   {
@@ -80,8 +81,14 @@ export const mockCall = (): Partial<Call> => {
   };
 };
 
+export type MockTrack = Partial<MediaStreamTrack> & {
+  eventHandlers: { [key: string]: EventListenerOrEventListenerObject };
+  readyState: string;
+};
+
 export const mockAudioStream = () => {
-  const track = {
+  const track: MockTrack = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: mockAudioDevices[0].deviceId,
     }),
@@ -90,15 +97,22 @@ export const mockAudioStream = () => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
   return {
     getTracks: () => [track],
     getAudioTracks: () => [track],
-  } as MediaStream;
+  } as any as MediaStream;
 };
 
 export const mockVideoStream = () => {
-  const track = {
+  const track: MockTrack = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: mockVideoDevices[0].deviceId,
       width: 1280,
@@ -109,15 +123,22 @@ export const mockVideoStream = () => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
   return {
     getTracks: () => [track],
     getVideoTracks: () => [track],
-  } as MediaStream;
+  } as any as MediaStream;
 };
 
 export const mockScreenShareStream = (includeAudio: boolean = true) => {
   const track = {
+    eventHandlers: {},
     getSettings: () => ({
       deviceId: 'screen',
     }),
@@ -126,11 +147,18 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     stop: () => {
       track.readyState = 'ended';
     },
+    addEventListener: (
+      event: string,
+      handler: EventListenerOrEventListenerObject,
+    ) => {
+      track.eventHandlers[event] = handler;
+    },
   };
 
   const tracks = [track];
   if (includeAudio) {
-    tracks.push({
+    const audioTrack = {
+      eventHandlers: {},
       getSettings: () => ({
         deviceId: 'screen-audio',
       }),
@@ -139,12 +167,33 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       stop: () => {
         track.readyState = 'ended';
       },
-    });
+      addEventListener: (
+        event: string,
+        handler: EventListenerOrEventListenerObject,
+      ) => {
+        audioTrack.eventHandlers[event] = handler;
+      },
+    };
+    tracks.push(audioTrack);
   }
 
   return {
     getTracks: () => tracks,
     getVideoTracks: () => tracks,
     getAudioTracks: () => tracks,
-  } as MediaStream;
+  } as any as MediaStream;
+};
+
+let deviceIds: Subject<MediaDeviceInfo[]>;
+export const mockDeviceIds$ = () => {
+  global.navigator = {
+    //@ts-expect-error
+    mediaDevices: {},
+  };
+  deviceIds = new Subject();
+  return deviceIds;
+};
+
+export const emitDeviceIds = (values: MediaDeviceInfo[]) => {
+  deviceIds.next(values);
 };

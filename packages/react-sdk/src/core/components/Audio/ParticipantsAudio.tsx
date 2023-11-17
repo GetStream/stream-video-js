@@ -1,4 +1,4 @@
-import { ComponentProps } from 'react';
+import { ComponentProps, Fragment } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-client';
 import { Audio } from './Audio';
 
@@ -33,7 +33,6 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
             {...audioProps}
             trackType="audioTrack"
             participant={participant}
-            key={`${sessionId}-audio`}
           />
         );
 
@@ -46,15 +45,14 @@ export const ParticipantsAudio = (props: ParticipantsAudioProps) => {
               {...audioProps}
               trackType="screenShareAudioTrack"
               participant={participant}
-              key={`${sessionId}-screen-share-audio`}
             />
           );
 
         return (
-          <>
+          <Fragment key={sessionId}>
             {audioTrackElement}
             {screenShareAudioTrackElement}
-          </>
+          </Fragment>
         );
       })}
     </>

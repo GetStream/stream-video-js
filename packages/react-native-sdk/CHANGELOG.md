@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.9...@stream-io/video-react-native-sdk-0.2.10) (2023-11-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.8`
+### [0.2.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.8...@stream-io/video-react-native-sdk-0.2.9) (2023-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.7`
+* `@stream-io/video-react-bindings` updated to version `0.3.7`
+
+### Features
+
+* **device-api:** Browser Permissions API ([#1184](https://github.com/GetStream/stream-video-js/issues/1184)) ([a0b3573](https://github.com/GetStream/stream-video-js/commit/a0b3573b630ff8450953cdf1102fe722aea83f6f))
+
+### [0.2.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.7...@stream-io/video-react-native-sdk-0.2.8) (2023-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.6`
+* `@stream-io/video-react-bindings` updated to version `0.3.6`
+### [0.2.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.6...@stream-io/video-react-native-sdk-0.2.7) (2023-11-10)
+
+
+### Bug Fixes
+
+* **react-native:** Cannot find interface declaration for 'RCTEventEmitter' ([#1185](https://github.com/GetStream/stream-video-js/issues/1185)) ([ab0f314](https://github.com/GetStream/stream-video-js/commit/ab0f314bb035529b9b0da27e2c6c6ed17cd4c626))
+
+### [0.2.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.5...@stream-io/video-react-native-sdk-0.2.6) (2023-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.5`
 ### [0.2.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.4...@stream-io/video-react-native-sdk-0.2.5) (2023-11-02)
 
 ### Dependency Updates

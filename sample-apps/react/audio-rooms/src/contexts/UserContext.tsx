@@ -1,9 +1,11 @@
-import { createContext, useCallback, useContext, useState } from 'react';
 import {
-  ChildrenOnly,
-  StreamVideoClient,
-  TokenProvider,
-} from '@stream-io/video-react-sdk';
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
+import { StreamVideoClient, TokenProvider } from '@stream-io/video-react-sdk';
 import { SESSION_STORAGE_USER_KEY } from '../utils/constants';
 import { getURLCredentials } from '../utils/getURLCredentials';
 import { noop } from '../utils/noop';
@@ -33,7 +35,7 @@ const UserContext = createContext<UserState>({
   user: undefined,
 });
 
-export const UserContextProvider = ({ children }: ChildrenOnly) => {
+export const UserContextProvider = ({ children }: PropsWithChildren) => {
   const urlCredentials = getURLCredentials();
   const apiKey = urlCredentials.api_key || envApiKey;
   const token = urlCredentials.token;

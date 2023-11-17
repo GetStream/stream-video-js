@@ -5,19 +5,29 @@ import { InputMediaDeviceManager } from './InputMediaDeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { TrackType } from '../gen/video/sfu/models/models';
 
+type PreferredCodec = 'vp8' | 'h264' | string;
+
 export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
     height: 720,
   };
 
+  /**
+   * The preferred codec for encoding the video.
+   *
+   * @internal internal use only, not part of the public API.
+   */
+  preferredCodec: PreferredCodec | undefined;
+
   constructor(call: Call) {
     super(call, new CameraManagerState(), TrackType.VIDEO);
   }
 
   /**
-   * Select the camera direaction
-   * @param direction
+   * Select the camera direction.
+   *
+   * @param direction the direction of the camera to select.
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     this.state.setDirection(direction);
@@ -48,6 +58,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         await this.enablePromise;
       } catch (error) {
         // couldn't enable device, target resolution will be applied the next time user attempts to start the device
+        this.logger('warn', 'could not apply target resolution', error);
       }
     }
     if (this.state.status === 'enabled') {
@@ -57,13 +68,24 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
       if (
         width !== this.targetResolution.width ||
         height !== this.targetResolution.height
-      )
+      ) {
         await this.applySettingsToStream();
-      this.logger(
-        'debug',
-        `${width}x${height} target resolution applied to media stream`,
-      );
+        this.logger(
+          'debug',
+          `${width}x${height} target resolution applied to media stream`,
+        );
+      }
     }
+  }
+
+  /**
+   * Sets the preferred codec for encoding the video.
+   *
+   * @internal internal use only, not part of the public API.
+   * @param codec the codec to use for encoding the video.
+   */
+  setPreferredCodec(codec: 'vp8' | 'h264' | string | undefined) {
+    this.preferredCodec = codec;
   }
 
   protected getDevices(): Observable<MediaDeviceInfo[]> {
@@ -85,7 +107,9 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
   }
 
   protected publishStream(stream: MediaStream): Promise<void> {
-    return this.call.publishVideoStream(stream);
+    return this.call.publishVideoStream(stream, {
+      preferredCodec: this.preferredCodec,
+    });
   }
 
   protected stopPublishStream(stopTracks: boolean): Promise<void> {

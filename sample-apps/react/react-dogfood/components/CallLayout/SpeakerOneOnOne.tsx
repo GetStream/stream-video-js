@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { ComponentType, useRef } from 'react';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
@@ -8,7 +8,11 @@ import {
 } from '@stream-io/video-react-sdk';
 import { motion } from 'framer-motion';
 
-const CustomParticipantViewUISpotlight = () => {
+const CustomParticipantViewUISpotlight = ({
+  ParticipantViewUI,
+}: {
+  ParticipantViewUI?: ComponentType;
+}) => {
   const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const [participantInSpotlight, otherParticipant] = useParticipants();
   const constraintsElementRef = useRef<HTMLDivElement | null>(null);
@@ -38,6 +42,7 @@ const CustomParticipantViewUISpotlight = () => {
           <ParticipantView
             muteAudio={participantToRender.isLocalParticipant}
             participant={participantToRender}
+            ParticipantViewUI={ParticipantViewUI || DefaultParticipantViewUI}
           />
         </motion.div>
       </motion.div>
@@ -46,7 +51,11 @@ const CustomParticipantViewUISpotlight = () => {
   );
 };
 
-export const SpeakerOneOnOne = () => {
+export const SpeakerOneOnOne = ({
+  ParticipantViewUI,
+}: {
+  ParticipantViewUI?: ComponentType;
+}) => {
   const { useRemoteParticipants } = useCallStateHooks();
   const otherParticipants = useRemoteParticipants();
   const isOneOnOneCall = otherParticipants.length === 1;
@@ -54,8 +63,15 @@ export const SpeakerOneOnOne = () => {
   return (
     <SpeakerLayout
       ParticipantViewUISpotlight={
-        isOneOnOneCall ? CustomParticipantViewUISpotlight : undefined
+        isOneOnOneCall ? (
+          <CustomParticipantViewUISpotlight
+            ParticipantViewUI={ParticipantViewUI}
+          />
+        ) : (
+          ParticipantViewUI || DefaultParticipantViewUI
+        )
       }
+      ParticipantViewUIBar={ParticipantViewUI || DefaultParticipantViewUI}
       participantsBarPosition={isOneOnOneCall ? null : 'bottom'}
     />
   );

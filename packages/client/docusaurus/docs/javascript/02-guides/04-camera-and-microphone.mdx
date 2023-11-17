@@ -55,6 +55,20 @@ call.camera.state.selectedDevice; // currently selected camera
 call.camera.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
 ```
 
+### Camera permissions
+
+In a browser, you can use the following API to check whether the user has granted permission to access the connected cameras:
+
+```typescript
+call.camera.state.hasBrowserPermission$.subscribe((value) => {
+  if (value) {
+    // User has granted permission
+  } else {
+    // User has denied or not yet granted permission
+  }
+});
+```
+
 ### Camera direction
 
 On mobile devices it's useful if users can switch between the front and back cameras:
@@ -166,6 +180,20 @@ This is how you can access the selected device:
 ```typescript
 call.microphone.state.selectedDevice; // currently selected microphone
 call.microphone.state.selectedDevice$.subscribe(console.log); // Reactive value for selected device, you can subscribe to changes
+```
+
+### Microphone permissions
+
+In a browser, you can use the following API to check whether the user has granted permission to access the connected microphones:
+
+```typescript
+call.microphone.state.hasBrowserPermission$.subscribe((value) => {
+  if (value) {
+    // User has granted permission
+  } else {
+    // User has denied or not yet granted permission
+  }
+});
 ```
 
 ### Play audio

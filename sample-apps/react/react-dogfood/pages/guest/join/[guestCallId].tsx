@@ -15,6 +15,10 @@ import { createToken } from '../../../helpers/jwt';
 import { useEffect, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
 import { customSentryLogger } from '../../../helpers/logger';
+import {
+  defaultRequestTransformers,
+  defaultResponseTransformers,
+} from '../../../helpers/axiosApiTransformers';
 
 type GuestCallRoomProps = {
   user: UserResponse;
@@ -46,6 +50,8 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       options: {
         logLevel: 'warn',
         logger: customSentryLogger,
+        transformRequest: defaultRequestTransformers,
+        transformResponse: defaultResponseTransformers,
       },
     });
     setClient(_client);

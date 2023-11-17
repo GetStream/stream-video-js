@@ -1,0 +1,107 @@
+---
+id: watching-a-livestream
+title: Watching a livestream
+---
+
+import ImageShowcase from '@site/src/components/ImageShowcase';
+import ViewerLivestream from '../assets/05-ui-cookbook/14-watching-a-livestream/viewer-livestream.png';
+import ViewerLivestreamScreenShare from '../assets/05-ui-cookbook/14-watching-a-livestream/viewer-livestream-screenshare.png';
+
+The Video API allows you to assign specific roles for users in a livestream, such as hosts and viewers. Our SDK provides dedicated livestreaming components for both of these roles.
+
+The `ViewerLivestream` component leverages the WebRTC protocol for seamless livestream viewing within the SDK. To enable external publishing, you can access HLS credentials from the dashboard. For additional information, please refer to our [livestream tutorial](../../tutorials/livestream).
+
+This guide describes how to customize watching a livestream through our SDK.
+
+### Default component
+
+For the viewer role, our React Native SDK includes the specialized [`ViewerLivestream`](../../ui-components/livestream/viewer-livestream) component.
+
+Here is a preview of the above component in video mode:
+
+<ImageShowcase
+  items={[
+    {
+      image: ViewerLivestream,
+      caption: 'Viewer Livestream',
+      alt: 'Viewer Livestream',
+    },
+    {
+      image: ViewerLivestreamScreenShare,
+      caption: 'Viewer Livestream Screen Share',
+      alt: 'Viewer Livestream Screen Share',
+    },
+  ]}
+/>
+
+```tsx
+import {
+  ViewerLivestream,
+  StreamVideo,
+  StreamCall,
+} from '@stream-io/video-react-native-sdk';
+
+export const MyLivestreamApp = () => {
+  // init client and call here...
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <ViewerLivestream />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+### Adding customization
+
+The `ViewerLivestream` provides a lot of customization options that can be passed as props:
+
+- `ViewerLivestreamTopView` allows customizing the top view or the header of the `ViewerLivestream`. It contains the `LiveIndicator`, `FollowerCount`, and the `DurationBadge` component by default.
+- `LivestreamLayout` allows customizing the main video layout component of the `ViewerLivestream`.
+- `ViewerLivestreamControls` allows customizing the bottom livestream controls component of the `ViewerLivestream`. It contains the `ViewerLeaveStreamButton`.
+- `LiveIndicator` allows customizing the live indicator component that is present in the top view of the `ViewerLivestream`.
+- `FollowerCount` allows customizing the follower count component that is present in the top view of the `ViewerLivestream`.
+- `DurationBadge` allows customizing the duration badge that shows the duration of the livestream in the top view of the `ViewerLivestream`.
+- `ViewerLeaveStreamButton` allows customizing the leave button of the livestream on the controls of the `ViewerLivestream`.
+- `FloatingParticipantView` allows customizing the Floating Participant View that renders the video of the participant when screen is shared.
+- `onLeaveStreamHandler` allows full override of the default functionality on what should happen when viewer ends the streaming using `ViewerLeaveStreamButton`.
+
+An example to customize the `ViewerLeaveStreamButton` button is shown below:
+
+```tsx
+import {
+  ViewerLivestream,
+  StreamVideo,
+  StreamCall,
+  useCall,
+} from '@stream-io/video-react-native-sdk';
+import { Button } from 'react-native';
+
+const ViewerLeaveStreamButtonComponent = () => {
+  const call = useCall();
+
+  const onPressHandler = async () => {
+    await call.leave();
+  };
+
+  return <Button title="Leave Stream" onPress={onPressHandler} />;
+};
+
+export const MyLivestreamApp = () => {
+  // init client and call here...
+  return (
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <ViewerLivestream
+          ViewerLeaveStreamButton={ViewerLeaveStreamButtonComponent}
+        />
+      </StreamCall>
+    </StreamVideo>
+  );
+};
+```
+
+Result:
+
+![Preview of the Custom ViewerLeaveStreamButton](../assets/05-ui-cookbook/14-watching-a-livestream/leave-stream-button.png)

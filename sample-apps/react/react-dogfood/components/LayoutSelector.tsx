@@ -13,18 +13,22 @@ import {
   CallParticipantsView,
   SpeakerOneOnOne,
 } from './CallLayout';
+import { DebugParticipantViewUI } from './Debug/DebugParticipantViewUI';
 
 export const LayoutMap = {
   LegacyGrid: {
     Component: CallParticipantsView,
     title: 'Grid (legacy)',
-    props: {},
+    props: {
+      ParticipantViewUI: DebugParticipantViewUI,
+    },
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     title: 'Paginated grid',
     props: {
       groupSize: 16,
+      ParticipantViewUI: DebugParticipantViewUI,
     },
   },
   SpeakerBottom: {
@@ -32,6 +36,8 @@ export const LayoutMap = {
     title: 'Spotlight (default)',
     props: {
       participantsBarPosition: 'bottom',
+      ParticipantViewUIBar: DebugParticipantViewUI,
+      ParticipantViewUISpotlight: DebugParticipantViewUI,
     },
   },
   SpeakerRight: {
@@ -39,6 +45,8 @@ export const LayoutMap = {
     title: 'Spotlight (bar right)',
     props: {
       participantsBarPosition: 'right',
+      ParticipantViewUIBar: DebugParticipantViewUI,
+      ParticipantViewUISpotlight: DebugParticipantViewUI,
     },
   },
   SpeakerTop: {
@@ -46,6 +54,8 @@ export const LayoutMap = {
     title: 'Spotlight (bar top)',
     props: {
       participantsBarPosition: 'top',
+      ParticipantViewUIBar: DebugParticipantViewUI,
+      ParticipantViewUISpotlight: DebugParticipantViewUI,
     },
   },
   SpeakerLeft: {
@@ -53,17 +63,23 @@ export const LayoutMap = {
     title: 'Spotlight (bar left)',
     props: {
       participantsBarPosition: 'left',
+      ParticipantViewUIBar: DebugParticipantViewUI,
+      ParticipantViewUISpotlight: DebugParticipantViewUI,
     },
   },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
     title: 'Sidebar',
-    props: {},
+    props: {
+      ParticipantViewUI: DebugParticipantViewUI,
+    },
   },
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
     title: 'Speaker 1:1',
-    props: {},
+    props: {
+      ParticipantViewUI: DebugParticipantViewUI,
+    },
   },
   LivestreamLayout: {
     Component: LivestreamLayout,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   Call,
+  CallingState,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -18,6 +19,15 @@ import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
+import {
+  defaultRequestTransformers,
+  defaultResponseTransformers,
+} from '../../helpers/axiosApiTransformers';
+import {
+  CreateJwtTokenRequest,
+  CreateJwtTokenResponse,
+  EnvironmentName,
+} from '../api/auth/create-token';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -26,29 +36,54 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-  const { userToken, user, apiKey, gleapApiKey } = props;
-  const tokenProvider = useCallback(async () => {
-    const { token } = await fetch(
-      '/api/auth/create-token?' +
-        new URLSearchParams({
-          api_key: apiKey,
-          user_id: user.id || '!anon',
-          exp: String(4 * 60 * 60), // 4 hours
-        }),
-    ).then((res) => res.json());
-    return token as string;
-  }, [apiKey, user.id]);
+
+  const { user, gleapApiKey } = props;
+
+  const fetchAuthDetails = useCallback(
+    async (init?: RequestInit) => {
+      const environment = process.env.NEXT_PUBLIC_APP_ENVIRONMENT as
+        | EnvironmentName
+        | undefined;
+      const params = {
+        user_id: user.id || '!anon',
+        environment: environment || 'pronto',
+        exp: String(4 * 60 * 60), // 4 hours
+      } satisfies CreateJwtTokenRequest;
+      return fetch(
+        `/api/auth/create-token?${new URLSearchParams(params)}`,
+        init,
+      ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
+    },
+    [user.id],
+  );
+
+  const tokenProvider = useCallback(
+    () => fetchAuthDetails().then((auth) => auth.token),
+    [fetchAuthDetails],
+  );
+
+  const [credentials, setCredentials] = useState<CreateJwtTokenResponse>();
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchAuthDetails({ signal: abortController.signal })
+      .then((data) => setCredentials(data))
+      .catch((err) => console.log('Failed to fetch auth details', err));
+    return () => abortController.abort();
+  }, [fetchAuthDetails]);
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
+    if (!credentials) return;
     const _client = new StreamVideoClient({
-      apiKey,
+      apiKey: credentials.apiKey,
       user,
       tokenProvider,
       options: {
         baseURL: process.env.NEXT_PUBLIC_STREAM_API_URL,
         logLevel: 'debug',
         logger: customSentryLogger,
+        transformRequest: defaultRequestTransformers,
+        transformResponse: defaultResponseTransformers,
       },
     });
     setClient(_client);
@@ -64,11 +99,11 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       // @ts-ignore - for debugging
       window.client = undefined;
     };
-  }, [apiKey, tokenProvider, user]);
+  }, [credentials, tokenProvider, user]);
 
   const chatClient = useCreateStreamChatClient({
-    apiKey,
-    tokenOrProvider: userToken,
+    apiKey: credentials?.apiKey,
+    tokenOrProvider: tokenProvider,
     userData: { id: '!anon', ...(user as Omit<User, 'type'>) },
   });
 
@@ -82,10 +117,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     window.call = _call;
 
     return () => {
-      _call.leave();
-      setCall(undefined);
-      // @ts-ignore - for debugging
-      window.call = undefined;
+      if (_call.state.callingState !== CallingState.LEFT) {
+        _call.leave().catch((e) => console.error('Failed to leave call', e));
+        setCall(undefined);
+        // @ts-ignore - for debugging
+        window.call = undefined;
+      }
     };
   }, [callId, callType, client]);
 

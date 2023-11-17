@@ -2,6 +2,48 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.10...@stream-io/video-react-sdk-0.4.11) (2023-11-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.8`
+### [0.4.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.9...@stream-io/video-react-sdk-0.4.10) (2023-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.7`
+* `@stream-io/video-react-bindings` updated to version `0.3.7`
+
+### Features
+
+* **device-api:** Browser Permissions API ([#1184](https://github.com/GetStream/stream-video-js/issues/1184)) ([a0b3573](https://github.com/GetStream/stream-video-js/commit/a0b3573b630ff8450953cdf1102fe722aea83f6f))
+
+### [0.4.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.8...@stream-io/video-react-sdk-0.4.9) (2023-11-13)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.6`
+* `@stream-io/video-react-bindings` updated to version `0.3.6`
+### [0.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.7...@stream-io/video-react-sdk-0.4.8) (2023-11-07)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.5`
+* `@stream-io/video-styling` updated to version `0.1.14`
+
+### Bug Fixes
+
+* lift the debug helpers from the SDK to Pronto ([#1182](https://github.com/GetStream/stream-video-js/issues/1182)) ([8f31efc](https://github.com/GetStream/stream-video-js/commit/8f31efc71d9f85ef147d21b42f23876599c36072))
+
+### [0.4.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.6...@stream-io/video-react-sdk-0.4.7) (2023-11-03)
+
+
+### Bug Fixes
+
+* set `key` prop to the correct element ([#1178](https://github.com/GetStream/stream-video-js/issues/1178)) ([b24c07d](https://github.com/GetStream/stream-video-js/commit/b24c07dd366e8aa64055aae7dd48cabe8761eac0)), closes [#1176](https://github.com/GetStream/stream-video-js/issues/1176)
+
 ### [0.4.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.5...@stream-io/video-react-sdk-0.4.6) (2023-11-02)
 
 ### Dependency Updates

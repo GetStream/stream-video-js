@@ -34,7 +34,10 @@ type LobbyProps = {
 };
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
-  const { useSpeakerState } = useCallStateHooks();
+  const { useSpeakerState, useMicrophoneState, useCameraState } =
+    useCallStateHooks();
+  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { isDeviceSelectionSupported } = useSpeakerState();
   const { t } = useI18n();
 
@@ -64,6 +67,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     return null;
   }
 
+  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
   return (
     <Stack height={1}>
       <LobbyHeader />
@@ -86,7 +90,13 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               {subtitle}
             </Typography>
             {enablePreview && (
-              <VideoPreview DisabledVideoPreview={DisabledVideoPreview} />
+              <VideoPreview
+                DisabledVideoPreview={
+                  hasBrowserMediaPermission
+                    ? DisabledVideoPreview
+                    : AllowBrowserPermissions
+                }
+              />
             )}
             {enablePreview && (
               <div
@@ -135,3 +145,16 @@ const LobbyToggleAudioMenu = () => (
     <AudioVolumeIndicator />
   </>
 );
+
+const AllowBrowserPermissions = () => {
+  return (
+    <Box display="flex" flexDirection="column" gap={2} padding="0 15px">
+      <Typography variant="h5">
+        Allow your browser to access your camera and microphone.
+      </Typography>
+      <Typography variant="body2">
+        Pronto needs access to your camera and microphone for the call.
+      </Typography>
+    </Box>
+  );
+};

@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from 'react';
-import { Call, ChildrenOnly } from '@stream-io/video-react-sdk';
+import { createContext, PropsWithChildren, useContext, useState } from 'react';
+import { Call } from '@stream-io/video-react-sdk';
 
 type JoinedCallContextValue = {
   joinedCall?: Call;
@@ -11,7 +11,7 @@ const JoinedCallContext = createContext<JoinedCallContextValue>({
   setJoinedCall: () => null,
 });
 
-export const JoinedCallProvider = ({ children }: ChildrenOnly) => {
+export const JoinedCallProvider = ({ children }: PropsWithChildren) => {
   const [joinedCall, setJoinedCall] = useState<Call>();
 
   return (

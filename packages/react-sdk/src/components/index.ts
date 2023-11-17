@@ -5,6 +5,7 @@ export * from './CallParticipantsList';
 export * from './CallPreview';
 export * from './CallStats';
 export * from './CallRecordingList';
+export * from './CallStats';
 export * from './DeviceSettings';
 export * from './DropdownSelect';
 export * from './Icon';

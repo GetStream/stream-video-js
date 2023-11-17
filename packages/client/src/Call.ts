@@ -345,7 +345,7 @@ export class Call {
                     .catch((err) =>
                       this.logger(
                         'error',
-                        `Error disabling camera after pemission revoked`,
+                        `Error disabling camera after permission revoked`,
                         err,
                       ),
                     );
@@ -359,7 +359,7 @@ export class Call {
                     .catch((err) =>
                       this.logger(
                         'error',
-                        `Error disabling microphone after pemission revoked`,
+                        `Error disabling microphone after permission revoked`,
                         err,
                       ),
                     );
@@ -507,6 +507,11 @@ export class Call {
 
     this.clientStore.unregisterCall(this);
     this.state.setCallingState(CallingState.LEFT);
+
+    this.camera.removeSubscriptions();
+    this.microphone.removeSubscriptions();
+    this.screenShare.removeSubscriptions();
+    this.speaker.removeSubscriptions();
   };
 
   /**
@@ -701,14 +706,6 @@ export class Call {
       throw error;
     }
 
-    // FIXME OL: remove once cascading is implemented
-    if (typeof window !== 'undefined' && window.location?.search) {
-      const params = new URLSearchParams(window.location.search);
-      sfuServer.url = params.get('sfuUrl') || sfuServer.url;
-      sfuServer.ws_endpoint = params.get('sfuWsUrl') || sfuServer.ws_endpoint;
-      sfuServer.edge_name = params.get('sfuUrl') || sfuServer.edge_name;
-    }
-
     const previousSfuClient = this.sfuClient;
     const sfuClient = (this.sfuClient = new StreamSfuClient({
       dispatcher: this.dispatcher,
@@ -798,7 +795,11 @@ export class Call {
 
         // restore previous publishing state
         if (audioStream) await this.publishAudioStream(audioStream);
-        if (videoStream) await this.publishVideoStream(videoStream);
+        if (videoStream) {
+          await this.publishVideoStream(videoStream, {
+            preferredCodec: this.camera.preferredCodec,
+          });
+        }
         if (screenShare) await this.publishScreenShareStream(screenShare);
       }
       this.logger(
@@ -1008,7 +1009,11 @@ export class Call {
         await this.initCamera({ setStatus: true });
         await this.initMic({ setStatus: true });
       } catch (error) {
-        this.logger('warn', 'Camera and/or mic init failed during join call');
+        this.logger(
+          'warn',
+          'Camera and/or mic init failed during join call',
+          error,
+        );
       }
 
       // 3. once we have the "joinResponse", and possibly reconciled the local state
@@ -1830,10 +1835,12 @@ export class Call {
         this.camera.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.VIDEO)
       ) {
-        await this.publishVideoStream(this.camera.state.mediaStream);
+        await this.publishVideoStream(this.camera.state.mediaStream, {
+          preferredCodec: this.camera.preferredCodec,
+        });
       }
 
-      // Start camera if backend config speicifies, and there is no local setting
+      // Start camera if backend config specifies, and there is no local setting
       if (
         this.camera.state.status === undefined &&
         this.state.settings?.video.camera_default_on

@@ -1,14 +1,16 @@
-import { createContext, useCallback, useContext, useState } from 'react';
 import {
-  ChildrenOnly,
-  StreamVideoClient,
-  TokenProvider,
-} from '@stream-io/video-react-sdk';
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
+import { StreamVideoClient, TokenProvider } from '@stream-io/video-react-sdk';
 import {
   getSelectedUser,
-  storeUser,
   getURLCredentials,
   SESSION_STORAGE_USER_KEY,
+  storeUser,
 } from '../utils';
 import type { StreamChat } from 'stream-chat';
 import type { User } from '../types/';
@@ -35,7 +37,7 @@ const UserContext = createContext<UserContextValue>({
     name: '',
   },
 });
-export const UserContextProvider = ({ children }: ChildrenOnly) => {
+export const UserContextProvider = ({ children }: PropsWithChildren) => {
   const { api_key: urlApiKey, token } = getURLCredentials();
 
   const [user, setUser] = useState<User | undefined>(() => {
