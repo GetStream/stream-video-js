@@ -3133,25 +3133,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.2.1, @floating-ui/dom@npm:^1.5.1":
+"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.5.1":
   version: 1.5.3
   resolution: "@floating-ui/dom@npm:1.5.3"
   dependencies:
     "@floating-ui/core": ^1.4.2
     "@floating-ui/utils": ^0.1.3
   checksum: 00053742064aac70957f0bd5c1542caafb3bfe9716588bfe1d409fef72a67ed5e60450d08eb492a77f78c22ed1ce4f7955873cc72bf9f9caf2b0f43ae3561c21
-  languageName: node
-  linkType: hard
-
-"@floating-ui/react-dom@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "@floating-ui/react-dom@npm:1.3.0"
-  dependencies:
-    "@floating-ui/dom": ^1.2.1
-  peerDependencies:
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: ce0ad3e3bbe43cfd15a6a0d5cccede02175c845862bfab52027995ab99c6b29630180dc7d146f76ebb34730f90a6ab9bf193c8984fe8d7f56062308e4ca98f77
   languageName: node
   linkType: hard
 
@@ -3167,21 +3155,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react@npm:^0.22.0":
-  version: 0.22.2
-  resolution: "@floating-ui/react@npm:0.22.2"
+"@floating-ui/react-dom@npm:^2.0.3":
+  version: 2.0.4
+  resolution: "@floating-ui/react-dom@npm:2.0.4"
   dependencies:
-    "@floating-ui/react-dom": ^1.3.0
-    aria-hidden: ^1.1.3
+    "@floating-ui/dom": ^1.5.1
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 91b2369e25f84888486e48c1656117468248906034ed482d411bb9ed1061b908dd32435b4ca3d0cd0ca6083291510a98ce74d76c671d5cc25b0c41e5fa824bae
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react@npm:^0.26.2":
+  version: 0.26.2
+  resolution: "@floating-ui/react@npm:0.26.2"
+  dependencies:
+    "@floating-ui/react-dom": ^2.0.3
+    "@floating-ui/utils": ^0.1.5
     tabbable: ^6.0.1
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 590285aaf0baacdc044694b4423107250bccaf679e503d61dd133f6f844cb1767845c66be3e9979d04887a53a059697dfcaddca39188d8677dc2de5c67f65347
+  checksum: 52a9e5de72e276c8db30ef7f230cab9b1e891a8fcb96b182b7e604fb4b67f6ce997f3291cf60c72293548e9d007e2bfdb8677986660feb429d34f465bd15c2f7
   languageName: node
   linkType: hard
 
-"@floating-ui/utils@npm:^0.1.3":
+"@floating-ui/utils@npm:^0.1.3, @floating-ui/utils@npm:^0.1.5":
   version: 0.1.6
   resolution: "@floating-ui/utils@npm:0.1.6"
   checksum: b34d4b5470869727f52e312e08272edef985ba5a450a76de0917ba0a9c6f5df2bdbeb99448e2c60f39b177fb8981c772ff1831424e75123471a27ebd5b52c1eb
@@ -7657,6 +7657,7 @@ __metadata:
     "@sentry/nextjs": ^7.54.0
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
+    "@types/react-form": ^4.0.5
     "@types/starwars-names": ^1.6.0
     "@types/yargs": ^17.0.28
     clsx: ^2.0.0
@@ -7669,6 +7670,7 @@ __metadata:
     next-auth: ^4.23.2
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-form: ^4.0.1
     sass: ^1.69.3
     source-map-loader: ^4.0.1
     starwars-names: ^1.6.0
@@ -7838,7 +7840,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
-    "@floating-ui/react": ^0.22.0
+    "@floating-ui/react": ^0.26.2
     "@nivo/core": ^0.80.0
     "@nivo/line": ^0.80.0
     "@rollup/plugin-json": ^6.0.1
@@ -8500,6 +8502,15 @@ __metadata:
   dependencies:
     "@types/react": "*"
   checksum: 26a1d6909437f8b6524fcaa0586ff52afcd2d74bfe669a8c377bd02357d144ab996414262b26bea1e791d9a9529bd051a8ac0943b3a8ef82609d8d428ae0771e
+  languageName: node
+  linkType: hard
+
+"@types/react-form@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "@types/react-form@npm:4.0.5"
+  dependencies:
+    "@types/react": "*"
+  checksum: e2d12e3edd5852a69a30035bfc96e6699f4c706cbe2b228881b6807c29f5334fa8f5776895cc756033dfeea5344d9c7565e8912b24f2290c41aa911a400ea161
   languageName: node
   linkType: hard
 
@@ -10377,15 +10388,6 @@ __metadata:
   version: 2.0.1
   resolution: "argparse@npm:2.0.1"
   checksum: 83644b56493e89a254bae05702abf3a1101b4fa4d0ca31df1c9985275a5a5bd47b3c27b7fa0b71098d41114d8ca000e6ed90cad764b306f8a503665e4d517ced
-  languageName: node
-  linkType: hard
-
-"aria-hidden@npm:^1.1.3":
-  version: 1.2.3
-  resolution: "aria-hidden@npm:1.2.3"
-  dependencies:
-    tslib: ^2.0.0
-  checksum: 7d7d211629eef315e94ed3b064c6823d13617e609d3f9afab1c2ed86399bb8e90405f9bdd358a85506802766f3ecb468af985c67c846045a34b973bcc0289db9
   languageName: node
   linkType: hard
 

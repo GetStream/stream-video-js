@@ -25,12 +25,14 @@
     "next-auth": "^4.23.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-form": "^4.0.1",
     "starwars-names": "^1.6.0",
     "stream-chat": "^8.13.0",
     "stream-chat-react": "^10.14.0",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/react-form": "^4.0.5",
     "@types/starwars-names": "^1.6.0",
     "@types/yargs": "^17.0.28",
     "sass": "^1.69.3",
