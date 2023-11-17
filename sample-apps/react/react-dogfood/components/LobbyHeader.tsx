@@ -33,7 +33,7 @@ export const LobbyHeader = () => {
 
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
-    <Image src="/stream-logo.svg" alt="Stream logo" width={42} height={42} />
+    <Image src="/stream-logo.svg" alt="Stream logo" width={36} height={36} />
   </Link>
 );
 

@@ -1,11 +1,7 @@
-import clsx from 'clsx';
-import { forwardRef, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   CallRecording,
   CallRecordingList,
-  IconButton,
-  MenuToggle,
-  ToggleMenuButtonProps,
   useCall,
 } from '@stream-io/video-react-sdk';
 
@@ -46,27 +42,10 @@ export const CallRecordings = () => {
   }, [call]);
 
   return (
-    <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
-      <CallRecordingList
-        callRecordings={callRecordings}
-        loading={loadingCallRecordings}
-        onRefresh={fetchCallRecordings}
-      />
-    </MenuToggle>
+    <CallRecordingList
+      callRecordings={callRecordings}
+      loading={loadingCallRecordings}
+      onRefresh={fetchCallRecordings}
+    />
   );
 };
-
-const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  ({ menuShown }, ref) => {
-    return (
-      <IconButton
-        className={clsx('str-video__call-recordings__toggle-button', {
-          'str-video__call-recordings__toggle-button--active': menuShown,
-        })}
-        icon="call-recordings"
-        ref={ref}
-        title={menuShown ? 'Close' : 'Call recordings'}
-      />
-    );
-  },
-);

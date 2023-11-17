@@ -16,6 +16,7 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
+  ToggleAudioOutputButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
@@ -37,7 +38,9 @@ import { ActiveCallHeader } from './ActiveCallHeader';
 import { useKeyboardShortcuts, useWakeLock, useWatchChannel } from '../hooks';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
+
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
+import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 
 const contents = {
   'error-join': {
@@ -179,6 +182,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
           <ActiveCallHeader
             selectedLayout={layout}
             onMenuItemClick={setLayout}
+            onLeave={onLeave}
           />
           <PermissionRequests />
           <Stage selectedLayout={layout} />
@@ -186,20 +190,21 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
           >
-            <div className="str-video__call-controls--group">
-              <RecordCallButton />
+            <div className="str-video__call-controls--group str-video__call-controls--options">
+              <ToggleMoreOptionsListButton />
               <ScreenShareButton />
+              <RecordCallButton />
               <ReactionsButton />
             </div>
-            <div className="str-video__call-controls--group">
+            <div className="str-video__call-controls--group str-video__call-controls--media">
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
+              <ToggleAudioOutputButton />
               <CancelCallButton onLeave={onLeave} />
             </div>
-            <div className="str-video__call-controls--group">
-              <CallStatsButton />
+            <div className="str-video__call-controls--group str-video__call-controls--sidebar">
               <ToggleParticipantListButton
                 enabled={showParticipants}
                 onClick={toggleParticipantList}
@@ -210,7 +215,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                 disableOnChatOpen={showChat}
               >
                 <div className="str-chat__chat-button__wrapper">
-                  <CompositeButton caption="Chat" active={showChat}>
+                  <CompositeButton active={showChat}>
                     <IconButton
                       enabled={showChat}
                       disabled={!chatClient}
