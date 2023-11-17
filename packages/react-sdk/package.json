@@ -28,7 +28,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@floating-ui/react": "^0.22.0",
+    "@floating-ui/react": "^0.26.2",
     "@nivo/core": "^0.80.0",
     "@nivo/line": "^0.80.0",
     "@stream-io/video-client": "workspace:^",
