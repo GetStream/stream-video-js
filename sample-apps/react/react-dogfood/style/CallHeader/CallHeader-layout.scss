@@ -1,8 +1,12 @@
-
 .str-video__call-header {
   display: flex;
   align-items: center;
-  padding-bottom: 1rem;
+
+  justify-content: space-between;
+
+  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__border-radius-xxl);
+  padding: 0.5rem;
 
   .str-video__call-header__title-group {
     flex: 1;
@@ -17,11 +21,12 @@
     .str-video__call-header-title {
       white-space: nowrap;
       overflow-y: visible;
+      font-family: 'Inter';
       // Not every browser support clip overflow, so hidden is defined as a fallback
       overflow-x: hidden;
       overflow-x: clip;
       text-overflow: ellipsis;
-      font-size: 24px;
+      font-size: var(---str-video__font-size-md);
       font-weight: 400;
       margin: 0;
       max-width: 400px;
@@ -32,6 +37,16 @@
 .str-video__call-header__controls-group {
   display: flex;
   gap: 0.5rem;
+}
+
+@include respond-above(sm) {
+  .str-video__call-header__controls-group {
+    > * {
+      &:nth-child(1) {
+        display: none;
+      }
+    }
+  }
 }
 
 .str-video__call-header__notifications {

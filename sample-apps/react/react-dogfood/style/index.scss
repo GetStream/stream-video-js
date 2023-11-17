@@ -1,6 +1,8 @@
 @import 'app';
 @import 'chat';
 
+@import 'breakpoints';
+
 @import 'Button';
 @import 'CallControls';
 @import 'CallHeader';
@@ -10,3 +12,7 @@
 @import 'CallParticipantsView';
 @import 'CallParticipantsScreenView';
 @import 'CallLayout';
+
+@import 'SettingsTabModal';
+@import 'ToggleMoreOptionsListButton';
+@import 'Feedback';

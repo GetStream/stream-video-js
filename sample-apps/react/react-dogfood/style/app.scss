@@ -1,7 +1,7 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -12,12 +12,12 @@ body {
 }
 
 body {
-  background-color: #272a30;
+  background-color: var(--str-video__base-color4);
   color: var(--str-video__text-color1);
 }
 
 .str-video {
-  background-color: #272a30;
+  background-color: var(--str-video__base-color4);
   color: var(--str-video__text-color1);
   height: 100dvh;
   display: flex;
@@ -28,8 +28,9 @@ body {
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  padding: 1rem;
+  padding: 0.5rem;
   overflow-x: hidden;
+  background-color: var(--str-video__base-color4);
 
   .str-video__stage {
     flex: 1;
