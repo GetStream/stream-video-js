@@ -1,9 +1,9 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
-import { Icon } from '@stream-io/video-react-sdk';
+import { Icon } from '../Icon';
 
-import { DropDownSelect } from '../DropdownSelect/DropdownSelect';
+import { DropDownSelect } from '../DropdownSelect';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -142,7 +142,7 @@ export const DeviceSelectorDropdown = (props: {
   title: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
-  icon?: string;
+  icon: string;
   placeholder?: string;
 }) => {
   const {
@@ -209,7 +209,7 @@ export const DeviceSelector = (props: {
   title: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
-  icon?: string;
+  icon: string;
   placeholder?: string;
 }) => {
   const { visualType = 'list', icon, placeholder, ...rest } = props;

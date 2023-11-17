@@ -1,19 +1,18 @@
 import {
+  Children,
+  cloneElement,
   ComponentType,
+  ForwardedRef,
+  isValidElement,
   PropsWithChildren,
   useEffect,
   useState,
-  ForwardedRef,
-  Children,
-  cloneElement,
-  isValidElement,
-  FC,
 } from 'react';
 import {
+  FloatingOverlay,
+  FloatingPortal,
   Placement,
   Strategy,
-  FloatingPortal,
-  FloatingOverlay,
   UseFloatingReturn,
 } from '@floating-ui/react';
 
@@ -33,20 +32,21 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
-  visualType: MenuVisualType.PORTAL | MenuVisualType.MENU;
+  visualType?: MenuVisualType.PORTAL | MenuVisualType.MENU;
 }>;
 
-export const MenuPortal: FC<
-  {
-    setMenuShown: (shown: boolean) => void;
-    refs: UseFloatingReturn['refs'];
-  } & PropsWithChildren
-> = ({ children, setMenuShown, refs }) => {
+export const MenuPortal = ({
+  children,
+  setMenuShown,
+  refs,
+}: PropsWithChildren<{
+  setMenuShown: (shown: boolean) => void;
+  refs: UseFloatingReturn['refs'];
+}>) => {
   const childrenWithProps = Children.map(children, (child: any) => {
     if (
       isValidElement(child) &&
-      typeof child === 'number' &&
-      typeof child === 'string'
+      (typeof child === 'number' || typeof child === 'string')
     ) {
       return cloneElement(child, { close: () => setMenuShown(false) });
     }
@@ -55,9 +55,9 @@ export const MenuPortal: FC<
 
   return (
     <>
-      <div id="portal" className="str-video__portal"></div>
+      <div id="str-video-portal" className="str-video__portal"></div>
       <FloatingOverlay>
-        <FloatingPortal id="portal">
+        <FloatingPortal id="str-video-portal">
           <div className="str-video__portal-content" ref={refs.setFloating}>
             {childrenWithProps}
           </div>

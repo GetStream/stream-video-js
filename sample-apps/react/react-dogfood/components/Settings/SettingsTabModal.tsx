@@ -1,17 +1,17 @@
-import { Children, FC, useState, PropsWithChildren, forwardRef } from 'react';
+import { Children, forwardRef, PropsWithChildren, useState } from 'react';
 import clsx from 'clsx';
 
 import {
-  Icon,
-  IconButton,
-  CompositeButton,
-  MenuToggle,
-  MenuVisualType,
   ButtonWithIconProps,
+  CallStats,
+  CompositeButton,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
   DeviceSelectorVideo,
-  CallStats,
+  Icon,
+  IconButton,
+  MenuToggle,
+  MenuVisualType,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -43,19 +43,12 @@ type TabWrapperProps = {
   label: string;
 };
 
-const Tab: FC<TabProps & PropsWithChildren> = ({
-  children,
-  active,
-  setActive,
-}) => {
+const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
   return (
     <div
-      className={clsx(
-        {
-          'str-video__tab--active': active,
-        },
-        'str-video__tab',
-      )}
+      className={clsx('str-video__tab', {
+        'str-video__tab--active': active,
+      })}
       onClick={setActive}
     >
       {children}
@@ -63,10 +56,7 @@ const Tab: FC<TabProps & PropsWithChildren> = ({
   );
 };
 
-const TabPanel: FC<TabPanelProps & PropsWithChildren> = ({
-  children,
-  close,
-}) => {
+const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
   return (
     <div className="str-video__tab-panel">
       <div className="str-video__tab-panel__header">
@@ -81,11 +71,11 @@ const TabPanel: FC<TabPanelProps & PropsWithChildren> = ({
   );
 };
 
-export const SettingsTabModal: FC<
-  SettingsTabModalProps & PropsWithChildren
-> = ({ children, close }) => {
+export const SettingsTabModal = ({
+  children,
+  close,
+}: PropsWithChildren<SettingsTabModalProps>) => {
   const [active, setActive] = useState(0);
-
   return (
     <div className="str-video__tabmodal-container">
       <div className="str-video__tabmodal-sidebar">
@@ -115,9 +105,9 @@ export const SettingsTabModal: FC<
   );
 };
 
-export const TabWrapper: FC<TabWrapperProps & PropsWithChildren> = ({
+export const TabWrapper = ({
   children,
-}) => {
+}: PropsWithChildren<TabWrapperProps>) => {
   return children;
 };
 
