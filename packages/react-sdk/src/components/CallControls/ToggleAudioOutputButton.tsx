@@ -1,5 +1,4 @@
 import { CompositeButton, IconButton } from '../Button';
-import { DeviceSelectorAudioOutput } from '../DeviceSettings';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { ComponentType } from 'react';
 
@@ -12,7 +11,7 @@ export const ToggleAudioOutputButton = (
   props: ToggleAudioOutputButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption = t('Speakers'), Menu = DeviceSelectorAudioOutput } = props;
+  const { caption, Menu } = props;
 
   return (
     <CompositeButton Menu={Menu} caption={caption}>

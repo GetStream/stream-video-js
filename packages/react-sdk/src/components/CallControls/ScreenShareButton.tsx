@@ -14,7 +14,7 @@ export type ScreenShareButtonProps = {
 
 export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
-  const { caption = t('Screen Share') } = props;
+  const { caption } = props;
 
   const { useHasOngoingScreenShare, useScreenShareState } = useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();

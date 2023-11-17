@@ -5,7 +5,6 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { CompositeButton, IconButton } from '../Button';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -18,14 +17,13 @@ export type ToggleAudioPreviewButtonProps = {
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { t } = useI18n();
-  const { caption = t('Mic'), Menu = DeviceSelectorAudioInput } = props;
+  const { caption, Menu } = props;
 
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute } = useMicrophoneState();
 
   return (
-    <CompositeButton Menu={Menu} active={isMute} caption={caption || t('Mic')}>
+    <CompositeButton Menu={Menu} active={isMute} caption={caption}>
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
         onClick={() => microphone.toggle()}
@@ -43,7 +41,7 @@ export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption = t('Mic'), Menu = DeviceSelectorAudioInput } = props;
+  const { caption, Menu } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);

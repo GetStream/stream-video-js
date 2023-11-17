@@ -7,7 +7,6 @@ import {
 
 import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButton } from '../Button/';
-import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 
@@ -19,8 +18,7 @@ export type ToggleVideoPreviewButtonProps = {
 export const ToggleVideoPreviewButton = (
   props: ToggleVideoPreviewButtonProps,
 ) => {
-  const { t } = useI18n();
-  const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
+  const { caption, Menu } = props;
 
   const { useCameraState } = useCallStateHooks();
   const { camera, isMute } = useCameraState();
@@ -44,7 +42,7 @@ export const ToggleVideoPublishingButton = (
   props: ToggleVideoPublishingButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption = t('Video'), Menu = DeviceSelectorVideo } = props;
+  const { caption, Menu } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);

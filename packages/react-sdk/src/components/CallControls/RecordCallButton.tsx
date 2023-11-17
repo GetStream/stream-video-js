@@ -8,9 +8,7 @@ export type RecordCallButtonProps = {
   caption?: string;
 };
 
-export const RecordCallButton = ({
-  caption = 'Record',
-}: RecordCallButtonProps) => {
+export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
   const call = useCall();
 
   const { t } = useI18n();
