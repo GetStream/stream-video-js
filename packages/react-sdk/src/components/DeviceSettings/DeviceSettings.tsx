@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { MenuToggle, ToggleMenuButtonProps, MenuVisualType } from '../Menu';
 import {
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -9,9 +9,17 @@ import { DeviceSelectorVideo } from './DeviceSelectorVideo';
 import { IconButton } from '../Button';
 import clsx from 'clsx';
 
-export const DeviceSettings = () => {
+export type DeviceSettingsProps = {
+  visualType: MenuVisualType.PORTAL | MenuVisualType.MENU;
+};
+
+export const DeviceSettings = ({ visualType = MenuVisualType.MENU }) => {
   return (
-    <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
+    <MenuToggle
+      placement="bottom-end"
+      ToggleButton={ToggleMenuButton}
+      visualType={visualType}
+    >
       <Menu />
     </MenuToggle>
   );

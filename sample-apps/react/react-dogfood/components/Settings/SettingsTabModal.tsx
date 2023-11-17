@@ -6,6 +6,7 @@ import {
   IconButton,
   CompositeButton,
   MenuToggle,
+  MenuVisualType,
   ButtonWithIconProps,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -14,7 +15,6 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
-import { DevMenu } from '../DevMenu';
 import { LanguageMenu } from './LanguageMenu';
 
 import { useLanguage } from '../../hooks/useLanguage';
@@ -142,7 +142,7 @@ export const ToggleSettingsTabModal = (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
-      visualType="portal"
+      visualType={MenuVisualType.PORTAL}
     >
       <SettingsTabModal close={props.close}>
         <TabWrapper icon="device-settings" label="Device settings">

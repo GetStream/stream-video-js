@@ -34,6 +34,7 @@ export const ActiveCallHeader = ({
           <ToggleSettingsTabModal
             selectedLayout={selectedLayout}
             onMenuItemClick={setLayout}
+            close={() => {}}
           />
         </div>
       </div>

@@ -24,11 +24,16 @@ export type ToggleMenuButtonProps<E extends HTMLElement = HTMLButtonElement> = {
   ref: ForwardedRef<E>;
 };
 
+export enum MenuVisualType {
+  PORTAL = 'portal',
+  MENU = 'menu',
+}
+
 export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
-  visualType: 'portal' | 'menu';
+  visualType: MenuVisualType.PORTAL | MenuVisualType.MENU;
 }>;
 
 export const MenuPortal: FC<
@@ -66,7 +71,7 @@ export const MenuToggle = <E extends HTMLElement>({
   ToggleButton,
   placement = 'top-start',
   strategy = 'absolute',
-  visualType = 'menu',
+  visualType = MenuVisualType.MENU,
   children,
 }: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
@@ -104,10 +109,14 @@ export const MenuToggle = <E extends HTMLElement>({
 
   return (
     <>
-      {menuShown && visualType === 'portal' && (
-        <MenuPortal refs={refs} setMenuShown={setMenuShown} />
+      {menuShown && visualType === MenuVisualType.PORTAL && (
+        <MenuPortal
+          refs={refs}
+          setMenuShown={setMenuShown}
+          children={children}
+        />
       )}
-      {menuShown && visualType === 'menu' && (
+      {menuShown && visualType === MenuVisualType.MENU && (
         <div
           className="str-video__menu-container"
           ref={refs.setFloating}
