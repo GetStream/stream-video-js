@@ -3,10 +3,12 @@ import { DeviceSelector } from './DeviceSelector';
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
+  visualType?: 'list' | 'dropdown';
 };
 
 export const DeviceSelectorAudioInput = ({
   title,
+  visualType,
 }: DeviceSelectorAudioInputProps) => {
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
@@ -20,16 +22,20 @@ export const DeviceSelectorAudioInput = ({
         await microphone.select(deviceId);
       }}
       title={title || t('Select a Mic')}
+      visualType={visualType}
+      icon={'mic'}
     />
   );
 };
 
 export type DeviceSelectorAudioOutputProps = {
   title?: string;
+  visualType?: 'list' | 'dropdown';
 };
 
 export const DeviceSelectorAudioOutput = ({
   title,
+  visualType,
 }: DeviceSelectorAudioOutputProps) => {
   const { t } = useI18n();
   const { useSpeakerState } = useCallStateHooks();
@@ -46,6 +52,8 @@ export const DeviceSelectorAudioOutput = ({
         speaker.select(deviceId);
       }}
       title={title || t('Select Speakers')}
+      icon="speaker"
+      visualType={visualType}
     />
   );
 };

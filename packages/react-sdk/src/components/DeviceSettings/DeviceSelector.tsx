@@ -1,5 +1,9 @@
 import clsx from 'clsx';
-import { ChangeEventHandler } from 'react';
+import { ChangeEventHandler, useCallback } from 'react';
+
+import { Icon } from '@stream-io/video-react-sdk';
+
+import { DropDownSelect } from '../DropdownSelect/DropdownSelect';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -44,7 +48,34 @@ const DeviceSelectorOption = ({
     </label>
   );
 };
-export const DeviceSelector = (props: {
+
+const DeviceDropdownSelectorOption = ({
+  label,
+  selected,
+  icon,
+}: {
+  label: string;
+  selected: boolean;
+  icon: string;
+}) => {
+  return (
+    <label
+      className={clsx('str-video__device-settings__option', {
+        'str-video__device-settings__option--selected': selected,
+      })}
+    >
+      <Icon
+        className={clsx('str-video__device-settings__icon', {
+          'str-video__device-settings__icon--selected': selected,
+        })}
+        icon={icon}
+      />
+      {label}
+    </label>
+  );
+};
+
+export const DeviceSelectorList = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
   title: string;
@@ -103,4 +134,91 @@ export const DeviceSelector = (props: {
       )}
     </div>
   );
+};
+
+export const DeviceSelectorDropdown = (props: {
+  devices: MediaDeviceInfo[];
+  selectedDeviceId?: string;
+  title: string;
+  onChange?: (deviceId: string) => void;
+  visualType?: 'list' | 'dropdown';
+  icon?: string;
+  placeholder?: string;
+}) => {
+  const {
+    devices = [],
+    selectedDeviceId: selectedDeviceFromProps,
+    title,
+    onChange,
+    icon,
+    placeholder,
+  } = props;
+
+  // sometimes the browser (Chrome) will report the system-default device
+  // with an id of 'default'. In case when it doesn't, we'll select the first
+  // available device.
+  let selectedDeviceId = selectedDeviceFromProps;
+  if (
+    devices.length > 0 &&
+    !devices.find((d) => d.deviceId === selectedDeviceId)
+  ) {
+    selectedDeviceId = devices[0].deviceId;
+  }
+
+  const selectedIndex = devices.findIndex(
+    (d) => d.deviceId === selectedDeviceId,
+  );
+
+  const handleSelect = useCallback(
+    (index: number) => {
+      onChange?.(devices[index].deviceId);
+    },
+    [devices, onChange],
+  );
+
+  return (
+    <div className="str-video__device-settings__device-kind">
+      <div className="str-video__device-settings__device-selector-title">
+        {title}
+      </div>
+      <DropDownSelect
+        icon={icon}
+        defaultSelectedIndex={selectedIndex}
+        defaultSelectedLabel={devices[selectedIndex]?.label}
+        handleSelect={handleSelect}
+      >
+        {devices.map((device) => {
+          return (
+            <DeviceDropdownSelectorOption
+              icon={icon}
+              label={device.label}
+              selected={
+                device.deviceId === selectedDeviceId || devices.length === 1
+              }
+            />
+          );
+        })}
+      </DropDownSelect>
+    </div>
+  );
+};
+
+export const DeviceSelector = (props: {
+  devices: MediaDeviceInfo[];
+  selectedDeviceId?: string;
+  title: string;
+  onChange?: (deviceId: string) => void;
+  visualType?: 'list' | 'dropdown';
+  icon?: string;
+  placeholder?: string;
+}) => {
+  const { visualType = 'list', icon, placeholder, ...rest } = props;
+
+  if (visualType === 'list') {
+    return <DeviceSelectorList {...rest} />;
+  } else {
+    return (
+      <DeviceSelectorDropdown {...rest} icon={icon} placeholder={placeholder} />
+    );
+  }
 };
