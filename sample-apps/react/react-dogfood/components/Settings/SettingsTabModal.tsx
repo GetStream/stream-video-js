@@ -139,7 +139,11 @@ export const ToggleSettingsTabModal = (
   const { language, setLanguage } = useLanguage();
 
   return (
-    <MenuToggle placement="top-start" ToggleButton={ToggleMenuButton} portal>
+    <MenuToggle
+      placement="top-start"
+      ToggleButton={ToggleMenuButton}
+      visualType="portal"
+    >
       <SettingsTabModal close={props.close}>
         <TabWrapper icon="device-settings" label="Device settings">
           <>

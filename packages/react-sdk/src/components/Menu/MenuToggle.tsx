@@ -4,8 +4,18 @@ import {
   useEffect,
   useState,
   ForwardedRef,
+  Children,
+  cloneElement,
+  isValidElement,
+  FC,
 } from 'react';
-import { Placement, Strategy } from '@floating-ui/react';
+import {
+  Placement,
+  Strategy,
+  FloatingPortal,
+  FloatingOverlay,
+  UseFloatingReturn,
+} from '@floating-ui/react';
 
 import { useFloatingUIPreset } from '../../hooks';
 
@@ -18,12 +28,45 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
+  visualType: 'portal' | 'menu';
 }>;
+
+export const MenuPortal: FC<
+  {
+    setMenuShown: (shown: boolean) => void;
+    refs: UseFloatingReturn['refs'];
+  } & PropsWithChildren
+> = ({ children, setMenuShown, refs }) => {
+  const childrenWithProps = Children.map(children, (child: any) => {
+    if (
+      isValidElement(child) &&
+      typeof child === 'number' &&
+      typeof child === 'string'
+    ) {
+      return cloneElement(child, { close: () => setMenuShown(false) });
+    }
+    return child;
+  });
+
+  return (
+    <>
+      <div id="portal" className="str-video__portal"></div>
+      <FloatingOverlay>
+        <FloatingPortal id="portal">
+          <div className="str-video__portal-content" ref={refs.setFloating}>
+            {childrenWithProps}
+          </div>
+        </FloatingPortal>
+      </FloatingOverlay>
+    </>
+  );
+};
 
 export const MenuToggle = <E extends HTMLElement>({
   ToggleButton,
   placement = 'top-start',
   strategy = 'absolute',
+  visualType = 'menu',
   children,
 }: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
@@ -61,7 +104,10 @@ export const MenuToggle = <E extends HTMLElement>({
 
   return (
     <>
-      {menuShown && (
+      {menuShown && visualType === 'portal' && (
+        <MenuPortal refs={refs} setMenuShown={setMenuShown} />
+      )}
+      {menuShown && visualType === 'menu' && (
         <div
           className="str-video__menu-container"
           ref={refs.setFloating}

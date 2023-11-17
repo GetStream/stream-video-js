@@ -53,7 +53,10 @@ const Menu = () => {
   return (
     <ul className="str-video__more-menu">
       <li className="strt-video__more-option--record-library">
-        <MenuToggle ToggleButton={ToggleRecordLibraryButton} portal>
+        <MenuToggle
+          ToggleButton={ToggleRecordLibraryButton}
+          visualType="portal"
+        >
           <CallRecordings />
         </MenuToggle>
       </li>
@@ -65,7 +68,7 @@ const Menu = () => {
         </div>
       </li>
       <li className="str-video__more-option--feedback">
-        <MenuToggle ToggleButton={ToggleFeedbackButton} portal>
+        <MenuToggle ToggleButton={ToggleFeedbackButton} visualType="portal">
           <Feedback />
         </MenuToggle>
       </li>
