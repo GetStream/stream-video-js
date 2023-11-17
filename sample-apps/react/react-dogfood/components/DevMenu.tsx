@@ -15,51 +15,24 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
 export const DevMenu = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = !!anchorEl;
   return (
-    <div className="df-dev-menu">
-      <IconButton
-        id="dev-debug-menu-button"
-        color="primary"
-        title="Debug"
-        aria-controls={open ? 'dev-debug-menu' : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? 'true' : undefined}
-        onClick={(e) => {
-          setAnchorEl(e.currentTarget);
-        }}
-      >
-        <ConstructionIcon />
-      </IconButton>
-      <Menu
-        id="dev-debug-menu"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={() => setAnchorEl(null)}
-        MenuListProps={{
-          'aria-labelledby': 'dev-debug-menu-button',
-        }}
-      >
-        <MenuList>
-          {/*<MigrateToNewSfu />*/}
-          {/*<FastReconnect />*/}
-          {/*<Divider />*/}
-          <RestartPublisher />
-          <RestartSubscriber />
-          <Divider />
-          <ConnectToLocalSfu sfuId="SFU-1" port={3031} />
-          <ConnectToLocalSfu sfuId="SFU-2" port={3033} />
-          <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
-          <Divider />
-          <LogPublisherStats />
-          <LogSubscriberStats />
-          <Divider />
-          <StartStopBroadcasting />
-          <GoOrStopLive />
-        </MenuList>
-      </Menu>
-    </div>
+    <MenuList>
+      {/*<MigrateToNewSfu />*/}
+      {/*<FastReconnect />*/}
+      {/*<Divider />*/}
+      <RestartPublisher />
+      <RestartSubscriber />
+      <Divider />
+      <ConnectToLocalSfu sfuId="SFU-1" port={3031} />
+      <ConnectToLocalSfu sfuId="SFU-2" port={3033} />
+      <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
+      <Divider />
+      <LogPublisherStats />
+      <LogSubscriberStats />
+      <Divider />
+      <StartStopBroadcasting />
+      <GoOrStopLive />
+    </MenuList>
   );
 };
 
