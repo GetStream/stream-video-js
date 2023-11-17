@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useCallback } from 'react';
+import clsx from 'clsx';
 import {
   LivestreamLayout,
   PaginatedGridLayout,
@@ -18,14 +19,14 @@ import { DebugParticipantViewUI } from './Debug/DebugParticipantViewUI';
 export const LayoutMap = {
   LegacyGrid: {
     Component: CallParticipantsView,
-    title: 'Grid (legacy)',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
     },
+    title: 'Default',
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
-    title: 'Paginated grid',
+    title: 'Grid',
     props: {
       groupSize: 16,
       ParticipantViewUI: DebugParticipantViewUI,
@@ -33,34 +34,34 @@ export const LayoutMap = {
   },
   SpeakerBottom: {
     Component: SpeakerLayout,
-    title: 'Spotlight (default)',
+    title: 'Speaker [top]',
     props: {
       participantsBarPosition: 'bottom',
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
     },
   },
-  SpeakerRight: {
-    Component: SpeakerLayout,
-    title: 'Spotlight (bar right)',
-    props: {
-      participantsBarPosition: 'right',
-      ParticipantViewUIBar: DebugParticipantViewUI,
-      ParticipantViewUISpotlight: DebugParticipantViewUI,
-    },
-  },
   SpeakerTop: {
     Component: SpeakerLayout,
-    title: 'Spotlight (bar top)',
+    title: 'Speaker [bottom]',
     props: {
-      participantsBarPosition: 'top',
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
+      participantsBarPosition: 'top',
+    },
+  },
+  SpeakerRight: {
+    Component: SpeakerLayout,
+    title: 'Speaker [left]',
+    props: {
+      ParticipantViewUIBar: DebugParticipantViewUI,
+      ParticipantViewUISpotlight: DebugParticipantViewUI,
+      participantsBarPosition: 'right',
     },
   },
   SpeakerLeft: {
     Component: SpeakerLayout,
-    title: 'Spotlight (bar left)',
+    title: 'Speaker [right]',
     props: {
       participantsBarPosition: 'left',
       ParticipantViewUIBar: DebugParticipantViewUI,
@@ -149,10 +150,22 @@ const Menu = ({
     (hasScreenShare && (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
     (!hasScreenShare && key === 'LegacySpeaker');
 
-  const handleSelect = useCallback((index: number) => {
-    //setLayout(key);
-    //localStorage.setItem(SETTINGS_KEY, JSON.stringify({ selectedLayout: key }));
-  }, []);
+  const handleSelect = useCallback(
+    (index: number) => {
+      const layout: keyof typeof LayoutMap | undefined = (
+        Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>
+      ).find((_, k) => k === index);
+
+      if (layout) {
+        setLayout(layout);
+        localStorage.setItem(
+          SETTINGS_KEY,
+          JSON.stringify({ selectedLayout: layout }),
+        );
+      }
+    },
+    [setLayout],
+  );
 
   return (
     <DropDownSelect
@@ -163,12 +176,20 @@ const Menu = ({
       defaultSelectedLabel={LayoutMap[selectedLayout].title}
       handleSelect={handleSelect}
     >
-      {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>).map((key) => (
-        <div className="">
-          <Icon className="" icon="grid" />
-          <span key={key}>{LayoutMap[key].title}</span>
-        </div>
-      ))}
+      {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
+        .filter((key) => !canScreenshare(key))
+        .map((key) => (
+          <div
+            className={clsx('rd__layout-selector__option', {
+              'rd__layout-selector__option--selected': key === selectedLayout,
+            })}
+          >
+            <Icon className="rd__layout-selector__icon" icon="grid" />
+            <span key={key} className="rd__layout-selector__label">
+              {LayoutMap[key].title}
+            </span>
+          </div>
+        ))}
     </DropDownSelect>
   );
 };
