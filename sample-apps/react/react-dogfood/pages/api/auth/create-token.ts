@@ -6,6 +6,14 @@ const config: SampleAppCallConfig = JSON.parse(
   process.env.SAMPLE_APP_CALL_CONFIG || '{}',
 );
 
+// 'pronto' is a special environment that we ensure it exists
+if (!config['pronto']) {
+  config.pronto = {
+    apiKey: process.env.STREAM_API_KEY,
+    secret: process.env.STREAM_SECRET_KEY,
+  };
+}
+
 export type EnvironmentName = 'pronto' | 'demo' | string;
 
 export type CreateJwtTokenErrorResponse = {
