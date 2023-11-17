@@ -1,5 +1,5 @@
 .str-video__icon {
-  background-color: var(--str-video__text-color1);
+  background-color: var(--str-video__icon-default);
 
   &--chat {
     mask-image: var(--str-video__icon--chat);
@@ -20,6 +20,21 @@
   &--recording-off {
     mask-image: var(--str-video__icon--recording-off);
     -webkit-mask-image: var(--str-video__icon--recording-off);
+  }
+
+  &--chevron-up {
+    mask-image: var(--str-video__icon--chevron-up);
+    -webkit-mask-image: var(--str-video__icon--chevron-up);
+  }
+
+  &--chevron-down {
+    mask-image: var(--str-video__icon--chevron-down);
+    -webkit-mask-image: var(--str-video__icon--chevron-down);
+  }
+
+  &--developer {
+    mask-image: var(--str-video__icon--developer);
+    -webkit-mask-image: var(--str-video__icon--developer);
   }
 
   &--screen-share-on {
@@ -70,6 +85,11 @@
     -webkit-mask-image: var(--str-video__icon--mic-off);
   }
 
+  &--more {
+    mask-image: var(--str-video__icon--more);
+    -webkit-mask-image: var(--str-video__icon--more);
+  }
+
   &--camera {
     mask-image: var(--str-video__icon--camera);
     -webkit-mask-image: var(--str-video__icon--camera);
@@ -100,6 +120,11 @@
     mask-image: var(--str-video__icon--info-icon);
   }
 
+  &--feedback {
+    -webkit-mask-image: var(--str-video__icon--feedback);
+    mask-image: var(--str-video__icon--feedback);
+  }
+
   &--info-document {
     -webkit-mask-image: var(--str-video__icon--info-document);
     mask-image: var(--str-video__icon--info-document);
@@ -123,6 +148,11 @@
   &--speaker {
     mask-image: var(--str-video__icon--speaker);
     -webkit-mask-image: var(--str-video__icon--speaker);
+  }
+
+  &--language {
+    mask-image: var(--str-video__icon--language);
+    -webkit-mask-image: var(--str-video__icon--language);
   }
 
   &--ellipsis {
@@ -150,7 +180,7 @@
     -webkit-mask-image: var(--str-video__icon--not-allowed);
   }
 
-  &--call-recordings {
+  &--film-roll {
     mask-image: var(--str-video__icon--film-roll);
     -webkit-mask-image: var(--str-video__icon--film-roll);
   }
@@ -164,8 +194,6 @@
     mask-image: var(--str-video__icon--filter);
     -webkit-mask-image: var(--str-video__icon--filter);
   }
-
-
 
   &--refresh {
     mask-image: var(--str-video__icon--refresh);

@@ -1,8 +1,13 @@
 @use '../utils';
 
 .str-video__call-recording-list {
-  padding: 0.625rem; // todo: unify menu root paddings
-  min-width: 300px;
+  border-radius: var(--str-video__border-radius-lg);
+  min-width: 50vw;
+
+  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__border-radius-lg);
+  padding: var(--str-video__spacing-md);
+  width: 100%;
 }
 
 .str-video__call-recording-list__header {

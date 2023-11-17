@@ -9,12 +9,22 @@
 
   .str-video__generic-menu--item {
     display: flex;
+    align-items: center;
+
+    margin-top: 8px;
+    gap: 8px;
+
+    font-weight: 600;
+    font-size: var(--str-video__font-size-md);
+
+    display: flex;
     button {
       all: unset;
       width: 100%;
       font-size: 13px;
-      padding: 5px 10px;
-      border-radius: var(--str-video__border-radius-xs);
+      border-radius: var(--str-video__border-radius-lg);
+      background-color: var(--str-video__button-primary-base);
+      padding: 8px 16px;
       gap: 10px;
       display: flex;
       align-items: center;
@@ -23,6 +33,16 @@
       .str-video__icon {
         width: 1.1rem;
         height: 1rem;
+      }
+
+      &:hover {
+        background-color: var(--str-video__button-primary-hover);
+        cursor: pointer;
+      }
+
+      &--selected,
+      &--active {
+        background-color: var(--str-video__button-primary-hover);
       }
     }
 

@@ -5,15 +5,32 @@
   padding: 1rem 0;
 
   .str-video__reactions-menu {
-    background-color: var(--str-video__background-color1);
+    background-color: var(--str-video__base-color7);
     display: flex;
-    flex-direction: column;
-    padding: 10px;
-    border-radius: var(--str-video__border-radius-xs);
+
+    padding: 15px;
+    gap: 0.5rem;
+
+    border-radius: var(--str-video__border-radius-lg);
+
+    &--horizontal {
+      flex-direction: row;
+    }
+
+    &--vertical {
+      flex-direction: column;
+    }
 
     .str-video__reactions-menu__button {
-      font-size: 1.5rem;
-      background-color: var(--str-video__background-color1);
+      font-size: 1.2rem;
+      height: 38px;
+      width: 38px;
+      background-color: var(--str-video__button-primary-base);
+      border-radius: var(--str-video__border-radius-circle);
+
+      &:hover {
+        background-color: var(--str-video__button-primary-hover);
+      }
     }
   }
 }

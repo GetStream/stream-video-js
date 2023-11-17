@@ -8,24 +8,33 @@
 
   /* The background color of the component */
   --str-video__composite-button__button-group--background-color: var(
-    --str-video__background-color1
+    --str-video__button-primary-base
+  );
+
+  /* The active background color of the component */
+  --str-video__composite-button__button-group-active--background-color: var(
+    --str-video__button-primary-active
+  );
+
+  /* The hover background color of the component */
+  --str-video__composite-button__button-group-hover--background-color: var(
+    --str-video__button-primary-hover
   );
 
   /* The border radius used for the borders of the component */
   --str-video__composite-button__button-group--border-radius: var(
     --str-video__border-radius-xs
   );
-
-  /* The background color of the component */
-  --str-video__composite-button__button-group-active--background-color: var(
-    --str-video__background-color7
-  );
 }
 
 .str-video__composite-button__button-group {
   @include utils.component-layer-overrides('composite-button__button-group');
+  background-color: var(
+    --str-video__composite-button__button-group--background-color
+  );
+  border-radius: var(--str-video__border-radius-circle);
 
-  .str-video__call-controls__button {
+  .str-video__menu-toggle-button .str-video__call-controls__button {
     background-color: transparent;
   }
 
@@ -42,32 +51,62 @@
   white-space: nowrap;
 }
 
-.str-video__composite-button__button-group:hover,
 .str-video__composite-button__button-group--active {
   background-color: var(
     --str-video__composite-button__button-group-active--background-color
   );
-}
 
-.str-video__call-controls__button {
-  border-radius: var(--str-video__border-radius-xs);
-  text-decoration: none;
-  box-shadow: none;
-  border: none;
-  background-color: var(--str-video__background-color1);
-
-  &:hover {
-    text-decoration: none;
+  .str-video__call-controls__button {
     background-color: var(
       --str-video__composite-button__button-group-active--background-color
     );
   }
+}
+
+.str-video__composite-button__button-group:hover {
+  background-color: var(
+    --str-video__composite-button__button-group-hover--background-color
+  );
+
+  .str-video__call-controls__button {
+    background-color: var(
+      --str-video__composite-button__button-group-hover--background-color
+    );
+  }
+
+  .str-video__icon {
+    background-color: var(--str-video__icon-hover);
+  }
+}
+
+.str-video__call-controls__button {
+  border-radius: var(--str-video__border-radius-circle);
+  text-decoration: none;
+  box-shadow: none;
+  border: none;
+  background-color: var(--str-video__button-primary-base);
+
+  &:hover {
+    text-decoration: none;
+    background-color: var(
+      --str-video__composite-button__button-group-hover--background-color
+    );
+
+    .str-video__icon {
+      background-color: var(--str-video__icon-hover);
+    }
+  }
 
   &--variant-danger {
-    background-color: var(--str-video__danger-color);
+    background-color: var(--str-video__button-tertiary-base);
+    padding: 0.4rem;
+
+    .str-video__icon {
+      background-color: white;
+    }
 
     &:hover {
-      background-color: var(--str-video__danger-color--accent);
+      background-color: var(--str-video__button-tertiary-hover);
     }
   }
 

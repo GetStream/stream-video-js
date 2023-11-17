@@ -33,7 +33,8 @@
 .str-video__call-controls__button {
   padding: 0.5rem;
 
-  &--variant-danger, &--variant-success {
+  &--variant-danger,
+  &--variant-success {
     padding: 0.5rem 1rem;
   }
 
