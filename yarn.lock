@@ -3143,19 +3143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react-dom@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@floating-ui/react-dom@npm:2.0.2"
-  dependencies:
-    "@floating-ui/dom": ^1.5.1
-  peerDependencies:
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: 4797e1f7a19c1e531ed0d578ccdcbe58970743e5a480ba30424857fc953063f36d481f8c5d69248a8f1d521b739e94bf5e1ffb35506400dea3d914f166ed2f7f
-  languageName: node
-  linkType: hard
-
-"@floating-ui/react-dom@npm:^2.0.3":
+"@floating-ui/react-dom@npm:^2.0.2, @floating-ui/react-dom@npm:^2.0.3":
   version: 2.0.4
   resolution: "@floating-ui/react-dom@npm:2.0.4"
   dependencies:
@@ -7652,7 +7640,7 @@ __metadata:
   dependencies:
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@floating-ui/react": ^0.26.1
+    "@floating-ui/react": ^0.26.2
     "@mui/icons-material": ^5.14.14
     "@mui/material": ^5.14.14
     "@sentry/nextjs": ^7.54.0
@@ -8498,16 +8486,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-form@npm:^4":
-  version: 4.0.2
-  resolution: "@types/react-form@npm:4.0.2"
-  dependencies:
-    "@types/react": "*"
-  checksum: 26a1d6909437f8b6524fcaa0586ff52afcd2d74bfe669a8c377bd02357d144ab996414262b26bea1e791d9a9529bd051a8ac0943b3a8ef82609d8d428ae0771e
-  languageName: node
-  linkType: hard
-
-"@types/react-form@npm:^4.0.5":
+"@types/react-form@npm:^4, @types/react-form@npm:^4.0.5":
   version: 4.0.5
   resolution: "@types/react-form@npm:4.0.5"
   dependencies:

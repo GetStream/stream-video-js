@@ -10,7 +10,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@floating-ui/react": "^0.26.1",
+    "@floating-ui/react": "^0.26.2",
     "@mui/icons-material": "^5.14.14",
     "@mui/material": "^5.14.14",
     "@sentry/nextjs": "^7.54.0",
