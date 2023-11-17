@@ -12,7 +12,7 @@ export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
 export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
-  const { enabled, caption = 'Participants' } = props;
+  const { enabled, caption } = props;
   return (
     <CompositeButton active={enabled} caption={caption}>
       <IconButton icon="participants" {...props} />

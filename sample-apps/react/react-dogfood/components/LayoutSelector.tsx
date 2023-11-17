@@ -1,14 +1,11 @@
-import { Dispatch, forwardRef, SetStateAction, useEffect } from 'react';
+import { Dispatch, SetStateAction, useEffect, useCallback } from 'react';
 import {
-  GenericMenu,
-  GenericMenuButtonItem,
-  IconButton,
   LivestreamLayout,
-  MenuToggle,
   PaginatedGridLayout,
   SpeakerLayout,
-  ToggleMenuButtonProps,
   useCallStateHooks,
+  DropDownSelect,
+  Icon,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -122,19 +119,8 @@ export const LayoutSelector = ({
     );
   }, [hasScreenShare, setLayout]);
 
-  return (
-    <MenuToggle placement="bottom-end" ToggleButton={LayoutSelectorButton}>
-      <Menu onMenuItemClick={setLayout} selectedLayout={selectedLayout} />
-    </MenuToggle>
-  );
+  return <Menu onMenuItemClick={setLayout} selectedLayout={selectedLayout} />;
 };
-
-const LayoutSelectorButton = forwardRef<
-  HTMLButtonElement,
-  ToggleMenuButtonProps
->((props, ref) => (
-  <IconButton enabled={props.menuShown} icon="grid" ref={ref} />
-));
 
 const Menu = ({
   onMenuItemClick: setLayout,
@@ -143,28 +129,30 @@ const Menu = ({
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
+  const canScreenshare = (key: string) =>
+    (hasScreenShare && (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
+    (!hasScreenShare && key === 'LegacySpeaker');
+
+  const handleSelect = useCallback((index: number) => {
+    //setLayout(key);
+    //localStorage.setItem(SETTINGS_KEY, JSON.stringify({ selectedLayout: key }));
+  }, []);
+
   return (
-    <GenericMenu>
+    <DropDownSelect
+      icon="grid"
+      defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
+        (k) => k === selectedLayout,
+      )}
+      defaultSelectedLabel={LayoutMap[selectedLayout].title}
+      handleSelect={handleSelect}
+    >
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>).map((key) => (
-        <GenericMenuButtonItem
-          aria-selected={key === selectedLayout}
-          disabled={
-            (hasScreenShare &&
-              (key === 'LegacyGrid' || key === 'PaginatedGrid')) ||
-            (!hasScreenShare && key === 'LegacySpeaker')
-          }
-          onClick={() => {
-            setLayout(key);
-            localStorage.setItem(
-              SETTINGS_KEY,
-              JSON.stringify({ selectedLayout: key }),
-            );
-          }}
-          key={key}
-        >
-          {LayoutMap[key].title}
-        </GenericMenuButtonItem>
+        <div className="">
+          <Icon className="" icon="grid" />
+          <span key={key}>{LayoutMap[key].title}</span>
+        </div>
       ))}
-    </GenericMenu>
+    </DropDownSelect>
   );
 };
