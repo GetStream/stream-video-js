@@ -6,7 +6,6 @@ import {
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
-import { STREAM_API_KEY } from '../../config';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -21,21 +20,25 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     if (!userId || !userImageUrl) {
       return;
     }
-    const user = {
-      id: userId,
-      name: userName,
-      image: userImageUrl,
+    let _videoClient: StreamVideoClient | undefined;
+    const run = async () => {
+      const user = {
+        id: userId,
+        name: userName,
+        image: userImageUrl,
+      };
+      const { token, apiKey } = await createToken({ user_id: user.id });
+      _videoClient = new StreamVideoClient({
+        apiKey,
+        user,
+        token,
+        options: { logLevel: 'warn' },
+      });
+      setVideoClient(_videoClient);
     };
-    const _videoClient = new StreamVideoClient({
-      apiKey: STREAM_API_KEY,
-      user,
-      tokenProvider: async () => createToken({ user_id: user.id }),
-      options: { logLevel: 'warn' },
-    });
-    setVideoClient(_videoClient);
-
+    run();
     return () => {
-      _videoClient.disconnectUser();
+      _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
   }, [userName, userId, userImageUrl]);
