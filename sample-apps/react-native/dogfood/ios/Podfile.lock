@@ -90,6 +90,7 @@ PODS:
   - hermes-engine (0.71.11):
     - hermes-engine/Pre-built (= 0.71.11)
   - hermes-engine/Pre-built (0.71.11)
+  - JitsiWebRTC (118.0.0)
   - libevent (2.1.12)
   - MMKV (1.2.16):
     - MMKVCore (~> 1.2.16)
@@ -520,14 +521,13 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.6.0)
-  - stream-react-native-webrtc (104.0.3):
+  - stream-react-native-webrtc (118.0.1-beta.0):
+    - JitsiWebRTC (~> 118.0.0)
     - React-Core
-    - WebRTC-SDK (= 104.5112.17)
   - stream-video-react-native (0.2.11):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
-  - WebRTC-SDK (104.5112.17)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -633,13 +633,13 @@ SPEC REPOS:
     - GoogleSignIn
     - GTMAppAuth
     - GTMSessionFetcher
+    - JitsiWebRTC
     - libevent
     - MMKV
     - MMKVCore
     - OpenSSL-Universal
     - SocketRocket
     - TOCropViewController
-    - WebRTC-SDK
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -780,6 +780,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: 0ff230db599948a9ad7470ca667337803b3fc4dd
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
   hermes-engine: 34c863b446d0135b85a6536fa5fd89f48196f848
+  JitsiWebRTC: 3a41671ef65a51d7204323814b055a2690b921c7
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   MMKV: 784471ce430a2e2d16afef9053d63fab1b357d9e
   MMKVCore: 9cfef4c48c6c46f66226fc2e4634d78490206a48
@@ -833,10 +834,9 @@ SPEC CHECKSUMS:
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  stream-react-native-webrtc: ac41c22f08d08cb9c5675e7d440b0d1db1180f1c
+  stream-react-native-webrtc: 99e4bea2c7a27fc99efe7fc01bf9a3d4e1c43e93
   stream-video-react-native: 87db9cd0f19ea8052db8ec74602f63847fe1816f
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
-  WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: f7decafdc5e8c125e6fa0da38a687e35238420fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
