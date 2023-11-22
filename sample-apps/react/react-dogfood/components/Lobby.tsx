@@ -139,13 +139,6 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   );
 };
 
-const LobbyToggleAudioMenu = () => (
-  <>
-    <DeviceSelectorAudioInput />
-    <AudioVolumeIndicator />
-  </>
-);
-
 const AllowBrowserPermissions = () => {
   return (
     <Box display="flex" flexDirection="column" gap={2} padding="0 15px">
