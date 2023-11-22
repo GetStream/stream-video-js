@@ -8,7 +8,7 @@ import {
 import clsx from 'clsx';
 import { useForm, useField } from 'react-form';
 
-import { IconButton, Icon } from '@stream-io/video-react-sdk';
+import { Icon, useI18n } from '@stream-io/video-react-sdk';
 
 import { getCookie } from '../../helpers/getCookie';
 
@@ -43,7 +43,7 @@ const Input: FC<{
   });
 
   const rootClassName = clsx(className, {
-    'str-video__feedback-error': isTouched && error,
+    'rd__feedback-error': isTouched && error,
   });
 
   return <input className={rootClassName} {...getInputProps()} {...rest} />;
@@ -65,8 +65,8 @@ const TextArea: FC<{
       : undefined,
   });
 
-  const rootClassName = clsx('str-video__feedback', {
-    'str-video__feedback-error': isTouched && error,
+  const rootClassName = clsx('rd__feedback-textarea', {
+    'rd__feedback-error': isTouched && error,
   });
 
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
@@ -81,9 +81,10 @@ export const Feedback: FC<Props> = ({
     current: 0,
     maxAmount: 5,
   });
-  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
+  const [feedbackSent, setFeedbackSent] = useState<boolean>(true);
   const [errorMessage, setError] = useState<string | null>(null);
 
+  const { t } = useI18n();
   const endpointUrl =
     process.env.MODE === 'staging' || process.env.MODE === 'development'
       ? 'https://staging.getstream.io'
@@ -134,95 +135,97 @@ export const Feedback: FC<Props> = ({
     [rating],
   );
 
-  const rootClassName = clsx('str-video__feedback', className);
-  const sentClassName = clsx('str-video__feedback-sent', className);
-
-  const descriptionClassName = clsx('str-video__feedback-description', {
-    ['str-video__feedback-error']: errorMessage,
+  const descriptionClassName = clsx('rd__feedback-description', {
+    ['rd__feedback-error']: errorMessage,
   });
 
   if (feedbackSent) {
     return (
-      <div className={sentClassName}>
-        <div className="str-video__feedback-heading">
-          <h2 className="str-video__feedback-header">
-            Your message was successfully sent 👍
-          </h2>
-          {true ? (
-            <IconButton
-              icon="close"
-              className="str-video__feedback-close"
-              onClick={() => {}}
-            />
-          ) : null}
-        </div>
-        <p className="str-video__feedback-description">
-          Thank you for letting us know how we can continue to improve our
-          product and deliver the best calling experience possible. Hope you had
-          a good call.
+      <div className="rd__feedback rd__feedback--sent">
+        <img src="/feedback.png" alt="Feedback" />
+
+        <h2 className="rd__feedback-heading">
+          {t('Thanks for your feedback!')}
+        </h2>
+        <p className="rd__feedback-description">
+          {t('We’ll use it to hep better your call experience 😀')}
         </p>
+
+        <button
+          className="rd__feedback-button rd__feedback-button--close"
+          disabled={isSubmitting}
+          onClick={() => {}}
+        >
+          {' '}
+          {t('Close')}
+        </button>
       </div>
     );
   }
 
   if (!feedbackSent) {
     return (
-      <div className={rootClassName}>
-        <h4 className="str-video__feedback-heading">
-          How was your calling experience?
-        </h4>
+      <div className="rd__feedback">
+        <img src="/feedback.png" alt="Feedback" />
+        <h4 className="rd__feedback-heading">{t('How is your call Going?')}</h4>
         <p className={descriptionClassName}>
-          {errorMessage
-            ? errorMessage
-            : 'We are eager to improve our video product.'}
+          {errorMessage ? errorMessage : 'How was your calling experience?'}
         </p>
-        <Form className="str-video__feedback-form">
+        <Form className="rd__feedback-form">
           <Input
-            className="str-video__feedback-input"
+            className="rd__feedback-input"
             name="email"
             type="email"
-            placeholder="Email Address (required)"
+            placeholder={t('Email')}
             required
           />
           <TextArea
-            className="str-video__feedback-textarea"
+            className="rd__feedback-textarea"
             name="message"
-            placeholder="Let us know what we can do to make it better"
+            placeholder={t('Message')}
           />
-          <div className="str-video__feedback-footer">
-            <div className="str-video__feedback-rating">
-              <p className="str-video__feedback-rating-description">
-                Rate your call quality:
-              </p>
-              <div className="str-video__feedback-rating-stars">
-                {[...new Array(rating.maxAmount)].map(
-                  (amount, index: number) => {
-                    const active = index + 1 <= rating.current;
-                    const starClassName = clsx('str-video__feedback-star', {
-                      ['str-video__feedback-active']: active,
-                    });
+          <div className="rd__feedback-footer">
+            <div className="rd__feedback-rating">
+              <p className="rd__feedback-rating-description">Rate quality:</p>
+              <div className="rd__feedback-rating-stars">
+                {[...new Array(rating.maxAmount)].map((_, index: number) => {
+                  const active = index + 1 <= rating.current;
+                  const starClassName = clsx('rd__feedback-star', {
+                    ['rd__feedback-active']: active,
+                  });
 
-                    return (
-                      <div
-                        key={`star-${index}`}
-                        onClick={() => handleSetRating(index + 1)}
-                      >
-                        <Icon icon="star" className={starClassName} />
-                      </div>
-                    );
-                  },
-                )}
+                  return (
+                    <div
+                      key={`star-${index}`}
+                      onClick={() => handleSetRating(index + 1)}
+                    >
+                      <Icon icon="star" className={starClassName} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <button
-              className="str-video__feedback-button"
-              type="submit"
-              disabled={isSubmitting}
-              onClick={() => {}}
-            >
-              {' '}
-              submit
-            </button>
+
+            <div className="rd__feedback-actions">
+              <button
+                className="rd__feedback-button rd__feedback-button--cancel"
+                disabled={isSubmitting}
+                onClick={() => {}}
+              >
+                {' '}
+                {t('Cancel')}
+              </button>
+
+              <button
+                className="rd__feedback-button rd__feedback-button--submit"
+                type="submit"
+                disabled={isSubmitting}
+                onClick={() => {}}
+              >
+                {' '}
+                {t('Submit Feedback')}
+              </button>
+            </div>
           </div>
         </Form>
       </div>
