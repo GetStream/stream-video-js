@@ -1811,6 +1811,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.21.0":
+  version: 7.23.4
+  resolution: "@babel/runtime@npm:7.23.4"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 8eb6a6b2367f7d60e7f7dd83f477cc2e2fdb169e5460694d7614ce5c730e83324bcf29251b70940068e757ad1ee56ff8073a372260d90cad55f18a825caf97cd
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:~7.5.4":
   version: 7.5.5
   resolution: "@babel/runtime@npm:7.5.5"
@@ -7644,15 +7653,20 @@ __metadata:
     "@sentry/nextjs": ^7.54.0
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
+    "@types/geojson": ^7946.0.13
+    "@types/mapbox-gl": ^2.7.19
     "@types/react-form": ^4.0.5
     "@types/starwars-names": ^1.6.0
     "@types/yargs": ^17.0.28
     axios: ^1.6.0
     clsx: ^2.0.0
+    date-fns: ^2.30.0
     dotenv: ^16.3.1
     framer-motion: ^10.12.16
+    geojson: ^0.5.0
     gleap: ^12.1.2
     hotkeys-js: ^3.12.0
+    mapbox-gl: ^2.15.0
     nanoid: ^5.0.2
     next: ^14.0.2
     next-auth: ^4.24.5
@@ -8172,6 +8186,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:^7946.0.13":
+  version: 7946.0.13
+  resolution: "@types/geojson@npm:7946.0.13"
+  checksum: b3b68457c89bc3f0445dc9eb54d07e6f89658672867c54989bc7f71f87d54e562195b291d43e1b84476493351271d7ccb9f5c6ab2012b29fbafbb0e8e43c4bca
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:*":
   version: 8.1.0
   resolution: "@types/glob@npm:8.1.0"
@@ -8334,6 +8355,15 @@ __metadata:
   dependencies:
     "@types/geojson": "*"
   checksum: 91c102fa934055b0dec4fcf34dd8ee38ad0829cab25a6e91afb8181be688c3d416130bfd05e521e2965c6c9f2a42210de5223c8145262dcf575fe8dcb7fcba32
+  languageName: node
+  linkType: hard
+
+"@types/mapbox-gl@npm:^2.7.19":
+  version: 2.7.19
+  resolution: "@types/mapbox-gl@npm:2.7.19"
+  dependencies:
+    "@types/geojson": "*"
+  checksum: 0f13b4c283584a8fd2a45062fde7b9a7e780e254e328a67f0d87801bef0bc58eadf49141f5f246f7e2627042056b6621785ac3ea550ef0808197a96124f8215b
   languageName: node
   linkType: hard
 
@@ -13548,6 +13578,15 @@ __metadata:
   version: 2.29.3
   resolution: "date-fns@npm:2.29.3"
   checksum: e01cf5b62af04e05dfff921bb9c9933310ed0e1ae9a81eb8653452e64dc841acf7f6e01e1a5ae5644d0337e9a7f936175fd2cb6819dc122fdd9c5e86c56be484
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^2.30.0":
+  version: 2.30.0
+  resolution: "date-fns@npm:2.30.0"
+  dependencies:
+    "@babel/runtime": ^7.21.0
+  checksum: f7be01523282e9bb06c0cd2693d34f245247a29098527d4420628966a2d9aad154bd0e90a6b1cf66d37adcb769cd108cf8a7bd49d76db0fb119af5cdd13644f4
   languageName: node
   linkType: hard
 

@@ -18,10 +18,13 @@
     "@stream-io/video-styling": "workspace:^",
     "axios": "^1.6.0",
     "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "framer-motion": "^10.12.16",
+    "geojson": "^0.5.0",
     "gleap": "^12.1.2",
     "hotkeys-js": "^3.12.0",
+    "mapbox-gl": "^2.15.0",
     "nanoid": "^5.0.2",
     "next": "^14.0.2",
     "next-auth": "^4.24.5",
@@ -34,6 +37,8 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/geojson": "^7946.0.13",
+    "@types/mapbox-gl": "^2.7.19",
     "@types/react-form": "^4.0.5",
     "@types/starwars-names": "^1.6.0",
     "@types/yargs": "^17.0.28",
