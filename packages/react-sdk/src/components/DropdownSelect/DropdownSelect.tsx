@@ -13,6 +13,8 @@ import {
   useContext,
 } from 'react';
 
+import clsx from 'clsx';
+
 import {
   autoUpdate,
   flip,
@@ -123,7 +125,7 @@ export const Select = ({
   );
 
   return (
-    <>
+    <div className="str-video__dropdown">
       <div
         className="str-video__dropdown-selected"
         ref={refs.setReference}
@@ -156,7 +158,7 @@ export const Select = ({
           </FloatingFocusManager>
         )}
       </SelectContext.Provider>
-    </>
+    </div>
   );
 };
 
@@ -189,6 +191,27 @@ const Option: FC<PropsWithChildren> = ({ children }) => {
       })}
     >
       {childrenWithProps}
+    </div>
+  );
+};
+
+export const DefaultDropDownSelectOption = ({
+  selected,
+  label,
+  icon,
+}: {
+  label: string;
+  selected?: boolean;
+  icon: string;
+}) => {
+  return (
+    <div
+      className={clsx('str-video__dropdown-option', {
+        'str-video__dropdown__option--selected': selected,
+      })}
+    >
+      <Icon className="str-video__dropdown-icon" icon={icon} />
+      <span className="str-video__dropdown-label">{label}</span>
     </div>
   );
 };

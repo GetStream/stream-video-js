@@ -45,7 +45,6 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         title={t('Toggle device menu')}
         icon="device-settings"
         ref={ref}
-        // tabindex={0}
       />
     );
   },
