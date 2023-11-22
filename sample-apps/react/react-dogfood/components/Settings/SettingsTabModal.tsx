@@ -11,10 +11,12 @@ import {
   IconButton,
   MenuToggle,
   MenuVisualType,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
 import { LanguageMenu } from './LanguageMenu';
+import { CallRecordings } from '../CallRecordings';
 
 import { useLanguage } from '../../hooks/useLanguage';
 
@@ -121,6 +123,7 @@ export const ToggleSettingsTabModal = (
   props: ToggleSettingsTabModalProps & LayoutSelectorProps,
 ) => {
   const { language, setLanguage } = useLanguage();
+  const { t } = useI18n();
 
   return (
     <MenuToggle
@@ -129,24 +132,27 @@ export const ToggleSettingsTabModal = (
       visualType={MenuVisualType.PORTAL}
     >
       <SettingsTabModal close={props.close}>
-        <TabWrapper icon="device-settings" label="Device settings">
+        <TabWrapper icon="device-settings" label={t('Device settings')}>
           <>
             <DeviceSelectorVideo visualType="dropdown" />
             <DeviceSelectorAudioInput visualType="dropdown" />
             <DeviceSelectorAudioOutput visualType="dropdown" />
           </>
         </TabWrapper>
-        <TabWrapper icon="grid" label="Layout">
+        <TabWrapper icon="grid" label={t('Layout')}>
           <LayoutSelector
             onMenuItemClick={props.onMenuItemClick}
             selectedLayout={props.selectedLayout}
           />
         </TabWrapper>
-        <TabWrapper icon="stats" label="Statistics">
+        <TabWrapper icon="stats" label={t('Statistics')}>
           <CallStats />
         </TabWrapper>
-        <TabWrapper icon="language" label="Language">
+        <TabWrapper icon="language" label={t('Language')}>
           <LanguageMenu language={language} setLanguage={setLanguage} />
+        </TabWrapper>
+        <TabWrapper icon="film-roll" label={t('Recording library')}>
+          <CallRecordings />
         </TabWrapper>
       </SettingsTabModal>
     </MenuToggle>
