@@ -4,8 +4,7 @@ import Gleap from 'gleap';
 import {
   CallingState,
   CallParticipantsList,
-  CallStatsButton,
-  CancelCallButton,
+  CancelCallConfirmButton,
   CompositeButton,
   defaultSortPreset,
   IconButton,
@@ -16,13 +15,14 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  ToggleAudioOutputButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
+
+import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 
 import { Lobby } from './Lobby';
 import { Box, Button, Stack, Typography } from '@mui/material';
@@ -40,7 +40,8 @@ import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 import { Stage } from './Stage';
 
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
-import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
+import { ToggleDeveloperButton } from './ToggleDeveloperButton';
+import { ToggleFeedbackButton } from './ToggleFeedbackButton';
 
 const contents = {
   'error-join': {
@@ -192,18 +193,26 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             data-testid="str-video__call-controls"
           >
             <div className="str-video__call-controls--group str-video__call-controls--options">
-              <ToggleMoreOptionsListButton />
-              <ScreenShareButton />
-              <RecordCallButton />
-              <ReactionsButton />
+              <ToggleSettingsTabModal
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+                close={() => {
+                  console.log('Closing Settings Modal');
+                }}
+              />
+              <ToggleFeedbackButton />
+              <ToggleDeveloperButton />
             </div>
             <div className="str-video__call-controls--group str-video__call-controls--media">
+              <RecordCallButton />
+
+              <ScreenShareButton />
+              <ReactionsButton />
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
-              <ToggleAudioOutputButton />
-              <CancelCallButton onLeave={onLeave} />
+              <CancelCallConfirmButton onLeave={onLeave} />
             </div>
             <div className="str-video__call-controls--group str-video__call-controls--sidebar">
               <ToggleParticipantListButton
