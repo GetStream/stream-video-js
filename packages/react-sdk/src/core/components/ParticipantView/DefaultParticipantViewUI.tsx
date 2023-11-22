@@ -133,50 +133,53 @@ export const ParticipantDetails = ({
   const canUnpin = !!pin && pin.isLocalPin;
 
   return (
-    <div className="str-video__participant-details">
-      <span className="str-video__participant-details__name">
-        {name || userId}
-        {indicatorsVisible && isDominantSpeaker && (
-          <span
-            className="str-video__participant-details__name--dominant_speaker"
-            title={t('Dominant speaker')}
-          />
-        )}
-        {indicatorsVisible && (
-          <Notification
-            isVisible={
-              isLocalParticipant &&
-              connectionQuality === SfuModels.ConnectionQuality.POOR
-            }
-            message={t('Poor connection quality')}
-          >
-            {connectionQualityAsString && (
-              <span
-                className={clsx(
-                  'str-video__participant-details__connection-quality',
-                  `str-video__participant-details__connection-quality--${connectionQualityAsString}`,
-                )}
-                title={connectionQualityAsString}
-              />
-            )}
-          </Notification>
-        )}
-        {indicatorsVisible && !hasAudio && (
-          <span className="str-video__participant-details__name--audio-muted" />
-        )}
-        {indicatorsVisible && !hasVideo && (
-          <span className="str-video__participant-details__name--video-muted" />
-        )}
-        {indicatorsVisible && canUnpin && (
-          // TODO: remove this monstrosity once we have a proper design
-          <span
-            title={t('Unpin')}
-            onClick={() => call?.unpin(sessionId)}
-            style={{ cursor: 'pointer' }}
-            className="str-video__participant-details__name--pinned"
-          />
-        )}
-      </span>
-    </div>
+    <>
+      <div className="str-video__participant-details">
+        <span className="str-video__participant-details__name">
+          {name || userId}
+          {indicatorsVisible && isDominantSpeaker && (
+            <span
+              className="str-video__participant-details__name--dominant_speaker"
+              title={t('Dominant speaker')}
+            />
+          )}
+
+          {indicatorsVisible && !hasAudio && (
+            <span className="str-video__participant-details__name--audio-muted" />
+          )}
+          {indicatorsVisible && !hasVideo && (
+            <span className="str-video__participant-details__name--video-muted" />
+          )}
+          {indicatorsVisible && canUnpin && (
+            // TODO: remove this monstrosity once we have a proper design
+            <span
+              title={t('Unpin')}
+              onClick={() => call?.unpin(sessionId)}
+              style={{ cursor: 'pointer' }}
+              className="str-video__participant-details__name--pinned"
+            />
+          )}
+        </span>
+      </div>
+      {indicatorsVisible && (
+        <Notification
+          isVisible={
+            isLocalParticipant &&
+            connectionQuality === SfuModels.ConnectionQuality.POOR
+          }
+          message={t('Poor connection quality')}
+        >
+          {connectionQualityAsString && (
+            <span
+              className={clsx(
+                'str-video__participant-details__connection-quality',
+                `str-video__participant-details__connection-quality--${connectionQualityAsString}`,
+              )}
+              title={connectionQualityAsString}
+            />
+          )}
+        </Notification>
+      )}
+    </>
   );
 };
