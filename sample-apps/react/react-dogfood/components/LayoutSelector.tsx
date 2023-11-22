@@ -1,12 +1,11 @@
 import { Dispatch, SetStateAction, useEffect, useCallback } from 'react';
-import clsx from 'clsx';
 import {
   LivestreamLayout,
   PaginatedGridLayout,
   SpeakerLayout,
   useCallStateHooks,
   DropDownSelect,
-  Icon,
+  DefaultDropDownSelectOption,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -179,16 +178,12 @@ const Menu = ({
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
         .filter((key) => !canScreenshare(key))
         .map((key) => (
-          <div
-            className={clsx('rd__layout-selector__option', {
-              'rd__layout-selector__option--selected': key === selectedLayout,
-            })}
-          >
-            <Icon className="rd__layout-selector__icon" icon="grid" />
-            <span key={key} className="rd__layout-selector__label">
-              {LayoutMap[key].title}
-            </span>
-          </div>
+          <DefaultDropDownSelectOption
+            key={key}
+            selected={key === selectedLayout}
+            label={LayoutMap[key].title}
+            icon="grid"
+          />
         ))}
     </DropDownSelect>
   );
