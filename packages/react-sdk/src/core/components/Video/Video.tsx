@@ -29,8 +29,11 @@ export type VideoProps = ComponentPropsWithoutRef<'video'> & {
   participant: StreamVideoParticipant;
   /**
    * Override the default UI that's visible when a participant turned off their video.
+   * Set it to `null` if you wish to disable the video placeholder.
+   *
+   * @default DefaultVideoPlaceholder
    */
-  VideoPlaceholder?: ComponentType<VideoPlaceholderProps>;
+  VideoPlaceholder?: ComponentType<VideoPlaceholderProps> | null;
   /**
    * An object with setRef functions
    * meant for exposing some of the internal elements of this component.
@@ -144,7 +147,7 @@ export const Video = ({
       {!hasNoVideoOrInvisible && (
         <video
           {...rest}
-          className={clsx(className, 'str-video__video', {
+          className={clsx('str-video__video', className, {
             'str-video__video--not-playing': isVideoPaused,
             'str-video__video--tall': !isWideMode,
             'str-video__video--mirror': mirrorVideo,
@@ -159,7 +162,7 @@ export const Video = ({
         />
       )}
       {/* TODO: add condition to "hold" the placeholder until track unmutes as well */}
-      {(hasNoVideoOrInvisible || isVideoPaused) && (
+      {(hasNoVideoOrInvisible || isVideoPaused) && VideoPlaceholder && (
         <VideoPlaceholder
           style={{ position: 'absolute' }}
           participant={participant}

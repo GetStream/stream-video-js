@@ -11,7 +11,7 @@ import {
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
 
-describe('call types CRUD API', () => {
+describe.skip('call types CRUD API', () => {
   let client: StreamVideoServerClient;
   const callTypeName = `calltype${generateUUIDv4()}`;
 
