@@ -30,9 +30,9 @@ export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   if (!activeCall) return null;
 
   return (
-    <div className="str-video__call-header__title-group">
+    <div className="rd__call-header__title-group">
       <HomeButton />
-      <h4 className="str-video__call-header-title">{title || standInTitle}</h4>
+      <h4 className="rd__call-header-title">{title || standInTitle}</h4>
     </div>
   );
 };
