@@ -1,12 +1,8 @@
-import { useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
-import ConstructionIcon from '@mui/icons-material/Construction';
-import IconButton from '@mui/material/IconButton';
 import DownloadingIcon from '@mui/icons-material/Downloading';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
-import Menu from '@mui/material/Menu';
 import Divider from '@mui/material/Divider';
 import MenuList from '@mui/material/MenuList';
 import MenuItem from '@mui/material/MenuItem';
