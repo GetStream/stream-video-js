@@ -6,6 +6,7 @@ import { Settings } from '../../context/SettingsContext';
 import {
   TranslationLanguage,
   DropDownSelect,
+  DefaultDropDownSelectOption,
 } from '@stream-io/video-react-sdk';
 
 const LANGUAGES: Record<TranslationLanguage, string> = {
@@ -31,7 +32,11 @@ export const LanguageMenu = ({ language, setLanguage }: LanguageMenuProps) => {
       handleSelect={handleSelect}
     >
       {Object.entries(LANGUAGES).map(([lngCode, languageName]) => (
-        <div key={`settings-language-${lngCode}`}>{languageName}</div>
+        <DefaultDropDownSelectOption
+          key={`settings-language-${lngCode}`}
+          label={languageName}
+          icon="language"
+        />
       ))}
     </DropDownSelect>
   );
