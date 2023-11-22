@@ -9,6 +9,11 @@ import {
   UpdateCallTypeResponse,
 } from './gen/coordinator';
 
+/**
+ * @deprecated Please use the `@stream-io/node-sdk` package instead.
+ *
+ * @see https://getstream.io/video/docs/api/
+ */
 export class StreamVideoServerClient extends StreamVideoClient {
   constructor(apiKey: string, options: StreamClientOptions) {
     super({ apiKey, options });
