@@ -2,7 +2,7 @@
   &__tabmodal-container {
     display: flex;
     border-radius: var(--str-video__border-radius-lg);
-    min-width: 50vw;
+    width: 65vw;
     min-height: 65vh;
   }
 
@@ -27,6 +27,8 @@
       var(--str-video__border-radius-lg) 0;
     padding: var(--str-video__spacing-md);
     width: 100%;
+    max-height: 65vh;
+    overflow-y: scroll;
   }
 
   &__tab-panel__header {
