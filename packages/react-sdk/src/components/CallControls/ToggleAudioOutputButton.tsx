@@ -15,7 +15,7 @@ export const ToggleAudioOutputButton = (
 
   return (
     <CompositeButton Menu={Menu} caption={caption}>
-      <IconButton icon="speaker" />
+      <IconButton icon="speaker" title={caption || t('Speakers')} />
     </CompositeButton>
   );
 };

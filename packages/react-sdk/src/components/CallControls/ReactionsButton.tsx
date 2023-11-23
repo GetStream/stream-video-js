@@ -46,7 +46,6 @@ export const ReactionsButton = ({
   caption,
 }: ReactionsButtonProps) => {
   const { t } = useI18n();
-
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <CompositeButton
@@ -55,7 +54,7 @@ export const ReactionsButton = ({
         menuPlacement="top-start"
         ToggleMenuButton={ToggleMenuButton}
         Menu={<DefaultReactionsMenu reactions={reactions} />}
-      ></CompositeButton>
+      />
     </Restricted>
   );
 };
@@ -75,7 +74,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
           'str-video__menu-toggle-button--active': menuShown,
         })}
         icon="reactions"
-        title={t('Toggle device menu')}
+        title={t('Reactions')}
         ref={ref}
       />
     );

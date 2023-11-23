@@ -24,7 +24,7 @@ const ToggleMenuButton = forwardRef<
 
   return (
     <CompositeButton ref={ref} active={menuShown} caption={caption}>
-      <IconButton icon="stats" title={t('Statistics')} />
+      <IconButton icon="stats" title={caption || t('Statistics')} />
     </CompositeButton>
   );
 });

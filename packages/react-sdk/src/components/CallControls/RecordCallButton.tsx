@@ -2,7 +2,7 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
-import { useToggleCallRecording } from '../../hooks/useToggleCallRecording';
+import { useToggleCallRecording } from '../../hooks';
 
 export type RecordCallButtonProps = {
   caption?: string;
@@ -37,7 +37,7 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
             enabled={!!call}
             disabled={!call}
             icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
-            title={t('Record call')}
+            title={caption || t('Record call')}
             onClick={toggleCallRecording}
           />
         )}

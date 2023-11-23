@@ -15,7 +15,7 @@ export const ToggleParticipantListButton = (
   const { enabled, caption } = props;
   return (
     <CompositeButton active={enabled} caption={caption}>
-      <IconButton icon="participants" {...props} />
+      <IconButton icon="participants" {...props} title="Participants" />
     </CompositeButton>
   );
 };
