@@ -19,7 +19,7 @@ export const ToggleVideoPreviewButton = (
   props: ToggleVideoPreviewButtonProps,
 ) => {
   const { caption, Menu } = props;
-
+  const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const { camera, isMute } = useCameraState();
 
@@ -27,6 +27,7 @@ export const ToggleVideoPreviewButton = (
     <CompositeButton Menu={Menu} active={isMute} caption={caption}>
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
+        title={caption || t('Video')}
         onClick={() => camera.toggle()}
       />
     </CompositeButton>
@@ -64,6 +65,7 @@ export const ToggleVideoPublishingButton = (
         <CompositeButton Menu={Menu} active={isMute} caption={caption}>
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}
+            title={caption || t('Video')}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();

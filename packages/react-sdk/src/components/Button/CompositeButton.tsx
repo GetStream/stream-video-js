@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import { ComponentType, forwardRef, PropsWithChildren } from 'react';
+import { ComponentType, forwardRef, JSX, PropsWithChildren } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Placement } from '@floating-ui/react';
 

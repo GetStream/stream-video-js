@@ -18,7 +18,7 @@ export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
   const { caption, Menu } = props;
-
+  const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute } = useMicrophoneState();
 
@@ -26,6 +26,7 @@ export const ToggleAudioPreviewButton = (
     <CompositeButton Menu={Menu} active={isMute} caption={caption}>
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
+        title={caption || t('Mic')}
         onClick={() => microphone.toggle()}
       />
     </CompositeButton>
@@ -61,6 +62,7 @@ export const ToggleAudioPublishingButton = (
         <CompositeButton Menu={Menu} active={isMute} caption={caption}>
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
+            title={caption || t('Mic')}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();

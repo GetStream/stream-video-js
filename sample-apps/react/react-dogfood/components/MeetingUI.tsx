@@ -255,6 +255,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                     <IconButton
                       enabled={showChat}
                       disabled={!chatClient}
+                      title="Chat"
                       onClick={() => setShowChat((prev) => !prev)}
                       icon="chat"
                     />

@@ -520,10 +520,10 @@ PODS:
   - RNVoipPushNotification (3.3.2):
     - React-Core
   - SocketRocket (0.6.0)
-  - stream-react-native-webrtc (104.0.1):
+  - stream-react-native-webrtc (104.0.3):
     - React-Core
     - WebRTC-SDK (= 104.5112.17)
-  - stream-video-react-native (0.1.12):
+  - stream-video-react-native (0.2.11):
     - React-Core
     - stream-react-native-webrtc
   - TOCropViewController (2.6.1)
@@ -833,8 +833,8 @@ SPEC CHECKSUMS:
   RNSVG: 53c661b76829783cdaf9b7a57258f3d3b4c28315
   RNVoipPushNotification: 543e18f83089134a35e7f1d2eba4c8b1f7776b08
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  stream-react-native-webrtc: 3e45950d539248d24c1a0a3eafa0f98b5a343ab3
-  stream-video-react-native: 1d2ec62349e44cf3e1b6374665fa94eea841b160
+  stream-react-native-webrtc: ac41c22f08d08cb9c5675e7d440b0d1db1180f1c
+  stream-video-react-native: 87db9cd0f19ea8052db8ec74602f63847fe1816f
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
   WebRTC-SDK: 082ae4893212534a779ca233f19a9df8efd5f3bd
   Yoga: f7decafdc5e8c125e6fa0da38a687e35238420fa

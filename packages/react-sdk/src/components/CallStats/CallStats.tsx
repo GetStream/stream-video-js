@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 
-import { useHover, useFloating, useInteractions } from '@floating-ui/react';
+import { useFloating, useHover, useInteractions } from '@floating-ui/react';
 
 import { CallStatsLatencyChart } from './CallStatsLatencyChart';
 import { Icon } from '../Icon';
@@ -128,17 +128,17 @@ export const CallStats = () => {
             <StatCard
               label="Region"
               value={callStatsReport.datacenter}
-              comparisson={latencyComparison}
+              comparison={latencyComparison}
             />
             <StatCard
               label="Latency"
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
-              comparisson={latencyComparison}
+              comparison={latencyComparison}
             />
             <StatCard
               label="Receive jitter"
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
-              comparisson={{
+              comparison={{
                 highBound: 300,
                 lowBound: 50,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
@@ -147,7 +147,7 @@ export const CallStats = () => {
             <StatCard
               label="Publish jitter"
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
-              comparisson={{
+              comparison={{
                 highBound: 300,
                 lowBound: 50,
                 value: callStatsReport.publisherStats.averageJitterInMs,
@@ -238,12 +238,12 @@ export const StatCard = (props: {
   label: string;
   value: string | ReactNode;
   description?: string;
-  comparisson?: { value: number; highBound: number; lowBound: number };
+  comparison?: { value: number; highBound: number; lowBound: number };
 }) => {
-  const { label, value, description, comparisson } = props;
+  const { label, value, description, comparison } = props;
 
   const { t } = useI18n();
-  const status = comparisson ? statsStatus(comparisson) : undefined;
+  const status = comparison ? statsStatus(comparison) : undefined;
 
   return (
     <div className="str-video__call-stats__card">
@@ -254,9 +254,7 @@ export const StatCard = (props: {
         </div>
         <div className="str-video__call-stats__card-value">{value}</div>
       </div>
-      {comparisson && status && (
-        <StatsTag status={status}>{t(status)}</StatsTag>
-      )}
+      {comparison && status && <StatsTag status={status}>{t(status)}</StatsTag>}
     </div>
   );
 };

@@ -1,5 +1,5 @@
-import { MouseEventHandler, useCallback, forwardRef } from 'react';
-import { useCall } from '@stream-io/video-react-bindings';
+import { forwardRef, MouseEventHandler, useCallback } from 'react';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import { MenuToggle } from '../Menu';
 
@@ -19,32 +19,33 @@ export const EndCallMenu = ({
   handleLeave: MouseEventHandler<HTMLButtonElement>;
   handleEndCall: MouseEventHandler<HTMLButtonElement>;
 }) => {
+  const { t } = useI18n();
   return (
     <div className="str-video__end-call__confirmation">
       <button className="str-video__end-call__leave" onClick={handleLeave}>
         <Icon className="str-video__end-call__leave-icon" icon="logout" />
-        Leave call
+        {t('Leave call')}
       </button>
 
       <button className="str-video__end-call__end" onClick={handleEndCall}>
         <Icon className="str-video__end-call__end-icon" icon="call-end" />
-        End call for all
+        {t('End call for all')}
       </button>
     </div>
   );
 };
 
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>(
-  (props: any, ref) => {
-    return (
-      <IconButton
-        icon={props.active ? 'close' : 'call-end'}
-        variant={props.active ? undefined : 'danger'}
-        ref={ref}
-      />
-    );
-  },
-);
+const ToggleMenuButton = forwardRef<HTMLButtonElement>((props: any, ref) => {
+  const { t } = useI18n();
+  return (
+    <IconButton
+      icon={props.active ? 'close' : 'call-end'}
+      variant={props.active ? undefined : 'danger'}
+      title={t('Leave call')}
+      ref={ref}
+    />
+  );
+});
 
 export const CancelCallConfirmButton = ({
   disabled,
@@ -90,6 +91,7 @@ export const CancelCallButton = ({
   onLeave,
 }: CancelCallButtonProps) => {
   const call = useCall();
+  const { t } = useI18n();
   const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
     async (e) => {
       if (onClick) {
@@ -106,6 +108,7 @@ export const CancelCallButton = ({
       disabled={disabled}
       icon="call-end"
       variant="danger"
+      title={t('Leave call')}
       onClick={handleClick}
     />
   );
