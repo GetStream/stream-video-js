@@ -93,29 +93,29 @@ const HomeContent = () => {
             placeholder={t('Call ID')}
           />
           <button
-            className="rd__button rd__button--primary rd__button__join"
+            className="rd__home-new rd__button rd__button--primary rd__button__join"
             data-testid="join-call-button"
             disabled={disabled}
             onClick={onJoin}
           >
-            <Icon className="rd__button__icon" icon="grid" />
+            <Icon className="rd__button__icon" icon="login" />
             {t('Join call')}
           </button>
         </div>
         <a
           href={`/join/${meetingId()}`}
-          className="rd__link rd__link--faux-button"
+          className="rd__home-new rd__link rd__link--faux-button"
         >
-          <Icon className="rd__link__icon" icon="grid" />
+          <Icon className="rd__link__icon" icon="camera-add" />
           {t('Start a new call')}
         </a>
         <button
-          className="rd__button"
+          className="rd__home-qr rd__button rd__button--secondary"
           data-testid="join-call-button"
           disabled={true}
           onClick={onJoin}
         >
-          <Icon className="rd__button__icon" icon="grid" />
+          <Icon className="rd__button__icon" icon="qr-code" />
           {t('Scan QR code')}
         </button>
       </div>
@@ -125,8 +125,6 @@ const HomeContent = () => {
 
 export const getServerSideProps = async () => {
   return {
-    props: {
-      title: 'a',
-    },
+    props: {},
   };
 };

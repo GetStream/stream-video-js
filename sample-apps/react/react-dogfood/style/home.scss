@@ -5,6 +5,7 @@
   align-items: center;
   width: 100%;
   height: 100%;
+  padding: var(--str-video__spacing-lg);
 
   &-content {
     display: flex;
@@ -12,7 +13,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
-    max-width: 20vw;
+    width: 100%;
   }
 
   &-description {
@@ -20,7 +21,7 @@
   }
 
   &-image {
-    width: 5vw;
+    width: 100px;
   }
 
   &-heading {
@@ -39,6 +40,14 @@
     margin-bottom: var(--str-video__spacing-md);
   }
 
+  &-input {
+    margin-right: var(--str-video__spacing-sm);
+  }
+
+  &-qr {
+    margin-top: var(--str-video__spacing-lg);
+  }
+
   .rd__button__join {
     min-width: 150px;
   }
@@ -47,5 +56,17 @@
   .rd_button {
     width: 100%;
     margin-top: var(--str-video__spacing-md);
+  }
+}
+
+@include respond-above(sm) {
+  .rd__home-content {
+    max-width: 50vw;
+  }
+}
+
+@include respond-above(md) {
+  .rd__home-content {
+    max-width: 25vw;
   }
 }

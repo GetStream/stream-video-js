@@ -22,6 +22,21 @@
     -webkit-mask-image: var(--str-video__icon--recording-off);
   }
 
+  &--camera-add {
+    mask-image: var(--str-video__icon--camera-add);
+    -webkit-mask-image: var(--str-video__icon--camera-add);
+  }
+
+  &--qr-code {
+    mask-image: var(--str-video__icon--qr-code);
+    -webkit-mask-image: var(--str-video__icon--qr-code);
+  }
+
+  &--login {
+    mask-image: var(--str-video__icon--login);
+    -webkit-mask-image: var(--str-video__icon--login);
+  }
+
   &--logout {
     mask-image: var(--str-video__icon--logout);
     -webkit-mask-image: var(--str-video__icon--logout);

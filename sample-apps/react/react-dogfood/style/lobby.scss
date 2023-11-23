@@ -1,0 +1,116 @@
+.rd__lobby {
+  position: relative;
+
+  &-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 100%;
+    padding: var(--str-video__spacing-lg);
+
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  &-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+
+    .str-video__video-preview-container {
+      height: 320px;
+      width: 100%;
+      border-radius: var(--str-video__border-radius-md);
+      border-color: transparent;
+    }
+  }
+
+  &-heading {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--str-video__font-size-xl);
+    font-weight: 500;
+    margin-bottom: var(--str-video__spacing-md);
+  }
+
+  &-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: var(--str-video__spacing-sm);
+  }
+
+  .rd__lobby-media {
+    gap: var(--str-video__spacing-sm);
+  }
+
+  &-join {
+    margin-top: var(--str-video__spacing-lg);
+  }
+
+  &-media {
+    display: flex;
+    align-items: center;
+  }
+
+  &-edge-network {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 250px;
+    text-align: left;
+    font-size: var(--str-video__font-size-xs);
+    margin-top: var(--str-video__spacing-lg);
+
+    &__icon {
+      background-color: var(--str-video__brand-color3);
+      width: 55px;
+      margin-right: var(--str-video__spacing-sm);
+    }
+  }
+}
+
+.rd__latencymap {
+  height: 100vh;
+  width: 100vw;
+  z-index: 1;
+
+  &-container {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+
+    > canvas {
+      height: 100vh;
+      width: 100vw;
+    }
+  }
+}
+
+@include respond-above(sm) {
+  .rd__lobby-content {
+    max-width: 40vw;
+
+    .rd__lobby-camera {
+      width: 600px;
+      .str-video__video-preview-container {
+        height: 320px;
+        width: 100%;
+      }
+    }
+  }
+}
+
+@include respond-above(md) {
+  .rd__lobby-content {
+    max-width: 25vw;
+  }
+}

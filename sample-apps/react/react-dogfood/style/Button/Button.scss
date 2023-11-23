@@ -3,11 +3,12 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__spacing-xs) var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
   text-align: center;
   min-width: 120px;
+  width: 100%;
   font-size: var(--str-video__font-size-md);
-  font-weight: 600;
+  font-weight: 500;
   border: 1px solid var(--str-video__base-color3);
   color: var(--str-video__text-color1);
 
@@ -35,6 +36,22 @@
     &:hover {
       background-color: var(--str-video__button-primary-hover);
       cursor: pointer;
+    }
+
+    &:disabled {
+      background-color: var(--str-video__brand-color1);
+      cursor: not-allowed;
+    }
+  }
+
+  &--secondary {
+    background-color: transparent;
+    border: 1px solid var(--str-video__base-color3);
+
+    &:disabled {
+      background-color: transparent;
+      border: 1px solid var(--str-video__base-color3);
+      cursor: not-allowed;
     }
   }
 }
