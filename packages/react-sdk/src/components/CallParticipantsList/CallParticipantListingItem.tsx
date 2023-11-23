@@ -26,6 +26,7 @@ import {
 } from '../Menu';
 import { WithTooltip } from '../Tooltip';
 import { Icon } from '../Icon';
+import { Avatar } from '../Avatar';
 
 type CallParticipantListingItemProps = {
   /** Participant object be rendered */
@@ -49,7 +50,10 @@ export const CallParticipantListingItem = ({
 
   return (
     <div className="str-video__participant-listing-item">
-      <DisplayName participant={participant} />
+      <div className="str-video__participant-avatar">
+        <Avatar name={participant.name} imageSrc={participant.image} />
+        <DisplayName participant={participant} />
+      </div>
       <div className="str-video__participant-listing-item__media-indicator-group">
         <MediaIndicator
           title={isAudioOn ? t('Microphone on') : t('Microphone off')}

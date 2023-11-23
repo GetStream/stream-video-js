@@ -27,6 +27,11 @@
     -webkit-mask-image: var(--str-video__icon--camera-add);
   }
 
+  &--person-add {
+    mask-image: var(--str-video__icon--person-add);
+    -webkit-mask-image: var(--str-video__icon--person-add);
+  }
+
   &--qr-code {
     mask-image: var(--str-video__icon--qr-code);
     -webkit-mask-image: var(--str-video__icon--qr-code);

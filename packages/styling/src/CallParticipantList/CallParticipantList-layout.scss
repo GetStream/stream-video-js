@@ -3,10 +3,6 @@ $scope-name: 'str-video__participant-list';
 .str-video__participant-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  height: 100%;
-  width: 100%;
-  padding: 0.75rem;
 
   .str-video__participant-list-header {
     display: flex;
@@ -14,30 +10,31 @@ $scope-name: 'str-video__participant-list';
 
     .str-video__participant-list-header__title {
       flex: 1;
+      font-size: var(--str-video__font-size-sm);
     }
-
     .str-video__participant-list-header__close-button {
-      width: 1.75rem;
-      height: 1.75rem;
-
-      .str-video__participant-list-header__close-button--icon {
-        display: block;
-        height: 1rem;
-        width: 1rem;
+      > span {
+        height: 15px;
+        width: 15px;
       }
     }
   }
 
+  .str-video__search-input__container {
+    margin-top: var(--str-video__spacing-md);
+  }
+
   .str-video__participant-list__content-header {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.5rem;
+    margin-top: var(--str-video__spacing-md);
+    justify-content: flex-end;
 
     .str-video__participant-list__content-header-title {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-grow: 1;
+      justify-content: flex-end;
     }
 
     .str-video__call-controls__button {
@@ -56,9 +53,12 @@ $scope-name: 'str-video__participant-list';
   }
 
   .str-video__participant-list__content {
-    height: 0;
+    height: auto;
     flex-grow: 1;
     overflow-y: auto;
+    max-height: 200px;
+    overflow-y: scroll;
+    margin-top: var(--str-video__spacing-xl);
   }
 
   .str-video__participant-list__footer {
