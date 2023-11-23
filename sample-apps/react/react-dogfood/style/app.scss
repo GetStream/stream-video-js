@@ -64,22 +64,4 @@ body {
       margin-right: auto;
     }
   }
-
-  .str-video__sidebar {
-    max-width: 400px;
-    min-width: 400px;
-    display: flex;
-    gap: 1rem;
-    flex-direction: column;
-
-    .str-video__participant-list {
-      height: 0;
-      flex-grow: 1;
-    }
-
-    .str-video__chat {
-      height: 0;
-      flex-grow: 1.5;
-    }
-  }
 }

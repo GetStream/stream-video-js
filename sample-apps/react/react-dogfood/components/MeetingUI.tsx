@@ -23,6 +23,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { InvitePanel } from './InvitePanel/InvitePanel';
 
 import { Lobby } from './Lobby';
 import { Box, Button, Stack, Typography } from '@mui/material';
@@ -187,7 +188,32 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             onLeave={onLeave}
           />
           <PermissionRequests />
-          <Stage selectedLayout={layout} />
+          <div className="rd__layout">
+            <Stage selectedLayout={layout} />
+            {showSidebar && (
+              <div className="rd__sidebar">
+                {showParticipants && (
+                  <div className="rd__participants">
+                    <CallParticipantsList
+                      onClose={() => setShowParticipants(false)}
+                    />
+                    <InvitePanel callId={activeCall.id} />
+                  </div>
+                )}
+
+                <ChatWrapper chatClient={chatClient}>
+                  {showChat && (
+                    <div className="str-video__chat">
+                      <ChatUI
+                        onClose={() => setShowChat(false)}
+                        channelId={activeCall.id}
+                      />
+                    </div>
+                  )}
+                </ChatWrapper>
+              </div>
+            )}
+          </div>
           <div
             className="str-video__call-controls"
             data-testid="str-video__call-controls"
@@ -245,26 +271,6 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             </div>
           </div>
         </div>
-        {showSidebar && (
-          <div className="str-video__sidebar">
-            {showParticipants && (
-              <CallParticipantsList
-                onClose={() => setShowParticipants(false)}
-              />
-            )}
-
-            <ChatWrapper chatClient={chatClient}>
-              {showChat && (
-                <div className="str-video__chat">
-                  <ChatUI
-                    onClose={() => setShowChat(false)}
-                    channelId={activeCall.id}
-                  />
-                </div>
-              )}
-            </ChatWrapper>
-          </div>
-        )}
       </div>
     );
   }

@@ -7,6 +7,8 @@
 @import 'home';
 @import 'lobby';
 
+@import 'layout';
+
 @import 'Button';
 @import 'CallControls';
 @import 'CallHeader';
@@ -21,6 +23,7 @@
 @import 'SettingsTabModal';
 @import 'ToggleMoreOptionsListButton';
 @import 'Feedback';
+@import 'InvitePanel';
 
 @import 'Debug/Debug.scss';
 @import 'LayoutSelector';

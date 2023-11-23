@@ -57,9 +57,11 @@
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-md);
   min-width: 110px;
+  font-size: var(--str-video__font-size-xs);
   &-icon {
     margin-right: var(--str-video__spacing-xxs);
     background-color: var(--str-video__alert-success);
+    height: 16px;
   }
 
   &-time {
@@ -74,12 +76,13 @@
   background-color: var(--str-video__base-color6);
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-md);
+  font-size: var(--str-video__font-size-xs);
 
   font-weight: 600;
 
   &-indicator {
-    height: 10px;
-    width: 10px;
+    height: 6px;
+    width: 6px;
     margin-right: var(--str-video__spacing-xxs);
     background-color: var(--str-video__alert-success);
 
