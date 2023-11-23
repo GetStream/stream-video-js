@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Call,
@@ -10,7 +10,6 @@ import {
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
 import { createToken } from '../../modules/helpers/createToken';
-import { STREAM_API_KEY } from '../../../config';
 
 type Props = NativeStackScreenProps<
   MeetingStackParamList,
@@ -39,28 +38,29 @@ export const GuestMeetingScreen = (props: Props) => {
     [mode, guestUserId],
   );
 
-  const tokenProvider = useCallback(async () => {
-    const token = await createToken({
-      user_id: '!anon',
-      call_cids: `${callType}:${callId}`,
-    });
-    return token;
-  }, [callId, callType]);
-
   useEffect(() => {
-    const _videoClient = new StreamVideoClient({
-      apiKey: STREAM_API_KEY,
-      user: userToConnect,
-      tokenProvider: mode === 'anonymous' ? tokenProvider : undefined,
-      options: { logLevel: 'warn' },
-    });
-    setVideoClient(_videoClient);
+    let _videoClient: StreamVideoClient | undefined;
+    const run = async () => {
+      const { token, apiKey } = await createToken({
+        user_id: userToConnect.id ?? '!anon',
+        call_cids: mode === 'anonymous' ? `${callType}:${callId}` : undefined,
+      });
+      _videoClient = new StreamVideoClient({
+        apiKey,
+        user: userToConnect,
+        token,
+        options: { logLevel: 'warn' },
+      });
+      setVideoClient(_videoClient);
+    };
+
+    run();
 
     return () => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [tokenProvider, userToConnect, mode]);
+  }, [userToConnect, mode, callId]);
 
   const call = useMemo<Call | undefined>(() => {
     if (!videoClient) {

@@ -4,11 +4,11 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { STREAM_API_KEY } from '../data/constants';
 import {
   staticNavigateToNonRingingCall,
   staticNavigateToRingingCall,
 } from './staticNavigationUtils';
+import { createToken } from './createToken';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -70,10 +70,11 @@ const createStreamVideoClient = async () => {
     console.error('Push - createStreamVideoClient -- user.id is undefined');
     return;
   }
+  const { token, apiKey } = await createToken({ user_id: user.id });
   const client = new StreamVideoClient({
-    apiKey: STREAM_API_KEY,
+    apiKey,
     user,
-    tokenProvider: user.custom.token,
+    token,
     options: { logLevel: 'warn' },
   });
   return client;

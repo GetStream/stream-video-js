@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.11...@stream-io/video-react-sdk-0.4.12) (2023-11-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.9`
+* `@stream-io/video-react-bindings` updated to version `0.3.9`
+
+### Features
+
+* **participant-view:** allow opting-out from rendering VideoPlaceholder ([#1198](https://github.com/GetStream/stream-video-js/issues/1198)) ([acb020c](https://github.com/GetStream/stream-video-js/commit/acb020c8157a1338771bef11ef5e501bc9cd6f69))
+
 ### [0.4.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.10...@stream-io/video-react-sdk-0.4.11) (2023-11-16)
 
 ### Dependency Updates

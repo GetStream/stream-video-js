@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.8...@stream-io/video-client-0.4.9) (2023-11-22)
+
+
+### Features
+
+* **participant-view:** allow opting-out from rendering VideoPlaceholder ([#1198](https://github.com/GetStream/stream-video-js/issues/1198)) ([acb020c](https://github.com/GetStream/stream-video-js/commit/acb020c8157a1338771bef11ef5e501bc9cd6f69))
+
 ### [0.4.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.7...@stream-io/video-client-0.4.8) (2023-11-16)
 
 

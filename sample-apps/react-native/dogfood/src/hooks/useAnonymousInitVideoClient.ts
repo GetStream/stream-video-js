@@ -1,6 +1,6 @@
 import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
-import { useCallback, useEffect, useState } from 'react';
-import { STREAM_API_KEY } from '../../config';
+import { useEffect, useState } from 'react';
+
 import { createToken } from '../modules/helpers/createToken';
 
 type InitAnonymousVideoClientType = {
@@ -14,34 +14,32 @@ export const useAnonymousInitVideoClient = ({
 }: InitAnonymousVideoClientType) => {
   const [client, setClient] = useState<StreamVideoClient>();
 
-  const apiKey = STREAM_API_KEY;
-
-  const tokenProvider = useCallback(async () => {
-    const anonymousUser = {
-      id: '!anon',
-    };
-    const token = await createToken({
-      user_id: anonymousUser?.id,
-      call_cids: `${callType}:${callId}`,
-    });
-    return token;
-  }, [callId, callType]);
-
   useEffect(() => {
-    const _client = new StreamVideoClient({
-      apiKey,
-      tokenProvider,
-      user: { type: 'anonymous' },
-    });
-    setClient(_client);
+    let _client: StreamVideoClient | undefined;
+    const run = async () => {
+      const anonymousUser = {
+        id: '!anon',
+      };
+      const { token, apiKey } = await createToken({
+        user_id: anonymousUser.id,
+        call_cids: `${callType}:${callId}`,
+      });
+      _client = new StreamVideoClient({
+        apiKey,
+        token,
+        user: { type: 'anonymous' },
+      });
+      setClient(_client);
+    };
+    run();
 
     return () => {
       _client
-        .disconnectUser()
+        ?.disconnectUser()
         .catch((error) => console.error('Unable to disconnect user', error));
       setClient(undefined);
     };
-  }, [apiKey, tokenProvider]);
+  }, [callId, callType]);
 
   return client;
 };

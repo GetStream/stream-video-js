@@ -1,4 +1,5 @@
 import { ComponentPropsWithRef, forwardRef, useState } from 'react';
+import { useI18n } from '@stream-io/video-react-bindings';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 export type VideoPlaceholderProps = {
@@ -9,6 +10,7 @@ export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
 >(({ participant, style }, ref) => {
+  const { t } = useI18n();
   const [error, setError] = useState(false);
   const name = participant.name || participant.userId;
   return (
@@ -19,7 +21,7 @@ export const DefaultVideoPlaceholder = forwardRef<
             <div>{name[0]}</div>
           </div>
         ) : (
-          <div>Video is disabled</div>
+          <div>{t('Video is disabled')}</div>
         ))}
       {participant.image && !error && (
         <img
