@@ -166,10 +166,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 2 }) => {
 
     setLoading(true);
 
-    mapboxgl.accessToken =
-      process.env.MAPBOX_GL_TOKEN ||
-      'pk.eyJ1IjoiendhYXJkamUiLCJhIjoiY2thMTVmZXp1MGl3djNmbjZrZWFkemxrNiJ9.dk3iMrfG8ZXwKK8m4WyvfA';
-
+    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
     map.current = new mapboxgl.Map({
       projection: {
         name: 'mercator',
