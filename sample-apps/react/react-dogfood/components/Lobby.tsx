@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -12,8 +12,10 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
-import { CallSettingsButton } from './CallSettingsButton';
 import { LatencyMap } from './LatencyMap/LatencyMap';
+import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+
+import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 
 import { useEdges } from '../hooks/useEdges';
 
@@ -30,6 +32,16 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
 
   const { t } = useI18n();
   const { edges } = useEdges();
+
+  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
+    const storedLayout = getLayoutSettings()?.selectedLayout;
+
+    if (!storedLayout) return DEFAULT_LAYOUT;
+
+    return Object.hasOwn(LayoutMap, storedLayout)
+      ? storedLayout
+      : DEFAULT_LAYOUT;
+  });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -73,7 +85,11 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                 <ToggleAudioPreviewButton />
                 <ToggleVideoPreviewButton />
               </div>
-              <CallSettingsButton />
+              <ToggleSettingsTabModal
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+                inMeeting={false}
+              />
             </div>
           </div>
 
