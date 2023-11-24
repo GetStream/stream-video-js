@@ -3,11 +3,16 @@
   flex-direction: column;
   text-align: center;
   border-radius: var(--str-video__border-radius-lg);
-  max-width: 30vw;
 
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-lg);
   padding: var(--str-video__spacing-md);
+
+  box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+}
+
+.rd__feedback-image {
+  width: 300px;
 }
 
 .rd__feedback-heading {
@@ -24,7 +29,7 @@
   margin: 0;
   color: var(--str-video__base-color2);
   font-size: var(--str-video__font-size-sm);
-  margin-bottom: var(--str-video__spacing-lg);
+  margin: var(--str-video__spacing-lg) 0 var(--str-video__spacing-md) 0;
 }
 
 .rd__feedback-form {
@@ -96,35 +101,5 @@
 .rd__feedback-actions {
   display: flex;
   justify-content: space-between;
-}
-
-.rd__feedback-button {
-  border-radius: var(--str-video__border-radius-md);
-  padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
-  text-align: center;
-  min-width: 112px;
-  border: 1px solid var(--str-video__base-color3);
-  color: var(--str-video__text-color1);
-
-  &--cancel {
-    background-color: transparent;
-    border: 1px solid var(--str-video__base-color3);
-  }
-
-  &--submit {
-    background-color: var(--str-video__button-secondary-base);
-
-    &:hover {
-      background-color: var(--str-video__button-secondary-hover);
-    }
-  }
-
-  &--close {
-    margin-top: var(--str-video__spacing-md);
-    background-color: var(--str-video__button-secondary-base);
-
-    &:hover {
-      background-color: var(--str-video__button-secondary-hover);
-    }
-  }
+  gap: var(--str-video__spacing-md);
 }

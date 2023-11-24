@@ -1,10 +1,4 @@
-import {
-  FC,
-  HTMLInputTypeAttribute,
-  useCallback,
-  useState,
-  useMemo,
-} from 'react';
+import { HTMLInputTypeAttribute, useCallback, useState, useMemo } from 'react';
 import clsx from 'clsx';
 import { useForm, useField } from 'react-form';
 
@@ -16,6 +10,7 @@ export type Props = {
   className?: string;
   callId?: string;
   inMeeting?: boolean;
+  close?: () => void;
 };
 
 function required(value: string | number, name: string) {
@@ -25,13 +20,13 @@ function required(value: string | number, name: string) {
   return false;
 }
 
-const Input: FC<{
+const Input = (props: {
   className?: string;
   type: HTMLInputTypeAttribute;
   placeholder: string;
   name: string;
   required?: boolean;
-}> = (props) => {
+}) => {
   const { name, className, ...rest } = props;
   const {
     meta: { error, isTouched },
@@ -49,12 +44,12 @@ const Input: FC<{
   return <input className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-const TextArea: FC<{
+const TextArea = (props: {
   className?: string;
   placeholder: string;
   name: string;
   required?: boolean;
-}> = (props) => {
+}) => {
   const { name, className, ...rest } = props;
   const {
     meta: { error, isTouched },
@@ -72,16 +67,12 @@ const TextArea: FC<{
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback: FC<Props> = ({
-  className,
-  callId,
-  inMeeting,
-}: Props) => {
+export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
   });
-  const [feedbackSent, setFeedbackSent] = useState<boolean>(true);
+  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
   const [errorMessage, setError] = useState<string | null>(null);
 
   const { t } = useI18n();
@@ -166,10 +157,18 @@ export const Feedback: FC<Props> = ({
   if (!feedbackSent) {
     return (
       <div className="rd__feedback">
-        <img src="/feedback.png" alt="Feedback" />
-        <h4 className="rd__feedback-heading">{t('How is your call Going?')}</h4>
+        <img
+          className="rd__feedback-image"
+          src="/feedback.png"
+          alt="Feedback"
+        />
+        <h4 className="rd__feedback-heading">
+          {inMeeting ? t('How was your call?') : t('You left the call.')}
+        </h4>
         <p className={descriptionClassName}>
-          {errorMessage ? errorMessage : 'How was your calling experience?'}
+          {errorMessage && errorMessage}
+          {inMeeting && !errorMessage && 'How is your calling experience?'}
+          {!inMeeting && !errorMessage && 'How was your calling experience?'}
         </p>
         <Form className="rd__feedback-form">
           <Input
@@ -207,17 +206,28 @@ export const Feedback: FC<Props> = ({
             </div>
 
             <div className="rd__feedback-actions">
-              <button
-                className="rd__feedback-button rd__feedback-button--cancel"
-                disabled={isSubmitting}
-                onClick={() => {}}
-              >
-                {' '}
-                {t('Cancel')}
-              </button>
+              {inMeeting ? (
+                <button
+                  className="rd__button rd__button--secondary rd__feedback-button--cancel"
+                  disabled={isSubmitting}
+                  onClick={close}
+                >
+                  {' '}
+                  {t('Cancel')}
+                </button>
+              ) : (
+                <button
+                  className="rd__button rd__button--secondary rd__feedback-button--cancel"
+                  disabled={isSubmitting}
+                  onClick={close}
+                >
+                  <Icon icon="login" />
+                  {t('Rejoin Call')}
+                </button>
+              )}
 
               <button
-                className="rd__feedback-button rd__feedback-button--submit"
+                className="rd__button rd__button--primary rd__feedback-button--submit"
                 type="submit"
                 disabled={isSubmitting}
                 onClick={() => {}}
