@@ -21,11 +21,12 @@ import { CallRecordings } from '../CallRecordings';
 import { useLanguage } from '../../hooks/useLanguage';
 
 type ToggleSettingsTabModalProps = {
-  close: () => void;
+  close?: () => void;
+  inMeeting: boolean;
 };
 
 type SettingsTabModalProps = {
-  close: () => void;
+  close?: () => void;
 };
 
 type TabProps = {
@@ -35,12 +36,13 @@ type TabProps = {
 
 type TabPanelProps = {
   title: string;
-  close: () => void;
+  close?: () => void;
 };
 
 type TabWrapperProps = {
   icon: string;
   label: string;
+  inMeeting?: boolean;
 };
 
 const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
@@ -57,6 +59,7 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 };
 
 const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
+  console.log(close);
   return (
     <div className="str-video__tab-panel">
       <div className="str-video__tab-panel__header">
@@ -66,7 +69,7 @@ const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
           onClick={close}
         />
       </div>
-      {children}
+      <div className="str-video__tab-panel__content">{children}</div>
     </div>
   );
 };
@@ -76,20 +79,25 @@ export const SettingsTabModal = ({
   close,
 }: PropsWithChildren<SettingsTabModalProps>) => {
   const [active, setActive] = useState(0);
+  console.log('blaaaaaa', close);
   return (
     <div className="str-video__tabmodal-container">
       <div className="str-video__tabmodal-sidebar">
         <h2 className="str-video__tabmodal-header">Settings</h2>
-        {Children.map(children, (child: any, index: number) => (
-          <Tab
-            key={index}
-            active={index === active}
-            setActive={() => setActive(index)}
-          >
-            <Icon className="str-video__tab-icon" icon={child.props.icon} />
-            {child.props.label}
-          </Tab>
-        ))}
+        {Children.map(children, (child: any, index: number) => {
+          if (!child.props.inMeeting) return null;
+
+          return (
+            <Tab
+              key={index}
+              active={index === active}
+              setActive={() => setActive(index)}
+            >
+              <Icon className="str-video__tab-icon" icon={child.props.icon} />
+              {child.props.label}
+            </Tab>
+          );
+        })}
       </div>
       <div className="str-video__tabmodal-content">
         {Children.map(children, (child: any, index: number) => {
@@ -131,27 +139,41 @@ export const ToggleSettingsTabModal = (
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.PORTAL}
     >
-      <SettingsTabModal close={props.close}>
-        <TabWrapper icon="device-settings" label={t('Device settings')}>
+      <SettingsTabModal>
+        <TabWrapper
+          icon="device-settings"
+          label={t('Device settings')}
+          inMeeting
+        >
           <>
             <DeviceSelectorVideo visualType="dropdown" />
             <DeviceSelectorAudioInput visualType="dropdown" />
             <DeviceSelectorAudioOutput visualType="dropdown" />
           </>
         </TabWrapper>
-        <TabWrapper icon="grid" label={t('Layout')}>
+        <TabWrapper icon="grid" label={t('Layout')} inMeeting>
           <LayoutSelector
             onMenuItemClick={props.onMenuItemClick}
             selectedLayout={props.selectedLayout}
           />
         </TabWrapper>
-        <TabWrapper icon="stats" label={t('Statistics')}>
+        <TabWrapper
+          icon="stats"
+          label={t('Statistics')}
+          inMeeting={props.inMeeting}
+        >
           <CallStats />
         </TabWrapper>
-        <TabWrapper icon="language" label={t('Language')}>
+
+        <TabWrapper icon="language" label={t('Language')} inMeeting>
           <LanguageMenu language={language} setLanguage={setLanguage} />
         </TabWrapper>
-        <TabWrapper icon="film-roll" label={t('Recording library')}>
+
+        <TabWrapper
+          icon="film-roll"
+          label={t('Recording library')}
+          inMeeting={props.inMeeting}
+        >
           <CallRecordings />
         </TabWrapper>
       </SettingsTabModal>
