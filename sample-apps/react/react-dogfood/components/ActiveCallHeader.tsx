@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import {
   CallingState,
   CancelCallButton,
+  Icon,
   LoadingIndicator,
   Notification,
   useCallStateHooks,
-  Icon,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -36,19 +36,17 @@ export const LatencyIndicator = () => {
 };
 
 export const Elapsed = ({
-  joinedAt,
+  startedAt,
 }: {
   className?: string;
-  joinedAt: number;
+  startedAt: string | undefined;
 }) => {
   const [elapsed, setElapsed] = useState<string>();
 
   useEffect(() => {
+    const startedAtDate = startedAt ? new Date(startedAt) : new Date();
     const interval = setInterval(() => {
-      const elapsedSeconds = differenceInSeconds(
-        Date.now(),
-        new Date(joinedAt * 1000),
-      );
+      const elapsedSeconds = differenceInSeconds(Date.now(), startedAtDate);
 
       const date = new Date(0);
       date.setSeconds(elapsedSeconds);
@@ -57,7 +55,7 @@ export const Elapsed = ({
       setElapsed(format);
     }, 1000);
     return () => clearInterval(interval);
-  }, [joinedAt]);
+  }, [startedAt]);
 
   return (
     <div className="rd__header__elapsed">
@@ -70,23 +68,21 @@ export const Elapsed = ({
 export const ActiveCallHeader = ({
   onLeave,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const { useCallCallingState, useParticipants } = useCallStateHooks();
+  const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const session = useCallSession();
   const isOffline = callingState === CallingState.OFFLINE;
   const isMigrating = callingState === CallingState.MIGRATING;
   const isJoining = callingState === CallingState.JOINING;
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
 
-  const participants = useParticipants();
-  const me = participants?.find((p) => p.isLocalParticipant);
-
   return (
     <>
       <div className="rd__call-header">
         <CallHeaderTitle />
         <div className="rd__call-header__controls-group">
-          <Elapsed joinedAt={Number(me?.joinedAt?.seconds) || Date.now()} />
+          <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
           <CancelCallButton onLeave={onLeave} />
         </div>

@@ -73,7 +73,7 @@ const Navbar = () => {
   );
 };
 
-const UserInfo = () => {
+export const UserInfo = () => {
   const { data: theSession } = useSession();
   const { setOpen } = useSettings();
   const { t } = useI18n();
@@ -118,14 +118,14 @@ const UserInfo = () => {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
-        PaperProps={{
-          elevation: 0,
-          sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-            mt: 1.5,
-            // color: '#fff',
-            // background: '#45484d',
+        slotProps={{
+          paper: {
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              mt: 1.5,
+            },
           },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -138,9 +138,8 @@ const UserInfo = () => {
           {t('Settings')}
         </MenuItem>
         <MenuItem
-          // sx={{ '&:hover': { background: '#2f2f2f' } }}
           onClick={() => {
-            signOut();
+            void signOut();
             handleClose();
           }}
         >

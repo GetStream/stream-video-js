@@ -31,15 +31,13 @@ export const getServerSideCredentialsProps = async (
   const userIdOverride = context.query['user_id'] as string | undefined;
   const userId = (
     userIdOverride ||
-    session.user?.email ||
+    session?.user?.name ||
     'unknown-user'
   ).replaceAll(' ', '_'); // Otherwise, SDP parse errors with MSID
 
   // Chat does not allow for Id's to include special characters
-  const streamUserId = userId
-    .replace(/[^_\-0-9a-zA-Z@]/g, '_')
-    .replace('@getstream_io', '');
-  const userName = session.user?.name || userId;
+  const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+  const userName = session?.user?.name || userId;
   return {
     props: {
       apiKey,
@@ -47,7 +45,7 @@ export const getServerSideCredentialsProps = async (
       user: {
         id: streamUserId,
         name: userIdOverride || userName,
-        image: session.user?.image,
+        image: session?.user?.image,
       },
       gleapApiKey,
     } as ServerSideCredentialsProps,
