@@ -7,35 +7,7 @@ import Head from 'next/head';
 import { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
-import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
 import { SettingsProvider } from '../context/SettingsContext';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      light: '#757ce8',
-      main: '#0361FC',
-      dark: '#002884',
-      contrastText: '#fff',
-    },
-    secondary: {
-      light: '#ff7961',
-      main: '#f44336',
-      dark: '#ba000d',
-      contrastText: '#000',
-    },
-  },
-  components: {
-    MuiAccordion: {
-      styleOverrides: {
-        root: {
-          backgroundColor: 'initial',
-          color: '#fff',
-        },
-      },
-    },
-  },
-});
 
 type AppProps = {
   Component: ComponentType;
@@ -85,14 +57,11 @@ export default function App({
         />
       </Head>
 
-      <CssBaseline />
-      <ThemeProvider theme={theme}>
-        <SettingsProvider>
-          <StreamTheme>
-            <Component {...pageProps} />
-          </StreamTheme>
-        </SettingsProvider>
-      </ThemeProvider>
+      <SettingsProvider>
+        <StreamTheme>
+          <Component {...pageProps} />
+        </StreamTheme>
+      </SettingsProvider>
     </SessionProvider>
   );
 }
