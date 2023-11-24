@@ -7,9 +7,10 @@ import {
   ToggleCameraFaceButton,
   ToggleVideoPublishingButton,
   ScreenShareButton,
+  useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { appTheme } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Z_INDEX } from '../constants';
@@ -30,6 +31,8 @@ export const CallControlsComponent = ({
   unreadCountIndicator,
   landscape,
 }: CallControlsComponentProps) => {
+  const { useMicrophoneState } = useCallStateHooks();
+  const { isSpeakingWhileMuted } = useMicrophoneState();
   const { bottom } = useSafeAreaInsets();
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'column-reverse' : 'row',
@@ -39,22 +42,38 @@ export const CallControlsComponent = ({
   };
 
   return (
-    <View style={[styles.callControlsWrapper, landscapeStyles]}>
-      <ReactionsButton />
-      <ChatButton
-        onPressHandler={onChatOpenHandler}
-        unreadBadgeCount={unreadCountIndicator}
-      />
-      <ScreenShareButton />
-      <ToggleVideoPublishingButton />
-      <ToggleAudioPublishingButton />
-      <ToggleCameraFaceButton />
-      <HangUpCallButton onPressHandler={onHangupCallHandler} />
+    <View>
+      {isSpeakingWhileMuted && (
+        <View style={styles.speakingLabelContainer}>
+          <Text style={styles.label}>You are muted. Unmute to speak.</Text>
+        </View>
+      )}
+      <View style={[styles.callControlsWrapper, landscapeStyles]}>
+        <ReactionsButton />
+        <ChatButton
+          onPressHandler={onChatOpenHandler}
+          unreadBadgeCount={unreadCountIndicator}
+        />
+        <ScreenShareButton />
+        <ToggleVideoPublishingButton />
+        <ToggleAudioPublishingButton />
+        <ToggleCameraFaceButton />
+        <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  speakingLabelContainer: {
+    backgroundColor: appTheme.colors.static_overlay,
+    paddingVertical: 10,
+    width: '100%',
+  },
+  label: {
+    textAlign: 'center',
+    color: appTheme.colors.static_white,
+  },
   callControlsWrapper: {
     justifyContent: 'space-evenly',
     zIndex: Z_INDEX.IN_FRONT,
