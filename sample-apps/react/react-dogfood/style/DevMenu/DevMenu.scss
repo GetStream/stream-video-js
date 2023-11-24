@@ -1,0 +1,24 @@
+.rd__dev-menu {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  border-radius: var(--str-video__border-radius-lg);
+
+  background-color: var(--str-video__base-color7);
+  border-radius: var(--str-video__border-radius-lg);
+  padding: var(--str-video__spacing-md);
+
+  margin: 0;
+  list-style: none;
+
+  box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+
+  gap: var(--str-video__spacing-md);
+
+  &__item {
+    &--divider {
+      border-bottom: 1px solid var(--str-video__base-color3);
+      margin: var(--str-video__spacing-sm) 0;
+    }
+  }
+}
