@@ -21,7 +21,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
+
     width: 100%;
 
     .str-video__video-preview-container {
@@ -38,6 +38,7 @@
     font-size: var(--str-video__font-size-xl);
     font-weight: 500;
     margin-bottom: var(--str-video__spacing-md);
+    text-align: center;
   }
 
   &-controls {

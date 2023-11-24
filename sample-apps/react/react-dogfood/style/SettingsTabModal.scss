@@ -4,6 +4,8 @@
     border-radius: var(--str-video__border-radius-lg);
     width: 65vw;
     min-height: 65vh;
+
+    box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
   }
 
   &__tabmodal-header {
@@ -28,7 +30,7 @@
     padding: var(--str-video__spacing-md);
     width: 100%;
     max-height: 65vh;
-    overflow-y: scroll;
+    overflow: hidden;
   }
 
   &__tab-panel__header {
@@ -40,6 +42,11 @@
 
   &__tab-panel__close {
     background-color: unset;
+  }
+
+  &__tab-panel__content {
+    height: 65vh;
+    overflow-y: scroll;
   }
 
   &__tab {
