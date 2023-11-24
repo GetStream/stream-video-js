@@ -17,6 +17,16 @@
     background-color: var(--str-video__danger-color);
   }
 
+  &--paperclip {
+    mask-image: var(--str-video__icon--paperclip);
+    -webkit-mask-image: var(--str-video__icon--paperclip);
+  }
+
+  &--chevron-right {
+    mask-image: var(--str-video__icon--chevron-right);
+    -webkit-mask-image: var(--str-video__icon--chevron-right);
+  }
+
   &--recording-off {
     mask-image: var(--str-video__icon--recording-off);
     -webkit-mask-image: var(--str-video__icon--recording-off);
