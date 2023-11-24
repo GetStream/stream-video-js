@@ -106,7 +106,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const onLeave = useCallback(async () => {
     setShow('loading');
     try {
-      await router.push('/');
+      await router.push('/leave');
     } catch (e) {
       console.error(e);
       setLastError(e as Error);
@@ -222,9 +222,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <ToggleSettingsTabModal
                 selectedLayout={layout}
                 onMenuItemClick={setLayout}
-                close={() => {
-                  console.log('Closing Settings Modal');
-                }}
+                inMeeting
               />
               <ToggleFeedbackButton />
               <ToggleDeveloperButton />
@@ -243,7 +241,10 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             <div className="str-video__call-controls--group str-video__call-controls--sidebar">
               <ToggleParticipantListButton
                 enabled={showParticipants}
-                onClick={() => setShowParticipants((prev) => !prev)}
+                onClick={() => {
+                  setShowParticipants((prev) => !prev);
+                  setShowChat(false);
+                }}
               />
               <NewMessageNotification
                 chatClient={chatClient}
@@ -256,7 +257,10 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
                       enabled={showChat}
                       disabled={!chatClient}
                       title="Chat"
-                      onClick={() => setShowChat((prev) => !prev)}
+                      onClick={() => {
+                        setShowChat((prev) => !prev);
+                        setShowParticipants(false);
+                      }}
                       icon="chat"
                     />
                   </CompositeButton>

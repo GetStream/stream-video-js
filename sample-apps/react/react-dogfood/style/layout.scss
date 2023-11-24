@@ -1,6 +1,6 @@
 .rd__layout {
   display: flex;
-  height: 100%;
+  height: calc(100% - 100px);
 
   gap: var(--str-video__spacing-md);
 }
@@ -17,7 +17,12 @@
   }
 
   .str-video__chat {
-    flex-grow: 1.5;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--str-video__base-color7);
+    border-radius: var(--str-video__border-radius-md);
+    margin: var(--str-video__spacing-lg) 0;
+    height: 100%;
   }
 }
 
@@ -27,4 +32,6 @@
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-md);
   padding: var(--str-video__spacing-lg);
+  margin: var(--str-video__spacing-lg) 0;
+  height: 100%;
 }
