@@ -44,13 +44,10 @@ export const MenuPortal = ({
   refs: UseFloatingReturn['refs'];
 }>) => {
   const childrenWithProps = Children.map(children, (child: any) => {
-    if (
-      isValidElement(child) &&
-      (typeof child === 'number' || typeof child === 'string')
-    ) {
-      return cloneElement(child, { close: () => setMenuShown(false) });
-    }
-    return child;
+    return cloneElement(child, {
+      ...child.props,
+      close: () => setMenuShown(false),
+    });
   });
 
   return (
