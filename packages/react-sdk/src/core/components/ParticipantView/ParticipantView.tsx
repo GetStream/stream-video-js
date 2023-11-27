@@ -33,18 +33,23 @@ export type ParticipantViewProps = {
   ParticipantViewUI?: ComponentType | ReactElement | null;
 
   /**
-   * The kind of video stream to play for the given participant. The default value is `video`. You can use `none` if you're building an audio-only call.
+   * The kind of video stream to play for the given participant.
+   * The default value is `videoTrack`.
+   * You can use `none` if you're building an audio-only call.
    */
   trackType?: VideoTrackType | 'none';
 
   /**
-   * This prop is only useful for advanced use-cases (for example building your own paginated layout). When set to `true` it will mute the give participant's audio stream on the client side. The local participant is always muted.
+   * This prop is only useful for advanced use-cases (for example, building your own layout).
+   * When set to `true` it will mute the give participant's audio stream on the client side.
+   * The local participant is always muted.
    */
   muteAudio?: boolean;
 
   /**
    * An object with set functions meant for exposing the video
-   * and video placeholder elements to the integrators. It's useful when you want to attach custom event handlers to these elements.
+   * and video placeholder elements to the integrators.
+   * It's useful when you want to attach custom event handlers to these elements.
    * - `refs.setVideoElement`
    * - `refs.setVideoPlaceholderElement`
    */

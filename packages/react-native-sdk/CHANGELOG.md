@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.2.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.13...@stream-io/video-react-native-sdk-0.2.14) (2023-11-27)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.10`
+* `@stream-io/video-react-bindings` updated to version `0.3.10`
+### [0.2.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.12...@stream-io/video-react-native-sdk-0.2.13) (2023-11-27)
+
+
+### Bug Fixes
+
+* **react-native:** add default sound for android notifications ([6ecb6d3](https://github.com/GetStream/stream-video-js/commit/6ecb6d35016a4c8d8fc61d43c78a5b245c4f8ac5))
+
+### [0.2.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.11...@stream-io/video-react-native-sdk-0.2.12) (2023-11-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.4.9`
+* `@stream-io/video-react-bindings` updated to version `0.3.9`
 ### [0.2.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.10...@stream-io/video-react-native-sdk-0.2.11) (2023-11-17)
 
 
