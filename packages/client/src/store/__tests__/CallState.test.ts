@@ -613,6 +613,56 @@ describe('CallState', () => {
           },
         });
       });
+
+      it('should update existing participant', () => {
+        const state = new CallState();
+        state.updateFromCallResponse({
+          // @ts-ignore
+          session: {
+            participants: [
+              {
+                // @ts-ignore
+                user: {
+                  id: 'user-id',
+                  role: 'user',
+                },
+                user_session_id: '123',
+              },
+            ],
+            participants_count_by_role: {
+              user: 1,
+            },
+          },
+        });
+        state.updateFromEvent({
+          type: 'call.session_participant_joined',
+          participant: {
+            // @ts-ignore
+            user: {
+              id: 'user-id',
+              role: 'user',
+              name: 'Updated user',
+            },
+            user_session_id: '123',
+          },
+        });
+        expect(state.session).toEqual({
+          participants: [
+            {
+              // @ts-ignore
+              user: {
+                id: 'user-id',
+                role: 'user',
+                name: 'Updated user',
+              },
+              user_session_id: '123',
+            },
+          ],
+          participants_count_by_role: {
+            user: 1,
+          },
+        });
+      });
     });
   });
 });
