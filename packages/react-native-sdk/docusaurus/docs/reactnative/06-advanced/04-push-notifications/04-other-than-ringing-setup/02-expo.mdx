@@ -136,7 +136,9 @@ export function setPushConfig() {
       callChannel: {
         id: 'stream_call_notifications',
         name: 'Call notifications',
+        // This importance will ensure that the notification will appear on-top-of applications.
         importance: AndroidImportance.HIGH,
+        sound: "default",
       },
       // configure the functions to create the texts shown in the notification
       // for non ringing calls in Android.
