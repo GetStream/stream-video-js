@@ -16,7 +16,7 @@ object StreamVideoReactNative {
         }
     }
 
-    @JvmStatic
+    @JvmStatic @Deprecated("No need to use setup() anymore")
     fun setup() {
         // do nothing
     }
