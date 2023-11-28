@@ -2,8 +2,8 @@ import { Box, Button, Input, Stack, Typography } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { LobbyHeader } from '../../components/LobbyHeader';
 import { meetingId } from '../../lib/meetingId';
+import { DefaultAppHeader } from '../../components/DefaultAppHeader';
 
 export default function Guest() {
   const params = useSearchParams();
@@ -26,7 +26,7 @@ export default function Guest() {
 
   return (
     <>
-      <LobbyHeader />
+      <DefaultAppHeader />
       <Stack
         direction="row"
         justifyContent="center"

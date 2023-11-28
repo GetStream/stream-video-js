@@ -3,15 +3,15 @@ import { signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { LanguageMenu } from './settings/LanguageMenu';
+import { LanguageMenu } from './Settings/LanguageMenu';
 import { useLanguage } from '../hooks/useLanguage';
 
 import {
   Avatar,
-  IconButton,
   CompositeButton,
-  MenuToggle,
   Icon,
+  IconButton,
+  MenuToggle,
 } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (

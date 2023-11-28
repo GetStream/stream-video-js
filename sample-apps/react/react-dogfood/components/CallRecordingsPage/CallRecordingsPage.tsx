@@ -8,10 +8,10 @@ import {
 import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { CallRecordingSearchForm } from './CallRecordingSearchForm';
-import { LobbyHeader } from '../LobbyHeader';
 import { ServerSideCredentialsProps } from '../../lib/getServerSideCredentialsProps';
 import { useSettings } from '../../context/SettingsContext';
 import { customSentryLogger } from '../../helpers/logger';
+import { DefaultAppHeader } from '../DefaultAppHeader';
 
 export const CallRecordingsPage = ({
   apiKey,
@@ -52,7 +52,7 @@ export const CallRecordingsPage = ({
 
   return (
     <StreamVideo client={videoClient} language={language}>
-      <LobbyHeader />
+      <DefaultAppHeader />
       <Box display="flex" justifyContent="center">
         <Box display="flex" alignItems="center" flexDirection="column">
           <CallRecordingSearchForm
