@@ -141,6 +141,10 @@ export type SubscriptionChanges = {
 export type PublishOptions = {
   preferredCodec?: string | null;
   screenShareSettings?: ScreenShareSettings;
+  /**
+   * Boolean that decides whether the track should be disabled while publishing
+   */
+  disableTrackWhilePublish?: boolean;
 };
 
 export type ScreenShareSettings = {

@@ -255,8 +255,10 @@ export class Publisher {
       // by an external factor as permission revokes, device disconnected, etc.
       // keep in mind that `track.stop()` doesn't trigger this event.
       track.addEventListener('ended', handleTrackEnded);
-      if (!track.enabled) {
-        track.enabled = true;
+      if (!opts.disableTrackWhilePublish) {
+        if (!track.enabled) {
+          track.enabled = true;
+        }
       }
 
       transceiver = this.pc.addTransceiver(track, {

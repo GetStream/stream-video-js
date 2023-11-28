@@ -1110,8 +1110,12 @@ export class Call {
    * The previous audio stream will be stopped.
    *
    * @param audioStream the audio stream to publish.
+   * @param disableTrackWhilePublish if the track should be disabled while published. This is mainly useful for React Native SDK.
    */
-  publishAudioStream = async (audioStream: MediaStream) => {
+  publishAudioStream = async (
+    audioStream: MediaStream,
+    disableTrackWhilePublish?: boolean,
+  ) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
@@ -1130,6 +1134,7 @@ export class Call {
       audioStream,
       audioTrack,
       TrackType.AUDIO,
+      { disableTrackWhilePublish },
     );
   };
 
@@ -1879,7 +1884,10 @@ export class Call {
           }
         } else {
           // In case of React Native we need to publish the stream everytime to get the audioLevels
-          await this.publishAudioStream(this.microphone.state.mediaStream);
+          await this.publishAudioStream(
+            this.microphone.state.mediaStream,
+            true,
+          );
         }
       }
 
