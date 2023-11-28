@@ -42,7 +42,7 @@ export const CallControlsComponent = ({
   };
 
   return (
-    <View>
+    <>
       {isSpeakingWhileMuted && (
         <View style={styles.speakingLabelContainer}>
           <Text style={styles.label}>You are muted. Unmute to speak.</Text>
@@ -60,7 +60,7 @@ export const CallControlsComponent = ({
         <ToggleCameraFaceButton />
         <HangUpCallButton onPressHandler={onHangupCallHandler} />
       </View>
-    </View>
+    </>
   );
 };
 
@@ -68,7 +68,6 @@ const styles = StyleSheet.create({
   speakingLabelContainer: {
     backgroundColor: appTheme.colors.static_overlay,
     paddingVertical: 10,
-    width: '100%',
   },
   label: {
     textAlign: 'center',
