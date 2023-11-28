@@ -96,6 +96,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.publishStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      undefined,
     );
   });
 

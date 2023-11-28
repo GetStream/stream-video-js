@@ -88,6 +88,7 @@ describe('MicrophoneManager', () => {
 
     expect(manager['call'].publishAudioStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      undefined,
     );
   });
 
