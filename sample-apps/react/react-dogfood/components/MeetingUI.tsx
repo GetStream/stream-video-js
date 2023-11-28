@@ -43,6 +43,7 @@ import { Stage } from './Stage';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
+import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 
 const contents = {
   'error-join': {
@@ -106,13 +107,13 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const onLeave = useCallback(async () => {
     setShow('loading');
     try {
-      await router.push('/leave');
+      await router.push(`/leave/${activeCall?.id}`);
     } catch (e) {
       console.error(e);
       setLastError(e as Error);
       setShow('error-leave');
     }
-  }, [router]);
+  }, [router, activeCall?.id]);
 
   useEffect(() => {
     if (callState === CallingState.LEFT) {
@@ -226,6 +227,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               />
               <ToggleFeedbackButton />
               <ToggleDeveloperButton />
+              <ToggleMoreOptionsListButton />
             </div>
             <div className="str-video__call-controls--group str-video__call-controls--media">
               <RecordCallButton />

@@ -27,6 +27,7 @@
       width: 38px;
       background-color: var(--str-video__button-primary-base);
       border-radius: var(--str-video__border-radius-circle);
+      border: 1px solid transparent;
 
       &:hover {
         background-color: var(--str-video__button-primary-hover);

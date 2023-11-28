@@ -1,5 +1,8 @@
 .rd__lobby {
-  position: relative;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
 
   &-container {
     display: flex;
@@ -39,6 +42,11 @@
     font-weight: 500;
     margin-bottom: var(--str-video__spacing-md);
     text-align: center;
+  }
+
+  &-camera {
+    width: calc(100vw - var(--str-video__spacing-lg));
+    height: auto;
   }
 
   &-controls {

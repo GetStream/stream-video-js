@@ -1,15 +1,17 @@
 .rd__layout {
   display: flex;
   height: calc(100% - 100px);
-
   gap: var(--str-video__spacing-md);
+  padding: var(--str-video__spacing-md);
 }
 
 .rd__sidebar {
-  max-width: 300px;
-  min-width: 300px;
+  position: absolute;
+  z-index: 2;
+  left: 0;
   display: flex;
-  gap: var(--str-video__spacing-md);
+  width: 100%;
+  height: calc(100dvh - 60px);
   flex-direction: column;
 
   .str-video__participant-list {
@@ -34,4 +36,16 @@
   padding: var(--str-video__spacing-lg);
   margin: var(--str-video__spacing-lg) 0;
   height: 100%;
+}
+
+@include respond-above(sm) {
+  .rd__sidebar {
+    position: relative;
+    max-width: 300px;
+    min-width: 300px;
+    display: flex;
+    gap: var(--str-video__spacing-md);
+    height: auto;
+    overflow-y: scroll;
+  }
 }

@@ -22,13 +22,25 @@ export const EndCallMenu = ({
   const { t } = useI18n();
   return (
     <div className="str-video__end-call__confirmation">
-      <button className="str-video__end-call__leave" onClick={handleLeave}>
-        <Icon className="str-video__end-call__leave-icon" icon="logout" />
+      <button
+        className="str-video__button str-video__end-call__leave"
+        onClick={handleLeave}
+      >
+        <Icon
+          className="str-video__button__icon str-video__end-call__leave-icon"
+          icon="logout"
+        />
         {t('Leave call')}
       </button>
 
-      <button className="str-video__end-call__end" onClick={handleEndCall}>
-        <Icon className="str-video__end-call__end-icon" icon="call-end" />
+      <button
+        className="str-video__button str-video__end-call__end"
+        onClick={handleEndCall}
+      >
+        <Icon
+          className="str-video__button__icon str-video__end-call__end-icon"
+          icon="call-end"
+        />
         {t('End call for all')}
       </button>
     </div>

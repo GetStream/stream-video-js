@@ -1,3 +1,36 @@
+.str-video__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--str-video__border-radius-md);
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
+  text-align: center;
+  min-width: 120px;
+  width: 100%;
+  font-size: var(--str-video__font-size-md);
+  font-weight: 500;
+  border: 1px solid transparent;
+  color: var(--str-video__text-color1);
+
+  background-color: var(--str-video__button-primary-base);
+
+  &:hover {
+    background-color: var(--str-video__button-primary-hover);
+    cursor: pointer;
+  }
+
+  &__icon {
+    margin-right: var(--str-video__spacing-xs);
+    height: 16px;
+    background-color: var(--str-video__text-color1);
+  }
+
+  &:disabled {
+    background-color: var(--str-video__button-primary-disabled);
+    cursor: not-allowed;
+  }
+}
+
 .str-video__composite-button {
   display: flex;
   flex-direction: column;
@@ -38,10 +71,13 @@
     padding: 0.5rem 1rem;
   }
 
-  // FIXME: ask Jared for better styling
   &[disabled] {
     cursor: not-allowed;
-    opacity: 0.7;
+  }
+
+  &:hover,
+  &:hover > *:hover {
+    cursor: pointer;
   }
 
   .str-video__icon {

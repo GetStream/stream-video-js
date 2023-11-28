@@ -49,6 +49,7 @@
   border: 1px solid var(--str-video__base-color3);
   width: 100%;
   font-family: 'Inter';
+  color: var(--str-video__text-color1);
 
   &:focus,
   &:focus-visible {
@@ -91,7 +92,7 @@
   background-color: var(--str-video__alert-caution);
   cursor: pointer;
 }
-.rd__feedback-starrd__feedback-active {
+.rd__feedback-star--active {
   background-color: var(--str-video__alert-caution);
 }
 

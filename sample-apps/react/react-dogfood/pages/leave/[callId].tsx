@@ -1,14 +1,6 @@
-import {
-  ChangeEventHandler,
-  KeyboardEventHandler,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
 import { useRouter } from 'next/router';
 
-import { StreamI18nProvider, useI18n, Icon } from '@stream-io/video-react-sdk';
+import { StreamI18nProvider } from '@stream-io/video-react-sdk';
 
 import { Feedback } from '../../components/Feedback/Feedback';
 
@@ -31,14 +23,14 @@ export default function Leave() {
 }
 
 const LeaveContent = () => {
-  const { t } = useI18n();
   const router = useRouter();
-  const ref = useRef<HTMLInputElement | null>(null);
+
+  const callId = router.query['callId'] as string;
 
   return (
     <div className="rd__leave">
       <div className="rd__leave-content">
-        <Feedback inMeeting={false} />
+        <Feedback inMeeting={false} callId={callId} />
       </div>
     </div>
   );

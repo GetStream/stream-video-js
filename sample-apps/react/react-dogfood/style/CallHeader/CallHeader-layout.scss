@@ -6,7 +6,12 @@
 
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-xxl);
-  padding: 0.5rem;
+  margin: var(--str-video__spacing-sm) var(--str-video__spacing-sm) 0
+    var(--str-video__spacing-sm);
+
+  padding: var(--str-video__spacing-md);
+
+  z-index: 2;
 
   .rd__call-header__title-group {
     flex: 1;
@@ -32,21 +37,16 @@
       max-width: 400px;
     }
   }
+  &--active {
+    .rd__call-header__title-group {
+      display: none;
+    }
+  }
 }
 
 .rd__call-header__controls-group {
   display: flex;
   gap: 0.5rem;
-}
-
-@include respond-above(sm) {
-  .rd__call-header__controls-group {
-    > * {
-      &:nth-child(3) {
-        display: none;
-      }
-    }
-  }
 }
 
 .rd__header__elapsed {
@@ -70,7 +70,7 @@
 }
 
 .rd__header__latency {
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   background-color: var(--str-video__base-color6);
@@ -116,5 +116,88 @@
   }
   .rd__loading-indicator-text {
     font-size: 0.875rem;
+  }
+}
+
+.rd__user-session {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-md);
+
+  &__container {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-md);
+  }
+
+  &__user {
+    display: none;
+    flex-direction: column;
+    font-size: var(--str-video__font-size-xs);
+  }
+
+  &__name {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  &__email {
+    margin: 0;
+  }
+
+  &__menu {
+    border-radius: var(--str-video__border-radius-lg);
+    padding: var(--str-video__spacing-lg);
+    background-color: var(--str-video__base-color7);
+
+    &-list {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--str-video__spacing-md);
+      font-size: var(--str-video__font-size-xs);
+    }
+
+    &-item {
+      display: flex;
+    }
+
+    .rd__button.rd__user-session__menu-button {
+      font-size: var(--str-video__font-size-xs);
+    }
+  }
+}
+
+@include respond-above(sm) {
+  .rd__call-header--active {
+    .rd__call-header__settings {
+      display: none;
+    }
+    .rd__call-header__leave {
+      display: none;
+    }
+    .rd__call-header__title-group {
+      display: flex;
+    }
+  }
+
+  .rd__call-header__controls-group {
+    > * {
+      &:nth-child(3) {
+        display: none;
+      }
+    }
+  }
+
+  .rd__header__latency {
+    display: flex;
+  }
+
+  .rd__user-session {
+    &__user {
+      display: flex;
+    }
   }
 }

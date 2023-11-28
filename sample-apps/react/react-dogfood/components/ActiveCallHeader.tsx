@@ -12,6 +12,7 @@ import clsx from 'clsx';
 import { differenceInSeconds } from 'date-fns';
 
 import { CallHeaderTitle } from './CallHeaderTitle';
+import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 
 import { LayoutSelectorProps } from './LayoutSelector';
 
@@ -67,6 +68,8 @@ export const Elapsed = ({
 
 export const ActiveCallHeader = ({
   onLeave,
+  selectedLayout,
+  onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
   const { useCallCallingState, useCallSession } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -79,11 +82,21 @@ export const ActiveCallHeader = ({
 
   return (
     <>
-      <div className="rd__call-header">
+      <div className="rd__call-header rd__call-header--active">
         <CallHeaderTitle />
+        <div className="rd__call-header__settings">
+          <ToggleSettingsTabModal
+            selectedLayout={selectedLayout}
+            onMenuItemClick={onMenuItemClick}
+            inMeeting
+          />
+        </div>
+
         <div className="rd__call-header__controls-group">
           <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
+        </div>
+        <div className="rd__call-header__leave">
           <CancelCallButton onLeave={onLeave} />
         </div>
       </div>

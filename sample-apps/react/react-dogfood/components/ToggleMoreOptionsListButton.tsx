@@ -10,24 +10,24 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
-import { CallRecordings } from './CallRecordings';
+import { DevMenu } from './DevMenu';
 
 const ToggleFeedbackButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
   return (
-    <button ref={ref} className="str-video__more-button">
-      <Icon icon={'feedback'} />
+    <button ref={ref} className="rd__button str-video__more-button">
+      <Icon className="rd__button__icon" icon={'feedback'} />
       <span> {t('Feedback')}</span>
     </button>
   );
 });
 
-const ToggleRecordLibraryButton = forwardRef<HTMLButtonElement>((_, ref) => {
+const ToggleDevMenuButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
   return (
-    <button ref={ref} className="str-video__more-button">
-      <Icon icon={'film-roll'} />
-      <span> {t('Record library')}</span>
+    <button ref={ref} className="rd__button str-video__more-button">
+      <Icon className="rd__button__icon" icon={'developer'} />
+      <span> {t('Developer menu')}</span>
     </button>
   );
 });
@@ -38,19 +38,13 @@ const Menu = () => {
     <ul className="str-video__more-menu">
       <li className="strt-video__more-option--record-library">
         <MenuToggle
-          ToggleButton={ToggleRecordLibraryButton}
+          ToggleButton={ToggleDevMenuButton}
           visualType={MenuVisualType.PORTAL}
         >
-          <CallRecordings />
+          <DevMenu />
         </MenuToggle>
       </li>
 
-      <li className="str-video__more-option--screen-share">
-        <div className="str-video__more-link">
-          <Icon icon="screen-share-off" />
-          {t('Share screen')}
-        </div>
-      </li>
       <li className="str-video__more-option--feedback">
         <MenuToggle
           ToggleButton={ToggleFeedbackButton}

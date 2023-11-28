@@ -34,14 +34,14 @@ $scope-name: 'str-video__participant-view';
   & > .str-video__call-controls__button {
     position: absolute;
     top: 0.875rem;
-    right: 0.875rem;
+    left: 0.875rem;
     padding: 0.3rem;
   }
 
   .str-video__participant-details {
     position: absolute;
-    left: 0;
-    bottom: 0;
+    left: -1px;
+    bottom: -1px;
     display: flex;
     align-items: center;
     gap: 0.3125rem;
@@ -117,16 +117,16 @@ $scope-name: 'str-video__participant-view';
 
   .str-video__participant-details__connection-quality {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: -1px;
+    right: -1px;
 
-    border-radius: 0 0var (--str-video__border-radius-sm)
-      var(--str-video__border-radius-xs);
+    border-radius: var(--str-video__border-radius-sm) 0 0 0;
 
-    width: 1.5rem;
-    height: 2rem;
+    width: 24px;
+    height: 24px;
     display: block;
     background-size: cover;
+    background-color: var(--str-video__background-color4);
 
     &--poor {
       background-image: var(--str-video__icon--connection-quality-poor);

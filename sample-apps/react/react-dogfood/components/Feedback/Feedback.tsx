@@ -1,5 +1,7 @@
 import { HTMLInputTypeAttribute, useCallback, useState, useMemo } from 'react';
 import clsx from 'clsx';
+import { useRouter } from 'next/router';
+
 import { useForm, useField } from 'react-form';
 
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
@@ -76,6 +78,8 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   const [errorMessage, setError] = useState<string | null>(null);
 
   const { t } = useI18n();
+  const router = useRouter();
+
   const endpointUrl =
     process.env.MODE === 'staging' || process.env.MODE === 'development'
       ? 'https://staging.getstream.io'
@@ -133,19 +137,23 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   if (feedbackSent) {
     return (
       <div className="rd__feedback rd__feedback--sent">
-        <img src="/feedback.png" alt="Feedback" />
+        <img
+          className="rd__feedback-image"
+          src="/feedback.png"
+          alt="Feedback"
+        />
 
         <h2 className="rd__feedback-heading">
           {t('Thanks for your feedback!')}
         </h2>
         <p className="rd__feedback-description">
-          {t('We’ll use it to hep better your call experience 😀')}
+          {t('We’ll use it to help better your call experience 😀')}
         </p>
 
         <button
-          className="rd__feedback-button rd__feedback-button--close"
+          className="rd__button rd__button--primaryrd__feedback-button rd__feedback-button--close"
           disabled={isSubmitting}
-          onClick={() => {}}
+          onClick={close}
         >
           {' '}
           {t('Close')}
@@ -190,7 +198,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
                 {[...new Array(rating.maxAmount)].map((_, index: number) => {
                   const active = index + 1 <= rating.current;
                   const starClassName = clsx('rd__feedback-star', {
-                    ['rd__feedback-active']: active,
+                    ['rd__feedback-star--active']: active,
                   });
 
                   return (
@@ -219,9 +227,9 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
                 <button
                   className="rd__button rd__button--secondary rd__feedback-button--cancel"
                   disabled={isSubmitting}
-                  onClick={close}
+                  onClick={() => router.push(`/join/${callId}`)}
                 >
-                  <Icon icon="login" />
+                  <Icon className="rd__button__icon" icon="login" />
                   {t('Rejoin Call')}
                 </button>
               )}
@@ -233,7 +241,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
                 onClick={() => {}}
               >
                 {' '}
-                {t('Submit Feedback')}
+                {t('Submit')}
               </button>
             </div>
           </div>

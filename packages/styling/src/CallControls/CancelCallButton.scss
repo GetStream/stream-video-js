@@ -11,32 +11,18 @@
 
   &__leave,
   &__end {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--str-video__border-radius-md);
-    background-color: var(--str-video__button-primary-base);
-    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
-    gap: var(--str-video__spacing-sm);
-
-    color: var(--str-video__text-color1);
-    font-size: var(--str-video__font-size-sm);
-    font-weight: 500;
-
     min-width: 211px;
+    color: var(--str-video__text-color1);
 
     &-icon {
       background-color: var(--str-video__text-color1);
-    }
-
-    &:hover {
-      color: var(--str-video__text-color2);
     }
   }
 
   &__leave {
     background-color: var(--str-video__button-primary-base);
     margin-bottom: var(--str-video__spacing-sm);
+    border: 1px solid transparent;
 
     &:hover {
       background-color: var(--str-video__button-primary-hover);
@@ -50,4 +36,9 @@
       background-color: var(--str-video__button-tertiary-hover);
     }
   }
+}
+
+.str-video__end-call__leave-icon,
+.str-video__end-call__end-icon {
+  background-color: var(--str-video__text-color1);
 }

@@ -59,7 +59,6 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 };
 
 const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
-  console.log(close);
   return (
     <div className="str-video__tab-panel">
       <div className="str-video__tab-panel__header">
@@ -79,7 +78,6 @@ export const SettingsTabModal = ({
   close,
 }: PropsWithChildren<SettingsTabModalProps>) => {
   const [active, setActive] = useState(0);
-  console.log('blaaaaaa', close);
   return (
     <div className="str-video__tabmodal-container">
       <div className="str-video__tabmodal-sidebar">
