@@ -1047,13 +1047,33 @@ export class CallState {
         return session;
       }
       const { participants, participants_count_by_role } = session;
-      const { user } = event.participant;
+      const { user, user_session_id } = event.participant;
+      // It could happen that the backend delivers the same participant more than once.
+      // Once with the call.session_started event and once again with the
+      // call.session_participant_joined event. In this case,
+      // we should update the existing participant and prevent duplicating it.
+      let shouldInsertParticipant = true;
+      const updatedParticipants = participants.map((p) => {
+        if (p.user_session_id === user_session_id) {
+          shouldInsertParticipant = false;
+          return event.participant;
+        }
+        return p;
+      });
+      if (shouldInsertParticipant) {
+        // this is a new array, we can safely push the new participant
+        updatedParticipants.push(event.participant);
+      }
+
+      // If we are updating an existing participant, we don't want to increment
+      // the participant_by_role count.
+      const increment = shouldInsertParticipant ? 1 : 0;
       return {
         ...session,
-        participants: [...participants, event.participant],
+        participants: updatedParticipants,
         participants_count_by_role: {
           ...participants_count_by_role,
-          [user.role]: (participants_count_by_role[user.role] || 0) + 1,
+          [user.role]: (participants_count_by_role[user.role] || 0) + increment,
         },
       };
     });

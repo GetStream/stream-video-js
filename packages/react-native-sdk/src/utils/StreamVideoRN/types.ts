@@ -32,7 +32,8 @@ export type StreamVideoConfig = {
        * {
        *  id: 'stream_call_notifications',
        *  name: 'Call notifications',
-       *  importance: AndroidImportance.HIGH
+       *  importance: AndroidImportance.HIGH,
+       *  sound: 'default',
        * }
        */
       callChannel?: AndroidChannel;
@@ -42,7 +43,8 @@ export type StreamVideoConfig = {
        * {
        *  id: 'stream_incoming_call',
        *  name: 'Incoming call notifications',
-       *  importance: AndroidImportance.HIGH
+       *  importance: AndroidImportance.HIGH,
+       *  sound: 'default',
        * }
        */
       incomingCallChannel?: AndroidChannel;
