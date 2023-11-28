@@ -6,8 +6,6 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
 
   /**
    * An Observable that emits `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
    */
   speakingWhileMuted$: Observable<boolean>;
 
@@ -26,8 +24,6 @@ export class MicrophoneManagerState extends InputMediaDeviceManagerState {
 
   /**
    * `true` if the user's microphone is muted but they'are speaking.
-   *
-   * This feature is not available in the React Native SDK.
    */
   get speakingWhileMuted() {
     return this.getCurrentValue(this.speakingWhileMuted$);

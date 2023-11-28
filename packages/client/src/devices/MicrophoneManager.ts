@@ -61,6 +61,16 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await this.stopSpeakingWhileMutedDetection();
     if (isReactNative()) {
+      // If there is no stream we create one and publish it first.
+      if (!this.call.publisher?.isPublishing(this.trackType)) {
+        const stream = await this.getStream({ deviceId });
+        this.state.setMediaStream(stream);
+        // We mute the stream before publish. We pass `false` here since for audio we disable tracks and don't stop it.
+        this.muteStream(false);
+        if (stream) {
+          await this.publishStream(stream);
+        }
+      }
       this.soundDetectorCleanup = detectAudioLevels(
         this.call.state.callStatsReport$,
         (event) => {

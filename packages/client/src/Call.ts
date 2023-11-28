@@ -125,6 +125,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * An object representation of a `Call`.
@@ -1869,11 +1870,17 @@ export class Call {
     if (options.setStatus) {
       // Publish media stream that was set before we joined
       if (
-        this.microphone.state.status === 'enabled' &&
         this.microphone.state.mediaStream &&
         !this.publisher?.isPublishing(TrackType.AUDIO)
       ) {
-        await this.publishAudioStream(this.microphone.state.mediaStream);
+        if (!isReactNative()) {
+          if (this.microphone.state.status === 'enabled') {
+            await this.publishAudioStream(this.microphone.state.mediaStream);
+          }
+        } else {
+          // In case of React Native we need to publish the stream everytime to get the audioLevels
+          await this.publishAudioStream(this.microphone.state.mediaStream);
+        }
       }
 
       // Start mic if backend config specifies, and there is no local setting
