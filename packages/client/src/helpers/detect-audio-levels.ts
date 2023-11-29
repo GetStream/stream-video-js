@@ -41,20 +41,18 @@ export const detectAudioLevels = (
             stat.type === 'media-source' &&
             (stat as RTCRtpStreamStats).kind === 'audio',
         ) as BaseStats;
-        if (audioMediaSourceStats) {
-          const { audioLevel } = audioMediaSourceStats;
-          if (audioLevel) {
-            if (audioLevel >= AUDIO_LEVEL_THRESHOLD) {
-              onSoundDetectedStateChanged({
-                isSoundDetected: true,
-                audioLevel,
-              });
-            } else {
-              onSoundDetectedStateChanged({
-                isSoundDetected: false,
-                audioLevel: 0,
-              });
-            }
+        const { audioLevel } = audioMediaSourceStats;
+        if (audioLevel) {
+          if (audioLevel >= AUDIO_LEVEL_THRESHOLD) {
+            onSoundDetectedStateChanged({
+              isSoundDetected: true,
+              audioLevel,
+            });
+          } else {
+            onSoundDetectedStateChanged({
+              isSoundDetected: false,
+              audioLevel: 0,
+            });
           }
         }
       }
