@@ -1,0 +1,36 @@
+name: Update BE QA version
+on:
+  push:
+    tags:
+    - v[0-9]+.[0-9]+.[0-9]+
+
+  workflow_dispatch:
+
+jobs:
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: GetStream/chat
+        path: chat
+        token: ${{ secrets.STREAM_CI_BOT_TOKEN }}
+        ref: main
+    - name: Setup Node
+        uses: actions/setup-node@v4.0.0
+        with:
+          node-version: 18.x
+          cache: 'yarn'
+    - name: Open PR
+      run: |
+        cd chat
+        git config --global user.email "ci@stream.io"
+        git config --global user.name "GH Action CI Stream"
+        git switch -c update-qa-version-$(git describe --tags $(git rev-list --tags --max-count=4) | sort | head -n 1 | cut -d '-' -f 4)
+        cd qa
+        yarn add @stream-io/video-client
+        cd ..
+        git add .
+        git commit -m "Update QA version"
+        git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD) --force-with-lease
+        gh pr create --fill
+      env:
+        GITHUB_TOKEN: ${{ secrets.STREAM_CI_BOT_TOKEN }}
