@@ -31,10 +31,10 @@ RCT_EXPORT_MODULE();
 }
 
 +(void)setup {
-    RTCDefaultVideoEncoderFactory *videoEncoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
-    RTCVideoEncoderFactorySimulcast *simulcastVideoEncoderFactory = [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:videoEncoderFactory fallback:videoEncoderFactory];
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-    options.videoEncoderFactory = simulcastVideoEncoderFactory;
+    // RTCDefaultVideoEncoderFactory *videoEncoderFactory = [[RTCDefaultVideoEncoderFactory alloc] init];
+    // RTCVideoEncoderFactorySimulcast *simulcastVideoEncoderFactory = [[RTCVideoEncoderFactorySimulcast alloc] initWithPrimary:videoEncoderFactory fallback:videoEncoderFactory];
+    // WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    // options.videoEncoderFactory = simulcastVideoEncoderFactory;
 }
 
 -(instancetype)init {

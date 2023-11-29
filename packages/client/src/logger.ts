@@ -1,4 +1,5 @@
 import { Logger, LogLevel } from './coordinator/connection/types';
+import { isReactNative } from './helpers/platforms';
 
 // log levels, sorted by verbosity
 export const logLevels: Record<LogLevel, number> = Object.freeze({
@@ -19,6 +20,11 @@ export const logToConsole: Logger = (logLevel, message, ...args) => {
       logMethod = console.error;
       break;
     case 'warn':
+      if (isReactNative()) {
+        message = `WARN: ${message}`;
+        logMethod = console.info;
+        break;
+      }
       logMethod = console.warn;
       break;
     case 'info':
