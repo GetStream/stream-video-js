@@ -1,7 +1,5 @@
 package io.getstream.rnvideosample;
 
-import com.streamvideo.reactnative.StreamVideoReactNative;
-
 import android.app.Application;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
@@ -52,7 +50,6 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
-    StreamVideoReactNative.setup();
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       DefaultNewArchitectureEntryPoint.load();

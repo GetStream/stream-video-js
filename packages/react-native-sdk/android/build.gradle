@@ -129,7 +129,7 @@ dependencies {
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  api 'io.github.webrtc-sdk:android:104.5112.10'
+  api 'org.jitsi:webrtc:118.+'
   implementation project(':stream-io_react-native-webrtc')
   implementation "androidx.annotation:annotation:1.4.0"
 }
