@@ -57,6 +57,7 @@ Add the following imports to `MainActivity.java`:
 ```java title="MainActivity.java"
 import android.app.PictureInPictureParams;
 import com.streamvideo.reactnative.StreamVideoReactNative;
+import android.os.Build;
 import android.util.Rational;
 import androidx.lifecycle.Lifecycle;
 ```
@@ -85,7 +86,7 @@ To make the app to automatically enter PiP on home button press, the following f
 ```java title="MainActivity.java"
   @Override
   public void onUserLeaveHint () {
-    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
       PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
       builder.setAspectRatio(new Rational(480, 640)); // 480 x 640 - Width x Height
       enterPictureInPictureMode(builder.build());

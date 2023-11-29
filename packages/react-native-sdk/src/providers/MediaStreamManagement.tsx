@@ -112,18 +112,23 @@ export const MediaStreamManagement = ({
     if (initialVideoEnabled === undefined) {
       return;
     }
+    // we wait until we receive the settings from the backend
+    if (!call || !settings) {
+      return;
+    }
     if (initialAudioEnabled) {
-      call?.microphone.enable();
+      call.microphone.enable();
     } else {
-      call?.microphone.disable();
+      call.microphone.disable();
     }
 
+    call.camera.selectTargetResolution(settings.video.target_resolution);
     if (initialVideoEnabled) {
-      call?.camera.enable();
+      call.camera.enable();
     } else {
-      call?.camera.disable();
+      call.camera.disable();
     }
-  }, [call, initialAudioEnabled, initialVideoEnabled]);
+  }, [call, initialAudioEnabled, initialVideoEnabled, settings]);
 
   return <>{children}</>;
 };

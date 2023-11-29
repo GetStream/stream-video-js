@@ -49,53 +49,6 @@ yarn add @notifee/react-native@7.7.1
 npx pod-install
 ```
 
-#### Add Stream Video SDK's setup method
-
-<Tabs>
-<TabItem value="android" label="Android" default>
-
-Add the following in your `MainApplication.java` file:
-
-<!-- vale off -->
-```java
-// highlight-next-line
-import com.streamvideo.reactnative.StreamVideoReactNative;
-
-public class MainApplication extends Application implements ReactApplication {
-
-  @Override
-  public void onCreate() {
-    super.onCreate();
-    // highlight-next-line
-    StreamVideoReactNative.setup();
-    // the rest..
-  }
-}
-```
-
-</TabItem>
-<TabItem value="ios" label="iOS">
-
-Add the following in your `AppDelegate.m` or `AppDelegate.mm` file:
-
-```c
-// highlight-next-line
-#import "StreamVideoReactNative.h"
-
-@implementation AppDelegate
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  // highlight-next-line
-  [StreamVideoReactNative setup];
-
-  // the rest..
-}
-```
-
-</TabItem>
-</Tabs>
-
 #### Declare permissions
 
 <Tabs>

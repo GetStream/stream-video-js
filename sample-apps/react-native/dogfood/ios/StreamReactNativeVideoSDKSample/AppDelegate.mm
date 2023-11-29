@@ -14,8 +14,6 @@
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
 
-#import "StreamVideoReactNative.h"
-
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
@@ -97,7 +95,6 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [StreamVideoReactNative setup];
   NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
   NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
   [RNCallKeep setup:@{
