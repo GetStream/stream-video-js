@@ -1,10 +1,8 @@
 ---
-id: connection-quality-indicator
-title: Connection Quality Indicator
+title: Network Quality Indicator
 ---
 
-
-import QualityIndicators from '../assets/06-ui-cookbook/10-connection-quality-indicator/quality-indicators.png';
+import QualityIndicators from '../assets/06-ui-cookbook/10-network-quality-indicator/quality-indicators.png';
 
 Network conditions are not always perfect so instead of playing guessing games as to why is someone's video so blurry our default `ParticipantViewUI` component comes equipped with connection quality indicator which provides general information about that participants network conditions in four states:
 
@@ -30,7 +28,7 @@ const readableConnectionQuality =
 console.log(readableConnectionQuality); // -> EXCELLENT
 ```
 
-### Connection quality indicator component
+### Network quality indicator component
 
 You'll most likely be displaying this indicator component inside each participant box ([ParticipantView](../../ui-components/core/participant-view)) within a call layout, you can learn more about `ParticipantViewUI` customizations in [the participant view customizations guide](../participant-view-customizations).
 
@@ -40,7 +38,7 @@ import {
   useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 
-const ConnectionQualityIndicator = () => {
+const MyNetworkQualityIndicator = () => {
   const { participant } = useParticipantViewContext();
 
   const readableConnectionQuality =
@@ -56,7 +54,7 @@ const ConnectionQualityIndicator = () => {
 const CustomParticipantViewUI = () => {
   return (
     <>
-      <ConnectionQualityIndicator />
+      <MyNetworkQualityIndicator />
       {/* your other custom UI elements */}
     </>
   );
