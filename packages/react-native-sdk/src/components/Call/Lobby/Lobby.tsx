@@ -66,12 +66,9 @@ export const Lobby = ({
   } = useTheme();
   const connectedUser = useConnectedUser();
   const { useCameraState } = useCallStateHooks();
-  const { status: cameraStatus } = useCameraState();
-  const call = useCall();
+  const { status: cameraStatus, mediaStream } = useCameraState();
   const { t } = useI18n();
-  const localVideoStream = call?.camera.state.mediaStream as unknown as
-    | MediaStream
-    | undefined;
+  const localVideoStream = mediaStream as unknown as MediaStream | undefined;
 
   useCallMediaStreamCleanup();
 
