@@ -1,13 +1,25 @@
-import { getProviders, signIn, useSession } from 'next-auth/react';
-import { useCallback, useEffect } from 'react';
+import {
+  ClientSafeProvider,
+  getProviders,
+  signIn,
+  useSession,
+} from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import names from 'starwars-names';
 
 type Providers = ReturnType<typeof getProviders> extends Promise<infer R>
   ? R
   : never;
 
-export default function SignIn({ providers }: { providers: Providers }) {
+export default function SignIn({
+  providers,
+  randomName,
+}: {
+  providers: Providers;
+  randomName: string;
+}) {
   const { status } = useSession();
 
   const router = useRouter();
@@ -20,10 +32,6 @@ export default function SignIn({ providers }: { providers: Providers }) {
     }
   }, [router, status]);
 
-  const handleGuest = useCallback(() => {
-    // window.location = `/guest?callId=${callId}`;
-  }, []);
-
   return (
     <div className="rd__auth">
       <div className="rd__auth-content">
@@ -31,16 +39,19 @@ export default function SignIn({ providers }: { providers: Providers }) {
         <h1 className="rd__auth-heading">
           {t('Stream')}
           <span>{t('[Video Calling]')}</span>
-          {t('Demo')}
+          {process.env.NEXT_PUBLIC_APP_ENVIRONMENT !== 'pronto' && t('Demo')}
         </h1>
         <ul className="rd__auth-list">
           {Object.values(providers!).map((provider) => {
-            const icon =
-              provider.id === 'stream-demo-login'
-                ? 'person-off'
-                : provider.id === 'google'
-                ? 'provider-google'
-                : '';
+            if (provider.id === 'stream-demo-login') {
+              return (
+                <GuestLoginItem
+                  key={provider.id}
+                  provider={provider}
+                  randomName={randomName}
+                />
+              );
+            }
             return (
               <li key={provider.id} className="rd__auth-item">
                 <button
@@ -49,7 +60,7 @@ export default function SignIn({ providers }: { providers: Providers }) {
                 >
                   <Icon
                     className="rd__button__icon rd__auth-provider__icon"
-                    icon={icon}
+                    icon="provider-google"
                   />
                   <span>{t(`Continue with ${provider.name}`)}</span>
                 </button>
@@ -62,9 +73,43 @@ export default function SignIn({ providers }: { providers: Providers }) {
   );
 }
 
+const GuestLoginItem = ({
+  provider,
+  randomName,
+}: {
+  provider: ClientSafeProvider;
+  randomName: string;
+}) => {
+  const [name, setName] = useState(randomName);
+  return (
+    <li className="rd__auth-item rd__auth-item--guest-login">
+      <div className="rd__auth-item--guest_name_wrapper">
+        <span>Your name:</span>
+        <input
+          className="rd__input"
+          type="text"
+          value={name}
+          maxLength={25}
+          onChange={(e) => setName(e.target.value)}
+          onKeyUp={(e) => e.key === 'Enter' && signIn(provider.id, { name })}
+        />
+      </div>
+      <button
+        className="rd__button rd__button--primary rd__auth-provider"
+        onClick={() => signIn(provider.id, { name })}
+      >
+        Continue
+      </button>
+    </li>
+  );
+};
+
 export async function getServerSideProps() {
   const providers = await getProviders();
   return {
-    props: { providers },
+    props: {
+      providers,
+      randomName: names.random(),
+    },
   };
 }

@@ -25,6 +25,10 @@
       cursor: pointer;
       text-decoration: none;
     }
+
+    &--primary {
+      background-color: var(--str-video__brand-color1);
+    }
   }
 
   &__icon {
