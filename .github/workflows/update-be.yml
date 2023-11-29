@@ -2,7 +2,7 @@ name: Update BE QA version
 on:
   push:
     tags:
-    - v[0-9]+.[0-9]+.[0-9]+
+    - @stream-io/video-client@v[0-9]+.[0-9]+.[0-9]+
 
   workflow_dispatch:
 
