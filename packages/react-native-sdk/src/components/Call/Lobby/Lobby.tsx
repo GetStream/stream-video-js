@@ -2,7 +2,6 @@ import React, { ComponentType } from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { MicOff } from '../../../icons';
 import {
-  useCall,
   useCallStateHooks,
   useConnectedUser,
   useI18n,
