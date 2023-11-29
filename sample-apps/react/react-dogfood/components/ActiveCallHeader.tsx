@@ -31,7 +31,7 @@ export const LatencyIndicator = () => {
           'rd__header__latency-indicator--bad': latency && latency > 150,
         })}
       ></div>
-      {latency} mps
+      {latency} ms
     </div>
   );
 };

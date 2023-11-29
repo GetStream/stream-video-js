@@ -39,8 +39,6 @@ export const Invite = ({ callId }: { callId: string }) => {
 
 export const InvitePanel = ({ callId }: InvitePanelProps) => {
   const qrCodeContent = new URL(window.location.toString());
-  qrCodeContent.searchParams.set('id', callId);
-
   return (
     <div className="rd__invite">
       <Invite callId={callId} />
