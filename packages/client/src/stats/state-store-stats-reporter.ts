@@ -264,7 +264,6 @@ const transform = (
       }
 
       return {
-        audioLevel: rtcStreamStats.audioLevel,
         bytesSent: rtcStreamStats.bytesSent,
         bytesReceived: rtcStreamStats.bytesReceived,
         codec: codec?.mimeType,

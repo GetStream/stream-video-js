@@ -1,5 +1,4 @@
 export type BaseStats = {
-  audioLevel?: number;
   bytesSent?: number;
   bytesReceived?: number;
   codec?: string;

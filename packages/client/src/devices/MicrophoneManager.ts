@@ -8,7 +8,6 @@ import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
-import { detectAudioLevels } from '../helpers/detect-audio-levels';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
@@ -59,27 +58,21 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
-    await this.stopSpeakingWhileMutedDetection();
     if (isReactNative()) {
-      this.soundDetectorCleanup = detectAudioLevels(
-        this.call.state.callStatsReport$,
-        (event) => {
-          this.state.setSpeakingWhileMuted(event.isSoundDetected);
-        },
-      );
-    } else {
-      // Need to start a new stream that's not connected to publisher
-      const stream = await this.getStream({
-        deviceId,
-      });
-      this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
-        this.state.setSpeakingWhileMuted(event.isSoundDetected);
-      });
+      return;
     }
+    await this.stopSpeakingWhileMutedDetection();
+    // Need to start a new stream that's not connected to publisher
+    const stream = await this.getStream({
+      deviceId,
+    });
+    this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
+      this.state.setSpeakingWhileMuted(event.isSoundDetected);
+    });
   }
 
   private async stopSpeakingWhileMutedDetection() {
-    if (!this.soundDetectorCleanup) {
+    if (isReactNative() || !this.soundDetectorCleanup) {
       return;
     }
     this.state.setSpeakingWhileMuted(false);
