@@ -6,13 +6,7 @@ import Link from 'next/link';
 import { LanguageMenu } from './Settings/LanguageMenu';
 import { useLanguage } from '../hooks/useLanguage';
 
-import {
-  Avatar,
-  CompositeButton,
-  Icon,
-  IconButton,
-  MenuToggle,
-} from '@stream-io/video-react-sdk';
+import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
@@ -50,41 +44,31 @@ export const Menu = () => {
 };
 
 export const UserInfo = () => {
+  return <ToggleLogoutButton />;
+};
+
+export const ToggleMenuButton = forwardRef<HTMLDivElement>((props, ref) => {
   const { data: theSession } = useSession();
 
   if (!theSession || !theSession.user) {
     return null;
   }
-
   return (
-    <div className="rd__user-session">
+    <div className="rd__user-session" ref={ref}>
       <div className="rd__user-session__container">
-        <Avatar
-          name={theSession?.user?.name || undefined}
-          imageSrc={theSession.user.image || undefined}
-        />
         <div className="rd__user-session__user">
           <p className="rd__user-session__name">{theSession.user.name}</p>
 
           <p className="rd__user-session__email">{theSession.user.email}</p>
         </div>
       </div>
-      <ToggleLogoutButton />
     </div>
-  );
-};
-
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
-  return (
-    <CompositeButton>
-      <IconButton ref={ref} icon="chevron-down" />
-    </CompositeButton>
   );
 });
 
 export const ToggleLogoutButton = () => {
   return (
-    <MenuToggle placement="top-start" ToggleButton={ToggleMenuButton}>
+    <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
       <Menu />
     </MenuToggle>
   );
