@@ -140,7 +140,7 @@ export const CallStats = () => {
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
                 highBound: 300,
-                lowBound: 50,
+                lowBound: 100,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -149,7 +149,7 @@ export const CallStats = () => {
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
                 highBound: 300,
-                lowBound: 50,
+                lowBound: 100,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />
