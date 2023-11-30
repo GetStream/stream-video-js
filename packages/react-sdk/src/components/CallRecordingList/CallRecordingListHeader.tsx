@@ -18,7 +18,9 @@ export const CallRecordingListHeader = ({
         <span>Call Recordings</span>
         {callRecordings.length ? <span>({callRecordings.length})</span> : null}
       </div>
-      <IconButton icon="refresh" title="Refresh" onClick={onRefresh} />
+      {onRefresh ? (
+        <IconButton icon="refresh" title="Refresh" onClick={onRefresh} />
+      ) : null}
     </div>
   );
 };
