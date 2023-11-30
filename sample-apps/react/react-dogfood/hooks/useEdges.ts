@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { FeatureCollection } from 'geojson';
 import { createGeoJsonFeatures } from './useCreateGeoJsonFeatures';
 
-const EDGES_KEY = '@react-video-demo/edges';
+const EDGES_KEY = '@pronto/edges';
 const oneDay = 24 * 3600 * 1000;
 
 type CachedEdges = {
@@ -35,24 +35,20 @@ const getCachedEdges = (): CachedEdges | undefined => {
   }
 };
 
-export const useEdges = (client?: StreamVideoClient) => {
+export const useEdges = () => {
   const [edges, setEdges] = useState<CachedEdges | undefined>(getCachedEdges);
   const [fastestEdge] = useState<{
     id: string;
     latency: number;
   }>();
 
+  const client = useStreamVideoClient();
   useEffect(() => {
-    if (
-      !client ||
-      (edges?.expires_at && edges.expires_at > new Date().getTime())
-    )
-      return;
-
+    if (!client || (edges?.expires_at ?? 0 > new Date().getTime())) return;
     client.edges().then((response) => {
       setEdges(cacheEdges(createGeoJsonFeatures(response.edges)));
     });
-  }, [client, edges]);
+  }, [client, edges?.expires_at]);
 
   return {
     edges: edges?.edges,

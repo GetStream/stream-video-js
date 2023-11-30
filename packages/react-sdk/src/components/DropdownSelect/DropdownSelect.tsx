@@ -1,16 +1,15 @@
 import {
-  FC,
-  PropsWithChildren,
   Children,
-  isValidElement,
   cloneElement,
-  useRef,
-  useCallback,
-  useState,
-  useMemo,
   createContext,
+  isValidElement,
+  PropsWithChildren,
   ReactNode,
+  useCallback,
   useContext,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 
 import clsx from 'clsx';
@@ -18,16 +17,16 @@ import clsx from 'clsx';
 import {
   autoUpdate,
   flip,
-  useFloating,
-  useInteractions,
-  useListNavigation,
-  useTypeahead,
-  useClick,
-  useDismiss,
-  useListItem,
-  useRole,
   FloatingFocusManager,
   FloatingList,
+  useClick,
+  useDismiss,
+  useFloating,
+  useInteractions,
+  useListItem,
+  useListNavigation,
+  useRole,
+  useTypeahead,
 } from '@floating-ui/react';
 
 import { Icon } from '../Icon';
@@ -48,7 +47,7 @@ export const Select = ({
   icon,
   defaultSelectedLabel,
   defaultSelectedIndex,
-  handleSelect: handleSelectPropergation,
+  handleSelect: handleSelectProp,
 }: {
   children: ReactNode;
   icon?: string;
@@ -77,22 +76,25 @@ export const Select = ({
   const elementsRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
 
-  const handleSelect = useCallback((index: number | null) => {
-    setSelectedIndex(index);
-    handleSelectPropergation(index || 0);
-    setIsOpen(false);
-    if (index !== null) {
-      setSelectedLabel(labelsRef.current[index]);
-    }
-  }, []);
+  const handleSelect = useCallback(
+    (index: number | null) => {
+      setSelectedIndex(index);
+      handleSelectProp(index || 0);
+      setIsOpen(false);
+      if (index !== null) {
+        setSelectedLabel(labelsRef.current[index]);
+      }
+    },
+    [handleSelectProp],
+  );
 
-  function handleTypeaheadMatch(index: number | null) {
+  const handleTypeaheadMatch = (index: number | null) => {
     if (isOpen) {
       setActiveIndex(index);
     } else {
       handleSelect(index);
     }
-  }
+  };
 
   const listNav = useListNavigation(context, {
     listRef: elementsRef,
@@ -162,7 +164,7 @@ export const Select = ({
   );
 };
 
-const Option: FC<PropsWithChildren> = ({ children }) => {
+const Option = ({ children }: PropsWithChildren) => {
   const { activeIndex, selectedIndex, getItemProps, handleSelect } =
     useContext(SelectContext);
 
@@ -216,20 +218,18 @@ export const DefaultDropDownSelectOption = ({
   );
 };
 
-export const DropDownSelect: FC<
-  {
-    icon?: string;
-    defaultSelectedLabel: string;
-    defaultSelectedIndex: number;
-    handleSelect: (index: number) => void;
-  } & PropsWithChildren
-> = ({
+export const DropDownSelect = ({
   children,
   icon,
   handleSelect,
   defaultSelectedLabel,
   defaultSelectedIndex,
-}) => {
+}: PropsWithChildren<{
+  icon?: string;
+  defaultSelectedLabel: string;
+  defaultSelectedIndex: number;
+  handleSelect: (index: number) => void;
+}>) => {
   return (
     <Select
       icon={icon}

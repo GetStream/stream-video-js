@@ -18,7 +18,7 @@ export enum Statuses {
 }
 export type Status = Statuses.GOOD | Statuses.OK | Statuses.BAD;
 
-export const statsStatus = ({
+const statsStatus = ({
   value,
   lowBound,
   highBound,
@@ -42,7 +42,11 @@ export const statsStatus = ({
   return Statuses.GOOD;
 };
 
-export const CallStats = () => {
+export const CallStats = (props: {
+  latencyLowBound?: number;
+  latencyHighBound?: number;
+}) => {
+  const { latencyLowBound = 75, latencyHighBound = 400 } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
     Array<{ x: number; y: number }>
   >(() => {
@@ -87,8 +91,8 @@ export const CallStats = () => {
   }, [callStatsReport]);
 
   const latencyComparison = {
-    highBound: 300,
-    lowBound: 50,
+    lowBound: latencyLowBound,
+    highBound: latencyHighBound,
     value: callStatsReport?.publisherStats.averageRoundTripTimeInMs || 0,
   };
 
@@ -125,11 +129,7 @@ export const CallStats = () => {
           </div>
 
           <div className="str-video__call-stats__card-container">
-            <StatCard
-              label="Region"
-              value={callStatsReport.datacenter}
-              comparison={latencyComparison}
-            />
+            <StatCard label="Region" value={callStatsReport.datacenter} />
             <StatCard
               label="Latency"
               value={`${callStatsReport.publisherStats.averageRoundTripTimeInMs} ms.`}
@@ -139,8 +139,7 @@ export const CallStats = () => {
               label="Receive jitter"
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
-                highBound: 300,
-                lowBound: 100,
+                ...latencyComparison,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -148,8 +147,7 @@ export const CallStats = () => {
               label="Publish jitter"
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
-                highBound: 300,
-                lowBound: 100,
+                ...latencyComparison,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />

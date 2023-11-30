@@ -1,14 +1,14 @@
-import { FC, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { FeatureCollection, Geometry } from 'geojson';
+import { FeatureCollection } from 'geojson';
 
 export type Props = {
-  sourceData?: FeatureCollection<Geometry>;
+  sourceData?: FeatureCollection;
   zoomLevel?: number;
 };
 
-export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 2 }) => {
-  const [loading, setLoading] = useState<boolean>(true);
+export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
+  const [loading, setLoading] = useState(true);
   const [source, setSource] = useState(sourceData);
 
   const popUpRef = useRef(
@@ -174,6 +174,7 @@ export const LatencyMap: FC<Props> = ({ sourceData, zoomLevel = 2 }) => {
       dragPan: false,
       dragRotate: false,
       container: mapContainer.current,
+      // TODO read it from an ENV variable
       style: 'mapbox://styles/zwaardje/clhf9caar013j01qt07ib4bea',
       center: [lng, lat],
       zoom: zoom,

@@ -3,7 +3,7 @@ import { ChangeEventHandler, useCallback } from 'react';
 
 import { Icon } from '../Icon';
 
-import { DropDownSelect, DefaultDropDownSelectOption } from '../DropdownSelect';
+import { DefaultDropDownSelectOption, DropDownSelect } from '../DropdownSelect';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -190,6 +190,7 @@ export const DeviceSelectorDropdown = (props: {
         {devices.map((device) => {
           return (
             <DefaultDropDownSelectOption
+              key={device.deviceId}
               icon={icon}
               label={device.label}
               selected={
