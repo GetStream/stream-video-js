@@ -62,7 +62,7 @@ export const DefaultScreenShareOverlay = () => {
 
 export const DefaultParticipantViewUI = ({
   indicatorsVisible = true,
-  menuPlacement = 'bottom-end',
+  menuPlacement = 'bottom-start',
   showMenuButton = true,
 }: DefaultParticipantViewUIProps) => {
   const { participant, participantViewElement, trackType, videoElement } =
