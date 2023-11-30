@@ -1,7 +1,8 @@
-import React, { PropsWithChildren, useEffect, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';
 import { NativeModules, Platform } from 'react-native';
+import type { TargetResolution } from '@stream-io/video-client';
 
 export type MediaDevicesInitialState = {
   /**
@@ -31,6 +32,44 @@ export const MediaStreamManagement = ({
 }: PropsWithChildren<MediaDevicesInitialState>) => {
   const call = useCall();
   const { useCallSettings } = useCallStateHooks();
+  const settings = useCallSettings();
+
+  // Get the target resolution from the settings and memoize it
+  // Memoization is needed to avoid unnecessary useEffect triggers
+  const targetResolutionSetting = useMemo<TargetResolution | undefined>(() => {
+    if (
+      settings?.video.target_resolution?.width === undefined ||
+      settings?.video.target_resolution?.height === undefined ||
+      settings?.video.target_resolution?.bitrate === undefined
+    ) {
+      return undefined;
+    }
+    return {
+      width: settings?.video.target_resolution.width,
+      height: settings?.video.target_resolution.height,
+      bitrate: settings?.video.target_resolution.bitrate,
+    };
+  }, [
+    settings?.video.target_resolution.width,
+    settings?.video.target_resolution.height,
+    settings?.video.target_resolution.bitrate,
+  ]);
+
+  // Get the target resolution from the default device settings and memoize it
+  // Memoization is needed to avoid unnecessary useEffect triggers
+  const defaultOnSetting = useMemo(() => {
+    if (
+      settings?.audio.mic_default_on === undefined ||
+      settings?.video.camera_default_on === undefined
+    ) {
+      return undefined;
+    } else {
+      return {
+        mic_default_on: settings?.audio.mic_default_on,
+        camera_default_on: settings?.video.camera_default_on,
+      };
+    }
+  }, [settings?.audio.mic_default_on, settings?.video.camera_default_on]);
 
   // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
@@ -61,28 +100,26 @@ export const MediaStreamManagement = ({
       initialVideoEnabled: undefined,
     });
 
-  const settings = useCallSettings();
-
   // Use backend settings to set initial audio/video enabled state
   // It is applied only if the prop was undefined -- meaning user did not provide any value
   useEffect(() => {
-    if (!settings) {
+    if (!defaultOnSetting) {
       return;
     }
 
-    const { audio, video } = settings;
+    const { mic_default_on, camera_default_on } = defaultOnSetting;
     setInitialDeviceState((prev) => {
       let initAudio = prev.initialAudioEnabled;
       if (typeof propInitialAudioEnabled === 'undefined') {
-        initAudio = audio.mic_default_on;
+        initAudio = mic_default_on;
       }
       let initVideo = prev.initialVideoEnabled;
       if (typeof propInitialVideoEnabled === 'undefined') {
-        initVideo = video.camera_default_on;
+        initVideo = camera_default_on;
       }
       return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
     });
-  }, [propInitialAudioEnabled, propInitialVideoEnabled, settings]);
+  }, [propInitialAudioEnabled, propInitialVideoEnabled, defaultOnSetting]);
 
   // Apply SDK settings to set the initial audio/video enabled state
   useEffect(() => {
@@ -112,18 +149,24 @@ export const MediaStreamManagement = ({
     if (initialVideoEnabled === undefined) {
       return;
     }
-    if (initialAudioEnabled) {
-      call?.microphone.enable();
-    } else {
-      call?.microphone.disable();
+    // we wait until we receive the resolution settings from the backend
+    if (!call || !targetResolutionSetting) {
+      return;
     }
 
-    if (initialVideoEnabled) {
-      call?.camera.enable();
+    if (initialAudioEnabled) {
+      call.microphone.enable();
     } else {
-      call?.camera.disable();
+      call.microphone.disable();
     }
-  }, [call, initialAudioEnabled, initialVideoEnabled]);
+
+    call.camera.selectTargetResolution(targetResolutionSetting);
+    if (initialVideoEnabled) {
+      call.camera.enable();
+    } else {
+      call.camera.disable();
+    }
+  }, [call, initialAudioEnabled, initialVideoEnabled, targetResolutionSetting]);
 
   return <>{children}</>;
 };

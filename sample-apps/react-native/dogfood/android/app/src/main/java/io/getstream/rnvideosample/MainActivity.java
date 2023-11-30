@@ -1,6 +1,7 @@
 package io.getstream.rnvideosample;
 
 import android.app.PictureInPictureParams;
+import android.os.Build;
 import android.os.Bundle;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -57,10 +58,10 @@ public class MainActivity extends ReactActivity {
 
   @Override
   public void onUserLeaveHint () {
-    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-      PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-      builder.setAspectRatio(new Rational(480, 640));
-      enterPictureInPictureMode(builder.build());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+        PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
+        builder.setAspectRatio(new Rational(480, 640));
+        enterPictureInPictureMode(builder.build());
     }
   }
 }
