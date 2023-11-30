@@ -13,6 +13,10 @@
 
   z-index: 2;
 
+  &--transparent {
+    background-color: transparent;
+  }
+
   .rd__call-header__title-group {
     flex: 1;
     display: flex;
