@@ -3,9 +3,7 @@ import {
   createRunOncePlugin,
   withPlugins,
 } from '@expo/config-plugins';
-import withStreamVideoReactNativeSDKAppDelegate from './withStreamVideoReactNativeSDKAppDelegate';
 import withPushAppDelegate from './withPushAppDelegate';
-import withMainApplication from './withMainApplication';
 import withAndroidPermissions from './withAndroidPermissions';
 import withAndroidManifest from './withAndroidManifest';
 import withiOSInfoPlist from './withiOSInfoPlist';
@@ -25,11 +23,9 @@ const withStreamVideoReactNativeSDK: ConfigPlugin<ConfigProps> = (
   return withPlugins(config, [
     // ios
     () => withPushAppDelegate(config, props),
-    withStreamVideoReactNativeSDKAppDelegate,
     () => withiOSInfoPlist(config, props),
     () => withIosScreenCapture(config, props),
     // android
-    withMainApplication,
     withAndroidPermissions,
     withAppBuildGradle,
     withBuildProperties,

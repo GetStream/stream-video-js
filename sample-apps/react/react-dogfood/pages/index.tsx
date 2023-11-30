@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { useRouter } from 'next/router';
+import clsx from 'clsx';
 
 import { Icon, StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
 
@@ -79,11 +80,11 @@ const HomeContent = () => {
           <h1 className="rd__home-heading">
             {t('Stream')}
             <span>{t('[Video Calling]')}</span>
-            {t('Demo')}
+            {process.env.NEXT_PUBLIC_APP_ENVIRONMENT !== 'pronto' && t('Demo')}
           </h1>
           <p className="rd__home-description">
             {t(
-              'Start a new call, join a meeting by entering the call ID or by scanning a QR code.',
+              'Start a new call or join an existing one by providing its Call ID',
             )}
           </p>
           <div className="rd__home-join">
@@ -96,7 +97,10 @@ const HomeContent = () => {
               placeholder={t('Call ID')}
             />
             <button
-              className="rd__home-new rd__button rd__button--primary rd__button__join"
+              className={clsx(
+                'rd__home-new rd__button rd__button__join',
+                !disabled && 'rd__button--primary',
+              )}
               data-testid="join-call-button"
               disabled={disabled}
               onClick={onJoin}
@@ -107,20 +111,11 @@ const HomeContent = () => {
           </div>
           <a
             href={`/join/${meetingId()}`}
-            className="rd__home-new rd__link rd__link--faux-button"
+            className="rd__home-new rd__link rd__link--faux-button rd__link--faux-button--primary"
           >
             <Icon className="rd__link__icon" icon="camera-add" />
             {t('Start a new call')}
           </a>
-          <button
-            className="rd__home-qr rd__button rd__button--secondary"
-            data-testid="join-call-button"
-            disabled={true}
-            onClick={onJoin}
-          >
-            <Icon className="rd__button__icon" icon="qr-code" />
-            {t('Scan QR code')}
-          </button>
         </div>
       </div>
     </>
