@@ -68,6 +68,17 @@
   &-media {
     display: flex;
     align-items: center;
+
+    .str-video__composite-button {
+      flex-direction: row;
+    }
+
+    .str-video__composite-button__caption {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   &-edge-network {
@@ -113,6 +124,12 @@
       .str-video__video-preview-container {
         height: 320px;
         width: 100%;
+      }
+    }
+
+    .rd__lobby-media {
+      .str-video__composite-button__caption {
+        width: 150px;
       }
     }
   }

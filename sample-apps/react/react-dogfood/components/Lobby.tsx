@@ -26,8 +26,16 @@ type LobbyProps = {
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
   const { useMicrophoneState, useCameraState } = useCallStateHooks();
-  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
-  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
+  const {
+    hasBrowserPermission: hasMicPermission,
+    selectedDevice: selectedMic,
+    devices: microphones,
+  } = useMicrophoneState();
+  const {
+    hasBrowserPermission: hasCameraPermission,
+    selectedDevice: selectedCamera,
+    devices: cameras,
+  } = useCameraState();
 
   const { t } = useI18n();
   const { edges } = useEdges();
@@ -83,8 +91,19 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               />
               <div className="rd__lobby-controls">
                 <div className="rd__lobby-media">
-                  <ToggleAudioPreviewButton />
-                  <ToggleVideoPreviewButton />
+                  <ToggleAudioPreviewButton
+                    caption={
+                      microphones?.find((mic) => mic.deviceId === selectedMic)
+                        ?.label
+                    }
+                  />
+                  <ToggleVideoPreviewButton
+                    caption={
+                      cameras?.find(
+                        (camera) => camera.deviceId === selectedCamera,
+                      )?.label
+                    }
+                  />
                 </div>
                 <ToggleSettingsTabModal
                   selectedLayout={layout}
