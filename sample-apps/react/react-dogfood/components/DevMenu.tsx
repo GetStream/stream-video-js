@@ -39,7 +39,25 @@ export const DevMenu = () => {
         <GoOrStopLive />
       </li>
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
-      <li className="rd__dev-menu__item">Docs</li>
+      <li className="rd__dev-menu__item">
+        <a
+          className="rd__link rd__link--faux-button"
+          href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
+          target="_blank"
+        >
+          Usage guide
+        </a>
+      </li>
+      <li className="rd__dev-menu__item">
+        <a
+          className="rd__link rd__link--faux-button"
+          href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
+          target="_blank"
+        >
+          <Icon className="rd__link__icon" icon="fill-roll" />
+          Recordings
+        </a>
+      </li>
     </ul>
   );
 };
@@ -71,7 +89,7 @@ const StartStopBroadcasting = () => {
     >
       <Icon
         className="rd__button__icon"
-        icon={isBroadcasting ? 'grid' : 'people'}
+        icon={isBroadcasting ? 'recording-off' : 'recording-on'}
       />
       {isBroadcasting ? 'Stop broadcasting' : 'Start broadcasting'}
     </button>
@@ -103,7 +121,10 @@ const GoOrStopLive = () => {
         }
       }}
     >
-      <Icon className="rd__button__icon" icon={isLive ? 'grid' : 'people'} />
+      <Icon
+        className="rd__button__icon"
+        icon={isLive ? 'recording-off' : 'recording-on'}
+      />
       {isLive ? 'Stop Live' : 'Go Live'}
     </button>
   );
@@ -176,7 +197,7 @@ const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
         window.location.search = params.toString();
       }}
     >
-      <Icon className="rd__button__icon" icon="grid" />
+      <Icon className="rd__button__icon" icon="mediation" />
       Connect to local {sfuId}
     </button>
   );
@@ -193,7 +214,7 @@ const RestartPublisher = () => {
         call.publisher?.restartIce();
       }}
     >
-      <Icon className="rd__button__icon" icon="restart" />
+      <Icon className="rd__button__icon" icon="recording-off" />
       ICERestart Publisher
     </button>
   );
@@ -210,7 +231,7 @@ const RestartSubscriber = () => {
         call.subscriber?.restartIce();
       }}
     >
-      <Icon className="rd__button__icon" icon="restart" />
+      <Icon className="rd__button__icon" icon="recording-on" />
       ICERestart Subscriber
     </button>
   );
@@ -232,7 +253,7 @@ const LogPublisherStats = () => {
         });
       }}
     >
-      <Icon className="rd__button__icon" icon="grid" />
+      <Icon className="rd__button__icon" icon="folder" />
       Log Publisher stats
     </button>
   );
@@ -254,7 +275,7 @@ const LogSubscriberStats = () => {
         });
       }}
     >
-      <Icon className="rd__button__icon" icon="grid" />
+      <Icon className="rd__button__icon" icon="folder" />
       Log Subscriber stats
     </button>
   );

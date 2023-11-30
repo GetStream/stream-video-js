@@ -6,7 +6,6 @@ button.rd__button,
   border-radius: var(--str-video__border-radius-md);
   padding: var(--str-video__spacing-sm) var(--str-video__spacing-lg);
   text-align: center;
-  min-width: 120px;
   width: 100%;
   font-size: var(--str-video__font-size-md);
   font-weight: 500;
@@ -14,7 +13,6 @@ button.rd__button,
   color: var(--str-video__text-color1);
 
   background-color: var(--str-video__button-primary-base);
-
   &:hover {
     background-color: var(--str-video__button-primary-hover);
     cursor: pointer;
@@ -43,6 +41,10 @@ button.rd__button,
       background-color: var(--str-video__brand-color1);
       cursor: not-allowed;
     }
+
+    .rd__button__icon {
+      background-color: white;
+    }
   }
 
   &--secondary {
@@ -54,5 +56,13 @@ button.rd__button,
       border: 1px solid var(--str-video__base-color3);
       cursor: not-allowed;
     }
+  }
+}
+
+a.rd__button {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
   }
 }

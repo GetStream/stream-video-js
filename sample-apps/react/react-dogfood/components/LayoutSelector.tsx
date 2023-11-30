@@ -22,10 +22,12 @@ export const LayoutMap = {
       ParticipantViewUI: DebugParticipantViewUI,
     },
     title: 'Default',
+    icon: 'layout',
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     title: 'Grid',
+    icon: 'layout',
     props: {
       groupSize: 16,
       ParticipantViewUI: DebugParticipantViewUI,
@@ -34,6 +36,7 @@ export const LayoutMap = {
   SpeakerBottom: {
     Component: SpeakerLayout,
     title: 'Speaker [top]',
+    icon: 'layout-speaker-top',
     props: {
       participantsBarPosition: 'bottom',
       ParticipantViewUIBar: DebugParticipantViewUI,
@@ -43,6 +46,7 @@ export const LayoutMap = {
   SpeakerTop: {
     Component: SpeakerLayout,
     title: 'Speaker [bottom]',
+    icon: 'layout-speaker-bottom',
     props: {
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
@@ -52,6 +56,7 @@ export const LayoutMap = {
   SpeakerRight: {
     Component: SpeakerLayout,
     title: 'Speaker [left]',
+    icon: 'layout-speaker-left',
     props: {
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
@@ -61,6 +66,7 @@ export const LayoutMap = {
   SpeakerLeft: {
     Component: SpeakerLayout,
     title: 'Speaker [right]',
+    icon: 'layout-speaker-right',
     props: {
       participantsBarPosition: 'left',
       ParticipantViewUIBar: DebugParticipantViewUI,
@@ -69,6 +75,7 @@ export const LayoutMap = {
   },
   LegacySpeaker: {
     Component: CallParticipantsScreenView,
+    icon: 'layout',
     title: 'Sidebar',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
@@ -76,6 +83,7 @@ export const LayoutMap = {
   },
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
+    icon: 'layout',
     title: 'Speaker 1:1',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
@@ -84,6 +92,7 @@ export const LayoutMap = {
   LivestreamLayout: {
     Component: LivestreamLayout,
     title: 'Livestream',
+    icon: 'layout',
     props: {},
   },
 };
@@ -182,7 +191,7 @@ const Menu = ({
             key={key}
             selected={key === selectedLayout}
             label={LayoutMap[key].title}
-            icon="grid"
+            icon={LayoutMap[key].icon}
           />
         ))}
     </DropDownSelect>

@@ -181,8 +181,8 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   } else {
     ComponentToRender = (
-      <div className="str-video__call">
-        <div className="str-video__main-call-panel">
+      <div className="rd__call">
+        <div className="rd__main-call-panel">
           <ActiveCallHeader
             selectedLayout={layout}
             onMenuItemClick={setLayout}
@@ -298,54 +298,46 @@ const ErrorPage = ({
   onClickLobby,
   error,
 }: ErrorPageProps) => (
-  <Stack height={1} justifyContent="center" alignItems="center" gap={5}>
+  <div className="rd__error">
     <div>
-      <Typography variant="h2" textAlign="center">
-        {heading}
-      </Typography>
-      <Typography variant="subtitle1" textAlign="center">
+      <h1 className="rd__error__header">{heading}</h1>
+      <div className="rd__error__content">
         {error?.stack && (
-          <Box
-            textAlign="left"
-            fontFamily="Monospace"
-            color="#d32f2f"
-            fontSize="0.75rem"
-          >
+          <div className="rd__error__message">
             <pre>{error.stack}</pre>
-          </Box>
+          </div>
         )}
-        (see the console for more info)
-      </Typography>
+        <p>(see the console for more info)</p>
+      </div>
     </div>
-    <Stack direction="row" gap={2}>
-      <Button
+    <div className="rd__error___actions">
+      <button
         data-testid="return-home-button"
-        variant="contained"
+        className="rd__button rd__button--primary"
         onClick={onClickHome}
       >
         Return home
-      </Button>
+      </button>
 
-      <Button
+      <button
         data-testid="return-home-button"
-        variant="contained"
+        className="rd__button rd__button--secondary"
         onClick={onClickLobby}
       >
         Back to lobby
-      </Button>
+      </button>
 
-      <Button
+      <button
         data-testid="report-issue-button"
-        variant="contained"
-        color="error"
+        className="rd__button"
         onClick={() => {
           Gleap.startFeedbackFlow('bugreporting');
         }}
       >
         Report an issue
-      </Button>
-    </Stack>
-  </Stack>
+      </button>
+    </div>
+  </div>
 );
 
 export const LoadingScreen = () => {
