@@ -17,27 +17,14 @@ const flatten = (report: RTCStatsReport) => {
 const AUDIO_LEVEL_THRESHOLD = 0.2;
 
 export class RNSpeechDetector {
-  private pc1: RTCPeerConnection | undefined;
-  private pc2: RTCPeerConnection | undefined;
+  private pc1 = new RTCPeerConnection({});
+  private pc2 = new RTCPeerConnection({});
   private intervalId: NodeJS.Timer | undefined;
 
-  constructor() {
-    this.initializePeerConnection();
-  }
-
   /**
-   * Internal method to initialize the peer connections.
+   * Starts the speech detection.
    */
-  private async initializePeerConnection() {
-    this.pc1 = new RTCPeerConnection({});
-    this.pc2 = new RTCPeerConnection({});
-  }
-
-  /**
-   * Public method to connect and offer negotiations between peer connections.
-   * This is essential to retrieve audio stats in React Native.
-   */
-  public async negotiateBetweenPeerConnections() {
+  public async start() {
     try {
       if (this.pc1 && this.pc2) {
         const audioStream = await navigator.mediaDevices.getUserMedia({
@@ -77,17 +64,20 @@ export class RNSpeechDetector {
   }
 
   /**
-   * Public method to cleanup and close the peer connections.
+   * Stops the speech detection and releases all allocated resources.
    */
-  public cleanupPeerConnections() {
+  public stop() {
     this.pc1?.close();
     this.pc2?.close();
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
   /**
    * Public method that detects the audio levels and returns the status.
    */
-  public onSpeakingStateChange(
+  public onSpeakingDetectedStateChange(
     onSoundDetectedStateChanged: SoundStateChangeHandler,
   ) {
     this.intervalId = setInterval(async () => {

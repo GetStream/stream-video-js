@@ -12,7 +12,7 @@ import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
-  private peerConnectionHandler: RNSpeechDetector | undefined;
+  private rnSpeechDetector: RNSpeechDetector | undefined;
 
   constructor(call: Call) {
     super(call, new MicrophoneManagerState(), TrackType.AUDIO);
@@ -27,8 +27,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         if (callingState === CallingState.LEFT) {
           await this.stopSpeakingWhileMutedDetection();
           if (isReactNative()) {
-            // We need to cleanup and close the connection when the call ends.
-            this.peerConnectionHandler?.cleanupPeerConnections();
+            this.rnSpeechDetector?.stop();
           }
         }
         return;
@@ -67,14 +66,18 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     await this.stopSpeakingWhileMutedDetection();
 
     if (isReactNative()) {
-      // Create a new connection between peers. Also connect and offer negotations.
-      // This is done to get audio stats for React Native.
-      this.peerConnectionHandler = new RNSpeechDetector();
-      await this.peerConnectionHandler.negotiateBetweenPeerConnections();
-      this.soundDetectorCleanup =
-        this.peerConnectionHandler?.onSpeakingStateChange((event) => {
+      this.rnSpeechDetector = new RNSpeechDetector();
+      await this.rnSpeechDetector.start();
+      const unsubscribe = this.rnSpeechDetector?.onSpeakingDetectedStateChange(
+        (event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
-        });
+        },
+      );
+      this.soundDetectorCleanup = () => {
+        unsubscribe();
+        this.rnSpeechDetector?.stop();
+        this.rnSpeechDetector = undefined;
+      };
     } else {
       // Need to start a new stream that's not connected to publisher
       const stream = await this.getStream({
@@ -88,7 +91,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
   private async stopSpeakingWhileMutedDetection() {
     if (isReactNative()) {
-      this.peerConnectionHandler?.cleanupPeerConnections();
+      this.rnSpeechDetector?.stop();
     }
     if (!this.soundDetectorCleanup) {
       return;
