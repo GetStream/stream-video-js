@@ -7823,10 +7823,8 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/prop-types": ^15.7.8
     chart.js: ^4.4.0
     clsx: ^2.0.0
-    prop-types: ^15.8.1
     react: ^18.2.0
     react-chartjs-2: ^5.2.0
     react-dom: ^18.2.0
@@ -8458,7 +8456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*, @types/prop-types@npm:^15.0.0, @types/prop-types@npm:^15.7.7, @types/prop-types@npm:^15.7.8":
+"@types/prop-types@npm:*, @types/prop-types@npm:^15.0.0, @types/prop-types@npm:^15.7.7":
   version: 15.7.8
   resolution: "@types/prop-types@npm:15.7.8"
   checksum: 61dfad79da8b1081c450bab83b77935df487ae1cdd4660ec7df6be8e74725c15fa45cf486ce057addc956ca4ae78300b97091e2a25061133d1b9a1440bc896ae
