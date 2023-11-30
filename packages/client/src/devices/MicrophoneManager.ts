@@ -8,21 +8,14 @@ import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
-import { PeerConnectionHandler } from '../helpers/PeerConnectionHandler';
+import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
-  private peerConnectionHandler: PeerConnectionHandler | undefined;
+  private peerConnectionHandler: RNSpeechDetector | undefined;
 
   constructor(call: Call) {
     super(call, new MicrophoneManagerState(), TrackType.AUDIO);
-
-    if (isReactNative()) {
-      // Create a new connection between peers. Also connect and offer negotations.
-      // This is done to get audio stats for React Native.
-      this.peerConnectionHandler = new PeerConnectionHandler();
-      this.peerConnectionHandler.negotiateBetweenPeerConnections();
-    }
 
     combineLatest([
       this.call.state.callingState$,
@@ -74,8 +67,12 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     await this.stopSpeakingWhileMutedDetection();
 
     if (isReactNative()) {
+      // Create a new connection between peers. Also connect and offer negotations.
+      // This is done to get audio stats for React Native.
+      this.peerConnectionHandler = new RNSpeechDetector();
+      await this.peerConnectionHandler.negotiateBetweenPeerConnections();
       this.soundDetectorCleanup =
-        this.peerConnectionHandler?.speakingWhileMutedDetection((event) => {
+        this.peerConnectionHandler?.onSpeakingStateChange((event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
     } else {
