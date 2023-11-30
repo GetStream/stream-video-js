@@ -17,6 +17,36 @@
     background-color: var(--str-video__danger-color);
   }
 
+  &--mediation {
+    mask-image: var(--str-video__icon--mediation);
+    -webkit-mask-image: var(--str-video__icon--mediation);
+  }
+
+  &--layout-speaker-bottom {
+    mask-image: var(--str-video__icon--layout-speaker-bottom);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-bottom);
+  }
+
+  &--layout-speaker-top {
+    mask-image: var(--str-video__icon--layout-speaker-top);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-top);
+  }
+
+  &--layout-speaker-left {
+    mask-image: var(--str-video__icon--layout-speaker-left);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-left);
+  }
+
+  &--layout {
+    mask-image: var(--str-video__icon--layout);
+    -webkit-mask-image: var(--str-video__icon--layout);
+  }
+
+  &--folder {
+    mask-image: var(--str-video__icon--folder);
+    -webkit-mask-image: var(--str-video__icon--folder);
+  }
+
   &--paperclip {
     mask-image: var(--str-video__icon--paperclip);
     -webkit-mask-image: var(--str-video__icon--paperclip);
