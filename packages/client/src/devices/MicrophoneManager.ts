@@ -26,9 +26,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       if (callingState !== CallingState.JOINED) {
         if (callingState === CallingState.LEFT) {
           await this.stopSpeakingWhileMutedDetection();
-          if (isReactNative()) {
-            this.rnSpeechDetector?.stop();
-          }
         }
         return;
       }
@@ -64,7 +61,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await this.stopSpeakingWhileMutedDetection();
-
     if (isReactNative()) {
       this.rnSpeechDetector = new RNSpeechDetector();
       await this.rnSpeechDetector.start();
@@ -90,9 +86,6 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async stopSpeakingWhileMutedDetection() {
-    if (isReactNative()) {
-      this.rnSpeechDetector?.stop();
-    }
     if (!this.soundDetectorCleanup) {
       return;
     }

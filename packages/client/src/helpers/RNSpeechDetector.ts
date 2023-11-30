@@ -26,35 +26,33 @@ export class RNSpeechDetector {
    */
   public async start() {
     try {
-      if (this.pc1 && this.pc2) {
-        const audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
+      const audioStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
 
-        this.pc1.addEventListener('icecandidate', async (e) => {
-          await this.pc2?.addIceCandidate(
-            e.candidate as RTCIceCandidateInit | undefined,
-          );
-        });
-        this.pc2.addEventListener('icecandidate', async (e) => {
-          await this.pc1?.addIceCandidate(
-            e.candidate as RTCIceCandidateInit | undefined,
-          );
-        });
+      this.pc1.addEventListener('icecandidate', async (e) => {
+        await this.pc2.addIceCandidate(
+          e.candidate as RTCIceCandidateInit | undefined,
+        );
+      });
+      this.pc2.addEventListener('icecandidate', async (e) => {
+        await this.pc1.addIceCandidate(
+          e.candidate as RTCIceCandidateInit | undefined,
+        );
+      });
 
-        audioStream
-          .getTracks()
-          .forEach((track) => this.pc1?.addTrack(track, audioStream));
-        const offer = await this.pc1.createOffer({});
-        await this.pc2.setRemoteDescription(offer);
-        await this.pc1.setLocalDescription(offer);
-        const answer = await this.pc2.createAnswer();
-        await this.pc1.setRemoteDescription(answer);
-        await this.pc2.setLocalDescription(answer);
-        const audioTracks = audioStream.getAudioTracks();
-        // We need to mute the audio track for this temporary stream, or else you will hear yourself twice while in the call.
-        audioTracks.forEach((track) => (track.enabled = false));
-      }
+      audioStream
+        .getTracks()
+        .forEach((track) => this.pc1.addTrack(track, audioStream));
+      const offer = await this.pc1.createOffer({});
+      await this.pc2.setRemoteDescription(offer);
+      await this.pc1.setLocalDescription(offer);
+      const answer = await this.pc2.createAnswer();
+      await this.pc1.setRemoteDescription(answer);
+      await this.pc2.setLocalDescription(answer);
+      const audioTracks = audioStream.getAudioTracks();
+      // We need to mute the audio track for this temporary stream, or else you will hear yourself twice while in the call.
+      audioTracks.forEach((track) => (track.enabled = false));
     } catch (error) {
       console.error(
         'Error connecting and negotiating between PeerConnections:',
@@ -67,8 +65,8 @@ export class RNSpeechDetector {
    * Stops the speech detection and releases all allocated resources.
    */
   public stop() {
-    this.pc1?.close();
-    this.pc2?.close();
+    this.pc1.close();
+    this.pc2.close();
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
@@ -81,7 +79,7 @@ export class RNSpeechDetector {
     onSoundDetectedStateChanged: SoundStateChangeHandler,
   ) {
     this.intervalId = setInterval(async () => {
-      const stats = (await this.pc1?.getStats()) as RTCStatsReport;
+      const stats = (await this.pc1.getStats()) as RTCStatsReport;
       const report = flatten(stats);
       // Audio levels are present inside stats of type `media-source` and of kind `audio`
       const audioMediaSourceStats = report.find(
