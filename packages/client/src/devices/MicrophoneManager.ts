@@ -8,19 +8,20 @@ import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
-import { detectAudioLevels } from '../helpers/detect-audio-levels';
+import { PeerConnectionHandler } from './PeerConnectionHandler';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
-  private pc1: RTCPeerConnection | undefined;
-  private pc2: RTCPeerConnection | undefined;
+  private peerConnectionHandler: PeerConnectionHandler | undefined;
 
   constructor(call: Call) {
     super(call, new MicrophoneManagerState(), TrackType.AUDIO);
 
     if (isReactNative()) {
-      this.initializePeerConnection();
-      this.negotiateBetweenPeerConnections();
+      // Create a new connection between peers. Also connect and offer negotations.
+      // This is done to get audio stats for React Native.
+      this.peerConnectionHandler = new PeerConnectionHandler();
+      this.peerConnectionHandler.negotiateBetweenPeerConnections();
     }
 
     combineLatest([
@@ -32,7 +33,10 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       if (callingState !== CallingState.JOINED) {
         if (callingState === CallingState.LEFT) {
           await this.stopSpeakingWhileMutedDetection();
-          this.cleanupPeerConnections();
+          if (isReactNative()) {
+            // We need to cleanup and close the connection when the call ends.
+            this.peerConnectionHandler?.cleanupPeerConnections();
+          }
         }
         return;
       }
@@ -66,60 +70,14 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     return this.call.stopPublish(TrackType.AUDIO, stopTracks);
   }
 
-  private async initializePeerConnection() {
-    this.pc1 = new RTCPeerConnection({});
-    this.pc2 = new RTCPeerConnection({});
-  }
-
-  private async negotiateBetweenPeerConnections() {
-    if (!isReactNative()) return;
-    try {
-      if (this.pc1 && this.pc2) {
-        const audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-
-        this.pc1.addEventListener('icecandidate', async (e) => {
-          await this.pc2?.addIceCandidate(
-            e.candidate as RTCIceCandidateInit | undefined,
-          );
-        });
-        this.pc2.addEventListener('icecandidate', async (e) => {
-          await this.pc1?.addIceCandidate(
-            e.candidate as RTCIceCandidateInit | undefined,
-          );
-        });
-
-        audioStream
-          .getTracks()
-          .forEach((track) => this.pc1?.addTrack(track, audioStream));
-        const offer = await this.pc1.createOffer({});
-        await this.pc2.setRemoteDescription(offer);
-        await this.pc1.setLocalDescription(offer);
-        const answer = await this.pc2.createAnswer();
-        await this.pc1.setRemoteDescription(answer);
-        await this.pc2.setLocalDescription(answer);
-        const audioTracks = audioStream.getAudioTracks();
-        audioTracks.forEach((track) => (track.enabled = false));
-      }
-    } catch (error) {
-      console.error('Error initializing WebRTC:', error);
-    }
-  }
-
-  private cleanupPeerConnections() {
-    if (!isReactNative()) return;
-    this.pc1?.close();
-    this.pc2?.close();
-  }
-
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await this.stopSpeakingWhileMutedDetection();
 
-    if (isReactNative() && this.pc1) {
-      this.soundDetectorCleanup = detectAudioLevels(this.pc1, (event) => {
-        this.state.setSpeakingWhileMuted(event.isSoundDetected);
-      });
+    if (isReactNative()) {
+      this.soundDetectorCleanup =
+        this.peerConnectionHandler?.speakingWhileMutedDetection((event) => {
+          this.state.setSpeakingWhileMuted(event.isSoundDetected);
+        });
     } else {
       // Need to start a new stream that's not connected to publisher
       const stream = await this.getStream({
