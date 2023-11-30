@@ -5,6 +5,8 @@ import {
   useCall,
 } from '@stream-io/video-react-sdk';
 
+const TIMEOUT_INTERVAL = 1200000;
+
 export const CallRecordings = () => {
   const call = useCall();
   const [callRecordings, setCallRecordings] = useState<CallRecording[]>([]);
@@ -19,7 +21,11 @@ export const CallRecordings = () => {
   }, [call]);
 
   useEffect(() => {
-    fetchCallRecordings();
+    const timeout = setTimeout(fetchCallRecordings, TIMEOUT_INTERVAL);
+
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [fetchCallRecordings]);
 
   useEffect(() => {
@@ -43,9 +49,9 @@ export const CallRecordings = () => {
 
   return (
     <CallRecordingList
+      CallRecordingListHeader={() => <div></div>}
       callRecordings={callRecordings}
       loading={loadingCallRecordings}
-      onRefresh={fetchCallRecordings}
     />
   );
 };
