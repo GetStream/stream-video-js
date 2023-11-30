@@ -48,6 +48,12 @@
   }
 }
 
+.rd__call-header__documentation {
+  display: flex;
+  gap: var(--str-video__spacing-md);
+  align-items: center;
+}
+
 .rd__call-header__controls-group {
   display: flex;
   gap: 0.5rem;
@@ -138,6 +144,10 @@
     display: none;
     flex-direction: column;
     font-size: var(--str-video__font-size-xs);
+
+    &:hover {
+      cursor: pointer;
+    }
   }
 
   &__name {
@@ -151,7 +161,6 @@
 
   &__menu {
     border-radius: var(--str-video__border-radius-lg);
-    padding: var(--str-video__spacing-lg);
     background-color: var(--str-video__base-color7);
 
     &-list {
@@ -166,11 +175,19 @@
 
     &-item {
       display: flex;
+
+      .str-video__dropdown-selected__label {
+        padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+      }
     }
 
     .rd__button.rd__user-session__menu-button {
       font-size: var(--str-video__font-size-xs);
     }
+  }
+
+  &__toggle {
+    background-color: transparent;
   }
 }
 
