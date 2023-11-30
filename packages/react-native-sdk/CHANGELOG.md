@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.0...@stream-io/video-react-native-sdk-0.3.1) (2023-11-30)
+
+
+### Bug Fixes
+
+* **react-native:** do not trigger initial device setting after join ([204c303](https://github.com/GetStream/stream-video-js/commit/204c303353c536c44b77350bb49c117f21e093c5))
+
 ## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.2.14...@stream-io/video-react-native-sdk-0.3.0) (2023-11-29)
 
 ### Dependency Updates
