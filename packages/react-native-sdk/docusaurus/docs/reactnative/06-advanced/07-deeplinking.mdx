@@ -118,14 +118,14 @@ For adding the support of deep linking in iOS we will have to follow the below s
 
 #### Setting up a URL scheme
 
-To add URI scheme to the iOS project configuration, open `YOUR_APP_NAME/ios/app-name.xcworkspace` in XCode. Then select the project name in the left sidebar and navigate to the **Info** tab.
+To add URI scheme to the iOS project configuration, open `YOUR_APP_NAME/ios/app-name.xcworkspace` in Xcode. Then select the project name in the left sidebar and navigate to the **Info** tab.
 Next go to the `URL types`, click the +(plus) button, and under the Identifier and URL schemes, add:
 
 1. Your app's bundle id.
 2. And, Your name for the scheme that act as the URL prefix, respectively.
 3. Leave the role as `Editor`.
 
-![XCode Info URL Types](../assets/06-advanced/06-deeplinking/xcode-info-url-types.png)
+![Xcode Info URL Types](../assets/06-advanced/06-deeplinking/xcode-info-url-types.png)
 
 #### Setting up Universal schemes
 
@@ -147,7 +147,7 @@ If your app is using [Universal Links](https://developer.apple.com/ios/universal
 
 Within your Signing & Capabilities section of Xcode, add the Associated Domains entitlement, thus giving your app the capability to support external domains for not only Universal Links, but web credentials too.
 
-![XCode Signing Capabilities](../assets/06-advanced/06-deeplinking/xcode-signing-capabilitites.png)
+![Xcode Signing Capabilities](../assets/06-advanced/06-deeplinking/xcode-signing-capabilitites.png)
 
 To add Associated Domains support click on +(plus) button just below the `Signing & Capabilities` section near to `Capability`. Search for `Associated Domains` and drag and drop it to the background. This will add the Associated Domains tab.
 
