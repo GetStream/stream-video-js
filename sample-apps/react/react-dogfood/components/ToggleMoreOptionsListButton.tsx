@@ -7,6 +7,8 @@ import {
   MenuToggle,
   MenuVisualType,
   useI18n,
+  DefaultReactionsMenu,
+  defaultReactions,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
@@ -15,7 +17,7 @@ import { DevMenu } from './DevMenu';
 const ToggleFeedbackButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
   return (
-    <button ref={ref} className="rd__button str-video__more-button">
+    <button ref={ref} className="rd__button rd__more-button">
       <Icon className="rd__button__icon" icon={'feedback'} />
       <span> {t('Feedback')}</span>
     </button>
@@ -25,7 +27,7 @@ const ToggleFeedbackButton = forwardRef<HTMLButtonElement>((_, ref) => {
 const ToggleDevMenuButton = forwardRef<HTMLButtonElement>((_, ref) => {
   const { t } = useI18n();
   return (
-    <button ref={ref} className="rd__button str-video__more-button">
+    <button ref={ref} className="rd__button rd__more-button">
       <Icon className="rd__button__icon" icon={'developer'} />
       <span> {t('Developer menu')}</span>
     </button>
@@ -35,8 +37,11 @@ const ToggleDevMenuButton = forwardRef<HTMLButtonElement>((_, ref) => {
 const Menu = () => {
   const { t } = useI18n();
   return (
-    <ul className="str-video__more-menu">
-      <li className="strt-video__more-option--record-library">
+    <ul className="rd__more-menu">
+      <li className="rd__more-menu__item">
+        <DefaultReactionsMenu reactions={defaultReactions} />
+      </li>
+      <li className="rd__more-menu__item">
         <MenuToggle
           ToggleButton={ToggleDevMenuButton}
           visualType={MenuVisualType.PORTAL}
@@ -45,7 +50,7 @@ const Menu = () => {
         </MenuToggle>
       </li>
 
-      <li className="str-video__more-option--feedback">
+      <li className="rd__more-menu__item">
         <MenuToggle
           ToggleButton={ToggleFeedbackButton}
           visualType={MenuVisualType.PORTAL}
