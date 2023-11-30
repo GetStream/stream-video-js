@@ -8,7 +8,7 @@
     background-color: var(--str-video__base-color7);
     display: flex;
 
-    padding: 15px;
+    padding: var(--str-video__spacing-sm);
     gap: 0.5rem;
 
     border-radius: var(--str-video__border-radius-lg);
@@ -31,6 +31,7 @@
 
       &:hover {
         background-color: var(--str-video__button-primary-hover);
+        cursor: pointer;
       }
     }
   }

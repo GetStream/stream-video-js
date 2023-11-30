@@ -1,3 +1,11 @@
 .str-video__menu-container {
   z-index: 2;
+  padding: var(--str-video__spacing-md);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

@@ -36,12 +36,6 @@
     font-weight: 600;
   }
 
-  .str-video__call-stats__latencychart {
-    display: block;
-    width: 100%;
-    height: 150px;
-  }
-
   .str-video__call-stats__card-container {
     --gap: 1rem;
     display: flex;
@@ -96,7 +90,10 @@
   }
 
   .str-video__call-stats-line-chart-container {
-    height: 15vh;
+    position: relative;
+    margin: auto;
+    height: 250px;
+    width: 100%;
   }
 
   .str-video__call-stats__tag {
@@ -104,6 +101,7 @@
     padding: var(--str-video__spacing-xs);
     font-size: var(--str-video__font-size-sm);
     font-weight: 600;
+    height: 30px;
 
     &--good {
       color: var(--str-video__alert-success);
