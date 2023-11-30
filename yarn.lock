@@ -3717,6 +3717,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kurkle/color@npm:^0.3.0":
+  version: 0.3.2
+  resolution: "@kurkle/color@npm:0.3.2"
+  checksum: 79e97b31f8f6efb28c69d373f94b0c7480226fe8ec95221f518ac998e156444a496727ce47de6d728eb5c3369288e794cba82cae34253deb0d472d3bfe080e49
+  languageName: node
+  linkType: hard
+
 "@lukeed/csprng@npm:^1.0.0":
   version: 1.1.0
   resolution: "@lukeed/csprng@npm:1.1.0"
@@ -4223,28 +4230,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nivo/core@npm:^0.80.0":
-  version: 0.80.0
-  resolution: "@nivo/core@npm:0.80.0"
-  dependencies:
-    "@nivo/recompose": 0.80.0
-    "@react-spring/web": 9.4.5
-    d3-color: ^2.0.0
-    d3-format: ^1.4.4
-    d3-interpolate: ^2.0.1
-    d3-scale: ^3.2.3
-    d3-scale-chromatic: ^2.0.0
-    d3-shape: ^1.3.5
-    d3-time-format: ^3.0.0
-    lodash: ^4.17.21
-  peerDependencies:
-    "@nivo/tooltip": 0.80.0
-    prop-types: ">= 15.5.10 < 16.0.0"
-    react: ">= 16.14.0 < 19.0.0"
-  checksum: 05fd9ccc9d9876affea17498a2007f5974641c7a2bb1c12c4d8f97bdae48519dd5882c65653074b6756d14eef47dbaeaf8b8243d3e5389efd3d1e180ecbfde75
-  languageName: node
-  linkType: hard
-
 "@nivo/legends@npm:0.80.0":
   version: 0.80.0
   resolution: "@nivo/legends@npm:0.80.0"
@@ -4274,17 +4259,6 @@ __metadata:
     prop-types: ">= 15.5.10 < 16.0.0"
     react: ">= 16.14.0 < 19.0.0"
   checksum: e2d83971e5d530b4465e628f926d2b311a39ce0fa137b0c942532ca58959d78ced21166e83ce9644c91bf2a2929ac539fdd4307fc7ceda986050346b662de1a3
-  languageName: node
-  linkType: hard
-
-"@nivo/recompose@npm:0.80.0":
-  version: 0.80.0
-  resolution: "@nivo/recompose@npm:0.80.0"
-  dependencies:
-    react-lifecycles-compat: ^3.0.4
-  peerDependencies:
-    react: ">= 16.14.0 < 19.0.0"
-  checksum: 5495eeba137f4d3a46d1ada99948c5b097ccf00c532f10a627bb0525c6fbab14d93c9297a25d90c0041f72432efbd4e9a2ef5d408063e2c4cf25d05f33b1fcc5
   languageName: node
   linkType: hard
 
@@ -7843,8 +7817,6 @@ __metadata:
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
     "@floating-ui/react": ^0.26.2
-    "@nivo/core": ^0.80.0
-    "@nivo/line": ^0.80.0
     "@rollup/plugin-json": ^6.0.1
     "@rollup/plugin-replace": ^5.0.4
     "@rollup/plugin-typescript": ^11.1.5
@@ -7852,9 +7824,11 @@ __metadata:
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
     "@types/prop-types": ^15.7.8
+    chart.js: ^4.4.0
     clsx: ^2.0.0
     prop-types: ^15.8.1
     react: ^18.2.0
+    react-chartjs-2: ^5.2.0
     react-dom: ^18.2.0
     rimraf: ^5.0.5
     rollup: ^3.29.4
@@ -12094,6 +12068,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chart.js@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "chart.js@npm:4.4.0"
+  dependencies:
+    "@kurkle/color": ^0.3.0
+  checksum: 5ee2d99b78608025525b5790af17178fdaa5adc3294e082deba2718029b0496109ba124f1b08dd1e4c8a04d6e842be7f384f2cfe9a11df8d1c6fe884acece52b
+  languageName: node
+  linkType: hard
+
 "check-error@npm:^1.0.2":
   version: 1.0.2
   resolution: "check-error@npm:1.0.2"
@@ -13463,7 +13446,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-interpolate@npm:1 - 2, d3-interpolate@npm:1.2.0 - 2, d3-interpolate@npm:^2.0.1":
+"d3-interpolate@npm:1 - 2, d3-interpolate@npm:1.2.0 - 2":
   version: 2.0.1
   resolution: "d3-interpolate@npm:2.0.1"
   dependencies:
@@ -25922,6 +25905,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-chartjs-2@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "react-chartjs-2@npm:5.2.0"
+  peerDependencies:
+    chart.js: ^4.1.1
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: ace702185be1450e5888a8bcd8b5fc1995067e3b11d236764a67f5567a3d7c32ff16923b8d48d3d39bda6e45135da6c044c9b43fbe8e1978f95aca9d2c0ce348
+  languageName: node
+  linkType: hard
+
 "react-devtools-core@npm:^4.26.1, react-devtools-core@npm:^4.27.2":
   version: 4.28.0
   resolution: "react-devtools-core@npm:4.28.0"
@@ -26134,13 +26127,6 @@ __metadata:
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: f7a19ac3496de32ca9ae12aa030f00f14a3d45374f1ceca0af707c831b2a6098ef0d6bdae51bd437b0a306d7f01d4677fcc8de7c0d331eb47ad0f46130e53c5f
-  languageName: node
-  linkType: hard
-
-"react-lifecycles-compat@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "react-lifecycles-compat@npm:3.0.4"
-  checksum: a904b0fc0a8eeb15a148c9feb7bc17cec7ef96e71188280061fc340043fd6d8ee3ff233381f0e8f95c1cf926210b2c4a31f38182c8f35ac55057e453d6df204f
   languageName: node
   linkType: hard
 
