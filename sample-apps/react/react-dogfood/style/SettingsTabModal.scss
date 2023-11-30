@@ -15,12 +15,15 @@
   }
 
   &__tabmodal-sidebar {
+    display: flex;
+    overflow-x: scroll;
+    width: 100vw;
+
     background-color: var(--str-video__base-color5);
     border-radius: var(--str-video__border-radius-lg) 0 0
       var(--str-video__border-radius-lg);
     padding: var(--str-video__spacing-md) var(--str-video__spacing-md)
       var(--str-video__spacing-md) 0;
-    width: 300px;
   }
 
   &__tabmodal-content {
@@ -47,6 +50,13 @@
   &__tab-panel__content {
     height: 65vh;
     overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   &__tab {
@@ -79,6 +89,27 @@
         cursor: pointer;
         background-color: --var(--str-video__button-primary-hover);
       }
+    }
+  }
+}
+
+@include respond-above(sm) {
+  .str-video {
+    &__tabmodal-container {
+      width: 65vw;
+    }
+
+    &__tabmodal-sidebar {
+      width: 300px;
+      flex-direction: column;
+    }
+  }
+}
+
+@include respond-above(lg) {
+  .str-video {
+    &__tabmodal-container {
+      width: 55vw;
     }
   }
 }

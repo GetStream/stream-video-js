@@ -4,6 +4,8 @@
   text-align: center;
   border-radius: var(--str-video__border-radius-lg);
 
+  width: 100vw;
+
   background-color: var(--str-video__base-color7);
   border-radius: var(--str-video__border-radius-lg);
   padding: var(--str-video__spacing-md);
@@ -20,5 +22,11 @@
       border-bottom: 1px solid var(--str-video__base-color3);
       margin: var(--str-video__spacing-sm) 0;
     }
+  }
+}
+
+@include respond-above(sm) {
+  .rd__dev-menu {
+    width: 30vw;
   }
 }
