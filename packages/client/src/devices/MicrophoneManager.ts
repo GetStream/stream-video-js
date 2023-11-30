@@ -87,6 +87,9 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async stopSpeakingWhileMutedDetection() {
+    if (isReactNative()) {
+      this.peerConnectionHandler?.cleanupPeerConnections();
+    }
     if (!this.soundDetectorCleanup) {
       return;
     }
