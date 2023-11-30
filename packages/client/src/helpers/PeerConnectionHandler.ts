@@ -1,6 +1,6 @@
-import { detectAudioLevels } from '../helpers/detect-audio-levels';
-import { isReactNative } from '../helpers/platforms';
-import { SoundStateChangeHandler } from '../helpers/sound-detector';
+import { detectAudioLevels } from './detect-audio-levels';
+import { isReactNative } from './platforms';
+import { SoundStateChangeHandler } from './sound-detector';
 
 export class PeerConnectionHandler {
   private pc1: RTCPeerConnection | undefined;

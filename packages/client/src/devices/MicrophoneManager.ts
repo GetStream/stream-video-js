@@ -8,7 +8,7 @@ import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
-import { PeerConnectionHandler } from './PeerConnectionHandler';
+import { PeerConnectionHandler } from '../helpers/PeerConnectionHandler';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
