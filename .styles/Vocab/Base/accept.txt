@@ -82,3 +82,6 @@ websockets
 hardcoded
 UIs
 useOrientation
+VoIP
+iOS
+Repo
