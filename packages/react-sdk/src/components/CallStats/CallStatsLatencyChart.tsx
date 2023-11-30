@@ -1,71 +1,29 @@
 import {
-  Chart as ChartJS,
   CategoryScale,
+  Chart as ChartJS,
+  ChartData,
+  ChartOptions,
   LinearScale,
-  PointElement,
   LineElement,
-  Title,
-  Tooltip,
-  Legend,
+  PointElement,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { useMemo } from 'react';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-);
-
-export const options = {
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      position: 'right',
-      stacked: true,
-      min: 0,
-      max: 100,
-      grid: {
-        display: true,
-        color: '#979ca0',
-      },
-    },
-    x: {
-      grid: {
-        display: false,
-      },
-      ticks: {
-        display: false,
-      },
-    },
-  },
-  plugins: {
-    legend: {
-      display: false,
-    },
-    title: {
-      display: false,
-    },
-  },
-};
+ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement);
 
 export const CallStatsLatencyChart = (props: {
   values: Array<{ x: number; y: number }>;
 }) => {
   const { values } = props;
   let max = 0;
-
-  const data = {
+  const data: ChartData<'line'> = {
     labels: values.map((point) => {
       const date = new Date(point.x * 1000);
       return `${date.getHours()}:${date.getMinutes()}`;
     }),
     datasets: [
       {
-        label: 'Latency',
         data: values.map((point) => {
           const { y } = point;
           max = Math.max(max, y);
@@ -76,6 +34,38 @@ export const CallStatsLatencyChart = (props: {
       },
     ],
   };
+
+  const options = useMemo<ChartOptions<'line'>>(() => {
+    return {
+      maintainAspectRatio: false,
+      animation: {
+        duration: 0,
+      },
+      scales: {
+        y: {
+          position: 'right',
+          stacked: true,
+          min: 0,
+          max: Math.max(210, Math.ceil((max + 10) / 10) * 10),
+          grid: {
+            display: true,
+            color: '#979ca0',
+          },
+          ticks: {
+            stepSize: 30,
+          },
+        },
+        x: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            display: false,
+          },
+        },
+      },
+    };
+  }, [max]);
 
   return (
     <div className="str-video__call-stats-line-chart-container">
