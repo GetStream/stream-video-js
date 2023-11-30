@@ -1,6 +1,6 @@
 .rd__layout {
   display: flex;
-  height: calc(100% - 120px);
+  height: calc(100dvh - 120px);
   gap: var(--str-video__spacing-md);
   padding: var(--str-video__spacing-md);
 }
