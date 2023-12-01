@@ -75,7 +75,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
         <div className="rd__lobby-container">
           <div className="rd__lobby-content">
             <h1 className="rd__lobby-heading">
-              {t('Set up your call')} <br /> {t('before joining!')}
+              Set up your call before joining!
             </h1>
             <div
               className={clsx(
@@ -131,10 +131,5 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
 };
 
 const AllowBrowserPermissions = () => {
-  return (
-    <>
-      <p>Allow your browser to access your camera and microphone.</p>
-      <p>Pronto needs access to your camera and microphone for the call.</p>
-    </>
-  );
+  return <p>Please allow your browser to access your camera and microphone.</p>;
 };

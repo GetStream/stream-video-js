@@ -45,13 +45,12 @@ export const ReactionsButton = ({
   reactions = defaultReactions,
   caption,
 }: ReactionsButtonProps) => {
-  const { t } = useI18n();
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <CompositeButton
         active={false}
         caption={caption}
-        menuPlacement="top-start"
+        menuPlacement="top"
         ToggleMenuButton={ToggleMenuButton}
         Menu={<DefaultReactionsMenu reactions={reactions} />}
       />

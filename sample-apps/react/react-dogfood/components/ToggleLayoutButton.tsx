@@ -9,14 +9,14 @@ import {
 
 import {
   LayoutSelector,
-  LayoutSelectorType,
   LayoutSelectorProps,
+  LayoutSelectorType,
 } from './LayoutSelector';
 
 export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
   return (
     <CompositeButton>
-      <IconButton ref={ref} icon="grid" />
+      <IconButton ref={ref} icon="grid" title="Layout" />
     </CompositeButton>
   );
 });
