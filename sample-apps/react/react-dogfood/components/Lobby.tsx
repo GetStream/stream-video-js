@@ -93,9 +93,9 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               <div className="rd__lobby-controls">
                 <div className="rd__lobby-media">
                   <ToggleAudioPreviewButton />
-                  <ToggleVideoPreviewButton />
 
                   <ToggleMicButton />
+                  <ToggleVideoPreviewButton />
                   <ToggleCameraButton />
                 </div>
                 <ToggleSettingsTabModal
