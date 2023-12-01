@@ -20,9 +20,9 @@ export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
 export const ToggleDeveloperButton = () => {
   return (
     <MenuToggle
-      placement="top-start"
+      placement="top-end"
       ToggleButton={ToggleMenuButton}
-      visualType={MenuVisualType.PORTAL}
+      visualType={MenuVisualType.MENU}
     >
       <DevMenu />
     </MenuToggle>
