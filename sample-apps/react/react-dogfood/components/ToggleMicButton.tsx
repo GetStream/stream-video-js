@@ -1,14 +1,14 @@
 import { forwardRef } from 'react';
 
 import {
-  Icon,
   DeviceSelectorAudioInput,
+  Icon,
+  MenuToggle,
+  MenuVisualType,
+  ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
-  ToggleMenuButtonProps,
 } from '@stream-io/video-react-sdk';
-
-import { MenuToggle, MenuVisualType } from '@stream-io/video-react-sdk';
 
 export const ToggleMenuButton = forwardRef<
   HTMLButtonElement,
@@ -18,8 +18,6 @@ export const ToggleMenuButton = forwardRef<
   const { useMicrophoneState } = useCallStateHooks();
   const { selectedDevice: selectedMic, devices: microphones } =
     useMicrophoneState();
-
-  console.log(props);
 
   return (
     <button

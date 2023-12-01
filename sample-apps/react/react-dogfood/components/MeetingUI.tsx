@@ -3,50 +3,18 @@ import { JSX, useCallback, useEffect, useState } from 'react';
 import Gleap from 'gleap';
 import {
   CallingState,
-  CallParticipantsList,
-  CancelCallConfirmButton,
-  CompositeButton,
   defaultSortPreset,
-  IconButton,
   LoadingIndicator,
   noopComparator,
-  PermissionRequests,
-  ReactionsButton,
-  RecordCallButton,
-  ScreenShareButton,
-  SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
-import {
-  ToggleSettingsTabModal,
-  ToggleLayoutTabModal,
-} from './Settings/SettingsTabModal';
-import { InvitePanel } from './InvitePanel/InvitePanel';
-
 import { Lobby } from './Lobby';
 import { StreamChat } from 'stream-chat';
-
-import {
-  ChatUI,
-  ChatWrapper,
-  NewMessageNotification,
-  UnreadCountBadge,
-} from '.';
-import { ActiveCallHeader } from './ActiveCallHeader';
-import { useKeyboardShortcuts, useWakeLock, useWatchChannel } from '../hooks';
-import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
-import { Stage } from './Stage';
-
-import { ToggleParticipantListButton } from './ToggleParticipantListButton';
-import { ToggleDeveloperButton } from './ToggleDeveloperButton';
-import { ToggleFeedbackButton } from './ToggleFeedbackButton';
-import { ToggleLayoutButton } from './ToggleLayoutButton';
-import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
+import { useKeyboardShortcuts, useWakeLock } from '../hooks';
+import { ActiveCall } from './ActiveCall';
 
 const contents = {
   'error-join': {
@@ -70,57 +38,44 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
   const activeCall = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
-    const storedLayout = getLayoutSettings()?.selectedLayout;
 
-    if (!storedLayout) return DEFAULT_LAYOUT;
-
-    return Object.hasOwn(LayoutMap, storedLayout)
-      ? storedLayout
-      : DEFAULT_LAYOUT;
-  });
-
-  const showSidebar = showParticipants || showChat;
-
-  // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
-  // possible fix with "allow to join" permissions in place (expensive?)
-  const channelWatched = useWatchChannel({
-    chatClient,
-    channelId: activeCall?.id,
-  });
-
-  const onJoin = useCallback(async () => {
-    setShow('loading');
-    try {
-      const preferredCodec = router.query['video_codec'];
-      if (typeof preferredCodec === 'string') {
-        activeCall?.camera.setPreferredCodec(preferredCodec);
+  const onJoin = useCallback(
+    async (fastJoin: boolean = false) => {
+      if (!fastJoin) setShow('loading');
+      try {
+        const preferredCodec = router.query['video_codec'];
+        if (typeof preferredCodec === 'string') {
+          activeCall?.camera.setPreferredCodec(preferredCodec);
+        }
+        await activeCall?.join({ create: true });
+        setShow('active-call');
+      } catch (e) {
+        console.error(e);
+        setLastError(e as Error);
+        setShow('error-join');
       }
-      await activeCall?.join({ create: true });
-      setShow('active-call');
-    } catch (e) {
-      console.error(e);
-      setLastError(e as Error);
-      setShow('error-join');
-    }
-  }, [activeCall, router]);
+    },
+    [activeCall, router],
+  );
 
-  const onLeave = useCallback(async () => {
-    setShow('loading');
-    try {
-      await router.push(`/leave/${activeCall?.id}`);
-    } catch (e) {
-      console.error(e);
-      setLastError(e as Error);
-      setShow('error-leave');
-    }
-  }, [router, activeCall?.id]);
+  const onLeave = useCallback(
+    async ({ withFeedback = true }: { withFeedback?: boolean } = {}) => {
+      if (!withFeedback) return;
+      setShow('loading');
+      try {
+        await router.push(`/leave/${activeCall?.id}`);
+      } catch (e) {
+        console.error(e);
+        setLastError(e as Error);
+        setShow('error-leave');
+      }
+    },
+    [router, activeCall?.id],
+  );
 
   useEffect(() => {
     if (callState === CallingState.LEFT) {
-      void onLeave();
+      onLeave({ withFeedback: false }).catch(console.error);
     }
   }, [callState, onLeave]);
 
@@ -184,125 +139,12 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   } else {
     ComponentToRender = (
-      <div className="rd__call">
-        <div className="rd__main-call-panel">
-          <ActiveCallHeader
-            selectedLayout={layout}
-            onMenuItemClick={setLayout}
-            onLeave={onLeave}
-          />
-          <PermissionRequests />
-          <div className="rd__layout">
-            <Stage selectedLayout={layout} />
-            {showSidebar && (
-              <div className="rd__sidebar">
-                {showParticipants && (
-                  <div className="rd__participants">
-                    <CallParticipantsList
-                      onClose={() => setShowParticipants(false)}
-                    />
-                    <InvitePanel callId={activeCall.id} />
-                  </div>
-                )}
-
-                <ChatWrapper chatClient={chatClient}>
-                  {showChat && (
-                    <div className="str-video__chat">
-                      <ChatUI
-                        onClose={() => setShowChat(false)}
-                        channelId={activeCall.id}
-                      />
-                    </div>
-                  )}
-                </ChatWrapper>
-              </div>
-            )}
-          </div>
-          <div
-            className="str-video__call-controls"
-            data-testid="str-video__call-controls"
-          >
-            <div className="str-video__call-controls--group str-video__call-controls--options">
-              <div className="str-video__call-controls__desktop">
-                <ToggleSettingsTabModal
-                  selectedLayout={layout}
-                  onMenuItemClick={setLayout}
-                  inMeeting
-                />
-              </div>
-              <div className="str-video__call-controls__desktop">
-                <ToggleFeedbackButton />
-              </div>
-              {process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto' && (
-                <div className="str-video__call-controls__desktop">
-                  <ToggleDeveloperButton />
-                </div>
-              )}
-              <div className="str-video__call-controls__mobile">
-                <ToggleMoreOptionsListButton />
-              </div>
-            </div>
-            <div className="str-video__call-controls--group str-video__call-controls--media">
-              <RecordCallButton />
-
-              <div className="str-video__call-controls__desktop">
-                <ScreenShareButton />
-              </div>
-              <div className="str-video__call-controls__desktop">
-                <ReactionsButton />
-              </div>
-              <SpeakingWhileMutedNotification>
-                <ToggleAudioPublishingButton />
-              </SpeakingWhileMutedNotification>
-              <ToggleVideoPublishingButton />
-              <div className="str-video__call-controls__desktop">
-                <CancelCallConfirmButton onLeave={onLeave} />
-              </div>
-            </div>
-            <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-              <ToggleLayoutButton
-                selectedLayout={layout}
-                onMenuItemClick={setLayout}
-              />
-
-              <ToggleParticipantListButton
-                enabled={showParticipants}
-                onClick={() => {
-                  setShowParticipants((prev) => !prev);
-                  setShowChat(false);
-                }}
-              />
-              <NewMessageNotification
-                chatClient={chatClient}
-                channelWatched={channelWatched}
-                disableOnChatOpen={showChat}
-              >
-                <div className="str-chat__chat-button__wrapper">
-                  <CompositeButton active={showChat}>
-                    <IconButton
-                      enabled={showChat}
-                      disabled={!chatClient}
-                      title="Chat"
-                      onClick={() => {
-                        setShowChat((prev) => !prev);
-                        setShowParticipants(false);
-                      }}
-                      icon="chat"
-                    />
-                  </CompositeButton>
-                  {!showChat && (
-                    <UnreadCountBadge
-                      channelWatched={channelWatched}
-                      chatClient={chatClient}
-                      channelId={activeCall.id}
-                    />
-                  )}
-                </div>
-              </NewMessageNotification>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ActiveCall
+        activeCall={activeCall}
+        chatClient={chatClient}
+        onLeave={onLeave}
+        onJoin={onJoin}
+      />
     );
   }
 
