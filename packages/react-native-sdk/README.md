@@ -9,7 +9,7 @@
 ## **Quick Links**
 
 - [Register](https://getstream.io/chat/trial/) to get an API key for Stream Video
-- [React Native Video Tutorial](https://getstream.io/video/docs/reactnative/tutorials/video-calling/)
+- [React Native Video Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/)
 - [Sample application](https://github.com/GetStream/stream-video-js/tree/main/sample-apps/react-native/dogfood)
 
 ## **What is Stream?**
@@ -18,9 +18,9 @@ Stream allows developers to rapidly deploy scalable feeds, chat messaging and vi
 
 With Stream's video components, you can use their SDK to build in-app video calling, audio rooms, audio calls, or live streaming. The best place to get started is with their tutorials:
 
-- [Video & Audio Calling Tutorial](https://getstream.io/video/docs/reactnative/tutorials/video-calling/)
-- [Audio Rooms Tutorial](https://getstream.io/video/docs/reactnative/tutorials/audio-room/)
-- [Livestreaming Tutorial](https://getstream.io/video/docs/reactnative/tutorials/livestream/)
+- [Video & Audio Calling Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/)
+- [Audio Rooms Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/audio-room/)
+- [Livestreaming Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/livestreaming/)
 
 Stream provides UI components and state handling that make it easy to build video calling for your app. All calls run on Stream's network of edge servers around the world, ensuring optimal latency and reliability.
 
