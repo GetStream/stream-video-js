@@ -56,7 +56,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
 
   useEffect(() => {
     if (map.current && !loading) {
-      map.current.on('mouseleave', 'servers-visualise', (e: any) => {
+      map.current.on('mouseleave', 'servers-visualise', () => {
         if (map.current) {
           map.current.getCanvas().style.cursor = '';
 
@@ -183,7 +183,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
     map.current.on('load', () => {
       setLoading(false);
     });
-  }, []);
+  }, [lat, lng, zoom]);
 
   return (
     <div className="rd__latencymap">

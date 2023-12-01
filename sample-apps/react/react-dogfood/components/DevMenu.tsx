@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks, Icon } from '@stream-io/video-react-sdk';
+import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const DevMenu = () => {
   return (
@@ -44,6 +44,7 @@ export const DevMenu = () => {
           className="rd__link rd__link--faux-button"
           href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
           target="_blank"
+          rel="noreferrer"
         >
           Usage guide
         </a>
@@ -53,6 +54,7 @@ export const DevMenu = () => {
           className="rd__link rd__link--faux-button"
           href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
           target="_blank"
+          rel="noreferrer"
         >
           <Icon className="rd__link__icon" icon="fill-roll" />
           Recordings

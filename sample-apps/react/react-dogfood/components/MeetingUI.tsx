@@ -26,7 +26,6 @@ import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { InvitePanel } from './InvitePanel/InvitePanel';
 
 import { Lobby } from './Lobby';
-import { Box, Button, Stack, Typography } from '@mui/material';
 import { StreamChat } from 'stream-chat';
 
 import {

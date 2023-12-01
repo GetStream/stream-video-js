@@ -1,8 +1,8 @@
-import { HTMLInputTypeAttribute, useCallback, useState, useMemo } from 'react';
+import { HTMLInputTypeAttribute, useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useRouter } from 'next/router';
 
-import { useForm, useField } from 'react-form';
+import { useField, useForm } from 'react-form';
 
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
 
@@ -131,7 +131,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   );
 
   const descriptionClassName = clsx('rd__feedback-description', {
-    ['rd__feedback-error']: errorMessage,
+    'rd__feedback-error': errorMessage,
   });
 
   if (feedbackSent) {
@@ -198,7 +198,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
                 {[...new Array(rating.maxAmount)].map((_, index: number) => {
                   const active = index + 1 <= rating.current;
                   const starClassName = clsx('rd__feedback-star', {
-                    ['rd__feedback-star--active']: active,
+                    'rd__feedback-star--active': active,
                   });
 
                   return (

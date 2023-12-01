@@ -4,9 +4,9 @@ import { SettingsController } from './SettingsDialog';
 import { Settings } from '../../context/SettingsContext';
 
 import {
-  TranslationLanguage,
-  DropDownSelect,
   DefaultDropDownSelectOption,
+  DropDownSelect,
+  TranslationLanguage,
 } from '@stream-io/video-react-sdk';
 
 const LANGUAGES: Record<TranslationLanguage, string> = {
@@ -19,10 +19,13 @@ export type LanguageMenuProps = Pick<SettingsController, 'setLanguage'> &
   Pick<Settings, 'language'>;
 
 export const LanguageMenu = ({ language, setLanguage }: LanguageMenuProps) => {
-  const handleSelect = useCallback((index: number) => {
-    const selected = Object.keys(LANGUAGES)[index];
-    setLanguage(selected);
-  }, []);
+  const handleSelect = useCallback(
+    (index: number) => {
+      const selected = Object.keys(LANGUAGES)[index];
+      setLanguage(selected);
+    },
+    [setLanguage],
+  );
 
   return (
     <DropDownSelect

@@ -2,13 +2,13 @@ import { forwardRef } from 'react';
 
 import {
   CompositeButton,
+  defaultReactions,
+  DefaultReactionsMenu,
   Icon,
   IconButton,
   MenuToggle,
   MenuVisualType,
   useI18n,
-  DefaultReactionsMenu,
-  defaultReactions,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
@@ -35,7 +35,6 @@ const ToggleDevMenuButton = forwardRef<HTMLButtonElement>((_, ref) => {
 });
 
 const Menu = () => {
-  const { t } = useI18n();
   return (
     <ul className="rd__more-menu">
       <li className="rd__more-menu__item">
