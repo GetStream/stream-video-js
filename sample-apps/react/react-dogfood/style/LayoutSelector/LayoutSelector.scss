@@ -43,5 +43,14 @@
         color: var(--str-video__base-color1);
       }
     }
+
+    &__list {
+      display: flex;
+      flex-direction: column;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      gap: var(--str-video__spacing-md);
+    }
   }
 }

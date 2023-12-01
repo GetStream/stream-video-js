@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useEffect, useCallback } from 'react';
+import clsx from 'clsx';
 import {
   LivestreamLayout,
   PaginatedGridLayout,
@@ -6,6 +7,7 @@ import {
   useCallStateHooks,
   DropDownSelect,
   DefaultDropDownSelectOption,
+  Icon,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -14,6 +16,11 @@ import {
   SpeakerOneOnOne,
 } from './CallLayout';
 import { DebugParticipantViewUI } from './Debug/DebugParticipantViewUI';
+
+export enum LayoutSelectorType {
+  LIST = 'list',
+  DROPDOWN = 'menu',
+}
 
 export const LayoutMap = {
   LegacyGrid: {
@@ -100,6 +107,7 @@ export const LayoutMap = {
 export type LayoutSelectorProps = {
   onMenuItemClick: Dispatch<SetStateAction<keyof typeof LayoutMap>>;
   selectedLayout: keyof typeof LayoutMap;
+  visualType?: LayoutSelectorType;
 };
 
 const SETTINGS_KEY = '@pronto/layout-settings';
@@ -120,6 +128,7 @@ export const getLayoutSettings = () => {
 export const LayoutSelector = ({
   onMenuItemClick: setLayout,
   selectedLayout,
+  visualType,
 }: LayoutSelectorProps) => {
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
@@ -144,12 +153,82 @@ export const LayoutSelector = ({
     );
   }, [hasScreenShare, setLayout]);
 
-  return <Menu onMenuItemClick={setLayout} selectedLayout={selectedLayout} />;
+  return (
+    <Menu
+      onMenuItemClick={setLayout}
+      selectedLayout={selectedLayout}
+      visualType={visualType}
+    />
+  );
+};
+
+const ListMenu = ({
+  onMenuItemClick: setLayout,
+  selectedLayout,
+  handleSelect,
+  canScreenshare,
+}: LayoutSelectorProps & {
+  handleSelect: (index: number) => void;
+  canScreenshare: (key: string) => boolean;
+}) => {
+  return (
+    <ul className="rd__layout-selector__list">
+      {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
+        .filter((key) => !canScreenshare(key))
+        .map((key) => (
+          <li key={key} className="rd__layout-selector__item">
+            <button
+              className={clsx('rd__button rd__button--align-left', {
+                'rd__button--primary': key === selectedLayout,
+              })}
+              onClick={() =>
+                handleSelect(Object.keys(LayoutMap).findIndex((k) => k === key))
+              }
+            >
+              <Icon className="rd__button__icon" icon={LayoutMap[key].icon} />
+              {LayoutMap[key].title}
+            </button>
+          </li>
+        ))}
+    </ul>
+  );
+};
+
+const DropdownMenu = ({
+  selectedLayout,
+  handleSelect,
+  canScreenshare,
+}: LayoutSelectorProps & {
+  handleSelect: (index: number) => void;
+  canScreenshare: (key: string) => boolean;
+}) => {
+  return (
+    <DropDownSelect
+      icon="grid"
+      defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
+        (k) => k === selectedLayout,
+      )}
+      defaultSelectedLabel={LayoutMap[selectedLayout].title}
+      handleSelect={handleSelect}
+    >
+      {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
+        .filter((key) => !canScreenshare(key))
+        .map((key) => (
+          <DefaultDropDownSelectOption
+            key={key}
+            selected={key === selectedLayout}
+            label={LayoutMap[key].title}
+            icon={LayoutMap[key].icon}
+          />
+        ))}
+    </DropDownSelect>
+  );
 };
 
 const Menu = ({
   onMenuItemClick: setLayout,
   selectedLayout,
+  visualType = LayoutSelectorType.DROPDOWN,
 }: LayoutSelectorProps) => {
   const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
@@ -175,25 +254,23 @@ const Menu = ({
     [setLayout],
   );
 
+  if (visualType === LayoutSelectorType.LIST) {
+    return (
+      <ListMenu
+        onMenuItemClick={setLayout}
+        selectedLayout={selectedLayout}
+        canScreenshare={canScreenshare}
+        handleSelect={handleSelect}
+      />
+    );
+  }
+
   return (
-    <DropDownSelect
-      icon="grid"
-      defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
-        (k) => k === selectedLayout,
-      )}
-      defaultSelectedLabel={LayoutMap[selectedLayout].title}
+    <DropdownMenu
+      onMenuItemClick={setLayout}
+      selectedLayout={selectedLayout}
+      canScreenshare={canScreenshare}
       handleSelect={handleSelect}
-    >
-      {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
-        .filter((key) => !canScreenshare(key))
-        .map((key) => (
-          <DefaultDropDownSelectOption
-            key={key}
-            selected={key === selectedLayout}
-            label={LayoutMap[key].title}
-            icon={LayoutMap[key].icon}
-          />
-        ))}
-    </DropDownSelect>
+    />
   );
 };
