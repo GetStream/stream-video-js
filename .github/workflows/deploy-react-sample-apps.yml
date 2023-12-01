@@ -45,7 +45,7 @@ jobs:
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
           - name: react-dogfood
-            project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
+            project-id: prj_bUGd9z0sMAMxZmmgMaec3oiRbWzT
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -65,13 +65,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      # - uses: dorny/paths-filter@v2.11.1
-      #   id: changes
-      #   with:
-      #     filters: |
-      #       sample-apps:
-      #         - 'sample-apps/react/${{ matrix.application.folder || matrix.application.name }}/**/*'
 
       - name: Setup Node
         uses: actions/setup-node@v3
