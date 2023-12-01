@@ -23,10 +23,12 @@ import { useLanguage } from '../../hooks/useLanguage';
 type ToggleSettingsTabModalProps = {
   close?: () => void;
   inMeeting: boolean;
+  activeTab?: number;
 };
 
 type SettingsTabModalProps = {
   close?: () => void;
+  activeTab?: number;
 };
 
 type TabProps = {
@@ -76,8 +78,9 @@ const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
 export const SettingsTabModal = ({
   children,
   close,
+  activeTab = 0,
 }: PropsWithChildren<SettingsTabModalProps>) => {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(activeTab);
   return (
     <div className="str-video__tabmodal-container">
       <div className="str-video__tabmodal-sidebar">
@@ -125,56 +128,84 @@ export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
   );
 });
 
-export const ToggleSettingsTabModal = (
+export const ToggleLayoutMenuButton = forwardRef<HTMLButtonElement>(
+  (props, ref) => {
+    return (
+      <CompositeButton>
+        <IconButton ref={ref} icon="grid" />
+      </CompositeButton>
+    );
+  },
+);
+
+export const SettingsTabModalMenu = (
   props: ToggleSettingsTabModalProps & LayoutSelectorProps,
 ) => {
   const { language, setLanguage } = useLanguage();
   const { t } = useI18n();
 
   return (
+    <SettingsTabModal {...props}>
+      <TabWrapper icon="device-settings" label={t('Device settings')} inMeeting>
+        <>
+          <DeviceSelectorVideo visualType="dropdown" />
+          <DeviceSelectorAudioInput visualType="dropdown" />
+          <DeviceSelectorAudioOutput visualType="dropdown" />
+        </>
+      </TabWrapper>
+      <TabWrapper icon="grid" label={t('Layout')} inMeeting>
+        <LayoutSelector
+          onMenuItemClick={props.onMenuItemClick}
+          selectedLayout={props.selectedLayout}
+        />
+      </TabWrapper>
+      <TabWrapper
+        icon="stats"
+        label={t('Statistics')}
+        inMeeting={props.inMeeting}
+      >
+        <CallStats />
+      </TabWrapper>
+
+      <TabWrapper icon="language" label={t('Language')} inMeeting>
+        <LanguageMenu language={language} setLanguage={setLanguage} />
+      </TabWrapper>
+
+      <TabWrapper
+        icon="film-roll"
+        label={t('Recording library')}
+        inMeeting={props.inMeeting}
+      >
+        <CallRecordings />
+      </TabWrapper>
+    </SettingsTabModal>
+  );
+};
+
+export const ToggleSettingsTabModal = (
+  props: ToggleSettingsTabModalProps & LayoutSelectorProps,
+) => {
+  return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.PORTAL}
     >
-      <SettingsTabModal>
-        <TabWrapper
-          icon="device-settings"
-          label={t('Device settings')}
-          inMeeting
-        >
-          <>
-            <DeviceSelectorVideo visualType="dropdown" />
-            <DeviceSelectorAudioInput visualType="dropdown" />
-            <DeviceSelectorAudioOutput visualType="dropdown" />
-          </>
-        </TabWrapper>
-        <TabWrapper icon="grid" label={t('Layout')} inMeeting>
-          <LayoutSelector
-            onMenuItemClick={props.onMenuItemClick}
-            selectedLayout={props.selectedLayout}
-          />
-        </TabWrapper>
-        <TabWrapper
-          icon="stats"
-          label={t('Statistics')}
-          inMeeting={props.inMeeting}
-        >
-          <CallStats />
-        </TabWrapper>
+      <SettingsTabModalMenu {...props} activeTab={0} />
+    </MenuToggle>
+  );
+};
 
-        <TabWrapper icon="language" label={t('Language')} inMeeting>
-          <LanguageMenu language={language} setLanguage={setLanguage} />
-        </TabWrapper>
-
-        <TabWrapper
-          icon="film-roll"
-          label={t('Recording library')}
-          inMeeting={props.inMeeting}
-        >
-          <CallRecordings />
-        </TabWrapper>
-      </SettingsTabModal>
+export const ToggleLayoutTabModal = (
+  props: ToggleSettingsTabModalProps & LayoutSelectorProps,
+) => {
+  return (
+    <MenuToggle
+      placement="top-start"
+      ToggleButton={ToggleLayoutMenuButton}
+      visualType={MenuVisualType.PORTAL}
+    >
+      <SettingsTabModalMenu {...props} activeTab={1} />
     </MenuToggle>
   );
 };
