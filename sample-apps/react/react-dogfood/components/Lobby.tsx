@@ -8,6 +8,7 @@ import {
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
@@ -35,6 +36,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     hasBrowserPermission: hasCameraPermission,
     selectedDevice: selectedCamera,
     devices: cameras,
+    isMute: isCameraMute,
   } = useCameraState();
 
   const { t } = useI18n();
@@ -81,7 +83,12 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
             <h1 className="rd__lobby-heading">
               {t('Set up your call')} <br /> {t('before joining!')}
             </h1>
-            <div className="rd__lobby-camera">
+            <div
+              className={clsx(
+                'rd__lobby-camera',
+                isCameraMute && 'rd__lobby-camera--off',
+              )}
+            >
               <VideoPreview
                 DisabledVideoPreview={
                   hasBrowserMediaPermission

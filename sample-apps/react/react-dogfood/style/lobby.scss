@@ -47,6 +47,10 @@
   &-camera {
     width: calc(100vw - var(--str-video__spacing-lg));
     height: auto;
+
+    &--off {
+      opacity: 0.75;
+    }
   }
 
   &-controls {
