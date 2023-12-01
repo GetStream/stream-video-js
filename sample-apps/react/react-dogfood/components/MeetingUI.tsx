@@ -233,9 +233,11 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
               <div className="str-video__call-controls__desktop">
                 <ToggleFeedbackButton />
               </div>
-              <div className="str-video__call-controls__desktop">
-                <ToggleDeveloperButton />
-              </div>
+              {process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto' && (
+                <div className="str-video__call-controls__desktop">
+                  <ToggleDeveloperButton />
+                </div>
+              )}
               <div className="str-video__call-controls__mobile">
                 <ToggleMoreOptionsListButton />
               </div>
