@@ -41,22 +41,23 @@ export const DevMenu = () => {
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
       <li className="rd__dev-menu__item">
         <a
-          className="rd__link rd__link--faux-button"
+          className="rd__link rd__link--faux-button rd__link--align-left"
           href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
           target="_blank"
           rel="noreferrer"
         >
+          <Icon className="rd__link__icon" icon="info-document" />
           Usage guide
         </a>
       </li>
       <li className="rd__dev-menu__item">
         <a
-          className="rd__link rd__link--faux-button"
+          className="rd__link rd__link--faux-button rd__link--align-left"
           href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
           target="_blank"
           rel="noreferrer"
         >
-          <Icon className="rd__link__icon" icon="fill-roll" />
+          <Icon className="rd__link__icon" icon="film-roll" />
           Recordings
         </a>
       </li>
@@ -70,7 +71,7 @@ const StartStopBroadcasting = () => {
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       onClick={() => {
         if (!call) return;
         if (isBroadcasting) {
@@ -104,7 +105,7 @@ const GoOrStopLive = () => {
   const isLive = useIsCallLive();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       onClick={() => {
         if (!call) return;
         if (isLive) {
@@ -135,7 +136,7 @@ const GoOrStopLive = () => {
 // const MigrateToNewSfu = () => {
 //   const call = useCall();
 //   return (
-//     <button className="rd__button"
+//     <button className="rd__button rd__button--align-left"
 //       hidden
 //       onClick={() => {
 //         if (!call) return;
@@ -166,7 +167,7 @@ const GoOrStopLive = () => {
 // const EmulateSFUShuttingDown = () => {
 //   const call = useCall();
 //   return (
-//     <button className="rd__button"
+//     <button className="rd__button rd__button--align-left"
 //       onClick={() => {
 //         if (!call) return;
 //         call['dispatcher'].dispatch({
@@ -192,7 +193,7 @@ const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
   const params = new URLSearchParams(window.location.search);
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       onClick={() => {
         params.set('sfuUrl', `http://127.0.0.1:${port}/twirp`);
         params.set('sfuWsUrl', `ws://127.0.0.1:${port}/ws`);
@@ -209,7 +210,7 @@ const RestartPublisher = () => {
   const call = useCall();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       hidden={!call}
       onClick={() => {
         if (!call) return;
@@ -226,7 +227,7 @@ const RestartSubscriber = () => {
   const call = useCall();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       hidden={!call}
       onClick={() => {
         if (!call) return;
@@ -243,7 +244,7 @@ const LogPublisherStats = () => {
   const call = useCall();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       onClick={() => {
         if (!call) return;
         call.publisher?.getStats().then((stats: RTCStatsReport) => {
@@ -265,7 +266,7 @@ const LogSubscriberStats = () => {
   const call = useCall();
   return (
     <button
-      className="rd__button"
+      className="rd__button rd__button--align-left"
       onClick={() => {
         if (!call) return;
         call.subscriber?.getStats().then((stats: RTCStatsReport) => {
