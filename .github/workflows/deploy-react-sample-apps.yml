@@ -45,7 +45,7 @@ jobs:
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
           - name: react-dogfood
-            project-id: prj_bUGd9z0sMAMxZmmgMaec3oiRbWzT
+            project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
