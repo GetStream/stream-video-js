@@ -22,7 +22,10 @@ import {
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
-import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import {
+  ToggleSettingsTabModal,
+  ToggleLayoutTabModal,
+} from './Settings/SettingsTabModal';
 import { InvitePanel } from './InvitePanel/InvitePanel';
 
 import { Lobby } from './Lobby';
@@ -42,6 +45,7 @@ import { Stage } from './Stage';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
+import { ToggleLayoutButton } from './ToggleLayoutButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 
 const contents = {
@@ -219,27 +223,46 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
             data-testid="str-video__call-controls"
           >
             <div className="str-video__call-controls--group str-video__call-controls--options">
-              <ToggleSettingsTabModal
-                selectedLayout={layout}
-                onMenuItemClick={setLayout}
-                inMeeting
-              />
-              <ToggleFeedbackButton />
-              <ToggleDeveloperButton />
-              <ToggleMoreOptionsListButton />
+              <div className="str-video__call-controls__desktop">
+                <ToggleSettingsTabModal
+                  selectedLayout={layout}
+                  onMenuItemClick={setLayout}
+                  inMeeting
+                />
+              </div>
+              <div className="str-video__call-controls__desktop">
+                <ToggleFeedbackButton />
+              </div>
+              <div className="str-video__call-controls__desktop">
+                <ToggleDeveloperButton />
+              </div>
+              <div className="str-video__call-controls__mobile">
+                <ToggleMoreOptionsListButton />
+              </div>
             </div>
             <div className="str-video__call-controls--group str-video__call-controls--media">
               <RecordCallButton />
 
-              <ScreenShareButton />
-              <ReactionsButton />
+              <div className="str-video__call-controls__desktop">
+                <ScreenShareButton />
+              </div>
+              <div className="str-video__call-controls__desktop">
+                <ReactionsButton />
+              </div>
               <SpeakingWhileMutedNotification>
                 <ToggleAudioPublishingButton />
               </SpeakingWhileMutedNotification>
               <ToggleVideoPublishingButton />
-              <CancelCallConfirmButton onLeave={onLeave} />
+              <div className="str-video__call-controls__desktop">
+                <CancelCallConfirmButton onLeave={onLeave} />
+              </div>
             </div>
             <div className="str-video__call-controls--group str-video__call-controls--sidebar">
+              <ToggleLayoutButton
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+              />
+
               <ToggleParticipantListButton
                 enabled={showParticipants}
                 onClick={() => {
