@@ -8,6 +8,7 @@ import {
   useI18n,
   VideoPreview,
 } from '@stream-io/video-react-sdk';
+import clsx from 'clsx';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
@@ -35,6 +36,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     hasBrowserPermission: hasCameraPermission,
     selectedDevice: selectedCamera,
     devices: cameras,
+    isMute: isCameraMute,
   } = useCameraState();
 
   const { t } = useI18n();
@@ -72,65 +74,73 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
   return (
-    <div className="rd__lobby">
-      <LatencyMap sourceData={edges} />
-      <div className="rd__lobby-container">
-        <div className="rd__lobby-content">
-          <h1 className="rd__lobby-heading">
-            {t('Set up your call')} <br /> {t('before joining!')}
-          </h1>
-          <div className="rd__lobby-camera">
-            <VideoPreview
-              DisabledVideoPreview={
-                hasBrowserMediaPermission
-                  ? DisabledVideoPreview
-                  : AllowBrowserPermissions
-              }
-            />
-            <div className="rd__lobby-controls">
-              <div className="rd__lobby-media">
-                <ToggleAudioPreviewButton
-                  caption={
-                    microphones?.find((mic) => mic.deviceId === selectedMic)
-                      ?.label || t('Default')
-                  }
-                />
-                <ToggleVideoPreviewButton
-                  caption={
-                    cameras?.find(
-                      (camera) => camera.deviceId === selectedCamera,
-                    )?.label || t('Default')
-                  }
+    <>
+      <DefaultAppHeader transparent />
+      <div className="rd__lobby">
+        <LatencyMap sourceData={edges} />
+        <div className="rd__lobby-container">
+          <div className="rd__lobby-content">
+            <h1 className="rd__lobby-heading">
+              {t('Set up your call')} <br /> {t('before joining!')}
+            </h1>
+            <div
+              className={clsx(
+                'rd__lobby-camera',
+                isCameraMute && 'rd__lobby-camera--off',
+              )}
+            >
+              <VideoPreview
+                DisabledVideoPreview={
+                  hasBrowserMediaPermission
+                    ? DisabledVideoPreview
+                    : AllowBrowserPermissions
+                }
+              />
+              <div className="rd__lobby-controls">
+                <div className="rd__lobby-media">
+                  <ToggleAudioPreviewButton
+                    caption={
+                      microphones?.find((mic) => mic.deviceId === selectedMic)
+                        ?.label || t('Default')
+                    }
+                  />
+                  <ToggleVideoPreviewButton
+                    caption={
+                      cameras?.find(
+                        (camera) => camera.deviceId === selectedCamera,
+                      )?.label || t('Default')
+                    }
+                  />
+                </div>
+                <ToggleSettingsTabModal
+                  selectedLayout={layout}
+                  onMenuItemClick={setLayout}
+                  inMeeting={false}
                 />
               </div>
-              <ToggleSettingsTabModal
-                selectedLayout={layout}
-                onMenuItemClick={setLayout}
-                inMeeting={false}
-              />
             </div>
-          </div>
 
-          <button
-            className="rd__button rd__button--primary rd__lobby-join"
-            data-testid="join-call-button"
-            onClick={onJoin}
-          >
-            <Icon className="rd__button__icon" icon="login" />
-            {t('Join')}
-          </button>
+            <button
+              className="rd__button rd__button--primary rd__lobby-join"
+              data-testid="join-call-button"
+              onClick={onJoin}
+            >
+              <Icon className="rd__button__icon" icon="login" />
+              {t('Join')}
+            </button>
 
-          <div className="rd__lobby-edge-network">
-            <Icon className="rd__lobby-edge-network__icon" icon="language" />
-            <p className="rd__lobby-edge-network__description">
-              {t(
-                'Our edge-network is selecting the best server for your call...',
-              )}
-            </p>
+            <div className="rd__lobby-edge-network">
+              <Icon className="rd__lobby-edge-network__icon" icon="language" />
+              <p className="rd__lobby-edge-network__description">
+                {t(
+                  'Our edge-network is selecting the best server for your call...',
+                )}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

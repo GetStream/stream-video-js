@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import clsx from 'clsx';
 
 import { Icon, StreamI18nProvider, useI18n } from '@stream-io/video-react-sdk';
@@ -109,13 +110,13 @@ const HomeContent = () => {
               {t('Join call')}
             </button>
           </div>
-          <a
+          <Link
             href={`/join/${meetingId()}`}
             className="rd__home-new rd__link rd__link--faux-button rd__link--faux-button--primary"
           >
             <Icon className="rd__link__icon" icon="camera-add" />
             {t('Start a new call')}
-          </a>
+          </Link>
         </div>
       </div>
     </>
