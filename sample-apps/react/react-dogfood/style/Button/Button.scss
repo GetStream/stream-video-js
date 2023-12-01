@@ -29,6 +29,11 @@ button.rd__button,
     cursor: not-allowed;
   }
 
+  &--align-left {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
   &--primary {
     background-color: var(--str-video__brand-color1);
 

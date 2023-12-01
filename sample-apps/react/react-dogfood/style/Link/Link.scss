@@ -8,6 +8,11 @@
   font-size: var(--str-video__font-size-md);
   font-weight: 500;
 
+  &--align-left {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
   &--faux-button {
     border-radius: var(--str-video__border-radius-md);
     padding: var(--str-video__spacing-xs) var(--str-video__spacing-lg);
