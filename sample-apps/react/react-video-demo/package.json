@@ -18,7 +18,6 @@
     "watch:storybook": "start-storybook dev -p 6006"
   },
   "dependencies": {
-    "@nivo/line": "^0.80.0",
     "@sentry/react": "^7.54.0",
     "@stream-io/stream-chat-css": "^3.14.1",
     "@stream-io/video-react-sdk": "workspace:^",
