@@ -13,6 +13,8 @@ import clsx from 'clsx';
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleMicButton } from './ToggleMicButton';
+import { ToggleCameraButton } from './ToggleCameraButton';
 
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 
@@ -27,17 +29,9 @@ type LobbyProps = {
 export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { data: session, status } = useSession();
   const { useMicrophoneState, useCameraState } = useCallStateHooks();
-  const {
-    hasBrowserPermission: hasMicPermission,
-    selectedDevice: selectedMic,
-    devices: microphones,
-  } = useMicrophoneState();
-  const {
-    hasBrowserPermission: hasCameraPermission,
-    selectedDevice: selectedCamera,
-    devices: cameras,
-    isMute: isCameraMute,
-  } = useCameraState();
+  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const { hasBrowserPermission: hasCameraPermission, isMute: isCameraMute } =
+    useCameraState();
 
   const { t } = useI18n();
   const { edges } = useEdges();
@@ -98,19 +92,11 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               />
               <div className="rd__lobby-controls">
                 <div className="rd__lobby-media">
-                  <ToggleAudioPreviewButton
-                    caption={
-                      microphones?.find((mic) => mic.deviceId === selectedMic)
-                        ?.label || t('Default')
-                    }
-                  />
-                  <ToggleVideoPreviewButton
-                    caption={
-                      cameras?.find(
-                        (camera) => camera.deviceId === selectedCamera,
-                      )?.label || t('Default')
-                    }
-                  />
+                  <ToggleAudioPreviewButton />
+                  <ToggleVideoPreviewButton />
+
+                  <ToggleMicButton />
+                  <ToggleCameraButton />
                 </div>
                 <ToggleSettingsTabModal
                   selectedLayout={layout}

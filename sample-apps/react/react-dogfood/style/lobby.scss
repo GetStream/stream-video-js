@@ -58,7 +58,8 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-top: var(--str-video__spacing-sm);
+    margin-top: var(--str-video__spacing-md);
+    margin-bottom: var(--str-video__spacing-sm);
   }
 
   .rd__lobby-media {
@@ -137,6 +138,29 @@
         width: 150px;
       }
     }
+  }
+}
+
+.rd__lobby__camera-button.rd__button,
+.rd__lobby__mic-button.rd__button {
+  display: none;
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+  font-size: var(--str-video__font-size-xs);
+}
+.rd__lobby__camera-button__device,
+.rd__lobby__mic-button__device {
+  width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+  margin: 0;
+}
+
+@include respond-above(sm) {
+  .rd__lobby__camera-button.rd__button,
+  .rd__lobby__mic-button.rd__button {
+    display: flex;
   }
 }
 
