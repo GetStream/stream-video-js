@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import React, { PropsWithChildren, useEffect, useMemo } from 'react';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useAppStateListener } from '../utils/hooks';
 import { NativeModules, Platform } from 'react-native';
@@ -55,22 +55,6 @@ export const MediaStreamManagement = ({
     settings?.video.target_resolution.bitrate,
   ]);
 
-  // Get the target resolution from the default device settings and memoize it
-  // Memoization is needed to avoid unnecessary useEffect triggers
-  const defaultOnSetting = useMemo(() => {
-    if (
-      settings?.audio.mic_default_on === undefined ||
-      settings?.video.camera_default_on === undefined
-    ) {
-      return undefined;
-    } else {
-      return {
-        mic_default_on: settings?.audio.mic_default_on,
-        camera_default_on: settings?.video.camera_default_on,
-      };
-    }
-  }, [settings?.audio.mic_default_on, settings?.video.camera_default_on]);
-
   // Resume/Disable video stream tracks when app goes to background/foreground
   // To save on CPU resources
   useAppStateListener(
@@ -94,51 +78,36 @@ export const MediaStreamManagement = ({
     },
   );
 
-  const [{ initialAudioEnabled, initialVideoEnabled }, setInitialDeviceState] =
-    useState<MediaDevicesInitialState>({
-      initialAudioEnabled: undefined,
-      initialVideoEnabled: undefined,
-    });
-
-  // Use backend settings to set initial audio/video enabled state
-  // It is applied only if the prop was undefined -- meaning user did not provide any value
-  useEffect(() => {
-    if (!defaultOnSetting) {
-      return;
-    }
-
-    const { mic_default_on, camera_default_on } = defaultOnSetting;
-    setInitialDeviceState((prev) => {
-      let initAudio = prev.initialAudioEnabled;
-      if (typeof propInitialAudioEnabled === 'undefined') {
-        initAudio = mic_default_on;
-      }
-      let initVideo = prev.initialVideoEnabled;
-      if (typeof propInitialVideoEnabled === 'undefined') {
-        initVideo = camera_default_on;
-      }
-      return { initialAudioEnabled: initAudio, initialVideoEnabled: initVideo };
-    });
-  }, [propInitialAudioEnabled, propInitialVideoEnabled, defaultOnSetting]);
-
-  // Apply SDK settings to set the initial audio/video enabled state
-  useEffect(() => {
-    setInitialDeviceState((prev) => {
-      let initAudio = prev.initialAudioEnabled;
-      if (typeof propInitialAudioEnabled !== 'undefined') {
-        initAudio = propInitialAudioEnabled;
-      }
-      let initVideo = prev.initialVideoEnabled;
-      if (typeof propInitialVideoEnabled !== 'undefined') {
-        initVideo = propInitialVideoEnabled;
+  /*
+   * This is the object is used to track the initial audio/video enablement
+   * Uses backend settings or the Prop to set initial audio/video enabled
+   * Backend settings is applied only if the prop was undefined -- meaning user did not provide any value
+   */
+  const { initialAudioEnabled, initialVideoEnabled } =
+    useMemo<MediaDevicesInitialState>(() => {
+      let _initialAudioEnabled: boolean | undefined;
+      let _initialVideoEnabled: boolean | undefined;
+      if (propInitialAudioEnabled !== undefined) {
+        _initialAudioEnabled = propInitialAudioEnabled;
+      } else if (settings?.audio.mic_default_on !== undefined) {
+        _initialAudioEnabled = settings?.audio.mic_default_on;
       }
 
+      if (propInitialVideoEnabled !== undefined) {
+        _initialVideoEnabled = propInitialVideoEnabled;
+      } else if (settings?.video.camera_default_on !== undefined) {
+        _initialVideoEnabled = settings?.video.camera_default_on;
+      }
       return {
-        initialAudioEnabled: initAudio,
-        initialVideoEnabled: initVideo,
+        initialAudioEnabled: _initialAudioEnabled,
+        initialVideoEnabled: _initialVideoEnabled,
       };
-    });
-  }, [propInitialAudioEnabled, propInitialVideoEnabled]);
+    }, [
+      settings?.audio.mic_default_on,
+      settings?.video.camera_default_on,
+      propInitialAudioEnabled,
+      propInitialVideoEnabled,
+    ]);
 
   // The main logic
   // Enable or Disable the audio/video stream based on the initial state
