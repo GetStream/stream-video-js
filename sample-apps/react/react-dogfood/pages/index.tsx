@@ -113,6 +113,7 @@ const HomeContent = () => {
           <Link
             href={`/join/${meetingId()}`}
             className="rd__home-new rd__link rd__link--faux-button rd__link--faux-button--primary"
+            data-testid="create-and-join-meeting-button"
           >
             <Icon className="rd__link__icon" icon="camera-add" />
             {t('Start a new call')}
