@@ -57,6 +57,7 @@ export default function SignIn({
                 <button
                   className="rd__button rd__auth-provider"
                   onClick={() => signIn(provider.id)}
+                  data-testid="sign-in-button"
                 >
                   <Icon
                     className="rd__button__icon rd__auth-provider__icon"
@@ -97,6 +98,7 @@ const GuestLoginItem = ({
       <button
         className="rd__button rd__button--primary rd__auth-provider"
         onClick={() => signIn(provider.id, { name })}
+        data-testid="guest-sign-in-button"
       >
         Continue
       </button>
