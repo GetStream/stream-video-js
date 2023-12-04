@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.1...@stream-io/video-react-native-sdk-0.3.2) (2023-12-04)
+
+
+### Bug Fixes
+
+* **react-native:** remove postinstall command as it breaks on windows ([90f0b9c](https://github.com/GetStream/stream-video-js/commit/90f0b9ced6aa0c89593cb860a5a5c87d782766ca))
+
 ### [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.0...@stream-io/video-react-native-sdk-0.3.1) (2023-11-30)
 
 
