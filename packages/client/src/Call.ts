@@ -688,13 +688,21 @@ export class Call {
     let sfuToken: string;
     let connectionConfig: RTCConfiguration | undefined;
     try {
-      const call = await join(this.streamClient, this.type, this.id, data);
-      this.state.updateFromCallResponse(call.metadata);
-      this.state.setMembers(call.members);
-      this.state.setOwnCapabilities(call.ownCapabilities);
-      connectionConfig = call.connectionConfig;
-      sfuServer = call.sfuServer;
-      sfuToken = call.token;
+      if (this.sfuClient?.attemptFastReconnect) {
+        // use previous SFU configuration and values
+        connectionConfig = this.publisher?.connectionConfiguration;
+        sfuServer = this.sfuClient.sfuServer;
+        sfuToken = this.sfuClient.token;
+      } else {
+        // full join flow - let the Coordinator pick a new SFU for us
+        const call = await join(this.streamClient, this.type, this.id, data);
+        this.state.updateFromCallResponse(call.metadata);
+        this.state.setMembers(call.members);
+        this.state.setOwnCapabilities(call.ownCapabilities);
+        connectionConfig = call.connectionConfig;
+        sfuServer = call.sfuServer;
+        sfuToken = call.token;
+      }
 
       if (this.streamClient._hasConnectionID()) {
         this.watching = true;
@@ -732,7 +740,9 @@ export class Call {
       } else {
         this.logger(
           'debug',
-          `[Rejoin]: Rejoining call ${this.cid} (${this.reconnectAttempts})...`,
+          `[Rejoin]: ${
+            sfuClient?.attemptFastReconnect ? 'Fast' : 'Full'
+          } rejoin call ${this.cid} (${this.reconnectAttempts})...`,
         );
       }
 
@@ -752,7 +762,9 @@ export class Call {
         previousSfuClient?.close(); // clean up previous connection
       };
 
-      if (!migrate) {
+      if (sfuClient.attemptFastReconnect) {
+        sfuClient.close();
+      } else if (!migrate) {
         // in migration or recovery scenarios, we don't want to
         // wait before attempting to reconnect to an SFU server
         await sleep(retryInterval(this.reconnectAttempts));
@@ -774,7 +786,7 @@ export class Call {
       // we shouldn't be republishing the streams if we're migrating
       // as the underlying peer connection will take care of it as part
       // of the ice-restart process
-      if (localParticipant && !migrate) {
+      if (localParticipant && !migrate && !sfuClient.attemptFastReconnect) {
         const {
           audioStream,
           videoStream,
@@ -847,6 +859,11 @@ export class Call {
           sfuClient.isMigratingAway
         )
           return;
+
+        // attempt a fast reconnect first,
+        // in case it fails, we'll try a full reconnect
+        sfuClient.attemptFastReconnect = this.reconnectAttempts === 0;
+
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           rejoin().catch((err) => {
             this.logger(
@@ -959,16 +976,22 @@ export class Call {
             subscriberSdp: sdp || '',
             clientDetails: getClientDetails(),
             migration,
-            fastReconnect: false,
+            fastReconnect: previousSfuClient?.attemptFastReconnect ?? false,
           });
         });
 
       // 2. in parallel, wait for the SFU to send us the "joinResponse"
       // this will throw an error if the SFU rejects the join request or
       // fails to respond in time
-      const { callState } = await this.waitForJoinResponse();
+      const { callState, reconnected } = await this.waitForJoinResponse();
+      this.logger('debug', '[Join] fast reconnect:', reconnected);
       if (isMigrating) {
         await this.subscriber.migrateTo(sfuClient, connectionConfig);
+        await this.publisher.migrateTo(sfuClient, connectionConfig);
+      } else if (reconnected) {
+        // update the SFU client instance on the subscriber and publisher
+        // and perform a full ICE restart on the publisher
+        this.subscriber.setSfuClient(sfuClient);
         await this.publisher.migrateTo(sfuClient, connectionConfig);
       }
       const currentParticipants = callState?.participants || [];

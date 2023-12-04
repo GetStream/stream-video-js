@@ -159,6 +159,15 @@ export class Publisher {
   };
 
   /**
+   * Returns the current connection configuration.
+   *
+   * @internal
+   */
+  get connectionConfiguration() {
+    return this.pc.getConfiguration();
+  }
+
+  /**
    * Closes the publisher PeerConnection and cleans up the resources.
    */
   close = ({ stopTracks = true } = {}) => {
@@ -768,7 +777,9 @@ export class Publisher {
     const errorMessage =
       e instanceof RTCPeerConnectionIceErrorEvent &&
       `${e.errorCode}: ${e.errorText}`;
-    logger('error', `ICE Candidate error`, errorMessage);
+    const logLevel =
+      this.pc.iceConnectionState === 'connected' ? 'debug' : 'error';
+    logger(logLevel, `ICE Candidate error`, errorMessage);
   };
 
   private onIceConnectionStateChange = () => {

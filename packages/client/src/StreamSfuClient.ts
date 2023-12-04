@@ -104,6 +104,12 @@ export class StreamSfuClient {
    */
   isMigratingAway = false;
 
+  /**
+   * A flag indicating that the client connection is broken for the current
+   * client and that a fast-reconnect with a new client should be attempted.
+   */
+  attemptFastReconnect = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
   private connectionCheckTimeout?: NodeJS.Timeout;

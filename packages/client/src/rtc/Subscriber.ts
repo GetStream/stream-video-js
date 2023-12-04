@@ -23,7 +23,6 @@ const logger = getLogger(['Subscriber']);
 export class Subscriber {
   private pc: RTCPeerConnection;
   private sfuClient: StreamSfuClient;
-  private dispatcher: Dispatcher;
   private state: CallState;
 
   private readonly unregisterOnSubscriberOffer: () => void;
@@ -49,7 +48,6 @@ export class Subscriber {
     iceRestartDelay = 2500,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
-    this.dispatcher = dispatcher;
     this.state = state;
     this.iceRestartDelay = iceRestartDelay;
 
@@ -117,6 +115,15 @@ export class Subscriber {
   };
 
   /**
+   * Sets the SFU client to use.
+   *
+   * @param sfuClient the SFU client to use.
+   */
+  setSfuClient = (sfuClient: StreamSfuClient) => {
+    this.sfuClient = sfuClient;
+  };
+
+  /**
    * Migrates the subscriber to a new SFU client.
    *
    * @param sfuClient the new SFU client to migrate to.
@@ -126,7 +133,7 @@ export class Subscriber {
     sfuClient: StreamSfuClient,
     connectionConfig?: RTCConfiguration,
   ) => {
-    this.sfuClient = sfuClient;
+    this.setSfuClient(sfuClient);
 
     // when migrating, we want to keep the previous subscriber open
     // until the new one is connected
