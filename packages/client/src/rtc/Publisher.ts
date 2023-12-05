@@ -549,6 +549,15 @@ export class Publisher {
   };
 
   /**
+   * Sets the SFU client to use.
+   *
+   * @param sfuClient the SFU client to use.
+   */
+  setSfuClient = (sfuClient: StreamSfuClient) => {
+    this.sfuClient = sfuClient;
+  };
+
+  /**
    * Performs a migration of this publisher instance to a new SFU.
    *
    * Initiates a new `iceRestart` offer/answer exchange with the new SFU.

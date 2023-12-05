@@ -108,7 +108,7 @@ export class StreamSfuClient {
    * A flag indicating that the client connection is broken for the current
    * client and that a fast-reconnect with a new client should be attempted.
    */
-  attemptFastReconnect = false;
+  isFastReconnecting = false;
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: NodeJS.Timeout;
@@ -299,8 +299,9 @@ export class StreamSfuClient {
     );
   };
 
-  send = (message: SfuRequest) => {
+  send = async (message: SfuRequest) => {
     return this.signalReady.then((signal) => {
+      if (signal.readyState !== signal.OPEN) return;
       this.logger(
         'debug',
         `Sending message to: ${this.edgeName}`,
