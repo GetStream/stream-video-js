@@ -74,6 +74,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
         })}
         icon="reactions"
         title={t('Reactions')}
+        data-testid="reactions-button"
         ref={ref}
       />
     );

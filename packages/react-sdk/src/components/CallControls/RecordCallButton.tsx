@@ -1,5 +1,5 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton } from '../Button/';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { useToggleCallRecording } from '../../hooks';
@@ -9,8 +9,6 @@ export type RecordCallButtonProps = {
 };
 
 export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
-  const call = useCall();
-
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
@@ -33,10 +31,12 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
           />
         ) : (
           <IconButton
-            // FIXME OL: sort out this ambiguity
-            enabled={!!call}
-            disabled={!call}
             icon={isCallRecordingInProgress ? 'recording-on' : 'recording-off'}
+            data-testid={
+              isCallRecordingInProgress
+                ? 'recording-stop-button'
+                : 'recording-start-button'
+            }
             title={caption || t('Record call')}
             onClick={toggleCallRecording}
           />

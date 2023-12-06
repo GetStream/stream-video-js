@@ -28,6 +28,9 @@ export const ToggleVideoPreviewButton = (
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
         title={caption || t('Video')}
+        data-testid={
+          isMute ? 'preview-video-unmute-button' : 'preview-video-mute-button'
+        }
         onClick={() => camera.toggle()}
       />
     </CompositeButton>
@@ -66,6 +69,7 @@ export const ToggleVideoPublishingButton = (
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}
             title={caption || t('Video')}
+            data-testid={isMute ? 'video-unmute-button' : 'video-mute-button'}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();
