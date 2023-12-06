@@ -15,7 +15,7 @@ import {
 } from './videoLayers';
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { CallState } from '../store';
+import { CallingState, CallState } from '../store';
 import { PublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
@@ -96,6 +96,7 @@ export class Publisher {
 
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
+  private iceRestartTimeout?: NodeJS.Timeout;
 
   /**
    * The SFU client instance to use for publishing and signaling.
@@ -183,6 +184,7 @@ export class Publisher {
       });
     }
 
+    clearTimeout(this.iceRestartTimeout);
     this.unsubscribeOnIceRestart();
     this.pc.removeEventListener('negotiationneeded', this.onNegotiationNeeded);
     this.pc.close();
@@ -795,16 +797,19 @@ export class Publisher {
     const state = this.pc.iceConnectionState;
     logger('debug', `ICE Connection state changed to`, state);
 
+    const hasNetworkConnection =
+      this.state.callingState !== CallingState.OFFLINE;
+
     if (state === 'failed') {
       logger('warn', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart error`, e);
       });
-    } else if (state === 'disconnected') {
+    } else if (state === 'disconnected' && hasNetworkConnection) {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
       logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      setTimeout(() => {
+      this.iceRestartTimeout = setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
         if (

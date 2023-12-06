@@ -655,7 +655,7 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  join = async (data?: JoinCallData) => {
+  join = async (data?: JoinCallData): Promise<void> => {
     const callingState = this.state.callingState;
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       this.logger(
@@ -726,7 +726,17 @@ export class Call {
     /**
      * A closure which hides away the re-connection logic.
      */
-    const rejoin = async (strategy: 'full' | 'fast' | 'migrate' = 'full') => {
+    const rejoin = async (
+      strategy: 'full' | 'fast' | 'migrate' = 'full',
+    ): Promise<void> => {
+      const currentState = this.state.callingState;
+      if (
+        currentState === CallingState.MIGRATING ||
+        currentState === CallingState.RECONNECTING
+      ) {
+        // prevent parallel reconnection attempts
+        return;
+      }
       this.reconnectAttempts++;
       this.state.setCallingState(
         strategy === 'migrate'
@@ -752,7 +762,7 @@ export class Call {
       const localParticipant = this.state.localParticipant;
 
       if (strategy === 'fast') {
-        previousSfuClient?.close();
+        sfuClient.close();
       } else if (strategy === 'full') {
         // in migration or recovery scenarios, we don't want to
         // wait before attempting to reconnect to an SFU server
@@ -766,7 +776,7 @@ export class Call {
         this.statsReporter?.stop();
         this.statsReporter = undefined;
 
-        previousSfuClient?.close(); // clean up previous connection
+        sfuClient.close(); // clean up current connection
       }
       await this.join({
         ...data,
@@ -774,7 +784,7 @@ export class Call {
       });
 
       if (strategy === 'migrate') {
-        previousSfuClient?.close(); // clean up previous connection
+        sfuClient?.close(); // clean up previous connection
       }
 
       this.logger(
@@ -881,25 +891,34 @@ export class Call {
     // handlers for connection online/offline events
     const unsubscribeOnlineEvent = this.streamClient.on(
       'connection.changed',
-      (e) => {
+      async (e) => {
         if (e.type !== 'connection.changed') return;
         if (!e.online) return;
         unsubscribeOnlineEvent();
         const currentCallingState = this.state.callingState;
-        if (
+        const shouldReconnect =
           currentCallingState === CallingState.OFFLINE ||
-          currentCallingState === CallingState.RECONNECTING_FAILED
-        ) {
-          this.logger('info', '[Rejoin]: Going online...');
-          rejoin().catch((err) => {
+          currentCallingState === CallingState.RECONNECTING_FAILED;
+        if (!shouldReconnect) return;
+        this.logger('info', '[Rejoin]: Going online...');
+        do {
+          try {
+            await rejoin();
+            return; // break the loop if rejoin is successful
+          } catch (err) {
             this.logger(
               'error',
-              `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+              `[Rejoin][Network]: Rejoin failed for attempt ${this.reconnectAttempts}`,
               err,
             );
-            this.state.setCallingState(CallingState.RECONNECTING_FAILED);
-          });
-        }
+          }
+          // wait for a bit before trying to reconnect again
+          await sleep(retryInterval(this.reconnectAttempts));
+        } while (this.reconnectAttempts < this.maxReconnectAttempts);
+
+        // if we're here, it means that we've exhausted all the reconnect attempts
+        this.logger('error', `[Rejoin][Network]: Rejoin failed. Giving up.`);
+        this.state.setCallingState(CallingState.RECONNECTING_FAILED);
       },
     );
     const unsubscribeOfflineEvent = this.streamClient.on(
@@ -985,12 +1004,23 @@ export class Call {
       if (isMigrating) {
         await this.subscriber.migrateTo(sfuClient, connectionConfig);
         await this.publisher.migrateTo(sfuClient, connectionConfig);
-      } else if (isReconnecting && reconnected) {
-        // update the SFU client instance on the subscriber and publisher
-        this.subscriber.setSfuClient(sfuClient);
-        this.publisher.setSfuClient(sfuClient);
-        // and perform a full ICE restart on the publisher
-        await this.publisher.restartIce();
+      } else if (isReconnecting) {
+        if (reconnected) {
+          // update the SFU client instance on the subscriber and publisher
+          this.subscriber.setSfuClient(sfuClient);
+          this.publisher.setSfuClient(sfuClient);
+          // and perform a full ICE restart on the publisher
+          await this.publisher.restartIce();
+        } else if (previousSfuClient?.isFastReconnecting) {
+          // reconnection wasn't possible, so we need to do a full rejoin
+          return await rejoin('full').catch((err) => {
+            this.logger(
+              'error',
+              `[Rejoin]: Rejoin failed forced full rejoin.`,
+              err,
+            );
+          });
+        }
       }
       const currentParticipants = callState?.participants || [];
       const participantCount = callState?.participantCount;
@@ -1207,9 +1237,6 @@ export class Call {
   /**
    * Stops publishing the given track type to the call, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
-   *
-   * The `audioDeviceId`/`videoDeviceId` property of the [`localParticipant$`](./StreamVideoClient.md/#readonlystatestore) won't be updated, you can do that by calling the [`setAudioDevice`](#setaudiodevice)/[`setVideoDevice`](#setvideodevice) method.
-   *
    *
    * @param trackType the track type to stop publishing.
    * @param stopTrack if `true` the track will be stopped, else it will be just disabled
