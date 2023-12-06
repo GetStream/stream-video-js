@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.3...@stream-io/video-react-native-sdk-0.3.4) (2023-12-06)
+
+
+### Bug Fixes
+
+* **react-native:** unnecessary setState in initial device management ([#1211](https://github.com/GetStream/stream-video-js/issues/1211)) ([c9a10c3](https://github.com/GetStream/stream-video-js/commit/c9a10c3938aeddcae0008d4de84a604c873dcbde))
+
 ### [0.3.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.2...@stream-io/video-react-native-sdk-0.3.3) (2023-12-05)
 
 ### Dependency Updates
