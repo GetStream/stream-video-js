@@ -39,6 +39,11 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
             icon={
               isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
             }
+            data-testid={
+              isSomeoneScreenSharing
+                ? 'screen-share-stop-button'
+                : 'screen-share-start-button'
+            }
             title={caption || t('Share screen')}
             disabled={disableScreenShareButton}
             onClick={async () => {

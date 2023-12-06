@@ -27,6 +27,9 @@ export const ToggleAudioPreviewButton = (
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
         title={caption || t('Mic')}
+        data-testid={
+          isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
+        }
         onClick={() => microphone.toggle()}
       />
     </CompositeButton>
@@ -63,6 +66,7 @@ export const ToggleAudioPublishingButton = (
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
             title={caption || t('Mic')}
+            data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();

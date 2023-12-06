@@ -54,6 +54,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement>((props: any, ref) => {
       icon={props.active ? 'close' : 'call-end'}
       variant={props.active ? undefined : 'danger'}
       title={t('Leave call')}
+      data-testid="leave-call-button"
       ref={ref}
     />
   );
@@ -121,6 +122,7 @@ export const CancelCallButton = ({
       icon="call-end"
       variant="danger"
       title={t('Leave call')}
+      data-testid="cancel-call-button"
       onClick={handleClick}
     />
   );
