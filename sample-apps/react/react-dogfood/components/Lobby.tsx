@@ -83,21 +83,26 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
                 isCameraMute && 'rd__lobby-camera--off',
               )}
             >
-              <VideoPreview
-                DisabledVideoPreview={
-                  hasBrowserMediaPermission
-                    ? DisabledVideoPreview
-                    : AllowBrowserPermissions
-                }
-              />
-              <div className="rd__lobby-controls">
-                <div className="rd__lobby-media">
+              <div className="rd__lobby-video-preview">
+                <VideoPreview
+                  DisabledVideoPreview={
+                    hasBrowserMediaPermission
+                      ? DisabledVideoPreview
+                      : AllowBrowserPermissions
+                  }
+                />
+                <div className="rd__lobby-media-toggle">
                   <ToggleAudioPreviewButton />
-                  <ToggleMicButton />
 
                   <ToggleVideoPreviewButton />
+                </div>
+              </div>
+              <div className="rd__lobby-controls">
+                <div className="rd__lobby-media">
+                  <ToggleMicButton />
                   <ToggleCameraButton />
                 </div>
+
                 <ToggleSettingsTabModal
                   selectedLayout={layout}
                   onMenuItemClick={setLayout}
@@ -114,15 +119,6 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               <Icon className="rd__button__icon" icon="login" />
               {t('Join')}
             </button>
-
-            <div className="rd__lobby-edge-network">
-              <Icon className="rd__lobby-edge-network__icon" icon="language" />
-              <p className="rd__lobby-edge-network__description">
-                {t(
-                  'Our edge-network is selecting the best server for your call...',
-                )}
-              </p>
-            </div>
           </div>
         </div>
       </div>

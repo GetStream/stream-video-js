@@ -9,7 +9,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (
-  <Link href="/" data-testid="home-button">
+  <Link href={window.location} data-testid="home-button">
     <Image src="/stream-logo.svg" alt="Stream logo" width={36} height={36} />
   </Link>
 );
