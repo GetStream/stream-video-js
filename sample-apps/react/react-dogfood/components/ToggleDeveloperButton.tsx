@@ -5,14 +5,18 @@ import {
   IconButton,
   MenuToggle,
   MenuVisualType,
+  ToggleMenuButtonProps,
 } from '@stream-io/video-react-sdk';
 
 import { DevMenu } from './DevMenu';
 
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
+export const ToggleMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps
+>((props, ref) => {
   return (
-    <CompositeButton>
-      <IconButton ref={ref} icon="developer" />
+    <CompositeButton ref={ref} active={props.menuShown} activeVariant="primary">
+      <IconButton icon="developer" />
     </CompositeButton>
   );
 });

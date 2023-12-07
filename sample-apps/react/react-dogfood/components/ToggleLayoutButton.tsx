@@ -5,6 +5,7 @@ import {
   IconButton,
   MenuToggle,
   MenuVisualType,
+  ToggleMenuButtonProps,
 } from '@stream-io/video-react-sdk';
 
 import {
@@ -13,10 +14,13 @@ import {
   LayoutSelectorType,
 } from './LayoutSelector';
 
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
+export const ToggleMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps
+>((props, ref) => {
   return (
-    <CompositeButton>
-      <IconButton ref={ref} icon="grid" title="Layout" />
+    <CompositeButton ref={ref} active={props.menuShown} activeVariant="primary">
+      <IconButton icon="grid" title="Layout" />
     </CompositeButton>
   );
 });
