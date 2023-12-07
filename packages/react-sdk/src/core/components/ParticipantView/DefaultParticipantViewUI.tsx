@@ -137,12 +137,6 @@ export const ParticipantDetails = ({
       <div className="str-video__participant-details">
         <span className="str-video__participant-details__name">
           {name || userId}
-          {indicatorsVisible && isDominantSpeaker && (
-            <span
-              className="str-video__participant-details__name--dominant_speaker"
-              title={t('Dominant speaker')}
-            />
-          )}
 
           {indicatorsVisible && !hasAudio && (
             <span className="str-video__participant-details__name--audio-muted" />
@@ -157,6 +151,18 @@ export const ParticipantDetails = ({
               onClick={() => call?.unpin(sessionId)}
               style={{ cursor: 'pointer' }}
               className="str-video__participant-details__name--pinned"
+            />
+          )}
+
+          {indicatorsVisible && isDominantSpeaker ? (
+            <span
+              className="str-video__participant-details__name--dominant_speaker"
+              title={t('Dominant speaker')}
+            />
+          ) : (
+            <span
+              className="str-video__participant-details__name--non-dominant_speaker"
+              title={t('Non dominant speaker')}
             />
           )}
         </span>
