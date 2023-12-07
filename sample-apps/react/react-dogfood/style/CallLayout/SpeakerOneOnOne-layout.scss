@@ -1,8 +1,20 @@
 .str-video__speaker-layout {
   .rd__framer-participant-view-wrapper {
     position: absolute;
-    width: 320px;
+    width: 200px;
     top: 0.875rem;
-    left: 0.875rem;
+    right: 0.875rem;
+
+    .str-video__video-placeholder {
+      background-color: var(--str-video__base-color6);
+    }
+  }
+}
+
+@include respond-above(sm) {
+  .str-video__speaker-layout {
+    .rd__framer-participant-view-wrapper {
+      width: 320px;
+    }
   }
 }

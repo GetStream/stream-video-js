@@ -30,7 +30,6 @@
     .rd__call-header-title {
       white-space: nowrap;
       overflow-y: visible;
-      font-family: 'Inter';
       // Not every browser support clip overflow, so hidden is defined as a fallback
       overflow-x: hidden;
       overflow-x: clip;
@@ -71,7 +70,6 @@
   background-color: var(--str-video__base-color6);
   padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-md);
-  min-width: 110px;
   font-size: var(--str-video__font-size-xs);
   &-icon {
     margin-right: var(--str-video__spacing-xxs);
