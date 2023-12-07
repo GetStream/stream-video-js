@@ -24,7 +24,12 @@ export const ToggleVideoPreviewButton = (
   const { camera, isMute } = useCameraState();
 
   return (
-    <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+    <CompositeButton
+      Menu={Menu}
+      active={isMute}
+      caption={caption}
+      activeVariant="secondary"
+    >
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
         title={caption || t('Video')}
@@ -65,7 +70,12 @@ export const ToggleVideoPublishingButton = (
         )}
         messageRevoked={t('You can no longer share your video.')}
       >
-        <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+        <CompositeButton
+          Menu={Menu}
+          active={isMute}
+          caption={caption}
+          activeVariant="secondary"
+        >
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}
             title={caption || t('Video')}

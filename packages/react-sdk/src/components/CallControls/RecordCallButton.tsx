@@ -20,7 +20,11 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
         OwnCapability.STOP_RECORD_CALL,
       ]}
     >
-      <CompositeButton active={isCallRecordingInProgress} caption={caption}>
+      <CompositeButton
+        active={isCallRecordingInProgress}
+        caption={caption}
+        activeVariant="secondary"
+      >
         {isAwaitingResponse ? (
           <LoadingIndicator
             tooltip={

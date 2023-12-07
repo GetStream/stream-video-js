@@ -23,7 +23,12 @@ export const ToggleAudioPreviewButton = (
   const { microphone, isMute } = useMicrophoneState();
 
   return (
-    <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+    <CompositeButton
+      Menu={Menu}
+      active={isMute}
+      caption={caption}
+      activeVariant="secondary"
+    >
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
         title={caption || t('Mic')}
@@ -62,7 +67,12 @@ export const ToggleAudioPublishingButton = (
         messageAwaitingApproval={t('Awaiting for an approval to speak.')}
         messageRevoked={t('You can no longer speak.')}
       >
-        <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+        <CompositeButton
+          Menu={Menu}
+          active={isMute}
+          caption={caption}
+          activeVariant="secondary"
+        >
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
             title={caption || t('Mic')}

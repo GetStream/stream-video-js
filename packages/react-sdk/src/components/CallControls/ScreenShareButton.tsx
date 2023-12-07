@@ -34,7 +34,11 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         messageAwaitingApproval={t('Awaiting for an approval to share screen.')}
         messageRevoked={t('You can no longer share your screen.')}
       >
-        <CompositeButton active={isSomeoneScreenSharing} caption={caption}>
+        <CompositeButton
+          active={isSomeoneScreenSharing}
+          caption={caption}
+          activeVariant="primary"
+        >
           <IconButton
             icon={
               isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
