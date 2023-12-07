@@ -15,6 +15,7 @@ import {
   CallParticipantsView,
   SpeakerOneOnOne,
 } from './CallLayout';
+
 import { DebugParticipantViewUI } from './Debug/DebugParticipantViewUI';
 
 export enum LayoutSelectorType {
@@ -29,7 +30,7 @@ export const LayoutMap = {
       ParticipantViewUI: DebugParticipantViewUI,
     },
     title: 'Default',
-    icon: 'layout',
+    icon: 'grid',
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
@@ -90,7 +91,7 @@ export const LayoutMap = {
   },
   SpeakerOneOnOne: {
     Component: SpeakerOneOnOne,
-    icon: 'layout',
+    icon: 'layout-speaker-one-on-one',
     title: 'Speaker 1:1',
     props: {
       ParticipantViewUI: DebugParticipantViewUI,
@@ -99,7 +100,7 @@ export const LayoutMap = {
   LivestreamLayout: {
     Component: LivestreamLayout,
     title: 'Livestream',
-    icon: 'layout',
+    icon: 'layout-speaker-live-stream',
     props: {},
   },
 };
