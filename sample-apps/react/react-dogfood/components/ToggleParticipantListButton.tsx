@@ -14,15 +14,14 @@ export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
   const { enabled, caption } = props;
-
-  const { useParticipants } = useCallStateHooks();
-  const members = useParticipants();
+  const { useParticipantCount } = useCallStateHooks();
+  const participantCount = useParticipantCount();
   return (
     <CompositeButton active={enabled} caption={caption}>
       <IconButton icon="participants" {...props} title="Participants" />
-      <span className="rd__particpant-count">
-        {members.length > 1 && members.length}
-      </span>
+      {participantCount > 1 && (
+        <span className="rd__particpant-count">{participantCount}</span>
+      )}
     </CompositeButton>
   );
 };
