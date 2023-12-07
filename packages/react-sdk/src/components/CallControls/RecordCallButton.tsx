@@ -23,7 +23,7 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
       <CompositeButton
         active={isCallRecordingInProgress}
         caption={caption}
-        activeVariant="secondary"
+        variant="secondary"
       >
         {isAwaitingResponse ? (
           <LoadingIndicator

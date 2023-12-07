@@ -37,7 +37,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         <CompositeButton
           active={isSomeoneScreenSharing}
           caption={caption}
-          activeVariant="primary"
+          variant="primary"
         >
           <IconButton
             icon={

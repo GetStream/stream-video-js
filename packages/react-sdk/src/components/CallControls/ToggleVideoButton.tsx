@@ -28,7 +28,7 @@ export const ToggleVideoPreviewButton = (
       Menu={Menu}
       active={isMute}
       caption={caption}
-      activeVariant="secondary"
+      variant="secondary"
     >
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
@@ -74,7 +74,7 @@ export const ToggleVideoPublishingButton = (
           Menu={Menu}
           active={isMute}
           caption={caption}
-          activeVariant="secondary"
+          variant="secondary"
         >
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}

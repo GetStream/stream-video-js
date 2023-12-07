@@ -68,7 +68,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
     const { t } = useI18n();
 
     return (
-      <CompositeButton ref={ref} active={menuShown} activeVariant="primary">
+      <CompositeButton ref={ref} active={menuShown} variant="primary">
         <IconButton icon="reactions" title={t('Reactions')} />
       </CompositeButton>
     );

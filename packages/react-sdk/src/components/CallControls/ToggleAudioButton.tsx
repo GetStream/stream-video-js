@@ -27,7 +27,7 @@ export const ToggleAudioPreviewButton = (
       Menu={Menu}
       active={isMute}
       caption={caption}
-      activeVariant="secondary"
+      variant="secondary"
     >
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
@@ -71,7 +71,7 @@ export const ToggleAudioPublishingButton = (
           Menu={Menu}
           active={isMute}
           caption={caption}
-          activeVariant="secondary"
+          variant="secondary"
         >
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
