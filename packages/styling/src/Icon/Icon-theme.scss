@@ -1,5 +1,5 @@
 .str-video__icon {
-  background-color: var(--str-video__icon-default);
+  background-color: var(--str-video__base-color1);
 
   &--chat {
     mask-image: var(--str-video__icon--chat);
@@ -11,10 +11,19 @@
     mask-image: var(--str-video__icon--reactions);
   }
 
+  &--call-latency {
+    -webkit-mask-image: var(--str-video__icon--call-latency);
+    mask-image: var(--str-video__icon--call-latency);
+  }
+
+  &--network-quality {
+    -webkit-mask-image: var(--str-video__icon--network-quality);
+    mask-image: var(--str-video__icon--network-quality);
+  }
+
   &--recording-on {
     mask-image: var(--str-video__icon--recording-on);
     -webkit-mask-image: var(--str-video__icon--recording-on);
-    background-color: var(--str-video__danger-color);
   }
 
   &--mediation {
@@ -35,6 +44,21 @@
   &--layout-speaker-left {
     mask-image: var(--str-video__icon--layout-speaker-left);
     -webkit-mask-image: var(--str-video__icon--layout-speaker-left);
+  }
+
+  &--layout-speaker-one-on-one {
+    mask-image: var(--str-video__icon--layout-speaker-one-on-one);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-one-on-one);
+  }
+
+  &--layout-speaker-live-stream {
+    mask-image: var(--str-video__icon--layout-speaker-live-stream);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-live-stream);
+  }
+
+  &--layout-speaker-right {
+    mask-image: var(--str-video__icon--layout-speaker-right);
+    -webkit-mask-image: var(--str-video__icon--layout-speaker-right);
   }
 
   &--layout {
