@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   CallingState,
-  CancelCallButton,
+  CancelCallConfirmButton,
   Icon,
   LoadingIndicator,
   Notification,
@@ -97,7 +97,7 @@ export const ActiveCallHeader = ({
           <LatencyIndicator />
         </div>
         <div className="rd__call-header__leave">
-          <CancelCallButton onLeave={onLeave} />
+          <CancelCallConfirmButton onLeave={onLeave} />
         </div>
       </div>
       <div className="rd__call-header__notifications">
