@@ -209,7 +209,7 @@ export const DefaultDropDownSelectOption = ({
   return (
     <div
       className={clsx('str-video__dropdown-option', {
-        'str-video__dropdown__option--selected': selected,
+        'str-video__dropdown-option--selected': selected,
       })}
     >
       <Icon className="str-video__dropdown-icon" icon={icon} />
