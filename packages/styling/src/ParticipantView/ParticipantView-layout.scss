@@ -44,7 +44,7 @@ $scope-name: 'str-video__participant-view';
     bottom: -1px;
     display: flex;
     align-items: center;
-    gap: 0.3125rem;
+    gap: var(--str-video__spacing-sm);
     border-radius: 0 var(--str-video__border-radius-xs) 0
       var(--str-video__border-radius-sm);
     background-color: var(--str-video__background-color4);
@@ -52,11 +52,12 @@ $scope-name: 'str-video__participant-view';
     .str-video__participant-details__name {
       display: flex;
       align-items: center;
-      gap: 0.3125rem;
+      gap: var(--str-video__spacing-sm);
       padding: 4px 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-size: var(--str-video__font-size-sm);
 
       @mixin icon {
         $icon-size: 1rem;
@@ -77,6 +78,19 @@ $scope-name: 'str-video__participant-view';
         @include icon();
         mask-image: var(--str-video__icon--dominant-speaker);
         -webkit-mask-image: var(--str-video__icon--dominant-speaker);
+
+        mask-size: contain;
+        -webkit-mask-size: contain;
+        mask-repeat: no-repeat;
+        -webkit-mask-repeat: no-repeat;
+        mask-position: center;
+        -webkit-mask-position: center;
+      }
+
+      .str-video__participant-details__name--non-dominant_speaker {
+        @include icon();
+        mask-image: var(--str-video__icon--non-dominant-speaker);
+        -webkit-mask-image: var(--str-video__icon--non-dominant-speaker);
 
         mask-size: contain;
         -webkit-mask-size: contain;
@@ -120,7 +134,8 @@ $scope-name: 'str-video__participant-view';
     bottom: -1px;
     right: -1px;
 
-    border-radius: var(--str-video__border-radius-sm) 0 0 0;
+    border-radius: var(--str-video__border-radius-sm) 0
+      var(--str-video__border-radius-sm) 0;
 
     width: 24px;
     height: 24px;
@@ -136,6 +151,18 @@ $scope-name: 'str-video__participant-view';
     }
     &--excellent {
       background-image: var(--str-video__icon--connection-quality-excellent);
+    }
+  }
+
+  &--speaking {
+    .str-video__participant-details {
+      left: 0px;
+      bottom: -0.5px;
+    }
+
+    .str-video__participant-details__connection-quality {
+      bottom: -0.5px;
+      right: 0px;
     }
   }
 }
