@@ -4,9 +4,14 @@
     width: 200px;
     top: 0.875rem;
     right: 0.875rem;
+    z-index: 1;
 
     .str-video__video-placeholder {
       background-color: var(--str-video__base-color6);
+    }
+
+    &:hover {
+      cursor: move;
     }
   }
 }
