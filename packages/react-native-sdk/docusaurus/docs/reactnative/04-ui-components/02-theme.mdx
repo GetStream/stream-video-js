@@ -1,0 +1,51 @@
+---
+id: theme
+title: Theme
+---
+
+The React Native Video SDK ships with a default UI theme that is included in your application. In this chapter, we'll go through the details on how you can utilize and customize the default theme.
+
+### Usage
+
+To accurately create a theme we suggest utilizing our exported types to create your own theme. This will allow you to ensure the keys you are using in your theme object are correct.
+
+When you provide a theme as a prop a deep merge of the theme and default theme is performed so only styles designated in the custom theme overwrite the defaults. We provide a helper type DeepPartial that makes all of the keys at every depth optional, this is to account for the deep merge that is performed.
+
+You can find the default theme object in [theme.ts](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/theme/theme.ts).
+
+```tsx
+import type { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
+
+const theme: DeepPartial<Theme> = {
+  callControls: {
+    container: {
+      backgroundColor: 'red',
+    },
+  },
+};
+```
+
+Now you can provide these theme to the `style` prop of [`StreamVideo`](../core/stream-video/#style) component.
+
+```tsx
+import {
+  StreamVideo,
+  StreamVideoClient,
+} from '@stream-io/video-react-native-sdk';
+
+export const App = () => {
+  const client = new StreamVideoClient(/* ... */);
+
+  return (
+    <StreamVideo client={client} style={theme}>
+      <MyUI />
+    </StreamVideo>
+  );
+};
+```
+
+![Preview of the added Call Controls theme](../assets/04-ui-components/theme-preview.png)
+
+You can change the default button, icon and avatar variants using the `buttonSizes`, `iconSizes` and the `avatarSizes` under the `variants` property.
+
+The font style and the colors can be changed as well for different font and color usages within the SDK using the `typefaces` and the `colors` property.
