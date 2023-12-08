@@ -726,7 +726,7 @@ export class Call {
     /**
      * A closure which hides away the re-connection logic.
      */
-    const rejoin = async (
+    const reconnect = async (
       strategy: 'full' | 'fast' | 'migrate' = 'full',
     ): Promise<void> => {
       const currentState = this.state.callingState;
@@ -841,7 +841,7 @@ export class Call {
           'info',
           `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
         );
-        rejoin('migrate').catch((err) => {
+        reconnect('migrate').catch((err) => {
           this.logger(
             'warn',
             `[Migration]: Failed to migrate to another SFU.`,
@@ -870,10 +870,10 @@ export class Call {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           sfuClient.isFastReconnecting = this.reconnectAttempts === 0;
           const strategy = sfuClient.isFastReconnecting ? 'fast' : 'full';
-          rejoin(strategy).catch((err) => {
+          reconnect(strategy).catch((err) => {
             this.logger(
               'error',
-              `[Rejoin]: Rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
+              `[Rejoin]: ${strategy} rejoin failed for ${this.reconnectAttempts} times. Giving up.`,
               err,
             );
             this.state.setCallingState(CallingState.RECONNECTING_FAILED);
@@ -903,7 +903,7 @@ export class Call {
         this.logger('info', '[Rejoin]: Going online...');
         do {
           try {
-            await rejoin();
+            await reconnect();
             return; // break the loop if rejoin is successful
           } catch (err) {
             this.logger(
@@ -1013,7 +1013,7 @@ export class Call {
           await this.publisher.restartIce();
         } else if (previousSfuClient?.isFastReconnecting) {
           // reconnection wasn't possible, so we need to do a full rejoin
-          return await rejoin('full').catch((err) => {
+          return await reconnect('full').catch((err) => {
             this.logger(
               'error',
               `[Rejoin]: Rejoin failed forced full rejoin.`,
@@ -1084,7 +1084,7 @@ export class Call {
           `[Rejoin]: Rejoin ${this.reconnectAttempts} failed.`,
           err,
         );
-        await rejoin();
+        await reconnect();
         this.logger(
           'info',
           `[Rejoin]: Rejoin ${this.reconnectAttempts} successful!`,
