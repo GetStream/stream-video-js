@@ -12,6 +12,7 @@ import {
   MenuToggle,
   MenuVisualType,
   useI18n,
+  ToggleMenuButtonProps,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -50,8 +51,8 @@ type TabWrapperProps = {
 const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
   return (
     <div
-      className={clsx('str-video__tab', {
-        'str-video__tab--active': active,
+      className={clsx('rd__tab', {
+        'rd__tab--active': active,
       })}
       onClick={setActive}
     >
@@ -62,15 +63,17 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 
 const TabPanel = ({ children, close }: PropsWithChildren<TabPanelProps>) => {
   return (
-    <div className="str-video__tab-panel">
-      <div className="str-video__tab-panel__header">
+    <div className="rd__tab-panel">
+      <div className="rd__tab-panel__header">
+        <h2 className="rd__tab-panel__heading">Settings</h2>
+
         <IconButton
-          className="str-video__tab-panel__close"
+          className="rd__tab-panel__close"
           icon="close"
           onClick={close}
         />
       </div>
-      <div className="str-video__tab-panel__content">{children}</div>
+      <div className="rd__tab-panel__content">{children}</div>
     </div>
   );
 };
@@ -82,9 +85,9 @@ export const SettingsTabModal = ({
 }: PropsWithChildren<SettingsTabModalProps>) => {
   const [active, setActive] = useState(activeTab);
   return (
-    <div className="str-video__tabmodal-container">
-      <div className="str-video__tabmodal-sidebar">
-        <h2 className="str-video__tabmodal-header">Settings</h2>
+    <div className="rd__tabmodal-container">
+      <div className="rd__tabmodal-sidebar">
+        <h2 className="rd__tabmodal-header">Settings</h2>
         {Children.map(children, (child: any, index: number) => {
           if (!child.props.inMeeting) return null;
 
@@ -94,13 +97,13 @@ export const SettingsTabModal = ({
               active={index === active}
               setActive={() => setActive(index)}
             >
-              <Icon className="str-video__tab-icon" icon={child.props.icon} />
-              {child.props.label}
+              <Icon className="rd__tab-icon" icon={child.props.icon} />
+              <span className="rd__tab-label">{child.props.label}</span>
             </Tab>
           );
         })}
       </div>
-      <div className="str-video__tabmodal-content">
+      <div className="rd__tabmodal-content">
         {Children.map(children, (child: any, index: number) => {
           if (index !== active) return null;
           return (
@@ -120,10 +123,13 @@ export const TabWrapper = ({
   return children;
 };
 
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
+export const ToggleMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps
+>((props, ref) => {
   return (
-    <CompositeButton>
-      <IconButton ref={ref} icon="device-settings" />
+    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+      <IconButton icon="device-settings" />
     </CompositeButton>
   );
 });

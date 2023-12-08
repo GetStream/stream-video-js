@@ -9,6 +9,7 @@ import {
   MenuToggle,
   MenuVisualType,
   useI18n,
+  ToggleMenuButtonProps,
 } from '@stream-io/video-react-sdk';
 
 import { Feedback } from './Feedback/Feedback';
@@ -61,10 +62,13 @@ const Menu = () => {
   );
 };
 
-export const ToggleMenuButton = forwardRef<HTMLButtonElement>((props, ref) => {
+export const ToggleMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps
+>((props, ref) => {
   return (
-    <CompositeButton>
-      <IconButton ref={ref} icon="more" />
+    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+      <IconButton icon="more" />
     </CompositeButton>
   );
 });

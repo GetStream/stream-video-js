@@ -62,11 +62,9 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const onHangupCallHandler = async () => {
     setShow('loading');
     try {
-      if (callingState === CallingState.LEFT) {
-        return;
+      if (callingState !== CallingState.LEFT) {
+        await call?.leave();
       }
-      await call?.leave();
-      setShow('lobby');
       navigation.goBack();
     } catch (error) {
       if (error instanceof Error) {

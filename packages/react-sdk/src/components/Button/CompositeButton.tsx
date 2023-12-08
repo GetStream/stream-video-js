@@ -13,6 +13,7 @@ export type IconButtonWithMenuProps = PropsWithChildren<{
   caption?: string;
   menuPlacement?: Placement;
   ToggleMenuButton?: any;
+  variant?: 'primary' | 'secondary';
 }>;
 
 export const CompositeButton = forwardRef<
@@ -27,6 +28,7 @@ export const CompositeButton = forwardRef<
       Menu,
       menuPlacement,
       ToggleMenuButton = DefaultToggleMenuButton,
+      variant,
     },
     ref,
   ) => {
@@ -35,6 +37,10 @@ export const CompositeButton = forwardRef<
         <div
           className={clsx('str-video__composite-button__button-group', {
             'str-video__composite-button__button-group--active': active,
+            'str-video__composite-button__button-group--active-primary':
+              variant === 'primary' && active,
+            'str-video__composite-button__button-group--active-secondary':
+              variant === 'secondary' && active,
           })}
         >
           {children}

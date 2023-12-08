@@ -24,10 +24,18 @@ export const ToggleVideoPreviewButton = (
   const { camera, isMute } = useCameraState();
 
   return (
-    <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+    <CompositeButton
+      Menu={Menu}
+      active={isMute}
+      caption={caption}
+      variant="secondary"
+    >
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
         title={caption || t('Video')}
+        data-testid={
+          isMute ? 'preview-video-unmute-button' : 'preview-video-mute-button'
+        }
         onClick={() => camera.toggle()}
       />
     </CompositeButton>
@@ -62,10 +70,16 @@ export const ToggleVideoPublishingButton = (
         )}
         messageRevoked={t('You can no longer share your video.')}
       >
-        <CompositeButton Menu={Menu} active={isMute} caption={caption}>
+        <CompositeButton
+          Menu={Menu}
+          active={isMute}
+          caption={caption}
+          variant="secondary"
+        >
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}
             title={caption || t('Video')}
+            data-testid={isMute ? 'video-unmute-button' : 'video-mute-button'}
             onClick={async () => {
               if (!hasPermission) {
                 await requestPermission();

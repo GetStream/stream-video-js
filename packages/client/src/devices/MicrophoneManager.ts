@@ -8,9 +8,11 @@ import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import { OwnCapability } from '../gen/coordinator';
 import { CallingState } from '../store';
+import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 
 export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
   private soundDetectorCleanup?: Function;
+  private rnSpeechDetector: RNSpeechDetector | undefined;
 
   constructor(call: Call) {
     super(call, new MicrophoneManagerState(), TrackType.AUDIO);
@@ -58,21 +60,33 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
-    if (isReactNative()) {
-      return;
-    }
     await this.stopSpeakingWhileMutedDetection();
-    // Need to start a new stream that's not connected to publisher
-    const stream = await this.getStream({
-      deviceId,
-    });
-    this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
-      this.state.setSpeakingWhileMuted(event.isSoundDetected);
-    });
+    if (isReactNative()) {
+      this.rnSpeechDetector = new RNSpeechDetector();
+      await this.rnSpeechDetector.start();
+      const unsubscribe = this.rnSpeechDetector?.onSpeakingDetectedStateChange(
+        (event) => {
+          this.state.setSpeakingWhileMuted(event.isSoundDetected);
+        },
+      );
+      this.soundDetectorCleanup = () => {
+        unsubscribe();
+        this.rnSpeechDetector?.stop();
+        this.rnSpeechDetector = undefined;
+      };
+    } else {
+      // Need to start a new stream that's not connected to publisher
+      const stream = await this.getStream({
+        deviceId,
+      });
+      this.soundDetectorCleanup = createSoundDetector(stream, (event) => {
+        this.state.setSpeakingWhileMuted(event.isSoundDetected);
+      });
+    }
   }
 
   private async stopSpeakingWhileMutedDetection() {
-    if (isReactNative() || !this.soundDetectorCleanup) {
+    if (!this.soundDetectorCleanup) {
       return;
     }
     this.state.setSpeakingWhileMuted(false);

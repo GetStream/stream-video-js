@@ -48,3 +48,6 @@ global.navigator = {
   },
   product: 'ReactNative',
 };
+
+// @ts-expect-error due to dom typing incompatible with RN
+global.RTCPeerConnection = jest.fn();

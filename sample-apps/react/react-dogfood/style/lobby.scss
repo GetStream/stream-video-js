@@ -27,6 +27,20 @@
 
     width: 100%;
 
+    .rd__lobby-video-preview {
+      position: relative;
+    }
+
+    .rd__lobby-media-toggle {
+      display: flex;
+      position: absolute;
+      bottom: 0px;
+      gap: var(--str-video__spacing-sm);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .rd__lobby-video-preview,
     .str-video__video-preview-container {
       height: 320px;
       width: 100%;
@@ -49,7 +63,9 @@
     height: auto;
 
     &--off {
-      opacity: 0.75;
+      .str-video__video-preview-container {
+        opacity: 0.75;
+      }
     }
   }
 
@@ -86,22 +102,6 @@
       text-align: left;
     }
   }
-
-  &-edge-network {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 250px;
-    text-align: left;
-    font-size: var(--str-video__font-size-xs);
-    margin-top: var(--str-video__spacing-lg);
-
-    &__icon {
-      background-color: var(--str-video__brand-color3);
-      width: 55px;
-      margin-right: var(--str-video__spacing-sm);
-    }
-  }
 }
 
 .rd__latencymap {
@@ -127,6 +127,7 @@
 
     .rd__lobby-camera {
       width: 600px;
+      .rd__lobby-video-preview,
       .str-video__video-preview-container {
         height: 320px;
         width: 100%;
@@ -162,10 +163,19 @@
   .rd__lobby__mic-button.rd__button {
     display: flex;
   }
+  .rd__lobby-heading {
+    max-width: 150px;
+  }
 }
 
 @include respond-above(md) {
   .rd__lobby-content {
     max-width: 25vw;
   }
+}
+
+.mapboxgl-ctrl-bottom-right,
+.mapboxgl-ctrl-attrib a,
+a.mapboxgl-ctrl-logo {
+  display: none;
 }

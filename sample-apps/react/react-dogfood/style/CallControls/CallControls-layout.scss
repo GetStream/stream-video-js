@@ -75,3 +75,20 @@
     }
   }
 }
+
+.rd__particpant-count {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--str-video__border-radius-circle);
+
+  position: absolute;
+  bottom: 40px;
+  background: var(--str-video__brand-color3);
+  color: var(--str-video__base-color4);
+  padding: 5px;
+  height: 16px;
+  width: 16px;
+  margin-left: 20px;
+}

@@ -56,7 +56,7 @@ $scope-name: 'str-video__participant-list';
     height: auto;
     flex-grow: 1;
     max-height: 15vh;
-    overflow-y: scroll;
+    overflow-y: auto;
     margin-top: var(--str-video__spacing-xl);
   }
 
@@ -88,7 +88,8 @@ $scope-name: 'str-video__participant-list';
     display: flex;
     align-items: center;
     width: 100%;
-    padding-block: 0.5rem;
+    padding: var(--str-video__spacing-md);
+    font-size: var(--str-video__font-size-sm);
   }
 }
 

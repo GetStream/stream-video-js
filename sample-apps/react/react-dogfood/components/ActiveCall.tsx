@@ -29,7 +29,7 @@ import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
-import { useWatchChannel } from '../hooks';
+import { useWatchChannel, useBreakpoint } from '../hooks';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -44,13 +44,23 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout;
-
     if (!storedLayout) return DEFAULT_LAYOUT;
 
     return Object.hasOwn(LayoutMap, storedLayout)
       ? storedLayout
       : DEFAULT_LAYOUT;
   });
+
+  const breakpoint = useBreakpoint();
+
+  useEffect(() => {
+    if (
+      (layout === 'SpeakerLeft' || layout === 'SpeakerRight') &&
+      (breakpoint === 'xs' || breakpoint === 'sm')
+    ) {
+      setLayout('SpeakerBottom');
+    }
+  }, [breakpoint, layout]);
 
   const showSidebar = showParticipants || showChat;
 
@@ -76,6 +86,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
           onMenuItemClick={setLayout}
           onLeave={onLeave}
         />
+
+        <SpeakingWhileMutedNotification>
+          <span />
+        </SpeakingWhileMutedNotification>
+
         <PermissionRequests />
         <div className="rd__layout">
           <Stage selectedLayout={layout} />
@@ -136,9 +151,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ReactionsButton />
             </div>
-            <SpeakingWhileMutedNotification>
-              <ToggleAudioPublishingButton />
-            </SpeakingWhileMutedNotification>
+
+            <ToggleAudioPublishingButton />
             <ToggleVideoPublishingButton />
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />

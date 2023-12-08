@@ -1,8 +1,8 @@
-.str-video {
+.rd {
   &__tabmodal-container {
     display: flex;
     border-radius: var(--str-video__border-radius-lg);
-    width: 65vw;
+    width: 90vw;
     min-height: 65vh;
 
     box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
@@ -12,12 +12,14 @@
     font-size: 20px;
     font-weight: 500;
     padding-left: var(--str-video__spacing-md);
+    display: none;
   }
 
   &__tabmodal-sidebar {
     display: flex;
+    flex-direction: column;
     overflow-x: scroll;
-    width: 100vw;
+    min-width: 100px;
 
     background-color: var(--str-video__base-color5);
     border-radius: var(--str-video__border-radius-lg) 0 0
@@ -39,8 +41,14 @@
   &__tab-panel__header {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-bottom: var(--str-video__spacing-md);
+  }
+
+  &__tab-panel__heading {
+    font-size: 20px;
+    font-weight: 500;
+    margin-right: auto;
   }
 
   &__tab-panel__close {
@@ -62,7 +70,7 @@
   &__tab {
     display: flex;
     align-items: center;
-    padding: var(--str-video__spacing-md);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
 
     font-size: 16px;
     margin-bottom: var(--str-video__spacing-sm);
@@ -74,6 +82,14 @@
       margin-right: var(--str-video__spacing-sm);
       height: 18px;
       width: 18px;
+    }
+
+    &-label {
+      display: none;
+    }
+
+    &:first-of-type {
+      margin-top: 40px;
     }
 
     &:hover {
@@ -94,20 +110,44 @@
 }
 
 @include respond-above(sm) {
-  .str-video {
+  .rd {
     &__tabmodal-container {
       width: 65vw;
+    }
+
+    &__tabmodal-header {
+      display: flex;
+    }
+
+    &__tabmodal-sidebar {
+      width: 100vw;
+    }
+
+    &__tab {
+      padding: var(--str-video__spacing-md);
+      &-label {
+        display: block;
+      }
     }
 
     &__tabmodal-sidebar {
       width: 300px;
       flex-direction: column;
     }
+
+    &__tab-panel {
+      &__header {
+        justify-content: flex-end;
+      }
+      &__heading {
+        display: none;
+      }
+    }
   }
 }
 
 @include respond-above(lg) {
-  .str-video {
+  .rd {
     &__tabmodal-container {
       width: 55vw;
     }

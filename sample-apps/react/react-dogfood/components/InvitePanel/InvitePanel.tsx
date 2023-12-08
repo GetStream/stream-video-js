@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Icon } from '@stream-io/video-react-sdk';
 
@@ -9,16 +9,30 @@ export type InvitePanelProps = {
 };
 
 export const Invite = ({ callId }: { callId: string }) => {
-  const hasId = new URL(window.location.href).searchParams.has('id');
-  const URLtoCopy = `${window.location.href}${!hasId ? `?id=${callId}` : ''}`;
+  const URLtoCopy = window.location.href;
+  const [isCopied, setIsCopied] = useState(false);
 
   const copyUrl = useCallback(() => {
+    setIsCopied(false);
     try {
-      navigator.clipboard.writeText(URLtoCopy).then(function (err) {
-        console.error('Async: Could not copy text: ', err);
-      });
+      navigator.clipboard
+        .writeText(URLtoCopy)
+        .then(function (err) {
+          console.error('Async: Could not copy text: ', err);
+        })
+        .finally(() => {
+          setIsCopied(true);
+        });
     } catch (error) {}
   }, [URLtoCopy]);
+
+  useEffect(() => {
+    if (isCopied) {
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+    }
+  }, [isCopied]);
 
   return (
     <div className="rd__invite__copy">
@@ -31,7 +45,7 @@ export const Invite = ({ callId }: { callId: string }) => {
         onClick={copyUrl}
       >
         <Icon className="rd__button__icon" icon="person-add" />
-        Add more people
+        {isCopied ? 'Copied invite link' : 'Add more people'}
       </button>
     </div>
   );

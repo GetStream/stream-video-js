@@ -102,7 +102,10 @@ export const CallStats = (props: {
         <>
           <div className="str-video__call-stats__header">
             <h3 className="str-video__call-stats__heading">
-              <Icon className="str-video__call-stats__icon" icon="grid" />
+              <Icon
+                className="str-video__call-stats__icon"
+                icon="call-latency"
+              />
               {t('Call Latency')}
             </h3>
             <p className="str-video__call-stats__description">
@@ -118,7 +121,10 @@ export const CallStats = (props: {
 
           <div className="str-video__call-stats__header">
             <h3 className="str-video__call-stats__heading">
-              <Icon className="str-video__call-stats__icon" icon="grid" />
+              <Icon
+                className="str-video__call-stats__icon"
+                icon="network-quality"
+              />
               {t('Call performance')}
             </h3>
             <p className="str-video__call-stats__description">

@@ -16,6 +16,14 @@
     --str-video__button-primary-active
   );
 
+  --str-video__composite-button__button-group-active-primary--background-color: var(
+    --str-video__button-primary-active
+  );
+
+  --str-video__composite-button__button-group-active-secondary--background-color: var(
+    --str-video__button-secondary-active
+  );
+
   /* The hover background color of the component */
   --str-video__composite-button__button-group-hover--background-color: var(
     --str-video__button-primary-hover
@@ -59,6 +67,30 @@
   .str-video__call-controls__button {
     background-color: var(
       --str-video__composite-button__button-group-active--background-color
+    );
+  }
+}
+
+.str-video__composite-button__button-group--active-primary {
+  background-color: var(
+    --str-video__composite-button__button-group-active-primary--background-color
+  );
+
+  .str-video__call-controls__button {
+    background-color: var(
+      --str-video__composite-button__button-group-active-primary--background-color
+    );
+  }
+}
+
+.str-video__composite-button__button-group--active-secondary {
+  background-color: var(
+    --str-video__composite-button__button-group-active-secondary--background-color
+  );
+
+  .str-video__call-controls__button {
+    background-color: var(
+      --str-video__composite-button__button-group-active-secondary--background-color
     );
   }
 }

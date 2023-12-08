@@ -15,6 +15,7 @@
 
     &--horizontal {
       flex-direction: row;
+      margin-bottom: var(--str-video__spacing-md);
     }
 
     &--vertical {

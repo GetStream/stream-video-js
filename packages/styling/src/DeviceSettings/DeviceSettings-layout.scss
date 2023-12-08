@@ -42,7 +42,9 @@
 }
 
 .str-video__device-settings__device-kind {
-  padding: 0.75rem 8px;
+  background-color: var(--str-video__base-color7);
+  padding: var(--str-video__spacing-lg);
+  border-radius: var(--str-video__border-radius-lg);
 
   .str-video__device-settings__device-selector-title {
     font-size: var(--str-video__font-size-xs);

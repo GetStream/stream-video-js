@@ -109,28 +109,6 @@ const styles = StyleSheet.create({
 });
 ```
 
-### Theming
-
-To accurately create a theme we suggest utilizing our exported types to create your own theme. This will allow you to ensure the keys you are using in your theme object are correct.
-
-When you provide a theme as a prop a deep merge of the theme and default theme is performed so only styles designated in the custom theme overwrite the defaults. We provide a helper type DeepPartial that makes all of the keys at every depth optional, this is to account for the deep merge that is performed.
-
-You can find the default theme object in [theme.ts](https://github.com/GetStream/stream-video-js/blob/main/packages/react-native-sdk/src/theme/theme.ts).
-
-```tsx
-import type { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
-
-const theme: DeepPartial<Theme> = {
-  callContent: {
-    container: {
-      backgroundColor: 'red',
-    },
-  },
-};
-```
-
-Now you can provide these theme to the `style` prop of [`StreamVideo`](../core/stream-video/#style) component.
-
 ### UI Component Customization
 
 Stream SDK provides highly customizable UI components. Therefore, you can adjust each style or implement your own UI for each part of the components. This list describes what you can do with Stream SDK's UI components:

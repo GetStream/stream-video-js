@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.0...@stream-io/video-client-0.5.1) (2023-12-05)
+
+
+### Features
+
+* **client:** speaking while muted in React Native using temporary peer connection ([#1207](https://github.com/GetStream/stream-video-js/issues/1207)) ([9093006](https://github.com/GetStream/stream-video-js/commit/90930063503b6dfb83572dad8a31e45b16bf1685))
+
 ## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.4.10...@stream-io/video-client-0.5.0) (2023-11-29)
 
 
