@@ -213,7 +213,7 @@ The `apiKey`, `userData` and the `tokenProvider` comes up from the `ChatWrapper`
 
 ### Step 1: Wrapping the `ChatWrapper`
 
-If we extend our [Video Calling Tutorial](../../tutorials/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
+If we extend our [Video Calling Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), our `ChatWrapper` component can we wrapped as a parent/child of the `StreamVideo` as:
 
 ```tsx title="App.tsx" {16,24}
 import React, { useEffect, useState } from 'react';
@@ -320,7 +320,7 @@ The `ChatButton` component takes up an `onPressHandler`, which is responsible to
 
 ![Preview of the call controls with chat button](../assets/06-advanced/02-chat-integration/call-controls-chat.png).
 
-In the VideoCallUI component of our [Video Calling Tutorial](../../tutorials/video-calling/), we will add the above:
+In the VideoCallUI component of our [Video Calling Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), we will add the above:
 
 ```tsx title="src/components/VideoCallUI.tsx" {13-16,25,35-38,40-42,46}
 import React from 'react';
@@ -916,7 +916,7 @@ const styles = StyleSheet.create({
 
 ### Step 3: Creating and passing the Video Wrapper
 
-Adhering to the [Getting and Setting the credentials](../../tutorials/video-calling/#step-3---getting-and-setting-the-credentials) step of the [Video Call Tutorial](../../tutorials/video-calling/), we will create a video wrapper that wraps and provides the Stream's Video client to the rest of the app.
+Adhering to the [Getting and Setting the credentials](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/#step-3---getting-and-setting-the-credentials) step of the [Video Call Tutorial](https://getstream.io/video/sdk/reactnative/tutorial/video-calling/), we will create a video wrapper that wraps and provides the Stream's Video client to the rest of the app.
 
 ```tsx title="src/components/VideoWrapper.tsx"
 import React, { PropsWithChildren, useEffect, useState } from 'react';
@@ -1221,4 +1221,4 @@ Now that you have the final project for the **Chat in Video** and **Video in Cha
 If you're looking to explore more Stream Video based topics, we suggest the following to further customize and improve your Video experience:
 
 - [Deep Linking Guide](../deeplinking/) - Easily integrate deep linking in your app using the guide.
-- [Push Notifications Guide](../push-notifications/) - Every Chat and/or Video app needs Push Notifications to notify users for incoming calls. This guide will teach you how to set up different providers and seamlessly integrate push into your app.
+- [Push Notifications Guide](../push-notifications/overview) - Every Chat and/or Video app needs Push Notifications to notify users for incoming calls. This guide will teach you how to set up different providers and seamlessly integrate push into your app.
