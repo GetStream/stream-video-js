@@ -82,10 +82,8 @@ import {
   debounce,
   filter,
   map,
-  pairwise,
   Subject,
   takeWhile,
-  tap,
   timer,
 } from 'rxjs';
 import { TrackSubscriptionDetails } from './gen/video/sfu/signal_rpc/signal';
@@ -1390,9 +1388,10 @@ export class Call {
   };
 
   /**
+   * Updates the list of video layers to publish.
+   *
    * @internal
-   * @param enabledRids
-   * @returns
+   * @param enabledLayers the list of layers to enable.
    */
   updatePublishQuality = async (enabledLayers: VideoLayerSetting[]) => {
     return this.publisher?.updateVideoPublishQuality(enabledLayers);
@@ -1763,45 +1762,30 @@ export class Call {
     >(`${this.streamClientBasePath}/members`, data);
   };
 
+  /**
+   * Schedules an auto-drop timeout based on the call settings.
+   * Applicable only for ringing calls.
+   */
   private scheduleAutoDrop = () => {
-    if (this.dropTimeout) clearTimeout(this.dropTimeout);
-    const subscription = this.state.settings$
-      .pipe(
-        pairwise(),
-        tap(([prevSettings, currentSettings]) => {
-          if (!currentSettings || !this.clientStore.connectedUser) return;
+    clearTimeout(this.dropTimeout);
+    this.leaveCallHooks.add(
+      createSubscription(this.state.settings$, (settings) => {
+        if (!settings) return;
+        // ignore if the call is not ringing
+        if (this.state.callingState !== CallingState.RINGING) return;
 
-          const isOutgoingCall =
-            this.currentUserId === this.state.createdBy?.id;
+        const timeoutInMs = settings.ring.auto_cancel_timeout_ms;
+        // 0 means no auto-drop
+        if (timeoutInMs <= 0) return;
 
-          const [prevTimeoutMs, timeoutMs] = isOutgoingCall
-            ? [
-                prevSettings?.ring.auto_cancel_timeout_ms,
-                currentSettings.ring.auto_cancel_timeout_ms,
-              ]
-            : [
-                prevSettings?.ring.incoming_call_timeout_ms,
-                currentSettings.ring.incoming_call_timeout_ms,
-              ];
-          if (
-            typeof timeoutMs === 'undefined' ||
-            timeoutMs === prevTimeoutMs ||
-            timeoutMs === 0
-          )
-            return;
-
-          if (this.dropTimeout) clearTimeout(this.dropTimeout);
-          this.dropTimeout = setTimeout(() => this.leave(), timeoutMs);
-        }),
-        takeWhile(
-          () => !!this.clientStore.calls.find((call) => call.cid === this.cid),
-        ),
-      )
-      .subscribe();
-
-    this.leaveCallHooks.add(() => {
-      !subscription.closed && subscription.unsubscribe();
-    });
+        clearTimeout(this.dropTimeout);
+        this.dropTimeout = setTimeout(() => {
+          this.leave().catch((err) => {
+            this.logger('error', 'Failed to drop call', err);
+          });
+        }, timeoutInMs);
+      }),
+    );
   };
 
   /**

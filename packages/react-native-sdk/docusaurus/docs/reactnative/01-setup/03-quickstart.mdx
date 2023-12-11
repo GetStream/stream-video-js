@@ -4,7 +4,7 @@ description: For when you're in a hurry and want to quickly get up and running
 ---
 
 In this guide, we will cover the basics of making your first call using Stream Video.
-If you haven't already, we recommend starting with the **[introduction](../../)** and **[installation](../installation)** steps first, as this guide will build on the material covered in those sections.
+If you haven't already, we recommend starting with the **[introduction](../../)** and **installation**([Native CLI](../installation/react-native) or [Expo](../installation/expo)) steps first, as this guide will build on the material covered in those sections.
 
 ## Client setup & Calls
 
@@ -80,10 +80,10 @@ export const MyVideoButton = () => {
   const { useCameraState } = useCallStateHooks();
   const { camera, isMute } = useCameraState();
   return (
-    <Button 
+    <Button
       title={isMute ? 'Turn on camera' : 'Turn off camera'}
-      onClick={() => camera.toggle()}>
-    </Button>
+      onClick={() => camera.toggle()}
+    ></Button>
   );
 };
 
@@ -93,8 +93,8 @@ export const MyMicrophoneButton = () => {
   return (
     <Button
       title={isMute ? 'Turn on microphone' : 'Turn off microphone'}
-      onClick={() => microphone.toggle()}>
-    </Button>
+      onClick={() => microphone.toggle()}
+    ></Button>
   );
 };
 ```

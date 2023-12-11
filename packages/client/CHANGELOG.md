@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.1...@stream-io/video-client-0.5.2) (2023-12-11)
+
+
+### Bug Fixes
+
+* **ringing:** Auto-Cancel outgoing calls ([#1217](https://github.com/GetStream/stream-video-js/issues/1217)) ([c4d557b](https://github.com/GetStream/stream-video-js/commit/c4d557b736df8ff0a95166d1f9f0a52d4a57a122)), closes [#1215](https://github.com/GetStream/stream-video-js/issues/1215)
+
 ### [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.0...@stream-io/video-client-0.5.1) (2023-12-05)
 
 
