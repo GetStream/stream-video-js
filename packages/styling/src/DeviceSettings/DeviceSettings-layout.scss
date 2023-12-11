@@ -62,11 +62,15 @@
     border-radius: var(--str-video__border-radius-lg);
     background-color: var(--str-video__button-primary-base);
     padding: var(--str-video__spacing-xs) var(--str-video__spacing-md);
-    margin-top: 8px;
+
     gap: 8px;
 
     font-weight: 600;
     font-size: var(--str-video__font-size-sm);
+
+    &:not(:first-of-type) {
+      margin-top: 8px;
+    }
 
     &__icon {
       &--selected {
