@@ -11,6 +11,7 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 
@@ -54,6 +55,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
       : DEFAULT_LAYOUT;
   });
 
+  const { useParticipantCount } = useCallStateHooks();
+  const participantCount = useParticipantCount();
   const breakpoint = useBreakpoint();
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
         <PermissionRequests />
         <div className="rd__layout">
           <Stage selectedLayout={layout} />
-          {showInvitePopup && (
+          {showInvitePopup && participantCount === 1 && (
             <InvitePopup
               callId={activeCall.id}
               close={() => setShowInvitePopup(false)}
