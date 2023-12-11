@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.4...@stream-io/video-react-native-sdk-0.3.5) (2023-12-11)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.2`
+* `@stream-io/video-react-bindings` updated to version `0.3.13`
 ### [0.3.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.3...@stream-io/video-react-native-sdk-0.3.4) (2023-12-06)
 
 

@@ -2,7 +2,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
-import type { OwnUserResponse } from '../coordinator/connection/types';
+import { CallingState } from './CallState';
+import type { OwnUserResponse } from '../gen/coordinator';
 import { getLogger } from '../logger';
 
 export class StreamVideoWriteableStateStore {
@@ -22,12 +23,14 @@ export class StreamVideoWriteableStateStore {
     this.connectedUserSubject.subscribe(async (user) => {
       // leave all calls when the user disconnects.
       if (!user) {
+        const logger = getLogger(['client-state']);
         for (const call of this.calls) {
-          getLogger(['client-state'])(
-            'info',
-            `User disconnected, leaving call: ${call.cid}`,
-          );
-          await call.leave();
+          if (call.state.callingState === CallingState.LEFT) continue;
+
+          logger('info', `User disconnected, leaving call: ${call.cid}`);
+          await call.leave().catch((err) => {
+            logger('error', `Error leaving call: ${call.cid}`, err);
+          });
         }
       }
     });
