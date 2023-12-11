@@ -218,12 +218,7 @@ export class Publisher {
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
-      await this.notifyTrackMuteStateChanged(
-        mediaStream,
-        track,
-        trackType,
-        true,
-      );
+      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
       // clean-up, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
     };
@@ -295,12 +290,7 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    await this.notifyTrackMuteStateChanged(
-      mediaStream,
-      track,
-      trackType,
-      false,
-    );
+    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
   };
 
   /**
@@ -325,12 +315,7 @@ export class Publisher {
         : (transceiver.sender.track.enabled = false);
       // We don't need to notify SFU if unpublishing in response to remote soft mute
       if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        await this.notifyTrackMuteStateChanged(
-          undefined,
-          transceiver.sender.track,
-          trackType,
-          true,
-        );
+        await this.notifyTrackMuteStateChanged(undefined, trackType, true);
       }
     }
   };
@@ -369,7 +354,6 @@ export class Publisher {
 
   private notifyTrackMuteStateChanged = async (
     mediaStream: MediaStream | undefined,
-    track: MediaStreamTrack,
     trackType: TrackType,
     isMuted: boolean,
   ) => {
