@@ -32,7 +32,7 @@ import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 
-import { useWatchChannel, useBreakpoint } from '../hooks';
+import { useBreakpoint, useWatchChannel } from '../hooks';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -113,7 +113,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   <CallParticipantsList
                     onClose={() => setShowParticipants(false)}
                   />
-                  <InvitePanel callId={activeCall.id} />
+                  <InvitePanel />
                 </div>
               )}
 
