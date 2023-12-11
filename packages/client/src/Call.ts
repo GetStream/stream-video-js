@@ -899,9 +899,11 @@ export class Call {
           currentCallingState === CallingState.RECONNECTING_FAILED;
         if (!shouldReconnect) return;
         this.logger('info', '[Rejoin]: Going online...');
+        let isFirstReconnectAttempt = true;
         do {
           try {
-            await reconnect();
+            sfuClient.isFastReconnecting = isFirstReconnectAttempt;
+            await reconnect(isFirstReconnectAttempt ? 'fast' : 'full');
             return; // break the loop if rejoin is successful
           } catch (err) {
             this.logger(
@@ -912,6 +914,7 @@ export class Call {
           }
           // wait for a bit before trying to reconnect again
           await sleep(retryInterval(this.reconnectAttempts));
+          isFirstReconnectAttempt = false;
         } while (this.reconnectAttempts < this.maxReconnectAttempts);
 
         // if we're here, it means that we've exhausted all the reconnect attempts
