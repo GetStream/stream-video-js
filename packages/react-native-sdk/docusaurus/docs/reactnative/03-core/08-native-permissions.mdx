@@ -11,7 +11,7 @@ Once the function is called, we should see permissions being requested like belo
 
 ## Setup
 
-Ensure that relevant permissions are declared in your `AndroidManifest.xml` and `Info.plist` as mentioned in the [installation](../setup/installation/) guide. 
+Ensure that relevant permissions are declared in your `AndroidManifest.xml` and `Info.plist` as mentioned in the installation([Native CLI](../../setup/installation/react-native) or [Expo](../../setup/installation/expo)) guide.
 
 Additionally, to easily request permissions on both platforms, we will use the [`react-native-permissions`](https://github.com/zoontek/react-native-permissions) library. You can run the following command to install it:
 
@@ -20,7 +20,7 @@ yarn add react-native-permissions
 ```
 
 :::note
-Do not forget to perform the additional setup steps for iOS mentioned in the [`react-native-permissions` library documentation](https://github.com/zoontek/react-native-permissions#ios) 
+Do not forget to perform the additional setup steps for iOS mentioned in the [`react-native-permissions` library documentation](https://github.com/zoontek/react-native-permissions#ios)
 :::
 
 ## Step 1 - Add a function to request permissions in the app
@@ -30,7 +30,6 @@ In this step, we create a function called `requestAndUpdatePermissions`. This fu
 ```ts title=src/utils/requestAndUpdatePermissions.ts
 import { Platform } from 'react-native';
 import { PERMISSIONS, requestMultiple } from 'react-native-permissions';
-
 
 export const requestAndUpdatePermissions = async () => {
   if (Platform.OS === 'ios') {
@@ -68,9 +67,7 @@ const MyApp = () => {
 
   return (
     <StreamVideo client={client}>
-      <StreamCall call={call}>
-        {/*  You UI */}
-      </StreamCall>
+      <StreamCall call={call}>{/*  You UI */}</StreamCall>
     </StreamVideo>
   );
 };

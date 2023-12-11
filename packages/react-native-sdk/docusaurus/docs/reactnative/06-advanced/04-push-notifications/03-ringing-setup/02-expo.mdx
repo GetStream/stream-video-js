@@ -7,18 +7,18 @@ import TabItem from '@theme/TabItem';
 
 This guide discusses how to add push notifications for ringing calls to your project. It will discuss both Android and iOS and go through all the necessary steps.
 
-The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your Expo app to get push notifications from Stream for the incoming calls that your user will receive. 
+The normal user experience in a ringing app, when a user receives a call, is to show a push notification. The user can then interact with the notification to accept or reject the call. In this guide, you will learn how to set up your Expo app to get push notifications from Stream for the incoming calls that your user will receive.
 
-| Android preview | iOS preview |
-|---|---|
-| ![Android preview of the Firebase push notification](../../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../../assets/06-advanced/04-push-notifications/ios-preview.png)
+| Android preview                                                                                                             | iOS preview                                                                                                                                         |
+| --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Android preview of the Firebase push notification](../../../assets/06-advanced/04-push-notifications/android-preview.png) | ![iOS preview of VoIP notification using Apple Push Notification service (APNs)](../../../assets/06-advanced/04-push-notifications/ios-preview.png) |
 
 ## Add push provider credentials to Stream
 
 Please follow the below guides for adding appropriate push providers to Stream:
 
-- Android - [Firebase Cloud Messaging](../push-providers/firebase/)
-- iOS - [Apple Push Notification Service (APNs)](../push-providers/apn-voip/)
+- Android - [Firebase Cloud Messaging](../../push-providers/firebase/)
+- iOS - [Apple Push Notification Service (APNs)](../../push-providers/apn-voip/)
 
 ## Install Dependencies
 
@@ -58,6 +58,7 @@ So what did we install precisely?
 The **google-services.json** file contains unique and non-secret identifiers of your Firebase project. For more information, see [Understand Firebase Projects](https://firebase.google.com/docs/projects/learn-more#config-files-objects).
 
 :::
+
 ## Add the config plugin properties
 
 In **app.json**, in the `plugins` field, add the `ringingPushNotifications` property to the `@stream-io/video-react-native-sdk` plugin. Also, add the `@config-plugins/react-native-callkeep` plugin.
@@ -85,7 +86,7 @@ In **app.json**, in the `plugins` field, add the `ringingPushNotifications` prop
 
 :::note
 
-- The `disableVideoIos` field is used for apps with audio only calls. Pass true to this property to disable video in iOS [CallKit](https://developer.apple.com/documentation/callkit). 
+- The `disableVideoIos` field is used for apps with audio only calls. Pass true to this property to disable video in iOS [CallKit](https://developer.apple.com/documentation/callkit).
 - The `includesCallsInRecentsIos` field is used to show call history. Pass true to show the history of calls made in the iOS native dialer
 
 :::
@@ -152,7 +153,7 @@ export function setPushConfig() {
         // This is the advised importance of receiving incoming call notifications.
         // This will ensure that the notification will appear on-top-of applications.
         importance: AndroidImportance.HIGH,
-        sound: "default",
+        sound: 'default',
       },
       // configure the functions to create the texts shown in the notification
       // for incoming calls in Android.

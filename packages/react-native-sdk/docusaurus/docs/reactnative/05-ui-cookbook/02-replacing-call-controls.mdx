@@ -23,7 +23,7 @@ Implementing call controls buttons will often be in reality associated with hand
 
 ### Button to accept a call
 
-We will need a call accept button when building an app that makes use of [ring call workflow](../../advanced/ringing). To accept a call we just invoke `call.join()`. So the minimal call accept button could look like this:
+We will need a call accept button when building an app that makes use of [ring call workflow](../../core/joining-and-creating-calls/#ring-call). To accept a call we just invoke `call.join()`. So the minimal call accept button could look like this:
 
 ```tsx
 import { Pressable, Text, StyleSheet } from 'react-native';
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 
 ### Button to reject a call
 
-We will need a call reject button when building an app that makes use of [ring call workflow](../../advanced/ringing). To reject a call we just invoke `call.leave()` function with an object parameter having key as `reject` and value of it being `true`. So the minimal call reject button could look like this:
+We will need a call reject button when building an app that makes use of [ring call workflow](../../core/joining-and-creating-calls/#ring-call). To reject a call we just invoke `call.leave()` function with an object parameter having key as `reject` and value of it being `true`. So the minimal call reject button could look like this:
 
 ```tsx
 import { Pressable, Text, StyleSheet } from 'react-native';
