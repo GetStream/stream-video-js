@@ -26,6 +26,8 @@ import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 import { ToggleLayoutButton } from './ToggleLayoutButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
+import { ToggleDualCameraButton } from './ToggleDualCameraButton';
+import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
@@ -152,8 +154,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ReactionsButton />
             </div>
 
-            <ToggleAudioPublishingButton />
-            <ToggleVideoPublishingButton />
+            <ToggleDualMicButton />
+            <ToggleDualCameraButton />
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>
