@@ -1,5 +1,5 @@
 import { DeviceSelector } from './DeviceSelector';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
@@ -10,7 +10,6 @@ export const DeviceSelectorVideo = ({
   title,
   visualType,
 }: DeviceSelectorVideoProps) => {
-  const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const { camera, devices, selectedDevice } = useCameraState();
 
@@ -21,7 +20,7 @@ export const DeviceSelectorVideo = ({
       onChange={async (deviceId) => {
         await camera.select(deviceId);
       }}
-      title={title || t('Select a Camera')}
+      title={title}
       visualType={visualType}
       icon="camera"
     />

@@ -31,6 +31,11 @@
     -webkit-mask-image: var(--str-video__icon--mediation);
   }
 
+  &--copy {
+    mask-image: var(--str-video__icon--copy);
+    -webkit-mask-image: var(--str-video__icon--copy);
+  }
+
   &--layout-speaker-bottom {
     mask-image: var(--str-video__icon--layout-speaker-bottom);
     -webkit-mask-image: var(--str-video__icon--layout-speaker-bottom);

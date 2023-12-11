@@ -154,9 +154,18 @@ export const SettingsTabModalMenu = (
     <SettingsTabModal {...props}>
       <TabWrapper icon="device-settings" label={t('Device settings')} inMeeting>
         <>
-          <DeviceSelectorVideo visualType="dropdown" />
-          <DeviceSelectorAudioInput visualType="dropdown" />
-          <DeviceSelectorAudioOutput visualType="dropdown" />
+          <DeviceSelectorVideo
+            visualType="dropdown"
+            title={t('Select a Camera')}
+          />
+          <DeviceSelectorAudioInput
+            visualType="dropdown"
+            title={t('Select a Mic')}
+          />
+          <DeviceSelectorAudioOutput
+            visualType="dropdown"
+            title={t('Select a Speaker')}
+          />
         </>
       </TabWrapper>
       <TabWrapper icon="grid" label={t('Layout')} inMeeting>

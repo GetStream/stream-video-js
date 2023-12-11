@@ -58,7 +58,11 @@ describe('call API', () => {
   });
 
   it('RTMP address', async () => {
-    const resp = await call.getOrCreate();
+    const resp = await call.getOrCreate({
+      data: {
+        created_by_id: 'john',
+      },
+    });
     const address = resp.call.ingress.rtmp.address;
 
     expect(address).toBeDefined();

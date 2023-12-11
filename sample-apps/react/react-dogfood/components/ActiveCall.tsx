@@ -11,13 +11,13 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
+
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { Stage } from './Stage';
-import { InvitePanel } from './InvitePanel/InvitePanel';
+import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
 import { ChatWrapper } from './ChatWrapper';
 import { ChatUI } from './ChatUI';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
@@ -26,10 +26,13 @@ import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 import { ToggleLayoutButton } from './ToggleLayoutButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
+import { ToggleDualCameraButton } from './ToggleDualCameraButton';
+import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
-import { useWatchChannel, useBreakpoint } from '../hooks';
+
+import { useBreakpoint, useWatchChannel } from '../hooks';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -41,6 +44,7 @@ export type ActiveCallProps = {
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showInvitePopup, setShowInvitePopup] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout;
@@ -51,6 +55,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
       : DEFAULT_LAYOUT;
   });
 
+  const { useParticipantCount } = useCallStateHooks();
+  const participantCount = useParticipantCount();
   const breakpoint = useBreakpoint();
 
   useEffect(() => {
@@ -94,6 +100,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
         <PermissionRequests />
         <div className="rd__layout">
           <Stage selectedLayout={layout} />
+          {showInvitePopup && participantCount === 1 && (
+            <InvitePopup
+              callId={activeCall.id}
+              close={() => setShowInvitePopup(false)}
+            />
+          )}
           {showSidebar && (
             <div className="rd__sidebar">
               {showParticipants && (
@@ -101,7 +113,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   <CallParticipantsList
                     onClose={() => setShowParticipants(false)}
                   />
-                  <InvitePanel callId={activeCall.id} />
+                  <InvitePanel />
                 </div>
               )}
 
@@ -152,8 +164,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ReactionsButton />
             </div>
 
-            <ToggleAudioPublishingButton />
-            <ToggleVideoPublishingButton />
+            <ToggleDualMicButton />
+            <ToggleDualCameraButton />
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>

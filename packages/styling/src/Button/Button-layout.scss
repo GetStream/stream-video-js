@@ -33,10 +33,13 @@
 
 .str-video__composite-button {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
   height: 100%;
+
+  &--caption {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 
   .str-video__composite-button__button-group {
     display: flex;

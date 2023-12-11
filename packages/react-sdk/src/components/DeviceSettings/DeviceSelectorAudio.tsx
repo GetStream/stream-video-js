@@ -1,4 +1,4 @@
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { DeviceSelector } from './DeviceSelector';
 
 export type DeviceSelectorAudioInputProps = {
@@ -10,7 +10,6 @@ export const DeviceSelectorAudioInput = ({
   title,
   visualType,
 }: DeviceSelectorAudioInputProps) => {
-  const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
 
@@ -21,7 +20,7 @@ export const DeviceSelectorAudioInput = ({
       onChange={async (deviceId) => {
         await microphone.select(deviceId);
       }}
-      title={title || t('Select a Mic')}
+      title={title}
       visualType={visualType}
       icon={'mic'}
     />
@@ -37,7 +36,6 @@ export const DeviceSelectorAudioOutput = ({
   title,
   visualType,
 }: DeviceSelectorAudioOutputProps) => {
-  const { t } = useI18n();
   const { useSpeakerState } = useCallStateHooks();
   const { speaker, selectedDevice, devices, isDeviceSelectionSupported } =
     useSpeakerState();
@@ -51,7 +49,7 @@ export const DeviceSelectorAudioOutput = ({
       onChange={(deviceId) => {
         speaker.select(deviceId);
       }}
-      title={title || t('Select Speakers')}
+      title={title}
       icon="speaker"
       visualType={visualType}
     />

@@ -33,7 +33,12 @@ export const CompositeButton = forwardRef<
     ref,
   ) => {
     return (
-      <div className="str-video__composite-button" ref={ref}>
+      <div
+        className={clsx('str-video__composite-button', {
+          'str-video__composite-button--caption': caption,
+        })}
+        ref={ref}
+      >
         <div
           className={clsx('str-video__composite-button__button-group', {
             'str-video__composite-button__button-group--active': active,

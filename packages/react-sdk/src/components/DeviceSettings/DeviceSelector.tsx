@@ -1,14 +1,14 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
-import { Icon } from '../Icon';
+import { generateCode } from '../../utilities';
 
 import { DefaultDropDownSelectOption, DropDownSelect } from '../DropdownSelect';
 
 type DeviceSelectorOptionProps = {
   id: string;
   label: string;
-  name: string;
+  name?: string;
   selected?: boolean;
   value: string;
   disabled?: boolean;
@@ -49,36 +49,10 @@ const DeviceSelectorOption = ({
   );
 };
 
-const DeviceDropdownSelectorOption = ({
-  label,
-  selected,
-  icon,
-}: {
-  label: string;
-  selected: boolean;
-  icon: string;
-}) => {
-  return (
-    <label
-      className={clsx('str-video__device-settings__option', {
-        'str-video__device-settings__option--selected': selected,
-      })}
-    >
-      <Icon
-        className={clsx('str-video__device-settings__icon', {
-          'str-video__device-settings__icon--selected': selected,
-        })}
-        icon={icon}
-      />
-      {label}
-    </label>
-  );
-};
-
 export const DeviceSelectorList = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
-  title: string;
+  title?: string;
   onChange?: (deviceId: string) => void;
 }) => {
   const {
@@ -87,7 +61,8 @@ export const DeviceSelectorList = (props: {
     title,
     onChange,
   } = props;
-  const inputGroupName = title.replace(' ', '-').toLowerCase();
+  const inputGroupName =
+    title?.replace(' ', '-').toLowerCase() || generateCode();
 
   // sometimes the browser (Chrome) will report the system-default device
   // with an id of 'default'. In case when it doesn't, we'll select the first
@@ -102,9 +77,11 @@ export const DeviceSelectorList = (props: {
 
   return (
     <div className="str-video__device-settings__device-kind">
-      <div className="str-video__device-settings__device-selector-title">
-        {title}
-      </div>
+      {title && (
+        <div className="str-video__device-settings__device-selector-title">
+          {title}
+        </div>
+      )}
       {!devices.length ? (
         <DeviceSelectorOption
           id={`${inputGroupName}--default`}
@@ -139,7 +116,7 @@ export const DeviceSelectorList = (props: {
 export const DeviceSelectorDropdown = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
-  title: string;
+  title?: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
   icon: string;
@@ -151,7 +128,6 @@ export const DeviceSelectorDropdown = (props: {
     title,
     onChange,
     icon,
-    placeholder,
   } = props;
 
   // sometimes the browser (Chrome) will report the system-default device
@@ -207,7 +183,7 @@ export const DeviceSelectorDropdown = (props: {
 export const DeviceSelector = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
-  title: string;
+  title?: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
   icon: string;

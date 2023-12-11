@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { StreamI18nProvider } from '@stream-io/video-react-sdk';
 
 import { Feedback } from '../../components/Feedback/Feedback';
+import { DefaultAppHeader } from '../../components/DefaultAppHeader';
 
 import translations from '../../translations';
 import { useSettings } from '../../context/SettingsContext';
@@ -28,10 +29,13 @@ const LeaveContent = () => {
   const callId = router.query['callId'] as string;
 
   return (
-    <div className="rd__leave">
-      <div className="rd__leave-content">
-        <Feedback inMeeting={false} callId={callId} />
+    <>
+      <DefaultAppHeader />
+      <div className="rd__leave">
+        <div className="rd__leave-content">
+          <Feedback inMeeting={false} callId={callId} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };

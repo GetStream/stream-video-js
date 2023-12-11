@@ -1,6 +1,5 @@
 import { HTMLInputTypeAttribute, useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { useRouter } from 'next/router';
 
 import { useField, useForm } from 'react-form';
 
@@ -78,7 +77,6 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   const [errorMessage, setError] = useState<string | null>(null);
 
   const { t } = useI18n();
-  const router = useRouter();
 
   const endpointUrl =
     process.env.MODE === 'staging' || process.env.MODE === 'development'
@@ -227,10 +225,13 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
                 <button
                   className="rd__button rd__button--secondary rd__feedback-button--cancel"
                   disabled={isSubmitting}
-                  onClick={() => router.push(`/join/${callId}`)}
+                  onClick={() =>
+                    window.location.assign(
+                      'https://getstream.io/video/#contact',
+                    )
+                  }
                 >
-                  <Icon className="rd__button__icon" icon="login" />
-                  {t('Rejoin Call')}
+                  {t('Contact an expert')}
                 </button>
               )}
 
