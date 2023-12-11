@@ -25,13 +25,16 @@ export const DeviceSettings = ({ visualType = MenuVisualType.MENU }) => {
   );
 };
 
-const Menu = () => (
-  <div className="str-video__device-settings">
-    <DeviceSelectorVideo />
-    <DeviceSelectorAudioInput />
-    <DeviceSelectorAudioOutput />
-  </div>
-);
+const Menu = () => {
+  const { t } = useI18n();
+  return (
+    <div className="str-video__device-settings">
+      <DeviceSelectorVideo title={t('Select a Camera')} />
+      <DeviceSelectorAudioInput title={t('Select a Mic')} />
+      <DeviceSelectorAudioOutput title={t('Select Speakers')} />
+    </div>
+  );
+};
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   ({ menuShown }, ref) => {
