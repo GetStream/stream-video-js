@@ -165,7 +165,7 @@ const ErrorPage = ({
   error,
 }: ErrorPageProps) => (
   <div className="rd__error">
-    <div>
+    <div className="rd__error__container">
       <h1 className="rd__error__header">{heading}</h1>
       <div className="rd__error__content">
         {error?.stack && (
@@ -175,33 +175,34 @@ const ErrorPage = ({
         )}
         <p>(see the console for more info)</p>
       </div>
-    </div>
-    <div className="rd__error___actions">
-      <button
-        data-testid="return-home-button"
-        className="rd__button rd__button--primary"
-        onClick={onClickHome}
-      >
-        Return home
-      </button>
 
-      <button
-        data-testid="return-home-button"
-        className="rd__button rd__button--secondary"
-        onClick={onClickLobby}
-      >
-        Back to lobby
-      </button>
+      <div className="rd__error__actions">
+        <button
+          data-testid="return-home-button"
+          className="rd__button rd__button--primary"
+          onClick={onClickHome}
+        >
+          Return home
+        </button>
 
-      <button
-        data-testid="report-issue-button"
-        className="rd__button"
-        onClick={() => {
-          Gleap.startFeedbackFlow('bugreporting');
-        }}
-      >
-        Report an issue
-      </button>
+        <button
+          data-testid="return-home-button"
+          className="rd__button rd__button--secondary"
+          onClick={onClickLobby}
+        >
+          Back to lobby
+        </button>
+
+        <button
+          data-testid="report-issue-button"
+          className="rd__button"
+          onClick={() => {
+            Gleap.startFeedbackFlow('bugreporting');
+          }}
+        >
+          Report an issue
+        </button>
+      </div>
     </div>
   </div>
 );

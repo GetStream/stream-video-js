@@ -23,12 +23,6 @@
 
 @include respond-above(sm) {
   .rd__leave-content {
-    max-width: 30vw;
-  }
-}
-
-@include respond-above(md) {
-  .rd__leave-content {
-    max-width: 20vw;
+    max-width: 35vw;
   }
 }
