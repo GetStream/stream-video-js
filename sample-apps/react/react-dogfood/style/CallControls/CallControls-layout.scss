@@ -1,12 +1,12 @@
 .str-video__call-controls {
   justify-content: flex-start;
-  padding: 0.5rem;
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
   gap: 0.25rem;
 
   .str-video__call-controls--group {
     display: flex;
     gap: 0.25rem;
-    align-items: flex-start;
+    align-items: center;
 
     &.str-video__call-controls--options {
       .str-video__call-controls__mobile {
