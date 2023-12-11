@@ -11,13 +11,12 @@ import {
   RecordCallButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
+
 import { ActiveCallHeader } from './ActiveCallHeader';
 import { Stage } from './Stage';
-import { InvitePanel } from './InvitePanel/InvitePanel';
+import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
 import { ChatWrapper } from './ChatWrapper';
 import { ChatUI } from './ChatUI';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
@@ -31,6 +30,7 @@ import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
+
 import { useWatchChannel, useBreakpoint } from '../hooks';
 
 export type ActiveCallProps = {
@@ -43,6 +43,7 @@ export type ActiveCallProps = {
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const [showParticipants, setShowParticipants] = useState(false);
+  const [showInvitePopup, setShowInvitePopup] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const storedLayout = getLayoutSettings()?.selectedLayout;
@@ -96,6 +97,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
         <PermissionRequests />
         <div className="rd__layout">
           <Stage selectedLayout={layout} />
+          {showInvitePopup && (
+            <InvitePopup
+              callId={activeCall.id}
+              close={() => setShowInvitePopup(false)}
+            />
+          )}
           {showSidebar && (
             <div className="rd__sidebar">
               {showParticipants && (

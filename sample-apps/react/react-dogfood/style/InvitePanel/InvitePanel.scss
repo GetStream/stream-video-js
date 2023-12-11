@@ -52,3 +52,55 @@
     }
   }
 }
+
+.rd__invite-popup {
+  display: flex;
+  flex-direction: column;
+  padding: var(--str-video__spacing-md);
+  border-radius: var(--str-video__border-radius-md);
+  position: absolute;
+  bottom: var(--str-video__spacing-lg);
+  right: var(--str-video__spacing-lg);
+  background-color: var(--str-video__base-color6);
+  max-width: 250px;
+  gap: var(--str-video__spacing-md);
+
+  &__header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__heading {
+    font-size: var(--str-video__font-size-md);
+    margin: 0;
+  }
+
+  &__close {
+  }
+
+  &__button {
+  }
+
+  &__description {
+    font-size: var(--str-video__font-size-xs);
+    margin: 0;
+  }
+
+  &__id {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--str-video__font-size-xs);
+    align-items: center;
+
+    &:hover {
+      cursor: pointer;
+    }
+
+    &-text {
+      color: var(--str-video__brand-color3);
+      margin-left: var(--str-video__spacing-md);
+    }
+  }
+}
