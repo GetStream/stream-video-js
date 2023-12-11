@@ -44,8 +44,10 @@ jobs:
             project-id: prj_uNJTw7DefSAntAoWCXwJaHc1khoA
           - name: audio-rooms
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
-          - name: react-dogfood
+          - name: react-dogfood # pronto.getstream.io
             project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
+          - name: react-dogfood # getstream.io/video/demos
+            project-id: prj_tTLn3XMVal4D1Nnel9nPJ0hoI9wA
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
