@@ -3,7 +3,7 @@ import {
   JoinCallRequest,
   JoinCallResponse,
 } from '../../gen/coordinator';
-import { JoinCallData, StreamVideoParticipant } from '../../types';
+import { JoinCallData } from '../../types';
 import { StreamClient } from '../../coordinator/connection/client';
 
 /**
@@ -60,20 +60,4 @@ const toRtcConfiguration = (config?: ICEServer[]) => {
     })),
   };
   return rtcConfig;
-};
-
-/**
- * Reconciles the local state of the source participant into the target participant.
- *
- * @param target the participant to reconcile into.
- * @param source the participant to reconcile from.
- */
-export const reconcileParticipantLocalState = (
-  target: StreamVideoParticipant,
-  source?: StreamVideoParticipant,
-) => {
-  if (!source) return target;
-
-  // copy everything from source to target
-  return Object.assign(target, source);
 };

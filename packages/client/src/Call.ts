@@ -62,7 +62,7 @@ import {
   UpdateUserPermissionsRequest,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
-import { join, reconcileParticipantLocalState } from './rtc/flows/join';
+import { join } from './rtc/flows/join';
 import {
   AudioTrackType,
   CallConstructor,
@@ -1030,22 +1030,19 @@ export class Call {
       const pins = callState?.pins ?? [];
       this.state.setParticipants(() => {
         const participantLookup = this.state.getParticipantLookupBySessionId();
-        return currentParticipants.map((p) => {
-          const participant: StreamVideoParticipant = Object.assign(p, {
-            isLocalParticipant: p.sessionId === sfuClient.sessionId,
-            viewportVisibilityState: {
-              videoTrack: VisibilityState.UNKNOWN,
-              screenShareTrack: VisibilityState.UNKNOWN,
-            },
-          });
+        return currentParticipants.map<StreamVideoParticipant>((p) => {
           // We need to preserve the local state of the participant
           // (e.g. videoDimension, visibilityState, pinnedAt, etc.)
           // as it doesn't exist on the server.
           const existingParticipant = participantLookup[p.sessionId];
-          return reconcileParticipantLocalState(
-            participant,
-            existingParticipant,
-          );
+          return Object.assign(p, existingParticipant, {
+            isLocalParticipant: p.sessionId === sfuClient.sessionId,
+            viewportVisibilityState:
+              existingParticipant?.viewportVisibilityState ?? {
+                videoTrack: VisibilityState.UNKNOWN,
+                screenShareTrack: VisibilityState.UNKNOWN,
+              },
+          } satisfies Partial<StreamVideoParticipant>);
         });
       });
       this.state.setParticipantCount(participantCount?.total || 0);
