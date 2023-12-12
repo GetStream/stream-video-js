@@ -17,16 +17,16 @@ import {
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
+import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
 import {
   defaultRequestTransformers,
   defaultResponseTransformers,
 } from '../../helpers/axiosApiTransformers';
-import {
+import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
-  EnvironmentName,
 } from '../api/auth/create-token';
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
@@ -39,14 +39,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const { user, gleapApiKey } = props;
 
+  const environment = useAppEnvironment();
   const fetchAuthDetails = useCallback(
     async (init?: RequestInit) => {
-      const environment = process.env.NEXT_PUBLIC_APP_ENVIRONMENT as
-        | EnvironmentName
-        | undefined;
       const params = {
         user_id: user.id || '!anon',
-        environment: environment || 'pronto',
+        environment,
         exp: String(4 * 60 * 60), // 4 hours
       } satisfies CreateJwtTokenRequest;
       return fetch(
@@ -54,7 +52,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },
-    [user.id],
+    [environment, user.id],
   );
 
   const tokenProvider = useCallback(

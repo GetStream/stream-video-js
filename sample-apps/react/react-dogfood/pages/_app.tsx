@@ -8,6 +8,7 @@ import Head from 'next/head';
 import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
+import { AppEnvironmentProvider } from '../context/AppEnvironmentContext';
 
 type AppProps = {
   Component: ComponentType;
@@ -26,11 +27,13 @@ export default function App({
         <title>Stream Calls</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <SettingsProvider>
-        <StreamTheme>
-          <Component {...pageProps} />
-        </StreamTheme>
-      </SettingsProvider>
+      <AppEnvironmentProvider>
+        <SettingsProvider>
+          <StreamTheme>
+            <Component {...pageProps} />
+          </StreamTheme>
+        </SettingsProvider>
+      </AppEnvironmentProvider>
     </SessionProvider>
   );
 }

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
 import names from 'starwars-names';
+import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
 type Providers = ReturnType<typeof getProviders> extends Promise<infer R>
   ? R
@@ -32,6 +33,7 @@ export default function SignIn({
     }
   }, [router, status]);
 
+  const isDemoEnvironment = useIsDemoEnvironment();
   return (
     <div className="rd__auth">
       <div className="rd__auth-content">
@@ -39,7 +41,7 @@ export default function SignIn({
         <h1 className="rd__auth-heading">
           {t('Stream')}
           <span>{t('[Video Calling]')}</span>
-          {process.env.NEXT_PUBLIC_APP_ENVIRONMENT !== 'pronto' && t('Demo')}
+          {isDemoEnvironment && t('Demo')}
         </h1>
         <ul className="rd__auth-list">
           {Object.values(providers!).map((provider) => {

@@ -17,6 +17,7 @@ import { meetingId } from '../lib/meetingId';
 import translations from '../translations';
 import { useSettings } from '../context/SettingsContext';
 import { DefaultAppHeader } from '../components/DefaultAppHeader';
+import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -72,6 +73,7 @@ const HomeContent = () => {
     },
     [onJoin, disabled],
   );
+  const isDemoEnvironment = useIsDemoEnvironment();
   return (
     <>
       <DefaultAppHeader />
@@ -81,7 +83,7 @@ const HomeContent = () => {
           <h1 className="rd__home-heading">
             {t('Stream')}
             <span>{t('[Video Calling]')}</span>
-            {process.env.NEXT_PUBLIC_APP_ENVIRONMENT !== 'pronto' && t('Demo')}
+            {isDemoEnvironment && t('Demo')}
           </h1>
           <p className="rd__home-description">
             {t(

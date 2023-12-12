@@ -33,6 +33,7 @@ import { UnreadCountBadge } from './UnreadCountBadge';
 import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 
 import { useBreakpoint, useWatchChannel } from '../hooks';
+import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -83,6 +84,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
       onJoin(true);
     }
   }, [activeCall, onJoin]);
+
+  const isPronto = useIsProntoEnvironment();
 
   return (
     <div className="rd__call">
@@ -145,7 +148,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             <div className="str-video__call-controls__desktop">
               <ToggleFeedbackButton />
             </div>
-            {process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto' && (
+            {isPronto && (
               <div className="str-video__call-controls__desktop">
                 <ToggleDeveloperButton />
               </div>
