@@ -760,7 +760,10 @@ export class Call {
       const localParticipant = this.state.localParticipant;
 
       if (strategy === 'fast') {
-        sfuClient.close();
+        sfuClient.close(
+          StreamSfuClient.ERROR_CONNECTION_BROKEN,
+          'js-client: attempting fast reconnect',
+        );
       } else if (strategy === 'full') {
         // in migration or recovery scenarios, we don't want to
         // wait before attempting to reconnect to an SFU server
@@ -774,15 +777,23 @@ export class Call {
         this.statsReporter?.stop();
         this.statsReporter = undefined;
 
-        sfuClient.close(); // clean up current connection
+        // clean up current connection
+        sfuClient.close(
+          StreamSfuClient.NORMAL_CLOSURE,
+          'js-client: attempting full reconnect',
+        );
       }
       await this.join({
         ...data,
         ...(strategy === 'migrate' && { migrating_from: sfuServer.edge_name }),
       });
 
+      // clean up previous connection
       if (strategy === 'migrate') {
-        sfuClient?.close(); // clean up previous connection
+        sfuClient.close(
+          StreamSfuClient.NORMAL_CLOSURE,
+          'js-client: attempting migration',
+        );
       }
 
       this.logger(
@@ -853,7 +864,7 @@ export class Call {
         // the upcoming re-join will register a new handler anyway
         unregisterGoAway();
         // do nothing if the connection was closed on purpose
-        if (e.code === KnownCodes.WS_CLOSED_SUCCESS) return;
+        if (e.code === StreamSfuClient.NORMAL_CLOSURE) return;
         // do nothing if the connection was closed because of a policy violation
         // e.g., the user has been blocked by an admin or moderator
         if (e.code === KnownCodes.WS_POLICY_VIOLATION) return;
@@ -863,7 +874,13 @@ export class Call {
         // to reconnect to the old SFU, but rather to the new one.
         const isMigratingAway =
           e.code === KnownCodes.WS_CLOSED_ABRUPTLY && sfuClient.isMigratingAway;
-        if (isMigratingAway) return;
+        const isFastReconnecting =
+          e.code === KnownCodes.WS_CLOSED_ABRUPTLY &&
+          sfuClient.isFastReconnecting;
+        if (isMigratingAway || isFastReconnecting) return;
+
+        // do nothing if the connection was closed because of a fast reconnect
+        if (e.code === StreamSfuClient.ERROR_CONNECTION_BROKEN) return;
 
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           sfuClient.isFastReconnecting = this.reconnectAttempts === 0;

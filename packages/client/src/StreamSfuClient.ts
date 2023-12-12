@@ -120,6 +120,24 @@ export class StreamSfuClient {
   private readonly logger: Logger;
 
   /**
+   * The normal closure code. Used for controlled shutdowns.
+   */
+  static NORMAL_CLOSURE = 1000;
+  /**
+   * The error code used when the SFU connection is unhealthy.
+   * Usually, this means that no message has been received from the SFU for
+   * a certain amount of time (`connectionCheckTimeout`).
+   */
+  static ERROR_CONNECTION_UNHEALTHY = 4001;
+
+  /**
+   * The error code used when the SFU connection is broken.
+   * Usually, this means that the WS connection has been closed unexpectedly.
+   * This error code is used to announce a fast-reconnect.
+   */
+  static ERROR_CONNECTION_BROKEN = 4002; // used in fast-reconnects
+
+  /**
    * Constructs a new SFU client.
    *
    * @param dispatcher the event dispatcher to use.
@@ -193,11 +211,13 @@ export class StreamSfuClient {
   }
 
   close = (
-    code: number = 1000,
-    reason: string = 'Requested signal connection close',
+    code: number = StreamSfuClient.NORMAL_CLOSURE,
+    reason: string = 'js-client: requested signal connection close',
   ) => {
     this.logger('debug', 'Closing SFU WS connection', code, reason);
-    this.signalWs.close(code, reason);
+    if (this.signalWs.readyState === this.signalWs.CLOSED) {
+      this.signalWs.close(code, reason);
+    }
 
     this.unsubscribeIceTrickle();
     clearInterval(this.keepAliveInterval);
@@ -312,9 +332,7 @@ export class StreamSfuClient {
   };
 
   private keepAlive = () => {
-    if (this.keepAliveInterval) {
-      clearInterval(this.keepAliveInterval);
-    }
+    clearInterval(this.keepAliveInterval);
     this.keepAliveInterval = setInterval(() => {
       this.logger('trace', 'Sending healthCheckRequest to SFU');
       const message = SfuRequest.create({
@@ -323,15 +341,14 @@ export class StreamSfuClient {
           healthCheckRequest: {},
         },
       });
-      void this.send(message);
+      this.send(message).catch((e) => {
+        this.logger('error', 'Error sending healthCheckRequest to SFU', e);
+      });
     }, this.pingIntervalInMs);
   };
 
   private scheduleConnectionCheck = () => {
-    if (this.connectionCheckTimeout) {
-      clearTimeout(this.connectionCheckTimeout);
-    }
-
+    clearTimeout(this.connectionCheckTimeout);
     this.connectionCheckTimeout = setTimeout(() => {
       if (this.lastMessageTimestamp) {
         const timeSinceLastMessage =
@@ -339,8 +356,8 @@ export class StreamSfuClient {
 
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
           this.close(
-            4001,
-            `SFU connection unhealthy. Didn't receive any healthcheck messages for ${this.unhealthyTimeoutInMs}ms`,
+            StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+            `SFU connection unhealthy. Didn't receive any message for ${this.unhealthyTimeoutInMs}ms`,
           );
         }
       }
