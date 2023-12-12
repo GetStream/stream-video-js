@@ -21,6 +21,9 @@ on:
       - '!**/docusaurus/**'
   workflow_dispatch:
 
+concurrency:
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy-sample-apps:
     name: Deploy ${{ matrix.application.name }}
