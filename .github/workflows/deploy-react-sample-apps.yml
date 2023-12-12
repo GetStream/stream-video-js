@@ -88,7 +88,7 @@ jobs:
       - name: Vercel Pull/Build/Deploy (Preview)
         if: ${{ github.ref_name != 'main' }}
         env:
-          BASE_PATH: ${{ matrix.application.base-path || '' }}
+          NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
           yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build --token=${{ secrets.VERCEL_TOKEN }} &&
@@ -98,7 +98,7 @@ jobs:
       - name: Vercel Pull/Build/Deploy (Production)
         if: ${{ github.ref_name == 'main' }}
         env:
-          BASE_PATH: ${{ matrix.application.base-path || '' }}
+          NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
           yarn vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
