@@ -17,9 +17,10 @@ export const getServerSideCredentialsProps = async (
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
     return {
       redirect: {
-        destination: `/auth/signin?callbackUrl=${url}`,
+        destination: `${basePath}/auth/signin?callbackUrl=${url}`,
       },
     };
   }
@@ -37,7 +38,7 @@ export const getServerSideCredentialsProps = async (
 
   // Chat does not allow for Id's to include special characters
   const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
-  const userName = session?.user?.name || userId;
+  const userName = session.user?.name || userId;
   return {
     props: {
       apiKey,
@@ -45,7 +46,7 @@ export const getServerSideCredentialsProps = async (
       user: {
         id: streamUserId,
         name: userIdOverride || userName,
-        image: session?.user?.image,
+        image: session.user?.image,
       },
       gleapApiKey,
     } as ServerSideCredentialsProps,

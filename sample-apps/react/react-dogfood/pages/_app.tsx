@@ -24,7 +24,7 @@ export default function App({
   return (
     <SessionProvider
       session={session}
-      basePath={`${process.env.NEXT_PUBLIC_BASE_PATH}/api/auth` || ''}
+      basePath={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/auth`}
     >
       <Head>
         <title>Stream Calls</title>
