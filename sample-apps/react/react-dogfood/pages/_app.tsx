@@ -22,7 +22,10 @@ export default function App({
   pageProps: { session, ...pageProps },
 }: AppProps) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider
+      session={session}
+      basePath={process.env.NEXT_PUBLIC_BASE_PATH || ''}
+    >
       <Head>
         <title>Stream Calls</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
