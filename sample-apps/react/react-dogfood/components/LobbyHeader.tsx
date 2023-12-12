@@ -10,7 +10,12 @@ import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
-    <Image src="/stream-logo.svg" alt="Stream logo" width={36} height={36} />
+    <Image
+      src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.svg`}
+      alt="Stream logo"
+      width={36}
+      height={36}
+    />
   </Link>
 );
 

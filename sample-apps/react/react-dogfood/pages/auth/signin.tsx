@@ -37,7 +37,11 @@ export default function SignIn({
   return (
     <div className="rd__auth">
       <div className="rd__auth-content">
-        <img className="rd__auth-image" src="/auth.png" alt="Sign in" />
+        <img
+          className="rd__auth-image"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/auth.png`}
+          alt="Sign in"
+        />
         <h1 className="rd__auth-heading">
           {t('Stream')}
           <span>{t('[Video Calling]')}</span>

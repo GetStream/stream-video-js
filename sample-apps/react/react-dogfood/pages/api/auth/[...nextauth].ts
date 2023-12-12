@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/auth/signin`,
   },
 };
 

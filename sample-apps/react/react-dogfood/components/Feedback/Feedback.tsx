@@ -137,7 +137,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
       <div className="rd__feedback rd__feedback--sent">
         <img
           className="rd__feedback-image"
-          src="/feedback.png"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/feedback.png`}
           alt="Feedback"
         />
 
@@ -165,7 +165,7 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
       <div className="rd__feedback">
         <img
           className="rd__feedback-image"
-          src="/feedback.png"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/feedback.png`}
           alt="Feedback"
         />
         <h4 className="rd__feedback-heading">

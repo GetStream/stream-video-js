@@ -48,7 +48,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         exp: String(4 * 60 * 60), // 4 hours
       } satisfies CreateJwtTokenRequest;
       return fetch(
-        `/api/auth/create-token?${new URLSearchParams(params)}`,
+        `${
+          process.env.NEXT_PUBLIC_BASE_PATH || ''
+        }/api/auth/create-token?${new URLSearchParams(params)}`,
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },

@@ -79,7 +79,11 @@ const HomeContent = () => {
       <DefaultAppHeader />
       <div className="rd__home">
         <div className="rd__home-content">
-          <img className="rd__home-image" src="/home.png" alt="Home" />
+          <img
+            className="rd__home-image"
+            src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
+            alt="Home"
+          />
           <h1 className="rd__home-heading">
             {t('Stream')}
             <span>{t('[Video Calling]')}</span>
