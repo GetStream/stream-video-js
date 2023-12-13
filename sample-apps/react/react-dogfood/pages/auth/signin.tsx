@@ -103,7 +103,7 @@ const GuestLoginItem = ({
       </div>
       <button
         className="rd__button rd__button--primary rd__auth-provider"
-        onClick={() => signIn(provider.id, { name, redirect: false })}
+        onClick={() => signIn(provider.id, { name })}
         data-testid="guest-sign-in-button"
       >
         Continue
