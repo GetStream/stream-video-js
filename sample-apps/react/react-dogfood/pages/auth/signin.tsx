@@ -1,25 +1,31 @@
-import { ClientSafeProvider, getProviders, signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
 import names from 'starwars-names';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 import { useSearchParams } from 'next/navigation';
 
-type Providers = ReturnType<typeof getProviders> extends Promise<infer R>
-  ? R
-  : never;
+import { authOptions } from '../api/auth/[...nextauth]';
+
+type ProntoProvider = {
+  id: string;
+  name: string;
+  type: string;
+};
+type ProntoProviders = Record<string, ProntoProvider>;
 
 export default function SignIn({
   providers,
   randomName,
 }: {
-  providers: Providers;
+  providers: ProntoProviders;
   randomName: string;
 }) {
   const { t } = useI18n();
   const params = useSearchParams();
+  // FIXME OL: should be callbackUrl, then NEXT_PUBLIC_BASE_PATH, then '/'
   const callbackUrl =
-    params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
+    process.env.NEXT_PUBLIC_BASE_PATH || params.get('callbackUrl') || '/';
 
   const isDemoEnvironment = useIsDemoEnvironment();
   return (
@@ -36,7 +42,7 @@ export default function SignIn({
           {isDemoEnvironment && t('Demo')}
         </h1>
         <ul className="rd__auth-list">
-          {Object.values(providers!).map((provider) => {
+          {Object.values(providers || {}).map((provider) => {
             if (provider.id === 'stream-demo-login') {
               return (
                 <GuestLoginItem
@@ -70,7 +76,7 @@ export default function SignIn({
 }
 
 const GuestLoginItem = (props: {
-  provider: ClientSafeProvider;
+  provider: ProntoProvider;
   randomName: string;
   callbackUrl: string;
 }) => {
@@ -102,7 +108,14 @@ const GuestLoginItem = (props: {
 };
 
 export async function getServerSideProps() {
-  const providers = await getProviders();
+  const providers = authOptions.providers.reduce<ProntoProviders>(
+    (acc, { id, name, type }) => {
+      acc[id] = { id, name, type };
+      return acc;
+    },
+    {},
+  );
+
   return {
     props: {
       providers,
