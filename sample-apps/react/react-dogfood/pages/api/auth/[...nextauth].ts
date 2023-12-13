@@ -61,6 +61,15 @@ export const authOptions: NextAuthOptions = {
         account?.provider === StreamDemoAccountProvider.id
       );
     },
+    async redirect({ baseUrl, url }) {
+      if (environment === 'demo') {
+        return 'https://staging.getstream.io/video/demos';
+      }
+      // original implementation
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   pages: {
     signIn: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/auth/signin`,
