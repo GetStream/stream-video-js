@@ -1,3 +1,5 @@
+import { type GetServerSidePropsContext } from 'next';
+import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
@@ -23,9 +25,8 @@ export default function SignIn({
 }) {
   const { t } = useI18n();
   const params = useSearchParams();
-  // FIXME OL: should be callbackUrl, then NEXT_PUBLIC_BASE_PATH, then '/'
   const callbackUrl =
-    process.env.NEXT_PUBLIC_BASE_PATH || params.get('callbackUrl') || '/';
+    params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
 
   const isDemoEnvironment = useIsDemoEnvironment();
   return (
@@ -107,7 +108,17 @@ const GuestLoginItem = (props: {
   );
 };
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (session) {
+    // redirect to "base path" if already signed in
+    return {
+      redirect: {
+        destination: '/',
+      },
+    };
+  }
+
   const providers = authOptions.providers.reduce<ProntoProviders>(
     (acc, { id, name, type }) => {
       acc[id] = { id, name, type };
