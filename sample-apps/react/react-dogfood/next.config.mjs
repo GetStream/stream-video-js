@@ -42,6 +42,21 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    if (
+      process.env.VERCEL &&
+      process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'demo'
+    ) {
+      return [
+        {
+          source: '/',
+          destination: 'https://staging.getstream.io/video/demos',
+          permanent: false,
+        },
+      ];
+    }
+    return [];
+  },
 
   webpack: (config) => {
     config.module.rules.push({
