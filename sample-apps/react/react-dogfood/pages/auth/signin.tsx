@@ -18,7 +18,8 @@ export default function SignIn({
 }) {
   const { t } = useI18n();
   const params = useSearchParams();
-  const callbackUrl = params.get('callbackUrl') || '/';
+  const callbackUrl =
+    params.get('callbackUrl') || process.env.NEXT_PUBLIC_BASE_PATH || '/';
 
   const isDemoEnvironment = useIsDemoEnvironment();
   return (

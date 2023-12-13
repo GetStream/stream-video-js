@@ -27,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      signIn(undefined, { callbackUrl: window.location.href }).catch((err) => {
+      signIn().catch((err) => {
         console.error('Sign in error', err);
       });
     }
