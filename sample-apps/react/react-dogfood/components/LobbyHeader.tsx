@@ -19,7 +19,7 @@ export const HomeButton = () => (
   </Link>
 );
 
-export const Menu = () => {
+export const UserMenu = () => {
   const { language, setLanguage } = useLanguage();
 
   return (
@@ -28,12 +28,15 @@ export const Menu = () => {
         <li className="rd__user-session__menu-item">
           <LanguageMenu language={language} setLanguage={setLanguage} />
         </li>
-
         <li className="rd__user-session__menu-item">
           <button
             className="rd__button rd__user-session__menu-button"
             onClick={() => {
-              void signOut();
+              const url = new URL(window.location.href);
+              url.pathname = process.env.NEXT_PUBLIC_BASE_PATH || '';
+              signOut({ callbackUrl: url.toString() }).catch((err) => {
+                console.error('Sign out error', err);
+              });
             }}
           >
             <Icon
@@ -74,7 +77,7 @@ export const ToggleMenuButton = forwardRef<HTMLDivElement>((props, ref) => {
 export const ToggleLogoutButton = () => {
   return (
     <MenuToggle placement="bottom-end" ToggleButton={ToggleMenuButton}>
-      <Menu />
+      <UserMenu />
     </MenuToggle>
   );
 };

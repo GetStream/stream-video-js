@@ -27,7 +27,9 @@ export default function Home() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      void signIn();
+      signIn(undefined, { callbackUrl: window.location.href }).catch((err) => {
+        console.error('Sign in error', err);
+      });
     }
   }, [status]);
 
@@ -57,10 +59,7 @@ const HomeContent = () => {
   }, [ref, router]);
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback(
-    (e) =>
-      setDisabled(() => {
-        return e.target.value.length < 3;
-      }),
+    (e) => setDisabled(() => e.target.value.length < 3),
     [],
   );
 

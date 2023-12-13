@@ -1,14 +1,9 @@
-import {
-  ClientSafeProvider,
-  getProviders,
-  signIn,
-  useSession,
-} from 'next-auth/react';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { ClientSafeProvider, getProviders, signIn } from 'next-auth/react';
+import { useState } from 'react';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
 import names from 'starwars-names';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
+import { useSearchParams } from 'next/navigation';
 
 type Providers = ReturnType<typeof getProviders> extends Promise<infer R>
   ? R
@@ -21,17 +16,9 @@ export default function SignIn({
   providers: Providers;
   randomName: string;
 }) {
-  const { status } = useSession();
-
-  const router = useRouter();
   const { t } = useI18n();
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      const returnUrl = (router.query['callbackUrl'] as string) || '/';
-      router.push(returnUrl);
-    }
-  }, [router, status]);
+  const params = useSearchParams();
+  const callbackUrl = params.get('callbackUrl') || '/';
 
   const isDemoEnvironment = useIsDemoEnvironment();
   return (
@@ -55,6 +42,7 @@ export default function SignIn({
                   key={provider.id}
                   provider={provider}
                   randomName={randomName}
+                  callbackUrl={callbackUrl}
                 />
               );
             }
@@ -62,7 +50,7 @@ export default function SignIn({
               <li key={provider.id} className="rd__auth-item">
                 <button
                   className="rd__button rd__auth-provider"
-                  onClick={() => signIn(provider.id)}
+                  onClick={() => signIn(provider.id, { callbackUrl })}
                   data-testid="sign-in-button"
                 >
                   <Icon
@@ -80,14 +68,14 @@ export default function SignIn({
   );
 }
 
-const GuestLoginItem = ({
-  provider,
-  randomName,
-}: {
+const GuestLoginItem = (props: {
   provider: ClientSafeProvider;
   randomName: string;
+  callbackUrl: string;
 }) => {
+  const { provider, randomName, callbackUrl } = props;
   const [name, setName] = useState(randomName);
+  const logIn = () => signIn(provider.id, { name, callbackUrl });
   return (
     <li className="rd__auth-item rd__auth-item--guest-login">
       <div className="rd__auth-item--guest_name_wrapper">
@@ -98,12 +86,12 @@ const GuestLoginItem = ({
           value={name}
           maxLength={25}
           onChange={(e) => setName(e.target.value)}
-          onKeyUp={(e) => e.key === 'Enter' && signIn(provider.id, { name })}
+          onKeyUp={(e) => e.key === 'Enter' && logIn()}
         />
       </div>
       <button
         className="rd__button rd__button--primary rd__auth-provider"
-        onClick={() => signIn(provider.id, { name })}
+        onClick={logIn}
         data-testid="guest-sign-in-button"
       >
         Continue
