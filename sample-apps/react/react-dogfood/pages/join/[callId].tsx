@@ -17,7 +17,10 @@ import {
 } from '../../lib/getServerSideCredentialsProps';
 import { useGleap } from '../../hooks/useGleap';
 import { useSettings } from '../../context/SettingsContext';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  useAppEnvironment,
+  useIsDemoEnvironment,
+} from '../../context/AppEnvironmentContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
 import {
@@ -29,6 +32,8 @@ import type {
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
@@ -36,6 +41,23 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
+
+  const isDemoEnvironment = useIsDemoEnvironment();
+  useEffect(() => {
+    if (!isDemoEnvironment) return;
+    // For backwards compatibility, we need to append `?id=${callId}` to the URL
+    // if it's not already there.
+    // Otherwise, deep links in the mobile apps won't work.
+    const id = router.query['id'] as string | undefined;
+    if (id !== callId) {
+      router
+        .replace({
+          pathname: router.pathname,
+          query: { ...router.query, id: callId },
+        })
+        .catch((err) => console.error('Failed to replace router', err));
+    }
+  }, [callId, isDemoEnvironment, router]);
 
   const { user, gleapApiKey } = props;
 
@@ -48,9 +70,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         exp: String(4 * 60 * 60), // 4 hours
       } satisfies CreateJwtTokenRequest;
       return fetch(
-        `${
-          process.env.NEXT_PUBLIC_BASE_PATH || ''
-        }/api/auth/create-token?${new URLSearchParams(params)}`,
+        `${basePath}/api/auth/create-token?${new URLSearchParams(params)}`,
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },
