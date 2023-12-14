@@ -38,6 +38,8 @@ const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
 const isProntoEnvironment =
   environment === 'pronto' || environment === 'pronto-next';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export const authOptions: NextAuthOptions = {
   providers: [
     !isProntoEnvironment && StreamDemoAccountProvider,
@@ -62,9 +64,11 @@ export const authOptions: NextAuthOptions = {
       );
     },
     async redirect({ baseUrl, url }) {
-      if (environment === 'demo') {
-        return 'https://staging.getstream.io/video/demos';
+      if (basePath && url.startsWith('/')) {
+        // the original implementation lacks support for basePath
+        return `${baseUrl}${basePath}${url}`;
       }
+
       // original implementation
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
@@ -72,7 +76,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/auth/signin`,
+    signIn: `${basePath}/auth/signin`,
   },
 };
 
