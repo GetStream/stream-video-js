@@ -64,6 +64,14 @@ export const authOptions: NextAuthOptions = {
       );
     },
     async redirect({ baseUrl, url }) {
+      // when running the demo on Vercel, we need to patch the baseUrl
+      if (process.env.VERCEL && environment === 'demo') {
+        baseUrl =
+          process.env.NEXT_PUBLIC_DEMO_ENVIRONMENT !== 'staging'
+            ? 'https://getstream.io/'
+            : 'https://staging.getstream.io/';
+      }
+
       if (basePath && url.startsWith('/')) {
         // the original implementation lacks support for basePath
         return `${baseUrl}${basePath}${url}`;
