@@ -17,10 +17,9 @@ export const getServerSideCredentialsProps = async (
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     const url = context.req.url;
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
     return {
       redirect: {
-        destination: `${basePath}/auth/signin?callbackUrl=${url}`,
+        destination: `/auth/signin?callbackUrl=${url}`,
       },
     };
   }
