@@ -68,13 +68,8 @@ export const authOptions: NextAuthOptions = {
       if (process.env.VERCEL && environment === 'demo') {
         baseUrl =
           process.env.NEXT_PUBLIC_DEMO_ENVIRONMENT !== 'staging'
-            ? 'https://getstream.io/'
-            : 'https://staging.getstream.io/';
-      }
-
-      if (basePath && url.startsWith('/')) {
-        // the original implementation lacks support for basePath
-        return `${baseUrl}${basePath}${url}`;
+            ? `https://getstream.io/${basePath}`
+            : `https://staging.getstream.io/${basePath}`;
       }
 
       // original implementation
