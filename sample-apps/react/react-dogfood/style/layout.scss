@@ -48,14 +48,6 @@
     display: flex;
     gap: var(--str-video__spacing-md);
     height: auto;
-    overflow-y: scroll;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 
     .str-video__chat {
       margin: 0;
@@ -64,5 +56,14 @@
 
   .rd__participants {
     margin: 0;
+
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
