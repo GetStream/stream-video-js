@@ -1047,7 +1047,7 @@ export class Call {
     }
   };
 
-  private waitForJoinResponse = (timeout: number = 5000) => {
+  private waitForJoinResponse = (timeout: number = 10000) => {
     return new Promise<JoinResponse>((resolve, reject) => {
       const unsubscribe = this.on('joinResponse', (event) => {
         if (event.eventPayload.oneofKind !== 'joinResponse') return;
