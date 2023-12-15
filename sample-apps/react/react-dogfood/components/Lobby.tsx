@@ -112,7 +112,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
             </div>
 
             <button
-              className="rd__button rd__button--primary rd__lobby-join"
+              className="rd__button rd__button--primary rd__button--large rd__lobby-join"
               data-testid="join-call-button"
               onClick={onJoin}
             >
