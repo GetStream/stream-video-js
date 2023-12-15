@@ -1,5 +1,6 @@
 import { forwardRef, MouseEventHandler, useCallback } from 'react';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { OwnCapability } from '@stream-io/video-client';
+import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
 import { MenuToggle } from '../Menu';
 
@@ -22,8 +23,24 @@ export const EndCallMenu = ({
   const { t } = useI18n();
   return (
     <div className="str-video__end-call__confirmation">
+      <Restricted requiredGrants={[OwnCapability.END_CALL]}>
+        <button
+          className="str-video__button str-video__end-call__end"
+          type="button"
+          data-testid="end-call-for-all-button"
+          onClick={handleEndCall}
+        >
+          <Icon
+            className="str-video__button__icon str-video__end-call__end-icon"
+            icon="call-end"
+          />
+          {t('End call for all')}
+        </button>
+      </Restricted>
       <button
         className="str-video__button str-video__end-call__leave"
+        type="button"
+        data-testid="leave-call-button"
         onClick={handleLeave}
       >
         <Icon
@@ -31,17 +48,6 @@ export const EndCallMenu = ({
           icon="logout"
         />
         {t('Leave call')}
-      </button>
-
-      <button
-        className="str-video__button str-video__end-call__end"
-        onClick={handleEndCall}
-      >
-        <Icon
-          className="str-video__button__icon str-video__end-call__end-icon"
-          icon="call-end"
-        />
-        {t('End call for all')}
       </button>
     </div>
   );

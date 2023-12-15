@@ -6,6 +6,9 @@
 
     padding: var(--str-video__spacing-sm);
     gap: var(--str-video__spacing-md);
+
+    display: flex;
+    flex-direction: column;
   }
 
   &__leave,
@@ -20,7 +23,6 @@
 
   &__leave {
     background-color: var(--str-video__button-primary-base);
-    margin-bottom: var(--str-video__spacing-sm);
     border: 1px solid transparent;
 
     &:hover {
