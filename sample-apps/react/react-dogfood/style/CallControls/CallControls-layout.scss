@@ -30,6 +30,10 @@
     &.str-video__call-controls--sidebar {
       width: 100%;
       justify-content: flex-end;
+
+      .str-video__call-controls__desktop {
+        display: none;
+      }
     }
   }
 }
@@ -71,6 +75,10 @@
       &.str-video__call-controls--sidebar {
         width: unset;
         justify-content: flex-start;
+
+        .str-video__call-controls__desktop {
+          display: flex;
+        }
       }
     }
   }
@@ -91,4 +99,8 @@
   height: 16px;
   width: 16px;
   margin-left: 20px;
+}
+
+.rd__stats-wrapper {
+  max-width: 400px;
 }

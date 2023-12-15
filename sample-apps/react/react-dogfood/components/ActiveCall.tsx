@@ -25,6 +25,7 @@ import { ToggleFeedbackButton } from './ToggleFeedbackButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 import { ToggleLayoutButton } from './ToggleLayoutButton';
+import { ToggleStatsButton } from './ToggleStatsButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
@@ -166,6 +167,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <ToggleStatsButton />
+              </div>
+            )}
             <ToggleLayoutButton
               selectedLayout={layout}
               onMenuItemClick={setLayout}
