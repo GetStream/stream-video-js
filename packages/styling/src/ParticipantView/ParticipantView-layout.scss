@@ -40,8 +40,8 @@ $scope-name: 'str-video__participant-view';
 
   .str-video__participant-details {
     position: absolute;
-    left: -1px;
-    bottom: -1px;
+    left: 0;
+    bottom: 0;
     display: flex;
     align-items: center;
     gap: var(--str-video__spacing-sm);
@@ -131,8 +131,8 @@ $scope-name: 'str-video__participant-view';
 
   .str-video__participant-details__connection-quality {
     position: absolute;
-    bottom: -1px;
-    right: -1px;
+    bottom: 0;
+    right: 0;
 
     border-radius: var(--str-video__border-radius-sm) 0
       var(--str-video__border-radius-sm) 0;
@@ -151,18 +151,6 @@ $scope-name: 'str-video__participant-view';
     }
     &--excellent {
       background-image: var(--str-video__icon--connection-quality-excellent);
-    }
-  }
-
-  &--speaking {
-    .str-video__participant-details {
-      left: 0px;
-      bottom: -0.5px;
-    }
-
-    .str-video__participant-details__connection-quality {
-      bottom: -0.5px;
-      right: 0px;
     }
   }
 }
