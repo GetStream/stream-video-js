@@ -107,11 +107,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.str-chat__message .str-chat__message-inner {
-  grid-template-areas:
-    'options message-bubble'
-    'reactions reactions' !important;
-}
 
 .str-chat {
   --str-chat__primary-color: var(--str-video__primary-color);
