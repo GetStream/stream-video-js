@@ -162,11 +162,12 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
   }, [map, loading, source]);
 
   useEffect(() => {
-    if (map.current) return;
+    const accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
+    if (map.current || !accessToken) return;
 
     setLoading(true);
 
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
+    mapboxgl.accessToken = accessToken;
     map.current = new mapboxgl.Map({
       projection: {
         name: 'mercator',
