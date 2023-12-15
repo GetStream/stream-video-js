@@ -20,7 +20,7 @@ export const DefaultAppHeader = (props: { transparent?: boolean }) => {
       <div className="rd__call-header__documentation">
         <a
           className="rd__button rd__button"
-          href="https://getstream.io/video/get_started/"
+          href="https://getstream.io/video/sdk/react/"
           target="_blank"
           rel="noreferrer"
         >
