@@ -8,6 +8,7 @@ import {
   ToggleAudioPublishingButton,
   MenuToggle,
   MenuVisualType,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const ToggleMenuButton = forwardRef<
@@ -21,14 +22,21 @@ export const ToggleMenuButton = forwardRef<
         'rd__dual-toggle__device-selector--active': props.menuShown,
       })}
     >
-      <Icon icon={props.menuShown ? 'chevron-down' : 'chevron-up'} />
+      <Icon icon={props.menuShown ? 'caret-down' : 'caret-up'} />
     </div>
   );
 });
 
 export const ToggleDualMicButton = () => {
+  const { useMicrophoneState } = useCallStateHooks();
+  const { status } = useMicrophoneState();
+
   return (
-    <div className="rd__dual-toggle">
+    <div
+      className={clsx('rd__dual-toggle', {
+        'rd__dual-toggle--active': status === 'disabled',
+      })}
+    >
       <ToggleAudioPublishingButton />
       <MenuToggle
         placement="top"

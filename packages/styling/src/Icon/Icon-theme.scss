@@ -36,6 +36,17 @@
     -webkit-mask-image: var(--str-video__icon--copy);
   }
 
+  &--caret-up {
+    mask-image: var(--str-video__icon--caret-up);
+    -webkit-mask-image: var(--str-video__icon--caret-up);
+  }
+
+  &--caret-down {
+    mask-image: var(--str-video__icon--caret-down);
+    -webkit-mask-image: var(--str-video__icon--caret-down);
+    transform: rotate(180deg);
+  }
+
   &--layout-speaker-bottom {
     mask-image: var(--str-video__icon--layout-speaker-bottom);
     -webkit-mask-image: var(--str-video__icon--layout-speaker-bottom);

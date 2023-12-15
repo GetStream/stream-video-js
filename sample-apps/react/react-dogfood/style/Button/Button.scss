@@ -52,6 +52,12 @@ button.rd__button,
     }
   }
 
+  &--large {
+    font-size: var(--str-video__font-size-md);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+    border-radius: var(--str-video__border-radius-md);
+  }
+
   &--secondary {
     background-color: transparent;
     border: 1px solid var(--str-video__base-color3);
@@ -77,7 +83,7 @@ a.rd__button {
   align-items: center;
   justify-content: center;
   gap: var(--str-video__spacing-xs);
-  padding: var(--str-video__spacing-xs);
+  padding: 4px; //var(--str-video__spacing-xs);
   border-radius: var(--str-video__border-radius-circle);
   background-color: var(--str-video__button-primary-base);
 
@@ -89,6 +95,22 @@ a.rd__button {
 
   .str-video__device-settings__device-kind {
     margin-bottom: var(--str-video__spacing-lg);
+  }
+
+  &:hover {
+    background-color: var(--str-video__button-default-hover);
+    .str-video__call-controls__button,
+    .str-video__composite-button__button-group {
+      background-color: transparent;
+    }
+  }
+
+  &--active {
+    background-color: var(--str-video__button-secondary-active);
+
+    &:hover {
+      background-color: var(--str-video__button-secondary-hover);
+    }
   }
 
   &__device-selector {
