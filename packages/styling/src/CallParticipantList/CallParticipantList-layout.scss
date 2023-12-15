@@ -55,7 +55,6 @@ $scope-name: 'str-video__participant-list';
   .str-video__participant-list__content {
     height: auto;
     flex-grow: 1;
-    max-height: 20vh;
     overflow-y: auto;
     margin-top: var(--str-video__spacing-xl);
   }

@@ -18,6 +18,7 @@
 
   .str-video__participant-list {
     flex-grow: 1;
+    height: calc(100dvh - 475px);
   }
 
   .str-video__chat {
