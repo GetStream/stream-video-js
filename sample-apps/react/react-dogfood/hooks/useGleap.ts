@@ -6,6 +6,7 @@ import {
   StreamVideoClient,
   User,
 } from '@stream-io/video-react-sdk';
+import { getLayoutSettings } from './useLayoutSwitcher';
 
 export const useGleap = (
   gleapApiKey: string | undefined,
@@ -61,7 +62,7 @@ export const useGleap = (
         console.error(e);
       }
     });
-  }, [client, client?.readOnlyStateStore, gleapApiKey]);
+  }, [client, gleapApiKey]);
 };
 
 export const serializeCallState = (call: Call) => {
@@ -72,6 +73,7 @@ export const serializeCallState = (call: Call) => {
       edgeName: call['sfuClient']?.edgeName,
       sessionId: call['sfuClient']?.sessionId,
     },
+    layout: getLayoutSettings()?.selectedLayout ?? 'N/A',
     devices: {
       microphone: {
         enabled: microphone.state.status,

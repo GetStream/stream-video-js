@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
   Icon,
@@ -16,10 +16,9 @@ import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 
-import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
-
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
+import { useLayoutSwitcher } from '../hooks';
 
 type LobbyProps = {
   onJoin: () => void;
@@ -36,15 +35,7 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
   const { t } = useI18n();
   const { edges } = useEdges();
 
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
-    const storedLayout = getLayoutSettings()?.selectedLayout;
-
-    if (!storedLayout) return DEFAULT_LAYOUT;
-
-    return Object.hasOwn(LayoutMap, storedLayout)
-      ? storedLayout
-      : DEFAULT_LAYOUT;
-  });
+  const { layout, setLayout } = useLayoutSwitcher();
 
   useEffect(() => {
     if (status === 'unauthenticated') {

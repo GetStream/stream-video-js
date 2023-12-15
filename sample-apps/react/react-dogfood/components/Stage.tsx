@@ -1,13 +1,11 @@
-import { useCall } from '@stream-io/video-react-sdk';
 import { useSearchParams } from 'next/navigation';
-import { LayoutMap } from './LayoutSelector';
+import { LayoutMap } from '../hooks';
 
 export const Stage = ({
   selectedLayout,
 }: {
   selectedLayout: keyof typeof LayoutMap;
 }) => {
-  const call = useCall();
   const searchParams = useSearchParams();
   const groupSize = +(searchParams.get('group_size') ?? '0');
 
@@ -17,7 +15,7 @@ export const Stage = ({
   if (selectedLayout === 'LegacyGrid' || selectedLayout === 'LegacySpeaker') {
     return (
       <div className="rd__stage">
-        <SelectedComponent call={call!} {...LayoutMap[selectedLayout].props} />
+        <SelectedComponent {...LayoutMap[selectedLayout].props} />
       </div>
     );
   }

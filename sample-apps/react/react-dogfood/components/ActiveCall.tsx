@@ -30,9 +30,8 @@ import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
-import { DEFAULT_LAYOUT, getLayoutSettings, LayoutMap } from './LayoutSelector';
 
-import { useBreakpoint, useWatchChannel } from '../hooks';
+import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 export type ActiveCallProps = {
@@ -47,19 +46,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showParticipants, setShowParticipants] = useState(false);
   const [showInvitePopup, setShowInvitePopup] = useState(true);
   const [showChat, setShowChat] = useState(false);
-  const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
-    const storedLayout = getLayoutSettings()?.selectedLayout;
-    if (!storedLayout) return DEFAULT_LAYOUT;
-
-    return Object.hasOwn(LayoutMap, storedLayout)
-      ? storedLayout
-      : DEFAULT_LAYOUT;
-  });
 
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const breakpoint = useBreakpoint();
 
+  const { layout, setLayout } = useLayoutSwitcher();
+  const breakpoint = useBreakpoint();
   useEffect(() => {
     if (
       (layout === 'SpeakerLeft' || layout === 'SpeakerRight') &&
@@ -67,7 +59,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
     ) {
       setLayout('SpeakerBottom');
     }
-  }, [breakpoint, layout]);
+  }, [breakpoint, layout, setLayout]);
 
   const showSidebar = showParticipants || showChat;
 
@@ -97,7 +89,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
         />
 
         <SpeakingWhileMutedNotification>
-          <span />
+          <span className="rd__speaking-while-muted-notification" />
         </SpeakingWhileMutedNotification>
 
         <PermissionRequests />
