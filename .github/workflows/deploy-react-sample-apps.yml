@@ -47,9 +47,11 @@ jobs:
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
           - name: react-dogfood - https://pronto.getstream.io
             project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
+            gtm-id: GTM-PQKJKG6F
           - name: react-dogfood - https://getstream.io/video/demos
             project-id: prj_tTLn3XMVal4D1Nnel9nPJ0hoI9wA
             base-path: /video/demos
+            gtm-id: GTM-NS6DKBH
 
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -92,6 +94,7 @@ jobs:
       - name: Vercel Pull/Build/Deploy (Preview)
         if: ${{ github.ref_name != 'main' }}
         env:
+          NEXT_PUBLIC_GTM_ID: ${{ matrix.application.gtm-id || '' }}
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
           yarn vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
