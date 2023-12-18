@@ -1,8 +1,6 @@
 .str-video__call-stats {
   border-radius: var(--str-video__border-radius-lg);
-
   background-color: var(--str-video__base-color7);
-  border-radius: var(--str-video__border-radius-lg);
   padding: var(--str-video__spacing-md);
   width: 100%;
   display: flex;
@@ -92,7 +90,7 @@
   .str-video__call-stats-line-chart-container {
     position: relative;
     margin: auto;
-    height: 250px;
+    height: 170px;
     width: 100%;
   }
 

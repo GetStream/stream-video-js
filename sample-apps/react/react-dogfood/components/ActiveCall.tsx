@@ -20,12 +20,12 @@ import { Stage } from './Stage';
 import { InvitePanel, InvitePopup } from './InvitePanel/InvitePanel';
 import { ChatWrapper } from './ChatWrapper';
 import { ChatUI } from './ChatUI';
+import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleFeedbackButton } from './ToggleFeedbackButton';
 import { ToggleDeveloperButton } from './ToggleDeveloperButton';
 import { ToggleMoreOptionsListButton } from './ToggleMoreOptionsListButton';
 import { ToggleLayoutButton } from './ToggleLayoutButton';
-import { ToggleStatsButton } from './ToggleStatsButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
@@ -33,7 +33,10 @@ import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
 
 import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
-import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
+import {
+  useIsDemoEnvironment,
+  useIsProntoEnvironment,
+} from '../context/AppEnvironmentContext';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -42,12 +45,10 @@ export type ActiveCallProps = {
   onJoin: (fastJoin: boolean) => void;
 };
 
+type SidebarContent = 'participants' | 'chat' | 'stats' | null;
+
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showInvitePopup, setShowInvitePopup] = useState(true);
-  const [showChat, setShowChat] = useState(false);
-
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
 
@@ -62,7 +63,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
     }
   }, [breakpoint, layout, setLayout]);
 
-  const showSidebar = showParticipants || showChat;
+  const isDemoEnvironment = useIsDemoEnvironment();
+  const [showInvitePopup, setShowInvitePopup] = useState(isDemoEnvironment);
+  const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
+  const showSidebar = sidebarContent != null;
+  const showParticipants = sidebarContent === 'participants';
+  const showChat = sidebarContent === 'chat';
+  const showStats = sidebarContent === 'stats';
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
@@ -107,22 +114,24 @@ export const ActiveCall = (props: ActiveCallProps) => {
               {showParticipants && (
                 <div className="rd__participants">
                   <CallParticipantsList
-                    onClose={() => setShowParticipants(false)}
+                    onClose={() => setSidebarContent(null)}
                   />
                   <InvitePanel />
                 </div>
               )}
 
-              <ChatWrapper chatClient={chatClient}>
-                {showChat && (
+              {showChat && (
+                <ChatWrapper chatClient={chatClient}>
                   <div className="str-video__chat">
                     <ChatUI
-                      onClose={() => setShowChat(false)}
+                      onClose={() => setSidebarContent(null)}
                       channelId={activeCall.id}
                     />
                   </div>
-                )}
-              </ChatWrapper>
+                </ChatWrapper>
+              )}
+
+              {showStats && <CallStatsSidebar />}
             </div>
           )}
         </div>
@@ -167,21 +176,24 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            {isPronto && (
-              <div className="str-video__call-controls__desktop">
-                <ToggleStatsButton />
-              </div>
-            )}
             <ToggleLayoutButton
               selectedLayout={layout}
               onMenuItemClick={setLayout}
             />
 
+            {isPronto && (
+              <div className="str-video__call-controls__desktop">
+                <ToggleStatsButton
+                  active={showStats}
+                  onClick={() => setSidebarContent(showStats ? null : 'stats')}
+                />
+              </div>
+            )}
+
             <ToggleParticipantListButton
               enabled={showParticipants}
               onClick={() => {
-                setShowParticipants((prev) => !prev);
-                setShowChat(false);
+                setSidebarContent(showParticipants ? null : 'participants');
               }}
             />
             <NewMessageNotification
@@ -195,10 +207,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                     enabled={showChat}
                     disabled={!chatClient}
                     title="Chat"
-                    onClick={() => {
-                      setShowChat((prev) => !prev);
-                      setShowParticipants(false);
-                    }}
+                    onClick={() => setSidebarContent(showChat ? null : 'chat')}
                     icon="chat"
                   />
                 </CompositeButton>

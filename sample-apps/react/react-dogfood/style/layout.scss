@@ -31,6 +31,10 @@
   }
 }
 
+.rd__sidebar__call-stats {
+  overflow-y: scroll;
+}
+
 .rd__participants {
   display: flex;
   flex-direction: column;
@@ -44,8 +48,8 @@
 @include respond-above(sm) {
   .rd__sidebar {
     position: relative;
-    max-width: 300px;
-    min-width: 300px;
+    max-width: 350px;
+    min-width: 350px;
     display: flex;
     gap: var(--str-video__spacing-md);
     height: auto;

@@ -41,12 +41,20 @@ export const CallStatsLatencyChart = (props: {
       animation: {
         duration: 0,
       },
+      elements: {
+        line: {
+          borderWidth: 1,
+        },
+        point: {
+          radius: 2,
+        },
+      },
       scales: {
         y: {
           position: 'right',
           stacked: true,
           min: 0,
-          max: Math.max(210, Math.ceil((max + 10) / 10) * 10),
+          max: Math.max(180, Math.ceil((max + 10) / 10) * 10),
           grid: {
             display: true,
             color: '#979ca0',
