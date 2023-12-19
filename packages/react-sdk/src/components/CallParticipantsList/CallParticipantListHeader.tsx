@@ -3,7 +3,9 @@ import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button';
 
 export type CallParticipantListHeaderProps = {
-  /** Click event listener function to be invoked in order to dismiss / hide the CallParticipantsList from the UI */
+  /**
+   * Click event listener function to be invoked to dismiss / hide the CallParticipantsList from the UI.
+   */
   onClose: () => void;
 };
 
@@ -32,7 +34,7 @@ export const CallParticipantListHeader = ({
         onClick={onClose}
         className="str-video__participant-list-header__close-button"
         icon="close"
-      ></IconButton>
+      />
     </div>
   );
 };

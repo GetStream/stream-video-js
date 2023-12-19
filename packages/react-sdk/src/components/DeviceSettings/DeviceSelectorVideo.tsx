@@ -16,6 +16,7 @@ export const DeviceSelectorVideo = ({
   return (
     <DeviceSelector
       devices={devices || []}
+      type="videoinput"
       selectedDeviceId={selectedDevice}
       onChange={async (deviceId) => {
         await camera.select(deviceId);

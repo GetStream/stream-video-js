@@ -1,8 +1,6 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
-import { generateCode } from '../../utilities';
-
 import { DefaultDropDownSelectOption, DropDownSelect } from '../DropdownSelect';
 
 type DeviceSelectorOptionProps = {
@@ -49,8 +47,11 @@ const DeviceSelectorOption = ({
   );
 };
 
-export const DeviceSelectorList = (props: {
+export type DeviceSelectorType = 'audioinput' | 'audiooutput' | 'videoinput';
+
+const DeviceSelectorList = (props: {
   devices: MediaDeviceInfo[];
+  type: DeviceSelectorType;
   selectedDeviceId?: string;
   title?: string;
   onChange?: (deviceId: string) => void;
@@ -59,10 +60,9 @@ export const DeviceSelectorList = (props: {
     devices = [],
     selectedDeviceId: selectedDeviceFromProps,
     title,
+    type,
     onChange,
   } = props;
-  const inputGroupName =
-    title?.replace(' ', '-').toLowerCase() || generateCode();
 
   // sometimes the browser (Chrome) will report the system-default device
   // with an id of 'default'. In case when it doesn't, we'll select the first
@@ -84,9 +84,9 @@ export const DeviceSelectorList = (props: {
       )}
       {!devices.length ? (
         <DeviceSelectorOption
-          id={`${inputGroupName}--default`}
+          id={`${type}--default`}
           label="Default"
-          name={inputGroupName}
+          name={type}
           defaultChecked
           value="default"
         />
@@ -94,14 +94,14 @@ export const DeviceSelectorList = (props: {
         devices.map((device) => {
           return (
             <DeviceSelectorOption
-              id={`${inputGroupName}--${device.deviceId}`}
+              id={`${type}--${device.deviceId}`}
               value={device.deviceId}
               label={device.label}
               key={device.deviceId}
               onChange={(e) => {
                 onChange?.(e.target.value);
               }}
-              name={inputGroupName}
+              name={type}
               selected={
                 device.deviceId === selectedDeviceId || devices.length === 1
               }
@@ -113,7 +113,7 @@ export const DeviceSelectorList = (props: {
   );
 };
 
-export const DeviceSelectorDropdown = (props: {
+const DeviceSelectorDropdown = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
   title?: string;
@@ -182,20 +182,20 @@ export const DeviceSelectorDropdown = (props: {
 
 export const DeviceSelector = (props: {
   devices: MediaDeviceInfo[];
+  icon: string;
+  type: DeviceSelectorType;
   selectedDeviceId?: string;
   title?: string;
   onChange?: (deviceId: string) => void;
   visualType?: 'list' | 'dropdown';
-  icon: string;
   placeholder?: string;
 }) => {
   const { visualType = 'list', icon, placeholder, ...rest } = props;
 
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
-  } else {
-    return (
-      <DeviceSelectorDropdown {...rest} icon={icon} placeholder={placeholder} />
-    );
   }
+  return (
+    <DeviceSelectorDropdown {...rest} icon={icon} placeholder={placeholder} />
+  );
 };

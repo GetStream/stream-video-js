@@ -17,12 +17,13 @@ export const DeviceSelectorAudioInput = ({
     <DeviceSelector
       devices={devices || []}
       selectedDeviceId={selectedDevice}
+      type="audioinput"
       onChange={async (deviceId) => {
         await microphone.select(deviceId);
       }}
       title={title}
       visualType={visualType}
-      icon={'mic'}
+      icon="mic"
     />
   );
 };
@@ -45,13 +46,14 @@ export const DeviceSelectorAudioOutput = ({
   return (
     <DeviceSelector
       devices={devices}
+      type="audiooutput"
       selectedDeviceId={selectedDevice}
       onChange={(deviceId) => {
         speaker.select(deviceId);
       }}
       title={title}
-      icon="speaker"
       visualType={visualType}
+      icon="speaker"
     />
   );
 };

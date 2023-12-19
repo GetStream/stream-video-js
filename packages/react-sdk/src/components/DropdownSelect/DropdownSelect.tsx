@@ -11,9 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
-
 import clsx from 'clsx';
-
 import {
   autoUpdate,
   flip,
@@ -42,20 +40,20 @@ const SelectContext = createContext<SelectContextValue>(
   {} as SelectContextValue,
 );
 
-export const Select = ({
-  children,
-  icon,
-  defaultSelectedLabel,
-  defaultSelectedIndex,
-  handleSelect: handleSelectProp,
-}: {
+const Select = (props: {
   children: ReactNode;
   icon?: string;
-  selectedLabel?: string;
   defaultSelectedLabel: string;
   defaultSelectedIndex: number;
   handleSelect: (index: number) => void;
 }) => {
+  const {
+    children,
+    icon,
+    defaultSelectedLabel,
+    defaultSelectedIndex,
+    handleSelect: handleSelectProp,
+  } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(
@@ -176,11 +174,9 @@ const Option = ({ children }: PropsWithChildren) => {
   const childrenWithProps = Children.map(children, (child: any) => {
     if (
       isValidElement(child) &&
-      typeof child === 'number' &&
-      typeof child === 'string'
+      (typeof child === 'number' || typeof child === 'string')
     ) {
-      const element = cloneElement(child, { isActive, isSelected });
-      return element;
+      return cloneElement(child, { isActive, isSelected });
     }
     return child;
   });
@@ -197,15 +193,12 @@ const Option = ({ children }: PropsWithChildren) => {
   );
 };
 
-export const DefaultDropDownSelectOption = ({
-  selected,
-  label,
-  icon,
-}: {
+export const DefaultDropDownSelectOption = (props: {
   label: string;
   selected?: boolean;
   icon: string;
 }) => {
+  const { selected, label, icon } = props;
   return (
     <div
       className={clsx('str-video__dropdown-option', {
@@ -218,18 +211,21 @@ export const DefaultDropDownSelectOption = ({
   );
 };
 
-export const DropDownSelect = ({
-  children,
-  icon,
-  handleSelect,
-  defaultSelectedLabel,
-  defaultSelectedIndex,
-}: PropsWithChildren<{
-  icon?: string;
-  defaultSelectedLabel: string;
-  defaultSelectedIndex: number;
-  handleSelect: (index: number) => void;
-}>) => {
+export const DropDownSelect = (
+  props: PropsWithChildren<{
+    icon?: string;
+    defaultSelectedLabel: string;
+    defaultSelectedIndex: number;
+    handleSelect: (index: number) => void;
+  }>,
+) => {
+  const {
+    children,
+    icon,
+    handleSelect,
+    defaultSelectedLabel,
+    defaultSelectedIndex,
+  } = props;
   return (
     <Select
       icon={icon}

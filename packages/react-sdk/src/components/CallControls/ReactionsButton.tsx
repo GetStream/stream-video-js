@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { OwnCapability, StreamReaction } from '@stream-io/video-client';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
-import { ToggleMenuButtonProps, MenuToggle, MenuVisualType } from '../Menu';
+import { MenuToggle, MenuVisualType, ToggleMenuButtonProps } from '../Menu';
 import { CompositeButton, IconButton } from '../Button';
 import { defaultEmojiReactionMap } from '../Reaction';
 
@@ -38,18 +38,16 @@ export const defaultReactions: StreamReaction[] = [
 
 export interface ReactionsButtonProps {
   reactions?: StreamReaction[];
-  caption?: string;
 }
 
 export const ReactionsButton = ({
   reactions = defaultReactions,
-  caption,
 }: ReactionsButtonProps) => {
   return (
     <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
       <MenuToggle
         placement="top"
-        ToggleButton={ToggleMenuButton}
+        ToggleButton={ToggleReactionsMenuButton}
         visualType={MenuVisualType.MENU}
       >
         <DefaultReactionsMenu reactions={reactions} />
@@ -58,22 +56,22 @@ export const ReactionsButton = ({
   );
 };
 
+const ToggleReactionsMenuButton = forwardRef<
+  HTMLDivElement,
+  ToggleMenuButtonProps
+>(({ menuShown }, ref) => {
+  const { t } = useI18n();
+  return (
+    <CompositeButton ref={ref} active={menuShown} variant="primary">
+      <IconButton icon="reactions" title={t('Reactions')} />
+    </CompositeButton>
+  );
+});
+
 export interface DefaultReactionsMenuProps {
   reactions: StreamReaction[];
   layout?: 'horizontal' | 'vertical';
 }
-
-const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
-  ({ menuShown }, ref) => {
-    const { t } = useI18n();
-
-    return (
-      <CompositeButton ref={ref} active={menuShown} variant="primary">
-        <IconButton icon="reactions" title={t('Reactions')} />
-      </CompositeButton>
-    );
-  },
-);
 
 export const DefaultReactionsMenu = ({
   reactions,

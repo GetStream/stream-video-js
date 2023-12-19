@@ -1,7 +1,5 @@
 import {
-  ComponentProps,
   Dispatch,
-  ForwardedRef,
   forwardRef,
   SetStateAction,
   useCallback,
@@ -17,7 +15,6 @@ import {
   OwnCapability,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import clsx from 'clsx';
 
 import { BlockedUserListing } from './BlockedUserListing';
 import { IconButton, TextButton } from '../Button';

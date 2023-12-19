@@ -5,6 +5,7 @@ import {
   ForwardedRef,
   PropsWithChildren,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import {
@@ -31,10 +32,10 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
-  visualType?: MenuVisualType.PORTAL | MenuVisualType.MENU;
+  visualType?: MenuVisualType;
 }>;
 
-export const MenuPortal = ({
+const MenuPortal = ({
   children,
   setMenuShown,
   refs,
@@ -49,11 +50,16 @@ export const MenuPortal = ({
     });
   });
 
+  const portalId = useMemo(
+    () => `str-video-portal-${Math.random().toString(36).substring(2, 9)}`,
+    [],
+  );
+
   return (
     <>
-      <div id="str-video-portal" className="str-video__portal"></div>
+      <div id={portalId} className="str-video__portal" />
       <FloatingOverlay>
-        <FloatingPortal id="str-video-portal">
+        <FloatingPortal id={portalId}>
           <div className="str-video__portal-content" ref={refs.setFloating}>
             {childrenWithProps}
           </div>

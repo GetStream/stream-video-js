@@ -28,10 +28,10 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@floating-ui/react": "^0.26.2",
+    "@floating-ui/react": "^0.26.4",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
-    "chart.js": "^4.4.0",
+    "chart.js": "^4.4.1",
     "clsx": "^2.0.0",
     "react-chartjs-2": "^5.2.0"
   },

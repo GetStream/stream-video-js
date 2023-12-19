@@ -3164,9 +3164,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react@npm:^0.26.2":
-  version: 0.26.2
-  resolution: "@floating-ui/react@npm:0.26.2"
+"@floating-ui/react@npm:^0.26.4":
+  version: 0.26.4
+  resolution: "@floating-ui/react@npm:0.26.4"
   dependencies:
     "@floating-ui/react-dom": ^2.0.3
     "@floating-ui/utils": ^0.1.5
@@ -3174,7 +3174,7 @@ __metadata:
   peerDependencies:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
-  checksum: 52a9e5de72e276c8db30ef7f230cab9b1e891a8fcb96b182b7e604fb4b67f6ce997f3291cf60c72293548e9d007e2bfdb8677986660feb429d34f465bd15c2f7
+  checksum: 0cf27b223e7c0f6c5f1cf1c8a765d6f7fc58bf9c825930a39bd9ab2700e4d44873ba763135fc0055bc63d6b26e719a2cae287bbdbc35fb8a84992a7708b85efb
   languageName: node
   linkType: hard
 
@@ -7450,7 +7450,7 @@ __metadata:
   dependencies:
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@floating-ui/react": ^0.26.2
+    "@floating-ui/react": ^0.26.4
     "@mui/icons-material": ^5.14.14
     "@mui/material": ^5.14.14
     "@next/third-parties": ^14.0.5-canary.17
@@ -7647,14 +7647,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
-    "@floating-ui/react": ^0.26.2
+    "@floating-ui/react": ^0.26.4
     "@rollup/plugin-json": ^6.0.1
     "@rollup/plugin-replace": ^5.0.4
     "@rollup/plugin-typescript": ^11.1.5
     "@stream-io/video-client": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    chart.js: ^4.4.0
+    chart.js: ^4.4.1
     clsx: ^2.0.0
     react: ^18.2.0
     react-chartjs-2: ^5.2.0
@@ -11897,12 +11897,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chart.js@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "chart.js@npm:4.4.0"
+"chart.js@npm:^4.4.1":
+  version: 4.4.1
+  resolution: "chart.js@npm:4.4.1"
   dependencies:
     "@kurkle/color": ^0.3.0
-  checksum: 5ee2d99b78608025525b5790af17178fdaa5adc3294e082deba2718029b0496109ba124f1b08dd1e4c8a04d6e842be7f384f2cfe9a11df8d1c6fe884acece52b
+  checksum: 8c108f137824ea0e3d79914708b409298c12ed7d16da99a40ca3cab51466ef7b0068ad82ac0addeb288b938fe0621d3e5a6a913b60e72a729aa42aa96705fcad
   languageName: node
   linkType: hard
 
