@@ -6,6 +6,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
+        <meta name="apple-itunes-app" content="app-id=1644313060" />
         <link rel="shortcut icon" href={`${basePath}/favicon.ico`} />
         <link
           rel="icon"

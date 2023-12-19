@@ -152,6 +152,23 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     });
   }, [call]);
 
+  // apple-itunes-app meta-tag is used to open the app from the browser
+  // we need to update the app-argument to the current URL so that the app
+  // can open the correct call
+  useEffect(() => {
+    const appleItunesAppMeta = document
+      .getElementsByTagName('meta')
+      .namedItem('apple-itunes-app');
+    if (appleItunesAppMeta) {
+      appleItunesAppMeta.setAttribute(
+        'content',
+        `app-id=1644313060, app-argument=${window.location.href
+          .replace('http://', 'streamvideo://')
+          .replace('https://', 'streamvideo://')}`,
+      );
+    }
+  }, []);
+
   useGleap(gleapApiKey, client, user);
 
   if (!client || !call) return null;
