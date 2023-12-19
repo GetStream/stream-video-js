@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import {
   Icon,
@@ -9,9 +9,11 @@ import {
   VideoPreview,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
+import { isAndroid, isIOS, isSafari } from 'mobile-device-detect';
 
 import { DisabledVideoPreview } from './DisabledVideoPreview';
 import { LatencyMap } from './LatencyMap/LatencyMap';
+import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
@@ -52,6 +54,9 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
       clearTimeout(id);
     };
   }, [onJoin]);
+
+  const [shouldRenderMobileAppBanner, setShouldRenderMobileAppBanner] =
+    useState(isAndroid || (isIOS && !isSafari));
 
   if (!session) {
     return null;
@@ -111,6 +116,13 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
               {t('Join')}
             </button>
           </div>
+          {shouldRenderMobileAppBanner && (
+            <MobileAppBanner
+              callId={callId!}
+              platform={isAndroid ? 'android' : 'ios'}
+              onDismiss={() => setShouldRenderMobileAppBanner(false)}
+            />
+          )}
         </div>
       </div>
     </>
