@@ -21,6 +21,7 @@ import { ToggleCameraButton } from './ToggleCameraButton';
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { useLayoutSwitcher } from '../hooks';
+import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
 type LobbyProps = {
   onJoin: () => void;
@@ -55,8 +56,9 @@ export const Lobby = ({ onJoin, callId, enablePreview = true }: LobbyProps) => {
     };
   }, [onJoin]);
 
+  const isDemoEnvironment = useIsDemoEnvironment();
   const [shouldRenderMobileAppBanner, setShouldRenderMobileAppBanner] =
-    useState(isAndroid || (isIOS && !isSafari));
+    useState(isDemoEnvironment && (isAndroid || (isIOS && !isSafari)));
 
   if (!session) {
     return null;
