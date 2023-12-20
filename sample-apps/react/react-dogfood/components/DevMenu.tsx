@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 export const DevMenu = () => {
@@ -51,15 +52,15 @@ export const DevMenu = () => {
         </a>
       </li>
       <li className="rd__dev-menu__item">
-        <a
+        <Link
           className="rd__link rd__link--faux-button rd__link--align-left"
-          href="https://www.notion.so/stream-wiki/Usage-guide-and-known-limitations-603b12af2dff43d69119be4dae462b19"
+          href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/call-recordings`}
           target="_blank"
           rel="noreferrer"
         >
           <Icon className="rd__link__icon" icon="film-roll" />
           Recordings
-        </a>
+        </Link>
       </li>
     </ul>
   );
