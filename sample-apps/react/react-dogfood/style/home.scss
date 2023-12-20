@@ -61,13 +61,15 @@
 }
 
 @include respond-above(sm) {
-  .rd__home-content {
+  .rd__home-content,
+  .rd__guest-page__content {
     max-width: 50vw;
   }
 }
 
 @include respond-above(md) {
-  .rd__home-content {
+  .rd__home-content,
+  .rd__guest-page__content {
     max-width: 25vw;
   }
 }

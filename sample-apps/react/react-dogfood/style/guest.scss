@@ -1,0 +1,31 @@
+.rd__guest-page {
+  display: flex;
+
+  .rd__guest-page__content {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rd__guest-page__header {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rd__guest-page__config {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .rd__guest-page__buttons {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+}

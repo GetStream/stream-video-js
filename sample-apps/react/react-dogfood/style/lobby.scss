@@ -102,6 +102,14 @@
       text-align: left;
     }
   }
+
+  .rd__lobby__user-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    padding-top: 25px;
+  }
 }
 
 .rd__try-native {
@@ -194,9 +202,6 @@
   .rd__lobby__camera-button.rd__button,
   .rd__lobby__mic-button.rd__button {
     display: flex;
-  }
-  .rd__lobby-heading {
-    max-width: 150px;
   }
 }
 

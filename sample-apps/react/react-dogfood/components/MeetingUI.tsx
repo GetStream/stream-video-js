@@ -11,7 +11,7 @@ import {
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 
-import { Lobby } from './Lobby';
+import { Lobby, UserMode } from './Lobby';
 import { StreamChat } from 'stream-chat';
 import { useKeyboardShortcuts, useWakeLock } from '../hooks';
 import { ActiveCall } from './ActiveCall';
@@ -27,9 +27,9 @@ const contents = {
 
 type MeetingUIProps = {
   chatClient?: StreamChat | null;
-  enablePreview?: boolean;
+  mode?: UserMode;
 };
-export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
+export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call'
   >('lobby');
@@ -134,11 +134,7 @@ export const MeetingUI = ({ chatClient, enablePreview }: MeetingUIProps) => {
     );
   } else if (show === 'lobby') {
     ComponentToRender = (
-      <Lobby
-        onJoin={onJoin}
-        callId={activeCall?.id}
-        enablePreview={enablePreview}
-      />
+      <Lobby onJoin={onJoin} callId={activeCall?.id} mode={mode} />
     );
   } else if (show === 'loading') {
     ComponentToRender = <LoadingScreen />;

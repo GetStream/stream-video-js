@@ -11,6 +11,7 @@ import {
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { MeetingUI } from '../../../components';
+import { type UserMode } from '../../../components/Lobby';
 import { createToken } from '../../../helpers/jwt';
 import { useEffect, useState } from 'react';
 import { useGleap } from '../../../hooks/useGleap';
@@ -33,7 +34,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
   const callType = (router.query['type'] as string) || 'default';
-  const mode = (router.query['mode'] as 'anon' | 'guest') || 'anon';
+  const mode = (router.query['mode'] as UserMode) || 'anon';
   const guestUserId = (router.query['guest_user_id'] as string) || 'Guest';
 
   const [client, setClient] = useState<StreamVideoClient>();
@@ -41,7 +42,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     const userToConnect: User =
       mode === 'anon'
         ? { type: 'anonymous' }
-        : { id: guestUserId, type: 'guest' };
+        : { id: guestUserId, name: guestUserId, type: 'guest' };
     const tokenToUse = mode === 'anon' ? token : undefined;
     const _client = new StreamVideoClient({
       apiKey,
@@ -102,7 +103,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
       </Head>
       <StreamVideo client={client}>
         <StreamCall call={call}>
-          <MeetingUI enablePreview={mode !== 'anon'} />
+          <MeetingUI mode={mode} />
         </StreamCall>
       </StreamVideo>
     </>

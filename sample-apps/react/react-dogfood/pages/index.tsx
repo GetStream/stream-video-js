@@ -89,9 +89,7 @@ const HomeContent = () => {
             {isDemoEnvironment && t('Demo')}
           </h1>
           <p className="rd__home-description">
-            {t(
-              'Start a new call or join an existing one by providing its Call ID',
-            )}
+            Start a new call or join an existing one by providing its Call ID
           </p>
           <div className="rd__home-join">
             <input
