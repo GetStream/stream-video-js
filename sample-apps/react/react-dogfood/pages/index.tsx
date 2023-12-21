@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { type GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -125,4 +126,32 @@ const HomeContent = () => {
       </div>
     </>
   );
+};
+
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const { query } = ctx;
+  const callId = query['id'];
+  if (callId) {
+    // support the legacy https://getstream.io/video/demos?id=<call-id>
+    return {
+      redirect: {
+        destination: `/join/${callId}`,
+        permanent: false,
+      },
+    };
+  }
+
+  // we immediately jump to the lobby in demo environment
+  if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'demo') {
+    return {
+      redirect: {
+        destination: `/join/${meetingId()}`,
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
 };
