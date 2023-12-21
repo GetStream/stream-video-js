@@ -90,7 +90,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
     });
   }, [call]);
 
-  useGleap(gleapApiKey, client, user);
+  useGleap(gleapApiKey, client, call, user);
 
   if (!client || !call) {
     return null;

@@ -169,7 +169,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     }
   }, []);
 
-  useGleap(gleapApiKey, client, user);
+  useGleap(gleapApiKey, client, call, user);
 
   if (!client || !call) return null;
 
