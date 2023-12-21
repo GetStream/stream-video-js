@@ -7279,7 +7279,7 @@ __metadata:
     concurrently: ^7.6.0
     date-fns: ^2.29.3
     geojson: ^0.5.0
-    gleap: ^12.1.2
+    gleap: ^13.1.1
     hotkeys-js: ^3.12.0
     mapbox-gl: ^2.15.0
     mobile-device-detect: ^0.4.3
@@ -7459,7 +7459,7 @@ __metadata:
     dotenv: ^16.3.1
     framer-motion: ^10.12.16
     geojson: ^0.5.0
-    gleap: ^12.1.2
+    gleap: ^13.1.1
     hotkeys-js: ^3.12.0
     mapbox-gl: ^2.15.0
     mobile-device-detect: ^0.4.3
@@ -17030,10 +17030,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gleap@npm:^12.1.2":
-  version: 12.1.2
-  resolution: "gleap@npm:12.1.2"
-  checksum: cf2d811057daaec78c5a7c3d9896a5984bb44bb8b6428495ddac0ee84b81028efa7af831ab723834bef5035442e68e740f1b58614b5df8415e96200b3e003fee
+"gleap@npm:^13.1.1":
+  version: 13.1.1
+  resolution: "gleap@npm:13.1.1"
+  checksum: 5b6e8974c7c25f3f5d6428fc2035019b39c50393cca90c8f6698d5c27d2dd4937b5d75f8c443c5c24aef3803d16af39d306a4f9029fcdb9284d07a1570d0b39c
   languageName: node
   linkType: hard
 
