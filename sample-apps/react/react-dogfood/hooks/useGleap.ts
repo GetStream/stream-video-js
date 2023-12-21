@@ -179,7 +179,7 @@ export const useGleap = (
           // as part of the Gleap feedback item.
           JSON.stringify(data);
           Gleap.attachCustomData({
-            me: data,
+            [call.currentUserId || 'me']: data,
           });
         } catch (e) {
           console.warn(e);
