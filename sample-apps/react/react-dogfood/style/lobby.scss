@@ -82,6 +82,11 @@
     gap: var(--str-video__spacing-sm);
   }
 
+  .rd__lobby-settings {
+    display: flex;
+    gap: var(--str-video__spacing-sm);
+  }
+
   &-join {
     margin-top: var(--str-video__spacing-lg);
   }
