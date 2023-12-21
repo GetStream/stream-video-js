@@ -102,4 +102,23 @@
       margin-left: var(--str-video__spacing-md);
     }
   }
+  &__qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__qr-description {
+    font-size: var(--str-video__font-size-xs);
+    margin: 0;
+  }
+
+  &__qr-code {
+    margin: var(--str-video__spacing-md) 0;
+    padding: 0 var(--str-video__spacing-md);
+    border-radius: var(--str-video__border-radius-md);
+    background-color: white;
+    width: 100px;
+    height: 100px;
+  }
 }

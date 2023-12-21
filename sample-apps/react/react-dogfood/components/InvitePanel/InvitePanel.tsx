@@ -11,6 +11,9 @@ export const InvitePopup = ({
 }) => {
   const { t } = useI18n();
   const { isCopied, copyInviteLink } = useCopyInviteLink();
+
+  const qrCodeContent = new URL(window.location.toString());
+
   return (
     <div className="rd__invite-popup">
       <div className="rd__invite-popup__header">
@@ -41,6 +44,15 @@ export const InvitePopup = ({
           <span className="rd__invite-popup__id-text">{callId}</span>
         </div>
         <Icon className="rd__invite-popup__id-button" icon="copy" />
+      </div>
+      <div className="rd__invite-popup__qr-container">
+        <p className="rd__invite-popup__qr-description">
+          To test on a mobile device, can the QR Code below:
+        </p>
+        <QRCodeSVG
+          className="rd__invite-popup__qr-code"
+          value={qrCodeContent.toString()}
+        />
       </div>
     </div>
   );
