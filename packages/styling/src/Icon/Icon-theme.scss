@@ -117,6 +117,17 @@
     -webkit-mask-image: var(--str-video__icon--qr-code);
   }
 
+  &--loading {
+    mask-image: var(--str-video__icon--loading);
+    -webkit-mask-image: var(--str-video__icon--loading);
+
+    transform: rotate(360deg);
+    transition-duration: 1s;
+    transition-delay: now;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
   &--login {
     mask-image: var(--str-video__icon--login);
     -webkit-mask-image: var(--str-video__icon--login);
