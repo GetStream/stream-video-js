@@ -11,8 +11,10 @@ export type IconButtonWithMenuProps = PropsWithChildren<{
   active?: boolean;
   Menu?: ComponentType | JSX.Element;
   caption?: string;
+  className?: string;
   menuPlacement?: Placement;
   ToggleMenuButton?: any;
+  title?: string;
   variant?: 'primary' | 'secondary';
 }>;
 
@@ -24,9 +26,11 @@ export const CompositeButton = forwardRef<
     {
       caption,
       children,
+      className,
       active,
       Menu,
       menuPlacement,
+      title,
       ToggleMenuButton = DefaultToggleMenuButton,
       variant,
     },
@@ -34,9 +38,10 @@ export const CompositeButton = forwardRef<
   ) => {
     return (
       <div
-        className={clsx('str-video__composite-button', {
+        className={clsx('str-video__composite-button', className, {
           'str-video__composite-button--caption': caption,
         })}
+        title={title}
         ref={ref}
       >
         <div

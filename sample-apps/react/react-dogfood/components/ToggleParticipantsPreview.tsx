@@ -1,14 +1,14 @@
 import { forwardRef } from 'react';
 
 import {
-  Icon,
   CallPreview,
-  useCallStateHooks,
   CompositeButton,
+  Icon,
   IconButton,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
@@ -16,7 +16,7 @@ export type Props = {
   onJoin: () => void;
 };
 
-export const ParticipantsPreview = ({ onJoin }: Props) => {
+const ParticipantsPreview = ({ onJoin }: Props) => {
   const { useCallSession, useCallThumbnail } = useCallStateHooks();
   const session = useCallSession();
   const { t } = useI18n();
@@ -33,7 +33,7 @@ export const ParticipantsPreview = ({ onJoin }: Props) => {
       {thumbnail && <CallPreview style={{ width: '100%', height: '150px' }} />}
 
       <p className="rd__participants-preview__description">
-        {`${first.user.name} ${session.participants.length - 1} other${
+        {`${first.user.name} and ${session.participants.length - 1} other${
           session.participants.length - 1 > 1 ? 's' : ''
         } are in this call.`}
       </p>
@@ -50,18 +50,29 @@ export const ParticipantsPreview = ({ onJoin }: Props) => {
   );
 };
 
-export const ToggleMenuButton = forwardRef<
-  HTMLDivElement,
-  ToggleMenuButtonProps
->((props, ref) => {
-  return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="participants" />
-    </CompositeButton>
-  );
-});
+const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
+  (props, ref) => {
+    const { useCallSession } = useCallStateHooks();
+    const session = useCallSession();
+    const total = session?.participants?.length || 0;
+    return (
+      <CompositeButton
+        ref={ref}
+        active={props.menuShown}
+        variant="primary"
+        className="rd__participants-preview__button"
+        title="Participants already in the call"
+      >
+        <IconButton icon="participants" />
+        {total > 0 && (
+          <span className="rd__participants-preview__count">{total}</span>
+        )}
+      </CompositeButton>
+    );
+  },
+);
 
-export const ToggleParticipansPreviewButton = ({ onJoin }: Props) => {
+export const ToggleParticipantsPreviewButton = ({ onJoin }: Props) => {
   const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 

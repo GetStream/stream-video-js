@@ -18,7 +18,7 @@ import { MobileAppBanner } from './MobileAppBanner';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
-import { ToggleParticipansPreviewButton } from './ToggleParticipantsPreview';
+import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
@@ -114,7 +114,7 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
                     </div>
 
                     <div className="rd__lobby-settings">
-                      <ToggleParticipansPreviewButton onJoin={onJoin} />
+                      <ToggleParticipantsPreviewButton onJoin={onJoin} />
 
                       <ToggleSettingsTabModal
                         selectedLayout={layout}
