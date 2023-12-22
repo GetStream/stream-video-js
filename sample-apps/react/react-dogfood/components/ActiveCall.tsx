@@ -8,10 +8,12 @@ import {
   IconButton,
   PermissionRequests,
   ReactionsButton,
-  RecordCallButton,
+  RecordCallConfirmationButton,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   useCallStateHooks,
+  RecordingInProgressNotification,
+  LeaveCallRecordingInProgressConfirmation,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 
@@ -96,10 +98,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
           onLeave={onLeave}
         />
 
-        <SpeakingWhileMutedNotification>
-          <span className="rd__speaking-while-muted-notification" />
-        </SpeakingWhileMutedNotification>
-
         <PermissionRequests />
         <div className="rd__layout">
           <Stage selectedLayout={layout} />
@@ -135,6 +133,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           )}
         </div>
+        <div className="rd__notifications">
+          <RecordingInProgressNotification />
+          <SpeakingWhileMutedNotification />
+        </div>
         <div
           className="str-video__call-controls"
           data-testid="str-video__call-controls"
@@ -164,7 +166,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">
-            <RecordCallButton />
+            <RecordCallConfirmationButton />
 
             <div className="str-video__call-controls__desktop">
               <ScreenShareButton />

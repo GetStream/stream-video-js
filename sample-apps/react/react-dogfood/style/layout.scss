@@ -6,6 +6,14 @@
   position: relative;
 }
 
+.rd__notifications {
+  position: absolute;
+  bottom: 60px;
+  left: var(--str-video__spacing-lg);
+  right: 0;
+  z-index: 3;
+}
+
 .rd__sidebar {
   position: absolute;
   z-index: 2;
