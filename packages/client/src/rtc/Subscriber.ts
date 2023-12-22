@@ -4,7 +4,7 @@ import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { Dispatcher } from './Dispatcher';
 import { getLogger } from '../logger';
-import { CallState } from '../store';
+import { CallingState, CallState } from '../store';
 
 export type SubscriberOpts = {
   sfuClient: StreamSfuClient;
@@ -23,7 +23,6 @@ const logger = getLogger(['Subscriber']);
 export class Subscriber {
   private pc: RTCPeerConnection;
   private sfuClient: StreamSfuClient;
-  private dispatcher: Dispatcher;
   private state: CallState;
 
   private readonly unregisterOnSubscriberOffer: () => void;
@@ -31,6 +30,7 @@ export class Subscriber {
 
   private readonly iceRestartDelay: number;
   private isIceRestarting = false;
+  private iceRestartTimeout?: NodeJS.Timeout;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -49,7 +49,6 @@ export class Subscriber {
     iceRestartDelay = 2500,
   }: SubscriberOpts) {
     this.sfuClient = sfuClient;
-    this.dispatcher = dispatcher;
     this.state = state;
     this.iceRestartDelay = iceRestartDelay;
 
@@ -102,6 +101,7 @@ export class Subscriber {
    * Closes the `RTCPeerConnection` and unsubscribes from the dispatcher.
    */
   close = () => {
+    clearTimeout(this.iceRestartTimeout);
     this.unregisterOnSubscriberOffer();
     this.unregisterOnIceRestart();
     this.pc.close();
@@ -117,6 +117,15 @@ export class Subscriber {
   };
 
   /**
+   * Sets the SFU client to use.
+   *
+   * @param sfuClient the SFU client to use.
+   */
+  setSfuClient = (sfuClient: StreamSfuClient) => {
+    this.sfuClient = sfuClient;
+  };
+
+  /**
    * Migrates the subscriber to a new SFU client.
    *
    * @param sfuClient the new SFU client to migrate to.
@@ -126,7 +135,7 @@ export class Subscriber {
     sfuClient: StreamSfuClient,
     connectionConfig?: RTCConfiguration,
   ) => {
-    this.sfuClient = sfuClient;
+    this.setSfuClient(sfuClient);
 
     // when migrating, we want to keep the previous subscriber open
     // until the new one is connected
@@ -338,16 +347,19 @@ export class Subscriber {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
+    const hasNetworkConnection =
+      this.state.callingState !== CallingState.OFFLINE;
+
     if (state === 'failed') {
       logger('warn', `Attempting to restart ICE`);
       this.restartIce().catch((e) => {
         logger('error', `ICE restart failed`, e);
       });
-    } else if (state === 'disconnected') {
+    } else if (state === 'disconnected' && hasNetworkConnection) {
       // when in `disconnected` state, the browser may recover automatically,
       // hence, we delay the ICE restart
       logger('warn', `Scheduling ICE restart in ${this.iceRestartDelay} ms.`);
-      setTimeout(() => {
+      this.iceRestartTimeout = setTimeout(() => {
         // check if the state is still `disconnected` or `failed`
         // as the connection may have recovered (or failed) in the meantime
         if (
