@@ -37,3 +37,20 @@
     }
   }
 }
+
+.str-video__no-media-permission {
+  position: absolute;
+  background-color: var(--str-video__alert-caution);
+  height: 12px;
+  width: 12px;
+  border-radius: var(--str-video__border-radius-circle);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: var(--str-video__font-size-xxs);
+  color: var(--str-video__base-color4);
+  font-weight: 600;
+  top: 0;
+  right: -3px;
+}

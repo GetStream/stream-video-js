@@ -20,7 +20,7 @@ export const ToggleAudioPreviewButton = (
   const { caption, Menu } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, isMute } = useMicrophoneState();
+  const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
 
   return (
     <CompositeButton
@@ -31,12 +31,20 @@ export const ToggleAudioPreviewButton = (
     >
       <IconButton
         icon={!isMute ? 'mic' : 'mic-off'}
-        title={caption || t('Mic')}
+        title={
+          !hasBrowserPermission
+            ? t('Check your browser audio permissions')
+            : caption || t('Mic')
+        }
+        disabled={!hasBrowserPermission}
         data-testid={
           isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
         }
         onClick={() => microphone.toggle()}
       />
+      {!hasBrowserPermission && (
+        <span className="str-video__no-media-permission">!</span>
+      )}
     </CompositeButton>
   );
 };
@@ -56,7 +64,7 @@ export const ToggleAudioPublishingButton = (
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
   const { useMicrophoneState } = useCallStateHooks();
-  const { microphone, isMute } = useMicrophoneState();
+  const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
@@ -75,7 +83,12 @@ export const ToggleAudioPublishingButton = (
         >
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
-            title={caption || t('Mic')}
+            title={
+              !hasBrowserPermission || !hasPermission
+                ? t('Check your browser mic permissions')
+                : caption || t('Mic')
+            }
+            disabled={!hasBrowserPermission || !hasPermission}
             data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
             onClick={async () => {
               if (!hasPermission) {
@@ -85,6 +98,9 @@ export const ToggleAudioPublishingButton = (
               }
             }}
           />
+          {(!hasBrowserPermission || !hasPermission) && (
+            <span className="str-video__no-media-permission">!</span>
+          )}
         </CompositeButton>
       </PermissionNotification>
     </Restricted>

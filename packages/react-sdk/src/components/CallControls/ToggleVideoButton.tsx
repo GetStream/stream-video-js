@@ -21,7 +21,7 @@ export const ToggleVideoPreviewButton = (
   const { caption, Menu } = props;
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
-  const { camera, isMute } = useCameraState();
+  const { camera, isMute, hasBrowserPermission } = useCameraState();
 
   return (
     <CompositeButton
@@ -32,12 +32,20 @@ export const ToggleVideoPreviewButton = (
     >
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
-        title={caption || t('Video')}
+        title={
+          !hasBrowserPermission
+            ? t('Check your browser video permissions')
+            : caption || t('Video')
+        }
         data-testid={
           isMute ? 'preview-video-unmute-button' : 'preview-video-mute-button'
         }
         onClick={() => camera.toggle()}
+        disabled={!hasBrowserPermission}
       />
+      {!hasBrowserPermission && (
+        <span className="str-video__no-media-permission">!</span>
+      )}
     </CompositeButton>
   );
 };
@@ -57,7 +65,7 @@ export const ToggleVideoPublishingButton = (
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
   const { useCameraState } = useCallStateHooks();
-  const { camera, isMute } = useCameraState();
+  const { camera, isMute, hasBrowserPermission } = useCameraState();
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
@@ -78,7 +86,12 @@ export const ToggleVideoPublishingButton = (
         >
           <IconButton
             icon={isMute ? 'camera-off' : 'camera'}
-            title={caption || t('Video')}
+            title={
+              !hasBrowserPermission || !hasPermission
+                ? t('Check your browser video permissions')
+                : caption || t('Video')
+            }
+            disabled={!hasBrowserPermission || !hasPermission}
             data-testid={isMute ? 'video-unmute-button' : 'video-mute-button'}
             onClick={async () => {
               if (!hasPermission) {
@@ -88,6 +101,9 @@ export const ToggleVideoPublishingButton = (
               }
             }}
           />
+          {!hasBrowserPermission && (
+            <span className="str-video__no-media-permission">!</span>
+          )}
         </CompositeButton>
       </PermissionNotification>
     </Restricted>
