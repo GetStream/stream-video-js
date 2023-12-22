@@ -4,8 +4,8 @@ import { SettingsController } from './SettingsDialog';
 import { Settings } from '../../context/SettingsContext';
 
 import {
-  DefaultDropDownSelectOption,
   DropDownSelect,
+  DropDownSelectOption,
   TranslationLanguage,
 } from '@stream-io/video-react-sdk';
 
@@ -35,8 +35,8 @@ export const LanguageMenu = ({ language, setLanguage }: LanguageMenuProps) => {
       handleSelect={handleSelect}
     >
       {Object.entries(LANGUAGES).map(([lngCode, languageName]) => (
-        <DefaultDropDownSelectOption
-          key={`settings-language-${lngCode}`}
+        <DropDownSelectOption
+          key={lngCode}
           label={languageName}
           icon="language"
         />

@@ -142,9 +142,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
           <div className="str-video__call-controls--group str-video__call-controls--options">
             <div className="str-video__call-controls__desktop">
               <ToggleSettingsTabModal
-                selectedLayout={layout}
-                onMenuItemClick={setLayout}
-                inMeeting
+                layoutProps={{
+                  selectedLayout: layout,
+                  onMenuItemClick: setLayout,
+                }}
+                tabModalProps={{
+                  inMeeting: true,
+                }}
               />
             </div>
             <div className="str-video__call-controls__desktop">

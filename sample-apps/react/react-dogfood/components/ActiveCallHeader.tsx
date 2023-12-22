@@ -86,9 +86,13 @@ export const ActiveCallHeader = ({
         <CallHeaderTitle />
         <div className="rd__call-header__settings">
           <ToggleSettingsTabModal
-            selectedLayout={selectedLayout}
-            onMenuItemClick={onMenuItemClick}
-            inMeeting
+            layoutProps={{
+              selectedLayout: selectedLayout,
+              onMenuItemClick: onMenuItemClick,
+            }}
+            tabModalProps={{
+              inMeeting: true,
+            }}
           />
         </div>
 

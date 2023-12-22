@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { ChangeEventHandler, useCallback } from 'react';
 
-import { DefaultDropDownSelectOption, DropDownSelect } from '../DropdownSelect';
+import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -165,7 +165,7 @@ const DeviceSelectorDropdown = (props: {
       >
         {devices.map((device) => {
           return (
-            <DefaultDropDownSelectOption
+            <DropDownSelectOption
               key={device.deviceId}
               icon={icon}
               label={device.label}

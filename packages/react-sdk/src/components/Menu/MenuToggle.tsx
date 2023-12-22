@@ -1,9 +1,9 @@
 import {
-  Children,
-  cloneElement,
   ComponentType,
+  createContext,
   ForwardedRef,
   PropsWithChildren,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -35,6 +35,22 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   visualType?: MenuVisualType;
 }>;
 
+export type MenuPortalContextValue = {
+  close?: () => void;
+};
+
+/**
+ * Used to provide utility APIs to the components rendered inside the portal.
+ */
+const MenuPortalContext = createContext<MenuPortalContextValue>({});
+
+/**
+ * Access to the closes MenuPortalContext.
+ */
+export const useMenuPortalContext = (): MenuPortalContextValue => {
+  return useContext(MenuPortalContext);
+};
+
 const MenuPortal = ({
   children,
   setMenuShown,
@@ -43,13 +59,6 @@ const MenuPortal = ({
   setMenuShown: (shown: boolean) => void;
   refs: UseFloatingReturn['refs'];
 }>) => {
-  const childrenWithProps = Children.map(children, (child: any) => {
-    return cloneElement(child, {
-      ...child.props,
-      close: () => setMenuShown(false),
-    });
-  });
-
   const portalId = useMemo(
     () => `str-video-portal-${Math.random().toString(36).substring(2, 9)}`,
     [],
@@ -61,7 +70,13 @@ const MenuPortal = ({
       <FloatingOverlay>
         <FloatingPortal id={portalId}>
           <div className="str-video__portal-content" ref={refs.setFloating}>
-            {childrenWithProps}
+            <MenuPortalContext.Provider
+              value={{
+                close: () => setMenuShown(false),
+              }}
+            >
+              {children}
+            </MenuPortalContext.Provider>
           </div>
         </FloatingPortal>
       </FloatingOverlay>

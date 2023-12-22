@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
 import {
-  DefaultDropDownSelectOption,
   DropDownSelect,
+  DropDownSelectOption,
   Icon,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -34,7 +34,6 @@ export const LayoutSelector = ({
 };
 
 const ListMenu = ({
-  onMenuItemClick: setLayout,
   selectedLayout,
   handleSelect,
   canScreenshare,
@@ -85,7 +84,7 @@ const DropdownMenu = ({
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
         .filter((key) => !canScreenshare(key))
         .map((key) => (
-          <DefaultDropDownSelectOption
+          <DropDownSelectOption
             key={key}
             selected={key === selectedLayout}
             label={LayoutMap[key].title}

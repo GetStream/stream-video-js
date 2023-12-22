@@ -1,9 +1,6 @@
 import {
-  Children,
-  cloneElement,
   createContext,
-  isValidElement,
-  PropsWithChildren,
+  ReactElement,
   ReactNode,
   useCallback,
   useContext,
@@ -162,47 +159,24 @@ const Select = (props: {
   );
 };
 
-const Option = ({ children }: PropsWithChildren) => {
-  const { activeIndex, selectedIndex, getItemProps, handleSelect } =
-    useContext(SelectContext);
-
-  const { ref, index } = useListItem();
-
-  const isActive = activeIndex === index;
-  const isSelected = selectedIndex === index;
-
-  const childrenWithProps = Children.map(children, (child: any) => {
-    if (
-      isValidElement(child) &&
-      (typeof child === 'number' || typeof child === 'string')
-    ) {
-      return cloneElement(child, { isActive, isSelected });
-    }
-    return child;
-  });
-
-  return (
-    <div
-      ref={ref}
-      {...getItemProps({
-        onClick: () => handleSelect(index),
-      })}
-    >
-      {childrenWithProps}
-    </div>
-  );
-};
-
-export const DefaultDropDownSelectOption = (props: {
+export type DropDownSelectOptionProps = {
   label: string;
   selected?: boolean;
   icon: string;
-}) => {
+};
+
+export const DropDownSelectOption = (props: DropDownSelectOptionProps) => {
   const { selected, label, icon } = props;
+  const { getItemProps, handleSelect } = useContext(SelectContext);
+  const { ref, index } = useListItem();
   return (
     <div
       className={clsx('str-video__dropdown-option', {
         'str-video__dropdown-option--selected': selected,
+      })}
+      ref={ref}
+      {...getItemProps({
+        onClick: () => handleSelect(index),
       })}
     >
       <Icon className="str-video__dropdown-icon" icon={icon} />
@@ -211,14 +185,15 @@ export const DefaultDropDownSelectOption = (props: {
   );
 };
 
-export const DropDownSelect = (
-  props: PropsWithChildren<{
-    icon?: string;
-    defaultSelectedLabel: string;
-    defaultSelectedIndex: number;
-    handleSelect: (index: number) => void;
-  }>,
-) => {
+export const DropDownSelect = (props: {
+  icon?: string;
+  defaultSelectedLabel: string;
+  defaultSelectedIndex: number;
+  handleSelect: (index: number) => void;
+  children:
+    | ReactElement<DropDownSelectOptionProps>
+    | ReactElement<DropDownSelectOptionProps>[];
+}) => {
   const {
     children,
     icon,
@@ -233,9 +208,7 @@ export const DropDownSelect = (
       defaultSelectedIndex={defaultSelectedIndex}
       defaultSelectedLabel={defaultSelectedLabel}
     >
-      {Children.map(children, (child: any) => {
-        return <Option {...child.props}>{child}</Option>;
-      })}
+      {children}
     </Select>
   );
 };

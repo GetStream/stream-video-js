@@ -3,7 +3,11 @@ import clsx from 'clsx';
 
 import { useField, useForm } from 'react-form';
 
-import { Icon, useI18n } from '@stream-io/video-react-sdk';
+import {
+  Icon,
+  useI18n,
+  useMenuPortalContext,
+} from '@stream-io/video-react-sdk';
 
 import { getCookie } from '../../helpers/getCookie';
 
@@ -11,7 +15,6 @@ export type Props = {
   className?: string;
   callId?: string;
   inMeeting?: boolean;
-  close?: () => void;
 };
 
 function required(value: string | number, name: string) {
@@ -68,7 +71,7 @@ const TextArea = (props: {
   return <textarea className={rootClassName} {...getInputProps()} {...rest} />;
 };
 
-export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
+export const Feedback = ({ callId, inMeeting = true }: Props) => {
   const [rating, setRating] = useState<{ current: number; maxAmount: number }>({
     current: 0,
     maxAmount: 5,
@@ -131,6 +134,8 @@ export const Feedback = ({ callId, inMeeting = true, close }: Props) => {
   const descriptionClassName = clsx('rd__feedback-description', {
     'rd__feedback-error': errorMessage,
   });
+
+  const { close } = useMenuPortalContext();
 
   if (feedbackSent) {
     return (

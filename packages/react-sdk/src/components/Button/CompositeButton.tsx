@@ -1,22 +1,22 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
 import { ComponentType, forwardRef, JSX, PropsWithChildren } from 'react';
-import { useI18n } from '@stream-io/video-react-bindings';
 import { Placement } from '@floating-ui/react';
 
 import { IconButton } from './IconButton';
 import { isComponentType } from '../../utilities';
 
-export type IconButtonWithMenuProps = PropsWithChildren<{
-  active?: boolean;
-  Menu?: ComponentType | JSX.Element;
-  caption?: string;
-  className?: string;
-  menuPlacement?: Placement;
-  ToggleMenuButton?: any;
-  title?: string;
-  variant?: 'primary' | 'secondary';
-}>;
+export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
+  PropsWithChildren<{
+    active?: boolean;
+    Menu?: ComponentType | JSX.Element;
+    caption?: string;
+    className?: string;
+    menuPlacement?: Placement;
+    ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
+    title?: string;
+    variant?: 'primary' | 'secondary';
+  }>;
 
 export const CompositeButton = forwardRef<
   HTMLDivElement,
@@ -75,15 +75,12 @@ const DefaultToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
 >(({ menuShown }, ref) => {
-  const { t } = useI18n();
-
   return (
     <IconButton
       className={clsx('str-video__menu-toggle-button', {
         'str-video__menu-toggle-button--active': menuShown,
       })}
       icon={menuShown ? 'caret-down' : 'caret-up'}
-      title={t('Toggle device menu')}
       ref={ref}
     />
   );

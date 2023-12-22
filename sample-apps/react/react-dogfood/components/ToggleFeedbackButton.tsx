@@ -10,16 +10,15 @@ import {
 
 import { Feedback } from './Feedback/Feedback';
 
-export const ToggleMenuButton = forwardRef<
-  HTMLDivElement,
-  ToggleMenuButtonProps
->((props, ref) => {
-  return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="feedback" />
-    </CompositeButton>
-  );
-});
+const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
+  (props, ref) => {
+    return (
+      <CompositeButton ref={ref} active={props.menuShown} variant="primary">
+        <IconButton icon="feedback" />
+      </CompositeButton>
+    );
+  },
+);
 
 export const ToggleFeedbackButton = () => {
   return (

@@ -117,9 +117,13 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
 
                       <ToggleSettingsTabModal
-                        selectedLayout={layout}
-                        onMenuItemClick={setLayout}
-                        inMeeting={false}
+                        layoutProps={{
+                          selectedLayout: layout,
+                          onMenuItemClick: setLayout,
+                        }}
+                        tabModalProps={{
+                          inMeeting: false,
+                        }}
                       />
                     </div>
                   </div>
