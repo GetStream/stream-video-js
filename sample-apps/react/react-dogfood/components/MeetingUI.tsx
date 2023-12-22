@@ -40,7 +40,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const callState = useCallCallingState();
 
   const onJoin = useCallback(
-    async (fastJoin: boolean = false) => {
+    async ({ fastJoin = false } = {}) => {
       if (!fastJoin) setShow('loading');
       try {
         const preferredCodec = router.query['video_codec'];

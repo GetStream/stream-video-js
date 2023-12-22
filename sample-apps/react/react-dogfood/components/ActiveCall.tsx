@@ -42,7 +42,7 @@ export type ActiveCallProps = {
   chatClient?: StreamChat | null;
   activeCall: Call;
   onLeave: () => void;
-  onJoin: (fastJoin: boolean) => void;
+  onJoin: ({ fastJoin }: { fastJoin: boolean }) => void;
 };
 
 type SidebarContent = 'participants' | 'chat' | 'stats' | null;
@@ -81,7 +81,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   useEffect(() => {
     // helps with Fast-Refresh
     if (activeCall?.state.callingState === CallingState.IDLE) {
-      onJoin(true);
+      onJoin({ fastJoin: true });
     }
   }, [activeCall, onJoin]);
 
