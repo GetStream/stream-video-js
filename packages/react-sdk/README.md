@@ -66,7 +66,7 @@ Here are some of the features we support:
 
 ### 0.5 milestone
 
-- [ ] Fast-reconnects
+- [x] Fast-reconnects
 - [ ] Query call session endpoint
 - [ ] Enhanced UI components and theming
 - [x] Enhanced SDK build system
