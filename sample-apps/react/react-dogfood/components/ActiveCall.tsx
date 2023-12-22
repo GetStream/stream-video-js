@@ -9,11 +9,10 @@ import {
   PermissionRequests,
   ReactionsButton,
   RecordCallConfirmationButton,
+  RecordingInProgressNotification,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
   useCallStateHooks,
-  RecordingInProgressNotification,
-  LeaveCallRecordingInProgressConfirmation,
 } from '@stream-io/video-react-sdk';
 import { StreamChat } from 'stream-chat';
 

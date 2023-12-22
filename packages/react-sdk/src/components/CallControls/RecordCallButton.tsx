@@ -1,10 +1,15 @@
-import { forwardRef, MouseEventHandler, useCallback } from 'react';
+import { forwardRef } from 'react';
 
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useI18n, useCall } from '@stream-io/video-react-bindings';
+import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButton, TextButton } from '../Button/';
 import { Icon } from '../Icon';
-import { MenuToggle, MenuVisualType, ToggleMenuButtonProps } from '../Menu';
+import {
+  MenuToggle,
+  MenuVisualType,
+  ToggleMenuButtonProps,
+  useMenuPortalContext,
+} from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { useToggleCallRecording } from '../../hooks';
 
@@ -12,13 +17,11 @@ export type RecordCallButtonProps = {
   caption?: string;
 };
 
-export type RecordEndConfirmationProps = {
-  close: () => void;
-};
-
-const RecordEndConfirmation = ({ close }: RecordEndConfirmationProps) => {
+const RecordEndConfirmation = () => {
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse } = useToggleCallRecording();
+
+  const { close } = useMenuPortalContext();
 
   return (
     <div className="str-video__end-recording__confirmation">
