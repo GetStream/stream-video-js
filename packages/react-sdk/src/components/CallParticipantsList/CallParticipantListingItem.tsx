@@ -27,6 +27,7 @@ import {
 import { WithTooltip } from '../Tooltip';
 import { Icon } from '../Icon';
 import { Avatar } from '../Avatar';
+import { useParticipantViewContext } from '../../core';
 
 type CallParticipantListingItemProps = {
   /** Participant object be rendered */
@@ -84,7 +85,7 @@ export const CallParticipantListingItem = ({
         )}
 
         <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-          <ParticipantActionsContextMenu participant={participant} />
+          <ParticipantActionsContextMenu />
         </MenuToggle>
       </div>
     </div>
@@ -131,15 +132,9 @@ const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   },
 );
 
-export const ParticipantActionsContextMenu = ({
-  participant,
-  participantViewElement,
-  videoElement,
-}: {
-  participant: StreamVideoParticipant;
-  participantViewElement?: HTMLDivElement | null;
-  videoElement?: HTMLVideoElement | null;
-}) => {
+export const ParticipantActionsContextMenu = () => {
+  const { participant, participantViewElement, videoElement } =
+    useParticipantViewContext();
   const [fullscreenModeOn, setFullscreenModeOn] = useState(
     !!document.fullscreenElement,
   );

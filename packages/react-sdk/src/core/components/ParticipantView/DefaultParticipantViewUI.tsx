@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { ComponentType, forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import { SfuModels } from '@stream-io/video-client';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
@@ -9,7 +9,7 @@ import {
   IconButton,
   MenuToggle,
   Notification,
-  ParticipantActionsContextMenu,
+  ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu,
   ToggleMenuButtonProps,
 } from '../../../components';
 import { Reaction } from '../../../components/Reaction';
@@ -28,6 +28,10 @@ export type DefaultParticipantViewUIProps = {
    * Option to show/hide menu button component
    */
   showMenuButton?: boolean;
+  /**
+   * Custom component to render the context menu
+   */
+  ParticipantActionsContextMenu?: ComponentType;
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
@@ -64,9 +68,9 @@ export const DefaultParticipantViewUI = ({
   indicatorsVisible = true,
   menuPlacement = 'bottom-start',
   showMenuButton = true,
+  ParticipantActionsContextMenu = DefaultParticipantActionsContextMenu,
 }: DefaultParticipantViewUIProps) => {
-  const { participant, participantViewElement, trackType, videoElement } =
-    useParticipantViewContext();
+  const { participant, trackType } = useParticipantViewContext();
   const { publishedTracks } = participant;
 
   const hasScreenShare = publishedTracks.includes(
@@ -94,11 +98,7 @@ export const DefaultParticipantViewUI = ({
           placement={menuPlacement}
           ToggleButton={ToggleButton}
         >
-          <ParticipantActionsContextMenu
-            participantViewElement={participantViewElement}
-            participant={participant}
-            videoElement={videoElement}
-          />
+          <ParticipantActionsContextMenu />
         </MenuToggle>
       )}
       <Reaction participant={participant} />
