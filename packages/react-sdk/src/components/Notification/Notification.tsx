@@ -1,6 +1,8 @@
 import { PropsWithChildren, ReactNode, useEffect } from 'react';
 import { Placement } from '@floating-ui/react';
 
+import { Icon } from '../Icon';
+
 import { useFloatingUIPreset } from '../../hooks';
 
 export type NotificationProps = {
@@ -10,6 +12,7 @@ export type NotificationProps = {
   resetIsVisible?: () => void;
   placement?: Placement;
   iconClassName?: string | null;
+  close?: () => void;
 };
 
 export const Notification = (props: PropsWithChildren<NotificationProps>) => {
@@ -21,6 +24,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     resetIsVisible,
     placement = 'top',
     iconClassName = 'str-video__notification__icon',
+    close,
   } = props;
 
   const { refs, x, y, strategy } = useFloatingUIPreset({
@@ -53,6 +57,12 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
         >
           {iconClassName && <i className={iconClassName} />}
           <span className="str-video__notification__message">{message}</span>
+          {close ? (
+            <i
+              className="str-video__icon str-video__icon--close str-video__notification__close"
+              onClick={close}
+            />
+          ) : null}
         </div>
       )}
       {children}
