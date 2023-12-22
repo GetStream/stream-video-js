@@ -47,7 +47,7 @@ export const InvitePopup = ({
       </div>
       <div className="rd__invite-popup__qr-container">
         <p className="rd__invite-popup__qr-description">
-          To test on a mobile device, can the QR Code below:
+          To test on a mobile device, scan the QR Code below:
         </p>
         <QRCodeSVG
           className="rd__invite-popup__qr-code"
