@@ -29,7 +29,6 @@ const StreamDemoAccountProvider: CredentialsConfig<StreamDemoAccountCredentials>
       return {
         id,
         name,
-        image: `https://getstream.io/random_svg/?name=${name}&id=${name}`,
       };
     },
   };

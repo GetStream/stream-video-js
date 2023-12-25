@@ -45,7 +45,7 @@ export const getServerSideCredentialsProps = async (
       user: {
         id: streamUserId,
         name: userIdOverride || userName,
-        image: session.user?.image,
+        image: session.user?.image ?? null,
       },
       gleapApiKey,
     } as ServerSideCredentialsProps,
