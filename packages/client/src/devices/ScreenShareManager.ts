@@ -4,7 +4,11 @@ import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
-import { ScreenShareSettings } from '../types';
+import {
+  PublishOptions,
+  ScreenShareSettings,
+  StopPublishOptions,
+} from '../types';
 
 export class ScreenShareManager extends InputMediaDeviceManager<
   ScreenShareState,
@@ -30,7 +34,9 @@ export class ScreenShareManager extends InputMediaDeviceManager<
   async disableScreenShareAudio(): Promise<void> {
     this.state.setAudioEnabled(false);
     if (this.call.publisher?.isPublishing(TrackType.SCREEN_SHARE_AUDIO)) {
-      await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, true);
+      await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, {
+        stopTracks: true,
+      });
     }
   }
 
@@ -63,15 +69,19 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return getScreenShareStream(constraints);
   }
 
-  protected publishStream(stream: MediaStream): Promise<void> {
+  protected publishStream(
+    stream: MediaStream,
+    opts: PublishOptions,
+  ): Promise<void> {
     return this.call.publishScreenShareStream(stream, {
+      ...opts,
       screenShareSettings: this.state.settings,
     });
   }
 
-  protected async stopPublishStream(stopTracks: boolean): Promise<void> {
-    await this.call.stopPublish(TrackType.SCREEN_SHARE, stopTracks);
-    await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, stopTracks);
+  protected async stopPublishStream(opts: StopPublishOptions): Promise<void> {
+    await this.call.stopPublish(TrackType.SCREEN_SHARE, opts);
+    await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, opts);
   }
 
   /**

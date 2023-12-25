@@ -18,6 +18,7 @@ import {
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
 import { OwnCapability } from '../../gen/coordinator';
+import { PublishOptions, StopPublishOptions } from '../../types';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -88,6 +89,7 @@ describe('MicrophoneManager', () => {
 
     expect(manager['call'].publishAudioStream).toHaveBeenCalledWith(
       manager.state.mediaStream,
+      {} satisfies PublishOptions,
     );
   });
 
@@ -97,10 +99,9 @@ describe('MicrophoneManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.AUDIO,
-      false,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO, {
+      stopTracks: false,
+    } satisfies StopPublishOptions);
   });
 
   it('disable-enable mic should set track.enabled', async () => {

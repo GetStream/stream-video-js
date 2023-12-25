@@ -137,7 +137,7 @@ describe('Publisher', () => {
     expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(newTrack);
 
     // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO, true);
+    await publisher.unpublishStream(TrackType.VIDEO, { stopTracks: true });
     expect(newTrack.stop).toHaveBeenCalled();
     expect(state.localParticipant?.publishedTracks).not.toContain(
       TrackType.VIDEO,
@@ -190,7 +190,7 @@ describe('Publisher', () => {
     );
 
     // stop publishing
-    await publisher.unpublishStream(TrackType.VIDEO, false);
+    await publisher.unpublishStream(TrackType.VIDEO, { stopTracks: false });
     expect(track.stop).not.toHaveBeenCalled();
     expect(track.enabled).toBe(false);
     expect(state.localParticipant?.publishedTracks).not.toContain(

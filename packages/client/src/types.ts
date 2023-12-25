@@ -138,8 +138,32 @@ export type SubscriptionChanges = {
   [sessionId: string]: SubscriptionChange;
 };
 
+export type StopPublishOptions = {
+  /**
+   * A flag to indicate that the current "stop publish" operation
+   * is a result of switching devices.
+   */
+  isSwitchingDevice?: boolean;
+  /**
+   * A flag to indicate whether to stop the tracks or not.
+   * if `true` the track will be stopped otherwise, it will be just disabled.
+   */
+  stopTracks?: boolean;
+};
+
 export type PublishOptions = {
+  /**
+   * A flag to indicate that the current "publish" operation
+   * is a result of switching devices.
+   */
+  isSwitchingDevice?: boolean;
+  /**
+   * A preferred codec to use for encoding the stream.
+   */
   preferredCodec?: string | null;
+  /**
+   * A set of settings to use for screen sharing.
+   */
   screenShareSettings?: ScreenShareSettings;
 };
 

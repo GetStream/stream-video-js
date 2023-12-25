@@ -1,4 +1,4 @@
-import { Observable, Subscription, combineLatest, pairwise } from 'rxjs';
+import { combineLatest, Observable, pairwise, Subscription } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
@@ -7,6 +7,7 @@ import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
+import { PublishOptions, StopPublishOptions } from '../types';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -73,7 +74,7 @@ export abstract class InputMediaDeviceManager<
     this.state.prevStatus = this.state.status;
     if (this.state.status === 'disabled') return;
     const stopTracks = this.state.disableMode === 'stop-tracks';
-    this.disablePromise = this.muteStream(stopTracks);
+    this.disablePromise = this.muteStream({ stopTracks });
     try {
       await this.disablePromise;
       this.state.setStatus('disabled');
@@ -139,9 +140,10 @@ export abstract class InputMediaDeviceManager<
   };
 
   protected async applySettingsToStream() {
-    if (this.state.status === 'enabled') {
-      await this.muteStream();
-      await this.unmuteStream();
+    const isSwitchingDevice = this.state.status === 'enabled';
+    if (isSwitchingDevice) {
+      await this.muteStream({ stopTracks: true, isSwitchingDevice });
+      await this.unmuteStream({ isSwitchingDevice });
     }
   }
 
@@ -149,19 +151,23 @@ export abstract class InputMediaDeviceManager<
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
-  protected abstract publishStream(stream: MediaStream): Promise<void>;
+  protected abstract publishStream(
+    stream: MediaStream,
+    opts: PublishOptions,
+  ): Promise<void>;
 
-  protected abstract stopPublishStream(stopTracks: boolean): Promise<void>;
+  protected abstract stopPublishStream(opts: StopPublishOptions): Promise<void>;
 
   protected getTracks(): MediaStreamTrack[] {
     return this.state.mediaStream?.getTracks() ?? [];
   }
 
-  protected async muteStream(stopTracks: boolean = true) {
+  protected async muteStream(opts: StopPublishOptions) {
+    const { stopTracks = true } = opts;
     if (!this.state.mediaStream) return;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.stopPublishStream(stopTracks);
+      await this.stopPublishStream(opts);
     }
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
@@ -207,7 +213,7 @@ export abstract class InputMediaDeviceManager<
     }
   }
 
-  protected async unmuteStream() {
+  protected async unmuteStream(opts: PublishOptions = {}) {
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (
@@ -225,7 +231,7 @@ export abstract class InputMediaDeviceManager<
       stream = await this.getStream(constraints as C);
     }
     if (this.call.state.callingState === CallingState.JOINED) {
-      await this.publishStream(stream);
+      await this.publishStream(stream, opts);
     }
     if (this.state.mediaStream !== stream) {
       this.state.setMediaStream(stream);
@@ -292,7 +298,7 @@ export abstract class InputMediaDeviceManager<
 
         if (isDeviceDisconnected) {
           await this.disable();
-          this.select(undefined);
+          await this.select(undefined);
         }
         if (isDeviceReplaced) {
           if (

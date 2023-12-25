@@ -16,7 +16,7 @@ import {
 import { getPreferredCodecs } from './codecs';
 import { trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { CallingState, CallState } from '../store';
-import { PublishOptions } from '../types';
+import { PublishOptions, StopPublishOptions } from '../types';
 import { isReactNative } from '../helpers/platforms';
 import { enableHighQualityAudio, toggleDtx } from '../helpers/sdp-munging';
 import { Logger } from '../coordinator/connection/types';
@@ -301,33 +301,40 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
+    const { isSwitchingDevice = false } = opts;
+    if (!isSwitchingDevice) {
+      // We don't notify the SFU if publishing because of switching devices
+      await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
+    }
   };
 
   /**
    * Stops publishing the given track type to the SFU, if it is currently being published.
    * Underlying track will be stopped and removed from the publisher.
    * @param trackType the track type to unpublish.
-   * @param stopTrack specifies whether track should be stopped or just disabled
+   * @param opts the optional stop publish options to use.
    */
-  unpublishStream = async (trackType: TrackType, stopTrack: boolean) => {
+  unpublishStream = async (trackType: TrackType, opts: StopPublishOptions) => {
     const transceiver = this.pc
       .getTransceivers()
       .find((t) => t === this.transceiverRegistry[trackType] && t.sender.track);
+
+    if (!transceiver || !transceiver.sender.track) return;
+
+    const { stopTracks = true, isSwitchingDevice = false } = opts;
+    const track = transceiver.sender.track;
+    if (stopTracks && track.readyState === 'live') {
+      track.stop();
+    } else if (track.enabled) {
+      track.enabled = false;
+    }
     if (
-      transceiver &&
-      transceiver.sender.track &&
-      (stopTrack
-        ? transceiver.sender.track.readyState === 'live'
-        : transceiver.sender.track.enabled)
-    ) {
-      stopTrack
-        ? transceiver.sender.track.stop()
-        : (transceiver.sender.track.enabled = false);
+      // We don't notify the SFU if unpublishing because of switching devices
+      !isSwitchingDevice &&
       // We don't need to notify SFU if unpublishing in response to remote soft mute
-      if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
-        await this.notifyTrackMuteStateChanged(undefined, trackType, true);
-      }
+      this.state.localParticipant?.publishedTracks.includes(trackType)
+    ) {
+      await this.notifyTrackMuteStateChanged(undefined, trackType, true);
     }
   };
 

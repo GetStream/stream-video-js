@@ -13,6 +13,7 @@ import { getVideoStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
+import { StopPublishOptions } from '../../types';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -105,10 +106,9 @@ describe('CameraManager', () => {
 
     await manager.disable();
 
-    expect(manager['call'].stopPublish).toHaveBeenCalledWith(
-      TrackType.VIDEO,
-      true,
-    );
+    expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO, {
+      stopTracks: true,
+    } satisfies StopPublishOptions);
   });
 
   it('flip', async () => {

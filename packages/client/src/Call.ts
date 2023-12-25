@@ -70,6 +70,7 @@ import {
   DebounceType,
   JoinCallData,
   PublishOptions,
+  StopPublishOptions,
   StreamVideoParticipant,
   StreamVideoParticipantPatches,
   SubscriptionChanges,
@@ -1175,8 +1176,12 @@ export class Call {
    * The previous audio stream will be stopped.
    *
    * @param audioStream the audio stream to publish.
+   * @param opts the options to use when publishing the stream.
    */
-  publishAudioStream = async (audioStream: MediaStream) => {
+  publishAudioStream = async (
+    audioStream: MediaStream,
+    opts: PublishOptions = {},
+  ) => {
     // we should wait until we get a JoinResponse from the SFU,
     // otherwise we risk breaking the ICETrickle flow.
     await this.assertCallJoined();
@@ -1195,6 +1200,7 @@ export class Call {
       audioStream,
       audioTrack,
       TrackType.AUDIO,
+      opts,
     );
   };
 
@@ -1254,14 +1260,14 @@ export class Call {
    * Underlying track will be stopped and removed from the publisher.
    *
    * @param trackType the track type to stop publishing.
-   * @param stopTrack if `true` the track will be stopped, else it will be just disabled
+   * @param opts the options to use when stopping the track.
    */
-  stopPublish = async (trackType: TrackType, stopTrack: boolean = true) => {
+  stopPublish = async (trackType: TrackType, opts: StopPublishOptions = {}) => {
     this.logger(
       'info',
-      `stopPublish ${TrackType[trackType]}, stop tracks: ${stopTrack}`,
+      `stopPublish ${TrackType[trackType]}, stop tracks: ${!!opts.stopTracks}`,
     );
-    await this.publisher?.unpublishStream(trackType, stopTrack);
+    await this.publisher?.unpublishStream(trackType, opts);
   };
 
   /**

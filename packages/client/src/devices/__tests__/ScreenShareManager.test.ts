@@ -7,6 +7,7 @@ import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
 import { getScreenShareStream } from '../devices';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { StopPublishOptions } from '../../types';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -111,10 +112,12 @@ describe('ScreenShareManager', () => {
 
     await manager.disable();
     expect(manager.state.status).toEqual('disabled');
-    expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE, true);
+    expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE, {
+      stopTracks: true,
+    } satisfies StopPublishOptions);
     expect(call.stopPublish).toHaveBeenCalledWith(
       TrackType.SCREEN_SHARE_AUDIO,
-      true,
+      { stopTracks: true } satisfies StopPublishOptions,
     );
   });
 });
