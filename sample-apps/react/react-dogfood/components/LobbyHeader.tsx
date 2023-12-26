@@ -13,6 +13,7 @@ export const HomeButton = () => (
     <Image
       src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.svg`}
       alt="Stream logo"
+      priority={false}
       width={36}
       height={36}
     />
@@ -20,13 +21,12 @@ export const HomeButton = () => (
 );
 
 export const UserMenu = () => {
-  const { language, setLanguage } = useLanguage();
-
+  const { setLanguage } = useLanguage();
   return (
     <div className="rd__user-session__menu">
       <ul className="rd__user-session__menu-list">
         <li className="rd__user-session__menu-item">
-          <LanguageMenu language={language} setLanguage={setLanguage} />
+          <LanguageMenu setLanguage={setLanguage} />
         </li>
         <li className="rd__user-session__menu-item">
           <button

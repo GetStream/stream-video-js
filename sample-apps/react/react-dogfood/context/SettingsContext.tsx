@@ -1,8 +1,6 @@
-import { createContext, PropsWithChildren, useContext, useState } from 'react';
-import { SettingsDialog } from '../components';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { useLanguage } from '../hooks/useLanguage';
 
-const noop = () => null;
 const defaultState: Settings = {};
 
 export type Settings = {
@@ -10,18 +8,15 @@ export type Settings = {
 };
 
 export type SettingsContextValue = {
-  setOpen: (open: boolean) => void;
   settings: Settings;
 };
 
 const SettingsContext = createContext<SettingsContextValue>({
-  setOpen: noop,
   settings: defaultState,
 });
 
 export const SettingsProvider = ({ children }: PropsWithChildren) => {
-  const [isOpen, setOpen] = useState(false);
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
 
   const settings: Settings = {
     language,
@@ -30,18 +25,9 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
   return (
     <SettingsContext.Provider
       value={{
-        setOpen,
         settings,
       }}
     >
-      <SettingsDialog
-        open={isOpen}
-        onClose={() => setOpen(false)}
-        controller={{
-          setLanguage,
-        }}
-        settings={settings}
-      />
       {children}
     </SettingsContext.Provider>
   );
