@@ -4,9 +4,9 @@ import { ParticipantViewProps } from './ParticipantView';
 export type ParticipantViewContextValue = Required<
   Pick<ParticipantViewProps, 'participant' | 'trackType'>
 > & {
-  participantViewElement: HTMLDivElement | null;
-  videoElement: HTMLVideoElement | null;
-  videoPlaceholderElement: HTMLDivElement | null;
+  participantViewElement?: HTMLDivElement | null;
+  videoElement?: HTMLVideoElement | null;
+  videoPlaceholderElement?: HTMLDivElement | null;
 };
 
 export const ParticipantViewContext = createContext<

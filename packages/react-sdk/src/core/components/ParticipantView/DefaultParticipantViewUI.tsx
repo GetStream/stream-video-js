@@ -9,9 +9,9 @@ import {
   IconButton,
   MenuToggle,
   Notification,
-  ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu,
   ToggleMenuButtonProps,
 } from '../../../components';
+import { ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu } from './ParticipantActionsContextMenu';
 import { Reaction } from '../../../components/Reaction';
 import { useParticipantViewContext } from './ParticipantViewContext';
 
