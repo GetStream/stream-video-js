@@ -4495,29 +4495,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime-rpc@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "@protobuf-ts/runtime-rpc@npm:2.9.1"
+"@protobuf-ts/runtime-rpc@npm:^2.9.3":
+  version: 2.9.3
+  resolution: "@protobuf-ts/runtime-rpc@npm:2.9.3"
   dependencies:
-    "@protobuf-ts/runtime": ^2.9.1
-  checksum: 16f28b95f9e6418d44ba9f51c6d30ffb8bacd7902ccf4a8833bb1ffe498342ec2f1cfe6090bda547449c64995fbb7cc8b13a7ac01ceb6500f7d2f2087143dde6
+    "@protobuf-ts/runtime": ^2.9.3
+  checksum: 3aa17911d1d9ce4021d57e9a45e4351adaa92ed66f6ae34258f416d2f79802d647cb1fb6aee13b187d7b26573199ae8ab09abbca1d23cb279d2c42b530f48ff3
   languageName: node
   linkType: hard
 
-"@protobuf-ts/runtime@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "@protobuf-ts/runtime@npm:2.9.1"
-  checksum: 8507103d7bf790c57c383bfc711e1c2766fab34c4a4d0ec30395f6da8f06e86a9e8b7af0f00cf19a8a0ecaf2feaf75cf3787ee1fd1d1d8ecedba5fc290113e15
+"@protobuf-ts/runtime@npm:^2.9.3":
+  version: 2.9.3
+  resolution: "@protobuf-ts/runtime@npm:2.9.3"
+  checksum: 32d2f446794ad293e120bf7a3a55a874810bdb474eee0493411a2d6173ec862fce9d0cd15db9579fe4c8b253ee5383b9473a8bd0d726c41847b87116c11ae7cd
   languageName: node
   linkType: hard
 
-"@protobuf-ts/twirp-transport@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "@protobuf-ts/twirp-transport@npm:2.9.1"
+"@protobuf-ts/twirp-transport@npm:^2.9.3":
+  version: 2.9.3
+  resolution: "@protobuf-ts/twirp-transport@npm:2.9.3"
   dependencies:
-    "@protobuf-ts/runtime": ^2.9.1
-    "@protobuf-ts/runtime-rpc": ^2.9.1
-  checksum: 738ce44bd8b75ac2313a96cd7b99c12af30f7c8a92c6d04aa2d913a64e1af7b73e8cea61f98a29c07e5b17ecf91b7ba469c494e6e66d0a5c9cba4177ec6c318a
+    "@protobuf-ts/runtime": ^2.9.3
+    "@protobuf-ts/runtime-rpc": ^2.9.3
+  checksum: 8175abf39ec2a3f5fa38b349be63862e6d99abbfff9bcae7b1883a0fdf50ad3ee7bb0d33e2c9491881b7fbfcbf88f8d52de316f654fd31e868213fbc9b26eb3c
   languageName: node
   linkType: hard
 
@@ -7359,9 +7359,9 @@ __metadata:
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
     "@openapitools/openapi-generator-cli": ^2.7.0
-    "@protobuf-ts/runtime": ^2.9.1
-    "@protobuf-ts/runtime-rpc": ^2.9.1
-    "@protobuf-ts/twirp-transport": ^2.9.1
+    "@protobuf-ts/runtime": ^2.9.3
+    "@protobuf-ts/runtime-rpc": ^2.9.3
+    "@protobuf-ts/twirp-transport": ^2.9.3
     "@rollup/plugin-replace": ^5.0.4
     "@rollup/plugin-typescript": ^11.1.5
     "@types/jsonwebtoken": ^9.0.3
