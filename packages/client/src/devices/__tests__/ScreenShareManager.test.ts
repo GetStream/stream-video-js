@@ -113,11 +113,12 @@ describe('ScreenShareManager', () => {
     await manager.disable();
     expect(manager.state.status).toEqual('disabled');
     expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE, {
+      notifySfu: true,
       stopTracks: true,
     } satisfies StopPublishOptions);
     expect(call.stopPublish).toHaveBeenCalledWith(
       TrackType.SCREEN_SHARE_AUDIO,
-      { stopTracks: true } satisfies StopPublishOptions,
+      { notifySfu: true, stopTracks: true } satisfies StopPublishOptions,
     );
   });
 });

@@ -124,6 +124,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.stopPublishStream).toHaveBeenCalledWith({
       stopTracks: true,
+      notifySfu: true,
     } satisfies StopPublishOptions);
   });
 
@@ -169,7 +170,7 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.stopPublishStream).toHaveBeenCalledWith({
       stopTracks: true,
-      isSwitchingDevice: true,
+      notifySfu: false,
     } satisfies StopPublishOptions);
     expect(manager.getStream).toHaveBeenCalledWith({
       deviceId,

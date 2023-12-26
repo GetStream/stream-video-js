@@ -140,10 +140,14 @@ export type SubscriptionChanges = {
 
 export type StopPublishOptions = {
   /**
-   * A flag to indicate that the current "stop publish" operation
-   * is a result of switching devices.
+   * A flag to indicate whether to notify the SFU or not
+   * that the track has been stopped.
+   *
+   * Common use case is when the user is switching devices.
+   * We don't want to notify the SFU that the track has been stopped
+   * as it will be replaced by another track.
    */
-  isSwitchingDevice?: boolean;
+  notifySfu?: boolean;
   /**
    * A flag to indicate whether to stop the tracks or not.
    * if `true` the track will be stopped otherwise, it will be just disabled.
@@ -153,10 +157,14 @@ export type StopPublishOptions = {
 
 export type PublishOptions = {
   /**
-   * A flag to indicate that the current "publish" operation
-   * is a result of switching devices.
+   * A flag to indicate whether to notify the SFU or not
+   * that the track has been stopped.
+   *
+   * Common use case is when the user is switching devices.
+   * We don't want to notify the SFU that the track has been stopped
+   * as it will be replaced by another track.
    */
-  isSwitchingDevice?: boolean;
+  notifySfu?: boolean;
   /**
    * A preferred codec to use for encoding the stream.
    */

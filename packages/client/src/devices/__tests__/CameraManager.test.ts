@@ -108,6 +108,7 @@ describe('CameraManager', () => {
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.VIDEO, {
       stopTracks: true,
+      notifySfu: true,
     } satisfies StopPublishOptions);
   });
 

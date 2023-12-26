@@ -101,6 +101,7 @@ describe('MicrophoneManager', () => {
 
     expect(manager['call'].stopPublish).toHaveBeenCalledWith(TrackType.AUDIO, {
       stopTracks: false,
+      notifySfu: true,
     } satisfies StopPublishOptions);
   });
 

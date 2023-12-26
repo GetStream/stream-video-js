@@ -229,7 +229,12 @@ export class Publisher {
         'info',
         `Track ${TrackType[trackType]} has ended, notifying the SFU`,
       );
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, true);
+      await this.updateAndNotifyTrackMuteState(
+        mediaStream,
+        trackType,
+        true, // muted
+        true, // notify
+      );
       // clean-up, this event listener needs to run only once.
       track.removeEventListener('ended', handleTrackEnded);
     };
@@ -301,11 +306,13 @@ export class Publisher {
       await transceiver.sender.replaceTrack(track);
     }
 
-    const { isSwitchingDevice = false } = opts;
-    if (!isSwitchingDevice) {
-      // We don't notify the SFU if publishing because of switching devices
-      await this.notifyTrackMuteStateChanged(mediaStream, trackType, false);
-    }
+    const { notifySfu = true } = opts;
+    await this.updateAndNotifyTrackMuteState(
+      mediaStream,
+      trackType,
+      false,
+      notifySfu,
+    );
   };
 
   /**
@@ -321,20 +328,22 @@ export class Publisher {
 
     if (!transceiver || !transceiver.sender.track) return;
 
-    const { stopTracks = true, isSwitchingDevice = false } = opts;
+    const { stopTracks = true, notifySfu = true } = opts;
     const track = transceiver.sender.track;
     if (stopTracks && track.readyState === 'live') {
       track.stop();
     } else if (track.enabled) {
       track.enabled = false;
     }
-    if (
-      // We don't notify the SFU if unpublishing because of switching devices
-      !isSwitchingDevice &&
-      // We don't need to notify SFU if unpublishing in response to remote soft mute
-      this.state.localParticipant?.publishedTracks.includes(trackType)
-    ) {
-      await this.notifyTrackMuteStateChanged(undefined, trackType, true);
+
+    // We don't need to notify SFU if unpublishing in response to remote soft mute
+    if (this.state.localParticipant?.publishedTracks.includes(trackType)) {
+      await this.updateAndNotifyTrackMuteState(
+        undefined,
+        trackType,
+        true,
+        notifySfu,
+      );
     }
   };
 
@@ -370,12 +379,15 @@ export class Publisher {
     return false;
   };
 
-  private notifyTrackMuteStateChanged = async (
+  private updateAndNotifyTrackMuteState = async (
     mediaStream: MediaStream | undefined,
     trackType: TrackType,
     isMuted: boolean,
+    notifySfu: boolean,
   ) => {
-    await this.sfuClient.updateMuteState(trackType, isMuted);
+    if (notifySfu) {
+      await this.sfuClient.updateMuteState(trackType, isMuted);
+    }
 
     const audioOrVideoOrScreenShareStream =
       trackTypeToParticipantStreamKey(trackType);

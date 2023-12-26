@@ -71,10 +71,17 @@ export abstract class InputMediaDeviceManager<
    * Stops the stream.
    */
   async disable() {
+    return this.disableInternal({ notifySfu: true });
+  }
+
+  private async disableInternal(opts: StopPublishOptions) {
     this.state.prevStatus = this.state.status;
     if (this.state.status === 'disabled') return;
     const stopTracks = this.state.disableMode === 'stop-tracks';
-    this.disablePromise = this.muteStream({ stopTracks });
+    this.disablePromise = this.muteStream({
+      ...opts,
+      stopTracks,
+    });
     try {
       await this.disablePromise;
       this.state.setStatus('disabled');
@@ -142,8 +149,11 @@ export abstract class InputMediaDeviceManager<
   protected async applySettingsToStream() {
     const isSwitchingDevice = this.state.status === 'enabled';
     if (isSwitchingDevice) {
-      await this.muteStream({ stopTracks: true, isSwitchingDevice });
-      await this.unmuteStream({ isSwitchingDevice });
+      // we don't notify the SFU (UpdateMuteState) when switching devices
+      // as that would cause a brief mute -> unmute on the other sides
+      const notifySfu = !isSwitchingDevice;
+      await this.muteStream({ stopTracks: true, notifySfu });
+      await this.unmuteStream({ notifySfu });
     }
   }
 
@@ -163,8 +173,9 @@ export abstract class InputMediaDeviceManager<
   }
 
   protected async muteStream(opts: StopPublishOptions) {
-    const { stopTracks = true } = opts;
     if (!this.state.mediaStream) return;
+
+    const { stopTracks = true } = opts;
     this.logger('debug', `${stopTracks ? 'Stopping' : 'Disabling'} stream`);
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.stopPublishStream(opts);
@@ -248,7 +259,9 @@ export abstract class InputMediaDeviceManager<
             setTimeout(() => {
               this.isTrackStoppedDueToTrackEnd = false;
             }, 2000);
-            await this.disable();
+            // `Publisher.tss` listens for track's `ended` event too
+            // and takes care of notifying the SFU.
+            await this.disableInternal({ notifySfu: false });
           }
         });
       });
