@@ -79,6 +79,10 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
         this.rnSpeechDetector = undefined;
       };
     } else {
+      if (!this.hasPermission()) {
+        this.logger('debug', `Couldn't start a stream: no permissions`);
+        return;
+      }
       // Need to start a new stream that's not connected to publisher
       const stream = await this.getStream({
         deviceId,

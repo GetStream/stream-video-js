@@ -8,6 +8,7 @@ import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import { PublishOptions, StopPublishOptions } from '../types';
+import { getCurrentValue } from '../store/rxUtils';
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -23,7 +24,6 @@ export abstract class InputMediaDeviceManager<
   disablePromise?: Promise<void>;
   logger: Logger;
   private subscriptions: Subscription[] = [];
-  private isTrackStoppedDueToTrackEnd = false;
 
   protected constructor(
     protected readonly call: Call,
@@ -172,6 +172,10 @@ export abstract class InputMediaDeviceManager<
     return this.state.mediaStream?.getTracks() ?? [];
   }
 
+  protected hasPermission(): boolean {
+    return getCurrentValue(this.state.hasBrowserPermission$);
+  }
+
   protected async muteStream(opts: StopPublishOptions) {
     if (!this.state.mediaStream) return;
 
@@ -225,6 +229,11 @@ export abstract class InputMediaDeviceManager<
   }
 
   protected async unmuteStream(opts: PublishOptions = {}) {
+    if (!this.hasPermission()) {
+      this.logger('debug', `Couldn't start a stream: no permissions`);
+      return;
+    }
+
     this.logger('debug', 'Starting stream');
     let stream: MediaStream;
     if (
@@ -248,18 +257,10 @@ export abstract class InputMediaDeviceManager<
       this.state.setMediaStream(stream);
       this.getTracks().forEach((track) => {
         track.addEventListener('ended', async () => {
-          if (this.enablePromise) {
-            await this.enablePromise;
-          }
-          if (this.disablePromise) {
-            await this.disablePromise;
-          }
+          if (this.enablePromise) await this.enablePromise;
+          if (this.disablePromise) await this.disablePromise;
           if (this.state.status === 'enabled') {
-            this.isTrackStoppedDueToTrackEnd = true;
-            setTimeout(() => {
-              this.isTrackStoppedDueToTrackEnd = false;
-            }, 2000);
-            // `Publisher.tss` listens for track's `ended` event too
+            // `Publisher.ts` listens for track's `ended` event too
             // and takes care of notifying the SFU.
             await this.disableInternal({ notifySfu: false });
           }
@@ -284,15 +285,9 @@ export abstract class InputMediaDeviceManager<
         deviceIds$!.pipe(pairwise()),
         this.state.selectedDevice$,
       ]).subscribe(async ([[prevDevices, currentDevices], deviceId]) => {
-        if (!deviceId) {
-          return;
-        }
-        if (this.enablePromise) {
-          await this.enablePromise;
-        }
-        if (this.disablePromise) {
-          await this.disablePromise;
-        }
+        if (!deviceId) return;
+        if (this.enablePromise) await this.enablePromise;
+        if (this.disablePromise) await this.disablePromise;
 
         let isDeviceDisconnected = false;
         let isDeviceReplaced = false;
@@ -306,23 +301,20 @@ export abstract class InputMediaDeviceManager<
           currentDevice.deviceId === prevDevice.deviceId &&
           currentDevice.groupId !== prevDevice.groupId
         ) {
+          // covers the case when a `default` device is replaced:
+          // - internal mic configured as default
+          // - external mic is plugged
+          // - external mic is used as default
           isDeviceReplaced = true;
         }
 
         if (isDeviceDisconnected) {
           await this.disable();
           await this.select(undefined);
-        }
-        if (isDeviceReplaced) {
-          if (
-            this.isTrackStoppedDueToTrackEnd &&
-            this.state.status === 'disabled'
-          ) {
-            await this.enable();
-            this.isTrackStoppedDueToTrackEnd = false;
-          } else {
-            await this.applySettingsToStream();
-          }
+        } else if (isDeviceReplaced && this.state.status === 'enabled') {
+          // A new device has been selected in the OS settings.
+          // We need to re-create the stream and publish it.
+          await this.applySettingsToStream();
         }
       }),
     );

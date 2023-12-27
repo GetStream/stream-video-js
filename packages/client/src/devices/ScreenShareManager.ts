@@ -84,6 +84,11 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     await this.call.stopPublish(TrackType.SCREEN_SHARE_AUDIO, opts);
   }
 
+  protected hasPermission(): boolean {
+    // screen share permissions can't be currently queried, assume granted.
+    return true;
+  }
+
   /**
    * Overrides the default `select` method to throw an error.
    *

@@ -30,6 +30,7 @@ describe('ScreenShareManager', () => {
   let manager: ScreenShareManager;
 
   beforeEach(() => {
+    globalThis.navigator ??= {} as Navigator;
     manager = new ScreenShareManager(
       new Call({
         id: '',
@@ -43,6 +44,8 @@ describe('ScreenShareManager', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    // @ts-ignore - remove the navigator mock
+    delete globalThis.navigator;
   });
 
   it('list devices', () => {

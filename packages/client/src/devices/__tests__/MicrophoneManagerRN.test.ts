@@ -52,6 +52,7 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
 describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
   beforeEach(() => {
+    globalThis.navigator ??= {} as Navigator;
     manager = new MicrophoneManager(
       new Call({
         id: '',
@@ -122,5 +123,7 @@ describe('MicrophoneManager React Native', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    // @ts-ignore - remove the navigator mock
+    delete globalThis.navigator;
   });
 });
