@@ -1,8 +1,5 @@
 import { useCallback } from 'react';
 
-import { SettingsController } from './SettingsDialog';
-import { Settings } from '../../context/SettingsContext';
-
 import {
   DropDownSelect,
   DropDownSelectOption,
@@ -15,10 +12,11 @@ const LANGUAGES: Record<TranslationLanguage, string> = {
   es: 'Spanish',
 };
 
-export type LanguageMenuProps = Pick<SettingsController, 'setLanguage'> &
-  Pick<Settings, 'language'>;
+export type LanguageMenuProps = {
+  setLanguage: (lng: string) => void;
+};
 
-export const LanguageMenu = ({ language, setLanguage }: LanguageMenuProps) => {
+export const LanguageMenu = ({ setLanguage }: LanguageMenuProps) => {
   const handleSelect = useCallback(
     (index: number) => {
       const selected = Object.keys(LANGUAGES)[index];

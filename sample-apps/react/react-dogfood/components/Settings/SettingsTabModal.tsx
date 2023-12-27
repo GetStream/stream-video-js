@@ -120,7 +120,7 @@ export const SettingsTabModalMenu = (props: {
   tabModalProps: ToggleSettingsTabModalProps;
   layoutProps: LayoutSelectorProps;
 }) => {
-  const { language, setLanguage } = useLanguage();
+  const { setLanguage } = useLanguage();
   const { t } = useI18n();
 
   const { tabModalProps, layoutProps } = props;
@@ -158,7 +158,7 @@ export const SettingsTabModalMenu = (props: {
       </TabWrapper>
 
       <TabWrapper icon="language" label={t('Language')} inMeeting>
-        <LanguageMenu language={language} setLanguage={setLanguage} />
+        <LanguageMenu setLanguage={setLanguage} />
       </TabWrapper>
 
       <TabWrapper
