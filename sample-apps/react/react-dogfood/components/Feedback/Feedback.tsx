@@ -156,7 +156,12 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <button
           className="rd__button rd__button--primaryrd__feedback-button rd__feedback-button--close"
           disabled={isSubmitting}
-          onClick={close}
+          onClick={
+            close ||
+            (() => {
+              window.location.href = '/';
+            })
+          }
         >
           {' '}
           {t('Close')}
