@@ -5,7 +5,7 @@ import '../style/index.scss';
 import { ComponentType } from 'react';
 import { Session } from 'next-auth';
 import Head from 'next/head';
-import { GoogleTagManager } from '@next/third-parties/google';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
@@ -19,6 +19,7 @@ type AppProps = {
 };
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export default function App({
   Component,
@@ -41,6 +42,7 @@ export default function App({
         </SettingsProvider>
       </AppEnvironmentProvider>
       {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </SessionProvider>
   );
 }
