@@ -1,4 +1,7 @@
-import { Button, Input, Stack, Typography } from '@mui/material';
+import Button from '@mui/material/Button';
+import Input from '@mui/material/Input';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 
 export type CallSetupProps = {
