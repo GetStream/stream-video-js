@@ -18,7 +18,7 @@ export const CallStatsButton = () => (
 const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps<HTMLDivElement> & CallStatsButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   const { t } = useI18n();
   const { caption, menuShown } = props;
 

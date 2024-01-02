@@ -13,7 +13,7 @@ import {
 export const ToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { selectedDevice: selectedMic, devices: microphones } =

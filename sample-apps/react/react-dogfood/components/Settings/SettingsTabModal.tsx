@@ -175,7 +175,7 @@ export const SettingsTabModalMenu = (props: {
 const ToggleSettingsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleSettingsMenuButton(props, ref) {
   return (
     <CompositeButton ref={ref} active={props.menuShown} variant="primary">
       <IconButton icon="device-settings" />

@@ -29,35 +29,33 @@ type CopyToClipboardButtonProps = ComponentProps<'button'> & {
 export const CopyToClipboardButton = forwardRef<
   HTMLButtonElement,
   CopyToClipboardButtonProps
->(
-  (
-    { Button, className, copyValue, onClick, onError, onSuccess, ...restProps },
-    ref,
-  ) => {
-    const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-      async (event) => {
-        if (onClick) onClick(event);
-        const value = typeof copyValue === 'function' ? copyValue() : copyValue;
-        try {
-          await navigator?.clipboard.writeText(value);
-          onSuccess?.(event.target as HTMLButtonElement);
-        } catch (error) {
-          onError?.(event.target as HTMLButtonElement, error as Error);
-        }
-      },
-      [copyValue, onClick, onError, onSuccess],
-    );
+>(function CopyToClipboardButton(
+  { Button, className, copyValue, onClick, onError, onSuccess, ...restProps },
+  ref,
+) {
+  const handleClick: MouseEventHandler<HTMLButtonElement> = useCallback(
+    async (event) => {
+      if (onClick) onClick(event);
+      const value = typeof copyValue === 'function' ? copyValue() : copyValue;
+      try {
+        await navigator?.clipboard.writeText(value);
+        onSuccess?.(event.target as HTMLButtonElement);
+      } catch (error) {
+        onError?.(event.target as HTMLButtonElement, error as Error);
+      }
+    },
+    [copyValue, onClick, onError, onSuccess],
+  );
 
-    const props = {
-      ...restProps,
-      ref: ref,
-      className: clsx('str-video__copy-to-clipboard-button', className),
-      onClick: handleClick,
-    };
+  const props = {
+    ...restProps,
+    ref: ref,
+    className: clsx('str-video__copy-to-clipboard-button', className),
+    onClick: handleClick,
+  };
 
-    return Button ? <Button {...props} /> : <button {...props} />;
-  },
-);
+  return Button ? <Button {...props} /> : <button {...props} />;
+});
 
 type CopyToClipboardButtonWithPopupProps = Exclude<
   CopyToClipboardButtonProps,

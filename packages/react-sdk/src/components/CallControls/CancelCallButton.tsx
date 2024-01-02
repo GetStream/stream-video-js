@@ -48,7 +48,7 @@ const EndCallMenu = (props: {
 const CancelCallToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function CancelCallToggleMenuButton(props, ref) {
   const { t } = useI18n();
   return (
     <IconButton

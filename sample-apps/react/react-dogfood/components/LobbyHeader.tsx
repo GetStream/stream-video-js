@@ -55,24 +55,26 @@ export const UserInfo = () => {
   return <ToggleLogoutButton />;
 };
 
-export const ToggleMenuButton = forwardRef<HTMLDivElement>((props, ref) => {
-  const { data: theSession } = useSession();
+export const ToggleMenuButton = forwardRef<HTMLDivElement>(
+  function ToggleMenuButton(props, ref) {
+    const { data: theSession } = useSession();
 
-  if (!theSession || !theSession.user) {
-    return null;
-  }
-  return (
-    <div className="rd__user-session" ref={ref}>
-      <div className="rd__user-session__container">
-        <div className="rd__user-session__user">
-          <p className="rd__user-session__name">{theSession.user.name}</p>
+    if (!theSession || !theSession.user) {
+      return null;
+    }
+    return (
+      <div className="rd__user-session" ref={ref}>
+        <div className="rd__user-session__container">
+          <div className="rd__user-session__user">
+            <p className="rd__user-session__name">{theSession.user.name}</p>
 
-          <p className="rd__user-session__email">{theSession.user.email}</p>
+            <p className="rd__user-session__email">{theSession.user.email}</p>
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  },
+);
 
 export const ToggleLogoutButton = () => {
   return (

@@ -62,7 +62,7 @@ export type ParticipantViewProps = {
 } & Pick<VideoProps, 'VideoPlaceholder'>;
 
 export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
-  (
+  function ParticipantView(
     {
       participant,
       trackType = 'videoTrack',
@@ -73,7 +73,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
     },
     ref,
-  ) => {
+  ) {
     const {
       isLocalParticipant,
       isSpeaking,

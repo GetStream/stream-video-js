@@ -59,7 +59,7 @@ export const ReactionsButton = ({
 const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(({ menuShown }, ref) => {
+>(function ToggleReactionsMenuButton({ menuShown }, ref) {
   const { t } = useI18n();
   return (
     <CompositeButton ref={ref} active={menuShown} variant="primary">

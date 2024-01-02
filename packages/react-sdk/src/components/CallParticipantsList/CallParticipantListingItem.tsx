@@ -113,7 +113,7 @@ const DefaultDisplayName = ({ participant }: DisplayNameProps) => {
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleButton(props, ref) {
     return <IconButton enabled={props.menuShown} icon="ellipsis" ref={ref} />;
   },
 );

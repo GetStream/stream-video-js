@@ -43,25 +43,26 @@ export const CallRecordingListItem = ({
     </div>
   );
 };
-const CopyUrlButton = forwardRef(
-  (props: ComponentProps<'button'>, ref: ForwardedRef<HTMLButtonElement>) => {
-    return (
-      <button
-        {...props}
+const CopyUrlButton = forwardRef(function CopyUrlButton(
+  props: ComponentProps<'button'>,
+  ref: ForwardedRef<HTMLButtonElement>,
+) {
+  return (
+    <button
+      {...props}
+      className={clsx(
+        'str-video__call-recording-list-item__action-button',
+        'str-video__call-recording-list-item__action-button--copy-link',
+      )}
+      ref={ref}
+      title="Copy the recording link"
+    >
+      <span
         className={clsx(
-          'str-video__call-recording-list-item__action-button',
-          'str-video__call-recording-list-item__action-button--copy-link',
+          'str-video__call-recording-list-item__action-button-icon',
+          'str-video__copy-button--icon',
         )}
-        ref={ref}
-        title="Copy the recording link"
-      >
-        <span
-          className={clsx(
-            'str-video__call-recording-list-item__action-button-icon',
-            'str-video__copy-button--icon',
-          )}
-        />
-      </button>
-    );
-  },
-);
+      />
+    </button>
+  );
+});

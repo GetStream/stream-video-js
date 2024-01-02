@@ -51,7 +51,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
 };
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
-  (props, ref) => {
+  function ToggleMenuButton(props, ref) {
     const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
     const total = session?.participants?.length || 0;

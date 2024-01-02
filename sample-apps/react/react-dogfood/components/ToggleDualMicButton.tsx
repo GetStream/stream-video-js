@@ -2,19 +2,19 @@ import { forwardRef } from 'react';
 import clsx from 'clsx';
 
 import {
-  Icon,
   DeviceSelectorAudioInput,
-  ToggleMenuButtonProps,
-  ToggleAudioPublishingButton,
+  Icon,
   MenuToggle,
   MenuVisualType,
+  ToggleAudioPublishingButton,
+  ToggleMenuButtonProps,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleMenuButton(props, ref) {
   return (
     <div
       ref={ref}

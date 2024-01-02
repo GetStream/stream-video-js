@@ -51,7 +51,7 @@ const RecordEndConfirmation = () => {
 const ToggleEndRecordingMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->((props, ref) => {
+>(function ToggleEndRecordingMenuButton(props, ref) {
   return (
     <CompositeButton ref={ref} active={true} variant="secondary">
       <IconButton icon="recording-off" data-testid="recording-stop-button" />
