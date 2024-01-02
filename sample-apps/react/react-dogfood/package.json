@@ -44,7 +44,6 @@
     "@types/yargs": "^17.0.32",
     "rimraf": "^5.0.5",
     "sass": "^1.69.5",
-    "source-map-loader": "^4.0.1",
-    "vercel": "^32.4.1"
+    "source-map-loader": "^4.0.1"
   }
 }

@@ -27,7 +27,6 @@
     "@vitejs/plugin-react": "^4.1.0",
     "nanoid": "^5.0.4",
     "typescript": "^5.2.2",
-    "vercel": "^32.4.1",
     "vite": "^4.4.11"
   }
 }
