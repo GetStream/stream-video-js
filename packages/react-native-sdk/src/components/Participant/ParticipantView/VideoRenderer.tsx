@@ -30,6 +30,7 @@ export type VideoRendererProps = Pick<
   | 'trackType'
   | 'participant'
   | 'isVisible'
+  | 'objectFit'
   | 'videoZOrder'
 >;
 
@@ -43,6 +44,7 @@ export const VideoRenderer = ({
   participant,
   isVisible = true,
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
+  objectFit,
   videoZOrder = 0,
 }: VideoRendererProps) => {
   const {
@@ -206,7 +208,7 @@ export const VideoRenderer = ({
           style={[styles.videoStream, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
-          objectFit={isScreenSharing ? 'contain' : 'cover'}
+          objectFit={objectFit ?? (isScreenSharing ? 'contain' : 'cover')}
           zOrder={videoZOrder}
         />
       ) : (
