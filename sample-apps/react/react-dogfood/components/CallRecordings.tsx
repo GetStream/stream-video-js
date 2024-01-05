@@ -29,6 +29,10 @@ export const CallRecordings = () => {
   }, [fetchCallRecordings]);
 
   useEffect(() => {
+    fetchCallRecordings();
+  }, [fetchCallRecordings]);
+
+  useEffect(() => {
     if (!call) return;
     const unsubscribeRecordingStopped = call.on('call.recording_stopped', () =>
       setLoadingCallRecordings(true),
