@@ -32,12 +32,15 @@ import { ToggleDualCameraButton } from './ToggleDualCameraButton';
 import { ToggleDualMicButton } from './ToggleDualMicButton';
 import { NewMessageNotification } from './NewMessageNotification';
 import { UnreadCountBadge } from './UnreadCountBadge';
+import { TourPanel } from './TourPanel';
 
 import { useBreakpoint, useLayoutSwitcher, useWatchChannel } from '../hooks';
 import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+
+import { useTourContext, StepNames } from '../context/TourContext';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -52,6 +55,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
+  const { current: currentTourStep } = useTourContext();
 
   const { layout, setLayout } = useLayoutSwitcher();
   const breakpoint = useBreakpoint();
@@ -86,10 +90,21 @@ export const ActiveCall = (props: ActiveCallProps) => {
     }
   }, [activeCall, onJoin]);
 
+  useEffect(() => {
+    if (currentTourStep === StepNames.Chat) {
+      setSidebarContent('chat');
+    }
+
+    if (currentTourStep === StepNames.Invite) {
+      setSidebarContent('participants');
+    }
+  }, [currentTourStep]);
+
   const isPronto = useIsProntoEnvironment();
 
   return (
     <div className="rd__call">
+      {isPronto && <TourPanel />}
       <div className="rd__main-call-panel">
         <ActiveCallHeader
           selectedLayout={layout}

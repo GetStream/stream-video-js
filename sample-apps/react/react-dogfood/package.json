@@ -9,6 +9,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@floating-ui/dom": "^1.5.3",
     "@floating-ui/react": "^0.26.4",
     "@next/third-parties": "^14.0.5-canary.17",
     "@sentry/nextjs": "^7.91.0",

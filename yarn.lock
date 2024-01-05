@@ -3147,7 +3147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.5.1":
+"@floating-ui/dom@npm:^1.0.0, @floating-ui/dom@npm:^1.5.1, @floating-ui/dom@npm:^1.5.3":
   version: 1.5.3
   resolution: "@floating-ui/dom@npm:1.5.3"
   dependencies:
@@ -7371,6 +7371,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood"
   dependencies:
+    "@emotion/react": ^11.11.1
+    "@emotion/styled": ^11.11.0
+    "@floating-ui/dom": ^1.5.3
     "@floating-ui/react": ^0.26.4
     "@next/third-parties": ^14.0.5-canary.17
     "@sentry/nextjs": ^7.91.0
