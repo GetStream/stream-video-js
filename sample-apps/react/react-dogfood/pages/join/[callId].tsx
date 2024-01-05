@@ -21,6 +21,7 @@ import {
   useAppEnvironment,
   useIsDemoEnvironment,
 } from '../../context/AppEnvironmentContext';
+import { TourProvider } from '../../context/TourContext';
 import appTranslations from '../../translations';
 import { customSentryLogger } from '../../helpers/logger';
 import {
@@ -179,13 +180,16 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <title>Stream Calls: {callId}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
+
       <StreamVideo
         client={client}
         language={language}
         translationsOverrides={appTranslations}
       >
         <StreamCall call={call}>
-          <MeetingUI chatClient={chatClient} />
+          <TourProvider>
+            <MeetingUI chatClient={chatClient} />
+          </TourProvider>
         </StreamCall>
       </StreamVideo>
     </>
