@@ -173,7 +173,7 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
 
 const AllowBrowserPermissions = () => {
   return (
-    <p>
+    <p className="rd__lobby__no-permission">
       Please grant your browser a permission to access your camera and
       microphone.
     </p>
