@@ -166,6 +166,9 @@
   }
 }
 
+.rd__lobby__no-permission {
+  text-align: center;
+}
 @include respond-above(sm) {
   .rd__lobby-content {
     max-width: 40vw;
