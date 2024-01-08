@@ -164,3 +164,35 @@ const unsubscribe = call.on('call.reaction_new', (event: StreamVideoEvent) => {
 // Unsubscribe
 unsubscribe();
 ```
+
+## Custom events
+
+You can send custom events between the call participants using the `sendCustomEvent` method of the `call` instance.
+Note that the payload for these events is limited to 5KB in size.
+
+```typescript
+import {
+  Call,
+  CustomVideoEvent,
+  StreamVideoEvent,
+} from '@stream-io/video-react-native-sdk';
+
+let call: Call;
+
+// sending a custom event
+await call.sendCustomEvent({
+  type: 'my-event-type',
+  payload: {
+    foo: 'bar',
+  },
+});
+
+// listening to or receiving a custom event
+call.on('custom', (event: StreamVideoEvent) => {
+  const customEvent = event as CustomVideoEvent;
+  const payload = customEvent.custom;
+  if (payload.type === 'my-event-type') {
+    console.log(payload.foo);
+  }
+});
+```
