@@ -1,47 +1,45 @@
-import { ComponentType } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton, IconButton } from '../Button';
+import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
+import { Icon } from '../Icon';
 
-export type ToggleAudioPreviewButtonProps = {
-  caption?: string;
-  Menu?: ComponentType;
-};
+export type ToggleAudioPreviewButtonProps = Pick<
+  IconButtonWithMenuProps,
+  'caption' | 'Menu' | 'menuPlacement'
+>;
 
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { caption, Menu } = props;
+  const { caption, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
 
   return (
     <CompositeButton
-      Menu={Menu}
       active={isMute}
       caption={caption}
       variant="secondary"
+      title={
+        !hasBrowserPermission
+          ? t('Check your browser audio permissions')
+          : caption || t('Mic')
+      }
+      disabled={!hasBrowserPermission}
+      data-testid={
+        isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
+      }
+      onClick={() => microphone.toggle()}
+      {...restCompositeButtonProps}
     >
-      <IconButton
-        icon={!isMute ? 'mic' : 'mic-off'}
-        title={
-          !hasBrowserPermission
-            ? t('Check your browser audio permissions')
-            : caption || t('Mic')
-        }
-        disabled={!hasBrowserPermission}
-        data-testid={
-          isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
-        }
-        onClick={() => microphone.toggle()}
-      />
+      <Icon icon={!isMute ? 'mic' : 'mic-off'} />
       {!hasBrowserPermission && (
         <span
           className="str-video__no-media-permission"
@@ -53,16 +51,16 @@ export const ToggleAudioPreviewButton = (
   );
 };
 
-export type ToggleAudioPublishingButtonProps = {
-  caption?: string;
-  Menu?: ComponentType;
-};
+export type ToggleAudioPublishingButtonProps = Pick<
+  IconButtonWithMenuProps,
+  'caption' | 'Menu' | 'menuPlacement'
+>;
 
 export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption, Menu } = props;
+  const { caption, ...restCompositeButtonProps } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);
@@ -80,7 +78,6 @@ export const ToggleAudioPublishingButton = (
         messageRevoked={t('You can no longer speak.')}
       >
         <CompositeButton
-          Menu={Menu}
           active={isMute}
           caption={caption}
           title={
@@ -89,19 +86,18 @@ export const ToggleAudioPublishingButton = (
               : caption || t('Mic')
           }
           variant="secondary"
+          disabled={!hasBrowserPermission || !hasPermission}
+          data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
+          onClick={async () => {
+            if (!hasPermission) {
+              await requestPermission();
+            } else {
+              await microphone.toggle();
+            }
+          }}
+          {...restCompositeButtonProps}
         >
-          <IconButton
-            icon={isMute ? 'mic-off' : 'mic'}
-            disabled={!hasBrowserPermission || !hasPermission}
-            data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await microphone.toggle();
-              }
-            }}
-          />
+          <Icon icon={isMute ? 'mic-off' : 'mic'} />
           {(!hasBrowserPermission || !hasPermission) && (
             <span className="str-video__no-media-permission">!</span>
           )}
