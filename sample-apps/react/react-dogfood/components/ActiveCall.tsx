@@ -40,7 +40,7 @@ import {
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
 
-import { useTourContext, StepNames } from '../context/TourContext';
+import { StepNames, useTourContext } from '../context/TourContext';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -202,14 +202,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 onMenuItemClick={setLayout}
               />
             </div>
-            {isPronto && (
-              <div className="str-video__call-controls__desktop">
-                <ToggleStatsButton
-                  active={showStats}
-                  onClick={() => setSidebarContent(showStats ? null : 'stats')}
-                />
-              </div>
-            )}
+            <div className="str-video__call-controls__desktop">
+              <ToggleStatsButton
+                active={showStats}
+                onClick={() => setSidebarContent(showStats ? null : 'stats')}
+              />
+            </div>
 
             <ToggleParticipantListButton
               enabled={showParticipants}

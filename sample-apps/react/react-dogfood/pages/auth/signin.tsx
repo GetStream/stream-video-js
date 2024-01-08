@@ -1,7 +1,7 @@
 import { type GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Icon, useI18n } from '@stream-io/video-react-sdk';
 import names from 'starwars-names';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
@@ -83,7 +83,22 @@ const GuestLoginItem = (props: {
 }) => {
   const { provider, randomName, callbackUrl } = props;
   const [name, setName] = useState(randomName);
-  const logIn = () => signIn(provider.id, { name, callbackUrl });
+  const logIn = useCallback(
+    () => signIn(provider.id, { name, callbackUrl }),
+    [callbackUrl, name, provider.id],
+  );
+  const params = useSearchParams();
+  const fromQR = params.get('from_qr');
+  useEffect(() => {
+    if (fromQR) {
+      // log in immediately if from QR code - no need to enter name
+      // as it anyway doesn't have any effect inside the mobile app
+      // https://getstream.slack.com/archives/C01CG3P80LV/p1704390875184309
+      logIn().catch((err) => {
+        console.error('Error logging in:', err);
+      });
+    }
+  }, [fromQR, logIn]);
   return (
     <li className="rd__auth-item rd__auth-item--guest-login">
       <div className="rd__auth-item--guest_name_wrapper">

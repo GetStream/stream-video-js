@@ -12,7 +12,9 @@ import { useBreakpoint } from '../hooks';
 import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
 
-export const tourData: Step[] = [
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+const tourData: Step[] = [
   {
     header:
       'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
@@ -27,7 +29,7 @@ export const tourData: Step[] = [
     placement: 'left-start',
     anchor: '.rd__header__latency',
     image: {
-      src: '/server-status.png',
+      src: `${basePath}/server-status.png`,
     },
   },
   {
@@ -46,7 +48,7 @@ export const tourData: Step[] = [
     anchor: '.rd__participants',
     delay: 200,
     image: {
-      src: '/invite-participants.png',
+      src: `${basePath}/invite-participants.png`,
     },
   },
 ];
