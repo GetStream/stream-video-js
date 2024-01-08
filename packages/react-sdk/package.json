@@ -28,7 +28,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@floating-ui/react": "^0.26.4",
+    "@floating-ui/react": "^0.26.5",
     "@stream-io/video-client": "workspace:^",
     "@stream-io/video-react-bindings": "workspace:^",
     "chart.js": "^4.4.1",
