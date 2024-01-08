@@ -7,6 +7,7 @@ import {
 import { CompositeButton, IconButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
+import { Icon } from '../Icon';
 
 export type ScreenShareButtonProps = {
   caption?: string;
@@ -39,24 +40,25 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
           caption={caption}
           title={caption || t('Share screen')}
           variant="primary"
+          data-testid={
+            isSomeoneScreenSharing
+              ? 'screen-share-stop-button'
+              : 'screen-share-start-button'
+          }
+          title={caption || t('Share screen')}
+          disabled={disableScreenShareButton}
+          onClick={async () => {
+            if (!hasPermission) {
+              await requestPermission();
+            } else {
+              await screenShare.toggle();
+            }
+          }}
         >
-          <IconButton
+          <Icon
             icon={
               isSomeoneScreenSharing ? 'screen-share-on' : 'screen-share-off'
             }
-            data-testid={
-              isSomeoneScreenSharing
-                ? 'screen-share-stop-button'
-                : 'screen-share-start-button'
-            }
-            disabled={disableScreenShareButton}
-            onClick={async () => {
-              if (!hasPermission) {
-                await requestPermission();
-              } else {
-                await screenShare.toggle();
-              }
-            }}
           />
         </CompositeButton>
       </PermissionNotification>

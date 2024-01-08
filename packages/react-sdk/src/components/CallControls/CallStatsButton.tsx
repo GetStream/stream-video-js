@@ -2,8 +2,9 @@ import { forwardRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 
 import { CallStats } from '../CallStats';
-import { CompositeButton, IconButton } from '../Button/';
+import { CompositeButton } from '../Button/';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { Icon } from '../Icon';
 
 export type CallStatsButtonProps = {
   caption?: string;
@@ -28,8 +29,9 @@ const ToggleMenuButton = forwardRef<
       active={menuShown}
       caption={caption}
       title={caption || t('Statistics')}
+      data-testid="stats-button"
     >
-      <IconButton icon="stats" data-testid="stats-button" />
+      <Icon icon="stats" />
     </CompositeButton>
   );
 });
