@@ -1,6 +1,12 @@
 import clsx from 'clsx';
 import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
-import { ComponentType, forwardRef, JSX, PropsWithChildren } from 'react';
+import {
+  ComponentProps,
+  ComponentType,
+  forwardRef,
+  JSX,
+  PropsWithChildren,
+} from 'react';
 import { Placement } from '@floating-ui/react';
 
 import { IconButton } from './IconButton';
@@ -14,9 +20,9 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
     className?: string;
     menuPlacement?: Placement;
     ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
-    title?: string;
     variant?: 'primary' | 'secondary';
-  }>;
+  }> &
+    ComponentProps<'button'>;
 
 export const CompositeButton = forwardRef<
   HTMLDivElement,
@@ -32,6 +38,8 @@ export const CompositeButton = forwardRef<
     title,
     ToggleMenuButton = DefaultToggleMenuButton,
     variant,
+    onClick,
+    ...restButtonProps
   },
   ref,
 ) {
@@ -39,6 +47,7 @@ export const CompositeButton = forwardRef<
     <div
       className={clsx('str-video__composite-button', className, {
         'str-video__composite-button--caption': caption,
+        'str-video__composite-button--menu': Menu,
       })}
       title={title}
       ref={ref}
@@ -52,7 +61,16 @@ export const CompositeButton = forwardRef<
             variant === 'secondary' && active,
         })}
       >
-        {children}
+        <button
+          className={clsx('str-video__composite-button__button')}
+          onClick={(e) => {
+            e.preventDefault();
+            onClick?.(e);
+          }}
+          {...restButtonProps}
+        >
+          {children}
+        </button>
         {Menu && (
           <MenuToggle placement={menuPlacement} ToggleButton={ToggleMenuButton}>
             {isComponentType(Menu) ? <Menu /> : Menu}

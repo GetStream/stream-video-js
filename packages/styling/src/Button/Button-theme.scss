@@ -24,6 +24,10 @@
     --str-video__button-secondary-active
   );
 
+  --str-video__composite-button__button-group-active-secondary-hover--background-color: var(
+    --str-video__button-secondary-hover
+  );
+
   /* The hover background color of the component */
   --str-video__composite-button__button-group-hover--background-color: var(
     --str-video__button-primary-hover
@@ -42,12 +46,25 @@
   );
   border-radius: var(--str-video__border-radius-circle);
 
-  .str-video__menu-toggle-button .str-video__call-controls__button {
-    background-color: transparent;
-  }
-
   .str-video__call-controls__button.str-video__menu-toggle-button {
-    background-color: var(--str-video__background-color1);
+    background-color: var(--str-video__button-primary-base);
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+
+    &--active {
+      background-color: var(--str-video__brand-color1);
+      color: white;
+
+      &:hover {
+        background-color: var(--str-video__brand-color1);
+      }
+
+      &:disabled {
+        background-color: var(--str-video__brand-color1);
+      }
+    }
   }
 }
 
@@ -63,36 +80,18 @@
   background-color: var(
     --str-video__composite-button__button-group-active--background-color
   );
-
-  .str-video__call-controls__button {
-    background-color: var(
-      --str-video__composite-button__button-group-active--background-color
-    );
-  }
 }
 
 .str-video__composite-button__button-group--active-primary {
   background-color: var(
     --str-video__composite-button__button-group-active-primary--background-color
   );
-
-  .str-video__call-controls__button {
-    background-color: var(
-      --str-video__composite-button__button-group-active-primary--background-color
-    );
-  }
 }
 
 .str-video__composite-button__button-group--active-secondary {
   background-color: var(
     --str-video__composite-button__button-group-active-secondary--background-color
   );
-
-  .str-video__call-controls__button {
-    background-color: var(
-      --str-video__composite-button__button-group-active-secondary--background-color
-    );
-  }
 }
 
 .str-video__composite-button__button-group:hover {
@@ -100,9 +99,9 @@
     --str-video__composite-button__button-group-hover--background-color
   );
 
-  .str-video__call-controls__button {
+  &.str-video__composite-button__button-group--active-secondary:hover {
     background-color: var(
-      --str-video__composite-button__button-group-hover--background-color
+      --str-video__composite-button__button-group-active-secondary-hover--background-color
     );
   }
 
