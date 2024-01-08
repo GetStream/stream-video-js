@@ -21,7 +21,7 @@ export const tourData: Step[] = [
     component: TourSDKOptions,
   },
   {
-    header: 'Larger network, faster connections. ',
+    header: 'Larger network, faster connections.',
     explanation:
       'SFU Cascading and EDGE Network ensures low latency and high video quality consistently.',
     placement: 'left-start',
@@ -72,7 +72,6 @@ type Step = {
 
 type Props = {
   next: () => void;
-  setSteps: (steps: Step[]) => void;
   current: number;
   total: number;
   step: Step | undefined;
@@ -82,7 +81,6 @@ type Props = {
 
 const TourContext = createContext<Props>({
   next: () => null,
-  setSteps: () => null,
   current: 0,
   total: 0,
   step: undefined,
@@ -93,19 +91,15 @@ const TourContext = createContext<Props>({
 export const TourProvider = ({ children }: { children: ReactNode }) => {
   const isDemo = useIsDemoEnvironment();
 
-  const [steps, setSteps]: any = useState<Step[] | undefined>(undefined);
+  const steps = tourData;
   const [active, setActive] = useState<boolean>(isDemo);
   const [current, setCurrent]: any = useState<number>(0);
 
   const breakpoint = useBreakpoint();
-
-  useEffect(() => {
-    setSteps(tourData);
-  }, [setSteps]);
-
   useEffect(() => {
     breakpoint === 'xs' || (breakpoint === 'sm' && setActive(false));
   }, [breakpoint]);
+
   const toggleTour = useCallback(() => {
     if (active) {
       setCurrent(-1);
@@ -124,11 +118,10 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   return (
     <TourContext.Provider
       value={{
-        setSteps,
-        total: steps?.length,
+        total: steps.length,
         current: current + 1,
         next,
-        step: steps?.[current],
+        step: steps[current],
         active,
         toggleTour,
       }}

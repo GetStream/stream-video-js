@@ -1,6 +1,6 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { Placement, offset } from '@floating-ui/react';
+import { offset, Placement } from '@floating-ui/react';
 import { computePosition } from '@floating-ui/dom';
 
 import { useI18n } from '@stream-io/video-react-sdk';
@@ -14,7 +14,7 @@ export type Props = {
 export const TourPanel = ({ highlightClass }: Props) => {
   const { t } = useI18n();
 
-  const tourPanel: any = useRef(null);
+  const tourPanel = useRef<HTMLDivElement>(null);
   const [previousElement, setPreviousElement] = useState<Element | undefined>(
     undefined,
   );
@@ -30,9 +30,8 @@ export const TourPanel = ({ highlightClass }: Props) => {
 
   const attachToElement = useCallback(
     (anchor?: string, placement?: Placement) => {
-      if (!anchor || !tourPanel) return;
       const tourPanelElement = tourPanel.current;
-
+      if (!anchor || !tourPanelElement) return;
       const anchorElement = document.querySelector(anchor);
       if (anchorElement) {
         setPreviousElement(anchorElement);
@@ -49,7 +48,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
         });
       }
     },
-    [],
+    [highlightClass],
   );
 
   useEffect(() => {
@@ -59,7 +58,14 @@ export const TourPanel = ({ highlightClass }: Props) => {
     setTimeout(() => {
       attachToElement(step?.anchor, step?.placement);
     }, step?.delay || 0);
-  }, [current, step, attachToElement, tourPanel, previousElement]);
+  }, [
+    current,
+    step,
+    attachToElement,
+    tourPanel,
+    previousElement,
+    highlightClass,
+  ]);
 
   if (active) {
     return (
@@ -73,8 +79,8 @@ export const TourPanel = ({ highlightClass }: Props) => {
           <div className="rd__tour__image-container">
             <img
               className="rd__tour__image"
-              src={step?.image?.src}
-              alt={step?.header}
+              src={step.image.src}
+              alt={step.header}
             />
           </div>
         ) : null}
@@ -90,7 +96,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
             })}
             onClick={close}
           >
-            {current === total ? t('Finish intro') : t('Skip intro')}
+            {current === total ? t('Finish') : t('Skip intro')}
           </button>
 
           {current !== total && (
