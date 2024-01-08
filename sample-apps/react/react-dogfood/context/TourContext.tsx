@@ -1,26 +1,21 @@
 import {
   createContext,
   ReactNode,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useEffect,
-  ReactElement,
-  JSX,
+  useState,
 } from 'react';
 
 import { Placement } from '@floating-ui/react';
-
-import { useBreakpoint } from '../hooks/useBreakpoints';
-
-import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
-
+import { useBreakpoint } from '../hooks';
+import { useIsProntoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
 
 export const tourData: Step[] = [
   {
     header:
-      'Stream’s Video & Audio SKD is designed to support Livestreaming & Audio Rooms.',
+      'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
     placement: 'bottom-start',
     anchor: '.rd__documentation-button',
     component: TourSDKOptions,
