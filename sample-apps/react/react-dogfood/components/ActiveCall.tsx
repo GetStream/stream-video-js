@@ -5,7 +5,7 @@ import {
   CallParticipantsList,
   CancelCallConfirmButton,
   CompositeButton,
-  IconButton,
+  Icon,
   PermissionRequests,
   ReactionsButton,
   RecordCallConfirmationButton,
@@ -213,7 +213,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
 
             <ToggleParticipantListButton
-              enabled={showParticipants}
+              active={showParticipants}
               onClick={() => {
                 setSidebarContent(showParticipants ? null : 'participants');
               }}
@@ -224,14 +224,13 @@ export const ActiveCall = (props: ActiveCallProps) => {
               disableOnChatOpen={showChat}
             >
               <div className="str-chat__chat-button__wrapper">
-                <CompositeButton active={showChat}>
-                  <IconButton
-                    enabled={showChat}
-                    disabled={!chatClient}
-                    title="Chat"
-                    onClick={() => setSidebarContent(showChat ? null : 'chat')}
-                    icon="chat"
-                  />
+                <CompositeButton
+                  active={showChat}
+                  disabled={!chatClient}
+                  title="Chat"
+                  onClick={() => setSidebarContent(showChat ? null : 'chat')}
+                >
+                  <Icon icon="chat" />
                 </CompositeButton>
                 {!showChat && (
                   <UnreadCountBadge

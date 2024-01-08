@@ -178,7 +178,7 @@ const ToggleSettingsMenuButton = forwardRef<
 >(function ToggleSettingsMenuButton(props, ref) {
   return (
     <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="device-settings" />
+      <Icon icon="device-settings" />
     </CompositeButton>
   );
 });
