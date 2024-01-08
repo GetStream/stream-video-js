@@ -18,7 +18,7 @@ import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 
 import { LayoutSelectorProps } from './LayoutSelector';
 
-import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
+import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
 export const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -86,14 +86,14 @@ export const ActiveCallHeader = ({
 
   const { t } = useI18n();
 
-  const isPronto = useIsProntoEnvironment();
+  const isDemo = useIsDemoEnvironment();
 
   return (
     <>
       <div className="rd__call-header rd__call-header--active">
         <div className="rd__call-header__title">
           <CallHeaderTitle
-            title={isPronto ? t('Stream Video Calling') : undefined}
+            title={isDemo ? t('Stream Video Calling') : undefined}
           />
 
           <ToggleDocumentationButton />

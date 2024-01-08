@@ -69,6 +69,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, [breakpoint, layout, setLayout]);
 
   const isDemoEnvironment = useIsDemoEnvironment();
+  const isPronto = useIsProntoEnvironment();
+
   const [showInvitePopup, setShowInvitePopup] = useState(isDemoEnvironment);
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
@@ -100,11 +102,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
     }
   }, [currentTourStep]);
 
-  const isPronto = useIsProntoEnvironment();
-
   return (
     <div className="rd__call">
-      {isPronto && <TourPanel highlightClass="rd__highlight" />}
+      {isDemoEnvironment && <TourPanel highlightClass="rd__highlight" />}
       <div className="rd__main-call-panel">
         <ActiveCallHeader
           selectedLayout={layout}

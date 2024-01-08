@@ -9,7 +9,7 @@ import {
 
 import { Placement } from '@floating-ui/react';
 import { useBreakpoint } from '../hooks';
-import { useIsProntoEnvironment } from './AppEnvironmentContext';
+import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
 
 export const tourData: Step[] = [
@@ -91,10 +91,10 @@ const TourContext = createContext<Props>({
 });
 
 export const TourProvider = ({ children }: { children: ReactNode }) => {
-  const isPronto = useIsProntoEnvironment();
+  const isDemo = useIsDemoEnvironment();
 
   const [steps, setSteps]: any = useState<Step[] | undefined>(undefined);
-  const [active, setActive] = useState<boolean>(isPronto);
+  const [active, setActive] = useState<boolean>(isDemo);
   const [current, setCurrent]: any = useState<number>(0);
 
   const breakpoint = useBreakpoint();
