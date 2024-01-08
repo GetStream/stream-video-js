@@ -1,13 +1,18 @@
-import { useI18n, Icon } from '@stream-io/video-react-sdk';
+import { Icon, useI18n } from '@stream-io/video-react-sdk';
 
 export const TourSDKOptions = () => {
   const { t } = useI18n();
   return (
     <>
       <p className="rd__tour__explanation">
-        {t('To get more details')}
-        <a href="#" className="rd__tour__link">
-          {t('contact an expert')}
+        To get more details
+        <a
+          className="rd__tour__link"
+          href="https://getstream.io/video/#contact"
+          target="_blank"
+          rel="noreferrer"
+        >
+          contact an expert
         </a>
       </p>
 
