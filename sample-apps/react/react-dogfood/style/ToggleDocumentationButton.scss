@@ -1,6 +1,5 @@
 .rd__documentation-button__menu {
   display: flex;
-  list-style: none;
   padding: var(--str-video__spacing-lg);
   flex-direction: column;
   margin: 0;
@@ -11,6 +10,7 @@
 }
 
 .rd__call-header__title {
+  display: none;
   .str-video__call-controls__button .str-video__icon--caret-down {
     width: 18px;
     height: 18px;
@@ -22,5 +22,11 @@
     padding: 0;
     display: flex;
     justify-content: center;
+  }
+}
+
+@include respond-above(sm) {
+  .rd__call-header__title {
+    display: flex;
   }
 }

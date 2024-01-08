@@ -196,11 +196,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            <ToggleLayoutButton
-              selectedLayout={layout}
-              onMenuItemClick={setLayout}
-            />
-
+            <div className="str-video__call-controls__desktop">
+              <ToggleLayoutButton
+                selectedLayout={layout}
+                onMenuItemClick={setLayout}
+              />
+            </div>
             {isPronto && (
               <div className="str-video__call-controls__desktop">
                 <ToggleStatsButton
