@@ -28,15 +28,15 @@ export const ToggleVideoPreviewButton = (
       Menu={Menu}
       active={isMute}
       caption={caption}
+      title={
+        !hasBrowserPermission
+          ? t('Check your browser video permissions')
+          : caption || t('Video')
+      }
       variant="secondary"
     >
       <IconButton
         icon={!isMute ? 'camera' : 'camera-off'}
-        title={
-          !hasBrowserPermission
-            ? t('Check your browser video permissions')
-            : caption || t('Video')
-        }
         data-testid={
           isMute ? 'preview-video-unmute-button' : 'preview-video-mute-button'
         }
@@ -44,7 +44,11 @@ export const ToggleVideoPreviewButton = (
         disabled={!hasBrowserPermission}
       />
       {!hasBrowserPermission && (
-        <span className="str-video__no-media-permission">!</span>
+        <span
+          className="str-video__no-media-permission"
+          title={t('Check your browser video permissions')}
+          children="!"
+        />
       )}
     </CompositeButton>
   );

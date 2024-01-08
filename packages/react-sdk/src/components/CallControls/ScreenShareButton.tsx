@@ -37,6 +37,7 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
         <CompositeButton
           active={isSomeoneScreenSharing}
           caption={caption}
+          title={caption || t('Share screen')}
           variant="primary"
         >
           <IconButton
@@ -48,7 +49,6 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
                 ? 'screen-share-stop-button'
                 : 'screen-share-start-button'
             }
-            title={caption || t('Share screen')}
             disabled={disableScreenShareButton}
             onClick={async () => {
               if (!hasPermission) {

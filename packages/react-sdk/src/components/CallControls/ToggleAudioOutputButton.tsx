@@ -14,12 +14,12 @@ export const ToggleAudioOutputButton = (
   const { caption, Menu } = props;
 
   return (
-    <CompositeButton Menu={Menu} caption={caption}>
-      <IconButton
-        icon="speaker"
-        title={caption || t('Speakers')}
-        data-testid="audio-output-button"
-      />
+    <CompositeButton
+      Menu={Menu}
+      caption={caption}
+      title={caption || t('Speakers')}
+    >
+      <IconButton icon="speaker" data-testid="audio-output-button" />
     </CompositeButton>
   );
 };

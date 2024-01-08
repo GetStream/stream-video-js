@@ -156,7 +156,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           data-testid="str-video__call-controls"
         >
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <div className="str-video__call-controls__desktop">
+            <div className="str-video__call-controls__desktop" title="Settings">
               <ToggleSettingsTabModal
                 layoutProps={{
                   selectedLayout: layout,
@@ -167,11 +167,14 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 }}
               />
             </div>
-            <div className="str-video__call-controls__desktop">
+            <div className="str-video__call-controls__desktop" title="Feedback">
               <ToggleFeedbackButton />
             </div>
             {isPronto && (
-              <div className="str-video__call-controls__desktop">
+              <div
+                className="str-video__call-controls__desktop"
+                title="Dev Settings"
+              >
                 <ToggleDeveloperButton />
               </div>
             )}

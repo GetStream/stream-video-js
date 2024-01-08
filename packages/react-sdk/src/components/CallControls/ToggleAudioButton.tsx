@@ -43,7 +43,11 @@ export const ToggleAudioPreviewButton = (
         onClick={() => microphone.toggle()}
       />
       {!hasBrowserPermission && (
-        <span className="str-video__no-media-permission">!</span>
+        <span
+          className="str-video__no-media-permission"
+          title={t('Check your browser audio permissions')}
+          children="!"
+        />
       )}
     </CompositeButton>
   );
@@ -79,15 +83,15 @@ export const ToggleAudioPublishingButton = (
           Menu={Menu}
           active={isMute}
           caption={caption}
+          title={
+            !hasBrowserPermission || !hasPermission
+              ? t('Check your browser mic permissions')
+              : caption || t('Mic')
+          }
           variant="secondary"
         >
           <IconButton
             icon={isMute ? 'mic-off' : 'mic'}
-            title={
-              !hasBrowserPermission || !hasPermission
-                ? t('Check your browser mic permissions')
-                : caption || t('Mic')
-            }
             disabled={!hasBrowserPermission || !hasPermission}
             data-testid={isMute ? 'audio-unmute-button' : 'audio-mute-button'}
             onClick={async () => {

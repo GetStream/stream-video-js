@@ -62,8 +62,13 @@ const ToggleReactionsMenuButton = forwardRef<
 >(function ToggleReactionsMenuButton({ menuShown }, ref) {
   const { t } = useI18n();
   return (
-    <CompositeButton ref={ref} active={menuShown} variant="primary">
-      <IconButton icon="reactions" title={t('Reactions')} />
+    <CompositeButton
+      ref={ref}
+      active={menuShown}
+      variant="primary"
+      title={t('Reactions')}
+    >
+      <IconButton icon="reactions" />
     </CompositeButton>
   );
 });

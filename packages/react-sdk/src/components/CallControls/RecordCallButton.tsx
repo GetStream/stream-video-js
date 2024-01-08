@@ -96,6 +96,7 @@ export const RecordCallConfirmationButton = ({
       <CompositeButton
         active={isCallRecordingInProgress}
         caption={caption}
+        title={caption || t('Record call')}
         variant="secondary"
       >
         {isAwaitingResponse ? (
