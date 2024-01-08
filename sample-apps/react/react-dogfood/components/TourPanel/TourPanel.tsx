@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { Placement, offset } from '@floating-ui/react';
 import { computePosition } from '@floating-ui/dom';
@@ -7,10 +7,17 @@ import { useI18n } from '@stream-io/video-react-sdk';
 
 import { useTourContext } from '../../context/TourContext';
 
-export const TourPanel = () => {
+export type Props = {
+  highlightClass: string;
+};
+
+export const TourPanel = ({ highlightClass }: Props) => {
   const { t } = useI18n();
 
   const tourPanel: any = useRef(null);
+  const [previousElement, setPreviousElement] = useState<Element | undefined>(
+    undefined,
+  );
 
   const {
     next,
@@ -28,6 +35,9 @@ export const TourPanel = () => {
 
       const anchorElement = document.querySelector(anchor);
       if (anchorElement) {
+        setPreviousElement(anchorElement);
+        anchorElement.classList.add(highlightClass);
+
         computePosition(anchorElement, tourPanelElement, {
           placement,
           middleware: [offset(10)],
@@ -43,10 +53,13 @@ export const TourPanel = () => {
   );
 
   useEffect(() => {
+    if (previousElement) {
+      previousElement.classList.remove(highlightClass);
+    }
     setTimeout(() => {
       attachToElement(step?.anchor, step?.placement);
     }, step?.delay || 0);
-  }, [current, step, attachToElement, tourPanel]);
+  }, [current, step, attachToElement, tourPanel, previousElement]);
 
   if (active) {
     return (
@@ -65,7 +78,10 @@ export const TourPanel = () => {
             />
           </div>
         ) : null}
-        <p className="rd__tour__explanation">{step?.explanation}</p>
+        {step?.component && step?.component()}
+        {step?.explanation && (
+          <p className="rd__tour__explanation">{step?.explanation}</p>
+        )}
         <div className="rd__tour__footer">
           <button
             className={clsx('rd__button', {

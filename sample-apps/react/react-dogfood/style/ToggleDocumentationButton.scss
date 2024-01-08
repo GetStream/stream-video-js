@@ -1,0 +1,26 @@
+.rd__documentation-button__menu {
+  display: flex;
+  list-style: none;
+  padding: var(--str-video__spacing-lg);
+  flex-direction: column;
+  margin: 0;
+  gap: var(--str-video__spacing-md);
+  border-radius: var(--str-video__border-radius-lg);
+
+  background-color: var(--str-video__base-color5);
+}
+
+.rd__call-header__title {
+  .str-video__call-controls__button .str-video__icon--caret-down {
+    width: 18px;
+    height: 18px;
+  }
+
+  .str-video__composite-button__button-group {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+  }
+}

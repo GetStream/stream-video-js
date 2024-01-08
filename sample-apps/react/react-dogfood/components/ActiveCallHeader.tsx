@@ -6,6 +6,7 @@ import {
   LoadingIndicator,
   Notification,
   useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -13,8 +14,11 @@ import { differenceInSeconds } from 'date-fns';
 
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
+import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 
 import { LayoutSelectorProps } from './LayoutSelector';
+
+import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 export const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -80,10 +84,21 @@ export const ActiveCallHeader = ({
   const isReconnecting = callingState === CallingState.RECONNECTING;
   const hasFailedToRecover = callingState === CallingState.RECONNECTING_FAILED;
 
+  const { t } = useI18n();
+
+  const isPronto = useIsProntoEnvironment();
+
   return (
     <>
       <div className="rd__call-header rd__call-header--active">
-        <CallHeaderTitle />
+        <div className="rd__call-header__title">
+          <CallHeaderTitle
+            title={isPronto ? t('Stream Video Calling') : undefined}
+          />
+
+          <ToggleDocumentationButton />
+        </div>
+
         <div className="rd__call-header__settings">
           <ToggleSettingsTabModal
             layoutProps={{

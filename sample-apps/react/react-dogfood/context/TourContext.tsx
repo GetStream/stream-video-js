@@ -5,6 +5,8 @@ import {
   useState,
   useCallback,
   useEffect,
+  ReactElement,
+  JSX,
 } from 'react';
 
 import { Placement } from '@floating-ui/react';
@@ -13,20 +15,25 @@ import { useBreakpoint } from '../hooks/useBreakpoints';
 
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
+import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
+
 export const tourData: Step[] = [
   {
     header:
       'Stream’s Video & Audio SKD is designed to support Livestreaming & Audio Rooms.',
-    explanation: 'To get more details contact an expert',
     placement: 'bottom-start',
-    anchor: '.rd__call-header-title',
+    anchor: '.rd__documentation-button',
+    component: TourSDKOptions,
   },
   {
     header: 'Larger network, faster connections. ',
     explanation:
       'SFU Cascading and EDGE Network ensures low latency and high video quality consistently.',
     placement: 'left-start',
-    anchor: '.rd__header__elapsed',
+    anchor: '.rd__header__latency',
+    image: {
+      src: '/server-status.png',
+    },
   },
   {
     header: 'Seamless Chat Integration out-of-the-box',
@@ -43,6 +50,9 @@ export const tourData: Step[] = [
     placement: 'left-start',
     anchor: '.rd__participants',
     delay: 200,
+    image: {
+      src: '/invite-participants.png',
+    },
   },
 ];
 
@@ -55,13 +65,14 @@ export enum StepNames {
 
 type Step = {
   header: string;
-  explanation: string;
+  explanation?: string;
   anchor: string;
   placement: Placement;
   delay?: number;
   image?: {
     src: string;
   };
+  component?: any;
 };
 
 type Props = {

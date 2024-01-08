@@ -47,6 +47,12 @@
   }
 }
 
+.rd__call-header__title {
+  display: flex;
+  align-items: center;
+  gap: var(--str-video__spacing-md);
+}
+
 .rd__call-header__documentation {
   display: flex;
   gap: var(--str-video__spacing-md);

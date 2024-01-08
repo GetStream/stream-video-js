@@ -104,7 +104,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   return (
     <div className="rd__call">
-      {isPronto && <TourPanel />}
+      {isPronto && <TourPanel highlightClass="rd__highlight" />}
       <div className="rd__main-call-panel">
         <ActiveCallHeader
           selectedLayout={layout}
