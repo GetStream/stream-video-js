@@ -62,6 +62,7 @@ export const CompositeButton = forwardRef<
         })}
       >
         <button
+          type="button"
           className={clsx('str-video__composite-button__button')}
           onClick={(e) => {
             e.preventDefault();
