@@ -5,7 +5,6 @@ import {
   defaultReactions,
   DefaultReactionsMenu,
   Icon,
-  IconButton,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
@@ -72,7 +71,7 @@ export const ToggleMenuButton = forwardRef<
 >(function ToggleMenuButton(props, ref) {
   return (
     <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="more" />
+      <Icon icon="more" />
     </CompositeButton>
   );
 });

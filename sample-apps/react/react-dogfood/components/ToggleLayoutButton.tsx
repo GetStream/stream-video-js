@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 
 import {
   CompositeButton,
-  IconButton,
+  Icon,
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
@@ -19,8 +19,13 @@ export const ToggleMenuButton = forwardRef<
   ToggleMenuButtonProps
 >(function ToggleMenuButton(props, ref) {
   return (
-    <CompositeButton ref={ref} active={props.menuShown} variant="primary">
-      <IconButton icon="grid" title="Layout" />
+    <CompositeButton
+      ref={ref}
+      active={props.menuShown}
+      variant="primary"
+      title="Layout"
+    >
+      <Icon icon="grid" />
     </CompositeButton>
   );
 });

@@ -32,11 +32,9 @@
 }
 
 .str-video__composite-button {
-  display: flex;
-  align-items: center;
-  height: 100%;
-
   &--caption {
+    display: flex;
+    align-items: center;
     flex-direction: column;
     gap: 0.25rem;
   }
@@ -44,18 +42,25 @@
   .str-video__composite-button__button-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    height: 38px;
-    position: relative;
 
-    .str-video__call-controls__button {
-      padding: 0;
+    .str-video__composite-button__button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      height: calc(38px - 1rem);
+      padding: 0.5rem;
+
+      &:hover {
+        cursor: pointer;
+      }
     }
 
-    .str-video__call-controls__button.str-video__menu-toggle-button {
-      height: 100%;
-      padding-inline: 2px;
+    .str-video__menu-toggle-button {
+      padding: 0;
+      margin-left: -30px;
+      margin-right: 8px;
     }
 
     .str-video__loading-indicator__icon {
@@ -64,6 +69,10 @@
       -webkit-mask-size: 1.25rem;
       mask-size: 1.25rem;
     }
+  }
+
+  &.str-video__composite-button--menu .str-video__composite-button__button {
+    padding-right: 2.5rem;
   }
 }
 
@@ -85,16 +94,6 @@
   }
 
   .str-video__icon {
-    &--caret-down {
-      width: 0.5rem;
-      height: 0.5rem;
-    }
-
-    &--caret-up {
-      width: 0.5rem;
-      height: 0.5rem;
-    }
-
     &--call-end {
       width: 1.5rem;
       height: 1.5rem;
