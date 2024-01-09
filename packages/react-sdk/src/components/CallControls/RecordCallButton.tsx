@@ -102,7 +102,6 @@ export const RecordCallConfirmationButton = ({
         title={caption || t('Record call')}
         variant="secondary"
         data-testid="recording-start-button"
-        title={caption}
         onClick={isAwaitingResponse ? undefined : toggleCallRecording}
       >
         {isAwaitingResponse ? (

@@ -4,7 +4,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { CompositeButton, IconButton } from '../Button/';
+import { CompositeButton } from '../Button/';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
@@ -45,7 +45,6 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
               ? 'screen-share-stop-button'
               : 'screen-share-start-button'
           }
-          title={caption || t('Share screen')}
           disabled={disableScreenShareButton}
           onClick={async () => {
             if (!hasPermission) {
