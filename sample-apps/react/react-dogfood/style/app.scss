@@ -37,6 +37,7 @@ body {
 .str-video {
   background-color: var(--str-video__base-color4);
   color: var(--str-video__text-color1);
+  height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;

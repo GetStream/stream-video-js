@@ -1,5 +1,6 @@
 .rd__layout {
   display: flex;
+  height: calc(100vh - 140px);
   height: calc(100dvh - 140px);
   gap: var(--str-video__spacing-md);
   padding: var(--str-video__spacing-md);
@@ -21,11 +22,13 @@
   bottom: 0;
   display: flex;
   width: 100%;
+  height: calc(100vh - 60px);
   height: calc(100dvh - 60px);
   flex-direction: column;
 
   .str-video__participant-list {
     flex-grow: 1;
+    height: calc(100vh - 550px);
     height: calc(100dvh - 550px);
   }
 
