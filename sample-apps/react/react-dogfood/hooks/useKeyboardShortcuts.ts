@@ -34,6 +34,8 @@ export const usePushToTalk = (key: string) => {
       return;
     }
 
+    e.preventDefault();
+
     if (e.type === 'keydown' && isMute) {
       enableMicWithPushToTalkPromiseRef.current = microphone
         .enable()
