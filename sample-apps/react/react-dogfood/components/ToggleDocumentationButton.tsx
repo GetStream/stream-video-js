@@ -35,7 +35,7 @@ export const ToggleDocumentationButton = () => {
     >
       <div className="rd__documentation-button__menu">
         <a
-          className="rd__button rd__button"
+          className="rd__button rd__button--align-left"
           href="https://getstream.io/video/sdk/react/"
           target="_blank"
           rel="noreferrer"
@@ -44,7 +44,7 @@ export const ToggleDocumentationButton = () => {
           {t('Tutorials')}
         </a>
         <a
-          className="rd__button"
+          className="rd__button rd__button--align-left"
           href="https://getstream.io/video/docs/"
           target="_blank"
           rel="noreferrer"
