@@ -5,6 +5,7 @@ const defaultState: Settings = {};
 
 export type Settings = {
   language?: string;
+  fallbackLanguage?: string;
 };
 
 export type SettingsContextValue = {
@@ -16,10 +17,11 @@ const SettingsContext = createContext<SettingsContextValue>({
 });
 
 export const SettingsProvider = ({ children }: PropsWithChildren) => {
-  const { language } = useLanguage();
+  const { language, fallbackLanguage } = useLanguage();
 
   const settings: Settings = {
     language,
+    fallbackLanguage,
   };
 
   return (

@@ -22,6 +22,7 @@ export const useLanguage = () => {
 
   return {
     language,
+    fallbackLanguage: 'en',
     setLanguage,
   };
 };

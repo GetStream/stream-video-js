@@ -18,7 +18,7 @@ export const CallRecordingsPage = ({
   userToken,
 }: ServerSideCredentialsProps) => {
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
   const [recordings, setRecordings] = useState<CallRecording[] | undefined>();
   const [error, setError] = useState<Error | undefined>();
@@ -50,7 +50,11 @@ export const CallRecordingsPage = ({
   }
 
   return (
-    <StreamVideo client={videoClient} language={language}>
+    <StreamVideo
+      client={videoClient}
+      language={language}
+      fallbackLanguage={fallbackLanguage}
+    >
       <DefaultAppHeader />
       <div className="rd__call-recordings-page">
         <div className="rd__call-recordings-page__container">
