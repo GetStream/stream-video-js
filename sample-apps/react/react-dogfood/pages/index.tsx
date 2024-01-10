@@ -23,7 +23,7 @@ import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 export default function Home() {
   const { data: session, status } = useSession();
   const {
-    settings: { language },
+    settings: { language, fallbackLanguage },
   } = useSettings();
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export default function Home() {
     <StreamI18nProvider
       translationsOverrides={translations}
       language={language}
+      fallbackLanguage={fallbackLanguage}
     >
       <HomeContent />
     </StreamI18nProvider>
