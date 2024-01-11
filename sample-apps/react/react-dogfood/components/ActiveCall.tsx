@@ -107,8 +107,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
   }, [currentTourStep]);
 
   useEffect(() => {
-    if (!isTourActive) setShowInvitePopup(true);
-  }, [isTourActive]);
+    if (isDemoEnvironment && !isTourActive) {
+      setShowInvitePopup(true);
+    }
+  }, [isDemoEnvironment, isTourActive]);
 
   return (
     <div className="rd__call">
