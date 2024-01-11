@@ -6,8 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-
-import { Placement } from '@floating-ui/react';
+import { Placement, OffsetOptions } from '@floating-ui/react';
 import { useBreakpoint } from '../hooks';
 import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
@@ -19,8 +18,14 @@ const tourData: Step[] = [
     header:
       'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
     placement: 'bottom-start',
-    anchor: '.rd__documentation-button',
+    anchor:
+      '.rd__documentation-button .str-video__composite-button__button-group',
     component: TourSDKOptions,
+    offset: {
+      mainAxis: 10,
+      crossAxis: 0,
+      alignmentAxis: -12,
+    },
   },
   {
     header: 'Larger network, faster connections.',
@@ -31,6 +36,11 @@ const tourData: Step[] = [
     image: {
       src: `${basePath}/server-status.png`,
     },
+    offset: {
+      mainAxis: 10,
+      crossAxis: -5,
+      alignmentAxis: -15,
+    },
   },
   {
     header: 'Seamless Chat Integration out-of-the-box',
@@ -39,6 +49,14 @@ const tourData: Step[] = [
     placement: 'left-start',
     anchor: '.str-video__chat',
     delay: 200,
+    image: {
+      src: `${basePath}/chat.png`,
+    },
+    offset: {
+      mainAxis: 10,
+      crossAxis: 0,
+      alignmentAxis: -12,
+    },
   },
   {
     header: 'Participant features, host controls and more.',
@@ -50,6 +68,27 @@ const tourData: Step[] = [
     image: {
       src: `${basePath}/invite-participants.png`,
     },
+    offset: {
+      mainAxis: 10,
+      crossAxis: 0,
+      alignmentAxis: -12,
+    },
+  },
+  {
+    header: 'Check Call Quality & Statistics',
+    explanation:
+      'View monitored call metrics such as latency, jitter, and packet loss in real-time for in-depth performance insights.',
+    placement: 'left-start',
+    anchor: '.rd__sidebar__call-stats',
+    delay: 200,
+    image: {
+      src: `${basePath}/stats.png`,
+    },
+    offset: {
+      mainAxis: 10,
+      crossAxis: 0,
+      alignmentAxis: -12,
+    },
   },
 ];
 
@@ -58,6 +97,7 @@ export enum StepNames {
   Network = 2,
   Chat = 3,
   Invite = 4,
+  Stats = 5,
 }
 
 type Step = {
@@ -70,6 +110,7 @@ type Step = {
     src: string;
   };
   component?: any;
+  offset: OffsetOptions;
 };
 
 type Props = {

@@ -100,6 +100,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
     if (currentTourStep === StepNames.Invite) {
       setSidebarContent('participants');
     }
+
+    if (currentTourStep === StepNames.Stats) {
+      setSidebarContent('stats');
+    }
   }, [currentTourStep]);
 
   return (

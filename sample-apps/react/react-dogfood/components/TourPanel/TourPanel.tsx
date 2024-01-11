@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { offset, Placement } from '@floating-ui/react';
+import { offset, Placement, OffsetOptions } from '@floating-ui/react';
 import { computePosition } from '@floating-ui/dom';
 
 import { useI18n } from '@stream-io/video-react-sdk';
@@ -29,7 +29,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
   } = useTourContext();
 
   const attachToElement = useCallback(
-    (anchor?: string, placement?: Placement) => {
+    (anchor?: string, placement?: Placement, offsetOptions?: OffsetOptions) => {
       const tourPanelElement = tourPanel.current;
       if (!anchor || !tourPanelElement) return;
       const anchorElement = document.querySelector(anchor);
@@ -39,7 +39,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
 
         computePosition(anchorElement, tourPanelElement, {
           placement,
-          middleware: [offset(10)],
+          middleware: [offset(offsetOptions)],
         }).then(({ x, y }) => {
           Object.assign(tourPanelElement.style, {
             left: `${x}px`,
@@ -56,7 +56,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
       previousElement.classList.remove(highlightClass);
     }
     setTimeout(() => {
-      attachToElement(step?.anchor, step?.placement);
+      attachToElement(step?.anchor, step?.placement, step?.offset);
     }, step?.delay || 0);
   }, [
     current,
