@@ -51,12 +51,30 @@ export const CallRecordingList = ({
         {loading ? (
           <LoadingCallRecordingList callRecordings={callRecordings} />
         ) : callRecordings.length ? (
-          callRecordings.map((recording) => (
-            <CallRecordingListItem
-              recording={recording}
-              key={recording.filename}
-            />
-          ))
+          <>
+            <ul className="str-video__call-recording-list__list">
+              <li className="str-video__call-recording-list__item">
+                <div className="str-video__call-recording-list__filename">
+                  Name
+                </div>
+                <div className="str-video__call-recording-list__time">
+                  Start time
+                </div>
+                <div className="str-video__call-recording-list__time">
+                  End time
+                </div>
+                <div className="str-video__call-recording-list__download"></div>
+              </li>
+            </ul>
+            <ul className="str-video__call-recording-list__list">
+              {callRecordings.map((recording) => (
+                <CallRecordingListItem
+                  recording={recording}
+                  key={recording.filename}
+                />
+              ))}
+            </ul>
+          </>
         ) : (
           <EmptyCallRecordingList />
         )}

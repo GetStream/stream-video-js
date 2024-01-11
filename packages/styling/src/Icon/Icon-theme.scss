@@ -41,6 +41,11 @@
     -webkit-mask-image: var(--str-video__icon--caret-up);
   }
 
+  &--download {
+    mask-image: var(--str-video__icon--download);
+    -webkit-mask-image: var(--str-video__icon--download);
+  }
+
   &--caret-down {
     mask-image: var(--str-video__icon--caret-down);
     -webkit-mask-image: var(--str-video__icon--caret-down);

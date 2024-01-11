@@ -1,23 +1,31 @@
 import clsx from 'clsx';
-import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import { CallRecording } from '@stream-io/video-client';
-import { CopyToClipboardButtonWithPopup } from '../Button';
+import { Icon } from '../Icon';
 
 export type CallRecordingListItemProps = {
   /** CallRecording object to represent */
   recording: CallRecording;
 };
+
+const dateFormat = (date: string) => {
+  const format = new Date(date);
+  return format.toTimeString().split(' ')[0];
+};
 export const CallRecordingListItem = ({
   recording,
 }: CallRecordingListItemProps) => {
   return (
-    <div className="str-video__call-recording-list-item">
-      <div className="str-video__call-recording-list-item__info">
-        <div className="str-video__call-recording-list-item__created">
-          {new Date(recording.end_time).toLocaleString()}
-        </div>
+    <li className="str-video__call-recording-list__item">
+      <div className="str-video__call-recording-list__table-cell str-video__call-recording-list__filename">
+        {recording.filename}
       </div>
-      <div className="str-video__call-recording-list-item__actions">
+      <div className="str-video__call-recording-list__table-cell str-video__call-recording-list__time">
+        {dateFormat(recording.start_time)}
+      </div>
+      <div className="str-video__call-recording-list__table-cell str-video__call-recording-list__time">
+        {dateFormat(recording.end_time)}
+      </div>
+      <div className="str-video__call-recording-list__table-cell str-video__call-recording-list__download">
         <a
           className={clsx(
             'str-video__call-recording-list-item__action-button',
@@ -28,41 +36,9 @@ export const CallRecordingListItem = ({
           download={recording.filename}
           title="Download the recording"
         >
-          <span
-            className={clsx(
-              'str-video__call-recording-list-item__action-button-icon',
-              'str-video__download-button--icon',
-            )}
-          />
+          <Icon icon="download" />
         </a>
-        <CopyToClipboardButtonWithPopup
-          Button={CopyUrlButton}
-          copyValue={recording.url}
-        />
       </div>
-    </div>
+    </li>
   );
 };
-const CopyUrlButton = forwardRef(function CopyUrlButton(
-  props: ComponentProps<'button'>,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  return (
-    <button
-      {...props}
-      className={clsx(
-        'str-video__call-recording-list-item__action-button',
-        'str-video__call-recording-list-item__action-button--copy-link',
-      )}
-      ref={ref}
-      title="Copy the recording link"
-    >
-      <span
-        className={clsx(
-          'str-video__call-recording-list-item__action-button-icon',
-          'str-video__copy-button--icon',
-        )}
-      />
-    </button>
-  );
-});
