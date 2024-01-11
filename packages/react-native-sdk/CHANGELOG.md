@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.6...@stream-io/video-react-native-sdk-0.3.7) (2024-01-05)
+
+
+### Features
+
+* **react-native:** add ability to customize the objectFit for participant view ([#1225](https://github.com/GetStream/stream-video-js/issues/1225)) ([06c7010](https://github.com/GetStream/stream-video-js/commit/06c7010cd0fc128e4cfb582c8e8771e43a007629))
+
 ### [0.3.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.5...@stream-io/video-react-native-sdk-0.3.6) (2023-12-22)
 
 ### Dependency Updates

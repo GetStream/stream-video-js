@@ -12,7 +12,8 @@ export const DEFAULT_NAMESPACE = 'stream-video';
 const DEFAULT_CONFIG = {
   debug: false,
   currentLanguage: DEFAULT_LANGUAGE,
-};
+  fallbackLanguage: false,
+} as const;
 
 const DEFAULT_TRANSLATIONS_REGISTRY = mapToRegistry({}, DEFAULT_NAMESPACE);
 
@@ -21,6 +22,8 @@ export const defaultTranslationFunction = (key: string) => key;
 export type StreamI18nConstructor = {
   /** Language into which the provided strings are translated */
   currentLanguage?: TranslationLanguage;
+  /** Fallback language which will be used if no translation is found for current language */
+  fallbackLanguage?: TranslationLanguage;
   /** Logs info level to console output. Helps find issues with loading not working. */
   debug?: boolean;
   /** Custom translations that will be merged with the defaults provided by the library. */
@@ -37,13 +40,14 @@ export class StreamI18n {
     const {
       debug = DEFAULT_CONFIG.debug,
       currentLanguage = DEFAULT_CONFIG.currentLanguage,
+      fallbackLanguage = DEFAULT_CONFIG.fallbackLanguage,
       translationsOverrides,
     } = options;
 
     this.i18nInstance = i18next.createInstance({
       debug,
       defaultNS: DEFAULT_NAMESPACE,
-      fallbackLng: false,
+      fallbackLng: fallbackLanguage,
       interpolation: { escapeValue: false },
       keySeparator: false,
       lng: currentLanguage,
