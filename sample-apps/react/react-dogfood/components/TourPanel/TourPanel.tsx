@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { offset, Placement, OffsetOptions } from '@floating-ui/react';
+import { offset, OffsetOptions, Placement } from '@floating-ui/react';
 import { computePosition } from '@floating-ui/dom';
 
 import { useI18n } from '@stream-io/video-react-sdk';
@@ -58,14 +58,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
     setTimeout(() => {
       attachToElement(step?.anchor, step?.placement, step?.offset);
     }, step?.delay || 0);
-  }, [
-    current,
-    step,
-    attachToElement,
-    tourPanel,
-    previousElement,
-    highlightClass,
-  ]);
+  }, [step, attachToElement, previousElement, highlightClass]);
 
   if (active) {
     return (

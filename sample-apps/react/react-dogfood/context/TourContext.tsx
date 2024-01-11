@@ -6,99 +6,103 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { Placement, OffsetOptions } from '@floating-ui/react';
+import { OffsetOptions, Placement } from '@floating-ui/react';
 import { useBreakpoint } from '../hooks';
 import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-const tourData: Step[] = [
-  {
-    header:
-      'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
-    placement: 'bottom-start',
-    anchor:
-      '.rd__documentation-button .str-video__composite-button__button-group',
-    component: TourSDKOptions,
-    offset: {
-      mainAxis: 10,
-      crossAxis: 0,
-      alignmentAxis: -12,
-    },
-  },
-  {
-    header: 'Larger network, faster connections.',
-    explanation:
-      'SFU Cascading and EDGE Network ensures low latency and high video quality consistently.',
-    placement: 'left-start',
-    anchor: '.rd__header__latency',
-    image: {
-      src: `${basePath}/server-status.png`,
-    },
-    offset: {
-      mainAxis: 10,
-      crossAxis: -5,
-      alignmentAxis: -15,
-    },
-  },
-  {
-    header: 'Seamless Chat Integration out-of-the-box',
-    explanation:
-      'Build real-time chat messaging in less time. Rapidly ship in-call messaging with our highly reliable chat infrastructure. Try sending the first message!',
-    placement: 'left-start',
-    anchor: '.str-video__chat',
-    delay: 200,
-    image: {
-      src: `${basePath}/chat.png`,
-    },
-    offset: {
-      mainAxis: 10,
-      crossAxis: 0,
-      alignmentAxis: -12,
-    },
-  },
-  {
-    header: 'Participant features, host controls and more.',
-    explanation:
-      'Test these features for yourself and add more users to the demo call.',
-    placement: 'left-start',
-    anchor: '.rd__participants',
-    delay: 200,
-    image: {
-      src: `${basePath}/invite-participants.png`,
-    },
-    offset: {
-      mainAxis: 10,
-      crossAxis: 0,
-      alignmentAxis: -12,
-    },
-  },
-  {
-    header: 'Check Call Quality & Statistics',
-    explanation:
-      'View monitored call metrics such as latency, jitter, and packet loss in real-time for in-depth performance insights.',
-    placement: 'left-start',
-    anchor: '.rd__sidebar__call-stats',
-    delay: 200,
-    image: {
-      src: `${basePath}/stats.png`,
-    },
-    offset: {
-      mainAxis: 10,
-      crossAxis: 0,
-      alignmentAxis: -12,
-    },
-  },
-];
-
+/**
+ * Defines the list of steps.
+ * Please keep this list sorted.
+ */
 export enum StepNames {
   Start = 1,
-  Network = 2,
+  Invite = 2,
   Chat = 3,
-  Invite = 4,
-  Stats = 5,
+  Stats = 4,
+  Network = 5,
 }
+
+const tourData: Step[] = Array.from({
+  length: Math.floor(Object.keys(StepNames).length / 2),
+});
+tourData[StepNames.Start] = {
+  header:
+    'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
+  placement: 'bottom-start',
+  anchor:
+    '.rd__documentation-button .str-video__composite-button__button-group',
+  component: TourSDKOptions,
+  offset: {
+    mainAxis: 10,
+    crossAxis: 0,
+    alignmentAxis: -12,
+  },
+};
+tourData[StepNames.Network] = {
+  header: 'Edge Network',
+  explanation:
+    'Our global edge network ensures an optimal call latency. This improves call quality, user experience and reliability.',
+  placement: 'left-start',
+  anchor: '.rd__header__latency',
+  image: {
+    src: `${basePath}/server-status.png`,
+  },
+  offset: {
+    mainAxis: 10,
+    crossAxis: -5,
+    alignmentAxis: -15,
+  },
+};
+tourData[StepNames.Chat] = {
+  header: 'Send a message 🚀',
+  explanation: `Now use Stream's in-call chat messaging to write and send a message to the group, and react to their messages.`,
+  placement: 'left-end',
+  anchor: '.str-video__chat',
+  delay: 200,
+  image: {
+    src: `${basePath}/chat.png`,
+  },
+  offset: {
+    mainAxis: 10,
+    crossAxis: 0,
+    alignmentAxis: -12,
+  },
+};
+tourData[StepNames.Invite] = {
+  header: 'Invite friends, access host controls and more',
+  explanation:
+    'Copy, paste, and send the unique URL to this private call to a friend or scan the QR code with your phone to test it yourself.',
+  placement: 'left-start',
+  anchor: '.rd__participants',
+  delay: 200,
+  image: {
+    src: `${basePath}/invite-participants.png`,
+  },
+  offset: {
+    mainAxis: 10,
+    crossAxis: 0,
+    alignmentAxis: -12,
+  },
+};
+tourData[StepNames.Stats] = {
+  header: 'Check Call Quality & Statistics',
+  explanation:
+    'View monitored call metrics such as latency, jitter, and packet loss in real-time for in-depth performance insights.',
+  placement: 'left-start',
+  anchor: '.rd__sidebar__call-stats',
+  delay: 200,
+  image: {
+    src: `${basePath}/stats.png`,
+  },
+  offset: {
+    mainAxis: 10,
+    crossAxis: 0,
+    alignmentAxis: -12,
+  },
+};
 
 type Step = {
   header: string;
@@ -135,8 +139,8 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   const isDemo = useIsDemoEnvironment();
 
   const steps = tourData;
-  const [active, setActive] = useState<boolean>(isDemo);
-  const [current, setCurrent]: any = useState<number>(0);
+  const [active, setActive] = useState(isDemo);
+  const [current, setCurrent] = useState(0);
 
   const breakpoint = useBreakpoint();
   useEffect(() => {
@@ -161,10 +165,10 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   return (
     <TourContext.Provider
       value={{
-        total: steps.length,
+        total: steps.length - 1,
         current: current + 1,
         next,
-        step: steps[current],
+        step: steps[current + 1],
         active,
         toggleTour,
       }}

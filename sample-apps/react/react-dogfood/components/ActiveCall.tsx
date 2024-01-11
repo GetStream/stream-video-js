@@ -95,14 +95,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
   useEffect(() => {
     if (currentTourStep === StepNames.Chat) {
       setSidebarContent('chat');
-    }
-
-    if (currentTourStep === StepNames.Invite) {
+    } else if (currentTourStep === StepNames.Invite) {
       setSidebarContent('participants');
-    }
-
-    if (currentTourStep === StepNames.Stats) {
+    } else if (currentTourStep === StepNames.Stats) {
       setSidebarContent('stats');
+    } else {
+      setSidebarContent(null);
     }
   }, [currentTourStep]);
 
