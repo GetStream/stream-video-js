@@ -55,7 +55,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const { current: currentTourStep } = useTourContext();
+  const { current: currentTourStep, active: isTourActive } = useTourContext();
 
   const { layout, setLayout } = useLayoutSwitcher();
   const breakpoint = useBreakpoint();
@@ -71,7 +71,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const isDemoEnvironment = useIsDemoEnvironment();
   const isPronto = useIsProntoEnvironment();
 
-  const [showInvitePopup, setShowInvitePopup] = useState(isDemoEnvironment);
+  const [showInvitePopup, setShowInvitePopup] = useState(
+    isDemoEnvironment && !isTourActive,
+  );
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
@@ -103,6 +105,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
       setSidebarContent(null);
     }
   }, [currentTourStep]);
+
+  useEffect(() => {
+    if (!isTourActive) setShowInvitePopup(true);
+  }, [isTourActive]);
 
   return (
     <div className="rd__call">

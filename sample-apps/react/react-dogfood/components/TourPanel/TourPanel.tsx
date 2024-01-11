@@ -19,14 +19,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
     undefined,
   );
 
-  const {
-    next,
-    current,
-    step,
-    toggleTour: close,
-    total,
-    active,
-  } = useTourContext();
+  const { next, current, step, closeTour, total, active } = useTourContext();
 
   const attachToElement = useCallback(
     (anchor?: string, placement?: Placement, offsetOptions?: OffsetOptions) => {
@@ -87,7 +80,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
               'rd__button--secondary': current !== total,
               'rd__button--primary': current === total,
             })}
-            onClick={close}
+            onClick={closeTour}
           >
             {current === total ? t('Finish') : t('Skip intro')}
           </button>

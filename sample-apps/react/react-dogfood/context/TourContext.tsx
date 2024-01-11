@@ -123,16 +123,16 @@ type Props = {
   total: number;
   step: Step | undefined;
   active: boolean;
-  toggleTour: () => void;
+  closeTour: () => void;
 };
 
 const TourContext = createContext<Props>({
-  next: () => null,
+  next: () => {},
   current: 0,
   total: 0,
   step: undefined,
   active: false,
-  toggleTour: () => null,
+  closeTour: () => {},
 });
 
 export const TourProvider = ({ children }: { children: ReactNode }) => {
@@ -147,16 +147,10 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
     breakpoint === 'xs' || (breakpoint === 'sm' && setActive(false));
   }, [breakpoint]);
 
-  const toggleTour = useCallback(() => {
-    if (active) {
-      setCurrent(-1);
-    }
-
-    if (!active) {
-      setCurrent(0);
-    }
-    setActive(!active);
-  }, [active]);
+  const closeTour = useCallback(() => {
+    setCurrent(-1);
+    setActive(false);
+  }, []);
 
   const next = useCallback(() => {
     setCurrent(current + 1);
@@ -170,7 +164,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
         next,
         step: steps[current + 1],
         active,
-        toggleTour,
+        closeTour,
       }}
     >
       {children}
