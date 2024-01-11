@@ -34,24 +34,37 @@ export const ToggleDocumentationButton = () => {
       visualType={MenuVisualType.MENU}
     >
       <div className="rd__documentation-button__menu">
-        <a
-          className="rd__button rd__button--align-left"
-          href="https://getstream.io/video/sdk/react/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Icon className="rd__button__icon" icon="mediation" />
-          {t('Tutorials')}
-        </a>
-        <a
-          className="rd__button rd__button--align-left"
-          href="https://getstream.io/video/docs/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <Icon className="rd__button__icon" icon="folder" />
-          {t('Documentation')}
-        </a>
+        <h2 className="rd__documentation-button__heading">
+          {t(
+            'Faster and more reliable video calls, livestreams and audio rooms.',
+          )}
+        </h2>
+        <p className="rd__documentation-button__description">
+          {t(
+            'Excellent developer experience and docs enable you to build in-app video calling in days. Scale to millions of users and thousands of call participants.',
+          )}
+        </p>
+        <div className="rd__documentation-button__actions">
+          <a
+            className="rd__button rd__button--secondary rd__button--align-left"
+            href="https://getstream.io/video/docs/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Icon className="rd__button__icon" icon="folder" />
+            {t('Documentation')}
+          </a>
+
+          <a
+            className="rd__button rd__button--primary rd__button--align-left"
+            href="https://getstream.io/video/#contact"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Icon className="rd__button__icon" icon="support-agent" />
+            {t('Contact an expert')}
+          </a>
+        </div>
       </div>
     </MenuToggle>
   );

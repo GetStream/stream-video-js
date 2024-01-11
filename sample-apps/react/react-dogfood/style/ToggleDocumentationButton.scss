@@ -5,8 +5,9 @@
   margin: 0;
   gap: var(--str-video__spacing-md);
   border-radius: var(--str-video__border-radius-lg);
+  max-width: 400px;
 
-  background-color: var(--str-video__base-color5);
+  background-color: var(--str-video__base-color6);
 }
 
 .rd__call-header__title {
@@ -29,4 +30,21 @@
   .rd__call-header__title {
     display: flex;
   }
+}
+
+.rd__documentation-button__heading {
+  font-size: var(--str-video__font-size-md);
+  margin: 0;
+}
+
+.rd__documentation-button__description {
+  color: var(--str-video__text-color3);
+  font-size: var(--str-video__font-size-sm);
+  margin: 0;
+}
+
+.rd__documentation-button__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--str-video__spacing-md);
 }

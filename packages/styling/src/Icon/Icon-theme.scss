@@ -21,6 +21,11 @@
     mask-image: var(--str-video__icon--network-quality);
   }
 
+  &--support-agent {
+    -webkit-mask-image: var(--str-video__icon--support-agent);
+    mask-image: var(--str-video__icon--support-agent);
+  }
+
   &--recording-on {
     mask-image: var(--str-video__icon--recording-on);
     -webkit-mask-image: var(--str-video__icon--recording-on);
