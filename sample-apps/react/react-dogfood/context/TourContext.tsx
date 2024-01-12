@@ -19,10 +19,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
  */
 export enum StepNames {
   Start = 1,
-  Invite = 2,
+  Network = 2,
   Chat = 3,
-  Stats = 4,
-  Network = 5,
 }
 
 const tourData: Step[] = Array.from({
@@ -61,41 +59,8 @@ tourData[StepNames.Chat] = {
   explanation: `Now use Stream's in-call chat messaging to write and send a message to the group, and react to their messages.`,
   placement: 'left-end',
   anchor: '.str-video__chat',
-  delay: 200,
   image: {
     src: `${basePath}/chat.png`,
-  },
-  offset: {
-    mainAxis: 10,
-    crossAxis: 0,
-    alignmentAxis: -12,
-  },
-};
-tourData[StepNames.Invite] = {
-  header: 'Invite friends, access host controls and more',
-  explanation:
-    'Copy, paste, and send the unique URL to this private call to a friend or scan the QR code with your phone to test it yourself.',
-  placement: 'left-start',
-  anchor: '.rd__participants',
-  delay: 200,
-  image: {
-    src: `${basePath}/invite-participants.png`,
-  },
-  offset: {
-    mainAxis: 10,
-    crossAxis: 0,
-    alignmentAxis: -12,
-  },
-};
-tourData[StepNames.Stats] = {
-  header: 'Check Call Quality & Statistics',
-  explanation:
-    'View monitored call metrics such as latency, jitter, and packet loss in real-time for in-depth performance insights.',
-  placement: 'left-start',
-  anchor: '.rd__sidebar__call-stats',
-  delay: 200,
-  image: {
-    src: `${basePath}/stats.png`,
   },
   offset: {
     mainAxis: 10,
@@ -109,7 +74,6 @@ type Step = {
   explanation?: string;
   anchor: string;
   placement: Placement;
-  delay?: number;
   image?: {
     src: string;
   };
