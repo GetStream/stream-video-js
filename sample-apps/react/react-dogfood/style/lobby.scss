@@ -49,11 +49,29 @@
     }
   }
 
+  &-edge-network {
+    display: flex;
+    align-items: center;
+    padding: var(--str-video__spacing-md);
+    border-radius: var(--str-video__border-radius-md);
+    background-color: var(--str-video__base-color6);
+    gap: var(--str-video__spacing-md);
+    font-size: var(--str-video__font-size-xs);
+  }
+
   &-heading {
     display: flex;
     flex-direction: column;
     font-size: var(--str-video__font-size-xl);
     font-weight: 500;
+    margin-bottom: var(--str-video__spacing-xs);
+    text-align: center;
+  }
+
+  &-heading__description {
+    font-size: var(--str-video__font-size-sm);
+    font-weight: 400;
+    margin-top: 0;
     margin-bottom: var(--str-video__spacing-md);
     text-align: center;
   }
