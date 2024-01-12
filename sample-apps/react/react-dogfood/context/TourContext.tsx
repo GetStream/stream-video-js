@@ -27,12 +27,14 @@ const tourData: Step[] = Array.from({
   length: Math.floor(Object.keys(StepNames).length / 2),
 });
 tourData[StepNames.Start] = {
-  header:
-    'Stream’s Video & Audio SDK is designed to support Livestreaming & Audio Rooms.',
+  header: 'Modern SDKs',
   placement: 'bottom-start',
   anchor:
     '.rd__documentation-button .str-video__composite-button__button-group',
   component: TourSDKOptions,
+  explanation: `
+    Modern SDKs to build video calling, audio rooms and livestreaming in days.
+    This video calling experience is just 1 example of what you can build with Stream’s SDKs.`,
   offset: {
     mainAxis: 10,
     crossAxis: 0,
@@ -55,10 +57,11 @@ tourData[StepNames.Network] = {
   },
 };
 tourData[StepNames.Chat] = {
-  header: 'Send a message 🚀',
-  explanation: `Now use Stream's in-call chat messaging to write and send a message to the group, and react to their messages.`,
+  header: 'Chat',
+  explanation: `A full chat SDK/API with reactions, typing, unread counts, quoted replies, URL previews, image uploads, and basically anything you’d expect from a whatsapp or slack style app.`,
   placement: 'left-end',
   anchor: '.str-video__chat',
+  delay: 100,
   image: {
     src: `${basePath}/chat.png`,
   },
@@ -74,6 +77,7 @@ type Step = {
   explanation?: string;
   anchor: string;
   placement: Placement;
+  delay?: number;
   image?: {
     src: string;
   };

@@ -61,11 +61,9 @@
 }
 
 .rd__tour__explanation {
-  display: flex;
   font-size: var(--str-video__font-size-sm);
-  margin: 0;
+  margin-bottom: 0;
   color: var(--str-video__text-color2);
-  gap: var(--str-video__spacing-sm);
 }
 
 .rd__tour__link {
@@ -147,6 +145,7 @@
   align-items: center;
   justify-content: center;
   background-color: #1d2f34;
+  color: #00e2a1;
   padding: var(--str-video__spacing-xs);
   border-radius: var(--str-video__border-radius-xs);
   gap: var(--str-video__spacing-sm);
@@ -158,5 +157,6 @@
   .str-video__icon {
     width: 20px;
     height: 20px;
+    background-color: #00e2a1;
   }
 }

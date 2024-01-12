@@ -62,7 +62,7 @@ export const TourPanel = ({ highlightClass }: Props) => {
     if (!step) return;
     const id = setTimeout(() => {
       attachToElement(step.anchor, step.placement, step.offset);
-    }, 0);
+    }, step.delay ?? 0);
     return () => clearTimeout(id);
   }, [step, attachToElement, previousElement, highlightClass]);
 
@@ -90,9 +90,12 @@ export const TourPanel = ({ highlightClass }: Props) => {
             </div>
           )}
           {step.component && step?.component()}
-          {step.explanation && (
-            <p className="rd__tour__explanation">{step?.explanation}</p>
-          )}
+          {step.explanation &&
+            step.explanation.split('\n').map((text, index) => (
+              <p key={index} className="rd__tour__explanation">
+                {text}
+              </p>
+            ))}
           {showOverlay && <div className="rd__tour__step-overlay" />}
         </div>
       )}

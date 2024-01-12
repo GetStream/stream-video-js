@@ -78,7 +78,6 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
   if (!session) {
     return null;
   }
-  console.log('HI', callSession?.participants.length);
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
   return (
@@ -95,7 +94,7 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
                 </h1>
                 <p className="rd__lobby-heading__description">
                   {t(
-                    'While our Edge Network is selecting the best server for your call...',
+                    'while our Edge Network is selecting the best server for your call...',
                   )}
                 </p>
                 <div
