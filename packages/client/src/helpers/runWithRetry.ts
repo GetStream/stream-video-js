@@ -110,9 +110,12 @@ export const runWithRetry = <T extends FunctionToRetry>(
         error = e;
       }
 
-      if (await didValueChange?.(...functionArguments)) {
-        throw new RetryError({ type: 'abort' });
-      }
+      // disable value change check after successfull server call
+      // throwing error at this point could lead to stale local states
+
+      // if (await didValueChange?.(...functionArguments)) {
+      //   throw new RetryError({ type: 'abort' });
+      // }
 
       if (data) return data;
 
