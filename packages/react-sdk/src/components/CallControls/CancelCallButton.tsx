@@ -15,6 +15,18 @@ const EndCallMenu = (props: {
   const { t } = useI18n();
   return (
     <div className="str-video__end-call__confirmation">
+      <button
+        className="str-video__button str-video__end-call__leave"
+        type="button"
+        data-testid="leave-call-button"
+        onClick={onLeave}
+      >
+        <Icon
+          className="str-video__button__icon str-video__end-call__leave-icon"
+          icon="logout"
+        />
+        {t('Leave call')}
+      </button>
       <Restricted requiredGrants={[OwnCapability.END_CALL]}>
         <button
           className="str-video__button str-video__end-call__end"
@@ -29,18 +41,6 @@ const EndCallMenu = (props: {
           {t('End call for all')}
         </button>
       </Restricted>
-      <button
-        className="str-video__button str-video__end-call__leave"
-        type="button"
-        data-testid="leave-call-button"
-        onClick={onLeave}
-      >
-        <Icon
-          className="str-video__button__icon str-video__end-call__leave-icon"
-          icon="logout"
-        />
-        {t('Leave call')}
-      </button>
     </div>
   );
 };

@@ -80,6 +80,7 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
   }
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
+  const hasOtherParticipants = callSession?.participants.length;
   return (
     <>
       <DefaultAppHeader transparent />
@@ -139,24 +140,24 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
                 </div>
               </>
             )}
-            {!callSession?.participants.length && (
-              <div className="rd__lobby-edge-network">
-                <Image
-                  src={`${
-                    process.env.NEXT_PUBLIC_BASE_PATH || ''
-                  }/stream-logo.svg`}
-                  alt="Stream logo"
-                  priority={false}
-                  width={36}
-                  height={36}
-                />
-                <p className="rd__lobby-edge-network__description">
-                  {t(
-                    'You are about to start a private test call via Stream. Once you start the call, you can invite other participants',
-                  )}
-                </p>
-              </div>
-            )}
+
+            <div className="rd__lobby-edge-network">
+              <Image
+                src={`${
+                  process.env.NEXT_PUBLIC_BASE_PATH || ''
+                }/lock-person.svg`}
+                alt="Stream logo"
+                priority={false}
+                width={36}
+                height={24}
+              />
+              <p className="rd__lobby-edge-network__description">
+                You are about to {hasOtherParticipants ? 'join' : 'start '} a
+                private test call via Stream. Once you{' '}
+                {hasOtherParticipants ? 'join' : 'start '} the call, you can
+                invite other participants.
+              </p>
+            </div>
 
             <button
               className="rd__button rd__button--primary rd__button--large rd__lobby-join"
@@ -164,7 +165,7 @@ export const Lobby = ({ onJoin, callId, mode = 'regular' }: LobbyProps) => {
               onClick={onJoin}
             >
               <Icon className="rd__button__icon" icon="login" />
-              {callSession?.participants.length ? t('Join') : t('Start call')}
+              {hasOtherParticipants ? t('Join') : t('Start call')}
             </button>
 
             {isProntoEnvironment && (

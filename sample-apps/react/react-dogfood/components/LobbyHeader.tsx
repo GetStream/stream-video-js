@@ -11,11 +11,11 @@ import { Icon, MenuToggle } from '@stream-io/video-react-sdk';
 export const HomeButton = () => (
   <Link href="/" data-testid="home-button">
     <Image
-      src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.svg`}
+      src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/stream-logo.png`}
       alt="Stream logo"
       priority={false}
       width={36}
-      height={36}
+      height={24}
     />
   </Link>
 );
