@@ -20,6 +20,22 @@
       }
     },
     {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.getstream.video.android",
+      "sha256_cert_fingerprints": ["FF:22:58:F1:13:99:AA:E4:57:FD:E9:86:34:A8:60:BB:17:F0:9D:A4:31:DA:AD:E3:7B:1C:9A:27:99:2F:5F:22"]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.getstream.video.android.debug",
+      "sha256_cert_fingerprints": ["1B:28:0D:4F:73:47:7F:59:8D:EE:7F:C8:3D:44:61:D3:51:12:AC:A1:3E:98:E1:16:55:70:AB:B6:AB:55:99:93"]
+    }
+  },
+    {
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
