@@ -1,0 +1,28 @@
+---
+id: dropdown-select
+title: Dropdown select
+---
+
+import DropdownSelect from '../../assets/03-ui-components/dropdown-select.png';
+
+The `DropDownSelect` utility component can be used to to simply create a dropdown select component.
+
+#### Props
+
+| Name                   | Description                                             | Type                                                                                     |
+| ---------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `icon`                 | Icon to be shown next to the label of the selected item | `string` \| `undefined`                                                                  |
+| `defaultSelectedLabel` | Label to be shown on default                            | `string`                                                                                 |
+| `defaultSelectedIndex` | Sets the default selected option                        | `number`                                                                                 |
+| `handleSelect`         | Handler to handle the selected option                   | `(index: number) => void`                                                                |
+| `children`             | DropDownSelectOption                                    | `ReactElement<DropDownSelectOptionProps>` \| `ReactElement<DropDownSelectOptionProps[]>` |
+
+#### DropDownSelectOptionProps
+
+You can provide the `DropdownSelectOption` as a child to the `DropdownSelect`
+
+| Name       | Description | Type                     |
+| ---------- | ----------- | ------------------------ |
+| `label`    |             | `string`                 |
+| `selected` |             | `boolean` \| `undefined` |
+| `icon`     |             | `string`                 |
