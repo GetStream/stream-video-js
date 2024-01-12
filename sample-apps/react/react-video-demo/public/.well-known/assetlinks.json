@@ -1,72 +1,52 @@
 [
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.android.dogfooding",
-      "sha256_cert_fingerprints": [
-        "DC:8D:02:4B:71:AC:2A:2E:97:AF:92:70:95:6D:FC:98:CE:27:B0:25:A5:09:D4:BA:45:0B:73:90:29:E2:4A:E6"
-      ]
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.getstream.video.android.dogfooding",
+        "sha256_cert_fingerprints": [
+          "DC:8D:02:4B:71:AC:2A:2E:97:AF:92:70:95:6D:FC:98:CE:27:B0:25:A5:09:D4:BA:45:0B:73:90:29:E2:4A:E6"
+        ]
+      }
+    },
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.getstream.video.android.dogfooding.debug",
+        "sha256_cert_fingerprints": [
+          "1B:28:0D:4F:73:47:7F:59:8D:EE:7F:C8:3D:44:61:D3:51:12:AC:A1:3E:98:E1:16:55:70:AB:B6:AB:55:99:93"
+        ]
+      }
+    },
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.getstream.rnvideosample",
+        "sha256_cert_fingerprints": [
+          "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
+        ]
+      }
+    },
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.getstream.video.flutter.dogfooding",
+        "sha256_cert_fingerprints": [
+          "EF:DA:0D:97:C7:05:88:BB:F0:71:84:47:BB:F3:22:86:5C:AD:81:EC:3A:FC:10:AC:A2:20:97:41:71:73:36:8E"
+        ]
+      }
+    },
+    {
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.getstream.video.flutter.dogfooding.debug",
+        "sha256_cert_fingerprints": [
+          "EF:DA:0D:97:C7:05:88:BB:F0:71:84:47:BB:F3:22:86:5C:AD:81:EC:3A:FC:10:AC:A2:20:97:41:71:73:36:8E"
+        ]
+      }
     }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.android.dogfooding.debug",
-      "sha256_cert_fingerprints": [
-        "1B:28:0D:4F:73:47:7F:59:8D:EE:7F:C8:3D:44:61:D3:51:12:AC:A1:3E:98:E1:16:55:70:AB:B6:AB:55:99:93"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.android",
-      "sha256_cert_fingerprints": [
-        "FF:22:58:F1:13:99:AA:E4:57:FD:E9:86:34:A8:60:BB:17:F0:9D:A4:31:DA:AD:E3:7B:1C:9A:27:99:2F:5F:22"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.android.debug",
-      "sha256_cert_fingerprints": [
-        "1B:28:0D:4F:73:47:7F:59:8D:EE:7F:C8:3D:44:61:D3:51:12:AC:A1:3E:98:E1:16:55:70:AB:B6:AB:55:99:93"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.rnvideosample",
-      "sha256_cert_fingerprints": [
-        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.flutter.dogfooding",
-      "sha256_cert_fingerprints": [
-        "EF:DA:0D:97:C7:05:88:BB:F0:71:84:47:BB:F3:22:86:5C:AD:81:EC:3A:FC:10:AC:A2:20:97:41:71:73:36:8E"
-      ]
-    }
-  },
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.getstream.video.flutter.dogfooding.debug",
-      "sha256_cert_fingerprints": [
-        "EF:DA:0D:97:C7:05:88:BB:F0:71:84:47:BB:F3:22:86:5C:AD:81:EC:3A:FC:10:AC:A2:20:97:41:71:73:36:8E"
-      ]
-    }
-  }
-]
+  ]
