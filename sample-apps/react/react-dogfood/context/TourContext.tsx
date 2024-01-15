@@ -35,7 +35,7 @@ tourData[StepNames.Start] = {
   component: TourSDKOptions,
   explanation: `
     Modern SDKs to build video calling, audio rooms and livestreaming in days.
-    This video calling experience is just 1 example of what you can build with Stream’s SDKs.`,
+    This video calling experience is just one example of what you can build with Stream’s SDKs.`,
   offset: {
     mainAxis: 10,
     crossAxis: 0,
@@ -59,7 +59,7 @@ tourData[StepNames.Network] = {
 };
 tourData[StepNames.Chat] = {
   header: 'Chat',
-  explanation: `A full chat SDK/API with reactions, typing, unread counts, quoted replies, URL previews, image uploads, and basically anything you’d expect from a whatsapp or slack style app.`,
+  explanation: `A full chat SDK/API with reactions, typing, unread counts, quoted replies, URL previews, image uploads, and basically anything you’d expect from a WhatsApp or Slack style app.`,
   placement: 'left-end',
   anchor: '.str-video__chat',
   delay: 100,
