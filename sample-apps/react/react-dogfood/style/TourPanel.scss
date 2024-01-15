@@ -73,6 +73,19 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: var(--str-video__spacing-sm);
+
+  &--last-step {
+    flex-direction: column;
+  }
+}
+
+.rd__tour__dont-show {
+  display: flex;
+  width: 100%;
+  gap: var(--str-video__spacing-md);
+  margin-top: var(--str-video__spacing-sm);
+  font-size: var(--str-video__font-size-xs);
+  align-items: center;
 }
 
 .rd__tour__indicator {

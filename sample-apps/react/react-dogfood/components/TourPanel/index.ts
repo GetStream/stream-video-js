@@ -1,1 +1,1 @@
-export { TourPanel } from './TourPanel';
+export { TourPanel, STORAGE_DONT_DISPLAY_TOUR } from './TourPanel';

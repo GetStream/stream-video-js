@@ -7,6 +7,8 @@ import { useI18n } from '@stream-io/video-react-sdk';
 
 import { useTourContext } from '../../context/TourContext';
 
+export const STORAGE_DONT_DISPLAY_TOUR = 'stream-demo-tour';
+
 export type Props = {
   highlightClass: string;
 };
@@ -39,6 +41,10 @@ export const TourPanel = ({ highlightClass }: Props) => {
     },
     [highlightClass],
   );
+
+  const handleDontDisplayTour = useCallback((e) => {
+    localStorage.setItem(STORAGE_DONT_DISPLAY_TOUR, 'false');
+  }, []);
 
   const [showOverlay, setShowOverlay] = useState(false);
   useEffect(() => {
@@ -99,7 +105,11 @@ export const TourPanel = ({ highlightClass }: Props) => {
           {showOverlay && <div className="rd__tour__step-overlay" />}
         </div>
       )}
-      <div className="rd__tour__footer">
+      <div
+        className={clsx('rd__tour__footer', {
+          'rd__tour__footer--last-step': current === total,
+        })}
+      >
         <button
           className={clsx('rd__button', {
             'rd__button--secondary': current !== total,
@@ -107,9 +117,15 @@ export const TourPanel = ({ highlightClass }: Props) => {
           })}
           onClick={closeTour}
         >
-          {current === total ? t('Finish') : t('Skip intro')}
+          {current === total ? t('Finish intro') : t('Skip intro')}
         </button>
 
+        {current === total && (
+          <label className="rd__tour__dont-show">
+            <input type="checkbox" onClick={(e) => handleDontDisplayTour(e)} />
+            Don't intro show again
+          </label>
+        )}
         {current !== total && (
           <button className="rd__button rd__button--primary" onClick={next}>
             {t('Next')}

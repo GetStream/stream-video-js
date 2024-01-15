@@ -4,13 +4,14 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { OffsetOptions, Placement } from '@floating-ui/react';
 import { useBreakpoint } from '../hooks';
 import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
-
+import { STORAGE_DONT_DISPLAY_TOUR } from '../components/TourPanel';
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 /**
@@ -123,6 +124,11 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   const next = useCallback(() => {
     setCurrent(current + 1);
   }, [current, setCurrent]);
+
+  useEffect(() => {
+    localStorage.getItem(STORAGE_DONT_DISPLAY_TOUR) === 'false' &&
+      setActive(false);
+  }, []);
 
   return (
     <TourContext.Provider
