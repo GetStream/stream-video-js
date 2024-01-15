@@ -4,14 +4,13 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import { OffsetOptions, Placement } from '@floating-ui/react';
 import { useBreakpoint } from '../hooks';
 import { useIsDemoEnvironment } from './AppEnvironmentContext';
 import { TourSDKOptions } from '../components/TourPanel/TourSDKOptions';
-import { STORAGE_DONT_DISPLAY_TOUR } from '../components/TourPanel';
+
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 /**
@@ -86,29 +85,48 @@ type Step = {
   offset: OffsetOptions;
 };
 
-type Props = {
+type TourContextValue = {
   next: () => void;
   current: number;
   total: number;
   step: Step | undefined;
   active: boolean;
   closeTour: () => void;
+  setShowTourNextTime: (show: boolean) => void;
 };
 
-const TourContext = createContext<Props>({
+const TourContext = createContext<TourContextValue>({
   next: () => {},
   current: 0,
   total: 0,
   step: undefined,
   active: false,
   closeTour: () => {},
+  setShowTourNextTime: () => {},
 });
+
+const ENABLE_TOUR_KEY = '@pronto/tour-enabled';
+const isTourEnabled = () => {
+  try {
+    return localStorage.getItem(ENABLE_TOUR_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const setTourEnabled = (show: boolean) => {
+  try {
+    localStorage.setItem(ENABLE_TOUR_KEY, String(show));
+  } catch (e) {
+    console.warn('Could not set tour enabled state', e);
+  }
+};
 
 export const TourProvider = ({ children }: { children: ReactNode }) => {
   const isDemo = useIsDemoEnvironment();
 
   const steps = tourData;
-  const [active, setActive] = useState(isDemo);
+  const [active, setActive] = useState(() => isDemo && isTourEnabled());
   const [current, setCurrent] = useState(0);
 
   const breakpoint = useBreakpoint();
@@ -126,8 +144,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   }, [current, setCurrent]);
 
   useEffect(() => {
-    localStorage.getItem(STORAGE_DONT_DISPLAY_TOUR) === 'false' &&
-      setActive(false);
+    localStorage.getItem(ENABLE_TOUR_KEY) === 'false' && setActive(false);
   }, []);
 
   return (
@@ -139,6 +156,7 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
         step: steps[current + 1],
         active,
         closeTour,
+        setShowTourNextTime: setTourEnabled,
       }}
     >
       {children}

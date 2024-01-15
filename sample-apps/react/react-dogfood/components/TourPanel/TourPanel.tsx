@@ -7,8 +7,6 @@ import { useI18n } from '@stream-io/video-react-sdk';
 
 import { useTourContext } from '../../context/TourContext';
 
-export const STORAGE_DONT_DISPLAY_TOUR = 'stream-demo-tour';
-
 export type Props = {
   highlightClass: string;
 };
@@ -19,7 +17,8 @@ export const TourPanel = ({ highlightClass }: Props) => {
   const tourPanel = useRef<HTMLDivElement>(null);
   const [previousElement, setPreviousElement] = useState<Element>();
 
-  const { next, current, step, closeTour, total, active } = useTourContext();
+  const { next, current, step, closeTour, total, active, setShowTourNextTime } =
+    useTourContext();
 
   const attachToElement = useCallback(
     (anchor?: string, placement?: Placement, offsetOptions?: OffsetOptions) => {
@@ -41,10 +40,6 @@ export const TourPanel = ({ highlightClass }: Props) => {
     },
     [highlightClass],
   );
-
-  const handleDontDisplayTour = useCallback((e) => {
-    localStorage.setItem(STORAGE_DONT_DISPLAY_TOUR, 'false');
-  }, []);
 
   const [showOverlay, setShowOverlay] = useState(false);
   useEffect(() => {
@@ -122,8 +117,11 @@ export const TourPanel = ({ highlightClass }: Props) => {
 
         {current === total && (
           <label className="rd__tour__dont-show">
-            <input type="checkbox" onClick={(e) => handleDontDisplayTour(e)} />
-            Don't intro show again
+            <input
+              type="checkbox"
+              onChange={(e) => setShowTourNextTime(!e.target.checked)}
+            />
+            Do not show this tour again
           </label>
         )}
         {current !== total && (
