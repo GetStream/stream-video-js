@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.19...@stream-io/video-react-sdk-0.4.20) (2024-01-16)
+
+
+### Bug Fixes
+
+* **react-sdk:** handle external full-screen toggling ([#1243](https://github.com/GetStream/stream-video-js/issues/1243)) ([9578155](https://github.com/GetStream/stream-video-js/commit/95781555e8450c780ca73cf9d9d940d12613d893))
+
 ### [0.4.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.18...@stream-io/video-react-sdk-0.4.19) (2024-01-16)
 
 ### Dependency Updates
