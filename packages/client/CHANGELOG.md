@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.3...@stream-io/video-client-0.5.4) (2024-01-16)
+
+
+### Bug Fixes
+
+* **ring calls:** cancel auto-drop after rejecting a call ([#1241](https://github.com/GetStream/stream-video-js/issues/1241)) ([67a2aae](https://github.com/GetStream/stream-video-js/commit/67a2aaee658cbe759fbda4d3c924f33e872cd00e))
+
 ### [0.5.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.2...@stream-io/video-client-0.5.3) (2023-12-22)
 
 
