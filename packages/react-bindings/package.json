@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-bindings",
-  "version": "0.3.14",
+  "version": "0.3.16",
   "packageManager": "yarn@3.2.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
