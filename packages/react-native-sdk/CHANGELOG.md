@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.9...@stream-io/video-react-native-sdk-0.3.10) (2024-01-16)
+
+
+### Features
+
+* **react-native:** add support for kotlin in expo config plugin ([#1239](https://github.com/GetStream/stream-video-js/issues/1239)) ([d285e32](https://github.com/GetStream/stream-video-js/commit/d285e32940cf3864932cc6053f8e66bc164bceb0)), closes [#1231](https://github.com/GetStream/stream-video-js/issues/1231)
+
 ### [0.3.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.8...@stream-io/video-react-native-sdk-0.3.9) (2024-01-16)
 
 ### Dependency Updates
