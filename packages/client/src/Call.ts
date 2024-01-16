@@ -500,11 +500,12 @@ export class Call {
 
     this.dispatcher.offAll();
 
+    this.state.setCallingState(CallingState.LEFT);
+
     // Call all leave call hooks, e.g. to clean up global event handlers
     this.leaveCallHooks.forEach((hook) => hook());
 
     this.clientStore.unregisterCall(this);
-    this.state.setCallingState(CallingState.LEFT);
 
     this.camera.removeSubscriptions();
     this.microphone.removeSubscriptions();
