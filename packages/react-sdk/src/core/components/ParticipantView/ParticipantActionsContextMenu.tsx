@@ -80,17 +80,22 @@ export const ParticipantActionsContextMenu = () => {
 
   const toggleFullscreenMode = () => {
     if (!fullscreenModeOn) {
-      return participantViewElement
-        ?.requestFullscreen()
-        .then(() => setFullscreenModeOn(true))
-        .catch(console.error);
+      return participantViewElement?.requestFullscreen().catch(console.error);
     }
-
-    return document
-      .exitFullscreen()
-      .catch(console.error)
-      .finally(() => setFullscreenModeOn(false));
+    return document.exitFullscreen().catch(console.error);
   };
+
+  useEffect(() => {
+    // handles the case when fullscreen mode is toggled externally,
+    // e.g., by pressing ESC key or some other keyboard shortcut
+    const handleFullscreenChange = () => {
+      setFullscreenModeOn(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!videoElement) return;
