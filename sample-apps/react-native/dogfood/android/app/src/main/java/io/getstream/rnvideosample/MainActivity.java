@@ -48,7 +48,7 @@ public class MainActivity extends ReactActivity {
   @Override
   public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
     super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
       // when user clicks on Close button of PIP
       finishAndRemoveTask();
     } else {

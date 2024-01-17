@@ -50,9 +50,26 @@ Add the following attributes to `AndroidManifest.xml` file in `MainActivity`:
 ```
 
 ### Changes to MainActivity
-Add the following imports to `MainActivity.java`:
+Add the following imports:
 
-<!-- vale off -->
+<Tabs
+  defaultValue="java"
+  values={[
+    {label: 'Kotlin', value: 'kotlin'},
+    {label: 'Java', value: 'java'},
+  ]}>
+  <TabItem value="kotlin">
+
+```kotlin title="MainActivity.kt"
+import android.app.PictureInPictureParams
+import com.streamvideo.reactnative.StreamVideoReactNative
+import android.os.Build
+import android.util.Rational
+import androidx.lifecycle.Lifecycle
+```
+
+  </TabItem>
+  <TabItem value="java">
 
 ```java title="MainActivity.java"
 import android.app.PictureInPictureParams;
@@ -62,37 +79,89 @@ import android.util.Rational;
 import androidx.lifecycle.Lifecycle;
 ```
 
-<!-- vale on -->
+  </TabItem>
+</Tabs>
 
-After that, Add the following function to `MainActivity.java`:
+After that, Add the following function:
+
+<Tabs
+  defaultValue="java"
+  values={[
+    {label: 'Kotlin', value: 'kotlin'},
+    {label: 'Java', value: 'java'},
+  ]}>
+  <TabItem value="kotlin">
+
+```kotlin title="MainActivity.kt"
+fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+  super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+  if (lifecycle.currentState === Lifecycle.State.CREATED) {
+      // when user clicks on Close button of PIP
+      finishAndRemoveTask()
+  } else {
+      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode)
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="java">
 
 ```java title="MainActivity.java"
-  @Override
-  public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-    super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
-      // when user clicks on Close button of PIP
-      finishAndRemoveTask();
-    } else {
-      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+@Override
+public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+  super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+  if (getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+    // when user clicks on Close button of PIP
+    finishAndRemoveTask();
+  } else {
+    StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+#### Optional - Automatically make the app enter PiP mode when the home button is pressed
+
+To make the app to automatically enter PiP on the home button press, the following function must be added:
+
+<Tabs
+  defaultValue="java"
+  values={[
+    {label: 'Kotlin', value: 'kotlin'},
+    {label: 'Java', value: 'java'},
+  ]}>
+  <TabItem value="kotlin">
+
+```kotlin title="MainActivity.kt"
+  override fun onUserLeaveHint () {
+    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+      val builder = PictureInPictureParams.Builder()
+      builder.setAspectRatio(Rational(480, 640))
+      enterPictureInPictureMode(builder.build())
     }
   }
 ```
 
-#### Optional - Automatically make the app enter PiP mode when the home button is pressed
-
-To make the app to automatically enter PiP on home button press, the following function must be added to `MainActivity.java`:
+  </TabItem>
+  <TabItem value="java">
 
 ```java title="MainActivity.java"
   @Override
   public void onUserLeaveHint () {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
       PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
       builder.setAspectRatio(new Rational(480, 640)); // 480 x 640 - Width x Height
       enterPictureInPictureMode(builder.build());
     }
   }
 ```
+
+  </TabItem>
+</Tabs>
+
   </TabItem>
 
   <TabItem value="expo" label="Expo">
