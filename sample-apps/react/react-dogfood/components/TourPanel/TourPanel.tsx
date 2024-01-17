@@ -41,30 +41,44 @@ export const TourPanel = ({ highlightClass }: Props) => {
     [highlightClass],
   );
 
+  const [enableOverlay, setEnableOverlay] = useState(true);
   const [showOverlay, setShowOverlay] = useState(false);
   useEffect(() => {
     const panel = tourPanel.current;
     if (!panel) return;
-    const onStart = () => setShowOverlay(true);
-    const onEnd = () => setShowOverlay(false);
+    const onStart = () => {
+      if (!enableOverlay) return;
+      setShowOverlay(true);
+    };
+    const onEnd = () => {
+      setEnableOverlay(true);
+      setShowOverlay(false);
+    };
     panel.addEventListener('transitionstart', onStart);
     panel.addEventListener('transitionend', onEnd);
     return () => {
       panel.removeEventListener('transitionstart', onStart);
       panel.removeEventListener('transitionend', onEnd);
     };
-  }, []);
+  }, [enableOverlay]);
 
   useEffect(() => {
-    if (previousElement) {
-      previousElement.classList.remove(highlightClass);
-    }
-
+    if (previousElement) previousElement.classList.remove(highlightClass);
     if (!step) return;
+
+    const onResize = throttle(() => {
+      setEnableOverlay(false);
+      attachToElement(step.anchor, step.placement, step.offset);
+    }, 50);
+    window.addEventListener('resize', onResize);
+
     const id = setTimeout(() => {
       attachToElement(step.anchor, step.placement, step.offset);
     }, step.delay ?? 0);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener('resize', onResize);
+    };
   }, [step, attachToElement, previousElement, highlightClass]);
 
   if (!active) return null;
@@ -132,4 +146,15 @@ export const TourPanel = ({ highlightClass }: Props) => {
       </div>
     </div>
   );
+};
+
+const throttle = (fn: () => void, delay: number) => {
+  let timeout: NodeJS.Timeout | null = null;
+  return () => {
+    if (timeout) return;
+    timeout = setTimeout(() => {
+      fn();
+      timeout = null;
+    }, delay);
+  };
 };
