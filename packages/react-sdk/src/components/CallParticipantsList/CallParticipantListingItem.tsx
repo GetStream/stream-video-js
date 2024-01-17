@@ -222,6 +222,18 @@ export const ParticipantActionsContextMenu = ({
   };
 
   useEffect(() => {
+    // handles the case when fullscreen mode is toggled externally,
+    // e.g., by pressing ESC key or some other keyboard shortcut
+    const handleFullscreenChange = () => {
+      setFullscreenModeOn(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!videoElement) return;
 
     const handlePictureInPicture = () => {

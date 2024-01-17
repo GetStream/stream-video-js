@@ -4,7 +4,7 @@ import { getLogger } from '../logger';
 
 export const createWebSocketSignalChannel = (opts: {
   endpoint: string;
-  onMessage?: (message: SfuEvent) => void;
+  onMessage: (message: SfuEvent) => void;
 }) => {
   const logger = getLogger(['sfu-client']);
   const { endpoint, onMessage } = opts;
@@ -23,23 +23,21 @@ export const createWebSocketSignalChannel = (opts: {
     logger('info', 'Signaling WS channel is open', e);
   });
 
-  if (onMessage) {
-    ws.addEventListener('message', (e) => {
-      try {
-        const message =
-          e.data instanceof ArrayBuffer
-            ? SfuEvent.fromBinary(new Uint8Array(e.data))
-            : SfuEvent.fromJsonString(e.data.toString());
+  ws.addEventListener('message', (e) => {
+    try {
+      const message =
+        e.data instanceof ArrayBuffer
+          ? SfuEvent.fromBinary(new Uint8Array(e.data))
+          : SfuEvent.fromJsonString(e.data.toString());
 
-        onMessage(message);
-      } catch (err) {
-        logger(
-          'error',
-          'Failed to decode a message. Check whether the Proto models match.',
-          { event: e, error: err },
-        );
-      }
-    });
-  }
+      onMessage(message);
+    } catch (err) {
+      logger(
+        'error',
+        'Failed to decode a message. Check whether the Proto models match.',
+        { event: e, error: err },
+      );
+    }
+  });
   return ws;
 };

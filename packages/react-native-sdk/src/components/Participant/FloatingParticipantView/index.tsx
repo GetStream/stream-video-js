@@ -18,6 +18,7 @@ import { FloatingViewAlignment } from './FloatingView/common';
 import {
   ParticipantView as DefaultParticipantView,
   ParticipantViewComponentProps,
+  ParticipantViewProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { StreamVideoParticipant } from '@stream-io/video-client';
@@ -33,7 +34,8 @@ export type FloatingParticipantViewAlignment =
  */
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> &
-  Pick<CallContentProps, 'supportedReactions'> & {
+  Pick<CallContentProps, 'supportedReactions'> &
+  Pick<ParticipantViewProps, 'objectFit' | 'videoZOrder'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
@@ -90,6 +92,8 @@ export const FloatingParticipantView = ({
   ParticipantReaction,
   VideoRenderer,
   supportedReactions,
+  videoZOrder = 1,
+  objectFit,
 }: FloatingParticipantViewProps) => {
   const {
     theme: { colors, floatingParticipantsView },
@@ -164,7 +168,8 @@ export const FloatingParticipantView = ({
                 ]}
                 // video z order must be one above the one used in grid view
                 // (which uses the default: 0)
-                videoZOrder={1}
+                videoZOrder={videoZOrder}
+                objectFit={objectFit}
                 supportedReactions={supportedReactions}
                 {...participantViewProps}
               />

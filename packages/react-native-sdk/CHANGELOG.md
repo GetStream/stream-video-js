@@ -2,6 +2,38 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.9...@stream-io/video-react-native-sdk-0.3.10) (2024-01-16)
+
+
+### Features
+
+* **react-native:** add support for kotlin in expo config plugin ([#1239](https://github.com/GetStream/stream-video-js/issues/1239)) ([d285e32](https://github.com/GetStream/stream-video-js/commit/d285e32940cf3864932cc6053f8e66bc164bceb0)), closes [#1231](https://github.com/GetStream/stream-video-js/issues/1231)
+
+### [0.3.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.8...@stream-io/video-react-native-sdk-0.3.9) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.16`
+### [0.3.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.7...@stream-io/video-react-native-sdk-0.3.8) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.15`
+### [0.3.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.6...@stream-io/video-react-native-sdk-0.3.7) (2024-01-05)
+
+
+### Features
+
+* **react-native:** add ability to customize the objectFit for participant view ([#1225](https://github.com/GetStream/stream-video-js/issues/1225)) ([06c7010](https://github.com/GetStream/stream-video-js/commit/06c7010cd0fc128e4cfb582c8e8771e43a007629))
+
+### [0.3.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.5...@stream-io/video-react-native-sdk-0.3.6) (2023-12-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.3`
+* `@stream-io/video-react-bindings` updated to version `0.3.14`
 ### [0.3.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.4...@stream-io/video-react-native-sdk-0.3.5) (2023-12-11)
 
 ### Dependency Updates

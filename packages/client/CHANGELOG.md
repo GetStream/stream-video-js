@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.4...@stream-io/video-client-0.5.5) (2024-01-16)
+
+
+### Bug Fixes
+
+* **sfu:** ensure SFU WebSocket is closed ([#1242](https://github.com/GetStream/stream-video-js/issues/1242)) ([3f99206](https://github.com/GetStream/stream-video-js/commit/3f9920616c26770911ebbc54d50dc50f4ca219e2)), closes [#1212](https://github.com/GetStream/stream-video-js/issues/1212)
+
+### [0.5.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.3...@stream-io/video-client-0.5.4) (2024-01-16)
+
+
+### Bug Fixes
+
+* **ring calls:** cancel auto-drop after rejecting a call ([#1241](https://github.com/GetStream/stream-video-js/issues/1241)) ([67a2aae](https://github.com/GetStream/stream-video-js/commit/67a2aaee658cbe759fbda4d3c924f33e872cd00e))
+
+### [0.5.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.2...@stream-io/video-client-0.5.3) (2023-12-22)
+
+
+### Features
+
+* Fast Reconnection ([#1220](https://github.com/GetStream/stream-video-js/issues/1220)) ([5673d67](https://github.com/GetStream/stream-video-js/commit/5673d67ecec3b6808450e2892fa93214c26960a8)), closes [#1212](https://github.com/GetStream/stream-video-js/issues/1212)
+
 ### [0.5.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.1...@stream-io/video-client-0.5.2) (2023-12-11)
 
 

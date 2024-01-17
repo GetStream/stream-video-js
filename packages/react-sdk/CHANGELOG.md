@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.19...@stream-io/video-react-sdk-0.4.20) (2024-01-16)
+
+
+### Bug Fixes
+
+* **react-sdk:** handle external full-screen toggling ([#1243](https://github.com/GetStream/stream-video-js/issues/1243)) ([9578155](https://github.com/GetStream/stream-video-js/commit/95781555e8450c780ca73cf9d9d940d12613d893))
+
+### [0.4.19](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.18...@stream-io/video-react-sdk-0.4.19) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.5`
+* `@stream-io/video-react-bindings` updated to version `0.3.16`
+### [0.4.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.17...@stream-io/video-react-sdk-0.4.18) (2024-01-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.4`
+* `@stream-io/video-react-bindings` updated to version `0.3.15`
+### [0.4.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.16...@stream-io/video-react-sdk-0.4.17) (2023-12-22)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.3`
+* `@stream-io/video-react-bindings` updated to version `0.3.14`
 ### [0.4.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.15...@stream-io/video-react-sdk-0.4.16) (2023-12-11)
 
 ### Dependency Updates
