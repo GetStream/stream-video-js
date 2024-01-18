@@ -1,4 +1,9 @@
-import { SfuEvent } from '../gen/video/sfu/event/events';
+import type {
+  ParticipantJoined,
+  ParticipantLeft,
+  TrackPublished,
+  TrackUnpublished,
+} from '../gen/video/sfu/event/events';
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { CallState } from '../store';
 
@@ -6,9 +11,8 @@ import { CallState } from '../store';
  * An event responder which handles the `participantJoined` event.
  */
 export const watchParticipantJoined = (state: CallState) => {
-  return function onParticipantJoined(e: SfuEvent) {
-    if (e.eventPayload.oneofKind !== 'participantJoined') return;
-    const { participant } = e.eventPayload.participantJoined;
+  return function onParticipantJoined(e: ParticipantJoined) {
+    const { participant } = e;
     if (!participant) return;
     // `state.updateOrAddParticipant` acts as a safeguard against
     // potential duplicate events from the SFU.
@@ -37,9 +41,8 @@ export const watchParticipantJoined = (state: CallState) => {
  * An event responder which handles the `participantLeft` event.
  */
 export const watchParticipantLeft = (state: CallState) => {
-  return function onParticipantLeft(e: SfuEvent) {
-    if (e.eventPayload.oneofKind !== 'participantLeft') return;
-    const { participant } = e.eventPayload.participantLeft;
+  return function onParticipantLeft(e: ParticipantLeft) {
+    const { participant } = e;
     if (!participant) return;
 
     state.setParticipants((participants) =>
@@ -53,12 +56,8 @@ export const watchParticipantLeft = (state: CallState) => {
  * The SFU will send this event when a participant publishes a track.
  */
 export const watchTrackPublished = (state: CallState) => {
-  return function onTrackPublished(e: SfuEvent) {
-    if (e.eventPayload.oneofKind !== 'trackPublished') return;
-    const {
-      trackPublished: { type, sessionId, participant },
-    } = e.eventPayload;
-
+  return function onTrackPublished(e: TrackPublished) {
+    const { type, sessionId, participant } = e;
     // An optimization for large calls.
     // After a certain threshold, the SFU would stop emitting `participantJoined`
     // events, and instead, it would only provide the participant's information
@@ -78,12 +77,8 @@ export const watchTrackPublished = (state: CallState) => {
  * The SFU will send this event when a participant unpublishes a track.
  */
 export const watchTrackUnpublished = (state: CallState) => {
-  return function onTrackUnpublished(e: SfuEvent) {
-    if (e.eventPayload.oneofKind !== 'trackUnpublished') return;
-    const {
-      trackUnpublished: { type, sessionId, participant },
-    } = e.eventPayload;
-
+  return function onTrackUnpublished(e: TrackUnpublished) {
+    const { type, sessionId, participant } = e;
     // An optimization for large calls. See `watchTrackPublished`.
     if (participant) {
       state.updateOrAddParticipant(sessionId, participant);

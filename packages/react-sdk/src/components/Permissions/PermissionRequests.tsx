@@ -10,7 +10,6 @@ import {
 import {
   OwnCapability,
   PermissionRequestEvent,
-  StreamVideoEvent,
   UserResponse,
 } from '@stream-io/video-client';
 import {
@@ -52,23 +51,13 @@ export const PermissionRequests = () => {
   const localUserId = localParticipant?.userId;
   useEffect(() => {
     if (!call || !canUpdateCallPermissions) return;
-
-    const unsubscribe = call.on(
-      'call.permission_request',
-      (event: StreamVideoEvent) => {
-        if (event.type !== 'call.permission_request') return;
-        if (event.user.id !== localUserId) {
-          setPermissionRequests((requests) =>
-            [...requests, event as PermissionRequestEvent].sort((a, b) =>
-              byNameOrId(a.user, b.user),
-            ),
-          );
-        }
-      },
-    );
-    return () => {
-      unsubscribe();
-    };
+    return call.on('call.permission_request', (event) => {
+      if (event.user.id !== localUserId) {
+        setPermissionRequests((requests) =>
+          [...requests, event].sort((a, b) => byNameOrId(a.user, b.user)),
+        );
+      }
+    });
   }, [call, canUpdateCallPermissions, localUserId]);
 
   const handleUpdatePermission: HandleUpdatePermission = (request, type) => {

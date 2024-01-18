@@ -1,8 +1,51 @@
-import { EventTypes, Logger } from '../coordinator/connection/types';
-import type { SfuEvent } from '../gen/video/sfu/event/events';
+import { CallEventListener, EventTypes } from '../coordinator/connection/types';
+import type {
+  AudioLevelChanged,
+  CallGrantsUpdated,
+  ChangePublishQuality,
+  ConnectionQualityChanged,
+  DominantSpeakerChanged,
+  Error as SfuError,
+  GoAway,
+  HealthCheckResponse,
+  ICERestart,
+  ICETrickle,
+  JoinResponse,
+  ParticipantJoined,
+  ParticipantLeft,
+  PinsChanged,
+  PublisherAnswer,
+  SfuEvent,
+  SubscriberOffer,
+  TrackPublished,
+  TrackUnpublished,
+} from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
+export type AllSfuEvents = {
+  // @ts-ignore - TS doesn't like this for some reason
+  // had to type it out manually :)
+  // [K in SfuEventKinds]: Extract<SfuEvent['eventPayload'], { oneofKind: K }>[K];
+  subscriberOffer: SubscriberOffer;
+  publisherAnswer: PublisherAnswer;
+  connectionQualityChanged: ConnectionQualityChanged;
+  audioLevelChanged: AudioLevelChanged;
+  iceTrickle: ICETrickle;
+  changePublishQuality: ChangePublishQuality;
+  participantJoined: ParticipantJoined;
+  participantLeft: ParticipantLeft;
+  dominantSpeakerChanged: DominantSpeakerChanged;
+  joinResponse: JoinResponse;
+  healthCheckResponse: HealthCheckResponse;
+  trackPublished: TrackPublished;
+  trackUnpublished: TrackUnpublished;
+  error: SfuError;
+  callGrantsUpdated: CallGrantsUpdated;
+  goAway: GoAway;
+  iceRestart: ICERestart;
+  pinsUpdated: PinsChanged;
+};
 
 const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
   subscriberOffer: undefined,
@@ -31,41 +74,43 @@ export const isSfuEvent = (
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
-export type SfuEventListener = (event: SfuEvent) => void;
-
 export class Dispatcher {
-  private subscribers: {
-    [eventName: string]: SfuEventListener[] | undefined;
-  } = {};
-  private readonly logger: Logger = getLogger(['sfu-client']);
+  private readonly logger = getLogger(['Dispatcher']);
+  private subscribers: Partial<
+    Record<SfuEventKinds, CallEventListener<any>[] | undefined>
+  > = {};
 
   dispatch = (message: SfuEvent) => {
     const eventKind = message.eventPayload.oneofKind;
     if (eventKind) {
-      this.logger(
-        'debug',
-        `Dispatching ${eventKind}`,
-        (message.eventPayload as any)[eventKind],
-      );
+      const payload = (message.eventPayload as any)[eventKind];
+      this.logger('debug', `Dispatching ${eventKind}`, payload);
       const listeners = this.subscribers[eventKind];
-      listeners?.forEach((fn) => {
+      if (!listeners) return;
+      for (const fn of listeners) {
         try {
-          fn(message);
+          fn(payload);
         } catch (e) {
           this.logger('warn', 'Listener failed with error', e);
         }
-      });
+      }
     }
   };
 
-  on = (eventName: SfuEventKinds, fn: SfuEventListener) => {
-    (this.subscribers[eventName] ??= []).push(fn);
+  on = <E extends keyof AllSfuEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
+    (this.subscribers[eventName] ??= []).push(fn as never);
     return () => {
       this.off(eventName, fn);
     };
   };
 
-  off = (eventName: SfuEventKinds, fn: SfuEventListener) => {
+  off = <E extends keyof AllSfuEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
     this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
       (f) => f !== fn,
     );

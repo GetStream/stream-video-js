@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
 import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { AllSfuEvents } from '../../rtc';
 
 export type UR = Record<string, unknown>;
 
@@ -69,14 +70,24 @@ export type StreamVideoEvent = (
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
+type EventTypes = 'all' | VideoEvent['type'];
 
-export type EventHandler = (event: StreamVideoEvent) => void;
+export type AllClientEventTypes = 'all' | StreamVideoEvent['type'];
+export type AllClientEvents = {
+  [K in AllClientEventTypes]: Extract<StreamVideoEvent, { type: K }>;
+};
+export type ClientEventListener<E extends keyof AllClientEvents> = (
+  event: AllClientEvents[E],
+) => void;
 
-export type CallEventHandler = (event: StreamCallEvent) => void;
+export type AllClientCallEvents = {
+  [K in EventTypes]: Extract<VideoEvent, { type: K }>;
+};
 
-export type EventTypes = 'all' | StreamVideoEvent['type'];
-
-export type CallEventTypes = StreamCallEvent['type'];
+export type AllCallEvents = AllClientCallEvents & AllSfuEvents;
+export type CallEventListener<E extends keyof AllCallEvents> = (
+  event: AllCallEvents[E],
+) => void;
 
 export type Logger = (
   logLevel: LogLevel,

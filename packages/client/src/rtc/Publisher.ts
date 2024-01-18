@@ -132,9 +132,7 @@ export class Publisher {
 
     this.unsubscribeOnIceRestart = dispatcher.on(
       'iceRestart',
-      async (message) => {
-        if (message.eventPayload.oneofKind !== 'iceRestart') return;
-        const { iceRestart } = message.eventPayload;
+      async (iceRestart) => {
         if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
         await this.restartIce();
       },

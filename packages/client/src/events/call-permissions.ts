@@ -1,5 +1,5 @@
 import { CallState } from '../store';
-import { SfuEvent } from '../gen/video/sfu/event/events';
+import type { CallGrantsUpdated } from '../gen/video/sfu/event/events';
 import { OwnCapability } from '../gen/coordinator';
 
 /**
@@ -8,9 +8,8 @@ import { OwnCapability } from '../gen/coordinator';
  * @param state the call state to update.
  */
 export const watchCallGrantsUpdated = (state: CallState) => {
-  return function onCallGrantsUpdated(event: SfuEvent) {
-    if (event.eventPayload.oneofKind !== 'callGrantsUpdated') return;
-    const { currentGrants } = event.eventPayload.callGrantsUpdated;
+  return function onCallGrantsUpdated(event: CallGrantsUpdated) {
+    const { currentGrants } = event;
     if (currentGrants) {
       const { canPublishAudio, canPublishVideo, canScreenshare } =
         currentGrants;

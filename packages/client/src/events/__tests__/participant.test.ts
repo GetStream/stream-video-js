@@ -18,15 +18,10 @@ describe('Participant events', () => {
       const onParticipantLeft = watchParticipantLeft(state);
 
       onParticipantJoined({
-        eventPayload: {
-          oneofKind: 'participantJoined',
-          participantJoined: {
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-            },
-          },
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
         },
       });
 
@@ -42,15 +37,10 @@ describe('Participant events', () => {
       ]);
 
       onParticipantLeft({
-        eventPayload: {
-          oneofKind: 'participantLeft',
-          participantLeft: {
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-            },
-          },
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
         },
       });
 
@@ -66,15 +56,10 @@ describe('Participant events', () => {
       // @ts-ignore setup one participant
       state.setParticipants([{ sessionId: 'session-id', publishedTracks: [] }]);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackPublished',
-          // @ts-ignore
-          trackPublished: {
-            sessionId: 'session-id',
-            type: TrackType.VIDEO,
-          },
-        },
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
       });
 
       expect(state.findParticipantBySessionId('session-id')).toEqual({
@@ -87,20 +72,15 @@ describe('Participant events', () => {
       const state = new CallState();
       const handler = watchTrackPublished(state);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackPublished',
-          // @ts-ignore
-          trackPublished: {
-            sessionId: 'session-id',
-            type: TrackType.VIDEO,
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-              publishedTracks: [TrackType.VIDEO],
-            },
-          },
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO],
         },
       });
 
@@ -124,20 +104,15 @@ describe('Participant events', () => {
         },
       ]);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackPublished',
-          // @ts-ignore
-          trackPublished: {
-            sessionId: 'session-id',
-            type: TrackType.VIDEO,
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-              publishedTracks: [TrackType.VIDEO, TrackType.AUDIO],
-            },
-          },
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO, TrackType.AUDIO],
         },
       });
 
@@ -160,15 +135,10 @@ describe('Participant events', () => {
         { sessionId: 'session-id', publishedTracks: [TrackType.VIDEO] },
       ]);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          // @ts-ignore
-          trackUnpublished: {
-            sessionId: 'session-id',
-            type: TrackType.VIDEO,
-          },
-        },
+        sessionId: 'session-id',
+        type: TrackType.VIDEO,
       });
 
       expect(state.findParticipantBySessionId('session-id')).toEqual({
@@ -181,20 +151,15 @@ describe('Participant events', () => {
       const state = new CallState();
       const handler = watchTrackUnpublished(state);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          // @ts-ignore
-          trackUnpublished: {
-            sessionId: 'session-id',
-            type: TrackType.AUDIO,
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-              publishedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
-            },
-          },
+        sessionId: 'session-id',
+        type: TrackType.AUDIO,
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          publishedTracks: [TrackType.VIDEO, TrackType.SCREEN_SHARE],
         },
       });
 
@@ -219,21 +184,16 @@ describe('Participant events', () => {
         },
       ]);
 
+      // @ts-ignore
       handler({
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          // @ts-ignore
-          trackUnpublished: {
-            sessionId: 'session-id',
-            type: TrackType.AUDIO,
-            // @ts-ignore
-            participant: {
-              userId: 'user-id',
-              sessionId: 'session-id',
-              trackLookupPrefix: 'track-lookup-prefix',
-              publishedTracks: [TrackType.VIDEO],
-            },
-          },
+        sessionId: 'session-id',
+        type: TrackType.AUDIO,
+        // @ts-ignore
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+          publishedTracks: [TrackType.VIDEO],
         },
       });
 

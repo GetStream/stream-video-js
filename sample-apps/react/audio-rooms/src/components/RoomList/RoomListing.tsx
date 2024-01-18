@@ -2,9 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Call,
-  CallEndedEvent,
-  CallLiveStartedEvent,
-  EventHandler,
   QueryCallsRequest,
   StreamCall,
   useStreamVideoClient,
@@ -71,8 +68,8 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
 
   useEffect(() => {
     if (!client) return;
-    const handleGoLive: EventHandler = async (event) => {
-      const { call: callResponse } = event as CallLiveStartedEvent;
+    return client.on('call.live_started', async (event) => {
+      const { call: callResponse } = event;
       if (liveState === 'live') {
         const newCall = client.call(callResponse.type, callResponse.id);
         await newCall.get();
@@ -82,14 +79,14 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
           prevCalls.filter((c) => c.cid !== callResponse.cid),
         );
       }
-    };
-    return client.on('call.live_started', handleGoLive);
+    });
   }, [client, liveState]);
 
   useEffect(() => {
     if (!client) return;
-    const handleCallEnded: EventHandler = async (event) => {
-      const { call_cid } = event as CallEndedEvent;
+
+    return client.on('call.ended', async (event) => {
+      const { call_cid } = event;
       const [type, id] = call_cid.split(':');
       if (liveState === 'ended') {
         const newCall = client.call(type, id);
@@ -98,8 +95,7 @@ export const RoomListing = ({ liveState }: { liveState: RoomLiveState }) => {
       } else if (liveState === 'live') {
         setCalls((prevCalls) => prevCalls.filter((c) => c.cid === call_cid));
       }
-    };
-    return client.on('call.ended', handleCallEnded);
+    });
   }, [client, liveState]);
 
   let content = <EmptyListing liveState={liveState} />;

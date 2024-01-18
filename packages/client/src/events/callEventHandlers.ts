@@ -21,12 +21,13 @@ import {
   watchTrackUnpublished,
 } from '../events';
 import {
-  CallEventTypes,
-  StreamCallEvent,
+  AllCallEvents,
+  AllClientCallEvents,
+  CallEventListener,
 } from '../coordinator/connection/types';
 
 type RingCallEvents = Extract<
-  CallEventTypes,
+  AllClientCallEvents,
   'call.accepted' | 'call.rejected'
 >;
 
@@ -83,7 +84,9 @@ export const registerEventHandlers = (
  */
 export const registerRingingCallEventHandlers = (call: Call) => {
   const coordinatorRingEvents: {
-    [key in RingCallEvents]: (e: StreamCallEvent) => any;
+    [key in RingCallEvents]: (
+      call: Call,
+    ) => CallEventListener<AllCallEvents[key]>;
   } = {
     'call.accepted': watchCallAccepted(call),
     'call.rejected': watchCallRejected(call),

@@ -2,9 +2,7 @@ import {
   CallingState,
   OwnCapability,
   Restricted,
-  SfuEvents,
   SfuModels,
-  StreamVideoEvent,
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
@@ -67,30 +65,19 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
   useEffect(() => {
     if (!call || !localParticipant) return;
 
-    const unsubscribeFromLiveEnded = call.on(
-      'error',
-      (e: SfuEvents.SfuEvent) => {
-        if (
-          e.eventPayload.oneofKind !== 'error' ||
-          !e.eventPayload.error.error ||
-          e.eventPayload.error.error.code !== SfuModels.ErrorCode.LIVE_ENDED
-        ) {
-          return;
-        }
-        if (
-          !call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE)
-        )
-          loadRoom().catch((err) => {
-            console.error('Error loading room', err);
-          });
-      },
-    );
+    const unsubscribeFromLiveEnded = call.on('error', (e) => {
+      if (!e.error || e.error.code !== SfuModels.ErrorCode.LIVE_ENDED) {
+        return;
+      }
+      if (!call.permissionsContext.hasPermission(OwnCapability.JOIN_BACKSTAGE))
+        loadRoom().catch((err) => {
+          console.error('Error loading room', err);
+        });
+    });
 
     const unsubscribeFromParticipantLeft = call.on(
       'call.session_participant_left',
-      (e: StreamVideoEvent) => {
-        if (e.type !== 'call.session_participant_left') return;
-
+      (e) => {
         if (e.participant.user_session_id === localParticipant.sessionId) {
           loadRoom().catch((err) => {
             console.error('Error loading room', err);

@@ -11,10 +11,7 @@ import {
  */
 export const handleRemoteSoftMute = (call: Call) => {
   return call.on('trackUnpublished', async (event) => {
-    if (event.eventPayload.oneofKind !== 'trackUnpublished') return;
-    const {
-      trackUnpublished: { cause, type, sessionId },
-    } = event.eventPayload;
+    const { cause, type, sessionId } = event;
     const { localParticipant } = call.state;
     if (
       cause === TrackUnpublishReason.MODERATION &&

@@ -4,8 +4,6 @@ import {
   getGenericSdp,
   isSfuEvent,
   Publisher,
-  SfuEventKinds,
-  SfuEventListener,
   Subscriber,
 } from './rtc';
 import { muteTypeToTrackType } from './rtc/helpers/tracks';
@@ -107,10 +105,8 @@ import {
   sleep,
 } from './coordinator/connection/utils';
 import {
-  CallEventHandler,
-  CallEventTypes,
-  EventHandler,
-  EventTypes,
+  AllCallEvents,
+  CallEventListener,
   Logger,
   StreamCallEvent,
 } from './coordinator/connection/types';
@@ -221,7 +217,7 @@ export class Call {
   private readonly leaveCallHooks: Set<Function> = new Set();
 
   private readonly streamClientBasePath: string;
-  private streamClientEventHandlers = new Map<Function, CallEventHandler>();
+  private streamClientEventHandlers = new Map<Function, () => void>();
 
   /**
    * Constructs a new `Call` instance.
@@ -410,55 +406,54 @@ export class Call {
 
   /**
    * You can subscribe to WebSocket events provided by the API. To remove a subscription, call the `off` method.
-   * Please note that subscribing to WebSocket events is an advanced use-case, for most use-cases it should be enough to watch for changes in the [reactive state store](./StreamVideoClient.md/#readonlystatestore).
-   * @param eventName
-   * @param fn
-   * @returns a function which can be called to unsubscribe from the given event(s)
+   * Please note that subscribing to WebSocket events is an advanced use-case.
+   * For most use-cases, it should be enough to watch for state changes.
+   *
+   * @param eventName the event name.
+   * @param fn the event handler.
    */
-  on(eventName: SfuEventKinds, fn: SfuEventListener): () => void;
-  on(eventName: EventTypes, fn: CallEventHandler): () => void;
-  on(
-    eventName: SfuEventKinds | EventTypes,
-    fn: SfuEventListener | CallEventHandler,
-  ) {
+  on = <E extends keyof AllCallEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
     if (isSfuEvent(eventName)) {
-      return this.dispatcher.on(eventName, fn as SfuEventListener);
-    } else {
-      const eventHandler: CallEventHandler = (event: StreamCallEvent) => {
-        if (event.call_cid && event.call_cid === this.cid) {
-          (fn as EventHandler)(event);
-        }
-      };
-      this.streamClientEventHandlers.set(fn, eventHandler);
-
-      return this.streamClient.on(eventName, eventHandler as EventHandler);
+      return this.dispatcher.on(eventName, fn);
     }
-  }
+
+    const offHandler = this.streamClient.on(eventName, (e) => {
+      const event = e as StreamCallEvent;
+      if (event.call_cid && event.call_cid === this.cid) {
+        fn(event as AllCallEvents[E]);
+      }
+    });
+
+    // keep the 'off' reference returned by the stream client
+    this.streamClientEventHandlers.set(fn, offHandler);
+    return () => {
+      this.off(eventName, fn);
+    };
+  };
 
   /**
    * Remove subscription for WebSocket events that were created by the `on` method.
-   * @param eventName
-   * @param fn
-   * @returns
+   *
+   * @param eventName the event name.
+   * @param fn the event handler.
    */
-  off(eventName: SfuEventKinds, fn: SfuEventListener): void;
-  off(eventName: CallEventTypes, fn: CallEventHandler): void;
-  off(
-    eventName: SfuEventKinds | CallEventTypes,
-    fn: SfuEventListener | CallEventHandler,
-  ) {
+  off = <E extends keyof AllCallEvents>(
+    eventName: E,
+    fn: CallEventListener<E>,
+  ) => {
     if (isSfuEvent(eventName)) {
-      return this.dispatcher.off(eventName, fn as SfuEventListener);
-    } else {
-      const registeredEventHandler = this.streamClientEventHandlers.get(fn);
-      if (registeredEventHandler) {
-        return this.streamClient.off(
-          eventName,
-          registeredEventHandler as EventHandler,
-        );
-      }
+      return this.dispatcher.off(eventName, fn);
     }
-  }
+
+    // unsubscribe from the stream client event by using the 'off' reference
+    const registeredOffHandler = this.streamClientEventHandlers.get(fn);
+    if (registeredOffHandler) {
+      registeredOffHandler();
+    }
+  };
 
   /**
    * Leave the call and stop the media streams that were published by the call.
@@ -845,8 +840,7 @@ export class Call {
     sfuClient.signalReady.then(() => {
       // register a handler for the "goAway" event
       const unregisterGoAway = this.dispatcher.on('goAway', (event) => {
-        if (event.eventPayload.oneofKind !== 'goAway') return;
-        const { reason } = event.eventPayload.goAway;
+        const { reason } = event;
         this.logger(
           'info',
           `[Migration]: Going away from SFU... Reason: ${GoAwayReason[reason]}`,
@@ -1119,10 +1113,9 @@ export class Call {
   private waitForJoinResponse = (timeout: number = 5000) => {
     return new Promise<JoinResponse>((resolve, reject) => {
       const unsubscribe = this.on('joinResponse', (event) => {
-        if (event.eventPayload.oneofKind !== 'joinResponse') return;
         clearTimeout(timeoutId);
         unsubscribe();
-        resolve(event.eventPayload.joinResponse);
+        resolve(event);
       });
 
       const timeoutId = setTimeout(() => {

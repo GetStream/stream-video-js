@@ -1,20 +1,15 @@
 import { CallingState } from '../store';
-import { StreamVideoEvent } from '../coordinator/connection/types';
 import { Call } from '../Call';
+import type { CallAcceptedEvent, CallRejectedEvent } from '../gen/coordinator';
 
 /**
  * Event handler that watched the delivery of `call.accepted`.
  * Once the event is received, the call is joined.
  */
 export const watchCallAccepted = (call: Call) => {
-  return async function onCallAccepted(event: StreamVideoEvent) {
-    if (
-      event.type !== 'call.accepted' ||
-      // We want to discard the event if it's from the current user
-      event.user.id === call.currentUserId
-    ) {
-      return;
-    }
+  return async function onCallAccepted(event: CallAcceptedEvent) {
+    // We want to discard the event if it's from the current user
+    if (event.user.id === call.currentUserId) return;
     const { state } = call;
     if (state.callingState === CallingState.RINGING) {
       await call.join();
@@ -27,8 +22,7 @@ export const watchCallAccepted = (call: Call) => {
  * Once the event is received, the call is left.
  */
 export const watchCallRejected = (call: Call) => {
-  return async function onCallRejected(event: StreamVideoEvent) {
-    if (event.type !== 'call.rejected') return;
+  return async function onCallRejected(event: CallRejectedEvent) {
     // We want to discard the event if it's from the current user
     if (event.user.id === call.currentUserId) return;
     const { call: eventCall } = event;
@@ -74,8 +68,7 @@ export const watchCallRejected = (call: Call) => {
  * Event handler that watches the delivery of `call.ended` Websocket event.
  */
 export const watchCallEnded = (call: Call) => {
-  return async function onCallCancelled(event: StreamVideoEvent) {
-    if (event.type !== 'call.ended') return;
+  return async function onCallEnded() {
     const { callingState } = call.state;
     if (
       callingState === CallingState.RINGING ||

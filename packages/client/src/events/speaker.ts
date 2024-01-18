@@ -10,11 +10,7 @@ export const watchDominantSpeakerChanged = (
   state: CallState,
 ) => {
   return dispatcher.on('dominantSpeakerChanged', (e) => {
-    if (e.eventPayload.oneofKind !== 'dominantSpeakerChanged') return;
-    const {
-      dominantSpeakerChanged: { sessionId },
-    } = e.eventPayload;
-
+    const { sessionId } = e;
     if (sessionId === state.dominantSpeaker?.sessionId) return;
     state.setParticipants((participants) =>
       participants.map((participant) => {
@@ -46,9 +42,7 @@ export const watchAudioLevelChanged = (
   state: CallState,
 ) => {
   return dispatcher.on('audioLevelChanged', (e) => {
-    if (e.eventPayload.oneofKind !== 'audioLevelChanged') return;
-
-    const { audioLevels } = e.eventPayload.audioLevelChanged;
+    const { audioLevels } = e;
     state.updateParticipants(
       audioLevels.reduce<StreamVideoParticipantPatches>((patches, current) => {
         patches[current.sessionId] = {

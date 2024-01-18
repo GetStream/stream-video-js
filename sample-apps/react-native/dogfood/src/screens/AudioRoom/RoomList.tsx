@@ -93,9 +93,6 @@ const RoomList = (props: Props) => {
       return;
     }
     return client.on('call.created', (e) => {
-      if (e.type !== 'call.created') {
-        return;
-      }
       const callResponse = e.call;
       if (callResponse.type !== 'audio_room') {
         return;

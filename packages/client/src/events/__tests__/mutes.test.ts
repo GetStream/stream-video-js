@@ -4,14 +4,13 @@ import {
   TrackType,
   TrackUnpublishReason,
 } from '../../gen/video/sfu/models/models';
-import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { StreamClient } from '../../coordinator/connection/client';
 import { handleRemoteSoftMute } from '../mutes';
-import { SfuEventListener } from '../../rtc';
+import type { CallEventListener } from '../../coordinator/connection/types';
 
 describe('mutes', () => {
   describe('soft mute', () => {
-    let handler: SfuEventListener;
+    let handler: CallEventListener<'trackUnpublished'>;
     let call: Call;
 
     beforeEach(() => {
@@ -58,73 +57,45 @@ describe('mutes', () => {
     });
 
     it('should automatically mute only when cause is moderation', async () => {
-      const event: SfuEvent = {
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          trackUnpublished: {
-            cause: TrackUnpublishReason.PERMISSION_REVOKED,
-            type: TrackType.VIDEO,
-            sessionId: 'session-id',
-            userId: 'user-id',
-          },
-        },
-      };
-
-      await handler!(event);
+      await handler!({
+        cause: TrackUnpublishReason.PERMISSION_REVOKED,
+        type: TrackType.VIDEO,
+        sessionId: 'session-id',
+        userId: 'user-id',
+      });
       expect(call.camera.disable).not.toHaveBeenCalled();
       expect(call.stopPublish).not.toHaveBeenCalledWith(TrackType.VIDEO);
     });
 
     it('should handle remote soft video mute', async () => {
-      const event: SfuEvent = {
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          trackUnpublished: {
-            cause: TrackUnpublishReason.MODERATION,
-            type: TrackType.VIDEO,
-            sessionId: 'session-id',
-            userId: 'user-id',
-          },
-        },
-      };
-
-      await handler!(event);
+      await handler!({
+        cause: TrackUnpublishReason.MODERATION,
+        type: TrackType.VIDEO,
+        sessionId: 'session-id',
+        userId: 'user-id',
+      });
       expect(call.camera.disable).toHaveBeenCalled();
       expect(call.stopPublish).toHaveBeenCalledWith(TrackType.VIDEO);
     });
 
     it('should handle remote soft audio mute', async () => {
-      const event: SfuEvent = {
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          trackUnpublished: {
-            cause: TrackUnpublishReason.MODERATION,
-            type: TrackType.AUDIO,
-            sessionId: 'session-id',
-            userId: 'user-id',
-          },
-        },
-      };
-
-      await handler!(event);
+      await handler!({
+        cause: TrackUnpublishReason.MODERATION,
+        type: TrackType.AUDIO,
+        sessionId: 'session-id',
+        userId: 'user-id',
+      });
       expect(call.microphone.disable).toHaveBeenCalled();
       expect(call.stopPublish).toHaveBeenCalledWith(TrackType.AUDIO);
     });
 
     it('should handle remote soft screenshare mute', async () => {
-      const event: SfuEvent = {
-        eventPayload: {
-          oneofKind: 'trackUnpublished',
-          trackUnpublished: {
-            cause: TrackUnpublishReason.MODERATION,
-            type: TrackType.SCREEN_SHARE,
-            sessionId: 'session-id',
-            userId: 'user-id',
-          },
-        },
-      };
-
-      await handler!(event);
+      await handler!({
+        cause: TrackUnpublishReason.MODERATION,
+        type: TrackType.SCREEN_SHARE,
+        sessionId: 'session-id',
+        userId: 'user-id',
+      });
       expect(call.camera.disable).not.toHaveBeenCalled();
       expect(call.microphone.disable).not.toHaveBeenCalled();
       expect(call.stopPublish).toHaveBeenCalledWith(TrackType.SCREEN_SHARE);
