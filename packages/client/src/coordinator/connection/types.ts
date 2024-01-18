@@ -70,7 +70,7 @@ export type StreamVideoEvent = (
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
-type EventTypes = 'all' | VideoEvent['type'];
+export type EventTypes = 'all' | VideoEvent['type'];
 
 export type AllClientEventTypes = 'all' | StreamVideoEvent['type'];
 export type AllClientEvents = {
