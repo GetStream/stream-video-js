@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CallingState,
   CancelCallConfirmButton,
@@ -9,8 +9,6 @@ import {
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
-
-import { differenceInSeconds } from 'date-fns';
 
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
@@ -47,20 +45,24 @@ export const Elapsed = ({
   startedAt: string | undefined;
 }) => {
   const [elapsed, setElapsed] = useState<string>();
-
+  const startedAtDate = useMemo(
+    () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
+    [startedAt],
+  );
   useEffect(() => {
-    const startedAtDate = startedAt ? new Date(startedAt) : new Date();
     const interval = setInterval(() => {
-      const elapsedSeconds = differenceInSeconds(Date.now(), startedAtDate);
-
+      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
       const date = new Date(0);
       date.setSeconds(elapsedSeconds);
-      const format = date.toISOString().substring(14, 19);
-
-      setElapsed(format);
+      const format = date.toISOString(); // '1970-01-01T00:00:35.000Z'
+      const hours = format.substring(11, 13);
+      const minutes = format.substring(14, 16);
+      const seconds = format.substring(17, 19);
+      const time = `${hours !== '00' ? hours + ':' : ''}${minutes}:${seconds}`;
+      setElapsed(time);
     }, 1000);
     return () => clearInterval(interval);
-  }, [startedAt]);
+  }, [startedAtDate]);
 
   return (
     <div className="rd__header__elapsed">

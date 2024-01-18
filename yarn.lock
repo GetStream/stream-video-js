@@ -7384,7 +7384,6 @@ __metadata:
     "@types/yargs": ^17.0.32
     axios: ^1.6.0
     clsx: ^2.0.0
-    date-fns: ^2.30.0
     dotenv: ^16.3.1
     framer-motion: ^10.16.16
     geojson: ^0.5.0
@@ -13226,7 +13225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^2.16.1, date-fns@npm:^2.29.1, date-fns@npm:^2.29.3, date-fns@npm:^2.30.0":
+"date-fns@npm:^2.16.1, date-fns@npm:^2.29.1, date-fns@npm:^2.29.3":
   version: 2.30.0
   resolution: "date-fns@npm:2.30.0"
   dependencies:

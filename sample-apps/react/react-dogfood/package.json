@@ -17,7 +17,6 @@
     "@stream-io/video-styling": "workspace:^",
     "axios": "^1.6.0",
     "clsx": "^2.0.0",
-    "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "framer-motion": "^10.16.16",
     "geojson": "^0.5.0",
