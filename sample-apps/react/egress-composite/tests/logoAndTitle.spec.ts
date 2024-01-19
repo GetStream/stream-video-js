@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import { testWithCallId as test } from './baseTests';
 import { generateScriptTagContent, participants } from './mocks';
 
-const LOGO_URL = 'https://getstream.io/blog/images/stream-logo.png';
+const LOGO_URL = 'https://pronto.getstream.io/home.png';
 
 test.describe('Logo and Title', () => {
   test('Should render logo and title with defaults', async ({
