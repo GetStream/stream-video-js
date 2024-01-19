@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.5...@stream-io/video-client-0.5.6) (2024-01-19)
+
+
+### Bug Fixes
+
+* **client:** automatic call join for other participants when someone accepts ([#1247](https://github.com/GetStream/stream-video-js/issues/1247)) ([3559ff2](https://github.com/GetStream/stream-video-js/commit/3559ff209616ccfc4664b24e6a4f35c153be2090)), closes [#1245](https://github.com/GetStream/stream-video-js/issues/1245)
+
 ### [0.5.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.4...@stream-io/video-client-0.5.5) (2024-01-16)
 
 
