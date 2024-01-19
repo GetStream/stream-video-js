@@ -29,7 +29,7 @@ describe('Call ringing events', () => {
     });
 
     it(`will join the call if at least one callee has accepted`, async () => {
-      const call = fakeCall();
+      const call = fakeCall({ currentUserId: 'test' });
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
       });
@@ -39,6 +39,12 @@ describe('Call ringing events', () => {
         // @ts-expect-error
         user: {
           id: 'test-user-id-callee',
+        },
+        call: {
+          // @ts-expect-error
+          created_by: {
+            id: 'test',
+          },
         },
       };
       // @ts-ignore

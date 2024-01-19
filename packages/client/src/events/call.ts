@@ -16,7 +16,10 @@ export const watchCallAccepted = (call: Call) => {
       return;
     }
     const { state } = call;
-    if (state.callingState === CallingState.RINGING) {
+    if (
+      event.call.created_by.id === call.currentUserId &&
+      state.callingState === CallingState.RINGING
+    ) {
       await call.join();
     }
   };
