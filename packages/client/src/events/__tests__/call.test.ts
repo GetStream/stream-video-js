@@ -69,7 +69,7 @@ describe('Call ringing events', () => {
       call: {
         // @ts-expect-error
         created_by: {
-          id: 'test-user-id-callee',
+          id: 'test-user-id-caller',
         },
       },
     };
