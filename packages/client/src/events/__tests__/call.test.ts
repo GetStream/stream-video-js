@@ -28,8 +28,8 @@ describe('Call ringing events', () => {
       expect(call.join).not.toHaveBeenCalled();
     });
 
-    it(`will join the call if at least one callee has accepted`, async () => {
-      const call = fakeCall({ currentUserId: 'test' });
+    it(`will join the call for the caller if atleast one callee has accepted`, async () => {
+      const call = fakeCall({ currentUserId: 'test-user' });
       vi.spyOn(call, 'join').mockImplementation(async () => {
         console.log(`TEST: join() called`);
       });
@@ -43,7 +43,7 @@ describe('Call ringing events', () => {
         call: {
           // @ts-expect-error
           created_by: {
-            id: 'test',
+            id: 'test-user',
           },
         },
       };
@@ -52,6 +52,32 @@ describe('Call ringing events', () => {
 
       expect(call.join).toHaveBeenCalled();
     });
+  });
+
+  it('will not join the call for the other callee automatically when someone accepts', async () => {
+    const call = fakeCall({ currentUserId: 'test-user-id-callee-2' });
+    vi.spyOn(call, 'join').mockImplementation(async () => {
+      console.log(`TEST: join() called`);
+    });
+    const handler = watchCallAccepted(call);
+    const event: CallAcceptedEvent = {
+      type: 'call.accepted',
+      // @ts-expect-error
+      user: {
+        id: 'test-user-id-callee-1',
+      },
+      call: {
+        // @ts-expect-error
+        created_by: {
+          id: 'test-user-id-callee',
+        },
+      },
+    };
+
+    // @ts-ignore
+    await handler(event);
+
+    expect(call.join).not.toHaveBeenCalled();
   });
 
   describe(`call.rejected`, () => {
@@ -239,7 +265,11 @@ describe('Call ringing events', () => {
   });
 });
 
-const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
+const fakeCall = ({
+  ring = true,
+  currentUserId = 'test-user-id',
+  members = [],
+} = {}) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
     id: currentUserId,
@@ -257,6 +287,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     clientStore: store,
     streamClient: client,
     ringing: ring,
+    members,
   });
 };
 
