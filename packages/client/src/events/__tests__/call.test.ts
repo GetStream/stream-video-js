@@ -265,11 +265,7 @@ describe('Call ringing events', () => {
   });
 });
 
-const fakeCall = ({
-  ring = true,
-  currentUserId = 'test-user-id',
-  members = [],
-} = {}) => {
+const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
   const store = new StreamVideoWriteableStateStore();
   store.setConnectedUser({
     id: currentUserId,
@@ -287,7 +283,6 @@ const fakeCall = ({
     clientStore: store,
     streamClient: client,
     ringing: ring,
-    members,
   });
 };
 
