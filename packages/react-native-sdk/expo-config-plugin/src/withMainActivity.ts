@@ -94,7 +94,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
       statementToInsert = `
       @Override
       public void onUserLeaveHint () {
-        if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
           PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
           builder.setAspectRatio(new Rational(480, 640));
           enterPictureInPictureMode(builder.build());
@@ -103,7 +103,7 @@ function addOnUserLeaveHint(contents: string, isJava: boolean) {
     } else {
       statementToInsert = `           
       override fun onUserLeaveHint () {
-        if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
           val builder = PictureInPictureParams.Builder()
           builder.setAspectRatio(Rational(480, 640))
           enterPictureInPictureMode(builder.build())
