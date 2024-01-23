@@ -54,7 +54,7 @@ describe('InputMediaDeviceManagerState', () => {
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
 
-    it('should emit true when prompt is needed', async () => {
+    it('should emit false when prompt is needed', async () => {
       const permissionStatus: Partial<PermissionStatus> = {
         state: 'prompt',
         addEventListener: vi.fn(),
@@ -63,6 +63,26 @@ describe('InputMediaDeviceManagerState', () => {
       globalThis.navigator ??= {} as Navigator;
       // @ts-ignore - navigator is readonly, but we need to mock it
       globalThis.navigator.permissions = { query };
+
+      const hasPermission = await new Promise((resolve) => {
+        state.hasBrowserPermission$.subscribe((v) => resolve(v));
+      });
+      expect(hasPermission).toBe(false);
+      expect(query).toHaveBeenCalledWith({ name: 'camera' });
+      expect(permissionStatus.addEventListener).toHaveBeenCalled();
+    });
+
+    it('should emit true when prompt is needed in Safari', async () => {
+      const permissionStatus: Partial<PermissionStatus> = {
+        state: 'prompt',
+        addEventListener: vi.fn(),
+      };
+      const query = vi.fn(() => Promise.resolve(permissionStatus));
+      globalThis.navigator ??= {} as Navigator;
+      // @ts-ignore - navigator is readonly, but we need to mock it
+      globalThis.navigator.permissions = { query };
+
+      vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('safari');
 
       const hasPermission = await new Promise((resolve) => {
         state.hasBrowserPermission$.subscribe((v) => resolve(v));

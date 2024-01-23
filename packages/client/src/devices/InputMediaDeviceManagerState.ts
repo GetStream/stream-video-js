@@ -7,6 +7,7 @@ import {
 import { isReactNative } from '../helpers/platforms';
 import { RxUtils } from '../store';
 import { getLogger } from '../logger';
+import { isSafari } from '../helpers/browsers';
 
 export type InputDeviceStatus = 'enabled' | 'disabled' | undefined;
 
@@ -66,10 +67,15 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     }
 
     let permissionState: PermissionStatus;
-    // In Safari, the `change` event doesn't reliably emit and hence,
-    // permissionState stays in 'prompt' state forever.
-    // Instead of checking if a permission is granted, we check if it isn't denied
-    const notify = () => subscriber.next(permissionState.state !== 'denied');
+    const notify = () =>
+      subscriber.next(
+        // In Safari, the `change` event doesn't reliably emit and hence,
+        // permissionState stays in 'prompt' state forever.
+        // Instead of checking if a permission is granted, we check if it isn't denied
+        isSafari()
+          ? permissionState.state !== 'denied'
+          : permissionState.state === 'granted',
+      );
     navigator.permissions
       .query({ name: this.permissionName })
       .then((permissionStatus) => {
