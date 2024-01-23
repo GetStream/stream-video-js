@@ -1,25 +1,5 @@
 import { CallEventListener, EventTypes } from '../coordinator/connection/types';
-import type {
-  AudioLevelChanged,
-  CallGrantsUpdated,
-  ChangePublishQuality,
-  ConnectionQualityChanged,
-  DominantSpeakerChanged,
-  Error as SfuError,
-  GoAway,
-  HealthCheckResponse,
-  ICERestart,
-  ICETrickle,
-  JoinResponse,
-  ParticipantJoined,
-  ParticipantLeft,
-  PinsChanged,
-  PublisherAnswer,
-  SfuEvent,
-  SubscriberOffer,
-  TrackPublished,
-  TrackUnpublished,
-} from '../gen/video/sfu/event/events';
+import type { SfuEvent } from '../gen/video/sfu/event/events';
 import { getLogger } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
@@ -30,6 +10,14 @@ export type AllSfuEvents = {
   >
     ? Extract<SfuEvent['eventPayload'], { oneofKind: K }>[K]
     : never;
+};
+
+export type DispatchableMessage<K extends SfuEventKinds> = {
+  eventPayload: {
+    oneofKind: K;
+  } & {
+    [Key in K]: AllSfuEvents[Key];
+  };
 };
 
 const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
@@ -65,19 +53,18 @@ export class Dispatcher {
     Record<SfuEventKinds, CallEventListener<any>[] | undefined>
   > = {};
 
-  dispatch = (message: SfuEvent) => {
+  dispatch = <K extends SfuEventKinds>(message: DispatchableMessage<K>) => {
     const eventKind = message.eventPayload.oneofKind;
-    if (eventKind) {
-      const payload = (message.eventPayload as any)[eventKind];
-      this.logger('debug', `Dispatching ${eventKind}`, payload);
-      const listeners = this.subscribers[eventKind];
-      if (!listeners) return;
-      for (const fn of listeners) {
-        try {
-          fn(payload);
-        } catch (e) {
-          this.logger('warn', 'Listener failed with error', e);
-        }
+    if (!eventKind) return;
+    const payload = message.eventPayload[eventKind];
+    this.logger('debug', `Dispatching ${eventKind}`, payload);
+    const listeners = this.subscribers[eventKind];
+    if (!listeners) return;
+    for (const fn of listeners) {
+      try {
+        fn(payload);
+      } catch (e) {
+        this.logger('warn', 'Listener failed with error', e);
       }
     }
   };
