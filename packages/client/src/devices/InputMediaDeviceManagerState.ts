@@ -66,7 +66,10 @@ export abstract class InputMediaDeviceManagerState<C = MediaTrackConstraints> {
     }
 
     let permissionState: PermissionStatus;
-    const notify = () => subscriber.next(permissionState.state === 'granted');
+    // In Safari, the `change` event doesn't reliably emit and hence,
+    // permissionState stays in 'prompt' state forever.
+    // Instead of checking if a permission is granted, we check if it isn't denied
+    const notify = () => subscriber.next(permissionState.state !== 'denied');
     navigator.permissions
       .query({ name: this.permissionName })
       .then((permissionStatus) => {

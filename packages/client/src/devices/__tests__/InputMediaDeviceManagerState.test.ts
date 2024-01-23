@@ -35,7 +35,7 @@ describe('InputMediaDeviceManagerState', () => {
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
 
-    it(' should emit false when permission is denied', async () => {
+    it('should emit false when permission is denied', async () => {
       const permissionStatus: Partial<PermissionStatus> = {
         state: 'denied',
         addEventListener: vi.fn(),
@@ -54,7 +54,7 @@ describe('InputMediaDeviceManagerState', () => {
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
 
-    it('should emit false when prompt is needed', async () => {
+    it('should emit true when prompt is needed', async () => {
       const permissionStatus: Partial<PermissionStatus> = {
         state: 'prompt',
         addEventListener: vi.fn(),
@@ -67,7 +67,7 @@ describe('InputMediaDeviceManagerState', () => {
       const hasPermission = await new Promise((resolve) => {
         state.hasBrowserPermission$.subscribe((v) => resolve(v));
       });
-      expect(hasPermission).toBe(false);
+      expect(hasPermission).toBe(true);
       expect(query).toHaveBeenCalledWith({ name: 'camera' });
       expect(permissionStatus.addEventListener).toHaveBeenCalled();
     });
