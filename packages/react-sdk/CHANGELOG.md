@@ -84,6 +84,14 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 - Added an initials fallback
 
+
+### [0.4.21](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.20...@stream-io/video-react-sdk-0.4.21) (2024-01-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.6`
+* `@stream-io/video-react-bindings` updated to version `0.3.17`
+
 ### [0.4.20](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.19...@stream-io/video-react-sdk-0.4.20) (2024-01-16)
 
 

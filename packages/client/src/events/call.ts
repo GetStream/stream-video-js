@@ -11,7 +11,10 @@ export const watchCallAccepted = (call: Call) => {
     // We want to discard the event if it's from the current user
     if (event.user.id === call.currentUserId) return;
     const { state } = call;
-    if (state.callingState === CallingState.RINGING) {
+    if (
+      event.call.created_by.id === call.currentUserId &&
+      state.callingState === CallingState.RINGING
+    ) {
       await call.join();
     }
   };

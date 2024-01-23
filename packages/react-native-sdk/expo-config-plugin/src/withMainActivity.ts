@@ -8,62 +8,72 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
   props,
 ) => {
   return withMainActivity(configuration, (config) => {
-    if (['java'].includes(config.modResults.language)) {
-      try {
-        /*
-          import com.streamvideo.reactnative.StreamVideoReactNative;
-          import android.util.Rational;
-          import androidx.lifecycle.Lifecycle;
-          import android.app.PictureInPictureParams;
-        */
-        config.modResults.contents = addImports(
+    const isMainActivityJava = config.modResults.language === 'java';
+
+    try {
+      config.modResults.contents = addImports(
+        config.modResults.contents,
+        [
+          'com.streamvideo.reactnative.StreamVideoReactNative',
+          'android.os.Build',
+          'android.util.Rational',
+          'androidx.lifecycle.Lifecycle',
+          'android.app.PictureInPictureParams',
+        ],
+        isMainActivityJava,
+      );
+      config.modResults.contents = addOnPictureInPictureModeChanged(
+        config.modResults.contents,
+        isMainActivityJava,
+      );
+      if (props?.androidPictureInPicture?.enableAutomaticEnter) {
+        config.modResults.contents = addOnUserLeaveHint(
           config.modResults.contents,
-          [
-            'com.streamvideo.reactnative.StreamVideoReactNative',
-            'android.os.Build',
-            'android.util.Rational',
-            'androidx.lifecycle.Lifecycle',
-            'android.app.PictureInPictureParams',
-          ],
-          config.modResults.language === 'java',
-        );
-        config.modResults.contents = addOnPictureInPictureModeChanged(
-          config.modResults.contents,
-        );
-        if (props?.androidPictureInPicture?.enableAutomaticEnter) {
-          config.modResults.contents = addOnUserLeaveHint(
-            config.modResults.contents,
-          );
-        }
-      } catch (error: any) {
-        throw new Error(
-          "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed.",
+          isMainActivityJava,
         );
       }
-    } else {
+    } catch (error: any) {
       throw new Error(
-        'Cannot setup StreamVideoReactNativeSDK because the MainApplication is not in Java',
+        "Cannot add StreamVideoReactNativeSDK to the project's MainApplication because it's malformed.",
       );
     }
+
     return config;
   });
 };
 
-function addOnPictureInPictureModeChanged(contents: string) {
+function addOnPictureInPictureModeChanged(contents: string, isJava: boolean) {
   if (
     !contents.includes('StreamVideoReactNative.onPictureInPictureModeChanged')
   ) {
-    const statementToInsert = `
-  @Override
-  public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
-    super.onPictureInPictureModeChanged(isInPictureInPictureMode);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
-      // when user clicks on Close button of PIP
-      finishAndRemoveTask();
+    let statementToInsert = '';
+
+    if (isJava) {
+      statementToInsert = `
+      @Override
+      public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getLifecycle().getCurrentState() == Lifecycle.State.CREATED) {
+          // when user clicks on Close button of PIP
+          finishAndRemoveTask();
+        } else {
+          StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        }
+      }`;
     } else {
-      StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode);
+      // Kotlin
+      statementToInsert = `         
+      override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+          super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && lifecycle.currentState == Lifecycle.State.CREATED) {
+              // when user clicks on Close button of PIP
+              finishAndRemoveTask()
+          } else {
+              StreamVideoReactNative.onPictureInPictureModeChanged(isInPictureInPictureMode)
+          }
+      }`;
     }
-  }`;
+
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n'),
@@ -72,21 +82,35 @@ function addOnPictureInPictureModeChanged(contents: string) {
   return contents;
 }
 
-function addOnUserLeaveHint(contents: string) {
+function addOnUserLeaveHint(contents: string, isJava: boolean) {
   if (
     !contents.includes(
       'StreamVideoReactNative.canAutoEnterPictureInPictureMode',
     )
   ) {
-    const statementToInsert = `
-  @Override
-  public void onUserLeaveHint () {
-    if (StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
-      PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
-      builder.setAspectRatio(new Rational(480, 640));
-      enterPictureInPictureMode(builder.build());
+    let statementToInsert = '';
+
+    if (isJava) {
+      statementToInsert = `
+      @Override
+      public void onUserLeaveHint () {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+          PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder();
+          builder.setAspectRatio(new Rational(480, 640));
+          enterPictureInPictureMode(builder.build());
+        }
+      }`;
+    } else {
+      statementToInsert = `           
+      override fun onUserLeaveHint () {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && StreamVideoReactNative.canAutoEnterPictureInPictureMode) {
+          val builder = PictureInPictureParams.Builder()
+          builder.setAspectRatio(Rational(480, 640))
+          enterPictureInPictureMode(builder.build())
+        }
+      }`;
     }
-  }`;
+
     contents = addNewLinesToMainActivity(
       contents,
       statementToInsert.trim().split('\n'),
