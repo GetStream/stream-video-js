@@ -78,7 +78,7 @@ describe('InputMediaDeviceManagerState', () => {
         addEventListener: vi.fn(),
       };
       const query = vi.fn(() => Promise.resolve(permissionStatus));
-      globalThis.navigator ??= {} as Navigator;
+      globalThis.navigator ??= { userAgent: 'safari' } as Navigator;
       // @ts-ignore - navigator is readonly, but we need to mock it
       globalThis.navigator.permissions = { query };
 
