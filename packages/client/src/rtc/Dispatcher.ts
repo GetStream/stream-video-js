@@ -24,27 +24,12 @@ import { getLogger } from '../logger';
 
 export type SfuEventKinds = NonNullable<SfuEvent['eventPayload']['oneofKind']>;
 export type AllSfuEvents = {
-  // @ts-ignore - TS doesn't like this for some reason
-  // had to type it out manually :)
-  // [K in SfuEventKinds]: Extract<SfuEvent['eventPayload'], { oneofKind: K }>[K];
-  subscriberOffer: SubscriberOffer;
-  publisherAnswer: PublisherAnswer;
-  connectionQualityChanged: ConnectionQualityChanged;
-  audioLevelChanged: AudioLevelChanged;
-  iceTrickle: ICETrickle;
-  changePublishQuality: ChangePublishQuality;
-  participantJoined: ParticipantJoined;
-  participantLeft: ParticipantLeft;
-  dominantSpeakerChanged: DominantSpeakerChanged;
-  joinResponse: JoinResponse;
-  healthCheckResponse: HealthCheckResponse;
-  trackPublished: TrackPublished;
-  trackUnpublished: TrackUnpublished;
-  error: SfuError;
-  callGrantsUpdated: CallGrantsUpdated;
-  goAway: GoAway;
-  iceRestart: ICERestart;
-  pinsUpdated: PinsChanged;
+  [K in SfuEventKinds]: K extends keyof Extract<
+    SfuEvent['eventPayload'],
+    { oneofKind: K }
+  >
+    ? Extract<SfuEvent['eventPayload'], { oneofKind: K }>[K]
+    : never;
 };
 
 const sfuEventKinds: { [key in SfuEventKinds]: undefined } = {
