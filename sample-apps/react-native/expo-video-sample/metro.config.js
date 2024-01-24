@@ -1,46 +1,38 @@
-const {
-  makeMetroConfig,
-  resolveUniqueModule,
-} = require('@rnx-kit/metro-config');
-const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks');
+const { getDefaultConfig } = require('expo/metro-config');
 
+const path = require('path');
+
+// Find the project and workspace directories
 const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, '../../..');
 
-// find the deps of the app
-const dependencyPackageNames = Object.keys(
-  require('./package.json').dependencies,
+const config = getDefaultConfig(projectRoot);
+
+// Watch all files within the mono repo
+config.watchFolders = [workspaceRoot];
+
+/* START workaround for https://github.com/react-native-webrtc/react-native-webrtc/issues/1488 */
+const rnWebrtcPath = path.resolve(
+  projectRoot,
+  'node_modules/@stream-io/react-native-webrtc',
 );
 
-const uniqueModules = dependencyPackageNames.map((packageName) => {
-  const [modulePath, blockPattern] = resolveUniqueModule(
-    packageName,
-    projectRoot,
-  );
-  return {
-    packageName, // name of the package
-    modulePath, // actual path to the module in the project's node modules
-    blockPattern, // paths that match this pattern will be blocked from being resolved
-  };
-});
-
-// add all the unique block patterns to the block list
-const blockList = uniqueModules.map(({ blockPattern }) => blockPattern);
-
-// where to find the unique modules?
-const extraNodeModules = uniqueModules.reduce((acc, item) => {
-  acc[item.packageName] = item.modulePath;
-  return acc;
-}, {});
-
-const getConfig = async () => {
-  const config = makeMetroConfig({
-    resolver: {
-      resolveRequest: MetroSymlinksResolver(),
-      extraNodeModules,
-      blockList,
-    },
-  });
-  return config;
+const monorepoPackages = {
+  'event-target-shim': path.resolve(
+    rnWebrtcPath,
+    'node_modules/event-target-shim',
+  ),
 };
 
-module.exports = getConfig();
+// blocklist event-target-shim paths that do not match a path starting with react-native-webrtc path
+const blockList = [
+  new RegExp(`(?<!${rnWebrtcPath})/node_modules/event-target-shim`),
+];
+
+config.resolver.extraNodeModules = monorepoPackages;
+
+config.resolver.blockList = blockList;
+
+/* END */
+
+module.exports = config;

@@ -6,7 +6,7 @@ import React, {
 } from 'react';
 import { StreamVideoRN, User } from '@stream-io/video-react-native-sdk';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StaticNavigationService } from '../utils/staticNavigationUtils';
+import { StaticNavigationService } from '../../utils/staticNavigationUtils';
 
 type AppContextType = {
   user: User | undefined;
@@ -17,6 +17,7 @@ type AppContextType = {
 export const AppContext = React.createContext({} as AppContextType);
 
 export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
+  console.log('AppProvider');
   const [user, setUser] = useState<User | undefined>(undefined);
 
   const loginHandler = useCallback((userData: User) => {

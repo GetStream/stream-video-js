@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { randomId } from '../utils/randomId';
+import { randomId } from '../../utils/randomId';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import { users } from '../data/users';
 import { router } from 'expo-router';

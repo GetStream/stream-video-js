@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { users } from '../data/users';
 import { useAppContext } from '../context/AppContext';
-import { UserType } from '../types';
+import { UserType } from '../../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

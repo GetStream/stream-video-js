@@ -12,6 +12,8 @@ import CreateMeetingCall from '../components/CreateMeetingCall';
 import CreateRingingCall from '../components/CreateRingingCall';
 import * as Notifications from 'expo-notifications';
 
+console.log('CreateCallScreen');
+
 export default function CreateCallScreen() {
   useEffect(() => {
     const run = async () => {
