@@ -82,7 +82,11 @@ describe('InputMediaDeviceManagerState', () => {
       // @ts-ignore - navigator is readonly, but we need to mock it
       globalThis.navigator.permissions = { query };
 
-      vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('safari');
+      Object.defineProperty(globalThis.navigator, 'userAgent', {
+        get() {
+          return 'safari';
+        },
+      });
 
       const hasPermission = await new Promise((resolve) => {
         state.hasBrowserPermission$.subscribe((v) => resolve(v));
