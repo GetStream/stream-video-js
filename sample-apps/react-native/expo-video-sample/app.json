@@ -54,15 +54,6 @@
         }
       ],
       [
-        "expo-router",
-        {
-          "asyncRoutes": {
-            "android": false,
-            "ios": false
-          }
-        }
-      ],
-      [
         "expo-build-properties",
         {
           "android": {
