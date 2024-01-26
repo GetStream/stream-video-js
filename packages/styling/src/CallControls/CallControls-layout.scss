@@ -29,6 +29,9 @@
       background-color: var(--str-video__button-primary-base);
       border-radius: var(--str-video__border-radius-circle);
       border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       &:hover {
         background-color: var(--str-video__button-primary-hover);

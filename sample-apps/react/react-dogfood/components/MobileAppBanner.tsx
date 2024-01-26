@@ -12,7 +12,7 @@ export const MobileAppBanner = (props: {
   > = {
     android: [
       {
-        label: 'Android',
+        label: 'Try Android',
         url: `https://play.google.com/store/apps/details?id=io.getstream.video.android&referrer=${encodeURIComponent(
           `call_id=${callId}`,
         )}`,
@@ -23,51 +23,47 @@ export const MobileAppBanner = (props: {
     ],
     ios: [
       {
-        label: 'iOS',
+        label: 'Try iOS',
         url: 'https://apps.apple.com/us/app/stream-video-calls/id1644313060',
         active: true,
       },
-      { label: 'React Native', url: '#', active: false },
-      { label: 'Flutter', url: '#', active: false },
+      // { label: 'React Native', url: '#', active: false },
+      // { label: 'Flutter', url: '#', active: false },
     ],
   };
 
   return (
-    <>
-      <div className="rd__try-native-backdrop" />
-      <div className="rd__try-native">
-        <h2 className="rd__try-native__title">Try Native!</h2>
-        <p className="rd__try-native__info-text">
-          We see you are using a mobile device.
-          <br />
-          Why don't you give it a try to one of our native mobile apps:
-        </p>
-        <div>
-          {(platformLinks[platform] || [])
-            .filter((app) => app.active)
-            .map((link) => (
-              <a
-                key={link.label}
-                className="rd__button rd__button--primary"
-                href={link.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Icon className="rd__button__icon" icon="login" />
-                {link.label}
-              </a>
-            ))}
-        </div>
-        <p className="rd__try-native__info-text">
-          Of course, you can always continue in your browser
-        </p>
-        <button
-          className="rd__button rd__button--secondary"
-          onClick={onDismiss}
-        >
-          Dismiss
-        </button>
-      </div>
-    </>
+    <div className="rd__try-native">
+      <img
+        className="rd__try-native__logo"
+        alt="logo"
+        src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
+      />
+      <h2 className="rd__try-native__title">Try Native Demo!</h2>
+      <p className="rd__try-native__info-text">
+        We see you are using a mobile device. Why don’t you give it a try on one
+        of our native mobile apps:
+      </p>
+      {(platformLinks[platform] || [])
+        .filter((app) => app.active)
+        .map((link) => (
+          <a
+            key={link.label}
+            className="rd__button rd__button--primary"
+            href={link.url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Icon className="rd__button__icon" icon="login" />
+            {link.label}
+          </a>
+        ))}
+      <button
+        className="rd__try-native__use-browser rd__button rd__button--secondary"
+        onClick={onDismiss}
+      >
+        Continue With Browser
+      </button>
+    </div>
   );
 };

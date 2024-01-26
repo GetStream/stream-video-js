@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.11...@stream-io/video-react-native-sdk-0.3.12) (2024-01-25)
+
+
+### Bug Fixes
+
+* pass sound and vibration to android notifications display ([f4e34ec](https://github.com/GetStream/stream-video-js/commit/f4e34ec77ae8ab2885d6b98c428085431b52bc00))
+
 ### [0.3.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.10...@stream-io/video-react-native-sdk-0.3.11) (2024-01-19)
 
 ### Dependency Updates
