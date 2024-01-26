@@ -5,7 +5,7 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 # Styling
 
 - New global variables like spacing, font-size, colors, button states etc, have been added. The old variables are still available.
-- Major style changes have been made to the following items: Callstats, Device settings, Buttons, Particpant layout
+- Major style changes have been made to the following items: Call Stats, Device settings, Buttons, Participant layout
 - Icons have been updated and added
 
 # Components
