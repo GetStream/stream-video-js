@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.12...@stream-io/video-react-native-sdk-0.3.13) (2024-01-26)
+
+
+### Features
+
+* add android default ringtone as the default ringing sound ([#1251](https://github.com/GetStream/stream-video-js/issues/1251)) ([bd47748](https://github.com/GetStream/stream-video-js/commit/bd47748177d82b9b0f5b1d01cfa1c8c5c28cc1ce))
+
 ### [0.3.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.11...@stream-io/video-react-native-sdk-0.3.12) (2024-01-25)
 
 
