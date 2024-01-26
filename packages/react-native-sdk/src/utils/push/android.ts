@@ -172,6 +172,8 @@ const firebaseMessagingOnMessageHandler = async (
       data,
       android: {
         channelId,
+        sound: incomingCallChannel.sound,
+        vibrationPattern: incomingCallChannel.vibrationPattern,
         pressAction: {
           id: 'default',
           launchActivity: 'default', // open the app when the notification is pressed
@@ -216,6 +218,8 @@ const firebaseMessagingOnMessageHandler = async (
       body: getBody(type, createdUserName),
       data,
       android: {
+        sound: callChannel.sound,
+        vibrationPattern: callChannel.vibrationPattern,
         channelId,
         pressAction: {
           id: 'default',
