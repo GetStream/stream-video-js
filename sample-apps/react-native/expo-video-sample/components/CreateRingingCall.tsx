@@ -32,8 +32,12 @@ export default function CreateRingingCall() {
       await call?.getOrCreate({
         ring: true,
         data: {
-          // more timeout to cancel the call automatically so that it works when callee's app is in quit state
-          settings_override: { ring: { auto_cancel_timeout_ms: 60000 } },
+          settings_override: {
+            ring: {
+              auto_cancel_timeout_ms: 30000,
+              incoming_call_timeout_ms: 5000,
+            },
+          },
           members: ringingUserIds.map<MemberRequest>((ringingUserId) => {
             return {
               user_id: ringingUserId,
