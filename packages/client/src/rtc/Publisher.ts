@@ -246,10 +246,13 @@ export class Publisher {
 
       let preferredCodec = opts.preferredCodec;
       if (!preferredCodec && trackType === TrackType.VIDEO) {
-        const isRNAndroid =
-          isReactNative() && getOSInfo()?.name.toLowerCase() === 'android';
-        if (isRNAndroid) {
-          preferredCodec = 'VP8';
+        if (isReactNative()) {
+          const osName = getOSInfo()?.name.toLowerCase();
+          if (osName === 'ios' || osName === 'ipados') {
+            preferredCodec = 'H264';
+          } else if (osName === 'android') {
+            preferredCodec = 'VP8';
+          }
         }
       }
       const codecPreferences = this.getCodecPreferences(
