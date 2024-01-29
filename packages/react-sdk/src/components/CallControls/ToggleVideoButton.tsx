@@ -72,8 +72,10 @@ export const ToggleVideoPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, isMute, hasBrowserPermission } = useCameraState();
+  const callSettings = useCallSettings();
+  const isPublishingVideoAllowed = callSettings?.video.enabled;
 
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
@@ -91,11 +93,17 @@ export const ToggleVideoPublishingButton = (
           caption={caption}
           variant="secondary"
           title={
-            !hasBrowserPermission || !hasPermission
+            !hasPermission
+              ? t('You have no permission to share your video')
+              : !hasBrowserPermission
               ? t('Check your browser video permissions')
+              : !isPublishingVideoAllowed
+              ? t('Video publishing is disabled by the system')
               : caption || t('Video')
           }
-          disabled={!hasBrowserPermission || !hasPermission}
+          disabled={
+            !hasBrowserPermission || !hasPermission || !isPublishingVideoAllowed
+          }
           data-testid={isMute ? 'video-unmute-button' : 'video-mute-button'}
           onClick={async () => {
             if (!hasPermission) {
@@ -109,7 +117,9 @@ export const ToggleVideoPublishingButton = (
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'camera-off' : 'camera'} />
-          {!hasBrowserPermission && (
+          {(!hasBrowserPermission ||
+            !hasPermission ||
+            !isPublishingVideoAllowed) && (
             <span className="str-video__no-media-permission">!</span>
           )}
         </CompositeButton>

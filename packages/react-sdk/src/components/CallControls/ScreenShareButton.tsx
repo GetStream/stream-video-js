@@ -17,14 +17,18 @@ export const ScreenShareButton = (props: ScreenShareButtonProps) => {
   const { t } = useI18n();
   const { caption } = props;
 
-  const { useHasOngoingScreenShare, useScreenShareState } = useCallStateHooks();
+  const { useHasOngoingScreenShare, useScreenShareState, useCallSettings } =
+    useCallStateHooks();
   const isSomeoneScreenSharing = useHasOngoingScreenShare();
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SCREENSHARE);
 
+  const callSettings = useCallSettings();
+  const isScreenSharingAllowed = callSettings?.screensharing.enabled;
+
   const { screenShare, isMute: amIScreenSharing } = useScreenShareState();
   const disableScreenShareButton = amIScreenSharing
-    ? isSomeoneScreenSharing
+    ? isSomeoneScreenSharing || isScreenSharingAllowed === false
     : false;
   return (
     <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>

@@ -40,6 +40,10 @@
   "Toggle device menu": "Toggle device menu",
   "Call Recordings": "Call Recordings",
   "Refresh": "Refresh",
+  "Check your browser video permissions": "Check your browser video permissions",
+  "Video publishing is disabled by the system": "Video publishing is disabled by the system",
+  "You have no permission to share your video": "You have no permission to share your video",
+  "You have no permission to share your audio": "You have no permission to share your audio",
 
   "You are presenting your screen": "You are presenting your screen",
   "Stop Screen Sharing": "Stop Screen Sharing",

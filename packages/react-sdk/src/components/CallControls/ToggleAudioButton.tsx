@@ -89,7 +89,9 @@ export const ToggleAudioPublishingButton = (
           active={isMute}
           caption={caption}
           title={
-            !hasBrowserPermission || !hasPermission
+            !hasPermission
+              ? t('You have no permission to share your audio')
+              : !hasBrowserPermission
               ? t('Check your browser mic permissions')
               : caption || t('Mic')
           }
