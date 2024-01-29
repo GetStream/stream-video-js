@@ -5,7 +5,7 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
 import { useAppContext } from '../context/AppContext';
-import { createToken } from '../../utils/createToken';
+import { createToken } from '../utils/createToken';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const { user } = useAppContext();

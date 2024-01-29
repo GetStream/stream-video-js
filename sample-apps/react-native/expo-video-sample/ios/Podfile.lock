@@ -7,13 +7,13 @@ PODS:
     - ExpoModulesCore
   - EXFont (11.10.2):
     - ExpoModulesCore
-  - EXNotifications (0.27.4):
+  - EXNotifications (0.27.5):
     - ExpoModulesCore
   - Expo (50.0.3):
     - ExpoModulesCore
   - ExpoFileSystem (16.0.5):
     - ExpoModulesCore
-  - ExpoHead (3.4.5):
+  - ExpoHead (3.3.1):
     - ExpoModulesCore
   - ExpoKeepAwake (12.8.2):
     - ExpoModulesCore
@@ -24,12 +24,12 @@ PODS:
     - React-NativeModulesApple
     - React-RCTAppDelegate
     - ReactCommon/turbomodule/core
-  - EXSplashScreen (0.26.3):
+  - EXSplashScreen (0.26.4):
     - ExpoModulesCore
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - EXTaskManager (11.7.0):
+  - EXTaskManager (11.7.1):
     - ExpoModulesCore
     - UMAppLoader
   - FBLazyVector (0.73.2)
@@ -1367,14 +1367,14 @@ SPEC CHECKSUMS:
   EXApplication: 137189a3f149b4e8e546884629392c3efc94cbd3
   EXConstants: 988aa430ca0f76b43cd46b66e7fae3287f9cc2fc
   EXFont: 21b9c760abd593ce8f0d5386b558ced76018506f
-  EXNotifications: e4c08fe430ab411849bec7a7ca6ef4b98c57ae62
+  EXNotifications: ecd73833e55510edcb3fa30d59bfc536eeb4b9c6
   Expo: 88b4aa68115bbb57c1a07cc30161c2352ab2fc25
   ExpoFileSystem: 04795dd4d47e76eaf12e38c92091f77d794f9e7f
-  ExpoHead: dda4dd22972750dd2baa5c0231b86dc6e10ddfd9
+  ExpoHead: e7c92c9c56a4364131593077240e6e177972b0d3
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
   ExpoModulesCore: 96d1751929ad10622773bb729ab28a8423f0dd0c
-  EXSplashScreen: 7e34224fcc1a0697b2dfbe14cf7eddf417c038a1
-  EXTaskManager: 81b2dfaaba6d9f9a4bc3e3e2a786a98004eb9e98
+  EXSplashScreen: 39244885abfb1b12765aae89edb90f8c88db6bbd
+  EXTaskManager: f1a5747cf42f9304727bfe75aa86009c810e03e7
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
@@ -1442,4 +1442,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 62944e30c04351c14d7dd2748771ca3367058e0a
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.2

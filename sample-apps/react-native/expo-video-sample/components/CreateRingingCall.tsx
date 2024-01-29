@@ -8,7 +8,7 @@ import {
   Image,
   View,
 } from 'react-native';
-import { randomId } from '../../utils/randomId';
+import { randomId } from '../utils/randomId';
 import { users } from '../data/users';
 import { useAppContext } from '../context/AppContext';
 import {

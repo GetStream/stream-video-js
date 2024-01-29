@@ -26,9 +26,6 @@
       "googleServicesFile": "./google-services.json",
       "package": "io.getstream.expovideosample"
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       [
         "@stream-io/video-react-native-sdk",
