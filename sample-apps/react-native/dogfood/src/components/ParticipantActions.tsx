@@ -14,11 +14,11 @@ import { VideoSlash } from '../assets/VideoSlash';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useCallback } from 'react';
 import {
-  useCall,
-  useHasPermissions,
-  useI18n,
   Avatar,
   colorPallet,
+  useCall,
+  useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-native-sdk';
 import { generateParticipantTitle } from '../utils';
 
@@ -39,6 +39,7 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
   const { t } = useI18n();
+  const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
   );

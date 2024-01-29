@@ -17,7 +17,6 @@ import {
   TranslatorFunction,
   useCall,
   useCallStateHooks,
-  useHasPermissions,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
@@ -39,7 +38,7 @@ type HandleUpdatePermission = (
 
 export const PermissionRequests = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const [expanded, setExpanded] = useState(false);
   const [permissionRequests, setPermissionRequests] = useState<

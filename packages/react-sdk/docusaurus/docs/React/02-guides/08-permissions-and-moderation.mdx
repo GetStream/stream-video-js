@@ -3,8 +3,6 @@ title: Permissions & Moderation
 description: Explanation of call permissions and moderation features
 ---
 
-import SDKSpecific from '../SDKSpecific';
-
 In many types of calls, there is a requirement for providing different users with certain permissions and capabilities.
 A typical example is a webinar where the host wants to control who can speak or who can share their video or screen.
 
@@ -44,15 +42,14 @@ const canSendAudio = call.permissionsContext.hasPermission(
 );
 ```
 
-<SDKSpecific name="react">
-
 In our React Video SDK, you can use the `useHasPermissions` hook to check for permissions.
 
 ```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useHasPermissions } = useCallStateHooks();
 const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
 ```
-
-</SDKSpecific>
 
 ### Request permissions
 
@@ -171,14 +168,13 @@ const call = client.call(type, id);
 const { ownCapabilities } = call.state;
 ```
 
-<SDKSpecific name="react">
-
 In our React Video SDK, you can use the `useOwnCapabilities` hook.
 
 ```tsx
+import { useCallStateHooks } from '@stream-io/video-react-sdk';
+
+const { useOwnCapabilities } = useCallStateHooks();
 const ownCapabilities = useOwnCapabilities();
 ```
-
-</SDKSpecific>
 
 Capabilities will have the type [`OwnCapability`](https://github.com/GetStream/stream-video-js/blob/main/packages/client/src/gen/coordinator/index.ts).

@@ -4,11 +4,12 @@ import {
   PermissionRequestEvent,
   StreamCallEvent,
   useCall,
-  useHasPermissions,
+  useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export const useSpeakingRequests = () => {
   const call = useCall();
+  const { useHasPermissions } = useCallStateHooks();
   const canUpdatePermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );

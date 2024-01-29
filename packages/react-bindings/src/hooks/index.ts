@@ -1,6 +1,5 @@
 import * as CallStateHooks from './callStateHooks';
 
-export * from './permissions';
 export * from './store';
 
 /**
