@@ -8,7 +8,7 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useMenuPortalContext,
+  useMenuContext,
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { useToggleCallRecording } from '../../hooks';
@@ -21,7 +21,7 @@ const RecordEndConfirmation = () => {
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse } = useToggleCallRecording();
 
-  const { close } = useMenuPortalContext();
+  const { close } = useMenuContext();
 
   return (
     <div className="str-video__end-recording__confirmation">

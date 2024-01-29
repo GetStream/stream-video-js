@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
-import { GenericMenu, GenericMenuButtonItem, Icon } from '../../../components';
+import {
+  GenericMenu,
+  GenericMenuButtonItem,
+  Icon,
+  useMenuContext,
+} from '../../../components';
 
 export const ParticipantActionsContextMenu = () => {
   const { participant, participantViewElement, videoElement } =
@@ -123,8 +128,9 @@ export const ParticipantActionsContextMenu = () => {
     return document.exitPictureInPicture().catch(console.error);
   };
 
+  const { close } = useMenuContext() || {};
   return (
-    <GenericMenu>
+    <GenericMenu onItemClick={close}>
       <GenericMenuButtonItem
         onClick={toggleParticipantPin}
         disabled={pin && !pin.isLocalPin}

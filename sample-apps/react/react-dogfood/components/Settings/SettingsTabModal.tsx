@@ -19,7 +19,7 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
   useI18n,
-  useMenuPortalContext,
+  useMenuContext,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -63,7 +63,7 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 };
 
 const TabPanel = ({ children }: PropsWithChildren) => {
-  const { close } = useMenuPortalContext();
+  const { close } = useMenuContext();
   return (
     <div className="rd__tab-panel">
       <div className="rd__tab-panel__header">
