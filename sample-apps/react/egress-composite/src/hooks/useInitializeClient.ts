@@ -57,9 +57,10 @@ const useJoinCall = ({
 
   useEffect(() => {
     if (!client || !enabled) return;
-
-    call.camera.disable();
-    call.microphone.disable();
+    
+    // the recorder system doesn't have any device attached
+    // call.camera.disable();
+    // call.microphone.disable();
 
     const callJoinPromise = call.join();
     return () => {
