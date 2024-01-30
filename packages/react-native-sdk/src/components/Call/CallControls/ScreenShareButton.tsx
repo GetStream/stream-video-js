@@ -112,13 +112,13 @@ export const ScreenShareButton = ({
     }
   };
 
-  if (!isScreenSharingEnabledInCall) {
+  if (!isScreenSharingEnabledInCall || !CanScreenShare) {
     return;
   }
 
   return (
     <CallControlsButton
-      disabled={!isScreenSharingAccessRequestEnabled || !CanScreenShare}
+      disabled={!isScreenSharingAccessRequestEnabled}
       onPress={onPress}
       color={colors.static_white}
       style={{

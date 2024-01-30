@@ -32,7 +32,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         apiKey,
         user,
         token,
-        options: { logLevel: 'info' },
+        options: { logLevel: 'warn' },
       });
       setVideoClient(_videoClient);
     };
