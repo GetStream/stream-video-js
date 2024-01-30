@@ -46,6 +46,8 @@ export const ScreenShareButton = ({
   const { useLocalParticipant, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isScreenSharingEnabledInCall = callSettings?.screensharing.enabled;
+  const isScreenSharingAccessRequestEnabled =
+    callSettings?.screensharing.access_request_enabled;
 
   const onScreenShareStartedHandlerRef = useRef(onScreenShareStartedHandler);
   onScreenShareStartedHandlerRef.current = onScreenShareStartedHandler;
@@ -116,7 +118,7 @@ export const ScreenShareButton = ({
 
   return (
     <CallControlsButton
-      disabled={!CanScreenShare}
+      disabled={!isScreenSharingAccessRequestEnabled || !CanScreenShare}
       onPress={onPress}
       color={colors.static_white}
       style={{
