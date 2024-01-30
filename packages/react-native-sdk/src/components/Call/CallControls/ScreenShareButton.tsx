@@ -43,7 +43,9 @@ export const ScreenShareButton = ({
     theme: { colors, screenShareButton },
   } = useTheme();
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useCallSettings } = useCallStateHooks();
+  const callSettings = useCallSettings();
+  const isScreenSharingEnabledInCall = callSettings?.screensharing.enabled;
 
   const onScreenShareStartedHandlerRef = useRef(onScreenShareStartedHandler);
   onScreenShareStartedHandlerRef.current = onScreenShareStartedHandler;
@@ -107,6 +109,10 @@ export const ScreenShareButton = ({
       }
     }
   };
+
+  if (!isScreenSharingEnabledInCall) {
+    return;
+  }
 
   return (
     <CallControlsButton
