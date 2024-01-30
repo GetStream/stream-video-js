@@ -14,8 +14,6 @@ type AppContextType = {
   logoutHandler: () => void;
 };
 
-console.log('AppProvider');
-
 export const AppContext = React.createContext({} as AppContextType);
 
 export const AppProvider = ({ children }: PropsWithChildren<{}>) => {
