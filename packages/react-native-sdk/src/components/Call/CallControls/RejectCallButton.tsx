@@ -4,6 +4,8 @@ import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
 import { CallingState } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { Platform } from 'react-native';
+import notifee from '@notifee/react-native';
 
 /**
  * The props for the Reject Call button.
@@ -49,6 +51,9 @@ export const RejectCallButton = ({
     try {
       if (callingState === CallingState.LEFT) {
         return;
+      }
+      if (Platform.OS === 'android' && call?.cid) {
+        notifee.cancelDisplayedNotification(call?.cid);
       }
       await call?.leave({ reject: true });
       if (onRejectCallHandler) {

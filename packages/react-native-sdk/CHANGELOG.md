@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.13...@stream-io/video-react-native-sdk-0.3.14) (2024-01-29)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.7`
+* `@stream-io/video-react-bindings` updated to version `0.3.18`
+### [0.3.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.12...@stream-io/video-react-native-sdk-0.3.13) (2024-01-26)
+
+
+### Features
+
+* add android default ringtone as the default ringing sound ([#1251](https://github.com/GetStream/stream-video-js/issues/1251)) ([bd47748](https://github.com/GetStream/stream-video-js/commit/bd47748177d82b9b0f5b1d01cfa1c8c5c28cc1ce))
+
+### [0.3.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.11...@stream-io/video-react-native-sdk-0.3.12) (2024-01-25)
+
+
+### Bug Fixes
+
+* pass sound and vibration to android notifications display ([f4e34ec](https://github.com/GetStream/stream-video-js/commit/f4e34ec77ae8ab2885d6b98c428085431b52bc00))
+
 ### [0.3.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.10...@stream-io/video-react-native-sdk-0.3.11) (2024-01-19)
 
 ### Dependency Updates

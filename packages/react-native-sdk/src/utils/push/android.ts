@@ -19,6 +19,7 @@ import {
 } from './rxSubjects';
 import { processCallFromPushInBackground } from './utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
+import { getAndroidDefaultRingtoneUrl } from '../getAndroidDefaultRingtoneUrl';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -161,17 +162,24 @@ const firebaseMessagingOnMessageHandler = async (
       );
       return;
     }
+    // set default ringtone if not provided
+    if (!incomingCallChannel.sound) {
+      incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
+    }
     await notifee.createChannel(incomingCallChannel);
     const { getTitle, getBody } = incomingCallNotificationTextGetters;
     const createdUserName = data.created_by_display_name;
 
     const channelId = incomingCallChannel.id;
     await notifee.displayNotification({
+      id: data.call_cid,
       title: getTitle(createdUserName),
       body: getBody(createdUserName),
       data,
       android: {
         channelId,
+        sound: incomingCallChannel.sound,
+        vibrationPattern: incomingCallChannel.vibrationPattern,
         pressAction: {
           id: 'default',
           launchActivity: 'default', // open the app when the notification is pressed
@@ -216,6 +224,8 @@ const firebaseMessagingOnMessageHandler = async (
       body: getBody(type, createdUserName),
       data,
       android: {
+        sound: callChannel.sound,
+        vibrationPattern: callChannel.vibrationPattern,
         channelId,
         pressAction: {
           id: 'default',

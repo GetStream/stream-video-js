@@ -40,6 +40,20 @@ export class StreamVideoRN {
     };
   }
 
+  static updateAndroidIncomingCallChannel(
+    updateChannel: Partial<
+      NonNullable<StreamVideoConfig['push']>['android']['incomingCallChannel']
+    >,
+  ) {
+    const prevChannel = this.config.push?.android?.incomingCallChannel;
+    if (prevChannel) {
+      this.config.push!.android.incomingCallChannel = {
+        ...prevChannel,
+        ...updateChannel,
+      };
+    }
+  }
+
   /**
    * Set the push config for StreamVideoRN.
    * This method must be called **outside** of your application lifecycle, e.g. alongside your
