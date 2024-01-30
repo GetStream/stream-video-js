@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import {
-  StreamVideoClient,
   Call,
+  StreamVideoClient,
   StreamVideoParticipant,
 } from '@stream-io/video-react-sdk';
 
@@ -57,6 +57,9 @@ const useJoinCall = ({
 
   useEffect(() => {
     if (!client || !enabled) return;
+
+    call.camera.disable();
+    call.microphone.disable();
 
     const callJoinPromise = call.join();
     return () => {
