@@ -1,12 +1,12 @@
 import {
   DefaultParticipantViewUI,
+  ParticipantsAudio,
   ParticipantView,
   SfuModels,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
-import { AudioTracks } from './AudioTracks';
 
 import './DominantSpeakerScreenShare.scss';
 
@@ -29,14 +29,12 @@ export const DominantSpeakerScreenShare = () => {
       className="eca__dominant-speaker-screen-share__container"
       data-testid="single-participant"
     >
-      <AudioTracks
-        participants={participants}
-        dominantSpeaker={screensharingParticipant}
-      />
+      <ParticipantsAudio participants={participants} />
       <ParticipantView
         participant={screensharingParticipant}
         trackType="screenShareTrack"
         refs={{ setVideoElement, setVideoPlaceholderElement }}
+        muteAudio // audio is handled by <ParticipantsAudio />
         ParticipantViewUI={null}
       />
       <span>
@@ -47,6 +45,7 @@ export const DominantSpeakerScreenShare = () => {
       <div className="eca__dominant-speaker-screen-share__current-speaker">
         <ParticipantView
           participant={screensharingParticipant}
+          muteAudio // audio is handled by <ParticipantsAudio />
           ParticipantViewUI={
             <DefaultParticipantViewUI
               indicatorsVisible={false}

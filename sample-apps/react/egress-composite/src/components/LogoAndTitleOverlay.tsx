@@ -12,7 +12,7 @@ export const LogoAndTitleOverlay = () => {
       data-testid="logo-and-title-overlay"
       className="eca__logo-and-title-overlay"
     >
-      {titleText?.length && (
+      {titleText && (
         <span
           className="eca__logo-and-title-overlay__title"
           data-testid="title"

@@ -9,8 +9,10 @@ import { Video, VideoSlash } from '../../../icons';
  */
 export const LivestreamVideoControlButton = () => {
   const call = useCall();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { status } = useCameraState();
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
   const {
     theme: {
       colors,
@@ -22,6 +24,10 @@ export const LivestreamVideoControlButton = () => {
   const onPress = async () => {
     await call?.camera.toggle();
   };
+
+  if (!isVideoEnabledInCall) {
+    return;
+  }
 
   return (
     <Pressable

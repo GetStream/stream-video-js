@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "0.3.12",
+  "version": "0.3.16",
   "packageManager": "yarn@3.2.4",
   "main": "dist/commonjs/index.js",
   "module": "dist/module/index.js",
@@ -109,7 +109,7 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.21.5",
-    "@expo/config-plugins": "^7.2.5",
+    "@expo/config-plugins": "~7.8.0",
     "@notifee/react-native": "7.8.0",
     "@react-native-community/eslint-config": "^3.2.0",
     "@react-native-community/netinfo": "9.3.9",
