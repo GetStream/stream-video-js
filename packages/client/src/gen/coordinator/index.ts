@@ -90,19 +90,6 @@ export interface APNSRequest {
 /**
  *
  * @export
- * @interface AcceptCallResponse
- */
-export interface AcceptCallResponse {
-  /**
-   *
-   * @type {string}
-   * @memberof AcceptCallResponse
-   */
-  duration: string;
-}
-/**
- *
- * @export
  * @interface AudioSettings
  */
 export interface AudioSettings {
@@ -211,6 +198,37 @@ export type AudioSettingsRequestDefaultDeviceEnum =
 /**
  *
  * @export
+ * @interface AzureRequest
+ */
+export interface AzureRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_account_name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_client_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_client_secret: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_tenant_id: string;
+}
+/**
+ *
+ * @export
  * @interface BackstageSettings
  */
 export interface BackstageSettings {
@@ -261,44 +279,6 @@ export interface BlockUserResponse {
   duration: string;
 }
 /**
- * This event is sent to call participants to notify when a user is blocked on a call, clients can use this event to show a notification.
- * If the user is the current user, the client should leave the call screen as well
- * @export
- * @interface BlockedUserEvent
- */
-export interface BlockedUserEvent {
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof BlockedUserEvent
-   */
-  blocked_by_user?: UserResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof BlockedUserEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof BlockedUserEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.blocked_user" in this case
-   * @type {string}
-   * @memberof BlockedUserEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof BlockedUserEvent
-   */
-  user: UserResponse;
-}
-/**
  *
  * @export
  * @interface BroadcastSettingsRequest
@@ -337,199 +317,6 @@ export interface BroadcastSettingsResponse {
   hls: HLSSettingsResponse;
 }
 /**
- * This event is sent when a user accepts a notification to join a call.
- * @export
- * @interface CallAcceptedEvent
- */
-export interface CallAcceptedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallAcceptedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallAcceptedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallAcceptedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.accepted" in this case
-   * @type {string}
-   * @memberof CallAcceptedEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallAcceptedEvent
-   */
-  user: UserResponse;
-}
-/**
- * This event is sent when a call is created. Clients receiving this event should check if the ringing
- * field is set to true and if so, show the call screen
- * @export
- * @interface CallCreatedEvent
- */
-export interface CallCreatedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallCreatedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallCreatedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallCreatedEvent
-   */
-  created_at: string;
-  /**
-   * the members added to this call
-   * @type {Array<MemberResponse>}
-   * @memberof CallCreatedEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * The type of event: "call.created" in this case
-   * @type {string}
-   * @memberof CallCreatedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when a call is mark as ended for all its participants. Clients receiving this event should leave the call screen
- * @export
- * @interface CallEndedEvent
- */
-export interface CallEndedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallEndedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEndedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallEndedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.ended" in this case
-   * @type {string}
-   * @memberof CallEndedEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallEndedEvent
-   */
-  user?: UserResponse;
-}
-/**
- * This event is sent when HLS broadcasting has failed
- * @export
- * @interface CallHLSBroadcastingFailedEvent
- */
-export interface CallHLSBroadcastingFailedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingFailedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingFailedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.hls_broadcasting_failed" in this case
-   * @type {string}
-   * @memberof CallHLSBroadcastingFailedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when HLS broadcasting has started
- * @export
- * @interface CallHLSBroadcastingStartedEvent
- */
-export interface CallHLSBroadcastingStartedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingStartedEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingStartedEvent
-   */
-  hls_playlist_url: string;
-  /**
-   * The type of event: "call.hls_broadcasting_started" in this case
-   * @type {string}
-   * @memberof CallHLSBroadcastingStartedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when HLS broadcasting has stopped
- * @export
- * @interface CallHLSBroadcastingStoppedEvent
- */
-export interface CallHLSBroadcastingStoppedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingStoppedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallHLSBroadcastingStoppedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.hls_broadcasting_stopped" in this case
-   * @type {string}
-   * @memberof CallHLSBroadcastingStoppedEvent
-   */
-  type: string;
-}
-/**
  *
  * @export
  * @interface CallIngressResponse
@@ -541,240 +328,6 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
-}
-/**
- * This event is sent when a call is started. Clients receiving this event should start the call.
- * @export
- * @interface CallLiveStartedEvent
- */
-export interface CallLiveStartedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallLiveStartedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallLiveStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallLiveStartedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.live_started" in this case
-   * @type {string}
-   * @memberof CallLiveStartedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when one or more members are added to a call
- * @export
- * @interface CallMemberAddedEvent
- */
-export interface CallMemberAddedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallMemberAddedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberAddedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberAddedEvent
-   */
-  created_at: string;
-  /**
-   * the members added to this call
-   * @type {Array<MemberResponse>}
-   * @memberof CallMemberAddedEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * The type of event: "call.member_added" in this case
-   * @type {string}
-   * @memberof CallMemberAddedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when one or more members are removed from a call
- * @export
- * @interface CallMemberRemovedEvent
- */
-export interface CallMemberRemovedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallMemberRemovedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberRemovedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberRemovedEvent
-   */
-  created_at: string;
-  /**
-   * the list of member IDs removed from the call
-   * @type {Array<string>}
-   * @memberof CallMemberRemovedEvent
-   */
-  members: Array<string>;
-  /**
-   * The type of event: "call.member_removed" in this case
-   * @type {string}
-   * @memberof CallMemberRemovedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when one or more members are updated
- * @export
- * @interface CallMemberUpdatedEvent
- */
-export interface CallMemberUpdatedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallMemberUpdatedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberUpdatedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberUpdatedEvent
-   */
-  created_at: string;
-  /**
-   * The list of members that were updated
-   * @type {Array<MemberResponse>}
-   * @memberof CallMemberUpdatedEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * The type of event: "call.member_updated" in this case
-   * @type {string}
-   * @memberof CallMemberUpdatedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when one or more members get its role updated
- * @export
- * @interface CallMemberUpdatedPermissionEvent
- */
-export interface CallMemberUpdatedPermissionEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  call_cid: string;
-  /**
-   * The capabilities by role for this call
-   * @type {{ [key: string]: Array<string>; }}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  capabilities_by_role: { [key: string]: Array<string> };
-  /**
-   *
-   * @type {string}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  created_at: string;
-  /**
-   * The list of members that were updated
-   * @type {Array<MemberResponse>}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * The type of event: "call.member_added" in this case
-   * @type {string}
-   * @memberof CallMemberUpdatedPermissionEvent
-   */
-  type: string;
-}
-/**
- * This event is sent to all call members to notify they are getting called
- * @export
- * @interface CallNotificationEvent
- */
-export interface CallNotificationEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallNotificationEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallNotificationEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallNotificationEvent
-   */
-  created_at: string;
-  /**
-   * Call members
-   * @type {Array<MemberResponse>}
-   * @memberof CallNotificationEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallNotificationEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.notification" in this case
-   * @type {string}
-   * @memberof CallNotificationEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallNotificationEvent
-   */
-  user: UserResponse;
 }
 /**
  *
@@ -808,37 +361,6 @@ export interface CallParticipantResponse {
   user_session_id: string;
 }
 /**
- * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
- * @export
- * @interface CallReactionEvent
- */
-export interface CallReactionEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallReactionEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallReactionEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {ReactionResponse}
-   * @memberof CallReactionEvent
-   */
-  reaction: ReactionResponse;
-  /**
-   * The type of event: "call.reaction_new" in this case
-   * @type {string}
-   * @memberof CallReactionEvent
-   */
-  type: string;
-}
-/**
  * CallRecording represents a recording of a call.
  * @export
  * @interface CallRecording
@@ -870,149 +392,6 @@ export interface CallRecording {
   url: string;
 }
 /**
- * This event is sent when call recording has failed
- * @export
- * @interface CallRecordingFailedEvent
- */
-export interface CallRecordingFailedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingFailedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingFailedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.recording_failed" in this case
-   * @type {string}
-   * @memberof CallRecordingFailedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call recording is ready
- * @export
- * @interface CallRecordingReadyEvent
- */
-export interface CallRecordingReadyEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingReadyEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {CallRecording}
-   * @memberof CallRecordingReadyEvent
-   */
-  call_recording: CallRecording;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingReadyEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.recording_ready" in this case
-   * @type {string}
-   * @memberof CallRecordingReadyEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call recording has started
- * @export
- * @interface CallRecordingStartedEvent
- */
-export interface CallRecordingStartedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStartedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.recording_started" in this case
-   * @type {string}
-   * @memberof CallRecordingStartedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when call recording has stopped
- * @export
- * @interface CallRecordingStoppedEvent
- */
-export interface CallRecordingStoppedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStoppedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRecordingStoppedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.recording_stopped" in this case
-   * @type {string}
-   * @memberof CallRecordingStoppedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when a user rejects a notification to join a call.
- * @export
- * @interface CallRejectedEvent
- */
-export interface CallRejectedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallRejectedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRejectedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRejectedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.rejected" in this case
-   * @type {string}
-   * @memberof CallRejectedEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallRejectedEvent
-   */
-  user: UserResponse;
-}
-/**
  *
  * @export
  * @interface CallRequest
@@ -1032,10 +411,10 @@ export interface CallRequest {
   created_by_id?: string;
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof CallRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
   /**
    *
    * @type {Array<MemberRequest>}
@@ -1105,10 +484,10 @@ export interface CallResponse {
   current_session_id: string;
   /**
    * Custom data for this object
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof CallResponse
    */
-  custom: { [key: string]: any };
+  custom: object;
   /**
    *
    * @type {EgressResponse}
@@ -1189,166 +568,6 @@ export interface CallResponse {
   updated_at: string;
 }
 /**
- * This event is sent to all call members to notify they are getting called
- * @export
- * @interface CallRingEvent
- */
-export interface CallRingEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallRingEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRingEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallRingEvent
-   */
-  created_at: string;
-  /**
-   * Call members
-   * @type {Array<MemberResponse>}
-   * @memberof CallRingEvent
-   */
-  members: Array<MemberResponse>;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallRingEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.notification" in this case
-   * @type {string}
-   * @memberof CallRingEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CallRingEvent
-   */
-  user: UserResponse;
-}
-/**
- * This event is sent when a call session ends
- * @export
- * @interface CallSessionEndedEvent
- */
-export interface CallSessionEndedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallSessionEndedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionEndedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionEndedEvent
-   */
-  created_at: string;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallSessionEndedEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.session_ended" in this case
-   * @type {string}
-   * @memberof CallSessionEndedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when a participant joins a call session
- * @export
- * @interface CallSessionParticipantJoinedEvent
- */
-export interface CallSessionParticipantJoinedEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {CallParticipantResponse}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  participant: CallParticipantResponse;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.session_participant_joined" in this case
-   * @type {string}
-   * @memberof CallSessionParticipantJoinedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when a participant leaves a call session
- * @export
- * @interface CallSessionParticipantLeftEvent
- */
-export interface CallSessionParticipantLeftEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {CallParticipantResponse}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  participant: CallParticipantResponse;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.session_participant_left" in this case
-   * @type {string}
-   * @memberof CallSessionParticipantLeftEvent
-   */
-  type: string;
-}
-/**
  *
  * @export
  * @interface CallSessionResponse
@@ -1408,43 +627,6 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   started_at?: string;
-}
-/**
- * This event is sent when a call session starts
- * @export
- * @interface CallSessionStartedEvent
- */
-export interface CallSessionStartedEvent {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof CallSessionStartedEvent
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionStartedEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionStartedEvent
-   */
-  created_at: string;
-  /**
-   * Call session ID
-   * @type {string}
-   * @memberof CallSessionStartedEvent
-   */
-  session_id: string;
-  /**
-   * The type of event: "call.session_started" in this case
-   * @type {string}
-   * @memberof CallSessionStartedEvent
-   */
-  type: string;
 }
 /**
  *
@@ -1655,79 +837,17 @@ export interface CallTypeResponse {
   updated_at: string;
 }
 /**
- * This event is sent when a call is updated, clients should use this update the local state of the call.
- * This event also contains the capabilities by role for the call, clients should update the own_capability for the current.
+ *
  * @export
- * @interface CallUpdatedEvent
+ * @interface CheckExternalStorageResponse
  */
-export interface CallUpdatedEvent {
+export interface CheckExternalStorageResponse {
   /**
-   *
-   * @type {CallResponse}
-   * @memberof CallUpdatedEvent
-   */
-  call: CallResponse;
-  /**
-   *
+   * Duration of the request in human-readable format
    * @type {string}
-   * @memberof CallUpdatedEvent
+   * @memberof CheckExternalStorageResponse
    */
-  call_cid: string;
-  /**
-   * The capabilities by role for this call
-   * @type {{ [key: string]: Array<string>; }}
-   * @memberof CallUpdatedEvent
-   */
-  capabilities_by_role: { [key: string]: Array<string> };
-  /**
-   *
-   * @type {string}
-   * @memberof CallUpdatedEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.ended" in this case
-   * @type {string}
-   * @memberof CallUpdatedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when a call member is muted
- * @export
- * @interface CallUserMuted
- */
-export interface CallUserMuted {
-  /**
-   *
-   * @type {string}
-   * @memberof CallUserMuted
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallUserMuted
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallUserMuted
-   */
-  from_user_id: string;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof CallUserMuted
-   */
-  muted_user_ids: Array<string>;
-  /**
-   * The type of event: "call.user_muted" in this case
-   * @type {string}
-   * @memberof CallUserMuted
-   */
-  type: string;
+  duration: string;
 }
 /**
  *
@@ -1737,10 +857,10 @@ export interface CallUserMuted {
 export interface ConnectUserDetailsRequest {
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof ConnectUserDetailsRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
   /**
    *
    * @type {string}
@@ -1758,69 +878,13 @@ export interface ConnectUserDetailsRequest {
    * @type {string}
    * @memberof ConnectUserDetailsRequest
    */
+  language?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
   name?: string;
-}
-/**
- * This event is sent when the WS connection is established and authenticated, this event contains the full user object as it is stored on the server
- * @export
- * @interface ConnectedEvent
- */
-export interface ConnectedEvent {
-  /**
-   * The connection_id for this client
-   * @type {string}
-   * @memberof ConnectedEvent
-   */
-  connection_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ConnectedEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {OwnUserResponse}
-   * @memberof ConnectedEvent
-   */
-  me: OwnUserResponse;
-  /**
-   * The type of event: "connection.ok" in this case
-   * @type {string}
-   * @memberof ConnectedEvent
-   */
-  type: string;
-}
-/**
- * This event is sent when the WS connection fails
- * @export
- * @interface ConnectionErrorEvent
- */
-export interface ConnectionErrorEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof ConnectionErrorEvent
-   */
-  connection_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ConnectionErrorEvent
-   */
-  created_at: string;
-  /**
-   *
-   * @type {APIError}
-   * @memberof ConnectionErrorEvent
-   */
-  error: APIError | null;
-  /**
-   * The type of event: "connection.ok" in this case
-   * @type {string}
-   * @memberof ConnectionErrorEvent
-   */
-  type: string;
 }
 /**
  *
@@ -1961,6 +1025,68 @@ export type CreateDeviceRequestPushProviderEnum =
 /**
  *
  * @export
+ * @interface CreateExternalStorageRequest
+ */
+export interface CreateExternalStorageRequest {
+  /**
+   *
+   * @type {S3Request}
+   * @memberof CreateExternalStorageRequest
+   */
+  aws_s3?: S3Request;
+  /**
+   *
+   * @type {AzureRequest}
+   * @memberof CreateExternalStorageRequest
+   */
+  azure_blob?: AzureRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  gcs_credentials?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  path?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  storage_type: string;
+}
+/**
+ *
+ * @export
+ * @interface CreateExternalStorageResponse
+ */
+export interface CreateExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof CreateExternalStorageResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface CreateGuestRequest
  */
 export interface CreateGuestRequest {
@@ -1999,64 +1125,15 @@ export interface CreateGuestResponse {
 /**
  *
  * @export
- * @interface Credentials
+ * @interface DeleteExternalStorageResponse
  */
-export interface Credentials {
+export interface DeleteExternalStorageResponse {
   /**
-   *
-   * @type {Array<ICEServer>}
-   * @memberof Credentials
-   */
-  ice_servers: Array<ICEServer>;
-  /**
-   *
-   * @type {SFUResponse}
-   * @memberof Credentials
-   */
-  server: SFUResponse;
-  /**
-   *
+   * Duration of the request in human-readable format
    * @type {string}
-   * @memberof Credentials
+   * @memberof DeleteExternalStorageResponse
    */
-  token: string;
-}
-/**
- * A custom event, this event is used to send custom events to other participants in the call.
- * @export
- * @interface CustomVideoEvent
- */
-export interface CustomVideoEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  created_at: string;
-  /**
-   * Custom data for this object
-   * @type {{ [key: string]: any; }}
-   * @memberof CustomVideoEvent
-   */
-  custom: { [key: string]: any };
-  /**
-   * The type of event, "custom" in this case
-   * @type {string}
-   * @memberof CustomVideoEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof CustomVideoEvent
-   */
-  user: UserResponse;
+  duration: string;
 }
 /**
  *
@@ -2291,6 +1368,37 @@ export interface EventNotificationSettingsRequest {
 /**
  *
  * @export
+ * @interface ExternalStorageResponse
+ */
+export interface ExternalStorageResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  path: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface GeofenceSettings
  */
 export interface GeofenceSettings {
@@ -2501,6 +1609,12 @@ export interface GetOrCreateCallResponse {
 export interface GoLiveRequest {
   /**
    *
+   * @type {string}
+   * @memberof GoLiveRequest
+   */
+  recording_storage_name?: string;
+  /**
+   *
    * @type {boolean}
    * @memberof GoLiveRequest
    */
@@ -2602,154 +1716,6 @@ export interface HLSSettingsResponse {
 /**
  *
  * @export
- * @interface HealthCheckEvent
- */
-export interface HealthCheckEvent {
-  /**
-   * The connection_id for this client
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  connection_id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "health.check" in this case
-   * @type {string}
-   * @memberof HealthCheckEvent
-   */
-  type: string;
-}
-/**
- *
- * @export
- * @interface ICEServer
- */
-export interface ICEServer {
-  /**
-   *
-   * @type {string}
-   * @memberof ICEServer
-   */
-  password: string;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof ICEServer
-   */
-  urls: Array<string>;
-  /**
-   *
-   * @type {string}
-   * @memberof ICEServer
-   */
-  username: string;
-}
-/**
- *
- * @export
- * @interface JoinCallRequest
- */
-export interface JoinCallRequest {
-  /**
-   * if true the call will be created if it doesn't exist
-   * @type {boolean}
-   * @memberof JoinCallRequest
-   */
-  create?: boolean;
-  /**
-   *
-   * @type {CallRequest}
-   * @memberof JoinCallRequest
-   */
-  data?: CallRequest;
-  /**
-   *
-   * @type {string}
-   * @memberof JoinCallRequest
-   */
-  location: string;
-  /**
-   *
-   * @type {number}
-   * @memberof JoinCallRequest
-   */
-  members_limit?: number;
-  /**
-   * If the participant is migrating from another SFU, then this is the ID of the previous SFU
-   * @type {string}
-   * @memberof JoinCallRequest
-   */
-  migrating_from?: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof JoinCallRequest
-   */
-  notify?: boolean;
-  /**
-   * if true and the call is created, the notification will include ring=true
-   * @type {boolean}
-   * @memberof JoinCallRequest
-   */
-  ring?: boolean;
-}
-/**
- *
- * @export
- * @interface JoinCallResponse
- */
-export interface JoinCallResponse {
-  /**
-   *
-   * @type {CallResponse}
-   * @memberof JoinCallResponse
-   */
-  call: CallResponse;
-  /**
-   *
-   * @type {boolean}
-   * @memberof JoinCallResponse
-   */
-  created: boolean;
-  /**
-   *
-   * @type {Credentials}
-   * @memberof JoinCallResponse
-   */
-  credentials: Credentials;
-  /**
-   *
-   * @type {string}
-   * @memberof JoinCallResponse
-   */
-  duration: string;
-  /**
-   *
-   * @type {Array<MemberResponse>}
-   * @memberof JoinCallResponse
-   */
-  members: Array<MemberResponse>;
-  /**
-   *
-   * @type {MemberResponse}
-   * @memberof JoinCallResponse
-   */
-  membership?: MemberResponse;
-  /**
-   *
-   * @type {Array<OwnCapability>}
-   * @memberof JoinCallResponse
-   */
-  own_capabilities: Array<OwnCapability>;
-}
-/**
- *
- * @export
  * @interface LayoutSettings
  */
 export interface LayoutSettings {
@@ -2773,10 +1739,10 @@ export interface LayoutSettings {
   name: LayoutSettingsNameEnum;
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof LayoutSettings
    */
-  options?: { [key: string]: any };
+  options?: object;
 }
 
 /**
@@ -2818,10 +1784,10 @@ export interface LayoutSettingsRequest {
   name: LayoutSettingsRequestNameEnum;
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof LayoutSettingsRequest
    */
-  options?: { [key: string]: any };
+  options?: object;
 }
 
 /**
@@ -2878,6 +1844,25 @@ export interface ListDevicesResponse {
 /**
  *
  * @export
+ * @interface ListExternalStorageResponse
+ */
+export interface ListExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof ListExternalStorageResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: ExternalStorageResponse; }}
+   * @memberof ListExternalStorageResponse
+   */
+  external_storages: { [key: string]: ExternalStorageResponse };
+}
+/**
+ *
+ * @export
  * @interface ListRecordingsResponse
  */
 export interface ListRecordingsResponse {
@@ -2902,10 +1887,10 @@ export interface ListRecordingsResponse {
 export interface MemberRequest {
   /**
    * Custom data for this object
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof MemberRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
   /**
    *
    * @type {string}
@@ -2933,10 +1918,10 @@ export interface MemberResponse {
   created_at: string;
   /**
    * Custom member response data
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof MemberResponse
    */
-  custom: { [key: string]: any };
+  custom: object;
   /**
    * Date/time of deletion
    * @type {string}
@@ -3134,111 +2119,6 @@ export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 /**
  *
  * @export
- * @interface OwnUserResponse
- */
-export interface OwnUserResponse {
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  created_at: string;
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof OwnUserResponse
-   */
-  custom: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  deleted_at?: string;
-  /**
-   *
-   * @type {Array<Device>}
-   * @memberof OwnUserResponse
-   */
-  devices: Array<Device>;
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  image?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  name?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  role: string;
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof OwnUserResponse
-   */
-  teams: Array<string>;
-  /**
-   *
-   * @type {string}
-   * @memberof OwnUserResponse
-   */
-  updated_at: string;
-}
-/**
- * This event is sent when a user requests access to a feature on a call,
- * clients receiving this event should display a permission request to the user
- * @export
- * @interface PermissionRequestEvent
- */
-export interface PermissionRequestEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof PermissionRequestEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof PermissionRequestEvent
-   */
-  created_at: string;
-  /**
-   * The list of permissions requested by the user
-   * @type {Array<string>}
-   * @memberof PermissionRequestEvent
-   */
-  permissions: Array<string>;
-  /**
-   * The type of event: "call.permission_request" in this case
-   * @type {string}
-   * @memberof PermissionRequestEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof PermissionRequestEvent
-   */
-  user: UserResponse;
-}
-/**
- *
- * @export
  * @interface PinRequest
  */
 export interface PinRequest {
@@ -3276,10 +2156,10 @@ export interface PinResponse {
 export interface QueryCallsRequest {
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof QueryCallsRequest
    */
-  filter_conditions?: { [key: string]: any };
+  filter_conditions?: object;
   /**
    *
    * @type {number}
@@ -3350,10 +2230,10 @@ export interface QueryCallsResponse {
 export interface QueryMembersRequest {
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof QueryMembersRequest
    */
-  filter_conditions?: { [key: string]: any };
+  filter_conditions?: object;
   /**
    *
    * @type {string}
@@ -3434,37 +2314,6 @@ export interface RTMPIngress {
    * @memberof RTMPIngress
    */
   address: string;
-}
-/**
- *
- * @export
- * @interface ReactionResponse
- */
-export interface ReactionResponse {
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof ReactionResponse
-   */
-  custom?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof ReactionResponse
-   */
-  emoji_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ReactionResponse
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof ReactionResponse
-   */
-  user: UserResponse;
 }
 /**
  *
@@ -3556,45 +2405,6 @@ export interface RecordSettingsResponse {
 /**
  *
  * @export
- * @interface RejectCallResponse
- */
-export interface RejectCallResponse {
-  /**
-   *
-   * @type {string}
-   * @memberof RejectCallResponse
-   */
-  duration: string;
-}
-/**
- *
- * @export
- * @interface RequestPermissionRequest
- */
-export interface RequestPermissionRequest {
-  /**
-   *
-   * @type {Array<string>}
-   * @memberof RequestPermissionRequest
-   */
-  permissions: Array<string>;
-}
-/**
- *
- * @export
- * @interface RequestPermissionResponse
- */
-export interface RequestPermissionResponse {
-  /**
-   *
-   * @type {string}
-   * @memberof RequestPermissionResponse
-   */
-  duration: string;
-}
-/**
- *
- * @export
  * @interface Response
  */
 export interface Response {
@@ -3646,27 +2456,27 @@ export interface RingSettingsRequest {
 /**
  *
  * @export
- * @interface SFUResponse
+ * @interface S3Request
  */
-export interface SFUResponse {
+export interface S3Request {
   /**
    *
    * @type {string}
-   * @memberof SFUResponse
+   * @memberof S3Request
    */
-  edge_name: string;
+  s3_api_key?: string;
   /**
    *
    * @type {string}
-   * @memberof SFUResponse
+   * @memberof S3Request
    */
-  url: string;
+  s3_region: string;
   /**
    *
    * @type {string}
-   * @memberof SFUResponse
+   * @memberof S3Request
    */
-  ws_endpoint: string;
+  s3_secret?: string;
 }
 /**
  *
@@ -3714,10 +2524,10 @@ export interface ScreensharingSettingsRequest {
 export interface SendEventRequest {
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof SendEventRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
 }
 /**
  *
@@ -3731,50 +2541,6 @@ export interface SendEventResponse {
    * @memberof SendEventResponse
    */
   duration: string;
-}
-/**
- *
- * @export
- * @interface SendReactionRequest
- */
-export interface SendReactionRequest {
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof SendReactionRequest
-   */
-  custom?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof SendReactionRequest
-   */
-  emoji_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof SendReactionRequest
-   */
-  type: string;
-}
-/**
- *
- * @export
- * @interface SendReactionResponse
- */
-export interface SendReactionResponse {
-  /**
-   * Duration of the request in human-readable format
-   * @type {string}
-   * @memberof SendReactionResponse
-   */
-  duration: string;
-  /**
-   *
-   * @type {ReactionResponse}
-   * @memberof SendReactionResponse
-   */
-  reaction: ReactionResponse;
 }
 /**
  *
@@ -3813,6 +2579,19 @@ export interface StartHLSBroadcastingResponse {
    * @memberof StartHLSBroadcastingResponse
    */
   playlist_url: string;
+}
+/**
+ *
+ * @export
+ * @interface StartRecordingRequest
+ */
+export interface StartRecordingRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartRecordingRequest
+   */
+  recording_external_storage?: string;
 }
 /**
  *
@@ -4076,38 +2855,6 @@ export interface UnblockUserResponse {
   duration: string;
 }
 /**
- * This event is sent when a user is unblocked on a call,
- * this can be useful to notify the user that they can now join the call again
- * @export
- * @interface UnblockedUserEvent
- */
-export interface UnblockedUserEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof UnblockedUserEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UnblockedUserEvent
-   */
-  created_at: string;
-  /**
-   * The type of event: "call.unblocked_user" in this case
-   * @type {string}
-   * @memberof UnblockedUserEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof UnblockedUserEvent
-   */
-  user: UserResponse;
-}
-/**
  *
  * @export
  * @interface UnpinRequest
@@ -4185,10 +2932,10 @@ export interface UpdateCallMembersResponse {
 export interface UpdateCallRequest {
   /**
    * Custom data for this object
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof UpdateCallRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
   /**
    *
    * @type {CallSettingsRequest}
@@ -4316,6 +3063,86 @@ export interface UpdateCallTypeResponse {
 /**
  *
  * @export
+ * @interface UpdateExternalStorageRequest
+ */
+export interface UpdateExternalStorageRequest {
+  /**
+   *
+   * @type {S3Request}
+   * @memberof UpdateExternalStorageRequest
+   */
+  aws_s3?: S3Request;
+  /**
+   *
+   * @type {AzureRequest}
+   * @memberof UpdateExternalStorageRequest
+   */
+  azure_blob?: AzureRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  gcs_credentials?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  path?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  storage_type: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateExternalStorageResponse
+ */
+export interface UpdateExternalStorageResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  bucket: string;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  path: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  type: string;
+}
+/**
+ *
+ * @export
  * @interface UpdateUserPermissionsRequest
  */
 export interface UpdateUserPermissionsRequest {
@@ -4352,43 +3179,6 @@ export interface UpdateUserPermissionsResponse {
   duration: string;
 }
 /**
- * This event is sent to notify about permission changes for a user, clients receiving this event should update their UI accordingly
- * @export
- * @interface UpdatedCallPermissionsEvent
- */
-export interface UpdatedCallPermissionsEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof UpdatedCallPermissionsEvent
-   */
-  call_cid: string;
-  /**
-   *
-   * @type {string}
-   * @memberof UpdatedCallPermissionsEvent
-   */
-  created_at: string;
-  /**
-   * The capabilities of the current user
-   * @type {Array<OwnCapability>}
-   * @memberof UpdatedCallPermissionsEvent
-   */
-  own_capabilities: Array<OwnCapability>;
-  /**
-   * The type of event: "call.permissions_updated" in this case
-   * @type {string}
-   * @memberof UpdatedCallPermissionsEvent
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof UpdatedCallPermissionsEvent
-   */
-  user: UserResponse;
-}
-/**
  *
  * @export
  * @interface UserRequest
@@ -4396,10 +3186,10 @@ export interface UpdatedCallPermissionsEvent {
 export interface UserRequest {
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof UserRequest
    */
-  custom?: { [key: string]: any };
+  custom?: object;
   /**
    * User ID
    * @type {string}
@@ -4412,6 +3202,12 @@ export interface UserRequest {
    * @memberof UserRequest
    */
   image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserRequest
+   */
+  language?: string;
   /**
    * Optional name of user
    * @type {string}
@@ -4445,10 +3241,10 @@ export interface UserResponse {
   created_at: string;
   /**
    *
-   * @type {{ [key: string]: any; }}
+   * @type {object}
    * @memberof UserResponse
    */
-  custom: { [key: string]: any };
+  custom: object;
   /**
    * Date/time of deletion
    * @type {string}
@@ -4467,6 +3263,12 @@ export interface UserResponse {
    * @memberof UserResponse
    */
   image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UserResponse
+   */
+  language: string;
   /**
    *
    * @type {string}
@@ -4492,55 +3294,6 @@ export interface UserResponse {
    */
   updated_at: string;
 }
-/**
- * @type VideoEvent
- * The discriminator object for all websocket events, you should use this to map event payloads to their own type
- * @export
- */
-export type VideoEvent =
-  | ({ type: 'call.accepted' } & CallAcceptedEvent)
-  | ({ type: 'call.blocked_user' } & BlockedUserEvent)
-  | ({ type: 'call.created' } & CallCreatedEvent)
-  | ({ type: 'call.ended' } & CallEndedEvent)
-  | ({ type: 'call.hls_broadcasting_failed' } & CallHLSBroadcastingFailedEvent)
-  | ({
-      type: 'call.hls_broadcasting_started';
-    } & CallHLSBroadcastingStartedEvent)
-  | ({
-      type: 'call.hls_broadcasting_stopped';
-    } & CallHLSBroadcastingStoppedEvent)
-  | ({ type: 'call.live_started' } & CallLiveStartedEvent)
-  | ({ type: 'call.member_added' } & CallMemberAddedEvent)
-  | ({ type: 'call.member_removed' } & CallMemberRemovedEvent)
-  | ({ type: 'call.member_updated' } & CallMemberUpdatedEvent)
-  | ({
-      type: 'call.member_updated_permission';
-    } & CallMemberUpdatedPermissionEvent)
-  | ({ type: 'call.notification' } & CallNotificationEvent)
-  | ({ type: 'call.permission_request' } & PermissionRequestEvent)
-  | ({ type: 'call.permissions_updated' } & UpdatedCallPermissionsEvent)
-  | ({ type: 'call.reaction_new' } & CallReactionEvent)
-  | ({ type: 'call.recording_failed' } & CallRecordingFailedEvent)
-  | ({ type: 'call.recording_ready' } & CallRecordingReadyEvent)
-  | ({ type: 'call.recording_started' } & CallRecordingStartedEvent)
-  | ({ type: 'call.recording_stopped' } & CallRecordingStoppedEvent)
-  | ({ type: 'call.rejected' } & CallRejectedEvent)
-  | ({ type: 'call.ring' } & CallRingEvent)
-  | ({ type: 'call.session_ended' } & CallSessionEndedEvent)
-  | ({
-      type: 'call.session_participant_joined';
-    } & CallSessionParticipantJoinedEvent)
-  | ({
-      type: 'call.session_participant_left';
-    } & CallSessionParticipantLeftEvent)
-  | ({ type: 'call.session_started' } & CallSessionStartedEvent)
-  | ({ type: 'call.unblocked_user' } & UnblockedUserEvent)
-  | ({ type: 'call.updated' } & CallUpdatedEvent)
-  | ({ type: 'call.user_muted' } & CallUserMuted)
-  | ({ type: 'connection.error' } & ConnectionErrorEvent)
-  | ({ type: 'connection.ok' } & ConnectedEvent)
-  | ({ type: 'custom' } & CustomVideoEvent)
-  | ({ type: 'health.check' } & HealthCheckEvent);
 /**
  *
  * @export
@@ -4657,30 +3410,4 @@ export interface WSAuthMessageRequest {
    * @memberof WSAuthMessageRequest
    */
   user_details: ConnectUserDetailsRequest;
-}
-/**
- * This is just a placeholder for all client events
- * @export
- * @interface WSCallEvent
- */
-export interface WSCallEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof WSCallEvent
-   */
-  call_cid?: string;
-}
-/**
- * This is just a placeholder for all client events
- * @export
- * @interface WSClientEvent
- */
-export interface WSClientEvent {
-  /**
-   *
-   * @type {string}
-   * @memberof WSClientEvent
-   */
-  connection_id?: string;
 }
