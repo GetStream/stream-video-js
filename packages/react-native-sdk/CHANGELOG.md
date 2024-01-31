@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.15...@stream-io/video-react-native-sdk-0.3.16) (2024-01-30)
+
+
+### Bug Fixes
+
+* **react-native-sdk:** use call settings permissions in CallControls ([#1255](https://github.com/GetStream/stream-video-js/issues/1255)) ([3eefa0d](https://github.com/GetStream/stream-video-js/commit/3eefa0db85693f79e32e6970cc42b2e8a5765f1a))
+
+### [0.3.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.14...@stream-io/video-react-native-sdk-0.3.15) (2024-01-30)
+
+
+### Features
+
+* migrate expo example app to v50 ([#1249](https://github.com/GetStream/stream-video-js/issues/1249)) ([f4c99ac](https://github.com/GetStream/stream-video-js/commit/f4c99ac8bcd750c9bfc1628f5c05cfe42e50bb9f))
+
 ### [0.3.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.13...@stream-io/video-react-native-sdk-0.3.14) (2024-01-29)
 
 ### Dependency Updates
