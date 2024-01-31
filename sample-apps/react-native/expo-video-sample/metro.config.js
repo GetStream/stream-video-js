@@ -8,7 +8,7 @@ const projectRoot = __dirname;
 
 const config = getDefaultConfig(projectRoot);
 
-// Start, find what all modules need to be unique for the app
+// find what all modules need to be unique for the app
 const dependencyPackageNames = Object.keys(
   require('./package.json').dependencies,
 );
@@ -36,9 +36,14 @@ const blockList = uniqueModules.map(({ blockPattern }) => blockPattern);
 
 const workspaceRoot = path.resolve(projectRoot, '../../..');
 
-// watch all folders in the workspace
-config.watchFolders = [workspaceRoot];
+config.watchFolders = [
+  path.join(workspaceRoot, 'node_modules'),
+  path.join(workspaceRoot, 'packages/client'),
+  path.join(workspaceRoot, 'packages/react-bindings'),
+  path.join(workspaceRoot, 'packages/react-native-sdk'),
+];
 
+// using rnx-kit symlinks resolver to solve https://github.com/react-native-webrtc/react-native-webrtc/issues/1503
 config.resolver.resolveRequest = MetroSymlinksResolver();
 
 config.resolver.extraNodeModules = extraNodeModules;
