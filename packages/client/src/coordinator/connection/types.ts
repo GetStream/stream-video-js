@@ -1,6 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { StableWSConnection } from './connection';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, UserRequest, WSEvent } from '../../gen/coordinator';
 
 export type UR = Record<string, unknown>;
 
@@ -61,7 +61,7 @@ export type ConnectionRecoveredEvent = {
 };
 
 export type StreamVideoEvent = (
-  | VideoEvent
+  | WSEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent

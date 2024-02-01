@@ -414,7 +414,7 @@ export class StreamClient {
       {
         user: {
           ...user,
-          role: 'guest',
+          // role: 'guest',
         },
       },
       { publicEndpoint: true },
