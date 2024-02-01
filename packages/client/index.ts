@@ -13,7 +13,6 @@ export * from './src/stats/types';
 export * from './src/Call';
 export * from './src/CallType';
 export * from './src/StreamVideoClient';
-export * from './src/StreamVideoServerClient';
 export * from './src/StreamSfuClient';
 export * from './src/devices';
 export * from './src/store';
