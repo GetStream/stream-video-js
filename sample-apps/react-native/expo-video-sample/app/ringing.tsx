@@ -22,8 +22,13 @@ export default function JoinRingingCallScreen() {
 
   const firstCall = calls[0];
 
+  useEffect(() => {
+    if (!firstCall) {
+      router.back();
+    }
+  }, [firstCall]);
+
   if (!firstCall) {
-    router.back();
     return null;
   }
 
