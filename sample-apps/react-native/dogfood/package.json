@@ -32,7 +32,7 @@
     "@stream-io/react-native-webrtc": "118.0.1",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "react": "18.2.0",
-    "react-native": "0.71.11",
+    "react-native": "0.71.15",
     "react-native-callkeep": "4.3.11",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.12.0",

@@ -6,6 +6,7 @@ import {
 
 import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
+import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
@@ -61,7 +62,12 @@ export const ToggleVideoPublishingButton = (
   props: ToggleVideoPublishingButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption, ...restCompositeButtonProps } = props;
+  const {
+    caption,
+    Menu = <DeviceSelectorVideo visualType="list" />,
+    menuPlacement = 'top',
+    ...restCompositeButtonProps
+  } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);
@@ -98,6 +104,8 @@ export const ToggleVideoPublishingButton = (
               await camera.toggle();
             }
           }}
+          Menu={Menu}
+          menuPlacement={menuPlacement}
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'camera-off' : 'camera'} />

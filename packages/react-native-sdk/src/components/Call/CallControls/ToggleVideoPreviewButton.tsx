@@ -29,7 +29,9 @@ export const ToggleVideoPreviewButton = ({
     },
   } = useTheme();
   const call = useCall();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
+  const callSettings = useCallSettings();
+  const isVideoEnabledInCall = callSettings?.video.enabled;
   const { status } = useCameraState();
   const onPress = async () => {
     if (onPressHandler) {
@@ -38,6 +40,10 @@ export const ToggleVideoPreviewButton = ({
     }
     await call?.camera.toggle();
   };
+
+  if (!isVideoEnabledInCall) {
+    return;
+  }
 
   return (
     <CallControlsButton

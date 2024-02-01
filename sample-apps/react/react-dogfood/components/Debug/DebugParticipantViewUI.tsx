@@ -10,6 +10,7 @@ import {
   SfuModels,
   useCall,
   useI18n,
+  useMenuContext,
   useParticipantViewContext,
 } from '@stream-io/video-react-sdk';
 import { DebugStatsView } from './DebugStatsView';
@@ -164,8 +165,9 @@ const CustomParticipantActionsContextMenu = () => {
     document.exitPictureInPicture().catch(console.error);
   };
 
+  const { close } = useMenuContext() || {};
   return (
-    <GenericMenu>
+    <GenericMenu onItemClick={close}>
       <GenericMenuButtonItem
         onClick={toggleParticipantPinnedAt}
         disabled={pin && !pin.isLocalPin}

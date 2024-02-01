@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.6...@stream-io/video-client-0.5.7) (2024-01-29)
+
+
+### Bug Fixes
+
+* **react-native:** no video stream from ipad ([#1253](https://github.com/GetStream/stream-video-js/issues/1253)) ([3e325ba](https://github.com/GetStream/stream-video-js/commit/3e325ba6063d7452b25bbf88829e2d8155979e6f))
+
 ### [0.5.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.5...@stream-io/video-client-0.5.6) (2024-01-19)
 
 

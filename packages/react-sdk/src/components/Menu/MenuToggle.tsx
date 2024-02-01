@@ -35,28 +35,26 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   visualType?: MenuVisualType;
 }>;
 
-export type MenuPortalContextValue = {
+export type MenuContextValue = {
   close?: () => void;
 };
 
 /**
  * Used to provide utility APIs to the components rendered inside the portal.
  */
-const MenuPortalContext = createContext<MenuPortalContextValue>({});
+const MenuContext = createContext<MenuContextValue>({});
 
 /**
- * Access to the closes MenuPortalContext.
+ * Access to the closes MenuContext.
  */
-export const useMenuPortalContext = (): MenuPortalContextValue => {
-  return useContext(MenuPortalContext);
+export const useMenuContext = (): MenuContextValue => {
+  return useContext(MenuContext);
 };
 
 const MenuPortal = ({
   children,
-  setMenuShown,
   refs,
 }: PropsWithChildren<{
-  setMenuShown: (shown: boolean) => void;
   refs: UseFloatingReturn['refs'];
 }>) => {
   const portalId = useMemo(
@@ -70,13 +68,7 @@ const MenuPortal = ({
       <FloatingOverlay>
         <FloatingPortal id={portalId}>
           <div className="str-video__portal-content" ref={refs.setFloating}>
-            <MenuPortalContext.Provider
-              value={{
-                close: () => setMenuShown(false),
-              }}
-            >
-              {children}
-            </MenuPortalContext.Provider>
+            {children}
           </div>
         </FloatingPortal>
       </FloatingOverlay>
@@ -126,26 +118,24 @@ export const MenuToggle = <E extends HTMLElement>({
 
   return (
     <>
-      {menuShown && visualType === MenuVisualType.PORTAL && (
-        <MenuPortal
-          refs={refs}
-          setMenuShown={setMenuShown}
-          children={children}
-        />
-      )}
-      {menuShown && visualType === MenuVisualType.MENU && (
-        <div
-          className="str-video__menu-container"
-          ref={refs.setFloating}
-          style={{
-            position: strategy,
-            top: y ?? 0,
-            left: x ?? 0,
-            overflowY: 'auto',
-          }}
-        >
-          {children}
-        </div>
+      {menuShown && (
+        <MenuContext.Provider value={{ close: () => setMenuShown(false) }}>
+          {visualType === MenuVisualType.PORTAL ? (
+            <MenuPortal refs={refs} children={children} />
+          ) : visualType === MenuVisualType.MENU ? (
+            <div
+              className="str-video__menu-container"
+              ref={refs.setFloating}
+              style={{
+                position: strategy,
+                top: y ?? 0,
+                left: x ?? 0,
+                overflowY: 'auto',
+              }}
+              children={children}
+            />
+          ) : null}
+        </MenuContext.Provider>
       )}
       <ToggleButton menuShown={menuShown} ref={refs.setReference} />
     </>

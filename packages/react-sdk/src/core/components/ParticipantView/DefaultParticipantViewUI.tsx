@@ -112,7 +112,6 @@ export const ParticipantDetails = ({
 }: Pick<DefaultParticipantViewUIProps, 'indicatorsVisible'>) => {
   const { participant } = useParticipantViewContext();
   const {
-    isDominantSpeaker,
     isLocalParticipant,
     connectionQuality,
     publishedTracks,
@@ -149,22 +148,10 @@ export const ParticipantDetails = ({
             <span
               title={t('Unpin')}
               onClick={() => call?.unpin(sessionId)}
-              style={{ cursor: 'pointer' }}
               className="str-video__participant-details__name--pinned"
             />
           )}
-
-          {indicatorsVisible && isDominantSpeaker ? (
-            <span
-              className="str-video__participant-details__name--dominant_speaker"
-              title={t('Dominant speaker')}
-            />
-          ) : (
-            <span
-              className="str-video__participant-details__name--non-dominant_speaker"
-              title={t('Non dominant speaker')}
-            />
-          )}
+          {indicatorsVisible && <SpeechIndicator />}
         </span>
       </div>
       {indicatorsVisible && (
@@ -187,5 +174,23 @@ export const ParticipantDetails = ({
         </Notification>
       )}
     </>
+  );
+};
+
+export const SpeechIndicator = () => {
+  const { participant } = useParticipantViewContext();
+  const { isSpeaking, isDominantSpeaker } = participant;
+  return (
+    <span
+      className={clsx(
+        'str-video__speech-indicator',
+        isSpeaking && 'str-video__speech-indicator--speaking',
+        isDominantSpeaker && 'str-video__speech-indicator--dominant',
+      )}
+    >
+      <span className="str-video__speech-indicator__bar" />
+      <span className="str-video__speech-indicator__bar" />
+      <span className="str-video__speech-indicator__bar" />
+    </span>
   );
 };

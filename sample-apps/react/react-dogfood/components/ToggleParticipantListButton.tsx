@@ -13,8 +13,8 @@ export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
 export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
-  const { useParticipantCount } = useCallStateHooks();
-  const participantCount = useParticipantCount();
+  const { useParticipants } = useCallStateHooks();
+  const participantCount = useParticipants().length;
   return (
     <CompositeButton title="Participants" {...props}>
       <Icon icon="participants" />

@@ -5,6 +5,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
 import { Icon } from '../Icon';
@@ -17,7 +18,7 @@ export type ToggleAudioPreviewButtonProps = Pick<
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
-  const { caption, ...restCompositeButtonProps } = props;
+  const { caption, Menu, menuPlacement, ...restCompositeButtonProps } = props;
   const { t } = useI18n();
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, isMute, hasBrowserPermission } = useMicrophoneState();
@@ -37,6 +38,8 @@ export const ToggleAudioPreviewButton = (
         isMute ? 'preview-audio-unmute-button' : 'preview-audio-mute-button'
       }
       onClick={() => microphone.toggle()}
+      Menu={Menu}
+      menuPlacement={menuPlacement}
       {...restCompositeButtonProps}
     >
       <Icon icon={!isMute ? 'mic' : 'mic-off'} />
@@ -60,7 +63,12 @@ export const ToggleAudioPublishingButton = (
   props: ToggleAudioPublishingButtonProps,
 ) => {
   const { t } = useI18n();
-  const { caption, ...restCompositeButtonProps } = props;
+  const {
+    caption,
+    Menu = <DeviceSelectorAudioInput visualType="list" />,
+    menuPlacement = 'top',
+    ...restCompositeButtonProps
+  } = props;
 
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);
@@ -95,6 +103,8 @@ export const ToggleAudioPublishingButton = (
               await microphone.toggle();
             }
           }}
+          Menu={Menu}
+          menuPlacement={menuPlacement}
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'mic-off' : 'mic'} />
