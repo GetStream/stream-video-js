@@ -62,19 +62,19 @@ const generalLocationOverrideTransformer: AxiosRequestTransformer =
       'ATL', 'BOS', 'BWI', 'CLT', 'DEN', 'DFW', 'DTW', 'EWR', 'IAH', 'IAD',
       'JFK', 'LAS', 'LAX', 'LGA', 'MCO', 'MEX', 'MIA', 'MSP', 'ORD', 'PDX',
       'PHL', 'PHX', 'PIT', 'SAN', 'SEA', 'SFO', 'SLC', 'TPA', 'YUL', 'YVR',
-      'YYC', 'YYZ',
       // South America
       'AEP', 'AFA', 'ASU', 'BEL', 'BGI', 'BRC', 'BSB', 'CCS', 'CLO', 'CNF',
-      'CPT', 'CUN', 'CUZ', 'DAC', 'EZE', 'FOR', 'GYE', 'GIG', 'GRU', 'LIM',
-      'LPB', 'MAD', 'MEX', 'MIA', 'MVD', 'PTY', 'REC', 'RIO', 'RUH', 'SAL',
-      'SCL', 'SJO', 'SSA', 'SYD', 'UIO', 'VCP', 'VVI', 'WAW',
+      'CPT', 'CUN', 'DAC', 'EZE', 'FOR', 'GYE', 'GIG', 'GRU', 'LIM', 'LPB',
+      'MVD', 'RIO', 'RUH', 'SAL', 'SCL', 'SJO', 'SSA', 'UIO', 'VCP', 'VVI',
       // Europe
       'AMS', 'ATH', 'BCN', 'BGO', 'BLL', 'BRU', 'BUD', 'CDG', 'CPH', 'DUB',
       'FRA', 'HEL', 'IST', 'LED', 'LHR', 'LIS', 'LUX', 'MAD', 'MUC', 'MXP',
-      'OSL', 'PRG', 'RUH', 'SKP', 'VIE', 'WAW', 'ZAG', 'ZRH',
+      'OSL', 'PRG', 'RUH', 'SKP', 'SOF', 'VIE', 'WAW', 'ZAG', 'ZRH',
       // Asia
       'AMM', 'BKK', 'CAN', 'CCU', 'CGK', 'DEL', 'DOH', 'DXB', 'HKG', 'HND',
-      'ICN', 'IST', 'KIX', 'KUL', 'PEK', 'PVG', 'SGN', 'SIN', 'SYD', 'TPE',
+      'ICN', 'KIX', 'KUL', 'PEK', 'PVG', 'SGN', 'SIN', 'TPE',
+      // Africa
+      'ACC', 'CAI', 'JNB', 'LOS', 'NBO', 'CMN', 'ADD', 'DKR', 'CPT', 'TUN',
       // Australia
       'ADL', 'AKL', 'BNE', 'CHC', 'DUD', 'MEL', 'PER', 'SYD', 'WLG', 'ZQN'
     ];
