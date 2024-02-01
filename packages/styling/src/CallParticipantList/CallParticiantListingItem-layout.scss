@@ -13,6 +13,7 @@
   }
 
   .str-video__participant-listing-item__display-name {
+    flex: 1;
     @include utils.ellipsis-text();
   }
 
