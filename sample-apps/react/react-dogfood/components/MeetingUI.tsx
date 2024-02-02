@@ -133,9 +133,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       />
     );
   } else if (show === 'lobby') {
-    ComponentToRender = (
-      <Lobby onJoin={onJoin} callId={activeCall?.id} mode={mode} />
-    );
+    ComponentToRender = <Lobby onJoin={onJoin} mode={mode} />;
   } else if (show === 'loading') {
     ComponentToRender = <LoadingScreen />;
   } else if (!activeCall) {

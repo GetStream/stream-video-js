@@ -35,7 +35,7 @@ button.rd__button,
   }
 
   &--primary {
-    background-color: var(--str-video__brand-color1);
+    background-color: var(--str-video__button-primary-active);
 
     &:hover {
       background-color: var(--str-video__button-primary-hover);
@@ -43,7 +43,7 @@ button.rd__button,
     }
 
     &:disabled {
-      background-color: var(--str-video__brand-color1);
+      background-color: var(--str-video__button-default-disabled);
       cursor: not-allowed;
     }
 
