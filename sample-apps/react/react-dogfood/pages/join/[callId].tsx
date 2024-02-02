@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import {
   Call,
   CallingState,
+  CallRequest,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
@@ -148,10 +149,18 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, [callId, callType, client]);
 
   useEffect(() => {
-    call?.getOrCreate().catch((err) => {
+    if (!call) return;
+    // "restricted" is a special call type that only allows
+    // `call_member` role to join the call
+    const data: CallRequest =
+      callType === 'restricted'
+        ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
+        : {};
+
+    call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
     });
-  }, [call]);
+  }, [call, callType, user.id]);
 
   // apple-itunes-app meta-tag is used to open the app from the browser
   // we need to update the app-argument to the current URL so that the app
