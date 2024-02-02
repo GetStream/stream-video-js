@@ -75,7 +75,7 @@ export class StreamVideoServerClient extends StreamVideoClient {
     );
   };
 
-  createExtarnalStorage = (request: CreateExternalStorageRequest) => {
+  createExternalStorage = (request: CreateExternalStorageRequest) => {
     return this.streamClient.post<
       CreateExternalStorageResponse,
       CreateExternalStorageRequest
