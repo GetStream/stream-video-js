@@ -117,11 +117,22 @@ const HomeContent = () => {
           </div>
           <Link
             href={`/join/${meetingId()}`}
-            className="rd__home-new rd__link rd__link--faux-button rd__link--faux-button--primary"
+            className={clsx(
+              'rd__home-new rd__link rd__link--faux-button',
+              disabled && 'rd__link--primary',
+            )}
             data-testid="create-and-join-meeting-button"
           >
             <Icon className="rd__link__icon" icon="camera-add" />
-            {t('Start a new call')}
+            {t('Start new call')}
+          </Link>
+          <Link
+            href={`/join/${meetingId()}?type=restricted`}
+            className="rd__home-new rd__link rd__link--faux-button"
+            data-testid="create-and-join-restricted-meeting-button"
+          >
+            <Icon className="rd__link__icon" icon="camera-add" />
+            {t('Start new restricted call')}
           </Link>
         </div>
       </div>
