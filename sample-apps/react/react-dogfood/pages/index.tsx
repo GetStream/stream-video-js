@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { type GetServerSidePropsContext } from 'next';
+import { GetServerSideProps } from 'next/types';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -140,24 +140,17 @@ const HomeContent = () => {
   );
 };
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'demo') {
     const { query } = ctx;
-    const callId = query['id'];
-    if (callId) {
-      // support the legacy https://getstream.io/video/demos?id=<call-id>
-      return {
-        redirect: {
-          destination: `/join/${callId}`,
-          permanent: false,
-        },
-      };
-    }
+    const params = new URLSearchParams(query as Record<string, string>);
+    const callId = params.get('id') || meetingId();
+    params.set('id', callId);
 
-    // we immediately jump to the lobby in demo environment otherwise
+    // support the legacy https://getstream.io/video/demos?id=<call-id>
     return {
       redirect: {
-        destination: `/join/${meetingId()}`,
+        destination: `/join/${callId}?${params.toString()}`,
         permanent: false,
       },
     };
