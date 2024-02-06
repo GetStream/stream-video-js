@@ -7,6 +7,51 @@ import { onNewCallNotification } from '../internal/newNotificationCallbacks';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+/**
+ * This function is used to check if the call should be ended based on the push notification
+ * Useful for callkeep management to end the call if necessary (with reportEndCallWithUUID)
+ */
+export const shouldCallBeEnded = (
+  callFromPush: Call,
+  created_by_id: string | undefined,
+  receiver_id: string | undefined,
+) => {
+  /* callkeep reasons for ending a call
+    FAILED: 1,
+    REMOTE_ENDED: 2,
+    UNANSWERED: 3,
+    ANSWERED_ELSEWHERE: 4,
+    DECLINED_ELSEWHERE: 5,
+    MISSED: 6
+  */
+  const callSession = callFromPush.state.session;
+  const rejected_by = callSession?.rejected_by;
+  const accepted_by = callSession?.accepted_by;
+  console.log({ rejected_by, accepted_by });
+  let mustEndCall = false;
+  let callkeepReason = 0;
+  if (created_by_id && rejected_by) {
+    if (rejected_by[created_by_id]) {
+      // call was cancelled by the caller
+      mustEndCall = true;
+      callkeepReason = 2;
+    }
+  } else if (receiver_id && rejected_by) {
+    if (rejected_by[receiver_id]) {
+      // call was rejected by the receiver in some other device
+      mustEndCall = true;
+      callkeepReason = 5;
+    }
+  } else if (receiver_id && accepted_by) {
+    if (accepted_by[receiver_id]) {
+      // call was accepted by the receiver in some other device
+      mustEndCall = true;
+      callkeepReason = 4;
+    }
+  }
+  return { mustEndCall, callkeepReason };
+};
+
 /* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
   1. we need to create a new client and connect the user to decline the call
   2. this is because the app is in background state and we don't have a client to get the call and do an action

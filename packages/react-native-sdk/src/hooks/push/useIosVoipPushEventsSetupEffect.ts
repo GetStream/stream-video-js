@@ -1,11 +1,20 @@
 import { useEffect } from 'react';
-import { getVoipPushNotificationLib } from '../../utils/push/libs';
+import {
+  getCallKeepLib,
+  getVoipPushNotificationLib,
+} from '../../utils/push/libs';
 
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
 import { useStreamVideoClient } from '@stream-io/video-react-bindings';
-import { voipPushNotificationCallCId$ } from '../../utils/push/rxSubjects';
+import {
+  voipCallkeepAcceptedCallOnNativeDialerMap$,
+  voipPushNotificationCallCId$,
+} from '../../utils/push/rxSubjects';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
+import { NativeModules } from 'react-native';
+import { shouldCallBeEnded } from '../../utils/push/utils';
+import { RxUtils } from '@stream-io/video-client';
 
 let lastVoipToken: string | undefined = '';
 
@@ -91,7 +100,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
   }, []);
 };
 
-const onNotificationReceived = (notification: any) => {
+const onNotificationReceived = async (notification: any) => {
   /* --- Example payload ---
   {
     "aps": {
@@ -126,4 +135,76 @@ const onNotificationReceived = (notification: any) => {
     // callkeep events will then accept/reject the call
     voipPushNotificationCallCId$.next(call_cid);
   }
+  const pushConfig = StreamVideoRN.getConfig().push;
+  if (!call_cid || Platform.OS !== 'ios' || !pushConfig) {
+    return;
+  }
+  const client = await pushConfig.createStreamVideoClient();
+  if (!client) {
+    return;
+  }
+  const callFromPush = await client.onRingingCall(call_cid);
+  // const response = await callFromPush.get();
+  // response.call.
+  let uuid = '';
+  try {
+    uuid = await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
+      call_cid,
+    );
+  } catch (error) {
+    console.log('Error in getting call uuid', error);
+  }
+  if (!uuid) {
+    return;
+  }
+  const created_by_id = notification?.stream?.created_by_id;
+  const receiver_id = notification?.stream?.receiver_id;
+  function closeCallIfNecessary() {
+    const { mustEndCall, callkeepReason } = shouldCallBeEnded(
+      callFromPush,
+      created_by_id,
+      receiver_id,
+    );
+    if (mustEndCall) {
+      const callkeep = getCallKeepLib();
+      callkeep.isCallActive(uuid).then((isActive): void => {
+        if (isActive) {
+          callkeep.reportEndCallWithUUID(uuid, callkeepReason);
+        }
+      });
+      return true;
+    }
+    return false;
+  }
+  const closed = closeCallIfNecessary();
+  if (!closed) {
+    const unsubscribe = callFromPush.on('all', (event) => {
+      const currently_processed_call_cid = RxUtils.getCurrentValue(
+        voipPushNotificationCallCId$,
+      ); // when we rejected through callkeep this will be undefined
+      const acceptedcallkeepMap = RxUtils.getCurrentValue(
+        voipCallkeepAcceptedCallOnNativeDialerMap$,
+      ); // when accepted through callkeep this will be defined
+      console.log({
+        eventType: event.type,
+        currently_processed_call_cid,
+        acceptedcallkeepMap,
+        subbed: voipCallkeepAcceptedCallOnNativeDialerMap$.observed,
+      });
+      // if (
+      //   acceptedcallkeepMap?.cid === call_cid ||
+      //   currently_processed_call_cid !== call_cid
+      // ) {
+      //   console.log("unsubscribing from call's events");
+      //   unsubscribe();
+      // } else {
+      const _closed = closeCallIfNecessary();
+      if (_closed) {
+        unsubscribe();
+      }
+      // }
+    });
+  }
+  const voipPushNotification = getVoipPushNotificationLib();
+  voipPushNotification.onVoipNotificationCompleted(uuid);
 };
