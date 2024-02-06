@@ -2501,6 +2501,12 @@ export interface GetOrCreateCallResponse {
 export interface GoLiveRequest {
   /**
    *
+   * @type {string}
+   * @memberof GoLiveRequest
+   */
+  recording_storage_name?: string;
+  /**
+   *
    * @type {boolean}
    * @memberof GoLiveRequest
    */
@@ -3817,6 +3823,19 @@ export interface StartHLSBroadcastingResponse {
 /**
  *
  * @export
+ * @interface StartRecordingRequest
+ */
+export interface StartRecordingRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof StartRecordingRequest
+   */
+  recording_external_storage?: string;
+}
+/**
+ *
+ * @export
  * @interface StartRecordingResponse
  */
 export interface StartRecordingResponse {
@@ -4683,4 +4702,284 @@ export interface WSClientEvent {
    * @memberof WSClientEvent
    */
   connection_id?: string;
+}
+
+/**
+ *
+ * @export
+ * @interface AzureRequest
+ */
+export interface AzureRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_account_name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_client_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_client_secret: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AzureRequest
+   */
+  abs_tenant_id: string;
+}
+
+/**
+ *
+ * @export
+ * @interface CheckExternalStorageResponse
+ */
+export interface CheckExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof CheckExternalStorageResponse
+   */
+  duration: string;
+}
+
+/**
+ *
+ * @export
+ * @interface CreateExternalStorageRequest
+ */
+export interface CreateExternalStorageRequest {
+  /**
+   *
+   * @type {S3Request}
+   * @memberof CreateExternalStorageRequest
+   */
+  aws_s3?: S3Request;
+  /**
+   *
+   * @type {AzureRequest}
+   * @memberof CreateExternalStorageRequest
+   */
+  azure_blob?: AzureRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  gcs_credentials?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  path?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CreateExternalStorageRequest
+   */
+  storage_type: string;
+}
+
+/**
+ *
+ * @export
+ * @interface CreateExternalStorageResponse
+ */
+export interface CreateExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof CreateExternalStorageResponse
+   */
+  duration: string;
+}
+
+/**
+ *
+ * @export
+ * @interface DeleteExternalStorageResponse
+ */
+export interface DeleteExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof DeleteExternalStorageResponse
+   */
+  duration: string;
+}
+
+/**
+ *
+ * @export
+ * @interface ExternalStorageResponse
+ */
+export interface ExternalStorageResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  path: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ExternalStorageResponse
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface ListExternalStorageResponse
+ */
+export interface ListExternalStorageResponse {
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof ListExternalStorageResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {{ [key: string]: ExternalStorageResponse; }}
+   * @memberof ListExternalStorageResponse
+   */
+  external_storages: { [key: string]: ExternalStorageResponse };
+}
+/**
+ *
+ * @export
+ * @interface S3Request
+ */
+export interface S3Request {
+  /**
+   *
+   * @type {string}
+   * @memberof S3Request
+   */
+  s3_api_key?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof S3Request
+   */
+  s3_region: string;
+  /**
+   *
+   * @type {string}
+   * @memberof S3Request
+   */
+  s3_secret?: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateExternalStorageResponse
+ */
+export interface UpdateExternalStorageResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  bucket: string;
+  /**
+   * Duration of the request in human-readable format
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  path: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageResponse
+   */
+  type: string;
+}
+/**
+ *
+ * @export
+ * @interface UpdateExternalStorageRequest
+ */
+export interface UpdateExternalStorageRequest {
+  /**
+   *
+   * @type {S3Request}
+   * @memberof UpdateExternalStorageRequest
+   */
+  aws_s3?: S3Request;
+  /**
+   *
+   * @type {AzureRequest}
+   * @memberof UpdateExternalStorageRequest
+   */
+  azure_blob?: AzureRequest;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  bucket: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  gcs_credentials?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  path?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpdateExternalStorageRequest
+   */
+  storage_type: string;
 }

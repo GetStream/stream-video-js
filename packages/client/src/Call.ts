@@ -47,6 +47,7 @@ import {
   SendReactionResponse,
   SFUResponse,
   StartHLSBroadcastingResponse,
+  StartRecordingRequest,
   StartRecordingResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
@@ -1535,11 +1536,11 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async () => {
-    return this.streamClient.post<StartRecordingResponse>(
-      `${this.streamClientBasePath}/start_recording`,
-      {},
-    );
+  startRecording = async (request?: StartRecordingRequest) => {
+    return this.streamClient.post<
+      StartRecordingResponse,
+      StartRecordingRequest
+    >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
   };
 
   /**

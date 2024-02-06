@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.17...@stream-io/video-react-native-sdk-0.3.18) (2024-02-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.19`
+### [0.3.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.16...@stream-io/video-react-native-sdk-0.3.17) (2024-01-31)
+
+
+### Bug Fixes
+
+* **react-native:** align outgoing call controls button sizes ([800e330](https://github.com/GetStream/stream-video-js/commit/800e3308893212a305c53710939d9f47aad0d48d))
+* **react-native:** check for ios provider name presence ([c6c5d2b](https://github.com/GetStream/stream-video-js/commit/c6c5d2bcc3f97ba3d7c28eac112db4cac9714078))
+
 ### [0.3.16](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.15...@stream-io/video-react-native-sdk-0.3.16) (2024-01-30)
 
 
