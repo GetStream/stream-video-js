@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.7...@stream-io/video-client-0.5.8) (2024-02-06)
+
+
+### Features
+
+* external storage for recordings ([#1260](https://github.com/GetStream/stream-video-js/issues/1260)) ([50a45fc](https://github.com/GetStream/stream-video-js/commit/50a45fc6b87865f16301d6a9173c59e4774a3b31))
+
 ### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.6...@stream-io/video-client-0.5.7) (2024-01-29)
 
 
