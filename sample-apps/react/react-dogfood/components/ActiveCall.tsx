@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import {
   Call,
@@ -55,7 +56,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const { current: currentTourStep, active: isTourActive } = useTourContext();
+  const {
+    current: currentTourStep,
+    active: isTourActive,
+    next: nextTourStep,
+  } = useTourContext();
 
   const { layout, setLayout } = useLayoutSwitcher();
   const breakpoint = useBreakpoint();
@@ -127,31 +132,44 @@ export const ActiveCall = (props: ActiveCallProps) => {
               close={() => setShowInvitePopup(false)}
             />
           )}
-          {showSidebar && (
-            <div className="rd__sidebar">
-              {showParticipants && (
-                <div className="rd__participants">
-                  <CallParticipantsList
-                    onClose={() => setSidebarContent(null)}
-                  />
-                  <InvitePanel />
-                </div>
-              )}
 
-              {showChat && (
-                <ChatWrapper chatClient={chatClient}>
-                  <div className="str-video__chat">
-                    <ChatUI
+          <div
+            className={clsx('rd__sidebar', showSidebar && 'rd__sidebar--open')}
+          >
+            {showSidebar && (
+              <div className="rd__sidebar__container">
+                {showParticipants && (
+                  <div className="rd__participants">
+                    <CallParticipantsList
                       onClose={() => setSidebarContent(null)}
-                      channelId={activeCall.id}
                     />
+                    <InvitePanel />
                   </div>
-                </ChatWrapper>
-              )}
+                )}
 
-              {showStats && <CallStatsSidebar />}
-            </div>
-          )}
+                {showChat && (
+                  <ChatWrapper chatClient={chatClient}>
+                    <div className="str-video__chat">
+                      <ChatUI
+                        onClose={() => {
+                          if (
+                            isTourActive &&
+                            currentTourStep === StepNames.Chat
+                          ) {
+                            nextTourStep();
+                          }
+                          setSidebarContent(null);
+                        }}
+                        channelId={activeCall.id}
+                      />
+                    </div>
+                  </ChatWrapper>
+                )}
+
+                {showStats && <CallStatsSidebar />}
+              </div>
+            )}
+          </div>
         </div>
         <div className="rd__notifications">
           <RecordingInProgressNotification />
@@ -234,7 +252,12 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   active={showChat}
                   disabled={!chatClient}
                   title="Chat"
-                  onClick={() => setSidebarContent(showChat ? null : 'chat')}
+                  onClick={() => {
+                    if (isTourActive && currentTourStep === StepNames.Chat) {
+                      nextTourStep();
+                    }
+                    setSidebarContent(showChat ? null : 'chat');
+                  }}
                 >
                   <Icon icon="chat" />
                 </CompositeButton>
