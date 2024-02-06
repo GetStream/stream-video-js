@@ -161,28 +161,30 @@ export const ParticipantActionsContextMenu = () => {
         </GenericMenuButtonItem>
       </Restricted>
       <Restricted requiredGrants={[OwnCapability.MUTE_USERS]}>
-        <GenericMenuButtonItem disabled={!hasVideo} onClick={muteVideo}>
-          <Icon icon="camera-off-outline" />
-          {t('Turn off video')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem
-          disabled={!hasScreenShare}
-          onClick={muteScreenShare}
-        >
-          <Icon icon="screen-share-off" />
-          {t('Turn off screen share')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem disabled={!hasAudio} onClick={muteAudio}>
-          <Icon icon="no-audio" />
-          {t('Mute audio')}
-        </GenericMenuButtonItem>
-        <GenericMenuButtonItem
-          disabled={!hasScreenShareAudio}
-          onClick={muteScreenShareAudio}
-        >
-          <Icon icon="no-audio" />
-          {t('Mute screen share audio')}
-        </GenericMenuButtonItem>
+        {hasVideo && (
+          <GenericMenuButtonItem onClick={muteVideo}>
+            <Icon icon="camera-off-outline" />
+            {t('Turn off video')}
+          </GenericMenuButtonItem>
+        )}
+        {hasScreenShare && (
+          <GenericMenuButtonItem onClick={muteScreenShare}>
+            <Icon icon="screen-share-off" />
+            {t('Turn off screen share')}
+          </GenericMenuButtonItem>
+        )}
+        {hasAudio && (
+          <GenericMenuButtonItem onClick={muteAudio}>
+            <Icon icon="no-audio" />
+            {t('Mute audio')}
+          </GenericMenuButtonItem>
+        )}
+        {hasScreenShareAudio && (
+          <GenericMenuButtonItem onClick={muteScreenShareAudio}>
+            <Icon icon="no-audio" />
+            {t('Mute screen share audio')}
+          </GenericMenuButtonItem>
+        )}
       </Restricted>
       {participantViewElement && (
         <GenericMenuButtonItem onClick={toggleFullscreenMode}>
