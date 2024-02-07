@@ -1,11 +1,15 @@
-import { Call, StreamVideoClient } from '@stream-io/video-client';
+import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
 } from '../StreamVideoRN/types';
 import { onNewCallNotification } from '../internal/newNotificationCallbacks';
+import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
+import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
+
+type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
  * This function is used to check if the call should be ended based on the push notification
@@ -134,4 +138,26 @@ export const processNonIncomingCallFromPush = async (
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);
+};
+
+/**
+ * This function is used to clear all the push related WS subscriptions
+ * note: events are subscribed in push for accept/decline through WS
+ */
+export const clearPushWSEventSubscriptions = () => {
+  const unsubscriptionCallbacks = RxUtils.getCurrentValue(
+    pushUnsubscriptionCallbacks$,
+  );
+  if (unsubscriptionCallbacks) {
+    unsubscriptionCallbacks.forEach((cb) => cb());
+  }
+  pushUnsubscriptionCallbacks$.next(undefined);
+};
+
+/**
+ * This ref is used to check if the push WS subscriptions can be added
+ * It is used to avoid adding the push WS subscriptions when the client is connected to WS in the foreground
+ */
+export const canAddPushWSSubscriptionsRef: CanAddPushWSSubscriptionsRef = {
+  current: true,
 };
