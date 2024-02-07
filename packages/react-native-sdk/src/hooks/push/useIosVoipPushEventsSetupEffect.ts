@@ -172,7 +172,7 @@ const onNotificationReceived = async (notification: any) => {
   const canListenToWS = () =>
     canAddPushWSSubscriptionsRef.current && AppState.currentState !== 'active';
   if (!closed && canListenToWS()) {
-    const unsubscribe = callFromPush.on('all', (event) => {
+    const unsubscribe = callFromPush.on('all', () => {
       if (!canListenToWS()) {
         unsubscribe();
         return;

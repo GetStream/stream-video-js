@@ -5,7 +5,6 @@ import type {
 } from '../StreamVideoRN/types';
 import { onNewCallNotification } from '../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
-import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
