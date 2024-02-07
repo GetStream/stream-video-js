@@ -58,3 +58,13 @@
   top: 0;
   right: -3px;
 }
+
+.str-video__composite-button.str-video__device-unavailable {
+  .str-video__composite-button__button-group {
+    background-color: var(--str-video__button-default-disabled);
+
+    &:hover {
+      background-color: var(--str-video__button-default-hover);
+    }
+  }
+}

@@ -4,6 +4,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
+import clsx from 'clsx';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -27,6 +28,7 @@ export const ToggleAudioPreviewButton = (
     <CompositeButton
       active={isMute}
       caption={caption}
+      className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
       variant="secondary"
       title={
         !hasBrowserPermission
