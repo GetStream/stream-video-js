@@ -79,13 +79,13 @@
     }
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-default-hover);
       cursor: pointer;
     }
 
     &--selected,
     &--active {
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-default-hover);
     }
 
     input[type='radio'] {

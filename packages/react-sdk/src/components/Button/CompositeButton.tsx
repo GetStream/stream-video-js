@@ -19,6 +19,7 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
     caption?: string;
     className?: string;
     menuPlacement?: Placement;
+    menuOffset?: number;
     ToggleMenuButton?: ComponentType<ToggleMenuButtonProps<E>>;
     variant?: 'primary' | 'secondary';
   }> &
@@ -35,6 +36,7 @@ export const CompositeButton = forwardRef<
     active,
     Menu,
     menuPlacement,
+    menuOffset,
     title,
     ToggleMenuButton = DefaultToggleMenuButton,
     variant,
@@ -56,14 +58,14 @@ export const CompositeButton = forwardRef<
         className={clsx('str-video__composite-button__button-group', {
           'str-video__composite-button__button-group--active': active,
           'str-video__composite-button__button-group--active-primary':
-            variant === 'primary' && active,
+            active && variant === 'primary',
           'str-video__composite-button__button-group--active-secondary':
-            variant === 'secondary' && active,
+            active && variant === 'secondary',
         })}
       >
         <button
           type="button"
-          className={clsx('str-video__composite-button__button')}
+          className="str-video__composite-button__button"
           onClick={(e) => {
             e.preventDefault();
             onClick?.(e);
@@ -73,7 +75,11 @@ export const CompositeButton = forwardRef<
           {children}
         </button>
         {Menu && (
-          <MenuToggle placement={menuPlacement} ToggleButton={ToggleMenuButton}>
+          <MenuToggle
+            offset={menuOffset}
+            placement={menuPlacement}
+            ToggleButton={ToggleMenuButton}
+          >
             {isComponentType(Menu) ? <Menu /> : Menu}
           </MenuToggle>
         )}

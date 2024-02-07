@@ -30,7 +30,7 @@
 
   /* The hover background color of the component */
   --str-video__composite-button__button-group-hover--background-color: var(
-    --str-video__button-primary-hover
+    --str-video__button-default-hover
   );
 
   /* The border radius used for the borders of the component */
@@ -50,21 +50,49 @@
     background-color: var(--str-video__button-primary-base);
 
     &:hover {
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-default-hover);
     }
 
     &--active {
-      background-color: var(--str-video__brand-color1);
+      background-color: var(
+        --str-video__composite-button__button-group-hover--background-color
+      );
       color: white;
 
       &:hover {
-        background-color: var(--str-video__brand-color1);
+        background-color: var(
+          --str-video__composite-button__button-group-hover--background-color
+        );
       }
 
       &:disabled {
-        background-color: var(--str-video__brand-color1);
+        background-color: var(
+          --str-video__composite-button__button-group-hover--background-color
+        );
       }
     }
+  }
+
+  &.str-video__composite-button__button-group--active {
+    background-color: var(
+      --str-video__composite-button__button-group-active--background-color
+    );
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+
+  &.str-video__composite-button__button-group--active-primary {
+    background-color: var(
+      --str-video__composite-button__button-group-active-primary--background-color
+    );
+  }
+
+  &.str-video__composite-button__button-group--active-secondary {
+    background-color: var(
+      --str-video__composite-button__button-group-active-secondary--background-color
+    );
   }
 }
 
@@ -74,24 +102,6 @@
   text-align: center;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.str-video__composite-button__button-group--active {
-  background-color: var(
-    --str-video__composite-button__button-group-active--background-color
-  );
-}
-
-.str-video__composite-button__button-group--active-primary {
-  background-color: var(
-    --str-video__composite-button__button-group-active-primary--background-color
-  );
-}
-
-.str-video__composite-button__button-group--active-secondary {
-  background-color: var(
-    --str-video__composite-button__button-group-active-secondary--background-color
-  );
 }
 
 .str-video__composite-button__button-group:hover {
