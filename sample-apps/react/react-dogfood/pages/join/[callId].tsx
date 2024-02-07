@@ -44,6 +44,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
 
+  // support for connecting to any application using an API key and user token
+  const apiKeyOverride = !!router.query['api_key'];
+
   const isDemoEnvironment = useIsDemoEnvironment();
   useEffect(() => {
     if (!isDemoEnvironment) return;
@@ -61,11 +64,19 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     }
   }, [callId, isDemoEnvironment, router]);
 
-  const { user, gleapApiKey } = props;
+  const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
   const fetchAuthDetails = useCallback(
     async (init?: RequestInit) => {
+      if (apiKeyOverride) {
+        return {
+          apiKey,
+          token: userToken,
+          userId: user.id || '!anon',
+        } satisfies CreateJwtTokenResponse;
+      }
+
       const params = {
         user_id: user.id || '!anon',
         environment,
@@ -76,7 +87,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         init,
       ).then((res) => res.json() as Promise<CreateJwtTokenResponse>);
     },
-    [environment, user.id],
+    [apiKey, apiKeyOverride, environment, user.id, userToken],
   );
 
   const tokenProvider = useCallback(
