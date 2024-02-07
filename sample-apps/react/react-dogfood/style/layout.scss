@@ -5,6 +5,11 @@
   gap: var(--str-video__spacing-md);
   padding: var(--str-video__spacing-md);
   position: relative;
+
+  .str-video__speaker-layout__wrapper,
+  .str-video__paginated-grid-layout__wrapper {
+    flex: 1;
+  }
 }
 
 .rd__notifications {
@@ -17,15 +22,19 @@
 
 .rd__sidebar {
   position: absolute;
-  z-index: 2;
-  left: 0;
-  bottom: 0;
-  display: flex;
-  width: 100%;
+  display: none;
   border-radius: var(--str-video__border-radius-md);
   height: calc(100vh - 60px);
   height: calc(100dvh - 60px);
-  flex-direction: column;
+
+  &.rd__sidebar--open {
+    z-index: 2;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
 
   .rd__sidebar__container {
     flex-grow: 1;
