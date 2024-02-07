@@ -38,17 +38,17 @@ export const MediaStreamManagement = ({
   // Memoization is needed to avoid unnecessary useEffect triggers
   const targetResolutionSetting = useMemo<TargetResolution | undefined>(() => {
     if (
-      settings?.video.target_resolution?.width === undefined ||
-      settings?.video.target_resolution?.height === undefined ||
-      settings?.video.target_resolution?.bitrate === undefined
+      settings?.video.target_resolution?.width !== undefined ||
+      settings?.video.target_resolution?.height !== undefined ||
+      settings?.video.target_resolution?.bitrate !== undefined
     ) {
-      return undefined;
+      return {
+        width: settings?.video.target_resolution.width,
+        height: settings?.video.target_resolution.height,
+        bitrate: settings?.video.target_resolution.bitrate,
+      };
     }
-    return {
-      width: settings?.video.target_resolution.width,
-      height: settings?.video.target_resolution.height,
-      bitrate: settings?.video.target_resolution.bitrate,
-    };
+    return undefined;
   }, [
     settings?.video.target_resolution.width,
     settings?.video.target_resolution.height,
