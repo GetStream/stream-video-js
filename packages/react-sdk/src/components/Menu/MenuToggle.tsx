@@ -32,6 +32,7 @@ export type MenuToggleProps<E extends HTMLElement> = PropsWithChildren<{
   ToggleButton: ComponentType<ToggleMenuButtonProps<E>>;
   placement?: Placement;
   strategy?: Strategy;
+  offset?: number;
   visualType?: MenuVisualType;
 }>;
 
@@ -80,6 +81,7 @@ export const MenuToggle = <E extends HTMLElement>({
   ToggleButton,
   placement = 'top-start',
   strategy = 'absolute',
+  offset,
   visualType = MenuVisualType.MENU,
   children,
 }: MenuToggleProps<E>) => {
@@ -88,6 +90,7 @@ export const MenuToggle = <E extends HTMLElement>({
   const { floating, domReference, refs, x, y } = useFloatingUIPreset({
     placement,
     strategy,
+    offset,
   });
 
   useEffect(() => {

@@ -105,6 +105,7 @@ export const ToggleAudioPublishingButton = (
           }}
           Menu={Menu}
           menuPlacement={menuPlacement}
+          menuOffset={16}
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'mic-off' : 'mic'} />

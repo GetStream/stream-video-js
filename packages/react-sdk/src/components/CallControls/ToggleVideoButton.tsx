@@ -106,6 +106,7 @@ export const ToggleVideoPublishingButton = (
           }}
           Menu={Menu}
           menuPlacement={menuPlacement}
+          menuOffset={16}
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'camera-off' : 'camera'} />
