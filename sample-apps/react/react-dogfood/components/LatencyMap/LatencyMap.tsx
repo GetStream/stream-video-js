@@ -163,7 +163,7 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
 
   useEffect(() => {
     const accessToken = process.env.NEXT_PUBLIC_MAPBOX_GL_TOKEN || '';
-    if (map.current || !accessToken) return;
+    if (map.current || !accessToken || !isWebGLSupported()) return;
 
     setLoading(true);
 
@@ -191,4 +191,17 @@ export const LatencyMap = ({ sourceData, zoomLevel = 2 }: Props) => {
       <div ref={mapContainer} className="rd__latencymap-container" />
     </div>
   );
+};
+
+// https://stackoverflow.com/a/22953053/1270325
+const isWebGLSupported = () => {
+  try {
+    const canvas = document.createElement('canvas');
+    return (
+      !!window.WebGLRenderingContext &&
+      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    );
+  } catch (e) {
+    return false;
+  }
 };
