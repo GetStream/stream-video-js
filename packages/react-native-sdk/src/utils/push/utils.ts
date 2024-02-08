@@ -30,7 +30,6 @@ export const shouldCallBeEnded = (
   const callSession = callFromPush.state.session;
   const rejected_by = callSession?.rejected_by;
   const accepted_by = callSession?.accepted_by;
-  console.log({ rejected_by, accepted_by });
   let mustEndCall = false;
   let callkeepReason = 0;
   if (created_by_id && rejected_by) {
