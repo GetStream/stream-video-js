@@ -1,6 +1,6 @@
 import notifee, { EventType, Event } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import { RxUtils, StreamVideoClient } from '@stream-io/video-client';
+import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
@@ -162,49 +162,48 @@ const firebaseMessagingOnMessageHandler = async (
     const call_cid = data.call_cid;
     const created_by_id = data.created_by_id;
     const receiver_id = data.receiver_id;
-    const client = await pushConfig.createStreamVideoClient();
-    if (!client) {
-      return;
-    }
-    const callFromPush = await client.onRingingCall(call_cid);
-    function shouldCallBeClosed() {
+
+    function shouldCallBeClosed(callToCheck: Call) {
       const { mustEndCall } = shouldCallBeEnded(
-        callFromPush,
+        callToCheck,
         created_by_id,
         receiver_id,
       );
       return mustEndCall;
     }
-    if (shouldCallBeClosed()) {
-      return;
-    }
+
     const canListenToWS = () =>
       canAddPushWSSubscriptionsRef.current &&
       AppState.currentState !== 'active';
     const asForegroundService = canListenToWS();
 
     if (asForegroundService) {
+      // Listen to call events from WS through fg service
+      // note: this will replace the current empty fg service runner
       notifee.registerForegroundService(() => {
-        return new Promise(() => {
-          if (canListenToWS()) {
-            const unsubscribe = callFromPush.on('all', () => {
-              if (!canListenToWS()) {
-                unsubscribe();
-                notifee.stopForegroundService();
-                return;
-              }
-              if (shouldCallBeClosed()) {
-                unsubscribe();
-                notifee.stopForegroundService();
-              }
-            });
-            const unsubscriptionCallbacks =
-              RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
-            pushUnsubscriptionCallbacks$.next([
-              ...unsubscriptionCallbacks,
-              unsubscribe,
-            ]);
+        return new Promise(async () => {
+          const client = await pushConfig.createStreamVideoClient();
+          if (!client) {
+            notifee.stopForegroundService();
+            return;
           }
+          const callFromPush = await client.onRingingCall(call_cid);
+          if (shouldCallBeClosed(callFromPush)) {
+            notifee.stopForegroundService();
+            return;
+          }
+          const unsubscribe = callFromPush.on('all', () => {
+            if (!canListenToWS() || shouldCallBeClosed(callFromPush)) {
+              unsubscribe();
+              notifee.stopForegroundService();
+            }
+          });
+          const unsubscriptionCallbacks =
+            RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
+          pushUnsubscriptionCallbacks$.next([
+            ...unsubscriptionCallbacks,
+            unsubscribe,
+          ]);
         });
       });
     }
@@ -258,6 +257,23 @@ const firebaseMessagingOnMessageHandler = async (
         timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
     });
+
+    // check if call needs to be closed if accept/decline event was done
+    // before the notification was shown
+    const client = await pushConfig.createStreamVideoClient();
+    if (!client) {
+      return;
+    }
+    const callFromPush = await client.onRingingCall(call_cid);
+
+    if (shouldCallBeClosed(callFromPush)) {
+      if (asForegroundService) {
+        notifee.stopForegroundService();
+      } else {
+        notifee.cancelDisplayedNotification(call_cid);
+      }
+      return;
+    }
   } else {
     // the other types are call.live_started and call.notification
     const callChannel = pushConfig.android.callChannel;
