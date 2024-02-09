@@ -47,7 +47,7 @@ export default function NotifeeWorkaround({ isExpo }) {
   return (
     <>
       <p>
-        This occurs projects with a monorepo configuration. Notifee is unable to
+        This occurs on projects with a monorepo configuration. Notifee is unable to
         find the compiled AAR android library. You can do the following
         workaround in your <code>android/build.gradle</code> to mitigate this:
       </p>
