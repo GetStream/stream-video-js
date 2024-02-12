@@ -92,14 +92,6 @@ export const useAndroidKeepCallAliveEffect = () => {
         foregroundServiceStartedRef.current = true;
       };
       run();
-      return () => {
-        if (!foregroundServiceStartedRef.current) {
-          return;
-        }
-        // stop foreground service when the call is not active
-        stopForegroundService();
-        foregroundServiceStartedRef.current = false;
-      };
     } else if (callingState === CallingState.RINGING) {
       // cancel any notifee displayed notification when the call has transitioned out of ringing
       return () => {
@@ -107,6 +99,16 @@ export const useAndroidKeepCallAliveEffect = () => {
           notifee.cancelDisplayedNotification(activeCallCid);
         }
       };
+    } else if (
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.LEFT
+    ) {
+      if (!foregroundServiceStartedRef.current) {
+        return;
+      }
+      // stop foreground service when the call is not active
+      stopForegroundService();
+      foregroundServiceStartedRef.current = false;
     }
   }, [activeCallCid, callingState]);
 
