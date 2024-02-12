@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.18...@stream-io/video-react-native-sdk-0.4.0) (2024-02-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** add missing push call.cancellation support in app terminated state (#1264)
+
+### Bug Fixes
+
+* **react-native:** add missing push call.cancellation support in app terminated state ([#1264](https://github.com/GetStream/stream-video-js/issues/1264)) ([e5dae2e](https://github.com/GetStream/stream-video-js/commit/e5dae2e7f2a99185b5329d5dd5634fbfad318b63))
+
 ### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.17...@stream-io/video-react-native-sdk-0.3.18) (2024-02-06)
 
 ### Dependency Updates
