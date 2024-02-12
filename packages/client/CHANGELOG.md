@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.8...@stream-io/video-client-0.5.9) (2024-02-12)
+
+
+### Features
+
+* **client:** add stopOnLeave param to device manager ([#1266](https://github.com/GetStream/stream-video-js/issues/1266)) ([2d0a865](https://github.com/GetStream/stream-video-js/commit/2d0a865e1f3d5a72df6bc528eb0ed5e2494eb734)), closes [#1236](https://github.com/GetStream/stream-video-js/issues/1236)
+
 ### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.7...@stream-io/video-client-0.5.8) (2024-02-06)
 
 
