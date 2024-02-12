@@ -14,6 +14,8 @@
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
 
+#import "StreamVideoReactNative.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application
@@ -66,11 +68,19 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
 // --- Handle incoming pushes
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
   
+  
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
+
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSString *cid = stream[@"call_cid"];
   
-  // --- Process the received push // fire 'notification' event to JS
+  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
+  
+  // required if you want to call `completion()` on the js side
+  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
+  
+  // Process the received push // fire 'notification' event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
   
   [RNCallKeep reportNewIncomingCall: uuid
@@ -84,7 +94,7 @@ continueUserActivity:(nonnull NSUserActivity *)userActivity
                  supportsUngrouping: YES
                         fromPushKit: YES
                             payload: stream
-              withCompletionHandler: completion];
+              withCompletionHandler: nil];
 }
 
 //Called when a notification is delivered to a foreground app.

@@ -1,11 +1,58 @@
-import { Call, StreamVideoClient } from '@stream-io/video-client';
+import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
 } from '../StreamVideoRN/types';
 import { onNewCallNotification } from '../internal/newNotificationCallbacks';
+import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
+
+type CanAddPushWSSubscriptionsRef = { current: boolean };
+
+/**
+ * This function is used to check if the call should be ended based on the push notification
+ * Useful for callkeep management to end the call if necessary (with reportEndCallWithUUID)
+ */
+export const shouldCallBeEnded = (
+  callFromPush: Call,
+  created_by_id: string | undefined,
+  receiver_id: string | undefined,
+) => {
+  /* callkeep reasons for ending a call
+    FAILED: 1,
+    REMOTE_ENDED: 2,
+    UNANSWERED: 3,
+    ANSWERED_ELSEWHERE: 4,
+    DECLINED_ELSEWHERE: 5,
+    MISSED: 6
+  */
+  const callSession = callFromPush.state.session;
+  const rejected_by = callSession?.rejected_by;
+  const accepted_by = callSession?.accepted_by;
+  let mustEndCall = false;
+  let callkeepReason = 0;
+  if (created_by_id && rejected_by) {
+    if (rejected_by[created_by_id]) {
+      // call was cancelled by the caller
+      mustEndCall = true;
+      callkeepReason = 2;
+    }
+  } else if (receiver_id && rejected_by) {
+    if (rejected_by[receiver_id]) {
+      // call was rejected by the receiver in some other device
+      mustEndCall = true;
+      callkeepReason = 5;
+    }
+  } else if (receiver_id && accepted_by) {
+    if (accepted_by[receiver_id]) {
+      // call was accepted by the receiver in some other device
+      mustEndCall = true;
+      callkeepReason = 4;
+    }
+  }
+  return { mustEndCall, callkeepReason };
+};
 
 /* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
   1. we need to create a new client and connect the user to decline the call
@@ -89,4 +136,26 @@ export const processNonIncomingCallFromPush = async (
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);
+};
+
+/**
+ * This function is used to clear all the push related WS subscriptions
+ * note: events are subscribed in push for accept/decline through WS
+ */
+export const clearPushWSEventSubscriptions = () => {
+  const unsubscriptionCallbacks = RxUtils.getCurrentValue(
+    pushUnsubscriptionCallbacks$,
+  );
+  if (unsubscriptionCallbacks) {
+    unsubscriptionCallbacks.forEach((cb) => cb());
+  }
+  pushUnsubscriptionCallbacks$.next(undefined);
+};
+
+/**
+ * This ref is used to check if the push WS subscriptions can be added
+ * It is used to avoid adding the push WS subscriptions when the client is connected to WS in the foreground
+ */
+export const canAddPushWSSubscriptionsRef: CanAddPushWSSubscriptionsRef = {
+  current: true,
 };
