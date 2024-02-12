@@ -23,7 +23,7 @@ export abstract class InputMediaDeviceManager<
   /**
    * if true, stops the media stream when call is left
    */
-  stopOnLeave = false;
+  stopOnLeave = true;
   logger: Logger;
   private subscriptions: Subscription[] = [];
   private isTrackStoppedDueToTrackEnd = false;
