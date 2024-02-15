@@ -240,3 +240,34 @@
 a.mapboxgl-ctrl-logo {
   display: none;
 }
+
+.rd__camera-filters {
+  position: absolute;
+  bottom: 0;
+  // it needs at least 1px to be visible in the viewport,
+  // otherwise, the browser will not play the videos
+  right: calc(100% - 1px);
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+
+  opacity: 0;
+
+  video {
+    top: 0;
+    width: 100%;
+    height: auto;
+  }
+
+  img {
+    top: 5px;
+    width: 100%;
+    height: auto;
+  }
+
+  canvas {
+    top: 10px;
+    width: 100%;
+    height: auto;
+  }
+}

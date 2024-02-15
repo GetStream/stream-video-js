@@ -37,6 +37,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/emscripten": "^1.39.10",
     "@types/geojson": "^7946.0.13",
     "@types/mapbox-gl": "^2.7.19",
     "@types/react-form": "^4.0.5",

@@ -33,6 +33,7 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
+import { BackgroundFilters } from '../../components/BackgroundFilters';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -210,6 +211,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         <StreamCall call={call}>
           <TourProvider>
             <MeetingUI chatClient={chatClient} />
+            <BackgroundFilters />
           </TourProvider>
         </StreamCall>
       </StreamVideo>
