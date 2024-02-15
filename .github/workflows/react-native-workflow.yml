@@ -137,6 +137,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -168,7 +172,7 @@ jobs:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v4
@@ -242,6 +246,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
