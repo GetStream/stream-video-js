@@ -1574,7 +1574,7 @@ SPEC CHECKSUMS:
   stream-react-native-webrtc: 31fe9ee69d5b4fc191380a78efa292377494b7ac
   stream-video-react-native: 15268285f4880b6528fa1297b6c9097811a8d1c5
   TOCropViewController: edfd4f25713d56905ad1e0b9f5be3fbe0f59c863
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: d648756febffefcf3982743a0f0035d6871ef40b
 
