@@ -1,4 +1,4 @@
-# Official JavaScript SDK and Low-Level Client for [Stream Video](https://getstream.io/video/docs/)
+# Official JavaScript SDK and Low-Level Client for [Stream Video](https://getstream.io/video/sdk/javascript/)
 
 <img src="../../.readme-assets/Github-Graphic-JS.jpg" alt="Stream Video for JavaScript Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
 
