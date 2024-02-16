@@ -1,4 +1,4 @@
-# Official React SDK for [Stream Video](https://getstream.io/chat/sdk/react/)
+# Official React SDK for [Stream Video](https://getstream.io/video/sdk/react/)
 
 <img src="../../.readme-assets/Github-Graphic-React.jpg" alt="Stream Video for React Header image" style="box-shadow: 0 3px 10px rgb(0 0 0 / 0.2); border-radius: 1rem" />
 
