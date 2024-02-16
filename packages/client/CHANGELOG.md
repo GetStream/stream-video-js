@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.9...@stream-io/video-client-0.5.10) (2024-02-16)
+
+
+### Bug Fixes
+
+* **client:** do not set h264 as preference for iphone ([a014ab0](https://github.com/GetStream/stream-video-js/commit/a014ab0e5e2907d39fac45079d64d12997e2a63e))
+
 ### [0.5.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.8...@stream-io/video-client-0.5.9) (2024-02-12)
 
 
