@@ -248,10 +248,10 @@ export class Publisher {
       if (!preferredCodec && trackType === TrackType.VIDEO) {
         if (isReactNative()) {
           const osName = getOSInfo()?.name.toLowerCase();
-          if (osName === 'ios' || osName === 'ipados') {
+          if (osName === 'ipados') {
             // in ipads it was noticed that if vp8 codec is used
             // then the bytes sent is 0 in the outbound-rtp
-            // so we are forcing h264 codec for ipads and also in ios devices
+            // so we are forcing h264 codec for ipads
             preferredCodec = 'H264';
           } else if (osName === 'android') {
             preferredCodec = 'VP8';
