@@ -98,6 +98,19 @@ export class Publisher {
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
+  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
+  private _connectionConfiguration: RTCConfiguration | undefined;
+
+  /**
+   * Returns the current connection configuration.
+   *
+   * @internal
+   */
+  get connectionConfiguration() {
+    if (this.pc.getConfiguration) return this.pc.getConfiguration();
+    return this._connectionConfiguration;
+  }
+
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -143,6 +156,7 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -158,15 +172,6 @@ export class Publisher {
     pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
     return pc;
   };
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    return this.pc.getConfiguration();
-  }
 
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
@@ -563,6 +568,7 @@ export class Publisher {
   ) => {
     this.sfuClient = sfuClient;
     this.pc.setConfiguration(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
 
     const shouldRestartIce = this.pc.iceConnectionState === 'connected';
     if (shouldRestartIce) {
