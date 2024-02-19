@@ -1,12 +1,15 @@
-import { Observable, Subscription, combineLatest, pairwise } from 'rxjs';
+import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { CallingState } from '../store';
+import { createSubscription } from '../store/rxUtils';
 import { InputMediaDeviceManagerState } from './InputMediaDeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { Logger } from '../coordinator/connection/types';
 import { getLogger } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
+
+export type MediaStreamFilter = (stream: MediaStream) => Promise<MediaStream>;
 
 export abstract class InputMediaDeviceManager<
   T extends InputMediaDeviceManagerState<C>,
@@ -21,8 +24,9 @@ export abstract class InputMediaDeviceManager<
    */
   disablePromise?: Promise<void>;
   logger: Logger;
-  private subscriptions: Subscription[] = [];
+  private subscriptions: Function[] = [];
   private isTrackStoppedDueToTrackEnd = false;
+  private filters: MediaStreamFilter[] = [];
 
   protected constructor(
     protected readonly call: Call,
@@ -109,6 +113,21 @@ export abstract class InputMediaDeviceManager<
   }
 
   /**
+   * Registers a filter that will be applied to the stream.
+   *
+   * The registered filter will get the existing stream, and it should return
+   * a new stream with the applied filter.
+   *
+   * @param filter the filter to register.
+   */
+  registerFilter(filter: MediaStreamFilter) {
+    this.filters.push(filter);
+    return () => {
+      this.filters = this.filters.filter((f) => f !== filter);
+    };
+  }
+
+  /**
    * Will set the default constraints for the device.
    *
    * @param constraints the constraints to set.
@@ -134,8 +153,13 @@ export abstract class InputMediaDeviceManager<
     await this.applySettingsToStream();
   }
 
-  removeSubscriptions = () => {
-    this.subscriptions.forEach((s) => s.unsubscribe());
+  /**
+   * Disposes the manager.
+   *
+   * @internal
+   */
+  dispose = () => {
+    this.subscriptions.forEach((s) => s());
   };
 
   protected async applySettingsToStream() {
@@ -222,7 +246,70 @@ export abstract class InputMediaDeviceManager<
         ...defaultConstraints,
         deviceId: this.state.selectedDevice,
       };
-      stream = await this.getStream(constraints as C);
+
+      /**
+       * Chains two media streams together.
+       *
+       * In our case, filters MediaStreams are derived from their parent MediaStream.
+       * However, once a child filter's track is stopped,
+       * the tracks of the parent MediaStream aren't automatically stopped.
+       * This leads to a situation where the camera indicator light is still on
+       * even though the user stopped publishing video.
+       *
+       * This function works around this issue by stopping the parent MediaStream's tracks
+       * as well once the child filter's tracks are stopped.
+       *
+       * It works by patching the stop() method of the child filter's tracks to also stop
+       * the parent MediaStream's tracks of the same type. Here we assume that
+       * the parent MediaStream has only one track of each type.
+       *
+       * @param parentStream the parent MediaStream. Omit for the root stream.
+       */
+      const chainWith =
+        (parentStream?: Promise<MediaStream>) =>
+        async (filterStream: MediaStream): Promise<MediaStream> => {
+          if (parentStream) {
+            // TODO OL: take care of track.enabled property as well
+            const parent = await parentStream;
+            filterStream.getTracks().forEach((t) => {
+              const originalStop = t.stop;
+              t.stop = function stop() {
+                originalStop.call(t);
+                parent.getTracks().forEach((pt) => {
+                  if (pt.kind === t.kind) {
+                    pt.stop();
+                  }
+                });
+              };
+            });
+
+            parent.getTracks().forEach((pt) => {
+              // When the parent stream abruptly ends, we propagate the event
+              // to the filter stream.
+              // This usually happens when the camera/microphone permissions
+              // are revoked or when the device is disconnected.
+              const handleParentTrackEnded = () => {
+                filterStream.getTracks().forEach((t) => {
+                  if (pt.kind !== t.kind) return;
+                  t.stop();
+                  t.dispatchEvent(new Event('ended')); // propagate the event
+                });
+              };
+              pt.addEventListener('ended', handleParentTrackEnded);
+              this.subscriptions.push(() => {
+                pt.removeEventListener('ended', handleParentTrackEnded);
+              });
+            });
+          }
+
+          return filterStream;
+        };
+
+      // we publish the last MediaStream of the chain
+      stream = await this.filters.reduce(
+        (parent, filter) => parent.then(filter).then(chainWith(parent)),
+        this.getStream(constraints as C),
+      );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
@@ -261,51 +348,54 @@ export abstract class InputMediaDeviceManager<
 
   private handleDisconnectedOrReplacedDevices() {
     this.subscriptions.push(
-      combineLatest([
-        deviceIds$!.pipe(pairwise()),
-        this.state.selectedDevice$,
-      ]).subscribe(async ([[prevDevices, currentDevices], deviceId]) => {
-        if (!deviceId) {
-          return;
-        }
-        if (this.enablePromise) {
-          await this.enablePromise;
-        }
-        if (this.disablePromise) {
-          await this.disablePromise;
-        }
-
-        let isDeviceDisconnected = false;
-        let isDeviceReplaced = false;
-        const currentDevice = this.findDeviceInList(currentDevices, deviceId);
-        const prevDevice = this.findDeviceInList(prevDevices, deviceId);
-        if (!currentDevice && prevDevice) {
-          isDeviceDisconnected = true;
-        } else if (
-          currentDevice &&
-          prevDevice &&
-          currentDevice.deviceId === prevDevice.deviceId &&
-          currentDevice.groupId !== prevDevice.groupId
-        ) {
-          isDeviceReplaced = true;
-        }
-
-        if (isDeviceDisconnected) {
-          await this.disable();
-          this.select(undefined);
-        }
-        if (isDeviceReplaced) {
-          if (
-            this.isTrackStoppedDueToTrackEnd &&
-            this.state.status === 'disabled'
-          ) {
-            await this.enable();
-            this.isTrackStoppedDueToTrackEnd = false;
-          } else {
-            await this.applySettingsToStream();
+      createSubscription(
+        combineLatest([
+          deviceIds$!.pipe(pairwise()),
+          this.state.selectedDevice$,
+        ]),
+        async ([[prevDevices, currentDevices], deviceId]) => {
+          if (!deviceId) {
+            return;
           }
-        }
-      }),
+          if (this.enablePromise) {
+            await this.enablePromise;
+          }
+          if (this.disablePromise) {
+            await this.disablePromise;
+          }
+
+          let isDeviceDisconnected = false;
+          let isDeviceReplaced = false;
+          const currentDevice = this.findDeviceInList(currentDevices, deviceId);
+          const prevDevice = this.findDeviceInList(prevDevices, deviceId);
+          if (!currentDevice && prevDevice) {
+            isDeviceDisconnected = true;
+          } else if (
+            currentDevice &&
+            prevDevice &&
+            currentDevice.deviceId === prevDevice.deviceId &&
+            currentDevice.groupId !== prevDevice.groupId
+          ) {
+            isDeviceReplaced = true;
+          }
+
+          if (isDeviceDisconnected) {
+            await this.disable();
+            this.select(undefined);
+          }
+          if (isDeviceReplaced) {
+            if (
+              this.isTrackStoppedDueToTrackEnd &&
+              this.state.status === 'disabled'
+            ) {
+              await this.enable();
+              this.isTrackStoppedDueToTrackEnd = false;
+            } else {
+              await this.applySettingsToStream();
+            }
+          }
+        },
+      ),
     );
   }
 

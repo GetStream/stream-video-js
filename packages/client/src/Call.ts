@@ -507,10 +507,10 @@ export class Call {
 
     this.clientStore.unregisterCall(this);
 
-    this.camera.removeSubscriptions();
-    this.microphone.removeSubscriptions();
-    this.screenShare.removeSubscriptions();
-    this.speaker.removeSubscriptions();
+    this.camera.dispose();
+    this.microphone.dispose();
+    this.screenShare.dispose();
+    this.speaker.dispose();
   };
 
   /**

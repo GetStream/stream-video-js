@@ -1,4 +1,4 @@
-import { Subscription, combineLatest } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import { deviceIds$, getAudioOutputDevices } from './devices';
@@ -52,7 +52,12 @@ export class SpeakerManager {
     this.state.setDevice(deviceId);
   }
 
-  removeSubscriptions = () => {
+  /**
+   * Disposes the manager.
+   *
+   * @internal
+   */
+  dispose = () => {
     this.subscriptions.forEach((s) => s.unsubscribe());
   };
 
