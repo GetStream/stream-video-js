@@ -98,6 +98,21 @@ export class Publisher {
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
+  private _connectionConfiguration: RTCConfiguration | undefined;
+
+  /**
+   * Returns the current connection configuration.
+   *
+   * @internal
+   */
+  get connectionConfiguration() {
+    return this._connectionConfiguration;
+  }
+
+  private set connectionConfiguration(config: RTCConfiguration | undefined) {
+    this._connectionConfiguration = config;
+  }
+
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -143,6 +158,7 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
+    this.connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 
@@ -158,15 +174,6 @@ export class Publisher {
     pc.addEventListener('signalingstatechange', this.onSignalingStateChange);
     return pc;
   };
-
-  /**
-   * Returns the current connection configuration.
-   *
-   * @internal
-   */
-  get connectionConfiguration() {
-    return this.pc.getConfiguration();
-  }
 
   /**
    * Closes the publisher PeerConnection and cleans up the resources.
