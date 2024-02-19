@@ -98,6 +98,7 @@ export class Publisher {
   private isIceRestarting = false;
   private iceRestartTimeout?: NodeJS.Timeout;
 
+  // workaround for the lack of RTCPeerConnection.getConfiguration() method in react-native-webrtc
   private _connectionConfiguration: RTCConfiguration | undefined;
 
   /**
@@ -106,6 +107,7 @@ export class Publisher {
    * @internal
    */
   get connectionConfiguration() {
+    if (this.pc.getConfiguration) return this.pc.getConfiguration();
     return this._connectionConfiguration;
   }
 
