@@ -1,4 +1,4 @@
-import { TFLite } from '../useTFLite';
+import { TFLite } from '../tflite';
 import {
   compileShader,
   createPiplelineStageProgram,

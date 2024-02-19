@@ -1,4 +1,4 @@
-import { TFLite } from '../useTFLite';
+import { TFLite } from '../tflite';
 import { compileShader, createTexture, glsl } from '../helpers/webglHelper';
 import {
   BackgroundBlurStage,
@@ -19,6 +19,14 @@ export function buildWebGL2Pipeline(
   canvas: HTMLCanvasElement,
   tflite: TFLite,
 ) {
+  const gl = canvas.getContext('webgl2')!;
+  if (!gl) {
+    throw new Error('WebGL2 is not supported');
+  }
+
+  const { width: frameWidth, height: frameHeight } = videoSource;
+  const [segmentationWidth, segmentationHeight] = [256, 144];
+
   const vertexShaderSource = glsl`#version 300 es
 
     in vec2 a_position;
@@ -31,12 +39,6 @@ export function buildWebGL2Pipeline(
       v_texCoord = a_texCoord;
     }
   `;
-
-  const { width: frameWidth, height: frameHeight } = videoSource;
-  const [segmentationWidth, segmentationHeight] = [256, 144];
-
-  const gl = canvas.getContext('webgl2')!;
-
   const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
 
   const vertexArray = gl.createVertexArray();

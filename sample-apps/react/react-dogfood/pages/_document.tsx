@@ -41,8 +41,6 @@ export default function Document() {
           href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
           rel="stylesheet"
         />
-
-        <script src={`${basePath}/tflite/tflite-simd.js`}></script>
       </Head>
       <body>
         <Main />

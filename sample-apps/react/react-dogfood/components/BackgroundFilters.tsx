@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { CallingState, useCall } from '@stream-io/video-react-sdk';
-import useRenderingPipeline from '../lib/filters/useRenderingPipeline';
+import { useEffect, useRef, useState } from 'react';
+import { useCall } from '@stream-io/video-react-sdk';
+import { createRenderer } from '../lib/filters/createRenderer';
+import { loadTFLite, TFLite } from '../lib/filters/tflite';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -11,34 +12,46 @@ export const BackgroundFilters = () => {
     useState<HTMLImageElement>();
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement>();
 
-  useRenderingPipeline(videoRef, canvasRef, {
-    backgroundConfig: 'image',
-    backgroundImage: backgroundImageRef,
-  });
+  const resolveFilterRef =
+    useRef<(value: MediaStream | PromiseLike<MediaStream>) => void>();
+
+  const [mediaStream, setMediaStream] = useState<MediaStream>();
+  useEffect(() => {
+    if (!call) return;
+    return call.camera.registerFilter(async (ms) => {
+      setMediaStream(ms);
+      return new Promise<MediaStream>((resolve) => {
+        resolveFilterRef.current = resolve;
+      });
+    });
+  }, [call]);
 
   useEffect(() => {
-    if (!call || !videoRef) return;
-    const msUnsubscribe = call.camera.state.mediaStream$.subscribe((ms) => {
-      if (ms) {
-        videoRef!.srcObject = ms;
-      }
-    });
+    if (!mediaStream || !videoRef || !canvasRef) return;
+    videoRef.srcObject = mediaStream;
 
-    const callStateUnsubscribe = call.state.callingState$.subscribe((s) => {
-      if (s === CallingState.JOINED) {
-        const stream = canvasRef?.captureStream();
-        call.publishVideoStream(stream!);
-      }
-    });
-
-    return () => {
-      msUnsubscribe.unsubscribe();
-      callStateUnsubscribe.unsubscribe();
+    const handleOnPlay = () => {
+      const resolveFilter = resolveFilterRef.current;
+      if (!resolveFilter) return;
+      const filter = canvasRef.captureStream();
+      resolveFilter(filter);
     };
-  }, [call, canvasRef, videoRef]);
+    videoRef.addEventListener('play', handleOnPlay);
+    return () => {
+      videoRef.removeEventListener('play', handleOnPlay);
+      videoRef.srcObject = null;
+    };
+  }, [canvasRef, mediaStream, videoRef]);
 
   return (
     <div className="rd__camera-filters">
+      {mediaStream && (
+        <RenderPipeline
+          videoRef={videoRef}
+          canvasRef={canvasRef}
+          backgroundImageRef={backgroundImageRef}
+        />
+      )}
       <video
         // @ts-expect-error null vs undefined
         ref={setVideoRef}
@@ -67,4 +80,28 @@ export const BackgroundFilters = () => {
       />
     </div>
   );
+};
+
+const RenderPipeline = (props: {
+  videoRef: HTMLVideoElement | undefined;
+  canvasRef: HTMLCanvasElement | undefined;
+  backgroundImageRef: HTMLImageElement | undefined;
+}) => {
+  const { videoRef, canvasRef, backgroundImageRef } = props;
+  const [tfLite, setTfLite] = useState<TFLite>();
+  useEffect(() => {
+    loadTFLite({ basePath }).then(setTfLite);
+  }, []);
+  useEffect(() => {
+    if (!tfLite || !videoRef || !canvasRef) return;
+    const dispose = createRenderer(tfLite, videoRef, canvasRef, {
+      backgroundConfig: 'image',
+      backgroundImage: backgroundImageRef,
+    });
+    return () => {
+      dispose();
+    };
+  }, [backgroundImageRef, canvasRef, tfLite, videoRef]);
+
+  return null;
 };
