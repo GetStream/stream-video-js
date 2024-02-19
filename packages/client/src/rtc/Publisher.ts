@@ -570,6 +570,7 @@ export class Publisher {
   ) => {
     this.sfuClient = sfuClient;
     this.pc.setConfiguration(connectionConfig);
+    this._connectionConfiguration = connectionConfig;
 
     const shouldRestartIce = this.pc.iceConnectionState === 'connected';
     if (shouldRestartIce) {
