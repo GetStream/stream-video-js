@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.10...@stream-io/video-client-0.5.11) (2024-02-19)
+
+
+### Bug Fixes
+
+* **client:**  add workaround for missing getConfiguration support in react native webrtc ([#1269](https://github.com/GetStream/stream-video-js/issues/1269)) ([ac163de](https://github.com/GetStream/stream-video-js/commit/ac163de4d89e86b4900c885baef564fdaf6b7bac))
+
 ### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.9...@stream-io/video-client-0.5.10) (2024-02-16)
 
 
