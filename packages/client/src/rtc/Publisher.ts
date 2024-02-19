@@ -109,10 +109,6 @@ export class Publisher {
     return this._connectionConfiguration;
   }
 
-  private set connectionConfiguration(config: RTCConfiguration | undefined) {
-    this._connectionConfiguration = config;
-  }
-
   /**
    * The SFU client instance to use for publishing and signaling.
    */
@@ -158,7 +154,7 @@ export class Publisher {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this.connectionConfiguration = connectionConfig;
+    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('negotiationneeded', this.onNegotiationNeeded);
 

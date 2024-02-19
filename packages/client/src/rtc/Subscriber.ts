@@ -43,10 +43,6 @@ export class Subscriber {
     return this._connectionConfiguration;
   }
 
-  private set connectionConfiguration(config: RTCConfiguration | undefined) {
-    this._connectionConfiguration = config;
-  }
-
   /**
    * Constructs a new `Subscriber` instance.
    *
@@ -96,7 +92,7 @@ export class Subscriber {
    */
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const pc = new RTCPeerConnection(connectionConfig);
-    this.connectionConfiguration = connectionConfig;
+    this._connectionConfiguration = connectionConfig;
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('track', this.handleOnTrack);
 
