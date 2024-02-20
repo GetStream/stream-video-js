@@ -1,0 +1,11 @@
+Create and join high quality video calls using Stream's Video Calls app (React Native).
+
+Stream’s Global Edge Network ensures a faster and more reliable experience for your video calls and livestreams, creating more natural conversations no matter where you are.
+
+Stream's Video Calls product offers:
+
+- Scalability & Performance
+- Global Edge Network
+- Ultra low latency
+- High call reliability
+- Simple and easy to use UI
