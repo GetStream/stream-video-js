@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "1.0.0",
+  "version": "1.0.1-0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -14,6 +14,7 @@
     "test-e2e:android": "bundle exec fastlane test_android",
     "test-e2e:ios": "bundle exec fastlane test_ios",
     "test": "jest",
+    "updateVersion": "npx nx versionName @stream-io/video-react-native-dogfood --dry-run",
     "lint": "eslint --cache --fix 'src/**/*.{ts,tsx}'",
     "lint:ci": "eslint --cache 'src/**/*.{ts,tsx}'"
   },
