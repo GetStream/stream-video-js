@@ -50,6 +50,7 @@
     "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
     "start:docs:react": "yarn workspace @stream-io/video-react-sdk run start:docs ",
     "release": "nx run-many --target version --parallel=1",
+    "releaseNative": "nx run-many --target versionNative --parallel=1 --verbose",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public",
     "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public",
     "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public"
