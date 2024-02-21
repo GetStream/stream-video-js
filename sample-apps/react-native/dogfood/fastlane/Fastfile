@@ -112,6 +112,8 @@ end
 lane :build_ios do
   app_store_connect_api_key
 
+  ENV['NODE_ENV'] = 'production'
+
   bump_ios_version_number if is_ci
 
   match_appstore
@@ -189,7 +191,6 @@ rescue StandardError => e
 end
 
 lane :bump_android_version_number do
-  ENV['ENVFILE'] = '.env.production'
 
   latest_app_distribution_version_code = latest_googleplay_version_code
 
@@ -205,6 +206,8 @@ lane :bump_android_version_number do
 end
 
 lane :build_android do
+  ENV['NODE_ENV'] = 'production'
+
   bump_android_version_number if is_ci
 
   gradle(
