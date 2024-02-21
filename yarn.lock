@@ -5934,15 +5934,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/babel-plugin-codegen@npm:0.73.3":
-  version: 0.73.3
-  resolution: "@react-native/babel-plugin-codegen@npm:0.73.3"
-  dependencies:
-    "@react-native/codegen": 0.73.2
-  checksum: 3a9fd4b63703212aa451158c72d428d97e1090b268781e6c8e62c98f6aa9cbda6365781f2865618ce9f4fe48febcd73959ccd6e33ac5abf395fd6d88c45f7ca4
-  languageName: node
-  linkType: hard
-
 "@react-native/babel-preset@npm:0.73.19":
   version: 0.73.19
   resolution: "@react-native/babel-preset@npm:0.73.19"
@@ -5995,7 +5986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/babel-preset@npm:0.73.21":
+"@react-native/babel-preset@npm:0.73.21, @react-native/babel-preset@npm:^0.73.18":
   version: 0.73.21
   resolution: "@react-native/babel-preset@npm:0.73.21"
   dependencies:
