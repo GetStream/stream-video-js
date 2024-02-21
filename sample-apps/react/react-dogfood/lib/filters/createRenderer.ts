@@ -1,12 +1,14 @@
 import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 
+export type BackgroundConfig = 'none' | 'blur' | 'image';
+
 export function createRenderer(
   tflite: TFLite,
   videoSource: HTMLVideoElement,
   targetCanvas: HTMLCanvasElement,
   options: {
-    backgroundConfig: 'none' | 'blur' | 'image';
+    backgroundConfig: BackgroundConfig;
     backgroundImage?: HTMLImageElement;
     fps?: number;
   },

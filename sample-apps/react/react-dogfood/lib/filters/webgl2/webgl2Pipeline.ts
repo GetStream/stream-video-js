@@ -11,11 +11,12 @@ import {
 import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
+import { BackgroundConfig } from '../createRenderer';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,
   backgroundImage: HTMLImageElement | undefined,
-  backgroundConfig: 'none' | 'blur' | 'image',
+  backgroundConfig: BackgroundConfig,
   canvas: HTMLCanvasElement,
   tflite: TFLite,
 ) {

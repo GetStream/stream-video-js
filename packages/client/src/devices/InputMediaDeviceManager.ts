@@ -120,10 +120,18 @@ export abstract class InputMediaDeviceManager<
    *
    * @param filter the filter to register.
    */
-  registerFilter(filter: MediaStreamFilter) {
+  async registerFilter(filter: MediaStreamFilter) {
     this.filters.push(filter);
-    return () => {
+    if (this.state.status === 'enabled') {
+      await this.disable();
+      await this.enable();
+    }
+    return async () => {
       this.filters = this.filters.filter((f) => f !== filter);
+      if (this.state.status === 'enabled') {
+        await this.disable();
+        await this.enable();
+      }
     };
   }
 

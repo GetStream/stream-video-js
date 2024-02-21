@@ -20,6 +20,7 @@ import {
   ToggleMenuButtonProps,
   useI18n,
   useMenuContext,
+  VideoPreview,
 } from '@stream-io/video-react-sdk';
 
 import { LayoutSelector, LayoutSelectorProps } from '../LayoutSelector';
@@ -27,6 +28,7 @@ import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
 
 import { useLanguage } from '../../hooks/useLanguage';
+import { useBackgroundFilters } from '../BackgroundFilters';
 
 type ToggleSettingsTabModalProps = {
   inMeeting: boolean;
@@ -143,6 +145,9 @@ export const SettingsTabModalMenu = (props: {
           />
         </>
       </TabWrapper>
+      <TabWrapper icon="video-effects" label="Effects" inMeeting>
+        <VideoEffectsSettings />
+      </TabWrapper>
       <TabWrapper icon="grid" label={t('Layout')} inMeeting>
         <LayoutSelector
           onMenuItemClick={layoutProps.onMenuItemClick}
@@ -195,5 +200,53 @@ export const ToggleSettingsTabModal = (props: {
     >
       <SettingsTabModalMenu {...props} />
     </MenuToggle>
+  );
+};
+
+const VideoEffectsSettings = () => {
+  const { backgroundImages, isBlurringEnabled, setBackgroundFilter } =
+    useBackgroundFilters() || {};
+  return (
+    <div className="rd__video-effects">
+      <VideoPreview />
+      <div className="rd__video-effects__container">
+        <div className="rd_video-effects__card">
+          <h4>Effects</h4>
+          <div className="rd__video-effects__list">
+            <div
+              className="rd__video-effects__list-box"
+              onClick={() => setBackgroundFilter?.('none')}
+            >
+              <Icon className="rd__video-effects--option" icon="no-effects" />
+            </div>
+            {isBlurringEnabled && (
+              <div
+                className="rd__video-effects__list-box"
+                onClick={() => setBackgroundFilter?.('blur')}
+              >
+                <Icon className="rd__video-effects--option" icon="blur-icon" />
+              </div>
+            )}
+          </div>
+        </div>
+        {backgroundImages && backgroundImages.length > 0 && (
+          <div className="rd_video-effects__card">
+            <h4>Backgrounds</h4>
+            <div className="rd__video-effects__list">
+              {backgroundImages.map((imageUrl, index) => (
+                <div key={index} className="rd__video-effects__list-box">
+                  <img
+                    className="rd__video-effects--option"
+                    src={imageUrl}
+                    alt="Background"
+                    onClick={() => setBackgroundFilter?.('image', imageUrl)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

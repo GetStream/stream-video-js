@@ -1,12 +1,97 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useCall } from '@stream-io/video-react-sdk';
-import { createRenderer } from '../lib/filters/createRenderer';
 import { loadTFLite, TFLite } from '../lib/filters/tflite';
+import {
+  BackgroundConfig,
+  createRenderer,
+} from '../lib/filters/createRenderer';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-export const BackgroundFilters = () => {
+export type BackgroundFiltersProps = {
+  isBlurringEnabled?: boolean;
+  backgroundImages?: string[];
+  backgroundFilter?: BackgroundConfig;
+  backgroundImage?: string;
+  tfFilePath?: string;
+  modelFilePath?: string;
+};
+
+export type BackgroundFiltersAPI = {
+  setBackgroundFilter: (filter: BackgroundConfig, imageUrl?: string) => void;
+};
+
+export type BackgroundFiltersContextValue = BackgroundFiltersProps &
+  BackgroundFiltersAPI;
+
+const BackgroundFiltersContext = createContext<
+  BackgroundFiltersContextValue | undefined
+>(undefined);
+
+export const useBackgroundFilters = () => {
+  return useContext(BackgroundFiltersContext);
+};
+
+export const BackgroundFiltersProvider = (
+  props: PropsWithChildren<BackgroundFiltersProps>,
+) => {
+  const {
+    children,
+    isBlurringEnabled = true,
+    backgroundImages = [],
+    backgroundFilter: backgroundFilterFromProps = 'none',
+    backgroundImage: backgroundImageFromProps = undefined,
+    tfFilePath,
+    modelFilePath,
+  } = props;
+
+  const [backgroundFilterConfig, setBackgroundFilterConfig] = useState(
+    backgroundFilterFromProps,
+  );
+  const [backgroundImage, setBackgroundImage] = useState(
+    backgroundImageFromProps,
+  );
+  const setBackgroundFilter = useCallback(
+    (filter: BackgroundConfig, imageUrl?: string) => {
+      setBackgroundFilterConfig(filter);
+      setBackgroundImage(imageUrl);
+    },
+    [],
+  );
+  return (
+    <BackgroundFiltersContext.Provider
+      value={{
+        isBlurringEnabled,
+        backgroundImages,
+        backgroundFilter: backgroundFilterConfig,
+        setBackgroundFilter,
+        backgroundImage,
+      }}
+    >
+      {children}
+      <BackgroundFilters
+        tfFilePath={tfFilePath}
+        modelFilePath={modelFilePath}
+      />
+    </BackgroundFiltersContext.Provider>
+  );
+};
+
+const BackgroundFilters = (props: {
+  tfFilePath?: string;
+  modelFilePath?: string;
+}) => {
+  const { tfFilePath, modelFilePath } = props;
   const call = useCall();
+  const { backgroundImage, backgroundFilter } = useBackgroundFilters() || {};
   const [videoRef, setVideoRef] = useState<HTMLVideoElement>();
   const [backgroundImageRef, setBackgroundImageRef] =
     useState<HTMLImageElement>();
@@ -17,18 +102,24 @@ export const BackgroundFilters = () => {
 
   const [mediaStream, setMediaStream] = useState<MediaStream>();
   useEffect(() => {
-    if (!call) return;
-    return call.camera.registerFilter(async (ms) => {
-      setMediaStream(ms);
+    if (!call || backgroundFilter === 'none') return;
+    const registerFilter = call.camera.registerFilter(async (ms) => {
       return new Promise<MediaStream>((resolve) => {
+        setMediaStream(ms);
         resolveFilterRef.current = resolve;
       });
     });
-  }, [call]);
+
+    return () => {
+      registerFilter
+        .then((unregister) => unregister())
+        .then(() => setMediaStream(undefined))
+        .catch((err) => console.error('Failed to unregister filter', err));
+    };
+  }, [backgroundFilter, call]);
 
   useEffect(() => {
     if (!mediaStream || !videoRef || !canvasRef) return;
-    videoRef.srcObject = mediaStream;
 
     const handleOnPlay = () => {
       const resolveFilter = resolveFilterRef.current;
@@ -37,12 +128,19 @@ export const BackgroundFilters = () => {
       resolveFilter(filter);
     };
     videoRef.addEventListener('play', handleOnPlay);
+
+    videoRef.srcObject = mediaStream;
+    videoRef.play().catch((err) => console.error('Failed to play video', err));
     return () => {
       videoRef.removeEventListener('play', handleOnPlay);
       videoRef.srcObject = null;
     };
   }, [canvasRef, mediaStream, videoRef]);
 
+  const videoTrack = mediaStream?.getVideoTracks()[0];
+  const { width = 0, height = 0 } = videoTrack?.getSettings() || {};
+
+  const objectFit = width > height ? 'cover' : 'contain';
   return (
     <div className="rd__camera-filters">
       {mediaStream && (
@@ -50,6 +148,9 @@ export const BackgroundFilters = () => {
           videoRef={videoRef}
           canvasRef={canvasRef}
           backgroundImageRef={backgroundImageRef}
+          backgroundFilter={backgroundFilter || 'none'}
+          tfFilePath={tfFilePath}
+          modelFilePath={modelFilePath}
         />
       )}
       <video
@@ -58,23 +159,26 @@ export const BackgroundFilters = () => {
         autoPlay
         playsInline
         controls={false}
-        width="1920"
-        height="1080"
+        width={width}
+        height={height}
         muted
         loop
-        style={{ objectFit: 'cover' }}
+        style={{ objectFit }}
       />
-      <img
-        alt="Background"
-        // @ts-expect-error null vs undefined
-        ref={setBackgroundImageRef}
-        src={`${basePath}/backgrounds/porch.jpg`}
-        width="1920"
-        height="1080"
-      />
+      {backgroundImage && (
+        <img
+          alt="Background"
+          // @ts-expect-error null vs undefined
+          ref={setBackgroundImageRef}
+          key={backgroundImage}
+          src={backgroundImage}
+          width="1920"
+          height="1080"
+        />
+      )}
       <canvas
-        width="1920"
-        height="1080"
+        width={width}
+        height={height}
         // @ts-expect-error null vs undefined
         ref={setCanvasRef}
       />
@@ -86,22 +190,35 @@ const RenderPipeline = (props: {
   videoRef: HTMLVideoElement | undefined;
   canvasRef: HTMLCanvasElement | undefined;
   backgroundImageRef: HTMLImageElement | undefined;
+  backgroundFilter: BackgroundConfig;
+  tfFilePath?: string;
+  modelFilePath?: string;
 }) => {
-  const { videoRef, canvasRef, backgroundImageRef } = props;
+  const {
+    videoRef,
+    canvasRef,
+    backgroundImageRef,
+    backgroundFilter,
+    tfFilePath,
+    modelFilePath,
+  } = props;
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
-    loadTFLite({ basePath }).then(setTfLite);
-  }, []);
+    loadTFLite({ basePath, modelFilePath, tfFilePath }).then(setTfLite);
+  }, [modelFilePath, tfFilePath]);
+
   useEffect(() => {
     if (!tfLite || !videoRef || !canvasRef) return;
+    if (backgroundFilter === 'image' && !backgroundImageRef) return;
+
     const dispose = createRenderer(tfLite, videoRef, canvasRef, {
-      backgroundConfig: 'image',
+      backgroundConfig: backgroundFilter,
       backgroundImage: backgroundImageRef,
     });
     return () => {
       dispose();
     };
-  }, [backgroundImageRef, canvasRef, tfLite, videoRef]);
+  }, [backgroundImageRef, canvasRef, backgroundFilter, tfLite, videoRef]);
 
   return null;
 };

@@ -33,7 +33,7 @@ import type {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
 } from '../api/auth/create-token';
-import { BackgroundFilters } from '../../components/BackgroundFilters';
+import { BackgroundFiltersProvider } from '../../components/BackgroundFilters';
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
@@ -210,8 +210,15 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
       >
         <StreamCall call={call}>
           <TourProvider>
-            <MeetingUI chatClient={chatClient} />
-            <BackgroundFilters />
+            <BackgroundFiltersProvider
+              isBlurringEnabled={true}
+              backgroundImages={[
+                `${basePath}/backgrounds/porch.jpg`,
+                `${basePath}/backgrounds/stream.png`,
+              ]}
+            >
+              <MeetingUI chatClient={chatClient} />
+            </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>
       </StreamVideo>
