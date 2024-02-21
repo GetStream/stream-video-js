@@ -11,6 +11,11 @@ env:
   STREAM_SDK_TEST_ACCOUNT_EMAIL: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_EMAIL }}
   STREAM_SDK_TEST_ACCOUNT_PASSWORD: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_PASSWORD }}
   STREAM_SDK_TEST_ACCOUNT_OTP_SECRET: ${{ secrets.STREAM_SDK_TEST_ACCOUNT_OTP_SECRET }}
+  RN_DOGFOOD_ANDROID_KEYSTORE: '/home/runner/stream-video-calls-rn.keystore'
+  RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD }}
+  RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS }}
+  RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT: '/home/runner/service-account.json'
+  FASTLANE_SKIP_UPDATE_CHECK: 1
 
 on:
   push:
@@ -30,7 +35,7 @@ concurrency:
 
 jobs:
   code_review:
-    name: Code Review
+    name: Code Lint, Unit Test and dogfood versioning
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
@@ -50,9 +55,17 @@ jobs:
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane rubocop
 
+      - name: Test RN SDK (Unit tests only)
+        run: yarn test:react-native:sdk
+
+      - name: Dogfood version update
+        if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
+        run: yarn releaseNative
+
   build_ios:
     name: Build iOS
     timeout-minutes: 60
+    needs: code_review
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v3
@@ -63,9 +76,6 @@ jobs:
           INSTALL_NODE: true
           INSTALL_PODS: true
           INSTALL_RN_DEPENDENCIES: true
-
-      - name: Test RN SDK
-        run: yarn test:react-native:sdk
 
       - name: Build
         working-directory: sample-apps/react-native/dogfood
@@ -82,6 +92,7 @@ jobs:
   test_ios:
     name: Test iOS
     needs: build_ios
+    if: ${{ github.ref != 'refs/heads/react-native-auto-deploy' }}
     timeout-minutes: 100
     runs-on: macos-latest
     steps:
@@ -114,7 +125,7 @@ jobs:
     name: Deploy iOS
     needs: build_ios
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -134,6 +145,7 @@ jobs:
   build_android:
     name: Build Android
     timeout-minutes: 60
+    needs: code_review
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -145,14 +157,18 @@ jobs:
           INSTALL_JAVA: true
           INSTALL_RN_DEPENDENCIES: true
 
-      - name: Test RN SDK
-        run: yarn test:react-native:sdk
-
       - name: Create Google Services JSON File
         env:
           DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
         run: echo $DATA > ~/rn-samples-google-services.json
         shell: bash
+
+      - name: Create Google Service Account for Play Store Deployment
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: 'service-account.json'
+          fileDir: '~/'
+          encodedString: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
 
       - name: Build
         working-directory: sample-apps/react-native/dogfood
@@ -164,10 +180,17 @@ jobs:
           name: apk
           path: '**/dist/*.apk'
 
+      - name: Upload .aab
+        uses: actions/upload-artifact@v3
+        with:
+          name: aab
+          path: '**/dist/*.aab'
+
   test_android:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
+    if: ${{ github.ref != 'refs/heads/react-native-auto-deploy' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -234,7 +257,7 @@ jobs:
     name: Deploy Android
     needs: build_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/react-native-auto-deploy' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -242,16 +265,24 @@ jobs:
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
 
-      - name: Download .apk
+      - name: Download .aab
         uses: actions/download-artifact@v3
         with:
-          name: apk
+          name: aab
 
-      - name: Create Google Services JSON File
-        env:
-          DATA: ${{ secrets.GOOGLE_SERVICES_JSON_RN_SAMPLES_DEPLOYMENT }}
-        run: echo $DATA > ~/rn-samples-google-services.json
-        shell: bash
+      - name: Create Google Service Account for Play Store Deployment
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: 'service-account.json'
+          fileDir: '~/'
+          encodedString: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
+
+      - name: Create Keystore Signing for Play Store Deployment
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: 'stream-video-calls-rn.keystore'
+          fileDir: '~/'
+          encodedString: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_BASE64 }}
 
       - name: Deploy
         working-directory: sample-apps/react-native/dogfood

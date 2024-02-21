@@ -2,10 +2,47 @@ skip_docs
 video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
-bundle_id = 'io.getstream.rnvideosample'
-bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
+$bundle_id = 'io.getstream.rnvideosample'
+$bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
 provisioning_profile_prefix = 'match AppStore '
-android_app_id = '1:296557120037:android:b5d44592a3a4b44af60dcc'
+$android_package_name = 'io.getstream.rnvideosample'
+
+def self.latest_googleplay_version_code
+	tracks = ["internal", "alpha", "beta", "production"]
+	version_codes = []
+	tracks.each do |track|
+		begin
+			vc = google_play_track_version_codes(
+        package_name: $android_package_name,
+        json_key: ENV['RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT'],
+        track: track
+      )
+		rescue 
+			puts "No google play release found for track: " + track
+		else
+			version_codes.concat(vc)
+		end
+	end
+	version_codes.max
+end
+
+def self.latest_appstore_version_code
+  livestates = [true, false]
+	version_codes = []
+	livestates.each do |livestate|
+		begin
+			vc = app_store_build_number(
+        live: livestate,
+        app_identifier: $bundle_id
+      )
+		rescue 
+			puts "No app store build found for liveState: #{livestate}"
+		else
+			version_codes.append(vc)
+		end
+	end
+	current_build_number = version_codes.max
+end
 
 before_all do
   if is_ci
@@ -18,7 +55,7 @@ desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
     type: 'appstore',
-    app_identifier: [bundle_id, bundle_id_broadcast],
+    app_identifier: [$bundle_id, $bundle_id_broadcast],
     readonly: is_ci
   )
 end
@@ -68,10 +105,7 @@ lane :bump_ios_version_number do
     xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
   )
 
-  current_build_number = app_store_build_number(
-    live: false,
-    app_identifier: bundle_id
-  )
+	current_build_number = latest_appstore_version_code
 
   increment_build_number(
     build_number: current_build_number + 1,
@@ -94,8 +128,8 @@ lane :build_ios do
     clean: true,
     export_options: {
       provisioningProfiles: {
-        bundle_id => provisioning_profile_prefix + bundle_id,
-        bundle_id_broadcast => provisioning_profile_prefix + bundle_id_broadcast
+        bundle_id => provisioning_profile_prefix + $bundle_id,
+        bundle_id_broadcast => provisioning_profile_prefix + $bundle_id_broadcast
       }
     },
     include_symbols: true,
@@ -162,9 +196,7 @@ end
 lane :bump_android_version_number do
   ENV['ENVFILE'] = '.env.production'
 
-  latest_app_distribution_version_code = firebase_app_distribution_get_latest_release(
-    app: android_app_id
-  )[:buildVersion].to_i
+  latest_app_distribution_version_code = latest_googleplay_version_code
 
   increment_version_code(
     gradle_file_path: 'android/app/build.gradle',
@@ -180,10 +212,20 @@ end
 lane :build_android do
   bump_android_version_number if is_ci
 
-  gradle(project_dir: 'android', tasks: %w[clean assembleRelease])
+  gradle(
+    project_dir: 'android',
+    print_command: false,
+    tasks: ["clean", "bundleRelease", "assembleRelease"],
+    properties: {
+      "android.injected.signing.store.file" => ENV['RN_DOGFOOD_ANDROID_KEYSTORE'],
+      "android.injected.signing.store.password" => ENV['RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD'],
+      "android.injected.signing.key.alias" => ENV['RN_DOGFOOD_ANDROID_KEYSTORE_ALIAS'],
+      "android.injected.signing.key.password" => ENV['RN_DOGFOOD_ANDROID_KEYSTORE_PASSWORD'],
+    }
+  )
 
   Dir.chdir('..') do
-    sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} #{build_dir}/app.apk")
+    sh("mkdir -p #{build_dir} && mv -f #{lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]} #{build_dir}/app.aab && mv -f #{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} #{build_dir}/app.apk")
   end
 end
 
@@ -198,7 +240,7 @@ lane :test_android do |options|
 
   Dir.chdir('..') do
     unless options[:skip_install]
-      sh("adb uninstall #{bundle_id} >/dev/null || true")
+      sh("adb uninstall #{$bundle_id} >/dev/null || true")
       sh("adb install #{build_dir}/app.apk")
     end
 
@@ -227,10 +269,10 @@ lane :test_android do |options|
 end
 
 lane :deploy_android do
-  firebase_app_distribution(
-    app: android_app_id,
-    android_artifact_type: 'APK',
-    android_artifact_path: "#{build_dir}/app.apk",
-    groups: 'react-native-dev, video-sdk-non-devs'
+  supply(
+    track: "internal",
+    package_name: $android_package_name,
+    json_key: ENV['RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT'],
+    aab: "#{build_dir}/app.aab",
   )
 end
