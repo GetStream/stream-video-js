@@ -53,7 +53,7 @@ jobs:
   build_ios:
     name: Build iOS
     timeout-minutes: 60
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v3
 
@@ -168,7 +168,7 @@ jobs:
     name: Test Android
     needs: build_android
     timeout-minutes: 100
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 

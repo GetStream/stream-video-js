@@ -7,6 +7,7 @@
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
+NSMutableDictionary *dictionary;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -92,9 +93,31 @@ RCT_EXPORT_MODULE();
     }
 }
 
++(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
+    if (dictionary == nil) {
+       dictionary = [NSMutableDictionary dictionary];
+    }
+    dictionary[cid] = uuid;
+}
+
+RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    if (dictionary == nil) {
+        reject(@"access_failure", @"no incoming call dictionary found", nil);
+    }
+    NSString *uuid = dictionary[cid];
+    if (uuid) {
+       resolve(uuid);
+     } else {
+        reject(@"access_failure", @"requested incoming call found", nil);
+     }
+    
+}
+
 -(NSArray<NSString *> *)supportedEvents {
     return @[@"StreamVideoReactNative_Ios_Screenshare_Event"];
 }
-
 
 @end

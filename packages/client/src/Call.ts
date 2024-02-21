@@ -47,6 +47,7 @@ import {
   SendReactionResponse,
   SFUResponse,
   StartHLSBroadcastingResponse,
+  StartRecordingRequest,
   StartRecordingResponse,
   StopHLSBroadcastingResponse,
   StopLiveResponse,
@@ -511,6 +512,18 @@ export class Call {
     this.microphone.removeSubscriptions();
     this.screenShare.removeSubscriptions();
     this.speaker.removeSubscriptions();
+
+    const stopOnLeavePromises: Promise<void>[] = [];
+    if (this.camera.stopOnLeave) {
+      stopOnLeavePromises.push(this.camera.disable(true));
+    }
+    if (this.microphone.stopOnLeave) {
+      stopOnLeavePromises.push(this.microphone.disable(true));
+    }
+    if (this.screenShare.stopOnLeave) {
+      stopOnLeavePromises.push(this.screenShare.disable(true));
+    }
+    await Promise.all(stopOnLeavePromises);
   };
 
   /**
@@ -1535,11 +1548,11 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async () => {
-    return this.streamClient.post<StartRecordingResponse>(
-      `${this.streamClientBasePath}/start_recording`,
-      {},
-    );
+  startRecording = async (request?: StartRecordingRequest) => {
+    return this.streamClient.post<
+      StartRecordingResponse,
+      StartRecordingRequest
+    >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
   };
 
   /**

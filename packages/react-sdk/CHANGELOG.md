@@ -2,7 +2,6 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
-
 # Styling
 
 - New global variables like spacing, font-size, colors, button states etc, have been added. The old variables are still available.
@@ -60,7 +59,7 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 - The stats are defined with a `lowBound` (default 75) and a `highBound` (default 400) prop to indicate what you think is an acceptable latency.
 
-###DropdownSelect.tsx
+### DropdownSelect.tsx
 
 - Added a dropdown selector used in the device settings
 
@@ -68,11 +67,11 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 - Added a className prop to icon
 
-###MenuToggle.tsx
+### MenuToggle.tsx
 
 - Ability to choose between to visual types `portal` or `menu` to display the MenuToggle.
 
-###Notification.tsx
+### Notification.tsx
 
 - Added a `close` prop so a notification can be closed by the user
 
@@ -84,7 +83,30 @@ This file was generated using [@jscutlery/semver](https://github.com/jscutlery/s
 
 - Added an initials fallback
 
+### [0.4.26](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.25...@stream-io/video-react-sdk-0.4.26) (2024-02-19)
 
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.11`
+* `@stream-io/video-react-bindings` updated to version `0.3.22`
+### [0.4.25](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.24...@stream-io/video-react-sdk-0.4.25) (2024-02-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.10`
+* `@stream-io/video-react-bindings` updated to version `0.3.21`
+### [0.4.24](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.23...@stream-io/video-react-sdk-0.4.24) (2024-02-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.9`
+* `@stream-io/video-react-bindings` updated to version `0.3.20`
+### [0.4.23](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.22...@stream-io/video-react-sdk-0.4.23) (2024-02-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.19`
 ### [0.4.22](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-0.4.21...@stream-io/video-react-sdk-0.4.22) (2024-01-29)
 
 ### Dependency Updates

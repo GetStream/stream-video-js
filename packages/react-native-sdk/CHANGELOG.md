@@ -2,6 +2,41 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.2...@stream-io/video-react-native-sdk-0.4.3) (2024-02-19)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.11`
+* `@stream-io/video-react-bindings` updated to version `0.3.22`
+### [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.1...@stream-io/video-react-native-sdk-0.4.2) (2024-02-16)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.10`
+* `@stream-io/video-react-bindings` updated to version `0.3.21`
+### [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.0...@stream-io/video-react-native-sdk-0.4.1) (2024-02-12)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.9`
+* `@stream-io/video-react-bindings` updated to version `0.3.20`
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.18...@stream-io/video-react-native-sdk-0.4.0) (2024-02-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **react-native:** add missing push call.cancellation support in app terminated state (#1264)
+
+### Bug Fixes
+
+* **react-native:** add missing push call.cancellation support in app terminated state ([#1264](https://github.com/GetStream/stream-video-js/issues/1264)) ([e5dae2e](https://github.com/GetStream/stream-video-js/commit/e5dae2e7f2a99185b5329d5dd5634fbfad318b63))
+
+### [0.3.18](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.17...@stream-io/video-react-native-sdk-0.3.18) (2024-02-06)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.5.8`
+* `@stream-io/video-react-bindings` updated to version `0.3.19`
 ### [0.3.17](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.3.16...@stream-io/video-react-native-sdk-0.3.17) (2024-01-31)
 
 

@@ -113,6 +113,20 @@ describe('MicrophoneManager', () => {
     expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(false);
   });
 
+  it('disable mic with forceStop should remove the stream', async () => {
+    await manager.enable();
+
+    expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(true);
+
+    await manager.disable();
+
+    expect(manager.state.mediaStream!.getAudioTracks()[0].enabled).toBe(false);
+
+    await manager.disable(true);
+
+    expect(manager.state.mediaStream).toBeUndefined();
+  });
+
   it(`should start sound detection if mic is disabled`, async () => {
     await manager.enable();
     // @ts-expect-error
