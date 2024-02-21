@@ -191,7 +191,6 @@ rescue StandardError => e
 end
 
 lane :bump_android_version_number do
-
   latest_app_distribution_version_code = latest_googleplay_version_code
 
   increment_version_code(
