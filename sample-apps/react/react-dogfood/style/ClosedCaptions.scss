@@ -26,6 +26,13 @@
     flex: 1;
     padding-bottom: var(--str-video__spacing-lg);
 
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
     .rd__closed-captions__line {
       line-height: 1.7;
       font-size: var(--str-video__font-size-sm);
