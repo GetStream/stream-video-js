@@ -374,6 +374,37 @@ export interface CallAcceptedEvent {
   user: UserResponse;
 }
 /**
+ * CallClosedCaption represents a closed caption of a call.
+ * @export
+ * @interface CallClosedCaption
+ */
+export interface CallClosedCaption {
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  end_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  speaker_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  start_time: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  text: string;
+}
+/**
  * This event is sent when a call is created. Clients receiving this event should check if the ringing
  * field is set to true and if so, show the call screen
  * @export
@@ -1730,6 +1761,37 @@ export interface CallUserMuted {
   type: string;
 }
 /**
+ * This event is sent when closed captions are being sent in a call, clients should use this to show the closed captions in the call screen
+ * @export
+ * @interface ClosedCaptionEvent
+ */
+export interface ClosedCaptionEvent {
+  /**
+   *
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  call_cid: string;
+  /**
+   *
+   * @type {CallClosedCaption}
+   * @memberof ClosedCaptionEvent
+   */
+  closed_caption: CallClosedCaption;
+  /**
+   *
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  created_at: string;
+  /**
+   * The type of event: "call.closed_caption" in this case
+   * @type {string}
+   * @memberof ClosedCaptionEvent
+   */
+  type: string;
+}
+/**
  *
  * @export
  * @interface ConnectUserDetailsRequest
@@ -1753,6 +1815,12 @@ export interface ConnectUserDetailsRequest {
    * @memberof ConnectUserDetailsRequest
    */
   image?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectUserDetailsRequest
+   */
+  language?: string;
   /**
    *
    * @type {string}
@@ -1814,7 +1882,7 @@ export interface ConnectionErrorEvent {
    * @type {APIError}
    * @memberof ConnectionErrorEvent
    */
-  error: APIError | null;
+  error: APIError;
   /**
    * The type of event: "connection.ok" in this case
    * @type {string}
@@ -4519,6 +4587,7 @@ export interface UserResponse {
 export type VideoEvent =
   | ({ type: 'call.accepted' } & CallAcceptedEvent)
   | ({ type: 'call.blocked_user' } & BlockedUserEvent)
+  | ({ type: 'call.closed_caption' } & ClosedCaptionEvent)
   | ({ type: 'call.created' } & CallCreatedEvent)
   | ({ type: 'call.ended' } & CallEndedEvent)
   | ({ type: 'call.hls_broadcasting_failed' } & CallHLSBroadcastingFailedEvent)
