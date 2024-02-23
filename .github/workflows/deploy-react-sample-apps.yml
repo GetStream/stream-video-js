@@ -47,7 +47,7 @@ jobs:
             project-id: prj_0WnHcvVkXpM4PRc2ymVmrAHFILoT
           - name: react-dogfood - https://pronto.getstream.io
             project-id: prj_4TTdjeVHEDhWWiFRfjIr1QFb5ell
-          - name: react-dogfood-staging
+          - name: react-dogfood-staging - https://pronto-staging.getstream.io
             project-id: prj_xmKoy4ExySCQ4fpWoWSVXlcuvtfS
           - name: react-dogfood - https://getstream.io/video/demos
             project-id: prj_tTLn3XMVal4D1Nnel9nPJ0hoI9wA

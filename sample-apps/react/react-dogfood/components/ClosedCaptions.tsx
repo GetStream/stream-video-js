@@ -14,11 +14,11 @@ export const ClosedCaptions = () => {
   }, [call]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setQueue((prev) => (prev.length !== 0 ? prev.slice(1) : prev));
-    }, 3500);
-    return () => clearInterval(interval);
-  }, []);
+    const id = setTimeout(() => {
+      setQueue(queue.length !== 0 ? queue.slice(1) : queue);
+    }, 2700);
+    return () => clearTimeout(id);
+  }, [queue]);
 
   return (
     <div className="rd__closed-captions">
