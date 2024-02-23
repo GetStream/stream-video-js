@@ -1,6 +1,6 @@
 import { SpeakingWhileMutedNotification } from '../Notification';
 import { RecordCallButton } from './RecordCallButton';
-import { CallStatsButton } from './CallStatsButton';
+import { ReactionsButton } from './ReactionsButton';
 import { ScreenShareButton } from './ScreenShareButton';
 import { ToggleAudioPublishingButton } from './ToggleAudioButton';
 import { ToggleVideoPublishingButton } from './ToggleVideoButton';
@@ -13,7 +13,7 @@ export type CallControlsProps = {
 export const CallControls = ({ onLeave }: CallControlsProps) => (
   <div className="str-video__call-controls">
     <RecordCallButton />
-    <CallStatsButton />
+    <ReactionsButton />
     <ScreenShareButton />
     <SpeakingWhileMutedNotification>
       <ToggleAudioPublishingButton />

@@ -19,7 +19,10 @@ export const OutgoingCallControls = ({
   onHangupCallHandler,
 }: OutgoingCallControlsProps) => {
   const {
-    theme: { outgoingCall },
+    theme: {
+      outgoingCall,
+      variants: { buttonSizes },
+    },
   } = useTheme();
   return (
     <View style={[styles.buttonGroup, outgoingCall.buttonGroup]}>
@@ -29,7 +32,10 @@ export const OutgoingCallControls = ({
         <ToggleAudioPreviewButton />
         <ToggleVideoPreviewButton />
       </View>
-      <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      <HangUpCallButton
+        onPressHandler={onHangupCallHandler}
+        size={buttonSizes.md}
+      />
     </View>
   );
 };

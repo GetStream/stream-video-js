@@ -25,10 +25,9 @@ export function setPushConfig() {
         sound: 'default',
       },
       incomingCallChannel: {
-        id: 'stream_incoming_call',
+        id: 'stream_incoming_call_update1',
         name: 'Incoming call notifications',
         importance: AndroidImportance.HIGH,
-        sound: 'default',
       },
       incomingCallNotificationTextGetters: {
         getTitle: (createdUserName: string) =>

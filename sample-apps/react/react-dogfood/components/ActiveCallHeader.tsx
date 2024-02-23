@@ -29,8 +29,8 @@ export const LatencyIndicator = () => {
         className={clsx('rd__header__latency-indicator', {
           'rd__header__latency-indicator--good': latency && latency <= 100,
           'rd__header__latency-indicator--ok':
-            latency && latency > 100 && latency < 150,
-          'rd__header__latency-indicator--bad': latency && latency > 150,
+            latency && latency > 100 && latency < 400,
+          'rd__header__latency-indicator--bad': latency && latency > 400,
         })}
       ></div>
       {latency} ms

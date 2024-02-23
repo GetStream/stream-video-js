@@ -3,7 +3,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-
+import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
@@ -28,6 +28,7 @@ export const ToggleVideoPreviewButton = (
     <CompositeButton
       active={isMute}
       caption={caption}
+      className={clsx(!hasBrowserPermission && 'str-video__device-unavailable')}
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
@@ -106,6 +107,7 @@ export const ToggleVideoPublishingButton = (
           }}
           Menu={Menu}
           menuPlacement={menuPlacement}
+          menuOffset={16}
           {...restCompositeButtonProps}
         >
           <Icon icon={isMute ? 'camera-off' : 'camera'} />

@@ -1,7 +1,7 @@
 import notifee, { EventType, Event } from '@notifee/react-native';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-import { StreamVideoClient } from '@stream-io/video-client';
-import { Platform } from 'react-native';
+import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-client';
+import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
@@ -16,9 +16,16 @@ import {
   pushRejectedIncomingCallCId$,
   pushTappedIncomingCallCId$,
   pushNonRingingCallData$,
+  pushUnsubscriptionCallbacks$,
 } from './rxSubjects';
-import { processCallFromPushInBackground } from './utils';
+import {
+  canAddPushWSSubscriptionsRef,
+  clearPushWSEventSubscriptions,
+  processCallFromPushInBackground,
+  shouldCallBeEnded,
+} from './utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
+import { getAndroidDefaultRingtoneUrl } from '../getAndroidDefaultRingtoneUrl';
 
 const ACCEPT_CALL_ACTION_ID = 'accept';
 const DECLINE_CALL_ACTION_ID = 'decline';
@@ -152,6 +159,54 @@ const firebaseMessagingOnMessageHandler = async (
   }
 
   if (data.type === 'call.ring') {
+    const call_cid = data.call_cid;
+    const created_by_id = data.created_by_id;
+    const receiver_id = data.receiver_id;
+
+    function shouldCallBeClosed(callToCheck: Call) {
+      const { mustEndCall } = shouldCallBeEnded(
+        callToCheck,
+        created_by_id,
+        receiver_id,
+      );
+      return mustEndCall;
+    }
+
+    const canListenToWS = () =>
+      canAddPushWSSubscriptionsRef.current &&
+      AppState.currentState !== 'active';
+    const asForegroundService = canListenToWS();
+
+    if (asForegroundService) {
+      // Listen to call events from WS through fg service
+      // note: this will replace the current empty fg service runner
+      notifee.registerForegroundService(() => {
+        return new Promise(async () => {
+          const client = await pushConfig.createStreamVideoClient();
+          if (!client) {
+            notifee.stopForegroundService();
+            return;
+          }
+          const callFromPush = await client.onRingingCall(call_cid);
+          if (shouldCallBeClosed(callFromPush)) {
+            notifee.stopForegroundService();
+            return;
+          }
+          const unsubscribe = callFromPush.on('all', () => {
+            if (!canListenToWS() || shouldCallBeClosed(callFromPush)) {
+              unsubscribe();
+              notifee.stopForegroundService();
+            }
+          });
+          const unsubscriptionCallbacks =
+            RxUtils.getCurrentValue(pushUnsubscriptionCallbacks$) ?? [];
+          pushUnsubscriptionCallbacks$.next([
+            ...unsubscriptionCallbacks,
+            unsubscribe,
+          ]);
+        });
+      });
+    }
     const incomingCallChannel = pushConfig.android.incomingCallChannel;
     const incomingCallNotificationTextGetters =
       pushConfig.android.incomingCallNotificationTextGetters;
@@ -161,17 +216,23 @@ const firebaseMessagingOnMessageHandler = async (
       );
       return;
     }
+    // set default ringtone if not provided
+    if (!incomingCallChannel.sound) {
+      incomingCallChannel.sound = await getAndroidDefaultRingtoneUrl();
+    }
     await notifee.createChannel(incomingCallChannel);
     const { getTitle, getBody } = incomingCallNotificationTextGetters;
     const createdUserName = data.created_by_display_name;
 
     const channelId = incomingCallChannel.id;
     await notifee.displayNotification({
+      id: call_cid,
       title: getTitle(createdUserName),
       body: getBody(createdUserName),
       data,
       android: {
         channelId,
+        asForegroundService,
         sound: incomingCallChannel.sound,
         vibrationPattern: incomingCallChannel.vibrationPattern,
         pressAction: {
@@ -196,6 +257,23 @@ const firebaseMessagingOnMessageHandler = async (
         timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
       },
     });
+
+    // check if call needs to be closed if accept/decline event was done
+    // before the notification was shown
+    const client = await pushConfig.createStreamVideoClient();
+    if (!client) {
+      return;
+    }
+    const callFromPush = await client.onRingingCall(call_cid);
+
+    if (shouldCallBeClosed(callFromPush)) {
+      if (asForegroundService) {
+        notifee.stopForegroundService();
+      } else {
+        notifee.cancelDisplayedNotification(call_cid);
+      }
+      return;
+    }
   } else {
     // the other types are call.live_started and call.notification
     const callChannel = pushConfig.android.callChannel;
@@ -266,6 +344,12 @@ const onNotifeeEvent = async (event: Event, pushConfig: PushConfig) => {
     const mustAccept =
       type === EventType.ACTION_PRESS &&
       pressAction.id === ACCEPT_CALL_ACTION_ID;
+
+    if (mustAccept || mustDecline || type === EventType.ACTION_PRESS) {
+      clearPushWSEventSubscriptions();
+      notifee.stopForegroundService();
+    }
+
     if (mustAccept) {
       pushAcceptedIncomingCallCId$.next(call_cid);
       // NOTE: accept will be handled by the app with rxjs observers as the app will go to foreground always

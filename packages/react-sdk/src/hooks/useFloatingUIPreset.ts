@@ -12,7 +12,8 @@ import {
 export const useFloatingUIPreset = ({
   placement,
   strategy,
-}: Pick<UseFloatingData, 'placement' | 'strategy'>) => {
+  offset: offsetInPx = 10,
+}: Pick<UseFloatingData, 'placement' | 'strategy'> & { offset?: number }) => {
   const {
     refs,
     x,
@@ -23,7 +24,7 @@ export const useFloatingUIPreset = ({
     placement,
     strategy,
     middleware: [
-      offset(10),
+      offset(offsetInPx),
       shift(),
       flip(),
       size({

@@ -21,6 +21,10 @@ export type HangUpCallButtonProps = {
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
   onHangupCallHandler?: () => void;
+  /**
+   * Sets the height, width and border-radius (half the value) of the button.
+   */
+  size?: React.ComponentProps<typeof CallControlsButton>['size'];
 };
 
 /**
@@ -29,6 +33,7 @@ export type HangUpCallButtonProps = {
  * Mostly calls call.leave() internally.
  */
 export const HangUpCallButton = ({
+  size,
   onPressHandler,
   onHangupCallHandler,
 }: HangUpCallButtonProps) => {
@@ -62,6 +67,7 @@ export const HangUpCallButton = ({
       onPress={onPress}
       color={colors.error}
       style={hangupCallButton}
+      size={size}
       testID={ButtonTestIds.HANG_UP_CALL}
     >
       <PhoneDown color={colors.static_white} />
