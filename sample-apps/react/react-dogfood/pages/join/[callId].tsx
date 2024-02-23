@@ -213,8 +213,13 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             <BackgroundFiltersProvider
               isBlurringEnabled={true}
               backgroundImages={[
-                `${basePath}/backgrounds/porch.jpg`,
-                `${basePath}/backgrounds/stream.png`,
+                `${basePath}/backgrounds/amsterdam-1.jpg`,
+                `${basePath}/backgrounds/amsterdam-2.jpg`,
+                `${basePath}/backgrounds/boulder-1.jpg`,
+                `${basePath}/backgrounds/boulder-2.jpg`,
+                `${basePath}/backgrounds/gradient-1.jpg`,
+                `${basePath}/backgrounds/gradient-2.jpg`,
+                `${basePath}/backgrounds/gradient-3.jpg`,
               ]}
             >
               <MeetingUI chatClient={chatClient} />
