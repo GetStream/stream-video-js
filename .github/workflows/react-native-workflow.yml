@@ -169,6 +169,12 @@ jobs:
         run: echo $DATA | base64 --decode | jq >  ~/service-account.json
         shell: bash
 
+      - name: Create Keystore Signing for Play Store Deployment
+        env:
+          DATA: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_BASE64 }}
+        run: echo $DATA | base64 -d >  ~/stream-video-calls-rn.keystore
+        shell: bash
+
       - name: Build
         working-directory: sample-apps/react-native/dogfood
         run: bundle exec fastlane build_android
@@ -273,12 +279,6 @@ jobs:
         env:
           DATA: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
         run: echo $DATA | base64 --decode | jq >  ~/service-account.json
-        shell: bash
-
-      - name: Create Keystore Signing for Play Store Deployment
-        env:
-          DATA: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_BASE64 }}
-        run: echo $DATA | base64 -d >  ~/stream-video-calls-rn.keystore
         shell: bash
 
       - name: Deploy
