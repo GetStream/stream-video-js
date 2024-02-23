@@ -166,7 +166,7 @@ jobs:
       - name: Create Google Service Account for Play Store Deployment
         env:
           DATA: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
-        run: echo $DATA | base64 --decode | jq > service-account.json
+        run: echo $DATA | base64 --decode | jq >  ~/service-account.json
         shell: bash
 
       - name: Build
@@ -272,7 +272,7 @@ jobs:
       - name: Create Google Service Account for Play Store Deployment
         env:
           DATA: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
-        run: echo $DATA | base64 --decode | jq > service-account.json
+        run: echo $DATA | base64 --decode | jq >  ~/service-account.json
         shell: bash
 
       - name: Create Keystore Signing for Play Store Deployment
