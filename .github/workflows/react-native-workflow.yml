@@ -276,11 +276,10 @@ jobs:
         shell: bash
 
       - name: Create Keystore Signing for Play Store Deployment
-        uses: timheuer/base64-to-file@v1.2
-        with:
-          fileName: 'stream-video-calls-rn.keystore'
-          fileDir: '~/'
-          encodedString: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_BASE64 }}
+        env:
+          DATA: ${{ secrets.RN_DOGFOOD_ANDROID_KEYSTORE_BASE64 }}
+        run: echo $DATA | base64 -d >  ~/stream-video-calls-rn.keystore
+        shell: bash
 
       - name: Deploy
         working-directory: sample-apps/react-native/dogfood
