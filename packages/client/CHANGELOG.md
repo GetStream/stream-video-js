@@ -2,6 +2,34 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+### [0.5.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.10...@stream-io/video-client-0.5.11) (2024-02-19)
+
+
+### Bug Fixes
+
+* **client:**  add workaround for missing getConfiguration support in react native webrtc ([#1269](https://github.com/GetStream/stream-video-js/issues/1269)) ([ac163de](https://github.com/GetStream/stream-video-js/commit/ac163de4d89e86b4900c885baef564fdaf6b7bac))
+
+### [0.5.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.9...@stream-io/video-client-0.5.10) (2024-02-16)
+
+
+### Bug Fixes
+
+* **client:** do not set h264 as preference for iphone ([a014ab0](https://github.com/GetStream/stream-video-js/commit/a014ab0e5e2907d39fac45079d64d12997e2a63e))
+
+### [0.5.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.8...@stream-io/video-client-0.5.9) (2024-02-12)
+
+
+### Features
+
+* **client:** add stopOnLeave param to device manager ([#1266](https://github.com/GetStream/stream-video-js/issues/1266)) ([2d0a865](https://github.com/GetStream/stream-video-js/commit/2d0a865e1f3d5a72df6bc528eb0ed5e2494eb734)), closes [#1236](https://github.com/GetStream/stream-video-js/issues/1236)
+
+### [0.5.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.7...@stream-io/video-client-0.5.8) (2024-02-06)
+
+
+### Features
+
+* external storage for recordings ([#1260](https://github.com/GetStream/stream-video-js/issues/1260)) ([50a45fc](https://github.com/GetStream/stream-video-js/commit/50a45fc6b87865f16301d6a9173c59e4774a3b31))
+
 ### [0.5.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-0.5.6...@stream-io/video-client-0.5.7) (2024-01-29)
 
 

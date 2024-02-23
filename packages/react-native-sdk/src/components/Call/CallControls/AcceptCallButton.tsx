@@ -3,8 +3,6 @@ import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { Platform } from 'react-native';
-import notifee from '@notifee/react-native';
 
 /**
  * The props for the Accept Call button.
@@ -45,9 +43,6 @@ export const AcceptCallButton = ({
       return;
     }
     try {
-      if (Platform.OS === 'android' && call?.cid) {
-        notifee.cancelDisplayedNotification(call?.cid);
-      }
       await call?.join();
       if (onAcceptCallHandler) {
         onAcceptCallHandler();

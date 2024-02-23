@@ -1,12 +1,16 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useAndroidKeepCallAliveEffect } from '../hooks';
 import { useIosCallkeepWithCallingStateEffect } from '../hooks/push/useIosCallkeepWithCallingStateEffect';
 import {
   MediaDevicesInitialState,
   MediaStreamManagement,
 } from './MediaStreamManagement';
+import {
+  canAddPushWSSubscriptionsRef,
+  clearPushWSEventSubscriptions,
+} from '../utils/push/utils';
+import { useAndroidKeepCallAliveEffect } from '../hooks/useAndroidKeepCallAliveEffect';
 
 export type StreamCallProps = {
   /**
@@ -15,7 +19,9 @@ export type StreamCallProps = {
    */
   call: Call;
   /**
-   * Provides the initial status of the media devices(audio/video) to the `MediaStreamManagement`.
+   * Optionally provide the initial status of the media devices(audio/video) to the `MediaStreamManagement`.
+   * Note: It will override the default state of the media devices set from the server side.
+   * It is used to control the initial state of the media devices(audio/video) in a custom lobby component.
    */
   mediaDeviceInitialState?: MediaDevicesInitialState;
 };
@@ -36,6 +42,7 @@ export const StreamCall = ({
       <MediaStreamManagement {...mediaDeviceInitialState}>
         <AndroidKeepCallAlive />
         <IosInformCallkeepCallEnd />
+        <ClearPushWSSubscriptions />
         {children}
       </MediaStreamManagement>
     </StreamCallProvider>
@@ -57,5 +64,20 @@ const AndroidKeepCallAlive = () => {
  */
 const IosInformCallkeepCallEnd = () => {
   useIosCallkeepWithCallingStateEffect();
+  return null;
+};
+
+/**
+ * This is a renderless component to clear all push ws event subscriptions
+ * and set whether push ws subscriptions can be added or not.
+ */
+const ClearPushWSSubscriptions = () => {
+  useEffect(() => {
+    clearPushWSEventSubscriptions();
+    canAddPushWSSubscriptionsRef.current = false;
+    return () => {
+      canAddPushWSSubscriptionsRef.current = true;
+    };
+  }, []);
   return null;
 };
