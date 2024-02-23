@@ -164,6 +164,12 @@ jobs:
         shell: bash
 
       - name: Create Google Service Account for Play Store Deployment
+        env:
+          DATA: ${{ secrets.RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT_BASE64 }}
+        run: echo $DATA | base64 --decode | jq > service-account.json
+        shell: bash
+
+      - name: Create Google Service Account for Play Store Deployment
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: 'service-account.json'
