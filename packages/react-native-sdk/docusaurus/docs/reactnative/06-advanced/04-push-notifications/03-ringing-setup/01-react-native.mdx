@@ -147,6 +147,7 @@ At the top of the file, right after '#import "AppDelegate.h"', add the following
 #import "RNCallKeep.h"
 #import <PushKit/PushKit.h>
 #import "RNVoipPushNotificationManager.h"
+#import "StreamVideoReactNative.h"
 // highlight-end
 ```
 
@@ -198,6 +199,11 @@ The final method to add is the one that gets invoked when there is a VoIP push n
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];
   NSString *createdCallerName = stream[@"created_by_display_name"];
+  NSString *cid = stream[@"call_cid"];
+
+  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
+
+  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
 
   // display the incoming call notification
   [RNCallKeep reportNewIncomingCall: uuid
@@ -211,7 +217,7 @@ The final method to add is the one that gets invoked when there is a VoIP push n
                  supportsUngrouping: YES
                         fromPushKit: YES
                             payload: stream
-              withCompletionHandler: completion];
+              withCompletionHandler: nil];
 }
 ```
 
@@ -294,7 +300,8 @@ export function setPushConfig() {
         // This is the advised importance of receiving incoming call notifications.
         // This will ensure that the notification will appear on-top-of applications.
         importance: AndroidImportance.HIGH,
-        sound: "default",
+        // optional: if you dont pass a sound, default ringtone will be used
+        // sound: <your sound url>
       },
       // configure the functions to create the texts shown in the notification
       // for incoming calls in Android.

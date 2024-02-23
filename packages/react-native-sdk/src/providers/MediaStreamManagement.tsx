@@ -38,17 +38,17 @@ export const MediaStreamManagement = ({
   // Memoization is needed to avoid unnecessary useEffect triggers
   const targetResolutionSetting = useMemo<TargetResolution | undefined>(() => {
     if (
-      settings?.video.target_resolution?.width === undefined ||
-      settings?.video.target_resolution?.height === undefined ||
-      settings?.video.target_resolution?.bitrate === undefined
+      settings?.video.target_resolution?.width !== undefined ||
+      settings?.video.target_resolution?.height !== undefined ||
+      settings?.video.target_resolution?.bitrate !== undefined
     ) {
-      return undefined;
+      return {
+        width: settings?.video.target_resolution.width,
+        height: settings?.video.target_resolution.height,
+        bitrate: settings?.video.target_resolution.bitrate,
+      };
     }
-    return {
-      width: settings?.video.target_resolution.width,
-      height: settings?.video.target_resolution.height,
-      bitrate: settings?.video.target_resolution.bitrate,
-    };
+    return undefined;
   }, [
     settings?.video.target_resolution.width,
     settings?.video.target_resolution.height,
@@ -82,25 +82,15 @@ export const MediaStreamManagement = ({
    * This is the object is used to track the initial audio/video enablement
    * Uses backend settings or the Prop to set initial audio/video enabled
    * Backend settings is applied only if the prop was undefined -- meaning user did not provide any value
+   * Memoization is needed to avoid unnecessary useEffect triggers
    */
   const { initialAudioEnabled, initialVideoEnabled } =
     useMemo<MediaDevicesInitialState>(() => {
-      let _initialAudioEnabled: boolean | undefined;
-      let _initialVideoEnabled: boolean | undefined;
-      if (propInitialAudioEnabled !== undefined) {
-        _initialAudioEnabled = propInitialAudioEnabled;
-      } else if (settings?.audio.mic_default_on !== undefined) {
-        _initialAudioEnabled = settings?.audio.mic_default_on;
-      }
-
-      if (propInitialVideoEnabled !== undefined) {
-        _initialVideoEnabled = propInitialVideoEnabled;
-      } else if (settings?.video.camera_default_on !== undefined) {
-        _initialVideoEnabled = settings?.video.camera_default_on;
-      }
       return {
-        initialAudioEnabled: _initialAudioEnabled,
-        initialVideoEnabled: _initialVideoEnabled,
+        initialAudioEnabled:
+          propInitialAudioEnabled ?? settings?.audio.mic_default_on,
+        initialVideoEnabled:
+          propInitialVideoEnabled ?? settings?.video.camera_default_on,
       };
     }, [
       settings?.audio.mic_default_on,
@@ -112,28 +102,29 @@ export const MediaStreamManagement = ({
   // The main logic
   // Enable or Disable the audio/video stream based on the initial state
   useEffect(() => {
-    if (initialAudioEnabled === undefined) {
+    if (!call) {
       return;
     }
-    if (initialVideoEnabled === undefined) {
-      return;
+
+    if (initialAudioEnabled !== undefined) {
+      if (initialAudioEnabled) {
+        call.microphone.enable();
+      } else {
+        call.microphone.disable();
+      }
     }
+
     // we wait until we receive the resolution settings from the backend
-    if (!call || !targetResolutionSetting) {
+    if (!targetResolutionSetting) {
       return;
     }
-
-    if (initialAudioEnabled) {
-      call.microphone.enable();
-    } else {
-      call.microphone.disable();
-    }
-
     call.camera.selectTargetResolution(targetResolutionSetting);
-    if (initialVideoEnabled) {
-      call.camera.enable();
-    } else {
-      call.camera.disable();
+    if (initialVideoEnabled !== undefined) {
+      if (initialVideoEnabled) {
+        call.camera.enable();
+      } else {
+        call.camera.disable();
+      }
     }
   }, [call, initialAudioEnabled, initialVideoEnabled, targetResolutionSetting]);
 

@@ -1,12 +1,15 @@
 .rd {
   &__tabmodal-container {
     display: flex;
-    border-radius: var(--str-video__border-radius-lg);
+    border-radius: calc(
+      // +2px to fix border radius issue
+      var(--str-video__border-radius-lg) + 2px
+    );
     width: 90vw;
     min-height: 65vh;
     border: 2px solid var(--str-video__base-color6);
 
-    box-shadow: 0px 14px 34px rgba(0, 0, 0, 0.75);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
   }
 
   &__tabmodal-header {
@@ -75,7 +78,7 @@
 
     font-size: 16px;
     margin-bottom: var(--str-video__spacing-sm);
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 0 var(--str-video__border-radius-md)
       var(--str-video__border-radius-md) 0;
 
@@ -95,17 +98,12 @@
 
     &:hover {
       cursor: pointer;
-      background-color: var(--str-video__button-primary-hover);
+      background-color: var(--str-video__button-default-hover);
     }
 
     &--active {
-      background-color: var(--str-video__button-primary-base);
-      font-weight: 500;
-
-      &:hover {
-        cursor: pointer;
-        background-color: --var(--str-video__button-primary-hover);
-      }
+      background-color: var(--str-video__button-default-active);
+      font-weight: 600;
     }
   }
 }

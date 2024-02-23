@@ -20,7 +20,7 @@ type GleapReportPayload = {
 const MAX_LOGS_QUEUE_SIZE = 350;
 
 export const useGleap = (
-  gleapApiKey: string | undefined,
+  gleapApiKey: string | null | undefined,
   client: StreamVideoClient | undefined,
   call: Call | undefined,
   user: User,

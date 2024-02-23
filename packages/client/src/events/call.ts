@@ -44,7 +44,7 @@ export const watchCallRejected = (call: Call) => {
     const { members, callingState } = call.state;
     if (callingState !== CallingState.RINGING) {
       call.logger(
-        'warn',
+        'info',
         'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
         event,
       );

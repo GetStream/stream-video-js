@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { StreamVideoRN } from '../utils';
@@ -63,6 +63,7 @@ let isSetForegroundServiceRan = false;
  * This hook is used to keep the call alive in the background for Android.
  * It starts a foreground service to keep the call alive as soon as the call is joined
  * and stops the foreground Service when the call is left.
+ * Additonally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
   if (!isSetForegroundServiceRan && Platform.OS === 'android') {
@@ -71,6 +72,7 @@ export const useAndroidKeepCallAliveEffect = () => {
   }
   const foregroundServiceStartedRef = useRef(false);
 
+  const activeCallCid = useCall()?.cid;
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
@@ -90,16 +92,25 @@ export const useAndroidKeepCallAliveEffect = () => {
         foregroundServiceStartedRef.current = true;
       };
       run();
+    } else if (callingState === CallingState.RINGING) {
+      // cancel any notifee displayed notification when the call has transitioned out of ringing
       return () => {
-        if (!foregroundServiceStartedRef.current) {
-          return;
+        if (activeCallCid) {
+          notifee.cancelDisplayedNotification(activeCallCid);
         }
-        // stop foreground service when the call is not active
-        stopForegroundService();
-        foregroundServiceStartedRef.current = false;
       };
+    } else if (
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.LEFT
+    ) {
+      if (!foregroundServiceStartedRef.current) {
+        return;
+      }
+      // stop foreground service when the call is not active
+      stopForegroundService();
+      foregroundServiceStartedRef.current = false;
     }
-  }, [callingState]);
+  }, [activeCallCid, callingState]);
 
   useEffect(() => {
     return () => {

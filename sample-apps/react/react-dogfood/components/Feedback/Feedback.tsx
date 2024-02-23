@@ -3,11 +3,7 @@ import clsx from 'clsx';
 
 import { useField, useForm } from 'react-form';
 
-import {
-  Icon,
-  useI18n,
-  useMenuPortalContext,
-} from '@stream-io/video-react-sdk';
+import { Icon, useI18n, useMenuContext } from '@stream-io/video-react-sdk';
 
 import { getCookie } from '../../helpers/getCookie';
 
@@ -135,7 +131,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
     'rd__feedback-error': errorMessage,
   });
 
-  const { close } = useMenuPortalContext();
+  const { close } = useMenuContext();
 
   if (feedbackSent) {
     return (

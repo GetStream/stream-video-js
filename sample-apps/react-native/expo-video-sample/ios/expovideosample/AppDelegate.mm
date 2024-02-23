@@ -2,7 +2,6 @@
 #import "RNVoipPushNotificationManager.h"
 #import <PushKit/PushKit.h>
 #import "RNCallKeep.h"
-#import "StreamVideoReactNative.h"
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTLinkingManager.h>
@@ -19,7 +18,6 @@
     @"supportsVideo": @YES,
     @"includesCallsInRecents": @NO,
   }];
-  [StreamVideoReactNative setup];
   self.moduleName = @"main";
 
   // You can add your custom initial props in the dictionary below.
@@ -30,6 +28,11 @@
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+  return [self getBundleURL];
+}
+
+- (NSURL *)getBundleURL
 {
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@".expo/.virtual-metro-entry"];
@@ -74,7 +77,7 @@
 - (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {
 // send event to JS
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-  
+
   // process the payload
   NSDictionary *stream = payload.dictionaryPayload[@"stream"];
   NSString *uuid = [[NSUUID UUID] UUIDString];

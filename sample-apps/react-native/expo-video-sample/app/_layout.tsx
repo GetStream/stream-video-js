@@ -3,6 +3,10 @@ import { Stack } from 'expo-router';
 import { UsersList } from '../components/UsersList';
 import { VideoWrapper } from '../components/VideoWrapper';
 import { AppProvider, useAppContext } from '../context/AppContext';
+import { setPushConfig } from '../utils/setPushConfig';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+setPushConfig();
 
 const Home = () => {
   const { user } = useAppContext();
@@ -18,8 +22,10 @@ const Home = () => {
 
 export default function Layout() {
   return (
-    <AppProvider>
-      <Home />
-    </AppProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProvider>
+        <Home />
+      </AppProvider>
+    </GestureHandlerRootView>
   );
 }

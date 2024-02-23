@@ -84,19 +84,66 @@
   }
 }
 
-.rd__particpant-count {
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--str-video__border-radius-circle);
+.rd__toggle-participants {
+  .rd__waiting-room-list {
+    background-color: var(--str-video__base-color6);
+    padding: var(--str-video__spacing-lg);
+    min-width: 350px;
+  }
 
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  background: var(--str-video__brand-color3);
-  color: var(--str-video__base-color4);
-  padding: 5px;
-  height: 16px;
-  width: 16px;
+  .rd__waiting-room-list__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rd__waiting-room-list__title-icon {
+    display: inline-block;
+  }
+
+  .rd__waiting-room-list__users {
+    list-style: none;
+    padding-inline: 0;
+  }
+
+  .rd__waiting-room-list__user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: var(--str-video__spacing-xs);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .rd__button.rd__waiting-room-list__admit {
+      color: var(--str-video__alert-success);
+      width: auto;
+    }
+  }
+
+  .rd__waiting-room-list__user-name {
+    flex: 1;
+  }
+
+  .rd__waiting-room-list__footer {
+    padding: 0, var(--str-video__spacing-xs);
+  }
+
+  .rd__participant-count {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--str-video__border-radius-circle);
+
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background: var(--str-video__brand-color3);
+    color: var(--str-video__base-color4);
+    padding: 5px;
+    height: 16px;
+    width: 16px;
+  }
 }

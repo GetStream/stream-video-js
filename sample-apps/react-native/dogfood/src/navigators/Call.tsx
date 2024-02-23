@@ -46,13 +46,7 @@ const Calls = () => {
   }
 
   return (
-    <StreamCall
-      call={firstCall}
-      mediaDeviceInitialState={{
-        initialAudioEnabled: false,
-        initialVideoEnabled: false,
-      }}
-    >
+    <StreamCall call={firstCall}>
       <SafeAreaView style={[styles.container, { top }]}>
         <RingingCallContent landscape={orientation === 'landscape'} />
       </SafeAreaView>

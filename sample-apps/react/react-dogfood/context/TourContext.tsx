@@ -60,7 +60,7 @@ tourData[StepNames.Chat] = {
   header: 'Chat',
   explanation: `A full chat SDK/API with reactions, typing, unread counts, quoted replies, URL previews, image uploads, and basically anything you’d expect from a WhatsApp or Slack style app.`,
   placement: 'left-end',
-  anchor: '.str-video__chat',
+  anchor: '.rd__sidebar--open',
   delay: 100,
   image: {
     src: `${basePath}/chat.png`,
@@ -140,8 +140,14 @@ export const TourProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const next = useCallback(() => {
-    setCurrent(current + 1);
-  }, [current, setCurrent]);
+    setCurrent((currentStep) => {
+      const nextStep = currentStep + 1;
+      if (nextStep === steps.length - 1) {
+        closeTour();
+      }
+      return nextStep;
+    });
+  }, [closeTour, steps.length]);
 
   useEffect(() => {
     localStorage.getItem(ENABLE_TOUR_KEY) === 'false' && setActive(false);
