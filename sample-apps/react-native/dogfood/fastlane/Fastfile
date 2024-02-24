@@ -2,17 +2,17 @@ skip_docs
 video_buddy_port = 7654
 metro_port = 8081
 build_dir = 'dist'
-$bundle_id = 'io.getstream.rnvideosample'
-$bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
+bundle_id = 'io.getstream.rnvideosample'
+bundle_id_broadcast = 'io.getstream.rnvideosample.Broadcast-Extension'
 provisioning_profile_prefix = 'match AppStore '
-$android_package_name = 'io.getstream.rnvideosample'
+android_package_name = 'io.getstream.rnvideosample'
 
-def self.latest_googleplay_version_code
+private_lane :latest_googleplay_version_code do |options|
   tracks = ["internal", "alpha", "beta", "production"]
   version_codes = []
   tracks.each do |track|
     vc = google_play_track_version_codes(
-      package_name: $android_package_name,
+      package_name: android_package_name,
       json_key: ENV.fetch('RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT', nil),
       track: track
     )
@@ -24,16 +24,16 @@ def self.latest_googleplay_version_code
   version_codes.max
 end
 
-def self.latest_appstore_version_code
+private_lane :latest_appstore_version_code do |options|
   livestates = [true, false]
   version_codes = []
   livestates.each do |livestate|
     vc = app_store_build_number(
       live: livestate,
-      app_identifier: $bundle_id
+      app_identifier: bundle_id
     )
   rescue StandardError
-    puts("No app store build found for liveState: #{livestate}")
+    puts("No app store build found for liveState: #{livestate} bundle_id: #{bundle_id}")
   else
     version_codes.append(vc)
   end
@@ -51,7 +51,7 @@ desc 'Installs all Certs and Profiles necessary for appstore'
 lane :match_appstore do
   match(
     type: 'appstore',
-    app_identifier: [$bundle_id, $bundle_id_broadcast],
+    app_identifier: [bundle_id, bundle_id_broadcast],
     readonly: is_ci
   )
 end
@@ -103,6 +103,8 @@ lane :bump_ios_version_number do
 
   current_build_number = latest_appstore_version_code
 
+  puts("Current build number: #{current_build_number}")
+
   increment_build_number(
     build_number: current_build_number + 1,
     xcodeproj: 'ios/StreamReactNativeVideoSDKSample.xcodeproj'
@@ -126,8 +128,8 @@ lane :build_ios do
     clean: true,
     export_options: {
       provisioningProfiles: {
-        bundle_id => provisioning_profile_prefix + $bundle_id,
-        bundle_id_broadcast => provisioning_profile_prefix + $bundle_id_broadcast
+        bundle_id => provisioning_profile_prefix + bundle_id,
+        bundle_id_broadcast => provisioning_profile_prefix + bundle_id_broadcast
       }
     },
     include_symbols: true,
@@ -268,7 +270,7 @@ end
 lane :deploy_android do
   supply(
     track: "internal",
-    package_name: $android_package_name,
+    package_name: android_package_name,
     json_key: ENV.fetch('RN_DOGFOOD_ANDROID_DEPLOY_SERVICE_ACCOUNT', nil),
     aab: "#{build_dir}/app.aab"
   )
