@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.3...@stream-io/video-react-native-sdk-0.5.0) (2024-02-26)
+
+### Dependency Updates
+
+* `@stream-io/video-client` updated to version `0.6.0`
+* `@stream-io/video-react-bindings` updated to version `0.4.0`
+
+### ⚠ BREAKING CHANGES
+
+* **hooks:** expose permission hooks through useCallStateHooks() (#1254)
+
+### Features
+
+* **hooks:** expose permission hooks through useCallStateHooks() ([#1254](https://github.com/GetStream/stream-video-js/issues/1254)) ([3eaa8bd](https://github.com/GetStream/stream-video-js/commit/3eaa8bd7592920eedb434b6ec747b6d22077ed87))
+
 ### [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-0.4.2...@stream-io/video-react-native-sdk-0.4.3) (2024-02-19)
 
 ### Dependency Updates
