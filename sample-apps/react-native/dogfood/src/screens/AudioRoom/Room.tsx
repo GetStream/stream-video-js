@@ -40,10 +40,7 @@ export default function Room({ onClose }: { onClose: () => void }) {
     }
 
     return call.on('error', (e) => {
-      if (e.eventPayload.oneofKind !== 'error') {
-        return;
-      }
-      if (e.eventPayload.error.error?.code !== SfuModels.ErrorCode.LIVE_ENDED) {
+      if (e.error?.code !== SfuModels.ErrorCode.LIVE_ENDED) {
         return;
       }
       if (

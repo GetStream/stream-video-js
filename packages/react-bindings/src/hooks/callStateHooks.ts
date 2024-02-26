@@ -9,6 +9,7 @@ import {
   Comparator,
   EgressResponse,
   MemberResponse,
+  OwnCapability,
   StreamVideoParticipant,
   UserResponse,
 } from '@stream-io/video-client';
@@ -318,6 +319,24 @@ export const useAnonymousParticipantCount = () => {
 export const useCallThumbnail = () => {
   const { thumbnails$ } = useCallState();
   return useObservableValue(thumbnails$);
+};
+
+/**
+ * A hook which returns the local participant's own capabilities.
+ */
+export const useOwnCapabilities = (): OwnCapability[] | undefined => {
+  const { ownCapabilities$ } = useCallState();
+  return useObservableValue(ownCapabilities$);
+};
+
+/**
+ * Hook that returns true if the local participant has all the given permissions.
+ *
+ * @param permissions the permissions to check.
+ */
+export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
+  const capabilities = useOwnCapabilities();
+  return permissions.every((permission) => capabilities?.includes(permission));
 };
 
 /**

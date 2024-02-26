@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { useCall, useHasPermissions } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export const useRequestPermission = (permission: OwnCapability) => {
   const call = useCall();
+  const { useHasPermissions } = useCallStateHooks();
   const hasPermission = useHasPermissions(permission);
   const [isAwaitingPermission, setIsAwaitingPermission] = useState(false); // TODO: load with possibly pending state
 

@@ -96,7 +96,7 @@ For readability the code snippet only contains the `MyPermissionRequests` and th
 ```tsx
 import {
   useRequestPermission,
-  useHasPermissions,
+  useCallStateHooks,
   OwnCapability,
 } from '@stream-io/video-react-sdk';
 
@@ -119,6 +119,7 @@ const MyPermissionRequestButton = ({ children, capability }) => {
 
 const MyPermissionRequests = () => {
   const call = useCall();
+  const { useHasPermissions } = useCallStateHooks();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
   const canShareScreen = useHasPermissions(OwnCapability.SCREENSHARE);
@@ -163,7 +164,7 @@ For readability, the code snippet only contains the `MyPermissionRequestNotifica
 ```tsx
 const MyPermissionRequestNotifications = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
@@ -245,7 +246,6 @@ import {
   useCall,
   useCallStateHooks,
   useRequestPermission,
-  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import { useEffect, useState } from 'react';
@@ -296,6 +296,7 @@ const MyPermissionRequestButton = ({ children, capability }) => {
 
 const MyPermissionRequests = () => {
   const call = useCall();
+  const { useHasPermissions } = useCallStateHooks();
   const canSendAudio = useHasPermissions(OwnCapability.SEND_AUDIO);
   const canSendVideo = useHasPermissions(OwnCapability.SEND_VIDEO);
   const canShareScreen = useHasPermissions(OwnCapability.SCREENSHARE);
@@ -326,7 +327,7 @@ const MyPermissionRequests = () => {
 
 const MyPermissionRequestNotifications = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
+  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const canUpdateCallPermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
