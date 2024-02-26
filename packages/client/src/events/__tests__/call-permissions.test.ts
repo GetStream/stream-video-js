@@ -8,16 +8,11 @@ describe('Call Permission Events', () => {
     const state = new CallState();
     const handler = watchCallGrantsUpdated(state);
     handler({
-      eventPayload: {
-        oneofKind: 'callGrantsUpdated',
-        callGrantsUpdated: {
-          message: 'test',
-          currentGrants: {
-            canPublishAudio: true,
-            canPublishVideo: true,
-            canScreenshare: true,
-          },
-        },
+      message: 'test',
+      currentGrants: {
+        canPublishAudio: true,
+        canPublishVideo: true,
+        canScreenshare: true,
       },
     });
 
@@ -28,16 +23,11 @@ describe('Call Permission Events', () => {
     ]);
 
     handler({
-      eventPayload: {
-        oneofKind: 'callGrantsUpdated',
-        callGrantsUpdated: {
-          message: 'test',
-          currentGrants: {
-            canPublishAudio: true,
-            canPublishVideo: false,
-            canScreenshare: false,
-          },
-        },
+      message: 'test',
+      currentGrants: {
+        canPublishAudio: true,
+        canPublishVideo: false,
+        canScreenshare: false,
       },
     });
     expect(state.ownCapabilities).toEqual([OwnCapability.SEND_AUDIO]);

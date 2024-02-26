@@ -42,9 +42,6 @@ export const PermissionRequestsPanel = () => {
       return;
     }
     return call.on('call.permission_request', (event) => {
-      if (event.type !== 'call.permission_request') {
-        return;
-      }
       setSpeakingRequests((prevSpeakingRequests) => [
         ...prevSpeakingRequests,
         event,
