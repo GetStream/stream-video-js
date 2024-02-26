@@ -6,7 +6,6 @@ import {
   StreamVideoParticipant,
   useCall,
   useCallStateHooks,
-  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatIcon, CloseIcon, ListIcon, PersonIcon } from '../icons';
@@ -35,6 +34,7 @@ export const RoomUI = ({ loadRoom }: RoomUIProps) => {
     useParticipants,
     useCallEndedAt,
     useIsCallLive,
+    useHasPermissions,
   } = useCallStateHooks();
   const customData = useCallCustomData();
   const endedAt = useCallEndedAt();

@@ -2,7 +2,7 @@ import {
   OwnCapability,
   PermissionRequestEvent,
   useCall,
-  useHasPermissions,
+  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import React, { useEffect, useState } from 'react';
@@ -12,6 +12,7 @@ export const PermissionRequestsPanel = () => {
   const call = useCall();
   const { t } = useI18n();
 
+  const { useHasPermissions } = useCallStateHooks();
   const canUpdatePermissions = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );

@@ -6,7 +6,6 @@ import {
   useCall,
   useCallStateHooks,
   useConnectedUser,
-  useHasPermissions,
 } from '@stream-io/video-react-sdk';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -27,8 +26,12 @@ export const LiveRoomControls = ({
   openRequestsList,
 }: LiveRoomControlsProps) => {
   const call = useCall();
-  const { useCallCustomData, useCallCallingState, useLocalParticipant } =
-    useCallStateHooks();
+  const {
+    useCallCustomData,
+    useCallCallingState,
+    useLocalParticipant,
+    useHasPermissions,
+  } = useCallStateHooks();
   const customData = useCallCustomData();
   const callingState = useCallCallingState();
   const connectedUser = useConnectedUser();
