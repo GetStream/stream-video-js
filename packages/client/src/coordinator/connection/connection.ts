@@ -564,8 +564,7 @@ export class StableWSConnection {
     }
 
     if (data && data.type === 'connection.error' && data.error) {
-      // @ts-expect-error - the types of _errorFromWSEvent are incorrect
-      const { code } = this._errorFromWSEvent(data, true);
+      const { code } = data.error;
       this.isHealthy = false;
       this.isConnecting = false;
       this.consecutiveFailures += 1;
